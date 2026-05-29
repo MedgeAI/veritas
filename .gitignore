@@ -1,0 +1,56 @@
+# Python/runtime cache
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Python packaging
+*.egg-info/
+build/
+dist/
+
+# Local environments
+.venv/
+venv/
+node_modules/
+node_modules
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+
+# AI tool local config
+.claude/
+.agents/
+skills-lock.json
+
+# Secrets
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Local opencode install/cache; keep only project skills
+.opencode/*
+!.opencode/skills/
+!.opencode/skills/**
+
+# User/private inputs and generated outputs
+input/
+outputs/
+web_data/
+web/frontend/dist/
+web/frontend/coverage/
+web/frontend/node_modules
+
+# Third-party reference repos (local-only, not pushed to remote)
+.gitmodules
+third_party/
+
+# Conversation handoff files are local working material
+*-handoff.md
