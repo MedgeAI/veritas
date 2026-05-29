@@ -48,9 +48,10 @@ web/frontend/dist/
 web/frontend/coverage/
 web/frontend/node_modules
 
-# Third-party reference repos (local-only, not pushed to remote)
+# Third-party reference repos and project docs (local-only, not pushed)
 .gitmodules
 third_party/
+docs/
 
 # Conversation handoff files are local working material
 *-handoff.md
