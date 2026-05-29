@@ -1,0 +1,5 @@
+ProteinFold-X
+
+Table 2 reports that AlphaFold2 baseline achieves a TM-score of 0.847 on CASP15.
+Appendix A reports validation accuracy of 0.902.
+Table 3 reports a TM-score of 0.812 on CASP13.

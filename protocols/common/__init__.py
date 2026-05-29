@@ -1,0 +1,1 @@
+"""Common verification protocol definitions."""

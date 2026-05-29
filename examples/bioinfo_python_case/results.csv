@@ -1,0 +1,5 @@
+dataset,metric,value
+CASP15,TM-score,0.823
+CASP14,TM-score,0.847
+CASP13,TM-score,0.812
+Validation,Accuracy,0.902
