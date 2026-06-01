@@ -132,3 +132,123 @@ def test_static_audit_html_report_pattern_view_is_case_agnostic(tmp_path) -> Non
     assert "Fig.7d" not in html
     assert "ROS-0001" not in html
     assert "PT/RT" not in html
+
+
+def test_static_audit_html_report_merges_source_and_pair_priority_findings(tmp_path) -> None:
+    write_json(
+        tmp_path / "source_data_findings.json",
+        {
+            "summary": {"priority_findings": 1},
+            "priority_findings": [
+                {
+                    "finding_id": "SRC-001",
+                    "category": "fixed_difference",
+                    "risk_level": "medium",
+                    "workbook": "source.xlsx",
+                    "sheet": "Endpoint A",
+                    "column_pair": ["B", "C"],
+                    "support_rows": 18,
+                    "overlap_rows": 18,
+                }
+            ],
+        },
+    )
+    write_json(
+        tmp_path / "source_data_pair_forensics.json",
+        {
+            "summary": {"priority_findings": 1},
+            "priority_findings": [
+                {
+                    "finding_id": "PAIR-001",
+                    "category": "row_offset_scalar_multiple",
+                    "risk_level": "high",
+                    "workbook": "source.xlsx",
+                    "sheet": "Endpoint B",
+                    "columns": ["value"],
+                    "row_offset": 8,
+                    "support_rows": 8,
+                    "overlap_rows": 8,
+                }
+            ],
+        },
+    )
+    write_json(tmp_path / "static_audit_bundle.json", {"agent_traces": [], "claim_mappings": []})
+
+    html = render_static_audit_html(tmp_path, "case-merged")
+
+    assert "原始高优先级 evidence cards（展示 2 / 2 条）" in html
+    assert "SRC-001" in html
+    assert "PAIR-001" in html
+
+
+def test_static_audit_html_report_uses_pass_verdict_without_findings(tmp_path) -> None:
+    write_json(
+        tmp_path / "audit_run_manifest.json",
+        {"steps": [{"key": "evidence_ledger", "title": "Evidence ledger", "status": "ran"}]},
+    )
+    write_json(
+        tmp_path / "static_audit_bundle.json",
+        {
+            "evidence_items": [{"evidence_id": "EV-001"}],
+            "claims": [],
+            "findings": [],
+            "claim_mappings": [],
+            "agent_traces": [],
+            "execution_status": {"status": "not_provided"},
+        },
+    )
+
+    html = render_static_audit_html(tmp_path, "case-clean")
+
+    assert "Needs Human Review" not in html
+    assert "未见高优先级自动 finding" in html
+
+
+def test_static_audit_html_report_renders_canonical_non_source_data_finding(tmp_path) -> None:
+    write_json(
+        tmp_path / "static_audit_bundle.json",
+        {
+            "evidence_items": [
+                {
+                    "evidence_id": "EV-IMG-001",
+                    "kind": "image",
+                    "source_path": "images/figure_1.png",
+                    "locator": {"figure": "Fig. 1"},
+                }
+            ],
+            "claims": [
+                {
+                    "claim_id": "CL-IMG-001",
+                    "text": "The image panels represent independent conditions.",
+                    "claim_type": "figure_trace",
+                }
+            ],
+            "findings": [
+                {
+                    "finding_id": "VF-001",
+                    "category": "near_duplicate_image",
+                    "risk_level": "medium",
+                    "summary": "Near-duplicate image candidate requires visual review.",
+                    "evidence_refs": ["EV-IMG-001"],
+                    "metadata": {"source_artifact": "image_relationships.json"},
+                }
+            ],
+            "claim_mappings": [
+                {
+                    "mapping_id": "CM-IMG-001",
+                    "claim_id": "CL-IMG-001",
+                    "evidence_refs": ["EV-IMG-001"],
+                    "confidence": "medium",
+                    "finding_refs": ["VF-001"],
+                }
+            ],
+            "agent_traces": [],
+            "execution_status": {"status": "not_provided"},
+        },
+    )
+
+    html = render_static_audit_html(tmp_path, "case-visual")
+
+    assert "VF-001" in html
+    assert "near_duplicate_image" in html
+    assert "Evidence refs" in html

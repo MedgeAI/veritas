@@ -10,6 +10,8 @@ from typing import Any
 from engine.static_audit.investigation import read_investigation_records
 
 MAX_EVIDENCE_CARDS = 8
+SOURCE_DATA_FINDINGS_ARTIFACT = "source_data_findings.json"
+SOURCE_DATA_PAIR_FORENSICS_ARTIFACT = "source_data_pair_forensics.json"
 
 
 def render_static_audit_html(workdir: Path, case_id: str) -> str:
@@ -29,9 +31,7 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
     claim_extractor = read_json(workdir / "agent_claim_extractor.json") or {}
     investigation_records = read_investigation_records(workdir)
 
-    priority_findings = source_findings.get("priority_findings") or []
-    pair_priority_findings = pair_forensics.get("priority_findings") or []
-    primary_findings = pair_priority_findings or priority_findings
+    primary_findings = collect_report_findings(source_findings, pair_forensics, bundle)
     mappings = source_findings.get("claim_to_source_data") or []
     canonical_claims = bundle.get("claims") or []
     canonical_mappings = bundle.get("claim_mappings") or []
@@ -67,8 +67,10 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
     cluster_cards = evidence_cluster_cards(evidence_clusters)
     pattern_findings = dedupe_findings(
         primary_findings
-        + (source_findings.get("formula_derived_columns") or [])
-        + (source_findings.get("priority_findings") or [])
+        + annotate_findings(
+            source_findings.get("formula_derived_columns") or [],
+            SOURCE_DATA_FINDINGS_ARTIFACT,
+        )
     )
     patterns = build_pattern_groups(
         pattern_findings,
@@ -87,6 +89,7 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
         profile_summary,
         exact_images,
     )
+    verdict = report_verdict(primary_findings, manual_tasks, tool_runs, bundle)
 
     card_findings = evidence_card_findings(primary_findings)
     card_title = (
@@ -511,22 +514,23 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
           <span class="meta-chip">static audit only</span>
         </div>
         <div class="verdict-row">
-          <span class="verdict-badge">Needs Human Review</span>
+          <span class="verdict-badge">{h(verdict["label"])}</span>
           <span class="verdict-badge outline">非科研诚信定论</span>
+          <span class="verdict-badge outline">{h(verdict["depth"])}</span>
         </div>
-        <h1>投稿前技术复核：<br/>需人工复核</h1>
+        <h1>投稿前技术复核：<br/>{h(verdict["headline"])}</h1>
         <p class="lead">{h(hero_summary)}</p>
         <div class="hero-stat-grid">
           {hero_metric("可复核规律", len(patterns))}
           {hero_metric("高优先级 findings", len(primary_findings))}
           {hero_metric("claim 映射", bundle_counts["claim_mappings"])}
-          {hero_metric("workbook / sheet", f"{profile_summary.get('workbook_count', '-')} / {profile_summary.get('sheet_count', '-')}")}
+          {hero_metric("Source coverage", source_coverage_value(profile_summary))}
         </div>
       </div>
       <aside class="panel action-panel">
         <div>
           <div class="eyebrow">First read</div>
-          <h2>先看 Top Patterns</h2>
+          <h2>{h("先看 Top Patterns" if patterns else "先看覆盖范围")}</h2>
           <p class="muted">规律只描述一次；每条不可约证据记录保留原始定位和值，放在折叠区供复查。</p>
         </div>
         {hero_pattern_list(patterns)}
@@ -557,13 +561,13 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
 
     <section class="panel section" id="noise-ledger">
       <h2>不可约 Evidence Ledger</h2>
-      <p class="muted">这里不再压缩叙事，只保留每条证据必须原样记录的字段：finding_id、workbook、sheet、列、offset、support、样本值或公式。</p>
+      <p class="muted">这里不再压缩叙事，只保留每条证据必须原样记录的字段：finding_id、来源 artifact、定位、support、样本值、公式或摘要。</p>
       {evidence_ledger_html}
     </section>
 
     <section class="panel section" id="claim-impact">
       <h2>Claim Impact Matrix</h2>
-      <p class="muted">把 Agent 抽取的 claim、Source Data 引用和确定性 finding 合在一张表里，帮助作者或 PI 判断哪些论文表述需要优先复核。</p>
+      <p class="muted">把 Agent 抽取的 claim、evidence 引用和 finding 合在一张表里，帮助作者或 PI 判断哪些论文表述需要优先复核。</p>
       {claim_impact_matrix(source_auditor.get("claim_to_source_data") or [], claim_extractor.get("claims") or canonical_claims, canonical_mappings)}
     </section>
 
@@ -601,7 +605,7 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
         </details>
 
         <details class="compact-details">
-          <summary><span><strong>Agent 精炼 Claim-to-Source Data 主视图</strong><br/><span class="muted">完整 claim mapping 和 deterministic scaffolding。</span></span><span class="badge skipped">展开</span></summary>
+          <summary><span><strong>Agent 精炼 Claim-to-Evidence 主视图</strong><br/><span class="muted">完整 claim mapping 和 deterministic scaffolding。</span></span><span class="badge skipped">展开</span></summary>
           <div class="grid cols-3">
             {metric("canonical claims", len(canonical_claims))}
             {metric("canonical mappings", len(canonical_mappings))}
@@ -611,7 +615,7 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
         </details>
 
         <details class="compact-details">
-          <summary><span><strong>Figure / Sheet Evidence Clusters</strong><br/><span class="muted">旧阅读维度：按 figure/sheet 聚类，作为 Pattern-first 视图的回退索引。</span></span><span class="badge skipped">展开</span></summary>
+          <summary><span><strong>Source / Evidence Clusters</strong><br/><span class="muted">旧阅读维度：按来源和定位聚类，作为 Pattern-first 视图的回退索引。</span></span><span class="badge skipped">展开</span></summary>
           {cluster_cards}
         </details>
 
@@ -704,6 +708,143 @@ def write_static_audit_html(workdir: Path, case_id: str) -> Path:
     return path
 
 
+def collect_report_findings(
+    source_findings: dict[str, Any],
+    pair_forensics: dict[str, Any],
+    bundle: dict[str, Any],
+) -> list[dict[str, Any]]:
+    findings = []
+    findings.extend(
+        annotate_findings(
+            source_findings.get("priority_findings") or [],
+            SOURCE_DATA_FINDINGS_ARTIFACT,
+        )
+    )
+    findings.extend(
+        annotate_findings(
+            pair_forensics.get("priority_findings") or [],
+            SOURCE_DATA_PAIR_FORENSICS_ARTIFACT,
+        )
+    )
+
+    seen = {str(finding.get("finding_id")) for finding in findings if finding.get("finding_id")}
+    for item in bundle.get("findings") or []:
+        if not isinstance(item, dict):
+            continue
+        finding_id = str(item.get("finding_id") or "")
+        if finding_id and finding_id in seen:
+            continue
+        normalized = normalize_bundle_finding(item, bundle)
+        if finding_id:
+            seen.add(finding_id)
+        findings.append(normalized)
+    return sorted(
+        dedupe_findings(findings),
+        key=lambda finding: (
+            -risk_score(finding.get("risk_level")),
+            -finding_support_value(finding),
+            str(finding.get("source_artifact", "")),
+            str(finding.get("finding_id", "")),
+        ),
+    )
+
+
+def annotate_findings(findings: list[dict[str, Any]], source_artifact: str) -> list[dict[str, Any]]:
+    annotated = []
+    for finding in findings:
+        if not isinstance(finding, dict):
+            continue
+        item = dict(finding)
+        item.setdefault("source_artifact", source_artifact)
+        annotated.append(item)
+    return annotated
+
+
+def normalize_bundle_finding(item: dict[str, Any], bundle: dict[str, Any]) -> dict[str, Any]:
+    metadata = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
+    finding = dict(metadata)
+    for key in (
+        "finding_id",
+        "category",
+        "risk_level",
+        "summary",
+        "evidence_refs",
+        "claim_refs",
+        "benign_explanations",
+        "pressure_test_result",
+        "manual_review_note",
+    ):
+        if item.get(key) not in (None, "", []):
+            finding[key] = item.get(key)
+    finding.setdefault("source_artifact", metadata.get("source_artifact") or "static_audit_bundle.json")
+    if not finding.get("source_path"):
+        finding["source_path"] = source_path_for_evidence_refs(finding.get("evidence_refs") or [], bundle)
+    return finding
+
+
+def source_path_for_evidence_refs(evidence_refs: list[Any], bundle: dict[str, Any]) -> str:
+    evidence_by_id = {
+        str(item.get("evidence_id")): item
+        for item in (bundle.get("evidence_items") or [])
+        if isinstance(item, dict) and item.get("evidence_id")
+    }
+    paths = []
+    for ref in evidence_refs:
+        evidence = evidence_by_id.get(str(ref))
+        if evidence and evidence.get("source_path"):
+            paths.append(str(evidence.get("source_path")))
+    return ", ".join(dedupe(paths)[:3])
+
+
+def report_verdict(
+    findings: list[dict[str, Any]],
+    manual_tasks: list[dict[str, Any]],
+    tool_runs: list[dict[str, Any]],
+    bundle: dict[str, Any],
+) -> dict[str, str]:
+    statuses = {str(step.get("status")) for step in tool_runs if isinstance(step, dict)}
+    max_risk = max((risk_score(finding.get("risk_level")) for finding in findings), default=0)
+    has_review_work = bool(findings or manual_tasks)
+    has_failed_tool = "failed" in statuses
+    has_warning_tool = "warning" in statuses
+
+    if max_risk >= risk_score("critical"):
+        label = "High Technical Conflict"
+        headline = "存在高强度技术冲突"
+        result = "fail"
+    elif has_review_work or has_failed_tool or has_warning_tool:
+        label = "Needs Human Review"
+        headline = "需人工复核"
+        result = "warning"
+    else:
+        label = "No Priority Findings"
+        headline = "未见高优先级自动 finding"
+        result = "pass"
+
+    return {
+        "label": label,
+        "headline": headline,
+        "result": result,
+        "depth": audit_depth_label(bundle, tool_runs),
+    }
+
+
+def audit_depth_label(bundle: dict[str, Any], tool_runs: list[dict[str, Any]]) -> str:
+    step_keys = {str(step.get("key") or step.get("step_key")) for step in tool_runs if isinstance(step, dict)}
+    evidence_count = len(bundle.get("evidence_items") or [])
+    claim_mapping_count = len(bundle.get("claim_mappings") or [])
+    execution_status = (bundle.get("execution_status") or {}).get("status")
+    if not evidence_count and not step_keys:
+        return "V0 coverage"
+    if execution_status == "ran":
+        return "V4 coverage"
+    if claim_mapping_count or len(bundle.get("agent_traces") or []):
+        return "V3 coverage"
+    if {"source_data_profile", "source_data_findings", "source_data_pair_forensics", "exact_image_duplicates"} & step_keys:
+        return "V2 coverage"
+    return "V1 coverage"
+
+
 def executive_summary(
     patterns: list[dict[str, Any]],
     findings: list[dict[str, Any]],
@@ -712,16 +853,38 @@ def executive_summary(
     exact_images: dict[str, Any],
 ) -> str:
     pattern_titles = [str(pattern.get("title")) for pattern in patterns[:3] if pattern.get("title")]
-    pattern_text = "、".join(pattern_titles) if pattern_titles else "Source Data 技术异常"
-    workbook_count = profile_summary.get("workbook_count", "-")
-    sheet_count = profile_summary.get("sheet_count", "-")
+    source_coverage = source_coverage_text(profile_summary)
     image_count = exact_images.get("image_count", "-")
+    if not findings:
+        return (
+            "本次静态技术复核未生成高优先级自动 finding。"
+            f"当前 {source_coverage}、"
+            f"{bundle_counts.get('claim_mappings', 0)} 条 claim 映射和 {image_count} 张 PDF 提取图片；"
+            "仍需结合材料完整性和人工抽查确认。"
+        )
+    pattern_text = "、".join(pattern_titles) if pattern_titles else "技术异常候选"
     return (
         f"本次静态技术复核把 {len(findings)} 条高优先级技术异常候选压缩为 {len(patterns)} 类可复核规律："
-        f"{pattern_text}。当前已覆盖 {workbook_count} 个 workbook / {sheet_count} 个 sheet、"
+        f"{pattern_text}。当前 {source_coverage}、"
         f"{bundle_counts.get('claim_mappings', 0)} 条 claim 映射和 {image_count} 张 PDF 提取图片；"
         "结论仅表示需要人工复核，不构成科研诚信判定。"
     )
+
+
+def source_coverage_value(profile_summary: dict[str, Any]) -> str:
+    workbook_count = profile_summary.get("workbook_count")
+    sheet_count = profile_summary.get("sheet_count")
+    if workbook_count is None and sheet_count is None:
+        return "not selected"
+    return f"{workbook_count if workbook_count is not None else '-'} / {sheet_count if sheet_count is not None else '-'}"
+
+
+def source_coverage_text(profile_summary: dict[str, Any]) -> str:
+    workbook_count = profile_summary.get("workbook_count")
+    sheet_count = profile_summary.get("sheet_count")
+    if workbook_count is None and sheet_count is None:
+        return "未形成 Source Data workbook/sheet 覆盖指标"
+    return f"已覆盖 {workbook_count if workbook_count is not None else '-'} 个 workbook / {sheet_count if sheet_count is not None else '-'} 个 sheet"
 
 
 def hero_pattern_list(patterns: list[dict[str, Any]]) -> str:
@@ -749,9 +912,9 @@ def hero_action_list(tasks: list[dict[str, Any]]) -> str:
     ]
     if not questions:
         questions = [
-            "核对 Source Data 的 workbook、sheet、row/column header 与 figure panel 是否一致。",
-            "要求作者解释归一化、公式派生或批量导出过程，并提供原始分析脚本。",
-            "把高优先级 finding 与论文 claim 逐条对账，确认是否需要补充材料或说明。",
+            "核对材料清单、PDF 解析、Source Data、图像和代码材料是否完整。",
+            "要求作者补充缺失的原始数据、导出过程、分析脚本或结果文件。",
+            "把后续生成的 finding 与论文 claim 逐条对账，确认是否需要补充材料或说明。",
         ]
     return "<ul class='action-list'>" + list_items(questions) + "</ul>"
 
@@ -915,17 +1078,30 @@ def evidence_records_table(findings: list[dict[str, Any]], compact: bool = False
             "<tr>"
             f"<td><code>{h(finding.get('finding_id', '-'))}</code></td>"
             f"<td>{h(category_label(finding.get('category', '-')))}</td>"
-            f"<td class='noise-cell'><code>{h(finding.get('workbook', '-'))}</code></td>"
-            f"<td>{h(finding.get('sheet', '-'))}</td>"
+            f"<td class='noise-cell'><code>{h(evidence_source_text(finding))}</code></td>"
             f"<td class='noise-cell'><code>{h(evidence_locator(finding))}</code></td>"
             f"<td>{h(support_text(finding))}</td>"
             f"<td class='noise-cell'>{h(evidence_sample_text(finding, limit=1 if compact else 3))}</td>"
             "</tr>"
         )
     return (
-        "<div class='noise-table'><table><thead><tr><th>finding</th><th>category</th><th>workbook</th><th>sheet</th><th>locator</th><th>support</th><th>sample / formula</th></tr></thead>"
+        "<div class='noise-table'><table><thead><tr><th>finding</th><th>category</th><th>source</th><th>locator</th><th>support</th><th>sample / formula / summary</th></tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table></div>"
     )
+
+
+def evidence_source_text(finding: dict[str, Any]) -> str:
+    workbook = finding.get("workbook")
+    sheet = finding.get("sheet")
+    if workbook or sheet:
+        return " / ".join(str(item) for item in (workbook, sheet) if item)
+    for key in ("source_path", "image_path", "figure_path", "artifact_path", "source_artifact"):
+        if finding.get(key):
+            return str(finding.get(key))
+    refs = finding.get("evidence_refs") or []
+    if refs:
+        return ", ".join(str(ref) for ref in refs[:3])
+    return "-"
 
 
 def evidence_locator(finding: dict[str, Any]) -> str:
@@ -945,6 +1121,9 @@ def evidence_locator(finding: dict[str, Any]) -> str:
         parts.append(f"label={finding.get('target_column_label')}")
     if finding.get("dominant_formula_pattern"):
         parts.append(f"formula={finding.get('dominant_formula_pattern')}")
+    for key in ("figure", "panel_id", "bbox", "page", "line", "cell", "range"):
+        if finding.get(key):
+            parts.append(f"{key}={finding.get(key)}")
     return "; ".join(parts) or "-"
 
 
@@ -969,6 +1148,8 @@ def evidence_sample_text(finding: dict[str, Any], limit: int = 3) -> str:
             return shorten(json.dumps(values[:limit], ensure_ascii=False), 220)
     if finding.get("dominant_formula_support"):
         return f"{finding.get('dominant_formula_pattern', '-')} ({finding.get('dominant_formula_support')})"
+    if finding.get("summary"):
+        return shorten(str(finding.get("summary")), 220)
     return "-"
 
 
@@ -978,19 +1159,33 @@ def pattern_sort_key(item: tuple[str, list[dict[str, Any]]]) -> tuple[int, int, 
         "paired_offset_ratio_reuse": 0,
         "row_vector_reuse_rounding": 1,
         "formula_derivation": 2,
+        "visual_forensics": 3,
+        "numeric_forensics": 4,
+        "execution_evidence": 5,
         "other": 9,
     }
-    return (order.get(key, 8), -len(findings), key)
+    return (order.get(key, 7), -len(findings), key)
 
 
 def pattern_key_for_finding(finding: dict[str, Any]) -> str:
     category = str(finding.get("category", ""))
+    source_artifact = str(finding.get("source_artifact", ""))
     if category in {"row_offset_scalar_multiple", "long_format_paired_ratio_reuse", "long_format_within_pair_ratio_enrichment"}:
         return "paired_offset_ratio_reuse"
     if category in {"duplicate_row_vector", "row_offset_partial_copy_rounding_bias", "duplicate_numeric_columns"}:
         return "row_vector_reuse_rounding"
     if category in {"formula_derived_column", "formula_derived_columns", "fixed_ratio", "fixed_difference"}:
         return "formula_derivation"
+    category_text = category.lower()
+    source_text = source_artifact.lower()
+    if any(token in category_text or token in source_text for token in ("image", "visual", "panel", "trufor", "copy_move", "cbir", "similarity")):
+        return "visual_forensics"
+    if any(token in category_text or token in source_text for token in ("numeric", "benford", "number")):
+        return "numeric_forensics"
+    if any(token in category_text or token in source_text for token in ("execution", "command", "runtime")):
+        return "execution_evidence"
+    if category:
+        return f"category:{category}"
     return "other"
 
 
@@ -998,7 +1193,7 @@ def pattern_definition(pattern_key: str) -> dict[str, str]:
     definitions = {
         "paired_offset_ratio_reuse": {
             "title": "配对样本固定行偏移与比例复用",
-            "thesis": "多个 Source Data sheet 中，配对样本在固定行偏移后反复出现标量关系或 PT/RT 比例复用；规律只在这里描述一次，具体 sheet/行/列作为证据记录保留。",
+            "thesis": "多个 Source Data sheet 中，配对样本在固定行偏移后反复出现标量关系或两组比例复用；规律只在这里描述一次，具体 sheet/行/列作为证据记录保留。",
             "review_question": "确认这些固定偏移和比例复用是否来自合法配对排序、归一化分母或批量派生，而不是同一数据的重复改写。",
         },
         "row_vector_reuse_rounding": {
@@ -1011,12 +1206,35 @@ def pattern_definition(pattern_key: str) -> dict[str, str]:
             "thesis": "部分列由相邻单元格或同列历史值按固定公式派生。公式本身不是异常，但它会改变 claim 对“原始测量值”的可追溯性。",
             "review_question": "确认论文图表引用的是原始测量值还是派生值，并要求作者说明公式来源、单位换算或归一化逻辑。",
         },
+        "visual_forensics": {
+            "title": "视觉证据相似或复用候选",
+            "thesis": "视觉工具生成了需要人工确认的图像、panel、相似关系或区域级候选；这些信号只能作为复核入口，不能直接作为诚信结论。",
+            "review_question": "核对原图、panel、caption、相似方法、分数和最强良性解释，确认是否对应同一主体、合法复用或导出伪影。",
+        },
+        "numeric_forensics": {
+            "title": "PDF 数字取证候选",
+            "thesis": "PDF 或表格数字检查生成了统计线索；需要排除 OCR、表格解析、四舍五入和展示层转写造成的伪影。",
+            "review_question": "回到原始表格、Source Data 或结果文件，确认数字关系是否能由原始数据和统计流程解释。",
+        },
+        "execution_evidence": {
+            "title": "执行证据与 claim 对账候选",
+            "thesis": "运行命令、日志或结果文件与论文 claim 之间存在待核对项；该类 finding 需要回到 runtime manifest 和输出产物验证。",
+            "review_question": "核对命令、环境、stdout/stderr、exit code、结果文件 hash 和 claim 映射是否一致。",
+        },
         "other": {
             "title": "其他未归类技术异常",
             "thesis": "这些证据尚未被归入稳定领域规律，需保留原始记录后人工判断。",
             "review_question": "逐条核对 finding 的数据语义、生成过程和论文 claim 影响。",
         },
     }
+    if pattern_key.startswith("category:"):
+        category = pattern_key.split(":", 1)[1]
+        label = category_label(category)
+        return {
+            "title": label,
+            "thesis": f"{label} 生成了可复核技术事实候选；报告保留原始定位和证据引用，避免把未知类别压扁成单一 demo 叙事。",
+            "review_question": "回到原始 artifact、locator、claim mapping 和人工复核任务，确认该类别在当前论文材料中的真实语义。",
+        }
     return definitions.get(pattern_key, definitions["other"])
 
 
@@ -1033,9 +1251,9 @@ def build_evidence_clusters(
     for finding in findings:
         if not isinstance(finding, dict):
             continue
-        workbook = str(finding.get("workbook") or "-")
-        sheet = str(finding.get("sheet") or finding.get("figure") or finding.get("category") or "-")
-        grouped[(workbook, sheet)].append(finding)
+        source = str(finding.get("workbook") or finding.get("source_path") or finding.get("source_artifact") or "-")
+        anchor = str(finding.get("sheet") or finding.get("figure") or finding.get("panel_id") or finding.get("category") or "-")
+        grouped[(source, anchor)].append(finding)
 
     ranked_groups = sorted(
         grouped.items(),
@@ -1048,7 +1266,7 @@ def build_evidence_clusters(
     )
 
     clusters = []
-    for index, ((workbook, sheet), group_findings) in enumerate(ranked_groups[:max_clusters], start=1):
+    for index, ((source, anchor), group_findings) in enumerate(ranked_groups[:max_clusters], start=1):
         group_findings = sorted(
             group_findings,
             key=lambda finding: (
@@ -1067,8 +1285,8 @@ def build_evidence_clusters(
         clusters.append(
             {
                 "cluster_id": f"EC-{index:03d}",
-                "workbook": workbook,
-                "sheet": sheet,
+                "workbook": source,
+                "sheet": anchor,
                 "risk_level": risk,
                 "finding_ids": finding_ids,
                 "findings": group_findings,
@@ -1077,7 +1295,7 @@ def build_evidence_clusters(
                 "manual_tasks": matched_tasks,
                 "risks": matched_risks,
                 "reviews": reviews,
-                "headline": cluster_headline(sheet, group_findings, matched_claims),
+                "headline": cluster_headline(anchor, group_findings, matched_claims),
                 "signals": [finding_signal(finding) for finding in group_findings[:4]],
                 "benign_explanations": cluster_benign_explanations(group_findings, reviews),
                 "source_artifact": source_artifact_for_findings(group_findings),
@@ -1124,8 +1342,8 @@ def evidence_cluster_cards(clusters: list[dict[str, Any]]) -> str:
       <h3>证据定位</h3>
       <div class="kv">
         <div>cluster</div><div><code>{h(cluster.get('cluster_id'))}</code></div>
-        <div>workbook</div><div><code>{h(cluster.get('workbook'))}</code></div>
-        <div>sheet</div><div><code>{h(cluster.get('sheet'))}</code></div>
+        <div>source</div><div><code>{h(cluster.get('workbook'))}</code></div>
+        <div>anchor</div><div><code>{h(cluster.get('sheet'))}</code></div>
         <div>finding ids</div><div><code>{h(', '.join(cluster.get('finding_ids') or []))}</code></div>
         <div>artifact</div><div><code>{h(cluster.get('source_artifact'))}</code></div>
       </div>
@@ -1177,7 +1395,7 @@ def claim_impact_matrix(
             if not isinstance(mapping, dict):
                 continue
             claim = claims_by_id.get(str(mapping.get("claim_id"))) or {}
-            refs = [str(ref) for ref in (mapping.get("source_data_refs") or [])]
+            refs = [str(ref) for ref in (mapping.get("source_data_refs") or mapping.get("evidence_refs") or [])]
             finding_refs = [ref for ref in refs if "forensics:" in ref or "finding" in ref.lower()]
             needs_review = mapping.get("needs_human_review")
             rows.append(
@@ -1195,19 +1413,22 @@ def claim_impact_matrix(
                 continue
             claim = claims_by_id.get(str(mapping.get("claim_id"))) or {}
             refs = [str(ref) for ref in (mapping.get("evidence_refs") or [])]
+            finding_refs = [str(ref) for ref in (mapping.get("finding_refs") or refs)]
+            metadata = mapping.get("metadata") if isinstance(mapping.get("metadata"), dict) else {}
+            needs_review = metadata.get("needs_human_review")
             rows.append(
                 "<tr>"
                 f"<td><code>{h(mapping.get('claim_id', '-'))}</code></td>"
                 f"<td>{h((claim.get('claim_text') or claim.get('text') or '-')[:260])}</td>"
                 f"<td><code>{h(', '.join(refs[:4]) or '-')}</code></td>"
-                f"<td><code>{h(', '.join(refs[:6]) or '-')}</code></td>"
-                "<td><span class='badge warning'>需人工复核</span></td>"
+                f"<td><code>{h(', '.join(finding_refs[:6]) or '-')}</code></td>"
+                f"<td><span class='badge {'warning' if needs_review is not False else 'low'}'>{h('需人工复核' if needs_review is not False else '低优先级')}</span></td>"
                 "</tr>"
             )
     if not rows:
         return "<p class='muted'>未生成 claim impact matrix。</p>"
     return (
-        "<table><thead><tr><th>claim</th><th>claim 文本</th><th>Source Data refs</th><th>Finding refs</th><th>状态</th></tr></thead>"
+        "<table><thead><tr><th>claim</th><th>claim 文本</th><th>Evidence refs</th><th>Finding refs</th><th>状态</th></tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table>"
     )
 
@@ -1292,7 +1513,9 @@ def finding_signal(finding: dict[str, Any]) -> str:
             f"行偏移后出现部分复制与四舍五入偏差；exact_reuse_pairs={finding.get('exact_reuse_pairs', '-')}"
             f"；{support}。"
         )
-    return f"{category_label(category)}；{support}；列 {columns_text or '-'}。"
+    if columns_text:
+        return f"{category_label(category)}；{support}；列 {columns_text}。"
+    return f"{category_label(category)}；{support}；source={evidence_source_text(finding)}。"
 
 
 def cluster_benign_explanations(findings: list[dict[str, Any]], reviews: list[dict[str, Any]]) -> list[str]:
@@ -1302,14 +1525,33 @@ def cluster_benign_explanations(findings: list[dict[str, Any]], reviews: list[di
     for finding in findings:
         items.extend(str(item) for item in (finding.get("benign_explanations") or [])[:2])
     if not items:
-        items = [
-            "该模式可能来自合法的归一化、批量派生、配对样本排序或模板化导出。",
-            "需要结合原始分析脚本、导出参数、列定义和 figure panel 语义判断。",
-        ]
+        pattern_keys = {pattern_key_for_finding(finding) for finding in findings}
+        if "visual_forensics" in pattern_keys:
+            items = [
+                "该模式可能来自同一主体多通道成像、合法 control 复用、裁剪导出或压缩伪影。",
+                "需要结合原图、panel/caption、相似方法、分数和实验条件判断。",
+            ]
+        elif "execution_evidence" in pattern_keys:
+            items = [
+                "该模式可能来自环境差异、随机种子、依赖版本或输入材料不完整。",
+                "需要结合 runtime manifest、命令日志、结果文件 hash 和 claim 映射判断。",
+            ]
+        else:
+            items = [
+                "该模式可能来自合法的归一化、批量派生、配对样本排序或模板化导出。",
+                "需要结合原始 artifact、导出参数、字段定义和论文 claim 语义判断。",
+            ]
     return dedupe(items)[:5]
 
 
 def source_artifact_for_findings(findings: list[dict[str, Any]]) -> str:
+    artifacts = dedupe([source_artifact_for_finding(finding) for finding in findings])
+    return ", ".join(artifacts[:3]) or "-"
+
+
+def source_artifact_for_finding(finding: dict[str, Any]) -> str:
+    if finding.get("source_artifact"):
+        return str(finding.get("source_artifact"))
     pair_categories = {
         "row_offset_scalar_multiple",
         "long_format_paired_ratio_reuse",
@@ -1317,9 +1559,11 @@ def source_artifact_for_findings(findings: list[dict[str, Any]]) -> str:
         "long_format_within_pair_ratio_enrichment",
         "row_offset_partial_copy_rounding_bias",
     }
-    if any(str(finding.get("category")) in pair_categories for finding in findings):
-        return "source_data_pair_forensics.json"
-    return "source_data_findings.json"
+    if str(finding.get("category")) in pair_categories:
+        return SOURCE_DATA_PAIR_FORENSICS_ARTIFACT
+    if finding.get("workbook") or finding.get("sheet"):
+        return SOURCE_DATA_FINDINGS_ARTIFACT
+    return "static_audit_bundle.json"
 
 
 def finding_support_value(finding: dict[str, Any]) -> int:
@@ -1348,9 +1592,11 @@ def finding_card(
     locator = source_locator(finding, first_ref)
     benign = source_review.get("benign_explanations") or finding.get("benign_explanations") or []
     review_action = review_question(source_review, risk, finding)
-    sample_rows = sample_pairs_html(finding.get("sample_pairs") or [])
+    sample_rows = sample_evidence_html(finding)
     claim_text = first_claim(mappings)
     risk_reason = (risk or {}).get("reason", "")
+    source_artifact = source_artifact_for_finding(finding)
+    mapping_note = mapping_granularity_note(finding)
     return f"""
 <article class="finding-card">
   <div>
@@ -1367,7 +1613,7 @@ def finding_card(
         <ul>
           <li>{h(relation)}</li>
           <li>{h(support)}</li>
-          <li>当前映射为 figure/sheet 级，panel/column-block 级仍需人工确认。</li>
+          <li>{h(mapping_note)}</li>
         </ul>
       </div>
       <div>
@@ -1384,18 +1630,17 @@ def finding_card(
   </div>
   <aside class="lane">
     <h3>证据定位</h3>
-    <div class="kv">
-      <div>finding_id</div><div><code>{h(finding_id)}</code></div>
-      <div>workbook</div><div><code>{h(finding.get("workbook", "-"))}</code></div>
-      <div>sheet</div><div><code>{h(finding.get("sheet", "-"))}</code></div>
-      <div>columns</div><div><code>{h(", ".join(finding.get("column_pair") or []))}</code></div>
-      <div>support</div><div>{h(support)}</div>
-      <div>论文 figure</div><div>{h(locator["figure"])}</div>
-      <div>full.md 行号</div><div>{h(locator["line"])}</div>
-      <div>page/bbox</div><div><span class="badge skipped">定位较弱：缺少 middle_json</span></div>
-      <div>artifact</div><div><code>source_data_findings.json</code></div>
-    </div>
-  </aside>
+      <div class="kv">
+        <div>finding_id</div><div><code>{h(finding_id)}</code></div>
+        <div>source</div><div><code>{h(evidence_source_text(finding))}</code></div>
+        <div>locator</div><div><code>{h(evidence_locator(finding))}</code></div>
+        <div>support</div><div>{h(support)}</div>
+        <div>论文 figure</div><div>{h(locator["figure"])}</div>
+        <div>full.md 行号</div><div>{h(locator["line"])}</div>
+        <div>PDF 定位</div><div>{pdf_locator_html(first_ref)}</div>
+        <div>artifact</div><div><code>{h(source_artifact)}</code></div>
+      </div>
+    </aside>
 </article>
 """
 
@@ -1487,7 +1732,7 @@ def canonical_mapping_table(claims: list[dict[str, Any]], mappings: list[dict[st
     mappings = [mapping for mapping in mappings if isinstance(mapping, dict)]
     claims = [claim for claim in claims if isinstance(claim, dict)]
     if not mappings:
-        return "<p class='muted'>未生成 Agent refined mapping；如存在 Source Data scaffolding，请查看 source_data_findings.json。</p>"
+        return "<p class='muted'>未生成 Agent refined mapping；如存在 deterministic scaffolding，请查看对应工具 JSON。</p>"
     claim_by_id = {str(claim.get("claim_id")): claim for claim in claims if claim.get("claim_id")}
     rows = []
     for mapping in mappings[:12]:
@@ -1506,7 +1751,7 @@ def canonical_mapping_table(claims: list[dict[str, Any]], mappings: list[dict[st
             "</tr>"
         )
     return (
-        "<table><thead><tr><th>mapping</th><th>claim</th><th>claim 文本</th><th>置信度</th><th>复核状态</th><th>Source Data refs</th></tr></thead>"
+        "<table><thead><tr><th>mapping</th><th>claim</th><th>claim 文本</th><th>置信度</th><th>复核状态</th><th>Evidence refs</th></tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table>"
     )
 
@@ -1633,12 +1878,14 @@ def artifact_links(workdir: Path) -> str:
 
 
 def collect_limitations(bundle: dict[str, Any], agent_judge: dict[str, Any], similarity: dict[str, Any]) -> list[str]:
-    limitations = [
-        "本报告不做最终科研诚信判定，只生成技术事实候选和人工复核入口。",
-        "claim-to-source-data 当前是 figure/sheet 级，不是 panel/column-block 级。",
-        "PDF page/bbox 定位因 MinerU middle_json 缺失而较弱，当前优先展示 full.md line。",
-        "代码执行审查尚未接入，execution_status=not_provided。",
-    ]
+    limitations = ["本报告不做最终科研诚信判定，只生成技术事实候选和人工复核入口。"]
+    if bundle.get("claim_mappings"):
+        limitations.append("claim-to-evidence mapping 仍是候选映射，需要按原始 artifact 和 locator 人工确认。")
+    else:
+        limitations.append("本次未生成 canonical claim-to-evidence mapping，claim 影响需要人工补齐。")
+    execution_status = (bundle.get("execution_status") or {}).get("status")
+    if execution_status in {None, "", "not_provided", "not_run", "missing_material"}:
+        limitations.append(f"代码执行审查未形成可用执行证据，execution_status={execution_status or 'unknown'}。")
     if similarity.get("status") == "not_available":
         limitations.append("近似图像相似度未运行；只能说明 exact duplicate 未发现。")
     limitations.extend(str(item) for item in (bundle.get("limitations") or [])[:5])
@@ -1732,7 +1979,7 @@ def relation_text(finding: dict[str, Any]) -> str:
     if finding.get("category") == "row_offset_scalar_multiple":
         return f"固定行偏移 {finding.get('row_offset', '-')} 后存在标量关系，列 {', '.join(str(item) for item in (finding.get('columns') or [])) or '-'}。"
     if finding.get("category") == "long_format_paired_ratio_reuse":
-        return f"pair_id 偏移 {finding.get('pair_id_offset', '-')} 后出现 PT/RT 比例复用，列 {', '.join(str(item) for item in (finding.get('columns') or [])) or '-'}。"
+        return f"pair_id 偏移 {finding.get('pair_id_offset', '-')} 后出现配对两组比例复用，列 {', '.join(str(item) for item in (finding.get('columns') or [])) or '-'}。"
     if finding.get("category") == "duplicate_row_vector":
         return f"低宽度行向量重复，重复行数 {finding.get('duplicate_row_count', '-')}。"
     return str(finding.get("category", "-"))
@@ -1758,19 +2005,57 @@ def support_text(finding: dict[str, Any]) -> str:
 def default_finding_summary(finding: dict[str, Any]) -> str:
     columns = finding.get("column_pair") or finding.get("columns") or finding.get("column") or []
     columns_text = ", ".join(str(item) for item in columns) if isinstance(columns, list) else str(columns)
-    return (
-        f"{finding.get('workbook', '-')} / {finding.get('sheet', '-')} 中 "
-        f"{columns_text or '-'} 出现 {finding.get('category', '-')}。"
-    )
+    if finding.get("workbook") or finding.get("sheet"):
+        return (
+            f"{finding.get('workbook', '-')} / {finding.get('sheet', '-')} 中 "
+            f"{columns_text or evidence_locator(finding)} 出现 {finding.get('category', '-')}。"
+        )
+    source = evidence_source_text(finding)
+    locator = evidence_locator(finding)
+    if source != "-" or locator != "-":
+        return f"{source} / {locator} 出现 {finding.get('category', '-')}。"
+    return str(finding.get("summary") or finding.get("category") or "技术事实候选。")
 
 
 def review_question(source_review: dict[str, Any], risk: dict[str, Any] | None, finding: dict[str, Any]) -> str:
     if risk and risk.get("requires_human_review"):
-        return str(risk.get("reason", "请人工复核该 finding 的列语义、panel 对应关系和良性解释。"))
+        return str(risk.get("reason", "请人工复核该 finding 的证据定位、claim 影响和良性解释。"))
     refs = source_review.get("evidence_refs") if isinstance(source_review.get("evidence_refs"), dict) else {}
     linked = refs.get("linked_claims") if refs else None
     linked_text = f"关联 claim: {', '.join(linked)}。" if linked else ""
-    return f"请核对 workbook/sheet/column header、merged cells、figure panel 和原始实验语义。{linked_text}"
+    if finding.get("workbook") or finding.get("sheet"):
+        return f"请核对 workbook/sheet/column header、merged cells、figure panel 和原始实验语义。{linked_text}"
+    return f"请核对原始 artifact、locator、claim 影响、工具输出参数和最强良性解释。{linked_text}"
+
+
+def mapping_granularity_note(finding: dict[str, Any]) -> str:
+    source_artifact = source_artifact_for_finding(finding)
+    if source_artifact in {SOURCE_DATA_FINDINGS_ARTIFACT, SOURCE_DATA_PAIR_FORENSICS_ARTIFACT}:
+        return "当前映射多为 figure/sheet 级，panel/column-block 级仍需人工确认。"
+    return "当前映射需要回到原始 artifact、locator 和 claim 逐条确认。"
+
+
+def pdf_locator_html(paper_ref: dict[str, Any]) -> str:
+    page = paper_ref.get("page") or paper_ref.get("page_number")
+    bbox = paper_ref.get("bbox")
+    if page or bbox:
+        parts = []
+        if page:
+            parts.append(f"page={page}")
+        if bbox:
+            parts.append(f"bbox={bbox}")
+        return f"<code>{h('; '.join(parts))}</code>"
+    return '<span class="badge skipped">page/bbox 未记录</span>'
+
+
+def sample_evidence_html(finding: dict[str, Any]) -> str:
+    pairs = finding.get("sample_pairs") or []
+    if pairs:
+        return sample_pairs_html(pairs)
+    sample = evidence_sample_text(finding)
+    if sample == "-":
+        return "<p class='muted'>没有可展示的样本值、公式或摘要。</p>"
+    return f"<p>{h(sample)}</p>"
 
 
 def sample_pairs_html(samples: list[dict[str, Any]]) -> str:
