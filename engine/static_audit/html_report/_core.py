@@ -13,6 +13,65 @@ MAX_EVIDENCE_CARDS = 8
 SOURCE_DATA_FINDINGS_ARTIFACT = "source_data_findings.json"
 SOURCE_DATA_PAIR_FORENSICS_ARTIFACT = "source_data_pair_forensics.json"
 
+ISSUE_CATEGORY_LABELS = {
+    "consistency": "一致性问题",
+    "matching": "匹配问题",
+    "completeness": "完整性问题",
+}
+
+CHAPTER_NUMBERS = {
+    "consistency": "一",
+    "matching": "二",
+    "completeness": "三",
+}
+
+
+def render_findings_by_category(
+    findings: list[dict[str, Any]],
+    linked_mapping_by_finding: dict[str, list],
+    source_reviews: dict[str, dict],
+    judge_risks: list[dict],
+) -> str:
+    """Group findings by issue_category and render with chapter headings."""
+    if not findings:
+        return "<p class='muted'>未生成高优先级 finding。</p>"
+
+    # Group findings by issue_category
+    by_category: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for finding in findings:
+        category = finding.get("issue_category", "consistency")
+        by_category[category].append(finding)
+
+    # Render each category group
+    sections = []
+    for category in ["consistency", "matching", "completeness"]:
+        category_findings = by_category.get(category, [])
+        if not category_findings:
+            continue
+
+        chapter = CHAPTER_NUMBERS[category]
+        label = ISSUE_CATEGORY_LABELS[category]
+        count = len(category_findings)
+
+        cards = "\n".join(
+            finding_card(
+                finding,
+                linked_mapping_by_finding.get(finding.get("finding_id"), []),
+                source_reviews.get(finding.get("finding_id"), {}),
+                risk_for_finding(judge_risks, finding.get("finding_id")),
+            )
+            for finding in category_findings
+        )
+
+        sections.append(
+            f"<div class='category-group'>"
+            f"<h3 class='category-heading'>{chapter}、{label} <span class='category-count'>({count} 条)</span></h3>"
+            f"{cards}"
+            f"</div>"
+        )
+
+    return "\n".join(sections) if sections else "<p class='muted'>未生成高优先级 finding。</p>"
+
 
 def render_static_audit_html(workdir: Path, case_id: str) -> str:
     manifest = read_json(workdir / "audit_run_manifest.json") or {}
@@ -97,15 +156,12 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
         if primary_findings
         else "重点人工复核证据卡"
     )
-    cards = "\n".join(
-        finding_card(
-            finding,
-            linked_mapping_by_finding.get(finding.get("finding_id"), []),
-            source_reviews.get(finding.get("finding_id"), {}),
-            risk_for_finding(judge_risks, finding.get("finding_id")),
-        )
-        for finding in card_findings
-    ) or "<p class='muted'>未生成高优先级 finding。</p>"
+    cards = render_findings_by_category(
+        card_findings,
+        linked_mapping_by_finding,
+        source_reviews,
+        judge_risks,
+    )
 
     return f"""<!doctype html>
 <html lang="zh-CN">
@@ -502,6 +558,21 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
       .wrap {{ padding: 14px; }}
       .panel {{ padding: 18px; border-radius: 18px; }}
     }}
+    .category-group {{ margin-bottom: 32px; }}
+    .category-heading {{
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 0 0 16px 0;
+      padding-bottom: 8px;
+      border-bottom: 2px solid var(--accent);
+    }}
+    .category-count {{
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--muted);
+      margin-left: 8px;
+    }}
   </style>
 </head>
 <body>
@@ -756,6 +827,7 @@ def annotate_findings(findings: list[dict[str, Any]], source_artifact: str) -> l
             continue
         item = dict(finding)
         item.setdefault("source_artifact", source_artifact)
+        item.setdefault("issue_category", "consistency")
         annotated.append(item)
     return annotated
 
@@ -773,10 +845,12 @@ def normalize_bundle_finding(item: dict[str, Any], bundle: dict[str, Any]) -> di
         "benign_explanations",
         "pressure_test_result",
         "manual_review_note",
+        "issue_category",
     ):
         if item.get(key) not in (None, "", []):
             finding[key] = item.get(key)
     finding.setdefault("source_artifact", metadata.get("source_artifact") or "static_audit_bundle.json")
+    finding.setdefault("issue_category", "consistency")
     if not finding.get("source_path"):
         finding["source_path"] = source_path_for_evidence_refs(finding.get("evidence_refs") or [], bundle)
     return finding
