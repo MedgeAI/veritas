@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import asdict, dataclass, field
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Literal
 
@@ -34,7 +34,7 @@ Status = Literal[
 
 
 def utc_now_iso() -> str:
-    return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 @dataclass
@@ -109,6 +109,10 @@ class AgentTrace:
     detail: str = ""
     error: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    # SHA-256 hex digests of input artifact files (keyed by artifact name).
+    # Used by run_agent_roles to invalidate cached outputs when upstream
+    # artifacts (e.g. agent_claim_extractor.json) have changed.
+    input_hashes: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass
@@ -150,4 +154,3 @@ class StaticAuditBundle:
 
 def load_static_audit_bundle(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
-

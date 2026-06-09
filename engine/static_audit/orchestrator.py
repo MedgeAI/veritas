@@ -11,7 +11,7 @@ import subprocess
 import sys
 import time
 from dataclasses import dataclass, asdict
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -19,7 +19,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from engine.static_audit.models import (
+from engine.static_audit.models import (  # noqa: E402
     AgentTrace,
     Claim,
     ClaimMapping,
@@ -30,21 +30,27 @@ from engine.static_audit.models import (
     StaticAuditBundle,
     ToolRun,
 )
-from engine.static_audit.html_report import write_static_audit_html
-from engine.static_audit.investigation import (
+from engine.static_audit.html_report import write_static_audit_html  # noqa: E402
+from engine.static_audit.investigation import (  # noqa: E402
     InvestigationAction,
     InvestigationRecord,
     append_investigation_record,
     normalize_expected_evidence_type,
     read_investigation_records,
 )
-from engine.static_audit.materials import (
+from engine.static_audit.materials import (  # noqa: E402
     build_material_inventory,
     fallback_optional_lanes,
     write_material_inventory,
 )
-from engine.static_audit.roles import ROLE_DEFINITIONS, RoleDefinition, skipped_trace
-from engine.investigation.opencode_agent import (
+from engine.static_audit.tools.paperfraud_rules import (  # noqa: E402
+    paperfraud_findings_from_matches,
+    run_paperfraud_rule_match,
+)
+import hashlib  # noqa: E402
+
+from engine.static_audit.roles import ROLE_DEFINITIONS, RoleDefinition, skipped_trace  # noqa: E402
+from engine.investigation.opencode_agent import (  # noqa: E402
     DEFAULT_SOURCE_FINDING_PARAMS,
     AgentRunResult,
     result_metadata,
@@ -55,9 +61,75 @@ from engine.investigation.opencode_agent import (
     run_agent_role,
     write_agent_result,
 )
-from engine.tools.registry import (
+
+
+def _compute_input_hashes(workdir: Path, artifacts: tuple[str, ...]) -> dict[str, str]:
+    """Return SHA-256 hex hashes for each artifact in *artifacts* found under *workdir*.
+
+    An artifact listed as ``"full.md"`` is resolved as a single file.
+    An artifact listed as ``"images/"`` (trailing slash) matches a directory
+    — all files directly under that directory are hashed individually and
+    the resulting ordered hex string is salted into a single summary hash.
+    Artifacts that do not exist on disk receive hash ``"<missing>"``.
+    """
+    result: dict[str, str] = {}
+    for name in artifacts:
+        path = workdir / name
+        if name.endswith("/"):
+            # Directory artifact — hash its children
+            if path.is_dir():
+                child_hashes = []
+                for child in sorted(path.iterdir()):
+                    if child.is_file():
+                        child_hashes.append(_sha256_file(child))
+                result[name] = _sha256_str("".join(child_hashes))
+            else:
+                result[name] = "<missing>"
+        else:
+            result[name] = _sha256_file(path) if path.is_file() else "<missing>"
+    return result
+
+
+def _sha256_file(path: Path) -> str:
+    """Hex digest of a single file."""
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _sha256_str(value: str) -> str:
+    """Hex digest of a string."""
+    return hashlib.sha256(value.encode()).hexdigest()
+
+
+def _input_hashes_match(stored: dict[str, str], computed: dict[str, str]) -> bool:
+    """True when *computed* matches *stored* for every key present in *stored*.
+
+    A missing key in *stored* (legacy trace) is treated as matching.
+    """
+    if not stored:
+        return False  # no hashes stored → cannot verify; force rerun
+    for key, expected in stored.items():
+        if computed.get(key) != expected:
+            return False
+    return True
+
+
+def _upstream_fresh(output_path: Path, upstream_paths: list[Path]) -> bool:
+    """True when *output_path* is newer than every *upstream_path*.
+
+    Used as a lightweight cache-invalidation check for simple agent outputs
+    (material_plan, review) that don't have formal RoleDefinition traces.
+    """
+    if not output_path.exists():
+        return False
+    out_mtime = output_path.stat().st_mtime
+    for upstream in upstream_paths:
+        if upstream.is_file() and upstream.stat().st_mtime > out_mtime:
+            return False
+    return True
+from engine.tools.registry import (  # noqa: E402
     IMAGE_SIMILARITY_TOOL_ID,
     PAPER_STATIC_AUDIT_TOOL_IDS,
+    PAPERFRAUD_RULE_MATCH_TOOL_ID,
     SOURCE_DATA_FINDINGS_TOOL_ID,
     SOURCE_DATA_PAIR_FORENSICS_TOOL_ID,
     STATIC_AUDIT_V1_TOOL_IDS,
@@ -73,6 +145,7 @@ STEP_TOOL_IDS = {
     "mineru": "mineru.parse_pdf",
     "evidence_ledger": "paper.evidence_ledger",
     "numeric_forensics": "paper.numeric_forensics",
+    "paperfraud_rule_match": PAPERFRAUD_RULE_MATCH_TOOL_ID,
     "material_inventory": "material.inventory",
     "agent_material_plan": "agent.material_plan",
     "source_data_profile": "source_data.profile",
@@ -109,7 +182,7 @@ def emit_progress(progress: ProgressCallback | None, event: str, **payload: Any)
     progress(
         {
             "event": event,
-            "timestamp": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             **payload,
         }
     )
@@ -1065,7 +1138,7 @@ def generate_report(
             ["agent_material_plan", workdir / "agent_material_plan.json"],
             ["workdir", workdir],
             ["agent_mode", agent_mode],
-            ["generated_at", datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")],
+            ["generated_at", datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")],
         ],
     ))
     lines.append("")
@@ -1566,6 +1639,7 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
         ("agent_material_plan.json", "output_artifact"),
         ("evidence_ledger.json", "output_artifact"),
         ("numeric_forensics.json", "output_artifact"),
+        ("paperfraud_rule_matches.json", "output_artifact"),
         ("source_data_profile.json", "output_artifact"),
         ("source_data_findings.json", "output_artifact"),
         ("source_data_pair_forensics.json", "output_artifact"),
@@ -1650,6 +1724,8 @@ def collect_claims_and_findings(
         )
 
     findings: list[Finding] = []
+    paperfraud_matches = read_json(workdir / "paperfraud_rule_matches.json") or {}
+    findings.extend(paperfraud_findings_from_matches(paperfraud_matches))
     for item in source_findings.get("priority_findings") or []:
         finding_id = str(item.get("finding_id"))
         findings.append(
@@ -1865,11 +1941,13 @@ def run_agent_roles(
         output_path = workdir / role.output_artifact
         trace_path = workdir / "agent_traces" / f"{role.role_id}.json"
         existing_trace = read_agent_trace(trace_path)
+        current_hashes = _compute_input_hashes(workdir, role.input_artifacts)
         if (
             not force
             and output_path.exists()
             and existing_trace is not None
             and existing_trace.status in {"ran", "skipped"}
+            and _input_hashes_match(existing_trace.input_hashes, current_hashes)
         ):
             role_manifest.append(
                 {
@@ -1887,11 +1965,24 @@ def run_agent_roles(
                         f"agent_role_{role.role_id}",
                         f"opencode Agent role: {role.title}",
                         "reused",
-                        "Existing successful role output and trace found.",
+                        "Existing successful role output and trace found (input hashes unchanged).",
                     ),
                     progress,
                 )
             continue
+        elif existing_trace is not None and existing_trace.status == "ran" and not _input_hashes_match(existing_trace.input_hashes or {}, current_hashes):
+            # Trace exists but inputs changed — invalidate and re-run
+            if role.real_in_v1:
+                record_step(
+                    steps,
+                    StepResult(
+                        f"agent_role_{role.role_id}",
+                        f"opencode Agent role: {role.title}",
+                        "cached_stale",
+                        "Input artifacts changed since last run; will re-compute.",
+                    ),
+                    progress,
+                )
         if not role.real_in_v1:
             trace = skipped_trace(role, "Role schema reserved; not executed in static_audit_protocol.v1.")
             trace.output_path = str(output_path)
@@ -1935,7 +2026,7 @@ def run_agent_roles(
             max_retries=max_retries,
         )
         payload = write_role_agent_result(output_path, role, case_id, result)
-        trace = trace_from_role_result(role, output_path, result, payload, model)
+        trace = trace_from_role_result(role, output_path, result, payload, model, current_hashes)
         write_role_trace(workdir, trace)
         metadata = result_metadata(result, output_path)
         metadata["role_id"] = role.role_id
@@ -1974,12 +2065,14 @@ def trace_from_role_result(
     result: AgentRunResult,
     payload: dict[str, Any],
     model: str,
+    input_hashes: dict[str, str] | None = None,
 ) -> AgentTrace:
     status = "ran" if result.status == "ok" else "failed"
     return AgentTrace(
         role_id=role.role_id,
         status=status,  # type: ignore[arg-type]
         input_artifacts=list(role.input_artifacts),
+        input_hashes=input_hashes or {},
         output_path=str(output_path),
         output_summary=role_output_summary(role.role_id, payload),
         model=model,
@@ -2161,7 +2254,7 @@ def _run_static_audit_from_args(
     }
 
     agent_material_plan_path = workdir / "agent_material_plan.json"
-    if agent_material_plan_path.exists() and not args.force:
+    if agent_material_plan_path.exists() and not args.force and _upstream_fresh(agent_material_plan_path, [material_inventory_path]):
         material_plan = read_json(agent_material_plan_path) or material_plan_from_inventory(
             case_id=case_id,
             inventory=material_inventory,
@@ -2359,9 +2452,35 @@ def _run_static_audit_from_args(
                 progress=progress,
             )
         )
+        paperfraud_output = workdir / "paperfraud_rule_matches.json"
+        if paperfraud_output.exists() and not args.force:
+            record_step(
+                steps,
+                StepResult(
+                    "paperfraud_rule_match",
+                    "PaperFraud 规则库匹配",
+                    "reused",
+                    "Existing paperfraud_rule_matches.json found.",
+                ),
+                progress,
+            )
+        else:
+            emit_step_start(
+                progress,
+                "paperfraud_rule_match",
+                "PaperFraud 规则库匹配",
+                "Matching structured PaperFraud rules against parsed paper text.",
+            )
+            run_paperfraud_rule_match(workdir / "full.md", paperfraud_output)
+            record_step(
+                steps,
+                StepResult("paperfraud_rule_match", "PaperFraud 规则库匹配", "ran", str(paperfraud_output)),
+                progress,
+            )
     else:
         record_step(steps, StepResult("evidence_ledger", "构建 evidence ledger", "skipped", "full.md missing."), progress)
         record_step(steps, StepResult("numeric_forensics", "PDF 数字取证", "skipped", "full.md missing."), progress)
+        record_step(steps, StepResult("paperfraud_rule_match", "PaperFraud 规则库匹配", "skipped", "full.md missing."), progress)
 
     if source_lane and source_data_dir and source_data_dir.is_dir():
         steps.append(
@@ -2520,10 +2639,23 @@ def _run_static_audit_from_args(
 
     if args.agent_mode in {"review", "full"}:
         agent_review_path = workdir / "agent_review.json"
-        if agent_review_path.exists() and not args.force:
+        # Agent review depends on deterministic forensics artifacts; re-run
+        # if any of them are newer than the cached review output.
+        review_upstream = [
+            p for p in [
+                workdir / "source_data_pair_forensics.json",
+                workdir / "source_data_findings.json",
+                workdir / "source_data_profile.json",
+                workdir / "numeric_forensics.json",
+                workdir / "exact_image_duplicates.json",
+                workdir / "investigation_rounds.jsonl",
+            ]
+            if p.exists()
+        ]
+        if agent_review_path.exists() and not args.force and _upstream_fresh(agent_review_path, review_upstream + [material_inventory_path]):
             agent_manifest["review"] = {
                 "status": "reused",
-                "detail": "Existing agent_review.json found.",
+                "detail": "Existing agent_review.json found (upstream artifacts unchanged).",
                 "runtime_seconds": None,
                 "retries": 0,
                 "command": [],
@@ -2616,7 +2748,7 @@ def _run_static_audit_from_args(
     manifest = {
         "schema_version": "1.0",
         "created_by": "engine/static_audit/orchestrator.py",
-        "created_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "case_id": case_id,
         "paper_dir": str(paper_dir),
         "paper_pdf": str(paper_pdf),
