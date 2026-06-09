@@ -10,8 +10,9 @@ import shutil
 import subprocess
 import sys
 import time
+import hashlib
 from dataclasses import dataclass, asdict
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
@@ -67,8 +68,85 @@ from engine.tools.registry import (
 )
 
 
-AUDITOR_ROOT = PROJECT_ROOT / "third_party" / "research-integrity-auditor"
+def resolve_auditor_root(project_root: Path = PROJECT_ROOT) -> Path:
+    legacy_root = project_root / "third_party" / "research-integrity-auditor"
+    vendored_root = project_root / "engine" / "static_audit" / "upstream" / "research_integrity_auditor"
+    return legacy_root if (legacy_root / "scripts").is_dir() else vendored_root
+
+
+AUDITOR_ROOT = resolve_auditor_root()
 MAX_INVESTIGATION_ROUNDS = 3
+
+
+# ---------------------------------------------------------------------------
+# Input-hash cache helpers for agent role invalidation
+# ---------------------------------------------------------------------------
+
+
+def _compute_input_hashes(workdir: Path, artifacts: tuple[str, ...]) -> dict[str, str]:
+    """Return SHA-256 hex hashes for each artifact found under *workdir*.
+
+    An artifact listed as ``"full.md"`` is resolved as a single file.
+    An artifact listed as ``"images/"`` (trailing slash) matches a directory
+    — all files directly under that directory are hashed individually and
+    the resulting ordered hex string is salted into a single summary hash.
+    Artifacts that do not exist on disk receive hash ``"<missing>"``.
+    """
+    result: dict[str, str] = {}
+    for name in artifacts:
+        path = workdir / name
+        if name.endswith("/"):
+            if path.is_dir():
+                child_hashes = []
+                for child in sorted(path.iterdir()):
+                    if child.is_file():
+                        child_hashes.append(_sha256_file(child))
+                result[name] = _sha256_str("".join(child_hashes))
+            else:
+                result[name] = "<missing>"
+        else:
+            result[name] = _sha256_file(path) if path.is_file() else "<missing>"
+    return result
+
+
+def _sha256_file(path: Path) -> str:
+    """Hex digest of a single file."""
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def _sha256_str(value: str) -> str:
+    """Hex digest of a string."""
+    return hashlib.sha256(value.encode()).hexdigest()
+
+
+def _input_hashes_match(stored: dict[str, str], computed: dict[str, str]) -> bool:
+    """True when *computed* matches *stored* for every key present in *stored*.
+
+    An empty *stored* dict (legacy trace without hashes) returns False to
+    force a re-run on first encounter.
+    """
+    if not stored:
+        return False
+    for key, expected in stored.items():
+        if computed.get(key) != expected:
+            return False
+    return True
+
+
+def _upstream_fresh(output_path: Path, upstream_paths: list[Path]) -> bool:
+    """True when *output_path* is newer than every *upstream_path*.
+
+    Lightweight cache-invalidation check for agent outputs that don't have
+    formal RoleDefinition traces (material_plan, review).
+    """
+    if not output_path.exists():
+        return False
+    out_mtime = output_path.stat().st_mtime
+    for upstream in upstream_paths:
+        if upstream.is_file() and upstream.stat().st_mtime > out_mtime:
+            return False
+    return True
+
 
 STEP_TOOL_IDS = {
     "mineru": "mineru.parse_pdf",
@@ -111,7 +189,7 @@ def emit_progress(progress: ProgressCallback | None, event: str, **payload: Any)
     progress(
         {
             "event": event,
-            "timestamp": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
             **payload,
         }
     )
@@ -1084,7 +1162,7 @@ def generate_report(
             ["agent_material_plan", workdir / "agent_material_plan.json"],
             ["workdir", workdir],
             ["agent_mode", agent_mode],
-            ["generated_at", datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")],
+            ["generated_at", datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")],
         ],
     ))
     lines.append("")
@@ -1917,11 +1995,13 @@ def run_agent_roles(
         output_path = workdir / role.output_artifact
         trace_path = workdir / "agent_traces" / f"{role.role_id}.json"
         existing_trace = read_agent_trace(trace_path)
+        current_hashes = _compute_input_hashes(workdir, role.input_artifacts)
         if (
             not force
             and output_path.exists()
             and existing_trace is not None
             and existing_trace.status in {"ran", "skipped"}
+            and _input_hashes_match(existing_trace.input_hashes, current_hashes)
         ):
             role_manifest.append(
                 {
@@ -1939,11 +2019,23 @@ def run_agent_roles(
                         f"agent_role_{role.role_id}",
                         f"opencode Agent role: {role.title}",
                         "reused",
-                        "Existing successful role output and trace found.",
+                        "Existing successful role output and trace found (input hashes unchanged).",
                     ),
                     progress,
                 )
             continue
+        elif existing_trace is not None and existing_trace.status == "ran" and not _input_hashes_match(existing_trace.input_hashes or {}, current_hashes):
+            if role.real_in_v1:
+                record_step(
+                    steps,
+                    StepResult(
+                        f"agent_role_{role.role_id}",
+                        f"opencode Agent role: {role.title}",
+                        "cached_stale",
+                        "Input artifacts changed since last run; will re-compute.",
+                    ),
+                    progress,
+                )
         if not role.real_in_v1:
             trace = skipped_trace(role, "Role schema reserved; not executed in static_audit_protocol.v1.")
             trace.output_path = str(output_path)
@@ -1987,7 +2079,7 @@ def run_agent_roles(
             max_retries=max_retries,
         )
         payload = write_role_agent_result(output_path, role, case_id, result)
-        trace = trace_from_role_result(role, output_path, result, payload, model)
+        trace = trace_from_role_result(role, output_path, result, payload, model, current_hashes)
         write_role_trace(workdir, trace)
         metadata = result_metadata(result, output_path)
         metadata["role_id"] = role.role_id
@@ -2026,12 +2118,14 @@ def trace_from_role_result(
     result: AgentRunResult,
     payload: dict[str, Any],
     model: str,
+    input_hashes: dict[str, str] | None = None,
 ) -> AgentTrace:
     status = "ran" if result.status == "ok" else "failed"
     return AgentTrace(
         role_id=role.role_id,
         status=status,  # type: ignore[arg-type]
         input_artifacts=list(role.input_artifacts),
+        input_hashes=input_hashes or {},
         output_path=str(output_path),
         output_summary=role_output_summary(role.role_id, payload),
         model=model,
@@ -2138,10 +2232,14 @@ def read_agent_trace(path: Path) -> AgentTrace | None:
     data = read_json(path)
     if not data:
         return None
+    input_hashes = data.get("input_hashes")
     return AgentTrace(
         role_id=str(data.get("role_id", "")),
         status=str(data.get("status", "failed")),  # type: ignore[arg-type]
         input_artifacts=[str(item) for item in (data.get("input_artifacts") or [])],
+        input_hashes={str(key): str(value) for key, value in input_hashes.items()}
+        if isinstance(input_hashes, dict)
+        else {},
         output_path=data.get("output_path"),
         output_summary=data.get("output_summary") if isinstance(data.get("output_summary"), dict) else {},
         model=data.get("model"),
@@ -2213,7 +2311,7 @@ def _run_static_audit_from_args(
     }
 
     agent_material_plan_path = workdir / "agent_material_plan.json"
-    if agent_material_plan_path.exists() and not args.force:
+    if agent_material_plan_path.exists() and not args.force and _upstream_fresh(agent_material_plan_path, [material_inventory_path]):
         material_plan = read_json(agent_material_plan_path) or material_plan_from_inventory(
             case_id=case_id,
             inventory=material_inventory,
@@ -2597,10 +2695,22 @@ def _run_static_audit_from_args(
 
     if args.agent_mode in {"review", "full"}:
         agent_review_path = workdir / "agent_review.json"
-        if agent_review_path.exists() and not args.force:
+        # Re-run review if any upstream forensics artifact is newer
+        review_upstream = [
+            p for p in [
+                workdir / "source_data_pair_forensics.json",
+                workdir / "source_data_findings.json",
+                workdir / "source_data_profile.json",
+                workdir / "numeric_forensics.json",
+                workdir / "exact_image_duplicates.json",
+                workdir / "investigation_rounds.jsonl",
+            ]
+            if p.exists()
+        ]
+        if agent_review_path.exists() and not args.force and _upstream_fresh(agent_review_path, review_upstream + [material_inventory_path]):
             agent_manifest["review"] = {
                 "status": "reused",
-                "detail": "Existing agent_review.json found.",
+                "detail": "Existing agent_review.json found (upstream artifacts unchanged).",
                 "runtime_seconds": None,
                 "retries": 0,
                 "command": [],
@@ -2693,7 +2803,7 @@ def _run_static_audit_from_args(
     manifest = {
         "schema_version": "1.0",
         "created_by": "engine/static_audit/orchestrator.py",
-        "created_at": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "case_id": case_id,
         "paper_dir": str(paper_dir),
         "paper_pdf": str(paper_pdf),

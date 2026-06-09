@@ -19,7 +19,12 @@ def find_images(images_dir: Path) -> list[Path]:
 
 
 def hamming_distance(left: int, right: int) -> int:
-    return (left ^ right).bit_count()
+    xor = left ^ right
+    # int.bit_count() is available from Python 3.10+ and ~3x faster than
+    # the bin().count() fallback.  Use it when the runtime supports it.
+    if hasattr(xor, "bit_count"):
+        return xor.bit_count()
+    return bin(xor).count("1")
 
 
 def dhash(path: Path, hash_size: int = 8) -> int:
