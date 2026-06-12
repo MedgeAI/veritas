@@ -11,7 +11,6 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation, getcontext
 from pathlib import Path
-import xml.etree.ElementTree as ET
 
 from engine.static_audit.tools.source_data_profile import (
     SHEET_NS,

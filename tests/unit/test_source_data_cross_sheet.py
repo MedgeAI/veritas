@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from engine.static_audit.tools.source_data_cross_sheet import (

@@ -48,6 +48,7 @@ from engine.static_audit.tools.paperfraud_rules import (
     run_paperfraud_rule_match,
 )
 from engine.static_audit.roles import ROLE_DEFINITIONS, RoleDefinition, skipped_trace
+from engine.investigation.agent_models import PROGRESS_EVENT_SUMMARY_MAX_CHARS
 from engine.investigation.opencode_agent import (
     DEFAULT_SOURCE_FINDING_PARAMS,
     AgentRunResult,
@@ -111,16 +112,85 @@ class StepResult:
 ProgressCallback = Callable[[dict[str, Any]], None]
 
 
-def emit_progress(progress: ProgressCallback | None, event: str, **payload: Any) -> None:
+# Keys that must never appear in a progress event sent to the Web stream.
+_STRIP_KEYS = ("stdout", "stderr", "traceback", "full_output")
+
+
+def _write_long_text_to_log(workdir: Path, step_key: str, text: str) -> str | None:
+    """Write long text to a log artifact and return the relative path (log_ref).
+
+    Returns None if text is empty.
+    Creates logs/ directory under workdir if needed.
+    """
+    if not text:
+        return None
+    logs_dir = workdir / "logs"
+    logs_dir.mkdir(parents=True, exist_ok=True)
+    ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    filename = f"{step_key}_{ts}.log"
+    log_path = logs_dir / filename
+    log_path.write_text(text, encoding="utf-8")
+    # Return path relative to workdir for portability.
+    return str(Path("logs") / filename)
+
+
+def enforce_event_contract(event: dict[str, Any], workdir: Path | None = None) -> dict[str, Any]:
+    """Enforce the ProgressEvent contract on a raw event dict.
+
+    - Truncates ``detail`` / ``summary`` to ``PROGRESS_EVENT_SUMMARY_MAX_CHARS``.
+    - Writes overflow text to a log artifact when *workdir* is provided.
+    - Sets ``log_ref`` for failed events whose detail was truncated.
+    - Strips keys that must never reach the Web event stream.
+    - Emits both ``detail`` (backward compat) and ``summary`` (alias).
+
+    Returns the cleaned event dict (mutates *event* in place as well).
+    """
+    # --- Strip forbidden keys ------------------------------------------------
+    for key in _STRIP_KEYS:
+        event.pop(key, None)
+
+    # --- Determine the text payload ------------------------------------------
+    raw_text = str(event.get("detail", "") or "")
+    step_key = str(event.get("key", event.get("step", "unknown")))
+    max_chars = PROGRESS_EVENT_SUMMARY_MAX_CHARS
+
+    # --- Truncate and optionally spill to log --------------------------------
+    log_ref: str | None = event.get("log_ref")  # preserve if already set
+    if len(raw_text) > max_chars:
+        summary = raw_text[:max_chars]
+        if workdir is not None:
+            log_ref = _write_long_text_to_log(workdir, step_key, raw_text)
+    else:
+        summary = raw_text
+
+    event["detail"] = summary
+    event["summary"] = summary
+    if log_ref is not None:
+        event["log_ref"] = log_ref
+
+    # --- Failed events should always have a log_ref when possible ------------
+    if event.get("status") == "failed" and log_ref is None and workdir is not None and summary:
+        log_ref = _write_long_text_to_log(workdir, step_key, summary)
+        event["log_ref"] = log_ref
+
+    return event
+
+
+def emit_progress(
+    progress: ProgressCallback | None,
+    event: str,
+    workdir: Path | None = None,
+    **payload: Any,
+) -> None:
     if progress is None:
         return
-    progress(
-        {
-            "event": event,
-            "timestamp": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
-            **payload,
-        }
-    )
+    raw_event: dict[str, Any] = {
+        "event": event,
+        "timestamp": datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        **payload,
+    }
+    enforce_event_contract(raw_event, workdir=workdir)
+    progress(raw_event)
 
 
 def command_preview(command: list[str] | None) -> str | None:
@@ -144,10 +214,12 @@ def emit_step_start(
     title: str,
     detail: str = "",
     command: list[str] | None = None,
+    workdir: Path | None = None,
 ) -> None:
     emit_progress(
         progress,
         "step_start",
+        workdir=workdir,
         key=key,
         title=title,
         status="running",
@@ -156,10 +228,15 @@ def emit_step_start(
     )
 
 
-def emit_step_result(progress: ProgressCallback | None, step: StepResult) -> None:
+def emit_step_result(
+    progress: ProgressCallback | None,
+    step: StepResult,
+    workdir: Path | None = None,
+) -> None:
     emit_progress(
         progress,
         "step_result",
+        workdir=workdir,
         key=step.key,
         title=step.title,
         status=step.status,
@@ -172,9 +249,10 @@ def record_step(
     steps: list[StepResult],
     step: StepResult,
     progress: ProgressCallback | None,
+    workdir: Path | None = None,
 ) -> StepResult:
     steps.append(step)
-    emit_step_result(progress, step)
+    emit_step_result(progress, step, workdir=workdir)
     return step
 
 
