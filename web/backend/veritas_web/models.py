@@ -15,7 +15,9 @@ CASE_STATUSES = {
     "Archived",
 }
 
-RUN_STATUSES = {"queued", "running", "completed", "failed"}
+RUN_STATUSES = {"queued", "running", "completed", "failed", "interrupted"}
+
+STALE_RUN_THRESHOLD_SECONDS = 300  # 5 minutes — no heartbeat → stale
 
 
 def utc_now() -> str:
@@ -55,6 +57,7 @@ class AuditRunRecord:
     workdir: str | None = None
     final_html_report_url: str | None = None
     error: str | None = None
+    last_event_at: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

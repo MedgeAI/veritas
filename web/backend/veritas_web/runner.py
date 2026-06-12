@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import traceback
+from datetime import datetime
 from pathlib import Path
 from threading import Thread
 from typing import Any, Callable
@@ -8,7 +9,7 @@ from typing import Any, Callable
 from engine.static_audit.orchestrator import run_static_audit
 
 from .case_store import CaseStore
-from .models import AuditRunRecord, utc_now
+from .models import STALE_RUN_THRESHOLD_SECONDS, AuditRunRecord, utc_now
 
 AuditFunction = Callable[..., dict[str, Any]]
 
@@ -36,12 +37,15 @@ class AuditRunner:
         run = self.store.get_run(case_id, run_id)
         run.status = "running"
         run.started_at = utc_now()
+        run.last_event_at = run.started_at  # initial heartbeat
         self.store.save_run(run)
         case_record = self.store.get_case(case_id)
         case_record.status = "Running"
         self.store.save_case(case_record)
 
         def progress(event: dict[str, Any]) -> None:
+            run.last_event_at = utc_now()
+            self.store.save_run(run)
             self.store.append_event(case_id, run_id, event)
 
         try:
@@ -95,24 +99,49 @@ class AuditRunner:
         elif run.status == "failed":
             case_record.status = "Review Needed"
             case_record.review_needed_count = max(case_record.review_needed_count, 1)
+        elif run.status == "interrupted":
+            case_record.status = "Review Needed"
+            case_record.review_needed_count = max(case_record.review_needed_count, 1)
         case_record.latest_run_id = run.run_id
         self.store.save_case(case_record)
 
     def recover_interrupted_runs(self) -> int:
         recovered_count = 0
+        now_iso = utc_now()
+        now_dt = datetime.fromisoformat(now_iso.replace("Z", "+00:00"))
         for run in self.store.list_all_runs():
             if run.status not in {"queued", "running"}:
                 continue
+
+            # Determine recovery strategy based on heartbeat
+            if run.last_event_at is None:
+                # Legacy run without heartbeat — mark as failed (backward compat)
+                status = "failed"
+                error = "interrupted_by_backend_restart"
+                reason = "backend_restart"
+                detail = "Recovered a queued/running Web run after backend startup; thread runner cannot survive backend exit."
+            else:
+                # Check heartbeat freshness
+                last_event_dt = datetime.fromisoformat(run.last_event_at.replace("Z", "+00:00"))
+                elapsed_seconds = (now_dt - last_event_dt).total_seconds()
+                if elapsed_seconds < STALE_RUN_THRESHOLD_SECONDS:
+                    # Still fresh — might be running in another process, skip
+                    continue
+                # Stale — mark as interrupted
+                status = "interrupted"
+                error = f"no_heartbeat_for_{int(elapsed_seconds)}_seconds"
+                reason = "stale_detection"
+                detail = f"No heartbeat for {int(elapsed_seconds)} seconds (threshold: {STALE_RUN_THRESHOLD_SECONDS}s)"
+
             recovered_count += 1
-            now = utc_now()
-            run.status = "failed"
-            run.completed_at = now
-            run.error = "interrupted_by_backend_restart"
+            run.status = status
+            run.completed_at = now_iso
+            run.error = error
             run.summary = {
                 "exit_code": 1,
-                "failed_steps": ["backend_restart"],
+                "failed_steps": ["backend_restart"] if reason == "backend_restart" else ["stale_detection"],
                 "interrupted": True,
-                "detail": "Web backend exited before this run wrote a terminal state.",
+                "detail": "Web backend exited before this run wrote a terminal state." if reason == "backend_restart" else detail,
             }
             default_workdir = Path(self.output_root) / run.case_id / "research-integrity-audit"
             if not run.workdir and default_workdir.exists():
@@ -122,11 +151,11 @@ class AuditRunner:
                 run.case_id,
                 run.run_id,
                 {
-                    "timestamp": now,
+                    "timestamp": now_iso,
                     "event": "runner_interrupted",
-                    "status": "failed",
-                    "reason": "backend_restart",
-                    "detail": "Recovered a queued/running Web run after backend startup; thread runner cannot survive backend exit.",
+                    "status": status,
+                    "reason": reason,
+                    "detail": detail,
                 },
             )
             self._update_case_after_run(run)
