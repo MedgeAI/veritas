@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import re
 import subprocess
 import time
@@ -16,6 +15,16 @@ from engine.tools.registry import (
     tool_catalog_for_agent,
     validate_investigation_tool_action,
     validate_plan_tools,
+)
+from engine.investigation.agent_models import (
+    AgentRunResult as _NewAgentRunResult,
+)
+from engine.investigation.agent_step_runner import AgentStepRunner
+from engine.investigation.context_pack import (
+    AgentContextPack,
+    build_context_pack_for_role,
+    build_material_inventory_context_pack,
+    build_review_context_pack,
 )
 
 DEFAULT_SOURCE_FINDING_PARAMS = SOURCE_DATA_FINDINGS_DEFAULT_PARAMS
@@ -228,9 +237,13 @@ def run_agent_plan(
         source_data_dir=source_data_dir,
         workdir=workdir,
     )
-    return _run_opencode_json(
+    context_pack = build_material_inventory_context_pack(workdir, case_id)
+    return _run_with_context_pack(
+        role="plan",
         prompt=prompt,
+        context_pack=context_pack,
         expected="plan",
+        workdir=workdir,
         project_root=project_root,
         env=env,
         model=model,
@@ -268,20 +281,13 @@ def run_agent_investigation_plan(
         round_id=round_id,
         previous_records=previous_records,
     )
-    files = [
-        workdir / "material_inventory.json",
-        workdir / "agent_material_plan.json",
-        workdir / "evidence_ledger.json",
-        workdir / "numeric_forensics.json",
-        workdir / "source_data_profile.json",
-        workdir / "source_data_findings.json",
-        workdir / "source_data_pair_forensics.json",
-        workdir / "exact_image_duplicates.json",
-        workdir / "image_similarity_candidates.json",
-    ]
-    return _run_opencode_json(
+    context_pack = build_review_context_pack(workdir, case_id)
+    return _run_with_context_pack(
+        role=f"investigation_plan_round_{round_id}",
         prompt=prompt,
+        context_pack=context_pack,
         expected=f"investigation plan round {round_id}",
+        workdir=workdir,
         project_root=project_root,
         env=env,
         model=model,
@@ -289,7 +295,6 @@ def run_agent_investigation_plan(
         timeout_seconds=timeout_seconds,
         max_retries=max_retries,
         validator=lambda data: validate_investigation_plan(data, round_id=round_id),
-        files=[path for path in files if path.exists()],
     )
 
 
@@ -313,10 +318,13 @@ def run_agent_material_plan(
             runtime_seconds=0.0,
         )
     prompt = build_material_plan_prompt(case_id=case_id, workdir=workdir)
-    files = [workdir / "material_inventory.json"]
-    return _run_opencode_json(
+    context_pack = build_material_inventory_context_pack(workdir, case_id)
+    return _run_with_context_pack(
+        role="material_plan",
         prompt=prompt,
+        context_pack=context_pack,
         expected="material plan",
+        workdir=workdir,
         project_root=project_root,
         env=env,
         model=model,
@@ -324,7 +332,6 @@ def run_agent_material_plan(
         timeout_seconds=timeout_seconds,
         max_retries=max_retries,
         validator=validate_material_plan,
-        files=[path for path in files if path.exists()],
     )
 
 
@@ -348,18 +355,13 @@ def run_agent_review(
             runtime_seconds=0.0,
         )
     prompt = build_review_prompt(case_id=case_id, workdir=workdir)
-    files = [
-        workdir / "material_inventory.json",
-        workdir / "agent_material_plan.json",
-        workdir / "source_data_findings.json",
-        workdir / "source_data_pair_forensics.json",
-        workdir / "numeric_forensics.json",
-        workdir / "source_data_profile.json",
-        workdir / "exact_image_duplicates.json",
-    ]
-    return _run_opencode_json(
+    context_pack = build_review_context_pack(workdir, case_id)
+    return _run_with_context_pack(
+        role="review",
         prompt=prompt,
+        context_pack=context_pack,
         expected="review",
+        workdir=workdir,
         project_root=project_root,
         env=env,
         model=model,
@@ -367,7 +369,6 @@ def run_agent_review(
         timeout_seconds=timeout_seconds,
         max_retries=max_retries,
         validator=validate_review,
-        files=[path for path in files if path.exists()],
     )
 
 
@@ -394,9 +395,13 @@ def run_agent_role(
             runtime_seconds=0.0,
         )
     prompt = build_role_prompt(role_id=role_id, case_id=case_id, workdir=workdir)
-    return _run_opencode_json(
+    context_pack = build_context_pack_for_role(role_id, workdir, case_id)
+    return _run_with_context_pack(
+        role=role_id,
         prompt=prompt,
+        context_pack=context_pack,
         expected=f"role {role_id}",
+        workdir=workdir,
         project_root=project_root,
         env=env,
         model=model,
@@ -404,7 +409,6 @@ def run_agent_role(
         timeout_seconds=timeout_seconds,
         max_retries=max_retries,
         validator=lambda data: validate_role_output(role_id, data),
-        files=_role_input_files(role_id, workdir),
     )
 
 
@@ -921,6 +925,79 @@ def result_metadata(result: AgentRunResult, output_path: Path) -> dict[str, Any]
         "command": result.command,
         "output": str(output_path),
     }
+
+
+def _convert_runner_result(
+    new_result: _NewAgentRunResult,
+    expected: str,
+) -> AgentRunResult:
+    """Convert new AgentStepRunner result to legacy AgentRunResult format.
+
+    This adapter enables the Phase 2 migration: the orchestrator still
+    consumes the legacy AgentRunResult, while internally we use
+    AgentStepRunner for structured error classification.
+    """
+    status = "ok" if new_result.status == "success" else "failed"
+    if status == "ok":
+        detail = f"opencode {expected} ok"
+    else:
+        category = new_result.error_category or "non_zero_exit"
+        detail = f"opencode {expected} failed: {category}"
+        if new_result.metadata.get("last_detail"):
+            detail += f": {new_result.metadata['last_detail']}"
+    return AgentRunResult(
+        status=status,
+        data=new_result.output,
+        detail=detail,
+        command=[],
+        runtime_seconds=new_result.runtime_seconds,
+        retries=max(new_result.metadata.get("attempts", 1) - 1, 0),
+    )
+
+
+def _run_with_context_pack(
+    *,
+    role: str,
+    prompt: str,
+    context_pack: AgentContextPack,
+    expected: str,
+    workdir: Path,
+    project_root: Path,
+    env: dict[str, str],
+    model: str,
+    opencode_bin: str,
+    timeout_seconds: int,
+    max_retries: int,
+    validator: Any,
+) -> AgentRunResult:
+    """Run opencode via AgentStepRunner with bounded context pack.
+
+    Replaces the ad-hoc --file argument pattern with structured context
+    packs that enforce token budgets. The result is converted back to
+    the legacy AgentRunResult format for orchestrator compatibility.
+    """
+    context_pack_path = workdir / f"context_pack_{role}.json"
+    context_pack_path.write_bytes(context_pack.to_json_bytes())
+
+    runner = AgentStepRunner(
+        project_root=project_root,
+        model=model,
+        opencode_bin=opencode_bin,
+        env=dict(env),
+    )
+
+    log_dir = workdir / "logs"
+    new_result = runner.run(
+        role=role,
+        prompt=prompt,
+        output_validator=validator,
+        timeout_seconds=timeout_seconds,
+        max_retries=max_retries,
+        context_pack_path=context_pack_path,
+        log_dir=log_dir,
+    )
+
+    return _convert_runner_result(new_result, expected)
 
 
 def _run_opencode_json(
