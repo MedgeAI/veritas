@@ -220,16 +220,22 @@ class BearerTokenProvider(AuthProvider):
     """
     接入主产品模式：验证主产品签发的 JWT
     
+    主产品 JWT 结构（Go Gin 后端）：
+    - userId: string（MongoDB ObjectID hex）
+    - userName: string
+    - exp: int64（10天过期）
+    - iss: "gin-blog"
+    - 签名算法: HS256
+    - 无 sub / aud / email / roles
+    
     配置：
-    - jwt_public_key: 主产品公钥（PEM 格式）
-    - jwt_issuer: 主产品 issuer（如 "main-product.company.com"）
-    - jwt_audience: 可选，验证 audience
+    - jwt_shared_secret: 与主产品共享的 HS256 密钥
+    - jwt_issuer: 固定 "gin-blog"
     """
     
-    def __init__(self, public_key: str, issuer: str, audience: Optional[str] = None):
-        self.public_key = public_key
+    def __init__(self, shared_secret: str, issuer: str = "gin-blog"):
+        self.shared_secret = shared_secret
         self.issuer = issuer
-        self.audience = audience
     
     def authenticate(self, headers):
         auth_header = headers.get("Authorization", "")
@@ -240,15 +246,20 @@ class BearerTokenProvider(AuthProvider):
         try:
             payload = jwt.decode(
                 token,
-                self.public_key,
-                algorithms=["RS256"],
-                issuer=self.issuer,
-                audience=self.audience
+                self.shared_secret,
+                algorithms=["HS256"],
+                issuer=self.issuer
+                # 注意：主产品 JWT 无 aud 字段，不验证 audience
             )
+            # 主产品用 userId 而非标准 sub
             return AuthContext(
-                user_id=payload["sub"],
-                email=payload.get("email"),
-                roles=payload.get("roles", ["operator"])
+                user_id=payload["userId"],
+                email=None,  # 主产品 JWT 不传 email
+                roles=["operator"],  # 主产品无角色模型，默认 operator
+                metadata={
+                    "userName": payload.get("userName", ""),
+                    "source": "main_product"
+                }
             )
         except jwt.InvalidTokenError:
             return None
@@ -389,9 +400,8 @@ class AuthConfig:
     mode: Literal["none", "bearer", "basic"] = "none"
     
     # Bearer 模式（接入主产品）
-    jwt_public_key: str = ""  # PEM 格式公钥
-    jwt_issuer: str = ""
-    jwt_audience: Optional[str] = None
+    jwt_shared_secret: str = ""  # HS256 共享密钥（与主产品相同）
+    jwt_issuer: str = "gin-blog"  # 主产品固定 issuer
     
     # Basic 模式（独立部署）
     sqlite_db_path: str = "veritas_users.db"
@@ -404,9 +414,8 @@ class AuthConfig:
         if mode == "bearer":
             return cls(
                 mode="bearer",
-                jwt_public_key=os.getenv("VERITAS_JWT_PUBLIC_KEY", ""),
-                jwt_issuer=os.getenv("VERITAS_JWT_ISSUER", ""),
-                jwt_audience=os.getenv("VERITAS_JWT_AUDIENCE")
+                jwt_shared_secret=os.getenv("VERITAS_JWT_SECRET", ""),
+                jwt_issuer=os.getenv("VERITAS_JWT_ISSUER", "gin-blog")
             )
         elif mode == "basic":
             return cls(
@@ -723,19 +732,49 @@ web_data/
 | 独立部署用户管理 | SQLite | 比 YAML 灵活，比 Auth0 简单，不依赖外部服务 |
 | 前端登录页 | 不实现，用 HTTP Basic Auth | 浏览器原生弹窗，零前端改动，最简单 |
 | 现有 case 迁移 | 全部归属 operator | 最安全，不丢失数据 |
+| 主产品 JWT 结构 | HS256 + userId/userName + iss="gin-blog" | 已确认，无 sub/aud/email/roles |
 
-### 待确认（需与主产品团队对齐）
+### 主产品 JWT 适配记录（2026-06-12 确认）
 
-1. **主产品 JWT payload 结构**：
-   - `sub` 字段是 user_id 还是 username？
-   - `roles` 字段是否存在？格式是什么？
-   - 是否需要验证 `audience`？
-   - JWT 签名算法（RS256？ES256？）
+**主产品技术栈**：Go (Gin) + MongoDB + `dgrijalva/jwt-go` v3.2.0
 
-2. **部署环境**：
-   - 嵌入模式是否需要 HTTPS？（主产品内网可能 HTTP）
-   - 独立部署的反向代理（Nginx？Caddy？）
-   - 域名和端口
+**JWT Payload 结构**：
+```json
+{
+  "userId": "507f1f77bcf86cd799439011",  // MongoDB ObjectID hex
+  "userName": "alice",
+  "exp": 1717142400,  // 10天过期
+  "iss": "gin-blog"
+}
+```
+
+**适配要点**：
+- 签名算法：HS256（对称密钥，非 RS256）
+- 用户标识：`userId`（非标准 `sub`）
+- 用户名：`userName`（放入 metadata）
+- Issuer：固定 `"gin-blog"`
+- 无 audience（不验证 aud）
+- 无 email（AuthContext.email = None）
+- 无 roles（AuthContext.roles = ["operator"]）
+
+**Veritas 配置**：
+```bash
+VERITAS_AUTH_MODE=bearer
+VERITAS_JWT_SECRET=encoding/hexAllYourBase  # 与主产品共享的 HS256 密钥
+VERITAS_JWT_ISSUER=gin-blog
+```
+
+### 主产品安全风险记录
+
+| 风险 | 严重度 | 说明 | Veritas 应对 |
+|---|---|---|---|
+| HS256 对称密钥 | 中 | Veritas 必须持有相同密钥，密钥泄露 = 可伪造 token | 环境变量管理，不硬编码；限制服务器访问权限 |
+| 密钥硬编码在主产品源码中 | 中 | 任何能接触主产品源码/二进制的人都能获取密钥 | 推动主产品迁移到 RS256 + 环境变量（长期） |
+| 旧版 JWT 库（dgrijalva/jwt-go） | 低 | 已停止维护，可能有未修复漏洞 | 主产品侧风险，Veritas 用 PyJWT（维护中）验证即可 |
+| 无角色模型 | 低 | 所有主产品用户权限相同 | Veritas 统一分配 "operator" 角色，后续可扩 |
+| Token 10 天过期 | 低 | 较长，但无 refresh token | 可接受，主产品用户习惯已建立 |
+
+**已知风险接受**：产品负责人已知悉上述风险，当前阶段接受 HS256 对称密钥方案。长期建议主产品迁移到 RS256 非对称签名。
 
 ---
 
@@ -747,12 +786,21 @@ web_data/
 3. **数据隔离必须和身份绑定**（case.owner = user_id）
 4. **方案要足够简单**（4 天内完成）
 5. **HTTP Basic Auth 是独立部署的关键简化**（零前端改动）
+6. **适配主产品 JWT 现状**（HS256 + userId，已知风险接受）
 
 **安全注意事项**：
 - HTTP Basic Auth 每次请求都传密码（Base64 编码，非加密），**必须配合 HTTPS**
 - 密码必须用 bcrypt 哈希存储，不能明文
 - SQLite 数据库文件要有适当的文件权限（chmod 600）
-- 主产品 JWT 的公钥要从安全渠道获取，不能硬编码
+- **主产品 HS256 共享密钥**必须从环境变量读取，不能硬编码
+- 共享密钥泄露 = 任何人可伪造 JWT，必须严格控制服务器和部署权限
+- 长期建议：推动主产品迁移到 RS256 非对称签名
+
+**主产品技术债务（已知，接受）**：
+- HS256 对称密钥（硬编码在源码中）
+- `dgrijalva/jwt-go` v3.2.0（已停止维护）
+- 无角色模型
+- 无 token 撤销机制
 
 **决策冻结日期**：2026-06-12
-**下一步**：确认主产品 JWT payload 结构，然后开始 Phase 0。
+**下一步**：开始 Phase 0 实施。
