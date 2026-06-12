@@ -8,7 +8,9 @@ version = "0.1.0"
 description = "Prototype verification engine for computational research."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "pyyaml>=6.0.3",
+]
 
 [project.scripts]
 veritas = "cli.main:main"
@@ -23,3 +25,15 @@ where = ["."]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+
+[tool.ruff]
+exclude = ["engine/static_audit/upstream"]
+
+[tool.ruff.lint.per-file-ignores]
+"engine/static_audit/orchestrator.py" = ["E402"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "ruff>=0.15.17",
+]

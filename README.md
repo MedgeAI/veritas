@@ -32,6 +32,13 @@ MVP 聚焦：
 - 远程 worker 集群
 - 湿实验、临床试验、材料科学等非干实验论文（后续再泛化）
 
+## 当前执行口径
+
+- P0 仍是 `audit-paper` happy path 能稳定走通并产出结构化证据、`static_audit_bundle.json`、run manifest 和 Markdown/HTML 报告。
+- `precheck` / `run` / `report` 和 `runtime/subprocess` 已有基础能力；但 `audit-paper` 仍以静态证据、Source Data 和 Agent 结构化复核为主，claim-to-code/runtime replay 还不是稳定主链路。
+- 缺少代码、环境或结果文件时，报告应按 `execution_status: not_provided`、`skipped` 或 completeness issue 呈现，不伪造成已验证复现。
+- Web P1 是内测工作台，不是完整 SaaS、多租户任务系统或远程 worker 集群。
+
 ## 当前内测增强方向
 
 老板演示 demo 已完成。下一阶段目标是让内测用户在 happy path 下体验更强的静态审查能力，尤其是图像和视觉取证。
@@ -58,7 +65,9 @@ examples/     demo manifest 和轻量样例
 scripts/      可复用本地工具脚本
 web/          Web P1：stdlib backend + Vite React frontend
 tests/        单测、集成测试和 e2e 测试
-third_party/  外部参考仓库，以 git submodule 管理
+third_party/  外部参考仓库和能力吸收区；本地可由 .gitmodules 记录
+outputs/      本地运行产物与报告，不进入提交
+web_data/     Web P1 本地 case store 与运行状态，不进入提交
 ```
 
 `engine/tools/registry.py` 是当前静态审查工具集合的 source of truth。opencode 可以在 `agent_plan` 中选择 tool_id 和填写参数，但只有 Tool Registry 允许的 tool_id 会被 Python orchestrator 执行。
@@ -75,6 +84,32 @@ third_party/  外部参考仓库，以 git submodule 管理
 - `web/frontend/dist/`：前端本地构建产物。
 - `web/frontend/node_modules/`：前端依赖。
 - `.env`：本地密钥。
+- `.gitmodules` / `third_party/` / `docs/`：当前工作区可能作为本地增强上下文和能力积累；如果仍保持 local-only，不要让产品功能依赖它们必然存在。若决定共享，需要同步调整 `.gitignore` 和提交策略。
+
+## 第三方参考和能力吸收
+
+`third_party/` 是能力吸收区，不是主产品源码。当前本地 `.gitmodules` 积累的参考仓库如下：
+
+| submodule | 可借鉴 | 禁止 |
+|---|---|---|
+| `third_party/research-integrity-auditor` | MinerU 流程、evidence ledger、numeric forensics、证据标注图、谨慎风险语言 | 不把 vendor 输出格式当 Veritas 长期协议；不在 vendor 目录表达产品规则 |
+| `third_party/elis` | pdf-extractor、panel-extractor、copy-move、TruFor、CBIR/Milvus、视觉证据包思路 | 不直接接入 ELIS FastAPI/Celery/MongoDB/Redis/Web UI 主服务；引入重型模型或 AGPL 组件前先评估许可证、部署和失败隔离 |
+| `third_party/deepwiki-open` | repo 理解、wiki 组织、Mermaid/结构图表达 | 不把 Next.js 主应用或通用 repo-wiki 产品形态搬进 Veritas 主架构 |
+| `third_party/AsyncReview` | recursive investigation、工具调用和验证循环、代码审查式上下文探索 | 不允许 Agent 绕过 Tool Registry 任意执行 sandbox 代码；不把 GitHub token / 外部 PR 流程变成 Veritas 主依赖 |
+
+第三方能力进入主链路的顺序：
+
+```text
+license / data-boundary review
+-> first-party adapter or tool wrapper
+-> engine/tools/registry.py 注册 tool_id、参数边界、输出契约
+-> 写入结构化 artifact
+-> manifest / investigation_rounds / limitations 记录成功、跳过或失败
+-> fixture 或 golden test 固定行为
+-> report / HTML visual package 消费结构化结果
+```
+
+`engine/static_audit/upstream/research_integrity_auditor/` 是对 `third_party/research-integrity-auditor` 的只读能力镜像。不要直接修改镜像来表达 Veritas 产品行为；需要 patched behavior 时在 first-party adapter 或 tool 中实现。
 
 ## audit-paper 数据流 / Data Flow
 
@@ -99,10 +134,12 @@ material_inventory.json + workdir + env
 +-----------------------------+
 | agent_material_plan         |
 | agent_mode != off           |
-| opencode -> optional lanes  |
+| AgentStepRunner + context   |
+| pack -> optional lanes      |
 +-----------------------------+
   |
   +-- writes agent_material_plan.json
+  +-- writes context_pack_material_plan.json and logs/*.json
   +-- selects source_data_xlsx if executable
   +-- records missing/unsupported materials
   |
@@ -113,10 +150,12 @@ selected optional lanes + paper_pdf + workdir + env
 +-----------------------------+
 | agent_plan                  |
 | when agent_mode=plan/full   |
-| opencode -> tool_id JSON    |
+| AgentStepRunner + context   |
+| pack -> tool_id JSON        |
 +-----------------------------+
   |
   +-- writes agent_audit_plan.json
+  +-- writes context_pack_agent_plan.json and logs/*.json
   +-- validates tool_id via Tool Registry
   +-- provides source_data_findings params
   |
@@ -160,10 +199,12 @@ selected optional lanes + paper_pdf + workdir + env
 +-----------------------------+
 | AgentInvestigationPlanner   |
 | agent_mode != off           |
-| opencode -> tool actions    |
+| AgentStepRunner + context   |
+| pack -> tool actions        |
 +-----------------------------+
   |
   +-- validates deterministic tool_id via Tool Registry
+  +-- writes context_pack_investigation_plan.json and logs/*.json
   +-- writes agent_investigation_plan_round_XX.json
   +-- writes investigation_rounds.jsonl
   +-- writes investigation/round_XX/action_YY artifacts
@@ -173,10 +214,12 @@ selected optional lanes + paper_pdf + workdir + env
 +-----------------------------+
 | agent_review                |
 | when agent_mode=review/full |
-| opencode -> JSON schema     |
+| AgentStepRunner + context   |
+| pack -> JSON schema         |
 +-----------------------------+
   |
   +-- writes agent_review.json
+  +-- writes context_pack_review.json and logs/*.json
   +-- candidate claims
   +-- finding reviews
   +-- manual review tasks
@@ -185,11 +228,13 @@ selected optional lanes + paper_pdf + workdir + env
 +-----------------------------+
 | static audit role layer     |
 | when agent_mode=review/full |
+| role-specific context packs |
 +-----------------------------+
   |
   +-- ClaimExtractor -> agent_claim_extractor.json
   +-- SourceDataAuditor -> agent_source_data_auditor.json
   +-- JudgeAgent -> agent_judge.json
+  +-- context_pack_<role>.json and logs/*.json
   +-- reserved roles -> skipped trace JSON
   +-- writes agent_traces/*.json
   |
@@ -381,28 +426,34 @@ web_data/
 
 ## 常用命令
 
+Python 环境由 `uv` 管理，根目录 `Makefile` 封装了常用本地入口。首次进入或依赖变更后先同步环境：
+
+```bash
+make sync
+```
+
 确定性预检查：
 
 ```bash
-PYTHONPATH=. python3 cli/main.py precheck examples/bioinfo_python_case/veritas.json
+make precheck
 ```
 
 运行轻量 manifest demo：
 
 ```bash
-PYTHONPATH=. python3 cli/main.py run examples/bioinfo_python_case/veritas.json --output-dir outputs/demo
+make run
 ```
 
 渲染报告：
 
 ```bash
-PYTHONPATH=. python3 cli/main.py report outputs/demo/report.json --output-dir outputs/demo
+make report
 ```
 
 运行论文审查 demo：
 
 ```bash
-PYTHONPATH=. python3 cli/main.py audit-paper <paper_dir> --case-id <case_id> --agent-mode review --agent-timeout-seconds 180 --agent-max-retries 1 --progress plain
+make audit PAPER_DIR=<paper_dir> CASE_ID=<case_id>
 ```
 
 推荐先打开 `outputs/<case_id>/research-integrity-audit/final_audit_report.html` 做内部 demo。`--agent-mode full` 当前仍可能受 `agent_plan` JSON 输出不稳定影响。`audit-paper` 进度输出写入 `stderr`，最终 summary JSON 仍写入 `stdout`；需要机器消费进度时使用 `--progress jsonl`，需要安静运行时使用 `--progress off`。MinerU 子进程的 `state/pages` 输出会被转发为 `OUT mineru` 进度行。
@@ -410,19 +461,19 @@ PYTHONPATH=. python3 cli/main.py audit-paper <paper_dir> --case-id <case_id> --a
 只跑确定性链路：
 
 ```bash
-PYTHONPATH=. python3 cli/main.py audit-paper <paper_dir> --case-id <case_id> --agent-mode off
+make audit-off PAPER_DIR=<paper_dir> CASE_ID=<case_id>
 ```
 
 从零重跑并禁止复用既有 MinerU 产物：
 
 ```bash
-PYTHONPATH=. python3 cli/main.py audit-paper <paper_dir> --case-id <case_id> --fresh --force --agent-mode review --progress plain
+make audit-fresh PAPER_DIR=<paper_dir> CASE_ID=<case_id>
 ```
 
 启动 Web P1 后端（默认监听 `127.0.0.1:8765`）：
 
 ```bash
-PYTHONPATH=. python3 -m web.backend.veritas_web.app
+make web-backend
 ```
 
 如果遇到 `OSError: [Errno 98] Address already in use`，说明有旧进程仍占用 8765 端口：
@@ -435,9 +486,8 @@ kill <PID>           # 终止旧进程后重新启动
 启动 Web P1 前端：
 
 ```bash
-cd web/frontend
-npm install
-npm run dev
+make web-install
+make web-frontend
 ```
 
 打开 `http://127.0.0.1:5173`。Vite 会把 `/api` 代理到 `http://127.0.0.1:8765`。如果先在 `web/frontend` 执行 `npm run build`，Python backend 会在 `web/frontend/dist` 存在时托管构建产物。
@@ -456,7 +506,8 @@ MINERU_API_TOKEN=...
 ## 测试
 
 ```bash
-pytest -q
+make test
+make lint-python
 ```
 
-当前 pytest 只收集本仓 `tests/`，不会扫描 `third_party/` 上游仓库测试。
+当前 pytest 只收集本仓 `tests/`，不会扫描 `third_party/` 上游仓库测试。`ruff` 作为 `uv` dev 依赖管理，lint 默认排除 `engine/static_audit/upstream/` 上游镜像。

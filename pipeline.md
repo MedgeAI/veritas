@@ -1,6 +1,6 @@
 # audit-paper 当前通用流程说明
 
-更新时间：2026-05-29
+更新时间：2026-06-12
 
 本文描述当前 `audit-paper` 闭环的数据流和 Agent 参与位置，不绑定任何具体论文 case。
 
@@ -17,14 +17,8 @@ paper_dir/
 开发命令模板：
 
 ```bash
-PYTHONPATH=. python3 cli/main.py audit-paper <paper_dir> \
-  --case-id <case_id> \
-  --fresh \
-  --force \
-  --agent-mode review \
-  --agent-timeout-seconds 300 \
-  --agent-max-retries 1 \
-  --progress plain
+make sync
+make audit-fresh PAPER_DIR=<paper_dir> CASE_ID=<case_id> AGENT_TIMEOUT_SECONDS=300
 ```
 
 如果想复用已有 MinerU 解析产物，不要加 `--fresh --force`，并使用已有产物所在的同一个 `case_id`。
@@ -51,10 +45,14 @@ CLI
        -> investigation/round_XX/action_YY/<tool artifact>
   -> agent_review.json
   -> ClaimExtractor / SourceDataAuditor / JudgeAgent
+       -> context_pack_*.json
+       -> logs/*.json
   -> static_audit_bundle.json
   -> final_audit_report.md
   -> final_audit_report.html
 ```
+
+当前所有 opencode Agent 调用都通过 `AgentStepRunner` 进入：先由 `context_pack.py` 构建有边界的 `AgentContextPack`，再调用 opencode、抽取 JSON、做 schema validation、按错误类别重试并写入 `logs/*.json`。`engine/investigation/opencode_agent.py` 仍保留 legacy `AgentRunResult` adapter，保证 orchestrator 和现有报告消费侧不用一次性迁移。
 
 ## Mandatory Bootstrap
 
@@ -173,6 +171,7 @@ HTML 报告中展示 `Agent Investigation Path` 摘要表，完整 JSONL 作为 
 1. `agent_material_plan`
 
 - 读取 `material_inventory.json`。
+- 通过 `context_pack_material_plan.json` 限定输入上下文。
 - 选择可执行 optional lane。
 - 标记 missing / unsupported materials。
 
@@ -181,10 +180,12 @@ HTML 报告中展示 `Agent Investigation Path` 摘要表，完整 JSONL 作为 
 - 基于已有 artifacts 选择后续确定性调查工具。
 - 只规划，不直接执行。
 - 所有执行由 Python orchestrator 控制。
+- 运行 trace 和 AgentStepRunner 日志写入 `logs/`，供失败复盘。
 
 3. `agent_review`
 
 - 读取结构化产物。
+- 通过 `context_pack_review.json` 读取 bounded context，不直接吞全量 workdir。
 - 生成 candidate claims、claim-to-source-data review、finding reviews、manual review tasks、report notes。
 
 4. 三个真实 role Agent
@@ -192,6 +193,8 @@ HTML 报告中展示 `Agent Investigation Path` 摘要表，完整 JSONL 作为 
 - `ClaimExtractor`：抽取可核查技术 claim。
 - `SourceDataAuditor`：审阅 Source Data findings 和 claim mapping。
 - `JudgeAgent`：生成技术风险建议，不做最终诚信判定。
+
+每个 role 都会生成 `context_pack_<role>.json`。后续需要把 `error_category`、`log_ref` 和 context pack provenance 更完整地并入 manifest 和 HTML 报告，而不是只保留在低层日志。
 
 ## Evidence Ledger
 
@@ -231,6 +234,8 @@ HTML 报告中展示 `Agent Investigation Path` 摘要表，完整 JSONL 作为 
 - `audit_run_manifest.json`：本次运行步骤、状态、命令和产物路径。
 - `static_audit_bundle.json`：结构化审查 bundle，后续报告和服务化入口应优先依赖它。
 - `investigation_rounds.jsonl`：AgentInvestigationPlanner 每个 action 的计划、校验、执行和产物记录。
+- `context_pack_*.json`：AgentStepRunner 的 bounded input context。
+- `logs/*.json`：Agent 调用、错误分类、重试和 validation 记录。
 - `final_audit_report.md`：Markdown 兼容报告。
 - `final_audit_report.html`：老板 demo 优先展示报告。
 

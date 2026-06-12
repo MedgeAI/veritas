@@ -99,6 +99,7 @@ MVP 聚焦：
 -> opencode AgentInvestigationPlanner 基于已生成 artifacts 选择最多 3 轮后续确定性调查工具
 -> opencode agent_review 读取结构化产物做 claim/finding 复核
 -> opencode role layer 顺序执行 ClaimExtractor / SourceDataAuditor / JudgeAgent
+-> AgentStepRunner 为所有 Agent 调用写入 bounded context_pack_*.json 和 logs/*.json
 -> 产出结构化证据草案和 Markdown/HTML 报告
 -> 再把 runtime / claim-to-code verification 纳入更稳定的 happy path
 ```
@@ -106,6 +107,8 @@ MVP 聚焦：
 补充约束：PDF 解析、evidence ledger、numeric forensics、exact image duplicate 属于论文输入后的固定静态链路；image similarity 属于 Agent-selectable optional investigation tool。Source Data 不再假设一定存在或一定是 CSV/XLSX。当前实现先写 `material_inventory.json`，再由 `agent_material_plan` 或确定性 fallback 选择 optional evidence lane；只有被 Tool Registry 支持且根目录合法的 lane 才能进入执行。
 
 最新补充：`image_similarity_candidates` 已从固定 baseline 移到 Agent-selectable investigation tool。`AgentInvestigationPlanner` 只能选择 Tool Registry 中 `agent_selectable=True` 且 deterministic 的工具；执行记录写入 `investigation_rounds.jsonl`，追加工具输出写入 `workdir/investigation/`，不得覆盖 baseline artifacts。
+
+Agent 调用层最新状态：`engine/investigation/context_pack.py` 为 material plan、review 和 role layer 构建 bounded `AgentContextPack`；`engine/investigation/agent_step_runner.py` 统一执行 opencode、JSON extraction、schema validation、retry、错误分类和 `logs/*.json` 写入。`opencode_agent.py` 仍通过 legacy adapter 保持 orchestrator 兼容。后续若修改 Agent 行为，优先维护 context pack、runner result 和 manifest/report provenance 的契约，不要回退到裸自然语言输出。
 
 也就是说，当前第一刀不是直接做完整 `veritas.yml -> runtime -> report`，而是先验证：
 
@@ -354,6 +357,8 @@ tests/        单测、集成测试和 e2e 测试
 
 当前 role 层不是从 `agent_review` 派生的假 trace。`ClaimExtractor`、`SourceDataAuditor`、`JudgeAgent` 已通过 `engine.investigation.opencode_agent.run_agent_role()` 独立调用 opencode；成功 role 在未指定 `--force` 时会复用已有 output/trace，避免重复调用把成功结果覆盖成失败结果。
 
+当前所有 `run_agent_*` 入口都应通过 `AgentStepRunner` 和 bounded context pack 调用 opencode。新增 Agent 步骤时要同时定义 context pack 输入、schema validator、retry/failed 语义、log artifact 和 manifest/report 暴露方式。
+
 不要把 `runtime/` 移到 `engine/` 下面。`runtime/` 是一级产品原语。
 
 ### 本地产物和提交边界
@@ -469,16 +474,17 @@ veritas report <report.json>
 当前可运行开发命令：
 
 ```bash
-PYTHONPATH=. python3 cli/main.py audit-paper <paper_dir> --case-id <case_id> --agent-mode review --progress plain
-PYTHONPATH=. python3 cli/main.py precheck examples/bioinfo_python_case/veritas.json
-PYTHONPATH=. python3 cli/main.py run examples/bioinfo_python_case/veritas.json --output-dir outputs/demo
-PYTHONPATH=. python3 cli/main.py report outputs/demo/report.json --output-dir outputs/demo
+make sync
+make audit PAPER_DIR=<paper_dir> CASE_ID=<case_id>
+make precheck
+make run
+make report
 ```
 
 当前老板 demo 推荐使用：
 
 ```bash
-PYTHONPATH=. python3 cli/main.py audit-paper <paper_dir> --case-id <case_id> --agent-mode review --agent-timeout-seconds 180 --agent-max-retries 1 --progress plain
+make audit PAPER_DIR=<paper_dir> CASE_ID=<case_id>
 ```
 
 优先展示 `outputs/<case_id>/research-integrity-audit/final_audit_report.html`。该 HTML 是单文件静态报告，围绕 Top-N priority findings、证据定位、良性解释、人工复核动作和 role trace 展示；不要把它表述成最终科研诚信判定。`audit-paper` 进度写入 `stderr`，最终 summary JSON 写入 `stdout`，不要把进度事件混入最终 JSON；MinerU 子进程输出可以作为 `command_output` 进度事件转发。
@@ -497,6 +503,8 @@ MVP 最低测试范围：
 - runtime subprocess test
 - report render test
 - Agent structured-output validation test
+
+本地 Python 环境由 `uv` 管理；`uv.lock` 是 Python 依赖锁文件，常用验证入口是 `make test` 和 `make lint-python`。`ruff` 已纳入 dev 依赖，lint 默认排除 `engine/static_audit/upstream/` 上游镜像，避免把只读 upstream 代码纳入 first-party lint 约束。
 
 涉及外部服务的集成，先加 fixture-based test。
 

@@ -1,6 +1,6 @@
 # Veritas 当前 TODO
 
-更新时间：2026-05-29
+更新时间：2026-06-12
 
 ## 产品定位（最新）
 
@@ -16,7 +16,7 @@
 **问题分层（Issue Categories）**：所有 finding 按 `consistency`（一致性，最严重）> `matching`（匹配性）> `completeness`（完整性，材料缺失）分层，帮助导师判断优先级。
 
 - 材料缺失检测保留作为 completeness issue（监管真空的信号）
-- 代码执行审查未接入保留作为 completeness issue（可验证性缺失）
+- `precheck` / `run` / `report` 和 `runtime/subprocess` 已有基础能力；但 `audit-paper` happy path 仍以静态证据、Source Data 和 Agent 结构化复核为主，claim-to-code/runtime replay 还不是稳定主链路。缺代码、环境或结果文件时仍作为 completeness issue 或 `execution_status: not_provided` / `skipped` 呈现。
 
 **当前范围**：干实验论文（Python/R 医学生信与生物医药），暂不泛化到湿实验、临床试验等。
 
@@ -36,6 +36,8 @@
 - 不在运行代码、常驻方法论或默认配置里写入具体论文标题、文件名前缀、图号、finding id 或 claim 文本。
 - ELIS-style 重型图像取证能力可以进入内测 happy path，但必须保留失败隔离、超时、artifact provenance 和人工复核入口。
 - **报告按 issue_category 分层呈现**：高危发现（consistency）→ 匹配问题（matching）→ 完整性问题（completeness）。
+- `.gitmodules`、`third_party/` 和 `docs/` 当前可能是本地增强上下文；如果仍保持 local-only，不要让产品功能依赖所有 clone 都必然存在这些目录。
+- 第三方能力进入主链路必须经过：license/data-boundary review -> first-party adapter/tool wrapper -> `engine/tools/registry.py` -> 结构化 artifact -> manifest/limitations -> fixture/golden test -> report 消费。
 
 ## 已完成
 
@@ -60,6 +62,12 @@
 - `opencode.json` context 已包含 `configs/methodology/` 下所有方法论文件。
 - `pyproject.toml` 已包含 `web*` 包。
 - Web P1 基础设施：`web/backend/` stdlib backend + `web/frontend/` Vite React frontend。
+- `AGENTS.md` / `CLAUDE.md` 已明确主入口关系：`AGENTS.md` 是仓库规则 source of truth，`CLAUDE.md` 只做薄桥接，避免规则复制漂移。
+- `README.md` / `AGENTS.md` 已同步第三方参考仓库吸收地图：`research-integrity-auditor`、`elis`、`deepwiki-open`、`AsyncReview` 均只能通过 adapter/registry/artifact/test/report 流程进入主链路。
+- 本地 Python 环境已切到 `uv` 管理：`pyproject.toml` 声明 runtime/dev 依赖，`uv.lock` 锁定版本，根目录 `Makefile` 封装 `sync/test/lint/audit/web` 常用入口。
+- `ruff` 已纳入 dev 依赖；`make lint-python` 默认排除 `engine/static_audit/upstream/` 只读上游镜像。
+- Agent Function Runtime 已落地第一版：`AgentStepRunner`、`AgentContextPack`、`ProgressEvent` 统一 Agent 调用、bounded context、JSON extraction、schema validation、retry 和错误分类；`run_agent_plan/material_plan/investigation_plan/review/role` 都已通过 context pack 进入 runner。
+- Web P1 run 记录已加入 `last_event_at` heartbeat；backend 恢复时 stale run 标记为 `interrupted/no_heartbeat_for_<seconds>_seconds`，旧版本无 heartbeat 的 run 才兼容标记为 `failed/interrupted_by_backend_restart`。
 
 ## 下一步优先级
 
@@ -73,6 +81,7 @@
 
 - 全量借鉴 ELIS 能力方向：`pdf-extractor`、`panel-extractor`、`copy-move-detection`、`copy-move-detection-keypoint`、`TruFor`、`CBIR + Milvus` 都进入内测路线。
 - 不直接复用 ELIS 的 FastAPI/Celery/MongoDB/Redis 主服务；Veritas 只吸收工具能力和数据模型思想。
+- 引入 ELIS 重型模型、AGPL 组件或外部服务前，先完成许可证、数据边界、部署成本和失败隔离评估。
 - 每个 ELIS 能力先封装为 adapter/tool，注册到 `engine/tools/registry.py`，再由 orchestrator/runtime 执行。
 - 先文件驱动：tool input/output、job trace、evidence event、visual evidence package 都写入 `outputs/<case_id>/`。
 - `figure_evidence` 必须是 canonical 图像证据模型；MinerU 图片、ELIS pdf-extractor 图片、panel crop、copy-move mask、TruFor heatmap、CBIR match 都必须回链到 canonical figure/panel id。
@@ -81,14 +90,15 @@
 
 建议实施顺序：
 
-1. 定义 `figure_evidence` / `panel_evidence` / `visual_finding` / `image_relationship` schema。
-2. 建立 `engine/static_audit/tools/elis_adapters/`，先做 adapter contract 和 mock/fixture 输出。
-3. 接入 ELIS `pdf-extractor` 和 `panel-extractor`，解决 canonical image id、page、figure caption、panel crop 的统一。
-4. 接入 copy-move 两类工具，输出 mask/overlay、method、score、target panel、candidate region。
-5. 接入 TruFor，输出 heatmap/score/threshold/model metadata，默认只作为候选信号。
-6. 接入 CBIR + Milvus 内测路径，先做单 case/单论文内部索引，保留未来跨论文 corpus 扩展点。
-7. HTML 报告新增视觉证据包：原图、panel、overlay/heatmap、候选对、caption/condition、人工复核 checklist。
-8. AgentInvestigationPlanner prompt 加入 ELIS tool catalog，使 Agent 能在已有 findings 基础上选择 copy-move、TruFor 或 CBIR。
+1. 完成 ELIS 相关模块的 license / data-boundary review，明确哪些能力可直接适配、哪些只能 mock/fixture。
+2. 定义 `figure_evidence` / `panel_evidence` / `visual_finding` / `image_relationship` schema。
+3. 建立 `engine/static_audit/tools/elis_adapters/`，先做 adapter contract 和 mock/fixture 输出。
+4. 接入 ELIS `pdf-extractor` 和 `panel-extractor`，解决 canonical image id、page、figure caption、panel crop 的统一。
+5. 接入 copy-move 两类工具，输出 mask/overlay、method、score、target panel、candidate region。
+6. 接入 TruFor，输出 heatmap/score/threshold/model metadata，默认只作为候选信号。
+7. 接入 CBIR + Milvus 内测路径，先做单 case/单论文内部索引，保留未来跨论文 corpus 扩展点。
+8. HTML 报告新增视觉证据包：原图、panel、overlay/heatmap、候选对、caption/condition、人工复核 checklist。
+9. AgentInvestigationPlanner prompt 加入 ELIS tool catalog，使 Agent 能在已有 findings 基础上选择 copy-move、TruFor 或 CBIR。
 
 验收标准：
 
@@ -99,12 +109,13 @@
 
 ### P0 后续待补：Static Audit 核心打磨
 
-P0 最小闭环已完成。以下 4 项仍需补齐：
+P0 最小闭环已完成。以下 5 项仍需补齐：
 
 1. **Investigation findings 合并策略**：将 investigation 追加产物中的高价值 findings 合并进 canonical evidence/finding 表时，需要明确去重和优先级策略。建议基于 `tool_id + finding category + workbook/sheet/rows/columns/image pair + support` 去重。
 2. **Pydantic schema 升级**：把当前轻量 validator 升级为 Pydantic schema，保持"校验失败 -> 反馈 Agent 重试 -> 仍失败则 fallback"的语义。
 3. **Planner prompt 优化**：进一步优化 AgentInvestigationPlanner prompt，让其更稳定地区分"补充调查"与"重复 baseline"。
 4. **Planner fixture-based eval**：为 `AgentInvestigationPlanner` 增加真实 fixture-based eval，验证它能在已有 artifacts 上选择合理工具，并拒绝重复、缺依赖、越权 Agent tool。
+5. **AgentStepRunner provenance 上浮**：把 `error_category`、`log_ref`、`context_pack_path` 和 validation/retry 摘要并入 manifest、`static_audit_bundle` 和 HTML 报告 failure/limitation 区域。
 
 ### P0 产品层改进：问题分层与报告呈现
 
@@ -194,14 +205,10 @@ P0 最小闭环已完成。以下 4 项仍需补齐：
 ## 当前验收命令模板
 
 ```bash
-PYTHONPATH=. python3 cli/main.py audit-paper <paper_dir> \
-  --case-id <case_id> \
-  --fresh \
-  --force \
-  --agent-mode review \
-  --agent-timeout-seconds 300 \
-  --agent-max-retries 1 \
-  --progress plain
+make sync
+make audit-fresh PAPER_DIR=<paper_dir> CASE_ID=<case_id> AGENT_TIMEOUT_SECONDS=300
+make test
+make lint-python
 ```
 
 ## 红线
@@ -209,5 +216,7 @@ PYTHONPATH=. python3 cli/main.py audit-paper <paper_dir> \
 - 不把某个 fixture 的论文标题、文件名前缀、图号或 finding id 写入产品逻辑。
 - 不把缺失材料解释为审查通过。
 - 不让 Agent 绕过 Tool Registry 执行任意命令。
+- 不直接 import 大型 `third_party/` 内部实现进入主链路；先封装 adapter/tool，再注册 Tool Registry。
+- 不假设 local-only 的 `.gitmodules`、`third_party/` 或 `docs/` 在所有环境中必然存在。
 - 不做最终科研诚信判定。
 - 不自动改论文、Source Data 或代码。
