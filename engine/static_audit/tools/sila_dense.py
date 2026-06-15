@@ -10,8 +10,6 @@ to ImageRelationship dicts compatible with the Veritas finding pipeline.
 
 from __future__ import annotations
 
-import json
-import shutil
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -41,13 +39,16 @@ def _run_single_image_docker(
 ) -> dict[str, Any]:
     """Run SILA dense single-image detection via Docker."""
     output_dir.mkdir(parents=True, exist_ok=True)
+    # Docker requires absolute paths for volume mounts
+    abs_image_path = image_path.resolve()
+    abs_output_dir = output_dir.resolve()
 
     cmd = [
         "docker", "run", "--rm",
-        "-v", f"{image_path.parent}:/input:ro",
-        "-v", f"{output_dir}:/output",
+        "-v", f"{abs_image_path.parent}:/input:ro",
+        "-v", f"{abs_output_dir}:/output",
         DOCKER_IMAGE,
-        "--input", f"/input/{image_path.name}",
+        "--input", f"/input/{abs_image_path.name}",
         "--output", "/output",
         "--method", str(method),
     ]
@@ -83,15 +84,17 @@ def _run_cross_image_docker(
 ) -> dict[str, Any]:
     """Run SILA dense cross-image detection via Docker."""
     output_dir.mkdir(parents=True, exist_ok=True)
+    abs_source = source_path.resolve()
+    abs_target = target_path.resolve()
+    abs_output = output_dir.resolve()
 
-    # Mount both directories
     cmd = [
         "docker", "run", "--rm",
-        "-v", f"{source_path.parent}:/input1:ro",
-        "-v", f"{target_path.parent}:/input2:ro",
-        "-v", f"{output_dir}:/output",
+        "-v", f"{abs_source.parent}:/input1:ro",
+        "-v", f"{abs_target.parent}:/input2:ro",
+        "-v", f"{abs_output}:/output",
         DOCKER_IMAGE,
-        "--input", f"/input1/{source_path.name}", f"/input2/{target_path.name}",
+        "--input", f"/input1/{abs_source.name}", f"/input2/{abs_target.name}",
         "--output", "/output",
         "--method", str(method),
     ]
