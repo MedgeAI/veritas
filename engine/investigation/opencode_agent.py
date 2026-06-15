@@ -40,6 +40,9 @@ ALLOWED_STEPS = {
     "source_data_pair_forensics",
     "exact_image_duplicates",
     "image_similarity_candidates",
+    "visual_panel_extraction",
+    "visual_copy_move",
+    "visual_finding_pipeline",
     "agent_review",
     "static_audit_bundle",
     "report",
@@ -84,7 +87,9 @@ def fake_plan(
             "numeric_forensics",
             "source_data_profile",
             "source_data_findings",
+            "visual_panel_extraction",
             "exact_image_duplicates",
+            "visual_finding_pipeline",
             "agent_review",
             "report",
         ],
@@ -467,7 +472,7 @@ Return this exact JSON shape:
       "reason": "..."
     }}
   ],
-  "selected_steps": ["mineru", "evidence_ledger", "numeric_forensics", "source_data_profile", "source_data_findings", "source_data_pair_forensics", "exact_image_duplicates", "agent_review", "report"],
+  "selected_steps": ["mineru", "evidence_ledger", "numeric_forensics", "source_data_profile", "source_data_findings", "source_data_pair_forensics", "exact_image_duplicates", "visual_panel_extraction", "visual_finding_pipeline", "agent_review", "report"],
   "script_parameters": {{
     "source_data_findings": {{
       "min_overlap": 12,
@@ -677,6 +682,7 @@ Return this exact JSON shape:
 
 def build_role_prompt(*, role_id: str, case_id: str, workdir: Path) -> str:
     summary = _artifact_summary(workdir)
+    role_specific_rules = ""
     if role_id == "claim_extractor":
         contract = f"""
 Return this exact JSON shape:
@@ -760,7 +766,15 @@ Return this exact JSON shape:
   "limitations": ["..."]
 }}
 """.strip()
-        focus = "Synthesize prior role outputs. Do not override deterministic evidence and do not make a final misconduct judgment."
+        focus = "Synthesize prior role outputs from the compact Judge context pack. Do not re-audit raw deterministic artifacts, do not override deterministic evidence, and do not make a final misconduct judgment."
+        role_specific_rules = """
+Judge-specific input contract:
+- Use `context_pack_judge.json` as the primary input. Its `bounded_excerpts.judge_context_summary.json` field is the compact source of truth for this role.
+- Treat `agent_claim_extractor.json` and `agent_source_data_auditor.json` as prior role outputs, but consume them through the compact summary instead of expanding raw artifacts.
+- Do not request or infer from full `source_data_findings.json`, `source_data_pair_forensics.json`, `full.md`, image files, or other large raw artifacts.
+- Return at most 8 risk_suggestions, 8 report_notes, and 10 limitations.
+- Every risk_suggestions item must cite evidence_refs already present in the compact summary or top_n_findings.
+""".strip()
     else:
         raise ValueError(f"unsupported role prompt: {role_id}")
     return f"""
@@ -775,6 +789,8 @@ Rules:
 - Treat deterministic artifacts as evidence; your output is interpretation and review planning.
 - Use Chinese for natural-language fields, including limitations, benign_explanations, manual_review_tasks.question, report_notes, risk_suggestions.reason, and technical_risk_summary. Keep professional terms and provenance evidence unchanged: claim, finding, Source Data, Agent, Tool Registry, workbook/sheet names, file paths, artifact names, figure labels, evidence refs, code identifiers, and quoted paper claims.
 - Return ONLY one valid JSON object. The first character must be {{ and the last character must be }}. Do not wrap it in Markdown.
+
+{role_specific_rules}
 
 Case:
 - case_id: {case_id}
@@ -896,10 +912,19 @@ def validate_role_output(role_id: str, data: dict[str, Any]) -> dict[str, Any]:
             "limitations",
         ]:
             _require(data, key, list)
+        data["claim_to_source_data"] = data["claim_to_source_data"][:12]
+        data["finding_reviews"] = data["finding_reviews"][:12]
+        data["manual_review_tasks"] = data["manual_review_tasks"][:12]
+        data["limitations"] = data["limitations"][:10]
     elif role_id == "judge":
-        _require(data, "summary", dict)
+        summary = _require(data, "summary", dict)
         for key in ["risk_suggestions", "report_notes", "limitations"]:
             _require(data, key, list)
+        data["risk_suggestions"] = data["risk_suggestions"][:8]
+        data["report_notes"] = data["report_notes"][:8]
+        data["limitations"] = data["limitations"][:10]
+        if isinstance(summary.get("technical_risk_summary"), str):
+            summary["technical_risk_summary"] = summary["technical_risk_summary"][:1200]
     else:
         raise ValueError(f"unsupported role validator: {role_id}")
     return data
@@ -1220,6 +1245,36 @@ def _artifact_summary(workdir: Path) -> dict[str, Any]:
     }
     summary["source_data_findings_summary"] = source_findings.get("summary", {})
     summary["source_data_pair_forensics_summary"] = pair_forensics.get("summary", {})
+    summary["source_data_pair_forensics_review_tasks"] = [
+        {
+            "task_id": item.get("task_id"),
+            "priority": item.get("priority"),
+            "cluster_id": item.get("cluster_id"),
+            "category": item.get("category"),
+            "workbook": item.get("workbook"),
+            "sheet": item.get("sheet"),
+            "cluster_count": item.get("cluster_count"),
+            "finding_count": item.get("finding_count"),
+            "question": str(item.get("question", ""))[:280],
+            "representative_finding_ids": (item.get("representative_finding_ids") or [])[:6],
+        }
+        for item in (pair_forensics.get("review_tasks") or [])[:12]
+        if isinstance(item, dict)
+    ]
+    summary["source_data_pair_forensics_clusters"] = [
+        {
+            "cluster_id": item.get("cluster_id"),
+            "category": item.get("category"),
+            "risk_level": item.get("risk_level"),
+            "workbook": item.get("workbook"),
+            "sheet": item.get("sheet"),
+            "pattern_signature": item.get("pattern_signature"),
+            "finding_count": item.get("finding_count"),
+            "representative_finding_ids": (item.get("representative_finding_ids") or [])[:6],
+        }
+        for item in (pair_forensics.get("finding_clusters") or [])[:12]
+        if isinstance(item, dict)
+    ]
     summary["source_data_pair_forensics_priority"] = [
         _compact_pair_forensics_finding(item)
         for item in (pair_forensics.get("priority_findings") or [])[:12]
@@ -1247,6 +1302,47 @@ def _artifact_summary(workdir: Path) -> dict[str, Any]:
         "image_count": image_similarity.get("image_count"),
         "candidate_count": image_similarity.get("candidate_count"),
     }
+    visual_findings = _read_json(workdir / "visual_findings.json") or {}
+    visual_summary = {
+        "status": visual_findings.get("status"),
+        "relationship_count": visual_findings.get("relationship_count"),
+        "finding_count": visual_findings.get("finding_count"),
+        "finding_cluster_count": visual_findings.get("finding_cluster_count"),
+        "review_queue_count": visual_findings.get("review_queue_count"),
+    }
+    summary["visual_findings"] = visual_summary
+    summary["visual_review_queue"] = [
+        {
+            "task_id": item.get("task_id"),
+            "priority": item.get("priority"),
+            "cluster_id": item.get("cluster_id"),
+            "category": item.get("category"),
+            "scope": item.get("scope"),
+            "figure_ids": (item.get("figure_ids") or [])[:6],
+            "finding_count": item.get("finding_count"),
+            "relationship_count": item.get("relationship_count"),
+            "panel_extraction_quality": item.get("panel_extraction_quality"),
+            "question": str(item.get("question", ""))[:280],
+        }
+        for item in (visual_findings.get("review_queue") or [])[:12]
+        if isinstance(item, dict)
+    ]
+    summary["visual_finding_clusters"] = [
+        {
+            "cluster_id": item.get("cluster_id"),
+            "category": item.get("category"),
+            "risk_level": item.get("risk_level"),
+            "scope": item.get("scope"),
+            "figure_ids": (item.get("figure_ids") or [])[:6],
+            "panel_extraction_quality": item.get("panel_extraction_quality"),
+            "finding_count": item.get("finding_count"),
+            "relationship_count": item.get("relationship_count"),
+            "max_score": item.get("max_score"),
+            "representative_finding_ids": (item.get("representative_finding_ids") or [])[:6],
+        }
+        for item in (visual_findings.get("finding_clusters") or [])[:12]
+        if isinstance(item, dict)
+    ]
     summary["investigation_records"] = investigation_records[-20:]
     return summary
 

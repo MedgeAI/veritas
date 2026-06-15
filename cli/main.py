@@ -78,7 +78,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     audit_parser.add_argument(
         "--agent-model",
-        default="dashscope/qwen3.7-max",
+        default="dashscope/qwen3.7-plus",
         help="opencode model id used for Agent plan/review.",
     )
     audit_parser.add_argument(

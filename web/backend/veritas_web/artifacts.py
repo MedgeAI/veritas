@@ -13,6 +13,10 @@ KNOWN_ARTIFACTS = (
     ("investigation_rounds", "jsonl", "Investigation Rounds", "investigation_rounds.jsonl"),
     ("final_markdown_report", "markdown", "Final Markdown Report", "final_audit_report.md"),
     ("final_html_report", "html_report", "Final HTML Report", "final_audit_report.html"),
+    ("visual_evidence", "json", "Visual Evidence (Figures)", "visual_evidence.json"),
+    ("panel_evidence", "json", "Panel Evidence", "panel_evidence.json"),
+    ("image_relationships", "json", "Image Relationships", "image_relationships.json"),
+    ("visual_findings", "json", "Visual Findings", "visual_findings.json"),
 )
 
 
@@ -52,6 +56,21 @@ class ArtifactService:
 
     def report_html_path(self, case_id: str) -> Path | None:
         return self.artifact_path(case_id, "final_html_report")
+
+    def visual_image_path(self, case_id: str, relative_path: str) -> Path | None:
+        """Resolve a visual image path within the case workdir.
+
+        Prevents path traversal by ensuring resolved path is under workdir.
+        """
+        workdir = self.latest_workdir(case_id)
+        if not workdir:
+            return None
+        # Normalize the relative path to prevent traversal
+        candidate = (workdir / relative_path).resolve()
+        workdir_resolved = workdir.resolve()
+        if workdir_resolved not in candidate.parents and candidate != workdir_resolved:
+            return None
+        return candidate if candidate.exists() and candidate.is_file() else None
 
     def latest_workdir(self, case_id: str) -> Path | None:
         case = self.store.get_case(case_id)

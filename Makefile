@@ -24,7 +24,7 @@ OUTPUT_ROOT ?= outputs
 PAPER_DIR ?=
 CASE_ID ?= local-paper-demo
 AGENT_MODE ?= review
-AGENT_MODEL ?= dashscope/qwen3.7-max
+AGENT_MODEL ?= dashscope/qwen3.7-plus
 AGENT_TIMEOUT_SECONDS ?= 180
 AGENT_MAX_RETRIES ?= 1
 PROGRESS ?= plain
@@ -208,6 +208,11 @@ lint-web: ## Run frontend eslint
 
 web-test: ## Run frontend tests
 	cd $(FRONTEND_DIR) && npm run test
+
+# -- Model weights -------------------------------------------------------
+
+download-models: ## Download YOLOv5 panel extraction model weights (~50MB)
+	./scripts/download_panel_extraction_models.sh
 
 # -- Cleanup -------------------------------------------------------------
 

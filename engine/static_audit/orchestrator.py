@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import shutil
 import subprocess
 import sys
@@ -19,6 +18,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
+from engine.env import load_project_env
 from engine.static_audit.models import (
     AgentTrace,
     Claim,
@@ -47,6 +47,19 @@ from engine.static_audit.tools.paperfraud_rules import (
     paperfraud_findings_from_matches,
     run_paperfraud_rule_match,
 )
+from engine.static_audit.tools.panel_extraction import (
+    build_figure_evidence_from_images,
+    build_figure_evidence_from_ledger,
+    extract_panels,
+    whole_figure_panel,
+)
+from engine.static_audit.tools.visual_finding_pipeline import (
+    build_relationships,
+    build_visual_finding_clusters,
+    build_visual_findings,
+    visual_review_queue,
+)
+from engine.static_audit.visual_schemas import check_language_compliance
 from engine.static_audit.roles import ROLE_DEFINITIONS, RoleDefinition, skipped_trace
 from engine.investigation.agent_models import PROGRESS_EVENT_SUMMARY_MAX_CHARS
 from engine.investigation.opencode_agent import (
@@ -68,6 +81,9 @@ from engine.tools.registry import (
     SOURCE_DATA_FINDINGS_TOOL_ID,
     SOURCE_DATA_PAIR_FORENSICS_TOOL_ID,
     STATIC_AUDIT_V1_TOOL_IDS,
+    TOOL_ID_COPY_MOVE,
+    TOOL_ID_FINDING_PIPELINE,
+    TOOL_ID_PANEL_EXTRACTION,
     selected_tool_ids_from_plan,
     source_data_findings_params_from_plan,
 )
@@ -89,6 +105,9 @@ STEP_TOOL_IDS = {
     "source_data_cross_sheet": "source_data.cross_sheet",
     "exact_image_duplicates": "image.exact_duplicates",
     "image_similarity_candidates": "image.similarity_candidates",
+    "visual_panel_extraction": TOOL_ID_PANEL_EXTRACTION,
+    "visual_copy_move": TOOL_ID_COPY_MOVE,
+    "visual_finding_pipeline": TOOL_ID_FINDING_PIPELINE,
     "agent_plan": "agent.plan",
     "agent_review": "agent.review",
     "agent_role_claim_extractor": "agent.role.claim_extractor",
@@ -286,7 +305,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--agent-model",
-        default="dashscope/qwen3.7-max",
+        default="dashscope/qwen3.7-plus",
         help="opencode model id used for Agent plan/review.",
     )
     parser.add_argument(
@@ -324,22 +343,7 @@ def safe_remove_workdir(workdir: Path, output_root: Path) -> None:
 
 
 def load_env(include_env_file: bool) -> dict[str, str]:
-    env = os.environ.copy()
-    if not include_env_file:
-        return env
-    env_file = PROJECT_ROOT / ".env"
-    if not env_file.exists():
-        return env
-    for raw_line in env_file.read_text(encoding="utf-8", errors="ignore").splitlines():
-        line = raw_line.strip()
-        if not line or line.startswith("#") or "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        key = key.strip()
-        value = value.strip().strip('"').strip("'")
-        if key and key not in env:
-            env[key] = value
-    return env
+    return load_project_env(PROJECT_ROOT, include_env_file=include_env_file)
 
 
 def discover_pdf(paper_dir: Path) -> Path:
@@ -606,6 +610,43 @@ def pair_forensics_rows(findings: list[dict[str, Any]], limit: int = 12) -> list
     return rows
 
 
+def pair_forensics_cluster_rows(clusters: list[dict[str, Any]], limit: int = 12) -> list[list[str]]:
+    rows = []
+    for cluster in clusters[:limit]:
+        rows.append(
+            [
+                cluster.get("cluster_id", "-"),
+                cluster.get("risk_level", "-"),
+                cluster.get("category", "-"),
+                cluster.get("workbook", "-"),
+                cluster.get("sheet", "-"),
+                cluster.get("pattern_signature", "-"),
+                fmt_int(cluster.get("finding_count")),
+                ", ".join(str(item) for item in (cluster.get("representative_finding_ids") or [])[:5]) or "-",
+            ]
+        )
+    return rows
+
+
+def pair_forensics_review_task_rows(tasks: list[dict[str, Any]], limit: int = 12) -> list[list[str]]:
+    rows = []
+    for task in tasks[:limit]:
+        rows.append(
+            [
+                task.get("task_id", "-"),
+                task.get("priority", "-"),
+                task.get("cluster_id", "-"),
+                task.get("category", "-"),
+                task.get("workbook", "-"),
+                task.get("sheet", "-"),
+                fmt_int(task.get("cluster_count")),
+                fmt_int(task.get("finding_count")),
+                str(task.get("question", "-"))[:220],
+            ]
+        )
+    return rows
+
+
 def canonical_claim_mapping_rows(
     claims: list[dict[str, Any]],
     mappings: list[dict[str, Any]],
@@ -739,6 +780,329 @@ def investigation_action_from_dict(round_id: int, action: dict[str, Any]) -> Inv
         expected_evidence_type=normalize_expected_evidence_type(str(action.get("expected_evidence_type") or "")),
         stop_if_no_new_evidence=bool(action.get("stop_if_no_new_evidence", True)),
     )
+
+
+def write_json_artifact(path: Path, payload: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+
+def _visual_status(values: list[str]) -> str:
+    if any(value == "ran" for value in values):
+        return "ran"
+    if any(value == "not_available" for value in values):
+        return "not_available"
+    if any(value == "failed" for value in values):
+        return "failed"
+    return "skipped"
+
+
+def _resolve_workdir_path(workdir: Path, relative_path: str) -> Path | None:
+    if not relative_path:
+        return None
+    candidate = Path(relative_path)
+    if not candidate.is_absolute():
+        candidate = workdir / candidate
+    try:
+        resolved = candidate.resolve()
+    except OSError:
+        return None
+    try:
+        if not resolved.is_relative_to(workdir.resolve()):
+            return None
+    except OSError:
+        return None
+    return resolved if resolved.exists() else None
+
+
+def run_visual_panel_extraction(
+    *,
+    workdir: Path,
+    images_dir: Path,
+    force: bool,
+    progress: ProgressCallback | None = None,
+) -> tuple[list[StepResult], dict[str, Any]]:
+    """Create canonical figure and panel evidence from extracted PDF images."""
+    steps: list[StepResult] = []
+    figure_output = workdir / "visual_evidence.json"
+    panel_output = workdir / "panel_evidence.json"
+    if figure_output.exists() and panel_output.exists() and not force:
+        step = StepResult(
+            "visual_panel_extraction",
+            "图片 Panel 拆分",
+            "reused",
+            "Existing visual_evidence.json and panel_evidence.json found.",
+        )
+        record_step(steps, step, progress)
+        return steps, {
+            "panel_extraction": {
+                "status": "reused",
+                "figures_output": str(figure_output),
+                "panels_output": str(panel_output),
+            }
+        }
+
+    if not images_dir.is_dir():
+        step = StepResult("visual_panel_extraction", "图片 Panel 拆分", "skipped", "images directory missing.")
+        record_step(steps, step, progress)
+        return steps, {"panel_extraction": {"status": "skipped", "detail": step.detail}}
+
+    emit_step_start(
+        progress,
+        "visual_panel_extraction",
+        "图片 Panel 拆分",
+        "Building canonical figure_evidence and panel_evidence artifacts.",
+    )
+
+    evidence_ledger = read_json(workdir / "evidence_ledger.json") or {}
+    figures = build_figure_evidence_from_ledger(workdir, evidence_ledger)
+    if not figures:
+        figures = build_figure_evidence_from_images(workdir, images_dir)
+
+    errors: list[str] = []
+    limitations: list[str] = []
+    panels: list[dict[str, Any]] = []
+    extraction_statuses: list[str] = []
+
+    if not figures:
+        limitations.append("No extracted figure images were available for panel extraction.")
+
+    for figure in figures:
+        source_path = _resolve_workdir_path(workdir, str(figure.get("source_image_path") or ""))
+        if source_path is None:
+            errors.append(f"Figure image not found: {figure.get('source_image_path')}")
+            extraction_statuses.append("failed")
+            continue
+
+        result = extract_panels(source_path, figure_id=str(figure.get("figure_id") or ""), output_dir=workdir)
+        extraction_statuses.append(str(result.get("status") or "skipped"))
+        errors.extend(str(item) for item in (result.get("errors") or []))
+        limitations.extend(str(item) for item in (result.get("limitations") or []))
+
+        result_panels = [item for item in (result.get("panels") or []) if isinstance(item, dict)]
+        if not result_panels:
+            fallback_panel = whole_figure_panel(figure, workdir=workdir, output_dir=workdir)
+            if fallback_panel:
+                result_panels = [fallback_panel]
+                limitations.append(
+                    f"{figure.get('figure_id')}: contour panel extraction did not emit panels; whole-figure fallback panel was created."
+                )
+
+        panels.extend(result_panels)
+        figure["panel_count"] = len(result_panels)
+        if result.get("figure_evidence"):
+            extracted_figure = result["figure_evidence"]
+            figure["width"] = figure.get("width") or extracted_figure.get("width")
+            figure["height"] = figure.get("height") or extracted_figure.get("height")
+            metadata = figure.get("metadata") if isinstance(figure.get("metadata"), dict) else {}
+            figure["metadata"] = {**metadata, "panel_extraction_status": result.get("status")}
+
+    status = "ran" if figures else "skipped"
+    if figures and not panels:
+        status = _visual_status(extraction_statuses)
+        if status == "ran":
+            status = "warning"
+
+    visual_evidence = {
+        "schema_version": "1.0",
+        "created_by": "engine/static_audit/orchestrator.py",
+        "status": status,
+        "figure_count": len(figures),
+        "panel_count": len(panels),
+        "figures": figures,
+        "errors": errors,
+        "limitations": limitations,
+    }
+    panel_evidence = {
+        "schema_version": "1.0",
+        "created_by": "engine/static_audit/orchestrator.py",
+        "status": status,
+        "figure_count": len(figures),
+        "panel_count": len(panels),
+        "panels": panels,
+        "errors": errors,
+        "limitations": limitations,
+    }
+    write_json_artifact(figure_output, visual_evidence)
+    write_json_artifact(panel_output, panel_evidence)
+
+    detail = f"figures={len(figures)} panels={len(panels)}"
+    if limitations:
+        detail += f" limitations={len(limitations)}"
+    step_status = "ran" if status in {"ran", "warning"} else "warning" if status in {"not_available", "failed"} else status
+    step = StepResult("visual_panel_extraction", "图片 Panel 拆分", step_status, detail)
+    record_step(steps, step, progress)
+    return steps, {
+        "panel_extraction": {
+            "status": status,
+            "figures_output": str(figure_output),
+            "panels_output": str(panel_output),
+            "figure_count": len(figures),
+            "panel_count": len(panels),
+            "errors": errors,
+            "limitations": limitations,
+        }
+    }
+
+
+def _read_visual_copy_move_outputs(workdir: Path) -> dict[str, Any]:
+    relationships: list[dict[str, Any]] = []
+    statuses: list[str] = []
+    errors: list[str] = []
+    limitations: list[str] = []
+    paths = []
+    baseline = workdir / "visual_copy_move.json"
+    if baseline.exists():
+        paths.append(baseline)
+    paths.extend(sorted((workdir / "investigation").rglob("visual_copy_move.json")) if (workdir / "investigation").exists() else [])
+    for path in paths:
+        data = read_json(path) or {}
+        statuses.append(str(data.get("status") or "unknown"))
+        relationships.extend(item for item in (data.get("relationships") or []) if isinstance(item, dict))
+        errors.extend(str(item) for item in (data.get("errors") or []))
+        limitations.extend(str(item) for item in (data.get("limitations") or []))
+    return {
+        "status": _visual_status(statuses) if statuses else "skipped",
+        "relationships": relationships,
+        "errors": errors,
+        "limitations": limitations,
+        "source_paths": [str(path) for path in paths],
+    }
+
+
+def _read_image_similarity_outputs(workdir: Path) -> dict[str, Any]:
+    candidates: list[dict[str, Any]] = []
+    paths = []
+    baseline = workdir / "image_similarity_candidates.json"
+    if baseline.exists():
+        paths.append(baseline)
+    paths.extend(sorted((workdir / "investigation").rglob("image_similarity_candidates.json")) if (workdir / "investigation").exists() else [])
+    for path in paths:
+        data = read_json(path) or {}
+        candidates.extend(item for item in (data.get("candidates") or []) if isinstance(item, dict))
+    return {"candidates": candidates, "source_paths": [str(path) for path in paths]}
+
+
+def run_visual_finding_pipeline(
+    *,
+    workdir: Path,
+    force: bool,
+    progress: ProgressCallback | None = None,
+) -> tuple[list[StepResult], dict[str, Any]]:
+    """Aggregate visual tool outputs into canonical relationships/findings."""
+    steps: list[StepResult] = []
+    relationships_output = workdir / "image_relationships.json"
+    findings_output = workdir / "visual_findings.json"
+    if relationships_output.exists() and findings_output.exists() and not force:
+        step = StepResult(
+            "visual_finding_pipeline",
+            "视觉证据聚合管线",
+            "reused",
+            "Existing image_relationships.json and visual_findings.json found.",
+        )
+        record_step(steps, step, progress)
+        return steps, {"finding_pipeline": {"status": "reused", "relationships_output": str(relationships_output), "findings_output": str(findings_output)}}
+
+    panel_doc = read_json(workdir / "panel_evidence.json") or {}
+    panels = [item for item in (panel_doc.get("panels") or []) if isinstance(item, dict)]
+    if not panels:
+        relationship_doc = {
+            "schema_version": "1.0",
+            "created_by": "engine/static_audit/orchestrator.py",
+            "status": "skipped",
+            "relationship_count": 0,
+            "relationships": [],
+            "errors": [],
+            "limitations": ["panel_evidence.json is missing or contains no panels."],
+        }
+        finding_doc = {
+            "schema_version": "1.0",
+            "created_by": "engine/static_audit/orchestrator.py",
+            "status": "skipped",
+            "finding_count": 0,
+            "finding_cluster_count": 0,
+            "review_queue_count": 0,
+            "findings": [],
+            "finding_clusters": [],
+            "review_queue": [],
+            "errors": [],
+            "limitations": relationship_doc["limitations"],
+        }
+        write_json_artifact(relationships_output, relationship_doc)
+        write_json_artifact(findings_output, finding_doc)
+        step = StepResult("visual_finding_pipeline", "视觉证据聚合管线", "skipped", relationship_doc["limitations"][0])
+        record_step(steps, step, progress)
+        return steps, {"finding_pipeline": {"status": "skipped", "relationships_output": str(relationships_output), "findings_output": str(findings_output)}}
+
+    emit_step_start(progress, "visual_finding_pipeline", "视觉证据聚合管线", "Aggregating visual relationships and findings.")
+    copy_move_result = _read_visual_copy_move_outputs(workdir)
+    exact_duplicates = read_json(workdir / "exact_image_duplicates.json") or {}
+    dhash_candidates = _read_image_similarity_outputs(workdir)
+    relationships = build_relationships(
+        copy_move_result=copy_move_result,
+        exact_duplicates=exact_duplicates,
+        dhash_candidates=dhash_candidates,
+        panel_evidence=panels,
+    )
+    findings = build_visual_findings(relationships, panel_evidence=panels)
+    finding_clusters = build_visual_finding_clusters(findings)
+    review_queue = visual_review_queue(finding_clusters)
+    limitations = [
+        "Visual relationships are screening signals and require manual review before escalation.",
+    ]
+    limitations.extend(copy_move_result.get("limitations") or [])
+    errors = list(copy_move_result.get("errors") or [])
+
+    relationship_doc = {
+        "schema_version": "1.0",
+        "created_by": "engine/static_audit/orchestrator.py",
+        "status": "ran",
+        "panel_count": len(panels),
+        "relationship_count": len(relationships),
+        "relationships": relationships,
+        "source_artifacts": {
+            "copy_move": copy_move_result.get("source_paths") or [],
+            "image_similarity": dhash_candidates.get("source_paths") or [],
+            "exact_duplicates": str(workdir / "exact_image_duplicates.json") if (workdir / "exact_image_duplicates.json").exists() else None,
+        },
+        "errors": errors,
+        "limitations": limitations,
+    }
+    finding_doc = {
+        "schema_version": "1.0",
+        "created_by": "engine/static_audit/orchestrator.py",
+        "status": "ran",
+        "relationship_count": len(relationships),
+        "finding_count": len(findings),
+        "finding_cluster_count": len(finding_clusters),
+        "review_queue_count": len(review_queue),
+        "findings": findings,
+        "finding_clusters": finding_clusters,
+        "review_queue": review_queue,
+        "errors": errors,
+        "limitations": limitations,
+    }
+    write_json_artifact(relationships_output, relationship_doc)
+    write_json_artifact(findings_output, finding_doc)
+    step = StepResult(
+        "visual_finding_pipeline",
+        "视觉证据聚合管线",
+        "ran",
+        f"relationships={len(relationships)} visual_findings={len(findings)} visual_review_queue={len(review_queue)}",
+    )
+    record_step(steps, step, progress)
+    return steps, {
+        "finding_pipeline": {
+            "status": "ran",
+            "relationships_output": str(relationships_output),
+            "findings_output": str(findings_output),
+            "relationship_count": len(relationships),
+            "finding_count": len(findings),
+            "finding_cluster_count": len(finding_clusters),
+            "review_queue_count": len(review_queue),
+            "copy_move_status": copy_move_result.get("status"),
+        }
+    }
 
 
 def run_investigation_rounds(
@@ -1043,6 +1407,38 @@ def run_investigation_tool_action(
             "--max-candidates",
             str(params.get("max_candidates", 200)),
         ]
+    elif action.tool_id == TOOL_ID_COPY_MOVE:
+        panel_json = workdir / "panel_evidence.json"
+        if not panel_json.exists():
+            step = StepResult(key, "Agent Investigation Tool", "skipped", "panel_evidence.json missing.")
+            emit_step_result(progress, step)
+            return step, []
+        output = action_dir / "visual_copy_move.json"
+        params = action.params
+        command = [
+            sys.executable,
+            "-m",
+            "engine.static_audit.tools.copy_move_detection",
+            str(panel_json),
+            "--figure-json",
+            str(workdir / "visual_evidence.json"),
+            "--output",
+            str(output),
+            "--workdir",
+            str(workdir),
+            "--method",
+            str(params.get("method", "orb")),
+            "--min-matches",
+            str(params.get("min_matches", 10)),
+            "--ratio-threshold",
+            str(params.get("ratio_threshold", 0.75)),
+            "--ransac-threshold",
+            str(params.get("ransac_threshold", 3.0)),
+            "--min-score",
+            str(params.get("min_score", 0.15)),
+            "--max-relationships",
+            str(params.get("max_relationships", 500)),
+        ]
     else:
         step = StepResult(key, "Agent Investigation Tool", "skipped", f"Unsupported action tool_id: {action.tool_id}")
         emit_step_result(progress, step)
@@ -1065,6 +1461,17 @@ def brief_list(items: Any, limit: int = 8) -> str:
     if not isinstance(items, list) or not items:
         return "-"
     return ", ".join(str(item) for item in items[:limit])
+
+
+def dedupe(items: list[str]) -> list[str]:
+    seen: set[str] = set()
+    out: list[str] = []
+    for item in items:
+        if item in seen:
+            continue
+        seen.add(item)
+        out.append(item)
+    return out
 
 
 def agent_manual_review_rows(tasks: list[dict[str, Any]], limit: int = 12) -> list[list[str]]:
@@ -1209,10 +1616,10 @@ def generate_report(
         "image_similarity_candidates.json",
         "investigation_rounds.jsonl",
         "static_audit_bundle.json",
-        "final_audit_report.html",
     ]:
         path = workdir / name
         artifact_rows.append([name, "present" if path.exists() else "missing", path.stat().st_size if path.exists() else "-"])
+    artifact_rows.append(["final_audit_report.html", "generated_after_markdown", "-"])
     lines.append(markdown_table(["Artifact", "Status", "Bytes"], artifact_rows))
     lines.append("")
 
@@ -1461,6 +1868,8 @@ def generate_report(
     if pair_forensics:
         summary = pair_forensics.get("summary", {})
         priority = pair_forensics.get("priority_findings") or []
+        clusters = pair_forensics.get("finding_clusters") or []
+        review_tasks = pair_forensics.get("review_tasks") or []
         lines.append("## Source Data Pair / Row-Offset Forensics")
         lines.append("")
         lines.append("该工具检查通用的 paired cohort、前后半区、固定行偏移、低宽度行重复和比例复用模式；它不依赖特定论文或 PubPeer 评论。")
@@ -1470,6 +1879,8 @@ def generate_report(
             [
                 ["findings", fmt_int(summary.get("findings"))],
                 ["priority_findings", fmt_int(summary.get("priority_findings"))],
+                ["finding_clusters", fmt_int(summary.get("finding_clusters"))],
+                ["review_tasks", fmt_int(summary.get("review_tasks"))],
                 ["row_offset_scalar_findings", fmt_int(summary.get("row_offset_scalar_findings"))],
                 ["paired_ratio_reuse_findings", fmt_int(summary.get("paired_ratio_reuse_findings"))],
                 ["duplicate_row_vector_findings", fmt_int(summary.get("duplicate_row_vector_findings"))],
@@ -1478,15 +1889,31 @@ def generate_report(
             ],
         ))
         lines.append("")
+        if review_tasks:
+            lines.append("### Pair Forensics Review Tasks")
+            lines.append("")
+            lines.append(markdown_table(
+                ["Task", "Priority", "Primary Cluster", "Category", "Workbook", "Sheet", "Clusters", "Raw Count", "Question"],
+                pair_forensics_review_task_rows(review_tasks),
+            ))
+            lines.append("")
+        if clusters:
+            lines.append("### Pair Forensics Finding Clusters")
+            lines.append("")
+            lines.append(markdown_table(
+                ["Cluster", "Risk", "Category", "Workbook", "Sheet", "Signature", "Raw Count", "Representative Findings"],
+                pair_forensics_cluster_rows(clusters),
+            ))
+            lines.append("")
         if priority:
-            lines.append("### Pair Forensics Priority Findings")
+            lines.append("### Representative Raw Pair Findings")
             lines.append("")
             lines.append(markdown_table(
                 ["ID", "Risk", "Category", "Workbook", "Sheet", "Offset", "Columns", "Support"],
-                pair_forensics_rows(priority),
+                pair_forensics_rows(priority, limit=8),
             ))
             lines.append("")
-            lines.append("这些是样本独立性和数据派生模式的人工复核入口，不是最终诚信判定。")
+            lines.append("上表仅展示代表性 raw findings；人工复核应优先从 review tasks 和 finding clusters 开始。")
             lines.append("")
 
     if duplicates:
@@ -1708,6 +2135,11 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
         ("source_data_pair_forensics.json", "output_artifact"),
         ("exact_image_duplicates.json", "output_artifact"),
         ("image_similarity_candidates.json", "output_artifact"),
+        ("visual_evidence.json", "output_artifact"),
+        ("panel_evidence.json", "output_artifact"),
+        ("visual_copy_move.json", "output_artifact"),
+        ("image_relationships.json", "output_artifact"),
+        ("visual_findings.json", "output_artifact"),
         ("investigation_rounds.jsonl", "output_artifact"),
     ]:
         path = workdir / name
@@ -1718,9 +2150,59 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
                     kind=kind,  # type: ignore[arg-type]
                     source_path=str(path),
                     summary=f"Audit artifact: {name}",
-                    metadata={"bytes": path.stat().st_size},
+                    metadata={"bytes": path.stat().st_size, "artifact_name": name},
                 )
             )
+
+    visual_evidence = read_json(workdir / "visual_evidence.json") or {}
+    for figure in (visual_evidence.get("figures") or [])[:200]:
+        if not isinstance(figure, dict):
+            continue
+        figure_id = str(figure.get("figure_id") or "")
+        if not figure_id:
+            continue
+        items.append(
+            EvidenceItem(
+                evidence_id=f"EV-FIG-{len(items) + 1:04d}",
+                kind="figure",
+                source_path=str(figure.get("source_image_path") or ""),
+                locator={
+                    "figure_id": figure_id,
+                    "label": figure.get("label"),
+                    "page_number": figure.get("page_number"),
+                    "bbox": figure.get("bbox"),
+                },
+                summary=f"Canonical figure evidence {figure_id}",
+                metadata={"figure_id": figure_id, "source": "visual_evidence.json"},
+            )
+        )
+
+    panel_evidence = read_json(workdir / "panel_evidence.json") or {}
+    for panel in (panel_evidence.get("panels") or [])[:1000]:
+        if not isinstance(panel, dict):
+            continue
+        panel_id = str(panel.get("panel_id") or "")
+        if not panel_id:
+            continue
+        items.append(
+            EvidenceItem(
+                evidence_id=f"EV-PANEL-{len(items) + 1:04d}",
+                kind="panel",
+                source_path=str(panel.get("crop_path") or ""),
+                locator={
+                    "panel_id": panel_id,
+                    "parent_figure_id": panel.get("parent_figure_id"),
+                    "label": panel.get("label"),
+                    "bbox": panel.get("bbox"),
+                },
+                summary=f"Canonical panel evidence {panel_id}",
+                metadata={
+                    "panel_id": panel_id,
+                    "parent_figure_id": panel.get("parent_figure_id"),
+                    "source": "panel_evidence.json",
+                },
+            )
+        )
 
     source_findings = read_json(workdir / "source_data_findings.json") or {}
     for finding in (source_findings.get("priority_findings") or [])[:100]:
@@ -1774,6 +2256,16 @@ def collect_claims_and_findings(
         for item in evidence_items
         if item.metadata.get("finding_id")
     }
+    evidence_by_panel = {
+        item.metadata.get("panel_id"): item.evidence_id
+        for item in evidence_items
+        if item.metadata.get("panel_id")
+    }
+    evidence_by_artifact = {
+        item.metadata.get("artifact_name"): item.evidence_id
+        for item in evidence_items
+        if item.metadata.get("artifact_name")
+    }
 
     claims, mappings = collect_agent_refined_claim_mappings(
         agent_claims=agent_claims,
@@ -1822,6 +2314,42 @@ def collect_claims_and_findings(
                 pressure_test_result=str(item.get("pressure_test_result", "")),
                 manual_review_note="Pair/row-offset Source Data pattern requires sample-independence review.",
                 metadata={**item, "source_artifact": "source_data_pair_forensics.json"},
+            )
+        )
+    visual_findings = read_json(workdir / "visual_findings.json") or {}
+    for item in visual_findings.get("findings") or []:
+        if not isinstance(item, dict):
+            continue
+        finding_id = str(item.get("finding_id") or "")
+        if not finding_id:
+            continue
+        summary = str(item.get("summary") or "Visual finding requires manual review.")
+        if check_language_compliance(summary):
+            summary = "Visual finding summary was hidden because it contained report-forbidden wording; inspect source artifacts manually."
+        evidence_refs = [
+            evidence_by_panel[panel_id]
+            for panel_id in [item.get("source_panel_id"), item.get("target_panel_id")]
+            if panel_id in evidence_by_panel
+        ]
+        relationship_artifact = evidence_by_artifact.get("image_relationships.json")
+        if relationship_artifact:
+            evidence_refs.append(relationship_artifact)
+        questions = [str(value) for value in (item.get("manual_review_questions") or []) if not check_language_compliance(str(value))]
+        findings.append(
+            Finding(
+                finding_id=finding_id,
+                category=str(item.get("category") or "visual_finding"),
+                risk_level=str(item.get("risk_level") or "medium"),  # type: ignore[arg-type]
+                summary=summary,
+                issue_category="consistency",
+                evidence_refs=dedupe(evidence_refs),
+                benign_explanations=[
+                    str(value)
+                    for value in (item.get("benign_explanations") or [])
+                    if not check_language_compliance(str(value))
+                ],
+                manual_review_note=questions[0] if questions else "Visual finding requires manual review against the original figure and raw image.",
+                metadata={**item, "source_artifact": "visual_findings.json"},
             )
         )
     return claims, mappings, findings
@@ -2683,6 +3211,15 @@ def _run_static_audit_from_args(
             progress,
         )
 
+    visual_steps, visual_manifest = run_visual_panel_extraction(
+        workdir=workdir,
+        images_dir=images_dir,
+        force=args.force,
+        progress=progress,
+    )
+    steps.extend(visual_steps)
+    agent_manifest["visual_forensics"] = visual_manifest
+
     investigation_steps, investigation_manifest = run_investigation_rounds(
         case_id=case_id,
         workdir=workdir,
@@ -2700,6 +3237,32 @@ def _run_static_audit_from_args(
     )
     steps.extend(investigation_steps)
     agent_manifest["investigation"] = investigation_manifest
+
+    visual_copy_move_outputs = (
+        list((workdir / "investigation").rglob("visual_copy_move.json"))
+        if (workdir / "investigation").exists()
+        else []
+    )
+    if visual_copy_move_outputs:
+        record_step(
+            steps,
+            StepResult("visual_copy_move", "图片 Copy-Move 检测", "ran", "visual.copy_move output was produced by AgentInvestigationPlanner."),
+            progress,
+        )
+    else:
+        record_step(
+            steps,
+            StepResult("visual_copy_move", "图片 Copy-Move 检测", "skipped", "AgentInvestigationPlanner did not select visual.copy_move for this run."),
+            progress,
+        )
+
+    visual_finding_steps, visual_finding_manifest = run_visual_finding_pipeline(
+        workdir=workdir,
+        force=args.force,
+        progress=progress,
+    )
+    steps.extend(visual_finding_steps)
+    agent_manifest.setdefault("visual_forensics", {}).update(visual_finding_manifest)
 
     if (workdir / "vlm_triage_selected.json").exists():
         record_step(steps, StepResult("vlm_triage", "VLM 抽样初筛", "reused", "Existing VLM triage artifact found."), progress)
@@ -2862,7 +3425,7 @@ def run_static_audit(
     force: bool = False,
     no_env_file: bool = False,
     agent_mode: str = "full",
-    agent_model: str = "dashscope/qwen3.7-max",
+    agent_model: str = "dashscope/qwen3.7-plus",
     opencode_bin: str = "opencode",
     agent_timeout_seconds: int = 300,
     agent_max_retries: int = 1,

@@ -144,6 +144,13 @@ PDF / MinerU images
 - 重型视觉工具可以在 happy path 内测中失败隔离；失败必须写入 manifest、`investigation_rounds.jsonl` 和报告 limitations。
 - 视觉工具输出只作为候选事实和人工复核任务，不构成最终科研诚信判定。
 
+**ELIS 复用决策（2026-06-15）**：
+
+- **Veritas 不开源（内部工具）**：AGPL-3.0 传染性不触发，可安全使用所有 ELIS 模块。
+- **直接复用 ELIS `system_modules`**：panel-extractor（YOLOv5）、copy-move-detection（RootSIFT+MAGSAC++）、TruFor、CBIR 等。
+- **删除传统 CV 实现**：OpenCV panel extraction 和 ORB copy-move 效果差，不保留 fallback。
+- **详见 [`ELIS_REUSE_DECISIONS.md`](ELIS_REUSE_DECISIONS.md)**。
+
 ## 当前 1 周 Demo 方向
 
 完整 demo 的目标仍然是：

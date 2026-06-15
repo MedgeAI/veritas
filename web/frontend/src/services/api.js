@@ -86,6 +86,28 @@ export function reportHtmlUrl(caseId) {
   return buildUrl(`/api/cases/${encodeURIComponent(caseId)}/report/html`);
 }
 
+// Visual Forensics API functions
+export async function fetchVisualFigures(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/visual/figures`);
+}
+
+export async function fetchVisualPanels(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/visual/panels`);
+}
+
+export async function fetchVisualRelationships(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/visual/relationships`);
+}
+
+export async function fetchVisualFindings(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/visual/findings`);
+}
+
+export function visualImageUrl(caseId, imagePath) {
+  const cleanPath = imagePath.replace(/^\/+/, '');
+  return buildUrl(`/api/cases/${encodeURIComponent(caseId)}/visual/images/${cleanPath}`);
+}
+
 export function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();

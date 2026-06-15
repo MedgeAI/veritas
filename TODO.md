@@ -1,6 +1,6 @@
 # Veritas 当前 TODO
 
-更新时间：2026-06-12
+更新时间：2026-06-15（鉴权子资源隔离修复；视觉取证 Phase 1 + ELIS 调研记录保留）
 
 ## 产品定位（最新）
 
@@ -41,6 +41,45 @@
 
 ## 已完成
 
+### 2026-06-15: ELIS 复用决策 + Phase 1 准备
+
+- ✅ **ELIS 复用决策完成**：Veritas 不开源（内部工具），直接复用 ELIS `system_modules` 的 AGPL-3.0 模块。详见 `ELIS_REUSE_DECISIONS.md`。
+- ✅ **ELIS submodule 下载完成**：9 个模块（panel-extractor、copy-move-detection、TruFor、CBIR 等）。
+- ✅ **YOLOv5 panel-extractor API 分析完成**：主入口 `from extract import run`，输出 CSV + 裁剪图像，5 个类别（Blots、Graphs、Microscopy、Body Imagery、Flow Cytometry）。
+- ✅ **模型下载脚本创建**：`scripts/download_panel_extraction_models.sh`，Makefile target `make download-models`。
+- ✅ **决策文档更新**：`README.md`、`AGENTS.md`、`TODO.md` 记录 ELIS 复用决策。
+- **下一步**：在有 GPU 的机器上下载模型权重，编写 YOLOv5 adapter，删除 OpenCV 代码路径。
+
+### 2026-06-15: Web 鉴权系统 hardening
+
+- ✅ Bearer JWT 校验要求 `exp`、`iss`、非空字符串 `userId`；缺失或空 `userId` 不再抛内部异常或生成空用户上下文。
+- ✅ Web route 层新增统一 case owner gate：`GET /api/cases/{case_id}`、runs、events、artifacts、report、inputs 上传和 start run 都复用 `CaseStore.get_case(case_id, user_id=auth_context.user_id)`。
+- ✅ 修复绕过风险：知道别人的 `case_id` / `run_id` 不能直接读取 run 状态、事件、artifact 列表、单个 artifact 或 HTML 报告，也不能上传输入或启动 run。
+- ✅ 新增 HTTP 级回归测试覆盖 Basic Auth 跨用户子资源访问拒绝；新增 Bearer JWT 必需字段单测。
+- ✅ 验证：`uv run pytest` 309 passed；`uv run ruff check` passed。
+
+### 2026-06-12: 视觉取证增强 Phase 1（传统 CV）+ ELIS 调研
+
+**Phase 1 传统 CV 实现**（88 tests passed，100% 通过率）：
+- ✅ Schema 层：`visual_schemas.py`（FigureEvidence、PanelEvidence、VisualFinding、ImageRelationship）+ `visual_constants.py`（FORBIDDEN_PHRASES、score thresholds）
+- ✅ Panel Extraction：`engine/static_audit/tools/panel_extraction.py`（OpenCV 边缘检测 + 轮廓分析，自适应 kernel size）
+- ✅ Copy-Move Detection：`engine/static_audit/tools/copy_move_detection.py`（ORB/SIFT + RANSAC，overlay 图像生成）
+- ✅ Visual Finding Pipeline：`engine/static_audit/tools/visual_finding_pipeline.py`（relationship builder + finding builder + benign explanations）
+- ✅ Tool Registry 注册：3 个新工具（visual.panel_extraction mandatory / visual.copy_move agent-selectable / visual.finding_pipeline report_only）
+- ✅ HTML Report：Visual Evidence Package section（figure/panel grid、relationship table、finding cards、manual review checklist）
+- ✅ Web Gallery：`VisualForensicsPage.jsx`（交互式 figure/panel/overlay 浏览、筛选器、复核任务列表）
+- ✅ 合成 Fixture：5 个 fixture（clean + 4 种 copy 类型）+ 10 fixture validation tests
+- ✅ 依赖管理：`pyproject.toml` 添加 Pillow、opencv-python-headless、scikit-image
+
+**ELIS 仓库调研**（完成分析报告）：
+- ✅ 分析 9 个 submodule：panel-extractor (YOLO)、TruFor、copy-move (dense/keypoint)、CBIR、provenance、pdf-extractor、watermark-removal、elis-frontend
+- ✅ 许可证评估：ELIS 主仓库 AGPLv3（不能用）、YOLO AGPL-3.0（不能用）、TruFor BSD（可以用）
+- ✅ 技术架构设计：本地 CPU + 远程 GPU 混合架构（SSH + Docker 调用）
+- ✅ 调研 PRD：`docs/product/Veritas-视觉取证增强调研PRD-ELIS超集方案.md`
+- ✅ 关键发现：传统 CV 假阳性高（panel extraction ~60%），需要引入深度学习模型（RT-DETR、TruFor）
+
+**其他已完成**（历史）：
+
 - `audit-paper` 接入 `material_inventory.json`，Source Data 执行从固定目录发现改为 registry-backed optional lane。
 - `agent_material_plan` 根据材料清单选择 optional evidence lane；失败时 deterministic fallback。
 - `scripts/run_paper_audit.py` 已折叠为 9 行兼容 wrapper；编排逻辑移入 `engine/static_audit/orchestrator.py` 的 `run_static_audit()`。
@@ -71,7 +110,40 @@
 
 ## 下一步优先级
 
-### P0: ELIS-style 图像取证栈内测闭环
+### 当前决策（2026-06-15）
+
+- 视觉取证部分先不继续补丁式修复；后续按重做方案重新评估 schema、tool、report 和 Web gallery 的边界。
+- 本轮已优先完成 Web 鉴权系统 hardening：JWT 必需字段校验和 case 子资源 owner gate 已落地。
+
+### P0: 视觉取证增强 Phase 2（深度学习 + GPU）
+
+**背景**：Phase 1 传统 CV 实现假阳性过高（panel extraction ~60%，copy-move ~30%），需要引入深度学习模型提升准确率。
+
+**目标**：实现 ELIS 超集，panel extraction 准确率 >85%，copy-move 假阳性 <15%，新增 TruFor 伪造检测。
+
+**技术方案**：本地 CPU + 远程 GPU 混合架构
+- Layer 1: 传统 CV（本地 CPU，fallback）
+- Layer 2: 深度学习（远程 GPU，YOLO/RT-DETR + TruFor）
+- Layer 3: 向量检索（独立服务，CBIR/Milvus）
+
+**待决策问题**（今天调研后）：
+1. **方案选择**：A. 完全自建（推荐，无 AGPL 风险）/ B. Docker 镜像复用（需检查 submodule LICENSE）/ C. 混合方案
+2. **GPU 访问方式**：SSH 直接调用 / HTTP API / Celery Worker
+3. **YOLO 替代品**：RT-DETR (Apache 2.0, 推荐) / Detectron2 (Apache 2.0) / YOLOv8 (AGPL, 不能用)
+
+**下周实施计划**（如果选方案 A）：
+- Day 1-2: 检查 ELIS submodule 许可证 + 构建 Docker 镜像（RT-DETR、TruFor）
+- Day 3-4: 实现 GPU 任务提交器（`engine/static_audit/tools/gpu_task_submitter.py`）+ fallback 策略
+- Day 5-6: 集成到 orchestrator + 真实论文测试（retracted papers）
+- Day 7: 验证准确率 + 准备 demo
+
+**成功标准**：
+- Panel extraction 准确率：~60% → >85%
+- Copy-move 假阳性率：~30% → <15%
+- TruFor 检测率：N/A → >90%
+- Pipeline 成功率：100%（GPU 失败时 fallback 到 CPU）
+
+### P0: ELIS-style 图像取证栈内测闭环（原计划，已被 Phase 2 覆盖）
 
 状态：已确认采用完整 ELIS-style 路线作为内测增强方向。当前目标不是稳定泛化所有论文，而是在 happy path 下让内测用户看到明显强于"opencode + skill 静态审查"的图像取证能力。
 

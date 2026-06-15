@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "fixture_type": "synthetic_copy_scaled",
+  "figures": [
+    {
+      "figure_id": "FE-0001",
+      "source_image_path": "images/Figure1.png",
+      "label": "Figure 1",
+      "expected_panels": 4,
+      "panels": [
+        {
+          "panel_id": "PE-0001-01",
+          "label": "a",
+          "is_source": true
+        },
+        {
+          "panel_id": "PE-0001-02",
+          "label": "b",
+          "is_source": false
+        },
+        {
+          "panel_id": "PE-0001-03",
+          "label": "c",
+          "is_source": false
+        },
+        {
+          "panel_id": "PE-0001-04",
+          "label": "d",
+          "is_source": false
+        }
+      ]
+    },
+    {
+      "figure_id": "FE-0002",
+      "source_image_path": "images/Figure2.png",
+      "label": "Figure 2",
+      "expected_panels": 4,
+      "panels": [
+        {
+          "panel_id": "PE-0002-01",
+          "label": "a",
+          "is_source": false
+        },
+        {
+          "panel_id": "PE-0002-02",
+          "label": "b",
+          "is_copy": true,
+          "copy_source": "PE-0001-01"
+        },
+        {
+          "panel_id": "PE-0002-03",
+          "label": "c",
+          "is_source": false
+        },
+        {
+          "panel_id": "PE-0002-04",
+          "label": "d",
+          "is_source": false
+        }
+      ]
+    }
+  ],
+  "expected_relationships": [
+    {
+      "source_panel_id": "PE-0001-01",
+      "target_panel_id": "PE-0002-02",
+      "source_type": "copy_move_cross",
+      "copy_type": "scaled"
+    }
+  ]
+}

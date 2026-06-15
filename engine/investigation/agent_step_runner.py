@@ -8,12 +8,15 @@ See PRD: prd/opencode-agent-function-runtime.md
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
+from engine.env import load_project_env
 from engine.investigation.agent_models import AgentErrorCategory, AgentRunResult
 
 
@@ -34,7 +37,7 @@ class AgentStepRunner:
     def __init__(
         self,
         project_root: Path,
-        model: str = "dashscope/qwen3.7-max",
+        model: str = "dashscope/qwen3.7-plus",
         opencode_bin: str | Path = "opencode",
         env: dict[str, str] | None = None,
     ):
@@ -71,7 +74,7 @@ class AgentStepRunner:
             str(self.project_root),
         ]
 
-        env = dict(self.env)
+        env = load_project_env(self.project_root, base_env=self.env)
         env.setdefault("XDG_DATA_HOME", str(self.project_root / ".opencode" / "data"))
 
         for path in files or []:
@@ -129,6 +132,12 @@ class AgentStepRunner:
                     f"opencode exit_code={completed.returncode} "
                     f"stderr_tail={last_stderr[-1000:]!r}"
                 )
+                continue
+
+            opencode_error = self._extract_opencode_error_detail(last_stdout)
+            if opencode_error:
+                last_error_category = "model_failure"
+                last_detail = f"opencode error event: {opencode_error}"
                 continue
 
             try:
@@ -209,6 +218,36 @@ class AgentStepRunner:
             return "model_failure"
         return "non_zero_exit"
 
+    def _extract_opencode_error_detail(self, stdout: str) -> str:
+        """Return a compact detail string when opencode emits type=error events."""
+        details: list[str] = []
+        for line in stdout.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                item = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if not isinstance(item, dict) or item.get("type") != "error":
+                continue
+            error = item.get("error")
+            if not isinstance(error, dict):
+                details.append("unknown opencode error")
+                continue
+            name = str(error.get("name") or "UnknownError")
+            data = error.get("data")
+            message = ""
+            status_code = None
+            if isinstance(data, dict):
+                message = str(data.get("message") or "")
+                status_code = data.get("statusCode")
+            if status_code is not None:
+                details.append(f"{name} status={status_code}: {message}"[:1000])
+            else:
+                details.append(f"{name}: {message}"[:1000])
+        return " | ".join(details[:3])
+
     def _write_log_artifact(
         self,
         *,
@@ -233,7 +272,7 @@ class AgentStepRunner:
             f"Role: {role}",
             f"Attempt: {attempt + 1}",
             f"Error Category: {error_category or 'none'}",
-            f"Command: {' '.join(command)}",
+            f"Command: {' '.join(self._safe_command_args(command))}",
             "",
             "=== STDOUT ===",
             stdout,
@@ -248,3 +287,17 @@ class AgentStepRunner:
             return str(log_path.relative_to(self.project_root))
         except ValueError:
             return str(log_path)
+
+    def _safe_command_args(self, command: list[str]) -> list[str]:
+        """Return argv suitable for logs without embedding long prompts."""
+        safe_args: list[str] = []
+        for index, arg in enumerate(command):
+            if index == 2 and len(command) > 2 and command[1] == "run":
+                digest = hashlib.sha256(arg.encode("utf-8", errors="replace")).hexdigest()[:12]
+                safe_args.append(f"<prompt chars={len(arg)} sha256={digest}>")
+            elif len(arg) > 500:
+                digest = hashlib.sha256(arg.encode("utf-8", errors="replace")).hexdigest()[:12]
+                safe_args.append(f"<arg chars={len(arg)} sha256={digest}>")
+            else:
+                safe_args.append(arg)
+        return safe_args

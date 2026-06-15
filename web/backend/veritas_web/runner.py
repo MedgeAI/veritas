@@ -57,7 +57,7 @@ class AuditRunner:
                 force=bool(params.get("force", True)),
                 no_env_file=bool(params.get("no_env_file", False)),
                 agent_mode=str(params.get("agent_mode", "review")),
-                agent_model=str(params.get("agent_model", "dashscope/qwen3.7-max")),
+                agent_model=str(params.get("agent_model", "dashscope/qwen3.7-plus")),
                 opencode_bin=str(params.get("opencode_bin", "opencode")),
                 agent_timeout_seconds=int(params.get("agent_timeout_seconds", 300)),
                 agent_max_retries=int(params.get("agent_max_retries", 1)),

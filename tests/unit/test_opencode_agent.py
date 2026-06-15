@@ -210,3 +210,33 @@ def test_validate_role_output_accepts_three_real_roles(tmp_path) -> None:
 
         assert validated["role_id"] == role_id
         assert validated["case_id"] == "case-a"
+
+
+def test_validate_role_output_caps_judge_lists() -> None:
+    data = validate_role_output(
+        "judge",
+        {
+            "schema_version": "1.0",
+            "role_id": "judge",
+            "case_id": "case-a",
+            "summary": {
+                "technical_risk_summary": "A" * 2000,
+            },
+            "risk_suggestions": [
+                {
+                    "risk_level": "high",
+                    "reason": f"risk {idx}",
+                    "evidence_refs": [f"FD-{idx:03d}"],
+                    "requires_human_review": True,
+                }
+                for idx in range(20)
+            ],
+            "report_notes": [f"note {idx}" for idx in range(20)],
+            "limitations": [f"limitation {idx}" for idx in range(20)],
+        },
+    )
+
+    assert len(data["risk_suggestions"]) == 8
+    assert len(data["report_notes"]) == 8
+    assert len(data["limitations"]) == 10
+    assert len(data["summary"]["technical_risk_summary"]) == 1200

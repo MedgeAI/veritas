@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import sys
+from argparse import ArgumentParser
 from dataclasses import dataclass, field
 from itertools import combinations
 from pathlib import Path
@@ -264,22 +265,41 @@ def run_cross_sheet_detection(
     }
 
 
-def main() -> int:
-    """CLI entry point for cross-sheet detection."""
-    if len(sys.argv) < 2:
-        print("Usage: python source_data_cross_sheet.py <source_data_dir> [output.json]", file=sys.stderr)
-        return 1
+def parse_args(argv: list[str] | None = None):
+    parser = ArgumentParser(description="Detect duplicate numeric columns across Source Data sheets.")
+    parser.add_argument("source_data_dir", help="Directory containing XLSX Source Data files.")
+    parser.add_argument(
+        "legacy_output",
+        nargs="?",
+        help="Deprecated positional output path. Prefer --output.",
+    )
+    parser.add_argument("--output", help="Path to write source_data_cross_sheet.json.")
+    parser.add_argument("--min-overlap", type=int, default=10)
+    parser.add_argument("--min-support", "--min-support-rate", dest="min_support_rate", type=float, default=0.8)
+    parser.add_argument("--max-findings", type=int, default=50)
+    return parser.parse_args(argv)
 
-    source_data_dir = Path(sys.argv[1])
-    output_path = Path(sys.argv[2]) if len(sys.argv) > 2 else None
+
+def main(argv: list[str] | None = None) -> int:
+    """CLI entry point for cross-sheet detection."""
+    args = parse_args(argv)
+    source_data_dir = Path(args.source_data_dir)
+    output_value = args.output or args.legacy_output
+    output_path = Path(output_value) if output_value else None
 
     if not source_data_dir.exists():
         print(f"Error: {source_data_dir} does not exist", file=sys.stderr)
         return 1
 
-    results = run_cross_sheet_detection(source_data_dir)
+    results = run_cross_sheet_detection(
+        source_data_dir,
+        min_overlap=args.min_overlap,
+        min_support_rate=args.min_support_rate,
+        max_findings=args.max_findings,
+    )
 
     if output_path:
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8")
         print(f"Results written to {output_path}", file=sys.stderr)
     else:

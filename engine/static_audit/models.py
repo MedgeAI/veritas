@@ -17,6 +17,8 @@ EvidenceKind = Literal[
     "cell",
     "command",
     "output_artifact",
+    "figure",    # Visual forensics: canonical figure-level image evidence
+    "panel",     # Visual forensics: detected panel crop
 ]
 
 RiskLevel = Literal["info", "low", "medium", "high", "critical"]

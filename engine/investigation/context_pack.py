@@ -27,6 +27,7 @@ _EXCLUDED_EXTENSIONS = {
 }
 
 _LARGE_ARTIFACT_KEYS = {"full.md", "evidence_ledger.json"}
+_JUDGE_CONTEXT_SUMMARY_ARTIFACT = "judge_context_summary.json"
 
 _ROLE_ARTIFACTS: dict[str, list[str]] = {
     "claim_extractor": [
@@ -45,13 +46,7 @@ _ROLE_ARTIFACTS: dict[str, list[str]] = {
         "agent_claim_extractor.json",
     ],
     "judge": [
-        "material_inventory.json",
-        "agent_material_plan.json",
-        "agent_claim_extractor.json",
-        "agent_source_data_auditor.json",
-        "numeric_forensics.json",
-        "source_data_findings.json",
-        "source_data_pair_forensics.json",
+        _JUDGE_CONTEXT_SUMMARY_ARTIFACT,
     ],
 }
 
@@ -161,6 +156,12 @@ def _read_json_safe(path: Path) -> dict[str, Any] | list[Any] | None:
         return json.loads(path.read_text(encoding="utf-8"))
     except (json.JSONDecodeError, UnicodeDecodeError):
         return None
+
+
+def _default_truncation_config(role: str) -> TruncationConfig:
+    if role == "judge":
+        return TruncationConfig(max_tokens_per_pack=40_000, max_tokens_per_excerpt=8_000)
+    return TruncationConfig()
 
 
 def _extract_evidence_refs(workdir: Path) -> list[dict[str, Any]]:
@@ -281,6 +282,286 @@ def _collect_limitations(workdir: Path) -> list[str]:
     return limitations
 
 
+def _compact_str_list(values: Any, *, limit: int = 8, max_chars: int = 240) -> list[str]:
+    if not isinstance(values, list):
+        return []
+    compacted: list[str] = []
+    for value in values[:limit]:
+        if isinstance(value, str):
+            compacted.append(value[:max_chars])
+    return compacted
+
+
+def _compact_refs(value: Any, *, limit: int = 6) -> Any:
+    if isinstance(value, list):
+        return value[:limit]
+    if isinstance(value, dict):
+        return {str(k): _compact_refs(v, limit=limit) for k, v in list(value.items())[:limit]}
+    return value
+
+
+def _compact_claim_for_judge(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "claim_id": item.get("claim_id"),
+        "claim_type": item.get("claim_type"),
+        "paper_location": item.get("paper_location"),
+        "status": item.get("status"),
+        "claim_text": str(item.get("claim_text", ""))[:360],
+        "evidence_refs": _compact_refs(item.get("evidence_refs")),
+    }
+
+
+def _risk_rank(value: Any) -> int:
+    return {"critical": 0, "high": 1, "medium": 2, "low": 3}.get(str(value).lower(), 4)
+
+
+def _compact_finding_review_for_judge(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "finding_id": item.get("finding_id"),
+        "assessment": item.get("assessment"),
+        "residual_risk": item.get("residual_risk"),
+        "benign_explanations": _compact_str_list(item.get("benign_explanations"), limit=3),
+        "evidence_refs": _compact_refs(item.get("evidence_refs")),
+    }
+
+
+def _compact_manual_task_for_judge(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "task_id": item.get("task_id"),
+        "priority": item.get("priority"),
+        "question": str(item.get("question", ""))[:360],
+        "evidence_refs": _compact_refs(item.get("evidence_refs")),
+    }
+
+
+def _compact_pair_review_task_for_judge(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "task_id": item.get("task_id"),
+        "priority": item.get("priority"),
+        "cluster_id": item.get("cluster_id"),
+        "category": item.get("category"),
+        "workbook": item.get("workbook"),
+        "sheet": item.get("sheet"),
+        "cluster_count": item.get("cluster_count"),
+        "finding_count": item.get("finding_count"),
+        "question": str(item.get("question", ""))[:420],
+        "evidence_refs": _compact_refs(item.get("evidence_refs")),
+    }
+
+
+def _compact_pair_cluster_for_judge(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "cluster_id": item.get("cluster_id"),
+        "category": item.get("category"),
+        "risk_level": item.get("risk_level"),
+        "workbook": item.get("workbook"),
+        "sheet": item.get("sheet"),
+        "pattern_signature": item.get("pattern_signature"),
+        "finding_count": item.get("finding_count"),
+        "representative_finding_ids": (item.get("representative_finding_ids") or [])[:8],
+        "review_question": str(item.get("review_question", ""))[:360],
+    }
+
+
+def _compact_visual_review_task_for_judge(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "task_id": item.get("task_id"),
+        "priority": item.get("priority"),
+        "cluster_id": item.get("cluster_id"),
+        "category": item.get("category"),
+        "scope": item.get("scope"),
+        "figure_ids": (item.get("figure_ids") or [])[:6],
+        "finding_count": item.get("finding_count"),
+        "relationship_count": item.get("relationship_count"),
+        "panel_extraction_quality": item.get("panel_extraction_quality"),
+        "question": str(item.get("question", ""))[:420],
+        "evidence_refs": _compact_refs(item.get("evidence_refs")),
+    }
+
+
+def _compact_visual_cluster_for_judge(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "cluster_id": item.get("cluster_id"),
+        "category": item.get("category"),
+        "risk_level": item.get("risk_level"),
+        "scope": item.get("scope"),
+        "figure_ids": (item.get("figure_ids") or [])[:6],
+        "panel_extraction_quality": item.get("panel_extraction_quality"),
+        "finding_count": item.get("finding_count"),
+        "relationship_count": item.get("relationship_count"),
+        "max_score": item.get("max_score"),
+        "representative_finding_ids": (item.get("representative_finding_ids") or [])[:8],
+        "review_question": str(item.get("review_question", ""))[:360],
+    }
+
+
+def _compact_mapping_for_judge(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "claim_id": item.get("claim_id"),
+        "mapping_id": item.get("mapping_id"),
+        "source_data_refs": _compact_refs(item.get("source_data_refs")),
+        "confidence": item.get("confidence"),
+        "needs_human_review": item.get("needs_human_review"),
+    }
+
+
+def _artifact_summary_value(data: dict[str, Any] | list[Any] | None) -> Any:
+    if isinstance(data, dict):
+        if isinstance(data.get("summary"), dict):
+            return data.get("summary")
+        return {"top_keys": list(data.keys())[:10]}
+    if isinstance(data, list):
+        return {"count": len(data)}
+    return {"status": "missing"}
+
+
+def _extend_unique_strings(target: list[str], values: Any) -> None:
+    for value in _compact_str_list(values, limit=12):
+        if value not in target:
+            target.append(value)
+
+
+def _build_judge_context_summary(workdir: Path) -> dict[str, Any]:
+    claim_output = _read_json_safe(workdir / "agent_claim_extractor.json")
+    source_output = _read_json_safe(workdir / "agent_source_data_auditor.json")
+    material_inventory = _read_json_safe(workdir / "material_inventory.json")
+    material_plan = _read_json_safe(workdir / "agent_material_plan.json")
+    numeric = _read_json_safe(workdir / "numeric_forensics.json")
+    source_findings = _read_json_safe(workdir / "source_data_findings.json")
+    pair_forensics = _read_json_safe(workdir / "source_data_pair_forensics.json")
+    visual_findings = _read_json_safe(workdir / "visual_findings.json")
+    image_relationships = _read_json_safe(workdir / "image_relationships.json")
+
+    claims = claim_output.get("claims") if isinstance(claim_output, dict) else []
+    if not isinstance(claims, list):
+        claims = []
+    mappings = source_output.get("claim_to_source_data") if isinstance(source_output, dict) else []
+    if not isinstance(mappings, list):
+        mappings = []
+    finding_reviews = source_output.get("finding_reviews") if isinstance(source_output, dict) else []
+    if not isinstance(finding_reviews, list):
+        finding_reviews = []
+    manual_tasks = source_output.get("manual_review_tasks") if isinstance(source_output, dict) else []
+    if not isinstance(manual_tasks, list):
+        manual_tasks = []
+
+    top_reviews = sorted(
+        [item for item in finding_reviews if isinstance(item, dict)],
+        key=lambda item: _risk_rank(item.get("residual_risk")),
+    )[:12]
+    top_tasks = sorted(
+        [item for item in manual_tasks if isinstance(item, dict)],
+        key=lambda item: _risk_rank(item.get("priority")),
+    )[:12]
+
+    limitations = _collect_limitations(workdir)
+    if isinstance(claim_output, dict):
+        _extend_unique_strings(limitations, claim_output.get("limitations"))
+    if isinstance(source_output, dict):
+        _extend_unique_strings(limitations, source_output.get("limitations"))
+
+    inventory_summary = material_inventory.get("summary") if isinstance(material_inventory, dict) else {}
+    return {
+        "contract": {
+            "role_id": "judge",
+            "purpose": "Synthesize prior role outputs and compact deterministic summaries into report-ready risk suggestions.",
+            "primary_inputs": [
+                "agent_claim_extractor.json",
+                "agent_source_data_auditor.json",
+                "top_n_findings",
+                "limitations",
+            ],
+            "raw_artifacts_excluded": [
+                "full.md",
+                "evidence_ledger.json",
+                "source_data_findings.json",
+                "source_data_pair_forensics.json",
+                "visual image files",
+            ],
+            "output_limits": {
+                "risk_suggestions": 8,
+                "report_notes": 8,
+                "limitations": 10,
+            },
+        },
+        "role_outputs": {
+            "claim_extractor": {
+                "status": claim_output.get("status") if isinstance(claim_output, dict) else "missing",
+                "claim_count": len(claims),
+                "sample_claims": [
+                    _compact_claim_for_judge(item)
+                    for item in claims[:12]
+                    if isinstance(item, dict)
+                ],
+                "limitations": _compact_str_list(claim_output.get("limitations") if isinstance(claim_output, dict) else []),
+            },
+            "source_data_auditor": {
+                "status": source_output.get("status") if isinstance(source_output, dict) else "missing",
+                "claim_mapping_count": len(mappings),
+                "finding_review_count": len(finding_reviews),
+                "manual_review_task_count": len(manual_tasks),
+                "sample_claim_mappings": [
+                    _compact_mapping_for_judge(item)
+                    for item in mappings[:12]
+                    if isinstance(item, dict)
+                ],
+                "top_finding_reviews": [
+                    _compact_finding_review_for_judge(item)
+                    for item in top_reviews
+                ],
+                "top_manual_review_tasks": [
+                    _compact_manual_task_for_judge(item)
+                    for item in top_tasks
+                ],
+                "limitations": _compact_str_list(source_output.get("limitations") if isinstance(source_output, dict) else []),
+            },
+        },
+        "deterministic_artifact_summaries": {
+            "material_inventory": {
+                "file_count": inventory_summary.get("file_count") if isinstance(inventory_summary, dict) else None,
+                "by_material_type": inventory_summary.get("by_material_type", {}) if isinstance(inventory_summary, dict) else {},
+            },
+            "material_plan": {
+                "selected_optional_lanes": material_plan.get("selected_optional_lanes", []) if isinstance(material_plan, dict) else [],
+                "missing_materials": material_plan.get("missing_materials", []) if isinstance(material_plan, dict) else [],
+                "unsupported_materials": (material_plan.get("unsupported_materials") or [])[:8] if isinstance(material_plan, dict) else [],
+            },
+            "numeric_forensics": _artifact_summary_value(numeric),
+            "source_data_findings": _artifact_summary_value(source_findings),
+            "source_data_pair_forensics": _artifact_summary_value(pair_forensics),
+            "source_data_pair_forensics_review_tasks": [
+                _compact_pair_review_task_for_judge(item)
+                for item in ((pair_forensics.get("review_tasks") if isinstance(pair_forensics, dict) else []) or [])[:12]
+                if isinstance(item, dict)
+            ],
+            "source_data_pair_forensics_clusters": [
+                _compact_pair_cluster_for_judge(item)
+                for item in ((pair_forensics.get("finding_clusters") if isinstance(pair_forensics, dict) else []) or [])[:12]
+                if isinstance(item, dict)
+            ],
+            "visual_findings": _artifact_summary_value(visual_findings),
+            "visual_review_queue": [
+                _compact_visual_review_task_for_judge(item)
+                for item in ((visual_findings.get("review_queue") if isinstance(visual_findings, dict) else []) or [])[:12]
+                if isinstance(item, dict)
+            ],
+            "visual_finding_clusters": [
+                _compact_visual_cluster_for_judge(item)
+                for item in ((visual_findings.get("finding_clusters") if isinstance(visual_findings, dict) else []) or [])[:12]
+                if isinstance(item, dict)
+            ],
+            "image_relationships": _artifact_summary_value(image_relationships),
+        },
+        "top_n_findings": _extract_top_n_findings(workdir, n=12),
+        "limitations": limitations[:12],
+    }
+
+
+def _json_excerpt(data: dict[str, Any], config: TruncationConfig) -> str:
+    text = json.dumps(data, ensure_ascii=False, indent=2)
+    return head_tail_truncate(text, config.max_tokens_per_excerpt)
+
+
 def _build_bounded_excerpts(
     workdir: Path,
     artifact_names: list[str],
@@ -345,14 +626,22 @@ def build_context_pack_for_role(
 ) -> AgentContextPack:
     """Build bounded context pack for a specific Agent role."""
     if config is None:
-        config = TruncationConfig()
+        config = _default_truncation_config(role)
 
     artifact_names = _ROLE_ARTIFACTS.get(role, [])
     manifest = _scan_workdir_artifacts(workdir)
     evidence_refs = _extract_evidence_refs(workdir)
-    top_n_findings = _extract_top_n_findings(workdir)
+    top_n_findings = _extract_top_n_findings(workdir, n=12 if role == "judge" else 5)
     limitations = _collect_limitations(workdir)
-    bounded_excerpts = _build_bounded_excerpts(workdir, artifact_names, config)
+    if role == "judge":
+        bounded_excerpts = {
+            _JUDGE_CONTEXT_SUMMARY_ARTIFACT: _json_excerpt(
+                _build_judge_context_summary(workdir),
+                config,
+            ),
+        }
+    else:
+        bounded_excerpts = _build_bounded_excerpts(workdir, artifact_names, config)
 
     pack = AgentContextPack(
         artifact_manifest=manifest,

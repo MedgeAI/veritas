@@ -53,6 +53,20 @@ Veritas 将借鉴 ELIS (Scientific Integrity System) 的完整图像取证思路
 
 边界是：ELIS 能力必须通过 Veritas adapter、Tool Registry 和 runtime 接口接入；不直接复用 ELIS 的 FastAPI/Celery/MongoDB/Redis 主服务。前端可以复用 `third_party/elis/system_modules/elis-frontend` 的 Vite/React/Tailwind 基础设施模式，但产品信息架构、视觉语言和审查流程必须是 Veritas first-party。所有视觉工具输出都只是候选证据和人工复核入口，不做最终科研诚信判定。
 
+**当前决策（2026-06-15）**：Veritas 是内部工具，不开源。直接复用 ELIS `system_modules` 的 AGPL-3.0 模块（panel-extractor、copy-move-detection、TruFor 等），不担心许可证传染性。详见 [`ELIS_REUSE_DECISIONS.md`](ELIS_REUSE_DECISIONS.md)。
+
+**模型权重下载**（需要 GPU 机器开发时执行）：
+
+```bash
+# 下载 YOLOv5 panel extraction 模型（~50MB，需要科学上网）
+make download-models
+
+# 或手动下载
+pip install gdown
+gdown --id 1CuSUYUF0uTbcANFRffzoMUllCP8Du-HT
+unzip panel_extraction_models.zip -d models/panel_extraction/
+```
+
 ## 仓库结构
 
 ```text
@@ -404,7 +418,7 @@ The Agent role layer in `audit-paper` currently executes three roles in sequence
 web_data/
 └── cases/
     └── <case_id>/
-        ├── case.json        # CaseRecord：标题、状态、输入文件计数、最新 run_id
+        ├── case.json        # CaseRecord：标题、状态、owner、输入文件计数、最新 run_id
         ├── inputs/          # 用户上传的论文 PDF 和 source data 文件
         └── runs/
             └── <run_id>/
@@ -423,6 +437,8 @@ web_data/
 | 查看报告 | `GET /api/cases/<id>/report/html` | 读取 `outputs/<case_id>/.../final_audit_report.html` |
 
 两者通过 `AuditRunRecord.workdir` 字段桥接：`web_data/` 记录"哪个 case 触发了哪次 run"，`outputs/` 存放"这次 run 产出了什么"。
+
+启用 `bearer` 或 `basic` 鉴权后，所有 case-scoped API 都必须先通过 `CaseRecord.owner == auth_context.user_id` 校验。该校验不只保护 `GET /api/cases/<id>`，也保护输入上传、启动 run、读取 run/events、artifact 列表、单个 artifact 和 HTML 报告，避免知道 `case_id` 后直接读取子资源。
 
 ## 常用命令
 
@@ -553,12 +569,12 @@ PYTHONPATH=. python -m web.backend.veritas_web.cli --db /path/to/users.db list-u
 每个 API 请求在路由分发前先经过 `_authenticate()`：
 
 1. `none` 模式：直接设置 `auth_context = {user_id: "operator", roles: ["admin"]}`。
-2. `bearer` 模式：从 `Authorization: Bearer <token>` 头提取 JWT，验证签名和过期时间。
+2. `bearer` 模式：从 `Authorization: Bearer <token>` 头提取 JWT，验证 HS256 签名、`iss`、`exp`，并要求非空字符串 `userId` 作为 `auth_context.user_id`；`userName` 只进入 metadata，不作为授权依据。
 3. `basic` 模式：从 `Authorization: Basic <base64>` 头提取用户名密码，查询 SQLite 并验证 bcrypt 哈希。
 
 认证失败时返回 `401 Unauthorized`；Basic 模式额外返回 `WWW-Authenticate: Basic realm="Veritas"` 头。
 
-`CaseStore` 的方法按 `user_id` 隔离数据：每个用户只能看到和操作自己的 case，跨用户访问返回 `403 Forbidden`。
+`CaseStore` 的方法按 `user_id` 隔离数据：每个用户只能看到和操作自己的 case，跨用户访问返回 `403 Forbidden`。Web 路由层通过 `_require_case_access()` 对所有 case 子资源复用这条规则，包括 `/runs`、`/events`、`/artifacts`、`/report/html` 和 `/inputs`。
 
 ## 测试
 

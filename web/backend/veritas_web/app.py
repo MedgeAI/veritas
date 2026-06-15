@@ -120,6 +120,14 @@ class VeritasRequestHandler(BaseHTTPRequestHandler):
         if len(parts) == 5 and parts[:2] == ["api", "cases"] and parts[3:] == ["report", "html"]:
             self._send_report_html(parts[2])
             return
+        # Visual endpoints
+        if len(parts) == 5 and parts[:2] == ["api", "cases"] and parts[3] == "visual":
+            self._send_visual_artifact(parts[2], parts[4])
+            return
+        if len(parts) >= 6 and parts[:2] == ["api", "cases"] and parts[3] == "visual" and parts[4] == "images":
+            image_path = "/".join(parts[5:])
+            self._send_visual_image(parts[2], image_path)
+            return
         if parts and parts[0] == "api":
             raise FileNotFoundError("route not found")
         self._send_frontend_static(parts)
@@ -178,6 +186,34 @@ class VeritasRequestHandler(BaseHTTPRequestHandler):
         if not path:
             raise FileNotFoundError("final HTML report not found")
         self._send_bytes(path.read_bytes(), content_type="text/html; charset=utf-8")
+
+    def _send_visual_artifact(self, case_id: str, artifact_type: str) -> None:
+        """Serve visual artifact JSON by type: figures, panels, relationships, findings."""
+        self._require_case_access(case_id)
+        artifact_map = {
+            "figures": "visual_evidence",
+            "panels": "panel_evidence",
+            "relationships": "image_relationships",
+            "findings": "visual_findings",
+        }
+        artifact_id = artifact_map.get(artifact_type)
+        if not artifact_id:
+            raise FileNotFoundError(f"unknown visual artifact type: {artifact_type}")
+        path = self.app.artifacts.artifact_path(case_id, artifact_id)
+        if not path:
+            self._send_json({"error": "not_found", "detail": f"visual artifact not found: {artifact_type}"}, status=HTTPStatus.NOT_FOUND)
+            return
+        data = json.loads(path.read_text(encoding="utf-8"))
+        self._send_json(data)
+
+    def _send_visual_image(self, case_id: str, relative_path: str) -> None:
+        """Serve an image file from the case workdir with correct content-type."""
+        self._require_case_access(case_id)
+        path = self.app.artifacts.visual_image_path(case_id, relative_path)
+        if not path:
+            raise FileNotFoundError(f"image not found: {relative_path}")
+        content_type = mimetypes.guess_type(str(path))[0] or "application/octet-stream"
+        self._send_bytes(path.read_bytes(), content_type=content_type)
 
     def _send_frontend_static(self, parts: list[str]) -> None:
         dist = self.app.frontend_dist

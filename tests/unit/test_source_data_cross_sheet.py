@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from engine.static_audit.tools.source_data_cross_sheet import (
@@ -9,6 +10,7 @@ from engine.static_audit.tools.source_data_cross_sheet import (
     SheetColumn,
     extract_numeric_columns,
     find_cross_sheet_duplicates,
+    main,
     run_cross_sheet_detection,
 )
 
@@ -254,6 +256,33 @@ def test_run_cross_sheet_detection_with_no_xlsx_files(tmp_path: Path) -> None:
 
     assert result["findings"] == []
     assert "parameters" in result
+
+
+def test_cli_accepts_output_flag_and_parameters(tmp_path: Path) -> None:
+    output = tmp_path / "nested" / "source_data_cross_sheet.json"
+
+    exit_code = main(
+        [
+            str(tmp_path),
+            "--output",
+            str(output),
+            "--min-overlap",
+            "5",
+            "--min-support",
+            "0.7",
+            "--max-findings",
+            "3",
+        ]
+    )
+
+    assert exit_code == 0
+    assert output.exists()
+    data = json.loads(output.read_text(encoding="utf-8"))
+    assert data["parameters"] == {
+        "min_overlap": 5,
+        "min_support_rate": 0.7,
+        "max_findings": 3,
+    }
 
 
 def test_sheet_column_dataclass() -> None:

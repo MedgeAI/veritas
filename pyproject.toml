@@ -12,6 +12,9 @@ dependencies = [
     "PyJWT>=2.8.0",
     "bcrypt>=4.0.0",
     "pyyaml>=6.0.3",
+    "Pillow>=10.0.0",
+    "opencv-python-headless>=4.8.0",
+    "scikit-image>=0.21.0",
 ]
 
 [project.scripts]

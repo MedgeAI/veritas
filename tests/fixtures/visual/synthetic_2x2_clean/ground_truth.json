@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "fixture_type": "synthetic_2x2_clean",
+  "figures": [
+    {
+      "figure_id": "FE-0001",
+      "source_image_path": "images/Figure1.png",
+      "label": "Figure 1",
+      "expected_panels": 4,
+      "panels": [
+        {
+          "panel_id": "PE-0001-01",
+          "label": "a",
+          "is_source": true
+        },
+        {
+          "panel_id": "PE-0001-02",
+          "label": "b",
+          "is_source": true
+        },
+        {
+          "panel_id": "PE-0001-03",
+          "label": "c",
+          "is_source": true
+        },
+        {
+          "panel_id": "PE-0001-04",
+          "label": "d",
+          "is_source": true
+        }
+      ]
+    },
+    {
+      "figure_id": "FE-0002",
+      "source_image_path": "images/Figure2.png",
+      "label": "Figure 2",
+      "expected_panels": 4,
+      "panels": [
+        {
+          "panel_id": "PE-0002-01",
+          "label": "a",
+          "is_source": true
+        },
+        {
+          "panel_id": "PE-0002-02",
+          "label": "b",
+          "is_source": true
+        },
+        {
+          "panel_id": "PE-0002-03",
+          "label": "c",
+          "is_source": true
+        },
+        {
+          "panel_id": "PE-0002-04",
+          "label": "d",
+          "is_source": true
+        }
+      ]
+    }
+  ],
+  "expected_relationships": []
+}

@@ -210,9 +210,96 @@ def test_context_pack_serialization_roundtrip() -> None:
         assert isinstance(restored["limitations"], list)
         assert isinstance(restored["bounded_excerpts"], dict)
         assert isinstance(restored["truncation_config"], dict)
-        assert restored["truncation_config"]["max_tokens_per_pack"] == 200_000
-        assert restored["truncation_config"]["max_tokens_per_excerpt"] == 50_000
+        assert restored["truncation_config"]["max_tokens_per_pack"] == 40_000
+        assert restored["truncation_config"]["max_tokens_per_excerpt"] == 8_000
         assert restored["truncation_config"]["strategy"] == "head_tail"
+
+
+def test_build_role_context_pack_judge_uses_compact_summary_only() -> None:
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td:
+        workdir = _make_workdir_with_findings(Path(td))
+        _write_json(workdir / "agent_claim_extractor.json", {
+            "schema_version": "1.0",
+            "role_id": "claim_extractor",
+            "case_id": "test-case",
+            "status": "ran",
+            "claims": [
+                {
+                    "claim_id": "AC-001",
+                    "claim_text": "Figure 1 shows the reported Source Data trend.",
+                    "claim_type": "figure_trace",
+                    "paper_location": "Figure 1",
+                    "evidence_refs": ["figure:1"],
+                    "status": "needs_review",
+                }
+            ],
+            "limitations": ["Claim extraction was bounded."],
+        })
+        _write_json(workdir / "agent_source_data_auditor.json", {
+            "schema_version": "1.0",
+            "role_id": "source_data_auditor",
+            "case_id": "test-case",
+            "status": "ran",
+            "claim_to_source_data": [
+                {
+                    "claim_id": "AC-001",
+                    "mapping_id": "MAP-001",
+                    "source_data_refs": ["source.xlsx", "Fig1"],
+                    "confidence": "medium",
+                    "needs_human_review": True,
+                }
+            ],
+            "finding_reviews": [
+                {
+                    "finding_id": "PF-001",
+                    "assessment": "manual_review_required",
+                    "residual_risk": "high",
+                    "benign_explanations": ["Derived ratio could explain the reuse."],
+                    "evidence_refs": ["source_data_pair_forensics.json:PF-001"],
+                }
+            ],
+            "manual_review_tasks": [
+                {
+                    "task_id": "MR-001",
+                    "priority": "high",
+                    "question": "Ask the student to explain the repeated ratio pattern.",
+                    "evidence_refs": ["source_data_pair_forensics.json:PF-001"],
+                }
+            ],
+            "limitations": ["Source Data review was bounded."],
+        })
+        _write_json(workdir / "source_data_pair_forensics.json", {
+            "summary": {"total_findings": 60},
+            "priority_findings": [
+                {
+                    "finding_id": f"PF-{idx:03d}",
+                    "risk_level": "high",
+                    "category": "paired_ratio_reuse",
+                    "workbook": "source.xlsx",
+                    "sheet": "Fig1",
+                    "support_rate": 0.99,
+                    "sample_pairs": [[1, 2], [3, 4]],
+                    "large_payload": "X" * 4000,
+                }
+                for idx in range(60)
+            ],
+            "limitations": [],
+        })
+
+        pack = build_context_pack_for_role("judge", workdir, "test-case")
+
+        assert set(pack.bounded_excerpts) == {"judge_context_summary.json"}
+        assert "source_data_pair_forensics.json" not in pack.bounded_excerpts
+        excerpt = pack.bounded_excerpts["judge_context_summary.json"]
+        assert "large_payload" not in excerpt
+        summary = json.loads(excerpt)
+        assert summary["contract"]["output_limits"]["risk_suggestions"] == 8
+        assert summary["role_outputs"]["claim_extractor"]["claim_count"] == 1
+        assert summary["role_outputs"]["source_data_auditor"]["manual_review_task_count"] == 1
+        assert summary["deterministic_artifact_summaries"]["source_data_pair_forensics"] == {"total_findings": 60}
+        assert pack.truncation_config.max_tokens_per_pack == 40_000
 
 
 def test_build_material_inventory_context_pack() -> None:

@@ -10,6 +10,7 @@ const NewAuditPage = lazy(() => import('./pages/NewAuditPage.jsx'));
 const MissionControlPage = lazy(() => import('./pages/MissionControlPage.jsx'));
 const EvidenceWorkspacePage = lazy(() => import('./pages/EvidenceWorkspacePage.jsx'));
 const ReportCenterPage = lazy(() => import('./pages/ReportCenterPage.jsx'));
+const VisualForensicsPage = lazy(() => import('./pages/VisualForensicsPage.jsx'));
 const PlaceholderPage = lazy(() => import('./pages/PlaceholderPage.jsx'));
 
 const PAGE_META = {
@@ -289,13 +290,7 @@ function AppLayout() {
       case 'report':
         return <ReportCenterPage {...shared} />;
       case 'visual':
-        return (
-          <PlaceholderPage
-            title={PAGE_META.visual[0]}
-            body={PAGE_META.visual[1]}
-            lanes={['exact_image_duplicates', 'image_similarity_candidates', 'copy-move-detection', 'trufor', '人工视觉复核队列']}
-          />
-        );
+        return <VisualForensicsPage {...shared} />;
       case 'investigation':
         return (
           <PlaceholderPage

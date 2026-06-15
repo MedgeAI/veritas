@@ -14,13 +14,13 @@ def test_plain_progress_formats_step_without_full_command() -> None:
             "key": "agent_review",
             "title": "opencode Agent 结构化审阅",
             "detail": "Calling opencode.",
-            "command_preview": "opencode run --format json --model dashscope/qwen3.7-max ...",
+            "command_preview": "opencode run --format json --model dashscope/qwen3.7-plus ...",
         }
     )
 
     assert "START agent_review" in line
     assert "opencode Agent 结构化审阅" in line
-    assert "dashscope/qwen3.7-max" in line
+    assert "dashscope/qwen3.7-plus" in line
 
 
 def test_jsonl_progress_reporter_writes_one_event_per_line() -> None:

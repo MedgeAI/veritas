@@ -9,6 +9,9 @@ SOURCE_DATA_PAIR_FORENSICS_TOOL_ID = "source_data.pair_forensics"
 SOURCE_DATA_CROSS_SHEET_TOOL_ID = "source_data.cross_sheet"
 IMAGE_SIMILARITY_TOOL_ID = "image.similarity_candidates"
 PAPERFRAUD_RULE_MATCH_TOOL_ID = "paperfraud.rule_match"
+TOOL_ID_PANEL_EXTRACTION = "visual.panel_extraction"
+TOOL_ID_COPY_MOVE = "visual.copy_move"
+TOOL_ID_FINDING_PIPELINE = "visual.finding_pipeline"
 
 EXECUTION_PHASE_MANDATORY_BOOTSTRAP = "mandatory_bootstrap"
 EXECUTION_PHASE_AGENT_SELECTABLE = "agent_selectable"
@@ -208,6 +211,57 @@ TOOLS: dict[str, ToolDefinition] = {
             "max_candidates": {"type": "integer", "minimum": 1, "maximum": 1000},
         },
     ),
+    TOOL_ID_PANEL_EXTRACTION: ToolDefinition(
+        tool_id=TOOL_ID_PANEL_EXTRACTION,
+        step_key="visual_panel_extraction",
+        title="图片 Panel 拆分",
+        source="engine/static_audit/tools",
+        description="Extract individual panels from composite figures using layout heuristics.",
+        expected_outputs=("visual_evidence.json", "panel_evidence.json"),
+        execution_phase=EXECUTION_PHASE_MANDATORY_BOOTSTRAP,
+        agent_selectable=False,
+        input_artifacts=("images/",),
+        output_artifacts=("visual_evidence.json", "panel_evidence.json"),
+    ),
+    TOOL_ID_COPY_MOVE: ToolDefinition(
+        tool_id=TOOL_ID_COPY_MOVE,
+        step_key="visual_copy_move",
+        title="图片 Copy-Move 检测",
+        source="engine/static_audit/tools",
+        description="Detect copy-move forgery within images using dense keypoint matching.",
+        expected_outputs=("visual_copy_move.json",),
+        parameter_defaults={
+            "method": "orb",
+            "min_matches": 10,
+            "ratio_threshold": 0.75,
+            "ransac_threshold": 3.0,
+            "min_score": 0.15,
+            "max_relationships": 500,
+        },
+        agent_selectable=True,
+        input_artifacts=("panel_evidence.json", "visual_evidence.json"),
+        output_artifacts=("visual_copy_move.json",),
+        param_schema={
+            "method": {"type": "string", "enum": ["orb", "sift"]},
+            "min_matches": {"type": "integer", "minimum": 4, "maximum": 100},
+            "ratio_threshold": {"type": "number", "minimum": 0.40, "maximum": 0.95},
+            "ransac_threshold": {"type": "number", "minimum": 0.5, "maximum": 20.0},
+            "min_score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+            "max_relationships": {"type": "integer", "minimum": 1, "maximum": 5000},
+        },
+    ),
+    TOOL_ID_FINDING_PIPELINE: ToolDefinition(
+        tool_id=TOOL_ID_FINDING_PIPELINE,
+        step_key="visual_finding_pipeline",
+        title="视觉证据聚合管线",
+        source="engine/static_audit/tools",
+        description="Aggregate visual evidence into canonical visual_finding records for report generation.",
+        expected_outputs=("image_relationships.json", "visual_findings.json"),
+        execution_phase=EXECUTION_PHASE_REPORT_ONLY,
+        agent_selectable=False,
+        input_artifacts=("panel_evidence.json", "visual_copy_move.json", "exact_image_duplicates.json"),
+        output_artifacts=("image_relationships.json", "visual_findings.json"),
+    ),
     "static_audit.bundle": ToolDefinition(
         tool_id="static_audit.bundle",
         step_key="static_audit_bundle",
@@ -297,6 +351,8 @@ PAPER_STATIC_AUDIT_TOOL_IDS = (
     SOURCE_DATA_PAIR_FORENSICS_TOOL_ID,
     SOURCE_DATA_CROSS_SHEET_TOOL_ID,
     "image.exact_duplicates",
+    TOOL_ID_PANEL_EXTRACTION,
+    TOOL_ID_FINDING_PIPELINE,
     "agent.review",
     "report.render_markdown",
 )
@@ -314,6 +370,9 @@ STATIC_AUDIT_V1_TOOL_IDS = (
     SOURCE_DATA_CROSS_SHEET_TOOL_ID,
     "image.exact_duplicates",
     "image.similarity_candidates",
+    TOOL_ID_PANEL_EXTRACTION,
+    TOOL_ID_COPY_MOVE,
+    TOOL_ID_FINDING_PIPELINE,
     "agent.review",
     "agent.role.claim_extractor",
     "agent.role.source_data_auditor",
@@ -441,6 +500,48 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
             "max_findings": _bounded_int(params.get("max_findings", defaults["max_findings"]), "max_findings", 10, 200),
         }
     if tool_id == "source_data.profile":
+        return {}
+    if tool_id == TOOL_ID_PANEL_EXTRACTION:
+        return {}
+    if tool_id == TOOL_ID_COPY_MOVE:
+        defaults = TOOLS[tool_id].parameter_defaults
+        method = str(params.get("method", defaults.get("method", "orb"))).lower()
+        if method not in {"orb", "sift"}:
+            raise ValueError(f"method must be one of ['orb', 'sift'], got {method!r}")
+        return {
+            "method": method,
+            "min_matches": _bounded_int(
+                params.get("min_matches", params.get("min_keypoints", defaults.get("min_matches", 10))),
+                "min_matches",
+                4,
+                100,
+            ),
+            "ratio_threshold": _bounded_float(
+                params.get("ratio_threshold", defaults.get("ratio_threshold", 0.75)),
+                "ratio_threshold",
+                0.40,
+                0.95,
+            ),
+            "ransac_threshold": _bounded_float(
+                params.get("ransac_threshold", params.get("min_match_distance", defaults.get("ransac_threshold", 3.0))),
+                "ransac_threshold",
+                0.5,
+                20.0,
+            ),
+            "min_score": _bounded_float(
+                params.get("min_score", defaults.get("min_score", 0.15)),
+                "min_score",
+                0.0,
+                1.0,
+            ),
+            "max_relationships": _bounded_int(
+                params.get("max_relationships", defaults.get("max_relationships", 500)),
+                "max_relationships",
+                1,
+                5000,
+            ),
+        }
+    if tool_id == TOOL_ID_FINDING_PIPELINE:
         return {}
     return dict(params)
 

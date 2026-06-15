@@ -110,6 +110,352 @@ def paperfraud_rule_section(artifact: dict[str, Any]) -> str:
     """
 
 
+def visual_evidence_section(workdir: Path) -> str:
+    """Generate Visual Evidence Package section for the HTML report.
+
+    Reads visual_evidence.json, panel_evidence.json, image_relationships.json,
+    and visual_findings.json from workdir. All text must pass language compliance.
+    """
+    from engine.static_audit.visual_schemas import check_language_compliance
+
+    visual_evidence = read_json(workdir / "visual_evidence.json") or {}
+    panel_evidence = read_json(workdir / "panel_evidence.json") or {}
+    relationships = read_json(workdir / "image_relationships.json") or {}
+    findings = read_json(workdir / "visual_findings.json") or {}
+
+    figures = visual_evidence.get("figures") or []
+    panels = panel_evidence.get("panels") or []
+    rels = relationships.get("relationships") or []
+    visual_findings = findings.get("findings") or []
+    visual_clusters = findings.get("finding_clusters") or []
+    review_queue = findings.get("review_queue") or []
+
+    # Summary metrics
+    figure_count = len(figures)
+    panel_count = len(panels)
+    rel_count = len(rels)
+    finding_count = len(visual_findings)
+    cluster_count = len(visual_clusters)
+    review_queue_count = len(review_queue)
+
+    # Collect manual review questions
+    review_questions: list[str] = []
+    for task in review_queue:
+        if isinstance(task, dict):
+            text = str(task.get("question") or "")
+            if text and not check_language_compliance(text):
+                review_questions.append(text)
+    for finding in visual_findings:
+        if isinstance(finding, dict):
+            for q in (finding.get("manual_review_questions") or []):
+                text = str(q)
+                if text and not check_language_compliance(text):
+                    review_questions.append(text)
+    review_questions = dedupe(review_questions)[:10]
+
+    # Figure/Panel grid
+    figure_cards = _visual_figure_cards(figures, panels)
+    # Relationship table
+    relationship_table = _visual_relationship_table(rels)
+    review_queue_table = _visual_review_queue_table(review_queue)
+    cluster_table = _visual_cluster_table(visual_clusters)
+    # Finding cards
+    finding_cards_html = _visual_finding_cards(visual_findings, panels)
+    # Manual review checklist
+    review_checklist = _visual_review_checklist(review_questions)
+
+    return f"""
+    <section class="panel section" id="visual-evidence">
+      <h2>Visual Evidence Package</h2>
+      <p class="muted">视觉取证候选：图像、panel、相似关系和 visual finding。所有信号只用于收敛人工复核问题，不构成最终学术不端判定。</p>
+      <div class="grid cols-4">
+        {metric("figures", figure_count)}
+        {metric("panels", panel_count)}
+        {metric("relationships", rel_count)}
+        {metric("visual findings", finding_count)}
+        {metric("finding clusters", cluster_count)}
+        {metric("review queue", review_queue_count)}
+      </div>
+
+      <h3 style="margin-top: 24px;">Figures &amp; Panels</h3>
+      {figure_cards}
+
+      <h3 style="margin-top: 24px;">Relationships</h3>
+      <p class="muted">panel 之间的相似或复用关系，按 score 排序。</p>
+      {relationship_table}
+
+      <h3 style="margin-top: 24px;">Visual Review Queue</h3>
+      <p class="muted">按 figure/panel/relationship 聚合后的人工复核入口；fallback panel 会降级显示。</p>
+      {review_queue_table}
+
+      <h3 style="margin-top: 24px;">Visual Finding Clusters</h3>
+      <p class="muted">聚合后的视觉证据簇，保留代表性 finding 和 relationship refs。</p>
+      {cluster_table}
+
+      <h3 style="margin-top: 24px;">Visual Findings</h3>
+      <p class="muted">代表性 raw visual finding cards，包含 panel 比较和良性解释。</p>
+      {finding_cards_html}
+
+      <h3 style="margin-top: 24px;" class="visual-review-checklist">Manual Review Checklist</h3>
+      <p class="muted">汇总的视觉复核问题，用于人工复核入口。</p>
+      {review_checklist}
+    </section>
+    """
+
+
+def _visual_figure_cards(figures: list[dict[str, Any]], panels: list[dict[str, Any]]) -> str:
+    """Generate figure cards with panel thumbnails."""
+    if not figures:
+        return "<p class='muted'>未提取到 figure 级图像证据。</p>"
+
+    panels_by_figure: dict[str, list[dict[str, Any]]] = {}
+    for panel in panels:
+        if isinstance(panel, dict):
+            parent = str(panel.get("parent_figure_id") or "")
+            panels_by_figure.setdefault(parent, []).append(panel)
+
+    cards = []
+    for figure in figures[:20]:
+        if not isinstance(figure, dict):
+            continue
+        figure_id = str(figure.get("figure_id") or "-")
+        label = str(figure.get("label") or "-")
+        caption = str(figure.get("caption") or "")[:200]
+        image_path = str(figure.get("source_image_path") or "")
+        panel_count = figure.get("panel_count", 0)
+        figure_panels = panels_by_figure.get(figure_id, [])
+
+        panel_thumbnails = ""
+        if figure_panels:
+            panel_items = []
+            for panel in figure_panels[:12]:
+                panel_id = str(panel.get("panel_id") or "-")
+                panel_label = str(panel.get("label") or "-")
+                panel_crop = str(panel.get("crop_path") or "")
+                panel_w = panel.get("width", 0)
+                panel_h = panel.get("height", 0)
+                confidence = panel.get("extraction_confidence", 0)
+                method = str(panel.get("extraction_method") or "-")
+                fallback_note = " | fallback" if method == "whole_figure_fallback" else ""
+                img_tag = f'<img src="{h(panel_crop)}" alt="panel {h(panel_label)}" loading="lazy" />' if panel_crop else '<div style="height:120px;background:#f4f0e6;border-radius:8px;"></div>'
+                panel_items.append(
+                    f'<div class="visual-panel-card">'
+                    f'{img_tag}'
+                    f'<div class="panel-label">{h(panel_label)}</div>'
+                    f'<div class="panel-meta">{h(panel_id)} | {h(panel_w)}x{h(panel_h)} | conf={h(f"{confidence:.2f}")} | {h(method)}{h(fallback_note)}</div>'
+                    f'</div>'
+                )
+            panel_thumbnails = '<div class="visual-panel-grid">' + "".join(panel_items) + '</div>'
+
+        img_tag = f'<img src="{h(image_path)}" alt="figure {h(label)}" loading="lazy" />' if image_path else '<div style="height:180px;background:#f4f0e6;border-radius:12px;"></div>'
+        cards.append(
+            f'<div class="visual-figure-card">'
+            f'{img_tag}'
+            f'<h4>{h(label)}</h4>'
+            f'<p class="muted">{h(caption)}</p>'
+            f'<p class="muted" style="font-size:11px;"><code>{h(figure_id)}</code> | panels: {h(panel_count)}</p>'
+            f'{panel_thumbnails}'
+            f'</div>'
+        )
+
+    return '<div class="visual-figure-grid">' + "\n".join(cards) + '</div>'
+
+
+def _visual_relationship_table(rels: list[dict[str, Any]]) -> str:
+    """Generate relationship table."""
+    if not rels:
+        return "<p class='muted'>未发现 panel 间相似关系。</p>"
+
+    sorted_rels = sorted(
+        [r for r in rels if isinstance(r, dict)],
+        key=lambda r: -(r.get("score") or 0),
+    )
+
+    rows = []
+    for rel in sorted_rels[:30]:
+        source = str(rel.get("source_panel_id") or "-")
+        target = str(rel.get("target_panel_id") or "-")
+        rel_type = str(rel.get("source_type") or "-")
+        score = rel.get("score", 0)
+        method = str(rel.get("match_method") or "-")
+        inliers = rel.get("inlier_count", 0)
+        rows.append(
+            "<tr>"
+            f"<td><code>{h(source)}</code></td>"
+            f"<td><code>{h(target)}</code></td>"
+            f"<td>{h(rel_type)}</td>"
+            f"<td>{h(f'{score:.3f}')}</td>"
+            f"<td><code>{h(method)}</code></td>"
+            f"<td>{h(inliers)}</td>"
+            "</tr>"
+        )
+
+    return (
+        "<div class='visual-relationship-table'>"
+        "<table><thead><tr>"
+        "<th>source panel</th><th>target panel</th><th>type</th><th>score</th><th>method</th><th>inliers</th>"
+        "</tr></thead><tbody>"
+        + "".join(rows)
+        + "</tbody></table></div>"
+    )
+
+
+def _visual_review_queue_table(tasks: list[dict[str, Any]]) -> str:
+    tasks = [task for task in tasks if isinstance(task, dict)]
+    if not tasks:
+        return "<p class='muted'>未生成 visual review queue。</p>"
+    rows = []
+    for task in tasks[:20]:
+        priority = str(task.get("priority") or "medium")
+        quality = str(task.get("panel_extraction_quality") or "unknown")
+        quality_note = "fallback 降级" if quality == "whole_figure_fallback" else quality
+        rows.append(
+            "<tr>"
+            f"<td><code>{h(task.get('task_id', '-'))}</code></td>"
+            f"<td><span class='badge {h(priority)}'>{h(risk_label(priority))}</span></td>"
+            f"<td><code>{h(task.get('cluster_id', '-'))}</code></td>"
+            f"<td>{h(task.get('category', '-'))}</td>"
+            f"<td>{h(task.get('scope', '-'))}</td>"
+            f"<td>{h(', '.join(str(item) for item in (task.get('figure_ids') or [])[:4]) or '-')}</td>"
+            f"<td>{h(task.get('finding_count', '-'))}/{h(task.get('relationship_count', '-'))}</td>"
+            f"<td>{h(quality_note)}</td>"
+            f"<td>{h(task.get('question', '-'))}</td>"
+            "</tr>"
+        )
+    return (
+        "<table><thead><tr><th>task</th><th>优先级</th><th>cluster</th><th>类别</th><th>scope</th><th>figures</th><th>findings/relationships</th><th>panel quality</th><th>复核问题</th></tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>"
+    )
+
+
+def _visual_cluster_table(clusters: list[dict[str, Any]]) -> str:
+    clusters = [cluster for cluster in clusters if isinstance(cluster, dict)]
+    if not clusters:
+        return "<p class='muted'>未生成 visual finding cluster。</p>"
+    rows = []
+    for cluster in clusters[:20]:
+        risk = str(cluster.get("risk_level") or "medium")
+        quality = str(cluster.get("panel_extraction_quality") or "unknown")
+        representatives = ", ".join(str(item) for item in (cluster.get("representative_finding_ids") or [])[:5])
+        rows.append(
+            "<tr>"
+            f"<td><code>{h(cluster.get('cluster_id', '-'))}</code></td>"
+            f"<td><span class='badge {h(risk)}'>{h(risk_label(risk))}</span></td>"
+            f"<td>{h(cluster.get('category', '-'))}</td>"
+            f"<td>{h(cluster.get('scope', '-'))}</td>"
+            f"<td>{h(', '.join(str(item) for item in (cluster.get('figure_ids') or [])[:4]) or '-')}</td>"
+            f"<td>{h(cluster.get('finding_count', '-'))}/{h(cluster.get('relationship_count', '-'))}</td>"
+            f"<td>{h(cluster.get('max_score', '-'))}</td>"
+            f"<td>{h(quality)}</td>"
+            f"<td><code>{h(representatives or '-')}</code></td>"
+            "</tr>"
+        )
+    return (
+        "<table><thead><tr><th>cluster</th><th>风险</th><th>类别</th><th>scope</th><th>figures</th><th>findings/relationships</th><th>max score</th><th>panel quality</th><th>representatives</th></tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>"
+    )
+
+
+def _visual_finding_cards(visual_findings: list[dict[str, Any]], panels: list[dict[str, Any]]) -> str:
+    """Generate visual finding cards with overlay comparison."""
+    if not visual_findings:
+        return "<p class='muted'>未生成 visual finding。</p>"
+
+    from engine.static_audit.visual_schemas import check_language_compliance
+
+    panels_by_id = {str(p.get("panel_id")): p for p in panels if isinstance(p, dict) and p.get("panel_id")}
+
+    cards = []
+    for finding in visual_findings[:20]:
+        if not isinstance(finding, dict):
+            continue
+
+        finding_id = str(finding.get("finding_id") or "-")
+        category = str(finding.get("category") or "-")
+        risk_level = str(finding.get("risk_level") or "medium")
+        summary = str(finding.get("summary") or "")
+
+        # Check language compliance
+        violations = check_language_compliance(summary)
+        if violations:
+            summary = "该 visual finding 的原始摘要包含报告禁用措辞，已隐藏；请人工复核结构化证据。"
+
+        source_panel_id = str(finding.get("source_panel_id") or "-")
+        target_panel_id = str(finding.get("target_panel_id") or "-")
+        score = finding.get("score", 0)
+        overlay_path = finding.get("overlay_path")
+        metadata = finding.get("metadata") if isinstance(finding.get("metadata"), dict) else {}
+        quality = str(metadata.get("panel_extraction_quality") or "unknown")
+        quality_note = "fallback panel evidence; risk display capped" if quality == "whole_figure_fallback" else quality
+
+        # Get panel crop paths
+        source_panel = panels_by_id.get(source_panel_id, {})
+        target_panel = panels_by_id.get(target_panel_id, {})
+        source_crop = str(source_panel.get("crop_path") or "")
+        target_crop = str(target_panel.get("crop_path") or "")
+
+        benign = finding.get("benign_explanations") or []
+        benign_items = []
+        for item in benign[:4]:
+            text = str(item)
+            if not check_language_compliance(text):
+                benign_items.append(f"<li>{h(text)}</li>")
+        benign_html = "<ul>" + "".join(benign_items) + "</ul>" if benign_items else "<p class='muted'>未记录良性解释。</p>"
+
+        # Overlay comparison
+        overlay_html = ""
+        if overlay_path:
+            overlay_html = (
+                f'<div class="overlay-compare">'
+                f'<div><p class="muted" style="font-size:11px;">source panel: {h(source_panel_id)}</p>'
+                f'<img src="{h(source_crop)}" alt="source" loading="lazy" /></div>'
+                f'<div><p class="muted" style="font-size:11px;">target panel: {h(target_panel_id)}</p>'
+                f'<img src="{h(target_crop)}" alt="target" loading="lazy" /></div>'
+                f'</div>'
+                f'<p class="muted" style="font-size:11px;margin-top:8px;">overlay: <code>{h(str(overlay_path))}</code></p>'
+            )
+        elif source_crop and target_crop:
+            overlay_html = (
+                f'<div class="overlay-compare">'
+                f'<div><p class="muted" style="font-size:11px;">source panel: {h(source_panel_id)}</p>'
+                f'<img src="{h(source_crop)}" alt="source" loading="lazy" /></div>'
+                f'<div><p class="muted" style="font-size:11px;">target panel: {h(target_panel_id)}</p>'
+                f'<img src="{h(target_crop)}" alt="target" loading="lazy" /></div>'
+                f'</div>'
+            )
+
+        cards.append(
+            f'<article class="visual-finding-card">'
+            f'<div class="finding-header">'
+            f'<span class="badge {h(risk_level)}">{h(risk_label(risk_level))}</span>'
+            f'<span class="badge">{h(category)}</span>'
+            f'<h3>{h(finding_id)}</h3>'
+            f'</div>'
+            f'<p><strong>摘要：</strong>{h(summary)}</p>'
+            f'<p class="muted" style="font-size:12px;">score: {h(f"{score:.3f}")} | panel quality: {h(quality_note)} | source: <code>{h(source_panel_id)}</code> | target: <code>{h(target_panel_id)}</code></p>'
+            f'<details style="margin-top:12px;">'
+            f'<summary>Panel 比较与 overlay</summary>'
+            f'{overlay_html}'
+            f'</details>'
+            f'<details style="margin-top:8px;">'
+            f'<summary>良性解释</summary>'
+            f'{benign_html}'
+            f'</details>'
+            f'</article>'
+        )
+
+    return "\n".join(cards)
+
+
+def _visual_review_checklist(questions: list[str]) -> str:
+    """Generate manual review checklist."""
+    if not questions:
+        return "<p class='muted'>未生成视觉复核问题。</p>"
+
+    items = [f"<li>{h(q)}</li>" for q in questions[:10]]
+    return "<ul class='visual-review-checklist'>" + "".join(items) + "</ul>"
+
+
 def render_static_audit_html(workdir: Path, case_id: str) -> str:
     manifest = read_json(workdir / "audit_run_manifest.json") or {}
     bundle = read_json(workdir / "static_audit_bundle.json") or {}
@@ -611,6 +957,107 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
       color: var(--muted);
       margin-left: 8px;
     }}
+    /* Visual Evidence Package styles */
+    .visual-figure-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }}
+    .visual-figure-card {{
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 16px;
+      background: linear-gradient(135deg, #fffdf8 0%, #fff7e9 100%);
+      box-shadow: 0 12px 32px rgba(54, 45, 28, .06);
+    }}
+    .visual-figure-card img {{
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #f4f0e6;
+    }}
+    .visual-figure-card h4 {{
+      margin: 12px 0 8px;
+      font-size: 16px;
+    }}
+    .visual-figure-card .muted {{
+      font-size: 13px;
+    }}
+    .visual-panel-grid {{
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }}
+    .visual-panel-card {{
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      background: #fffaf0;
+    }}
+    .visual-panel-card img {{
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #f4f0e6;
+    }}
+    .visual-panel-card .panel-label {{
+      font-weight: 800;
+      margin-top: 8px;
+      font-size: 14px;
+    }}
+    .visual-panel-card .panel-meta {{
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 4px;
+    }}
+    .visual-relationship-table {{
+      margin-top: 16px;
+    }}
+    .visual-finding-card {{
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      padding: 20px;
+      background: linear-gradient(135deg, #fffdf8 0%, #fff4df 100%);
+      box-shadow: 0 18px 48px rgba(54, 45, 28, .08);
+      margin-bottom: 16px;
+    }}
+    .visual-finding-card .finding-header {{
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }}
+    .visual-finding-card .overlay-compare {{
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }}
+    .visual-finding-card .overlay-compare img {{
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #f4f0e6;
+    }}
+    .visual-review-checklist {{
+      margin-top: 16px;
+    }}
+    .visual-review-checklist li {{
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255,255,255,.65);
+      margin-bottom: 8px;
+    }}
   </style>
 </head>
 <body>
@@ -703,6 +1150,8 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
       </ul>
     </section>
 
+    {visual_evidence_section(workdir)}
+
     <section class="section" id="appendix">
       <h2>技术附录</h2>
       <div class="appendix-grid">
@@ -741,10 +1190,16 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
           <summary><span><strong>Source Data Pair / Row-Offset Forensics</strong><br/><span class="muted">paired cohort、固定行偏移、低宽度行重复和比例复用模式。</span></span><span class="badge skipped">展开</span></summary>
           <div class="grid cols-4">
             {metric("priority findings", pair_summary.get("priority_findings", 0))}
+            {metric("finding clusters", pair_summary.get("finding_clusters", 0))}
+            {metric("review tasks", pair_summary.get("review_tasks", 0))}
             {metric("row-offset scalar", pair_summary.get("row_offset_scalar_findings", 0))}
             {metric("paired ratio reuse", pair_summary.get("paired_ratio_reuse_findings", 0))}
-            {metric("duplicate row vector", pair_summary.get("duplicate_row_vector_findings", 0))}
           </div>
+          <h3>Review tasks</h3>
+          {pair_forensics_review_tasks_table(pair_forensics.get("review_tasks") or [])}
+          <h3>Finding clusters</h3>
+          {pair_forensics_cluster_table(pair_forensics.get("finding_clusters") or [])}
+          <h3>Representative raw findings</h3>
           {pair_forensics_table(pair_forensics.get("priority_findings") or [])}
         </details>
 
@@ -1925,6 +2380,58 @@ def pair_forensics_table(findings: list[dict[str, Any]]) -> str:
         )
     return (
         "<table><thead><tr><th>ID</th><th>风险</th><th>类别</th><th>workbook</th><th>sheet</th><th>offset</th><th>columns</th><th>support</th></tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>"
+    )
+
+
+def pair_forensics_review_tasks_table(tasks: list[dict[str, Any]]) -> str:
+    tasks = [task for task in tasks if isinstance(task, dict)]
+    if not tasks:
+        return "<p class='muted'>未生成 pair/row-offset review task。</p>"
+    rows = []
+    for task in tasks[:12]:
+        priority = str(task.get("priority", "medium"))
+        rows.append(
+            "<tr>"
+            f"<td><code>{h(task.get('task_id', '-'))}</code></td>"
+            f"<td><span class='badge {h(priority)}'>{h(risk_label(priority))}</span></td>"
+            f"<td><code>{h(task.get('cluster_id', '-'))}</code></td>"
+            f"<td>{h(task.get('category', '-'))}</td>"
+            f"<td><code>{h(task.get('workbook', '-'))}</code></td>"
+            f"<td>{h(task.get('sheet', '-'))}</td>"
+            f"<td>{h(task.get('cluster_count', '-'))}</td>"
+            f"<td>{h(task.get('finding_count', '-'))}</td>"
+            f"<td>{h(task.get('question', '-'))}</td>"
+            "</tr>"
+        )
+    return (
+        "<table><thead><tr><th>task</th><th>优先级</th><th>primary cluster</th><th>类别</th><th>workbook</th><th>sheet</th><th>clusters</th><th>raw count</th><th>复核问题</th></tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>"
+    )
+
+
+def pair_forensics_cluster_table(clusters: list[dict[str, Any]]) -> str:
+    clusters = [cluster for cluster in clusters if isinstance(cluster, dict)]
+    if not clusters:
+        return "<p class='muted'>未生成 pair/row-offset finding cluster。</p>"
+    rows = []
+    for cluster in clusters[:12]:
+        risk = str(cluster.get("risk_level", "medium"))
+        representatives = ", ".join(str(item) for item in (cluster.get("representative_finding_ids") or [])[:5])
+        rows.append(
+            "<tr>"
+            f"<td><code>{h(cluster.get('cluster_id', '-'))}</code></td>"
+            f"<td><span class='badge {h(risk)}'>{h(risk_label(risk))}</span></td>"
+            f"<td>{h(cluster.get('category', '-'))}</td>"
+            f"<td><code>{h(cluster.get('workbook', '-'))}</code></td>"
+            f"<td>{h(cluster.get('sheet', '-'))}</td>"
+            f"<td>{h(cluster.get('pattern_signature', '-'))}</td>"
+            f"<td>{h(cluster.get('finding_count', '-'))}</td>"
+            f"<td><code>{h(representatives or '-')}</code></td>"
+            "</tr>"
+        )
+    return (
+        "<table><thead><tr><th>cluster</th><th>风险</th><th>类别</th><th>workbook</th><th>sheet</th><th>signature</th><th>raw count</th><th>representatives</th></tr></thead>"
         f"<tbody>{''.join(rows)}</tbody></table>"
     )
 
