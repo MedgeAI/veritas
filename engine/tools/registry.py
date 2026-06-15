@@ -9,6 +9,7 @@ SOURCE_DATA_PAIR_FORENSICS_TOOL_ID = "source_data.pair_forensics"
 SOURCE_DATA_CROSS_SHEET_TOOL_ID = "source_data.cross_sheet"
 IMAGE_SIMILARITY_TOOL_ID = "image.similarity_candidates"
 PAPERFRAUD_RULE_MATCH_TOOL_ID = "paperfraud.rule_match"
+PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID = "paperconan.numeric_forensics"
 TOOL_ID_PANEL_EXTRACTION = "visual.panel_extraction"
 TOOL_ID_COPY_MOVE = "visual.copy_move"
 TOOL_ID_FINDING_PIPELINE = "visual.finding_pipeline"
@@ -185,6 +186,23 @@ TOOLS: dict[str, ToolDefinition] = {
             "max_findings": {"type": "integer", "minimum": 10, "maximum": 200},
         },
     ),
+    PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID: ToolDefinition(
+        tool_id=PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID,
+        step_key="paperconan_numeric_forensics",
+        title="Paperconan numeric forensics",
+        source="third_party/paperconan",
+        description="Run paperconan's numeric forensics detectors (GRIM, GRIMMER, last-digit, cross-sheet duplicates, etc.) on source data.",
+        expected_outputs=("paperconan_scan.json",),
+        parameter_defaults={
+            "profile": "review",
+        },
+        agent_selectable=True,
+        input_artifacts=("source_data_dir",),
+        output_artifacts=("paperconan_scan.json",),
+        param_schema={
+            "profile": {"type": "string", "enum": ["review", "forensic", "triage"]},
+        },
+    ),
     "image.exact_duplicates": ToolDefinition(
         tool_id="image.exact_duplicates",
         step_key="exact_image_duplicates",
@@ -350,6 +368,7 @@ PAPER_STATIC_AUDIT_TOOL_IDS = (
     SOURCE_DATA_FINDINGS_TOOL_ID,
     SOURCE_DATA_PAIR_FORENSICS_TOOL_ID,
     SOURCE_DATA_CROSS_SHEET_TOOL_ID,
+    PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID,
     "image.exact_duplicates",
     TOOL_ID_PANEL_EXTRACTION,
     TOOL_ID_FINDING_PIPELINE,
@@ -368,6 +387,7 @@ STATIC_AUDIT_V1_TOOL_IDS = (
     SOURCE_DATA_FINDINGS_TOOL_ID,
     SOURCE_DATA_PAIR_FORENSICS_TOOL_ID,
     SOURCE_DATA_CROSS_SHEET_TOOL_ID,
+    PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID,
     "image.exact_duplicates",
     "image.similarity_candidates",
     TOOL_ID_PANEL_EXTRACTION,
@@ -499,6 +519,12 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
             "min_support_rate": _bounded_float(params.get("min_support_rate", defaults["min_support_rate"]), "min_support_rate", 0.5, 1.0),
             "max_findings": _bounded_int(params.get("max_findings", defaults["max_findings"]), "max_findings", 10, 200),
         }
+    if tool_id == PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID:
+        defaults = TOOLS[tool_id].parameter_defaults
+        profile = str(params.get("profile", defaults.get("profile", "review"))).lower()
+        if profile not in {"review", "forensic", "triage"}:
+            raise ValueError(f"profile must be one of ['review', 'forensic', 'triage'], got {profile!r}")
+        return {"profile": profile}
     if tool_id == "source_data.profile":
         return {}
     if tool_id == TOOL_ID_PANEL_EXTRACTION:
