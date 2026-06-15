@@ -371,7 +371,8 @@ tests/        单测、集成测试和 e2e 测试
 ### 本地产物和提交边界
 
 - `input/`、`outputs/`、`web_data/`、`web/frontend/dist/`、`web/frontend/node_modules/` 和 `.env*` 默认是本地输入、运行产物、构建产物或密钥，不要提交。
-- 如果当前 checkout 存在 `.gitmodules`、`third_party/` 或 `docs/`，优先把它们视为本地增强上下文和能力积累；不要假设所有干净 clone 都一定包含这些内容，除非项目已明确调整 git tracking 策略。
+- `.gitmodules` 和 `third_party/` 通过 git submodule 跟踪，commit hash 锁定；升级必须由维护者显式 `git submodule update --remote` 后 commit 新 gitlink，走 PR review。新人 `git clone --recursive` 即可完整还原。
+- `docs/` 当前仍为本地工作文档，不提交。
 - 真实论文、真实运行产物和密钥不能写入 `docs/`、报告模板或示例 fixture。
 
 ## 当前执行口径
@@ -517,9 +518,9 @@ MVP 最低测试范围：
 
 ## 第三方仓库使用原则
 
-`third_party/` 是能力吸收区，不是主产品源码。
+`third_party/` 是能力吸收区，不是主产品源码。所有进入 `third_party/` 并被 Veritas 引用的外部仓库必须通过 git submodule 跟踪并锁定 commit hash；不允许以本地 clone 形式游离于 git 之外。
 
-当前本地 `.gitmodules` 积累的参考仓库：
+当前通过 git submodule 跟踪的第三方仓库：
 
 | submodule | 可借鉴 | 禁止 |
 |---|---|---|
@@ -527,6 +528,8 @@ MVP 最低测试范围：
 | `third_party/elis` | pdf-extractor、panel-extractor、copy-move、TruFor、CBIR/Milvus、视觉证据包思路 | 不直接接入 ELIS FastAPI/Celery/MongoDB/Redis/Web UI 主服务；引入重型模型或 AGPL 组件前先评估许可证、部署和失败隔离 |
 | `third_party/deepwiki-open` | repo 理解、wiki 组织、Mermaid/结构图表达 | 不把 Next.js 主应用或通用 repo-wiki 产品形态搬进 Veritas 主架构 |
 | `third_party/AsyncReview` | recursive investigation、工具调用和验证循环、代码审查式上下文探索 | 不允许 Agent 绕过 Tool Registry 任意执行 sandbox 代码；不把 GitHub token / 外部 PR 流程变成 Veritas 主依赖 |
+| `third_party/geng-academic-fraud-detector` | AI Agent Skill 形态、"耿同学六式"打假方法论（图片复用、数据造假、统计异常等检测维度） | 不直接把 skill 脚本当作 Veritas 主链路；方法论要转化为 Veritas 的 tool registry 条目或 methodology 配置 |
+| `third_party/paperconan` | 数值取证检测器集合、`scan.json` + `report.html` 输出结构、source data sanity check 流程 | 不直接执行 paperconan 的二进制/脚本，要通过 adapter 包装；不与 Veritas 现有 numeric forensics 重复造轮子 |
 
 不要把大型第三方内部实现直接 import 进主链路。先用本地 adapter 包起来。
 

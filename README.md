@@ -79,7 +79,7 @@ examples/     demo manifest 和轻量样例
 scripts/      可复用本地工具脚本
 web/          Web P1：stdlib backend + Vite React frontend
 tests/        单测、集成测试和 e2e 测试
-third_party/  外部参考仓库和能力吸收区；本地可由 .gitmodules 记录
+third_party/  外部能力仓库，通过 git submodule 跟踪并锁定 commit hash
 outputs/      本地运行产物与报告，不进入提交
 web_data/     Web P1 本地 case store 与运行状态，不进入提交
 ```
@@ -98,11 +98,14 @@ web_data/     Web P1 本地 case store 与运行状态，不进入提交
 - `web/frontend/dist/`：前端本地构建产物。
 - `web/frontend/node_modules/`：前端依赖。
 - `.env`：本地密钥。
-- `.gitmodules` / `third_party/` / `docs/`：当前工作区可能作为本地增强上下文和能力积累；如果仍保持 local-only，不要让产品功能依赖它们必然存在。若决定共享，需要同步调整 `.gitignore` 和提交策略。
+- `.gitmodules` / `third_party/`：通过 git submodule 跟踪并锁定 commit hash，`git clone --recursive` 完整还原；升级必须由维护者显式 commit 新 gitlink。
+- `docs/`：当前工作区作为本地增强上下文和能力积累；如果仍保持 local-only，不要让产品功能依赖它们必然存在。若决定共享，需要同步调整 `.gitignore` 和提交策略。
 
 ## 第三方参考和能力吸收
 
-`third_party/` 是能力吸收区，不是主产品源码。当前本地 `.gitmodules` 积累的参考仓库如下：
+`third_party/` 是能力吸收区，不是主产品源码。所有进入 `third_party/` 并被 Veritas 引用的外部仓库必须通过 git submodule 跟踪并锁定 commit hash。
+
+当前通过 git submodule 跟踪的第三方仓库：
 
 | submodule | 可借鉴 | 禁止 |
 |---|---|---|
@@ -110,6 +113,8 @@ web_data/     Web P1 本地 case store 与运行状态，不进入提交
 | `third_party/elis` | pdf-extractor、panel-extractor、copy-move、TruFor、CBIR/Milvus、视觉证据包思路 | 不直接接入 ELIS FastAPI/Celery/MongoDB/Redis/Web UI 主服务；引入重型模型或 AGPL 组件前先评估许可证、部署和失败隔离 |
 | `third_party/deepwiki-open` | repo 理解、wiki 组织、Mermaid/结构图表达 | 不把 Next.js 主应用或通用 repo-wiki 产品形态搬进 Veritas 主架构 |
 | `third_party/AsyncReview` | recursive investigation、工具调用和验证循环、代码审查式上下文探索 | 不允许 Agent 绕过 Tool Registry 任意执行 sandbox 代码；不把 GitHub token / 外部 PR 流程变成 Veritas 主依赖 |
+| `third_party/geng-academic-fraud-detector` | AI Agent Skill 形态、"耿同学六式"打假方法论（图片复用、数据造假、统计异常等检测维度） | 不直接把 skill 脚本当作 Veritas 主链路；方法论要转化为 Veritas 的 tool registry 条目或 methodology 配置 |
+| `third_party/paperconan` | 数值取证检测器集合、`scan.json` + `report.html` 输出结构、source data sanity check 流程 | 不直接执行 paperconan 的二进制/脚本，要通过 adapter 包装；不与 Veritas 现有 numeric forensics 重复造轮子 |
 
 第三方能力进入主链路的顺序：
 
