@@ -453,6 +453,63 @@ MINERU_API_TOKEN=...
 
 `scripts/run_paper_audit.py` 默认会读取仓库根目录 `.env`，但 `.env` 必须保持未提交。
 
+## Authentication
+
+Veritas Web 后端支持三种认证模式，通过环境变量 `VERITAS_AUTH_MODE` 切换。默认模式为 `none`（无认证），适合本地开发和内网部署。生产部署建议启用 `bearer`（对接主产品 JWT）或 `basic`（独立用户名密码）。
+
+### 环境变量
+
+| 变量 | 说明 | 默认值 |
+|---|---|---|
+| `VERITAS_AUTH_MODE` | 认证模式：`none`、`bearer`、`basic` | `none` |
+| `VERITAS_JWT_SECRET` | Bearer 模式下 JWT 签名密钥（与主产品共享） | 空 |
+| `VERITAS_JWT_ISSUER` | Bearer 模式下 JWT 签发者（`iss` claim） | `veritas` |
+| `VERITAS_USERS_DB` | Basic 模式下 SQLite 用户数据库路径 | `web_data/users.db` |
+
+### 两种部署模式
+
+**嵌入模式**：Veritas Web 作为主产品（如 gin-blog）的子服务，共享 JWT 密钥。设置 `VERITAS_AUTH_MODE=bearer` 和 `VERITAS_JWT_SECRET` 即可验证主产品签发的 token。
+
+**独立模式**：Veritas Web 独立运行，使用自带的 Basic Auth 用户管理。设置 `VERITAS_AUTH_MODE=basic`，然后用 CLI 创建用户。
+
+### 用户管理 CLI
+
+当 `VERITAS_AUTH_MODE=basic` 时，使用以下命令管理用户：
+
+```bash
+# 添加用户（交互式输入密码）
+PYTHONPATH=. python -m web.backend.veritas_web.cli add-user alice --email alice@lab.org --roles admin,operator
+
+# 添加用户（非交互式）
+PYTHONPATH=. python -m web.backend.veritas_web.cli add-user bob --password secret123 --roles operator
+
+# 列出所有用户
+PYTHONPATH=. python -m web.backend.veritas_web.cli list-users
+
+# 删除用户
+PYTHONPATH=. python -m web.backend.veritas_web.cli delete-user bob
+
+# 修改密码
+PYTHONPATH=. python -m web.backend.veritas_web.cli change-password alice
+
+# 指定自定义数据库路径
+PYTHONPATH=. python -m web.backend.veritas_web.cli --db /path/to/users.db list-users
+```
+
+用户数据存储在 SQLite 数据库中（路径由 `VERITAS_USERS_DB` 指定），密码使用 bcrypt 哈希存储。
+
+### 认证流程
+
+每个 API 请求在路由分发前先经过 `_authenticate()`：
+
+1. `none` 模式：直接设置 `auth_context = {user_id: "operator", roles: ["admin"]}`。
+2. `bearer` 模式：从 `Authorization: Bearer <token>` 头提取 JWT，验证签名和过期时间。
+3. `basic` 模式：从 `Authorization: Basic <base64>` 头提取用户名密码，查询 SQLite 并验证 bcrypt 哈希。
+
+认证失败时返回 `401 Unauthorized`；Basic 模式额外返回 `WWW-Authenticate: Basic realm="Veritas"` 头。
+
+`CaseStore` 的方法按 `user_id` 隔离数据：每个用户只能看到和操作自己的 case，跨用户访问返回 `403 Forbidden`。
+
 ## 测试
 
 ```bash
