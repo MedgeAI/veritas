@@ -9,7 +9,9 @@ from typing import Any
 from urllib.parse import parse_qs, urlparse
 
 from .artifacts import ArtifactService
+from .auth import AuthContext, AuthProvider, NoAuthProvider
 from .case_store import CaseStore
+from .config import AuthConfig, create_auth_provider
 from .runner import AuditRunner
 
 
@@ -30,6 +32,35 @@ class VeritasWebApp:
 class VeritasRequestHandler(BaseHTTPRequestHandler):
     server_version = "VeritasWeb/0.1"
     app: VeritasWebApp
+    auth_provider: AuthProvider
+    auth_context: AuthContext
+
+    def _authenticate(self) -> bool:
+        """Authenticate the current request.
+
+        Populates ``self.auth_context`` on success.  Returns ``True`` when
+        the request should proceed, ``False`` when a 401 has been sent.
+        """
+        if isinstance(self.auth_provider, NoAuthProvider):
+            self.auth_context = AuthContext(
+                user_id="operator",
+                roles=frozenset({"admin"}),
+            )
+            return True
+
+        ctx = self.auth_provider.authenticate(dict(self.headers))
+        if ctx is None:
+            self.send_response(HTTPStatus.UNAUTHORIZED)
+            self._send_cors_headers()
+            challenge = getattr(self.auth_provider, "challenge_headers", None)
+            if callable(challenge):
+                for key, value in challenge().items():
+                    self.send_header(key, value)
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return False
+        self.auth_context = ctx
+        return True
 
     def do_OPTIONS(self) -> None:  # noqa: N802
         self.send_response(HTTPStatus.NO_CONTENT)
@@ -38,12 +69,16 @@ class VeritasRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self) -> None:  # noqa: N802
         try:
+            if not self._authenticate():
+                return
             self._route_get()
         except Exception as exc:
             self._send_error(exc)
 
     def do_POST(self) -> None:  # noqa: N802
         try:
+            if not self._authenticate():
+                return
             self._route_post()
         except Exception as exc:
             self._send_error(exc)
@@ -60,10 +95,12 @@ class VeritasRequestHandler(BaseHTTPRequestHandler):
             )
             return
         if parts == ["api", "cases"]:
-            self._send_json({"cases": [case.to_dict() for case in self.app.store.list_cases()]})
+            user_id = self.auth_context.user_id
+            self._send_json({"cases": [case.to_dict() for case in self.app.store.list_cases(user_id=user_id)]})
             return
         if len(parts) == 3 and parts[:2] == ["api", "cases"]:
-            self._send_json(self.app.store.get_case(parts[2]).to_dict())
+            user_id = self.auth_context.user_id
+            self._send_json(self.app.store.get_case(parts[2], user_id=user_id).to_dict())
             return
         if len(parts) == 5 and parts[:2] == ["api", "cases"] and parts[3] == "runs":
             self._send_json(self.app.store.get_run(parts[2], parts[4]).to_dict())
@@ -89,10 +126,13 @@ class VeritasRequestHandler(BaseHTTPRequestHandler):
         parts, _query = self._path_parts()
         payload = self._read_json()
         if parts == ["api", "cases"]:
+            user_id = self.auth_context.user_id
+            paper_title = payload.get("paper_title")
+            raw_case_id = payload.get("case_id")
             case = self.app.store.create_case(
-                paper_title=payload.get("paper_title"),
-                owner=str(payload.get("owner", "operator")),
-                case_id=payload.get("case_id"),
+                user_id=user_id,
+                paper_title=paper_title,
+                case_id=str(raw_case_id) if raw_case_id else None,
             )
             self._send_json(case.to_dict(), status=HTTPStatus.CREATED)
             return
@@ -179,30 +219,41 @@ class VeritasRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(payload)
 
     def _send_error(self, exc: Exception) -> None:
-        status = HTTPStatus.NOT_FOUND if isinstance(exc, FileNotFoundError) else HTTPStatus.BAD_REQUEST
+        if isinstance(exc, PermissionError):
+            status = HTTPStatus.FORBIDDEN
+        elif isinstance(exc, FileNotFoundError):
+            status = HTTPStatus.NOT_FOUND
+        else:
+            status = HTTPStatus.BAD_REQUEST
         self._send_json({"error": type(exc).__name__, "detail": str(exc)}, status=status)
 
     def _send_cors_headers(self) -> None:
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
     def log_message(self, format: str, *args: Any) -> None:
         return
 
 
-def make_handler(app: VeritasWebApp) -> type[VeritasRequestHandler]:
+def make_handler(app: VeritasWebApp, auth_provider: AuthProvider | None = None) -> type[VeritasRequestHandler]:
+    if auth_provider is None:
+        auth_provider = create_auth_provider(AuthConfig.from_env())
+
     class Handler(VeritasRequestHandler):
         pass
 
     Handler.app = app
+    Handler.auth_provider = auth_provider
     return Handler
 
 
 def serve(host: str = "127.0.0.1", port: int = 8765, data_root: str = "web_data", output_root: str = "outputs") -> None:
     app = VeritasWebApp(data_root=data_root, output_root=output_root)
-    server = ThreadingHTTPServer((host, port), make_handler(app))
-    print(f"Veritas Web backend listening on http://{host}:{port}")
+    auth_provider = create_auth_provider(AuthConfig.from_env())
+    server = ThreadingHTTPServer((host, port), make_handler(app, auth_provider=auth_provider))
+    auth_mode = "none" if isinstance(auth_provider, NoAuthProvider) else type(auth_provider).__name__
+    print(f"Veritas Web backend listening on http://{host}:{port} (auth: {auth_mode})")
     server.serve_forever()
 
 
