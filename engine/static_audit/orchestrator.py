@@ -92,6 +92,117 @@ from engine.tools.registry import (
 AUDITOR_ROOT = PROJECT_ROOT / "third_party" / "research-integrity-auditor"
 MAX_INVESTIGATION_ROUNDS = 3
 
+# Output directory structure: layer artifacts by responsibility for Agent and human readability.
+# See outputs/<case_id>/research-integrity-audit/README.md for full documentation.
+OUTPUT_DIRS = {
+    "inputs": "inputs",           # Original input files (PDF)
+    "mineru": "mineru",           # MinerU PDF parsing intermediate artifacts
+    "materials": "materials",     # Material inventory and plans
+    "source_data": "source_data", # Source Data tool outputs
+    "visual": "visual",           # Visual forensics tool outputs (images, panels, findings)
+    "numeric": "numeric",         # Numeric forensics tool outputs
+    "agents": "agents",           # Agent outputs, traces, context packs, logs
+    "reports": "reports",         # Final deliverables (HTML/MD reports, bundle, manifest)
+}
+
+
+# Artifact path mapping: maps legacy flat filenames to their new subdirectory paths.
+# This allows gradual migration without breaking all path references at once.
+ARTIFACT_PATH_MAP = {
+    # MinerU intermediate artifacts
+    "full.md": "mineru/full.md",
+    "mineru_manifest.json": "mineru/mineru_manifest.json",
+    "evidence_ledger.json": "mineru/evidence_ledger.json",
+    "layout.json": "mineru/layout.json",
+    "images": "visual/images",
+    # Material inventory and plans
+    "material_inventory.json": "materials/material_inventory.json",
+    "agent_material_plan.json": "materials/agent_material_plan.json",
+    # Source Data tool outputs
+    "source_data_profile.json": "source_data/profile.json",
+    "source_data_findings.json": "source_data/findings.json",
+    "source_data_pair_forensics.json": "source_data/pair_forensics.json",
+    "source_data_cross_sheet.json": "source_data/cross_sheet.json",
+    # Numeric forensics outputs
+    "numeric_forensics.json": "numeric/forensics.json",
+    "paperfraud_rule_matches.json": "numeric/paperfraud_rules.json",
+    "paperconan_scan.json": "numeric/paperconan_scan.json",
+    # Visual forensics outputs
+    "visual_evidence.json": "visual/evidence.json",
+    "panel_evidence.json": "visual/panel_evidence.json",
+    "visual_findings.json": "visual/findings.json",
+    "image_relationships.json": "visual/relationships.json",
+    "visual_copy_move.json": "visual/copy_move.json",
+    "exact_image_duplicates.json": "visual/exact_duplicates.json",
+    "image_similarity_candidates.json": "visual/similarity_candidates.json",
+    "panels": "visual/panels",
+    "yolov5_batch": "visual/yolov5_batch",
+    # Agent outputs
+    "agent_audit_plan.json": "agents/audit_plan.json",
+    "agent_plan.json": "agents/plan.json",
+    "agent_review.json": "agents/review.json",
+    "agent_claim_extractor.json": "agents/claim_extractor.json",
+    "agent_source_data_auditor.json": "agents/source_data_auditor.json",
+    "agent_judge.json": "agents/judge.json",
+    "agent_traces": "agents/traces",
+    "context_pack_material_plan.json": "agents/context_pack_material_plan.json",
+    "context_pack_claim_extractor.json": "agents/context_pack_claim_extractor.json",
+    "context_pack_source_data_auditor.json": "agents/context_pack_source_data_auditor.json",
+    "context_pack_review.json": "agents/context_pack_review.json",
+    "context_pack_judge.json": "agents/context_pack_judge.json",
+    "context_pack_investigation_plan_round_1.json": "agents/context_pack_investigation_plan_round_1.json",
+    "agent_investigation_plan_round_01.json": "agents/investigation_plan_round_01.json",
+    "vlm_triage_selected.json": "agents/vlm_triage_selected.json",
+    "logs": "agents/logs",
+    # Final deliverables
+    "static_audit_bundle.json": "reports/static_audit_bundle.json",
+    "final_audit_report.md": "reports/final_audit_report.md",
+    "final_audit_report.html": "reports/final_audit_report.html",
+    "audit_run_manifest.json": "reports/audit_run_manifest.json",
+    # Investigation rounds (kept at root for backward compatibility)
+    "investigation": "investigation",
+    "investigation_rounds.jsonl": "investigation/investigation_rounds.jsonl",
+}
+
+
+def resolve_artifact_path(workdir: Path, artifact_name: str) -> Path:
+    """Resolve an artifact name to its full path, using the ARTIFACT_PATH_MAP.
+
+    If the artifact name is in the map, returns the mapped subdirectory path.
+    Otherwise, returns the legacy flat path (for backward compatibility).
+
+    Args:
+        workdir: The root audit output directory.
+        artifact_name: The artifact filename (e.g., "full.md" or "mineru/full.md").
+
+    Returns:
+        Full Path to the artifact.
+    """
+    if artifact_name in ARTIFACT_PATH_MAP:
+        return workdir / ARTIFACT_PATH_MAP[artifact_name]
+    return workdir / artifact_name
+
+
+def output_subdir(workdir: Path, category: str) -> Path:
+    """Return the subdirectory path for a given artifact category.
+
+    Args:
+        workdir: The root audit output directory.
+        category: One of the keys in OUTPUT_DIRS.
+
+    Returns:
+        Path to the subdirectory (does not create it).
+    """
+    if category not in OUTPUT_DIRS:
+        raise ValueError(f"Unknown output category: {category}. Must be one of {list(OUTPUT_DIRS.keys())}")
+    return workdir / OUTPUT_DIRS[category]
+
+
+def ensure_output_subdirs(workdir: Path) -> None:
+    """Create all output subdirectories under workdir."""
+    for subdir in OUTPUT_DIRS.values():
+        (workdir / subdir).mkdir(parents=True, exist_ok=True)
+
 STEP_TOOL_IDS = {
     "mineru": "mineru.parse_pdf",
     "evidence_ledger": "paper.evidence_ledger",
@@ -139,18 +250,18 @@ def _write_long_text_to_log(workdir: Path, step_key: str, text: str) -> str | No
     """Write long text to a log artifact and return the relative path (log_ref).
 
     Returns None if text is empty.
-    Creates logs/ directory under workdir if needed.
+    Creates agents/logs/ directory under workdir if needed.
     """
     if not text:
         return None
-    logs_dir = workdir / "logs"
+    logs_dir = resolve_artifact_path(workdir, "logs")
     logs_dir.mkdir(parents=True, exist_ok=True)
     ts = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
     filename = f"{step_key}_{ts}.log"
     log_path = logs_dir / filename
     log_path.write_text(text, encoding="utf-8")
     # Return path relative to workdir for portability.
-    return str(Path("logs") / filename)
+    return str(log_path.relative_to(workdir))
 
 
 def enforce_event_contract(event: dict[str, Any], workdir: Path | None = None) -> dict[str, Any]:
@@ -824,8 +935,8 @@ def run_visual_panel_extraction(
 ) -> tuple[list[StepResult], dict[str, Any]]:
     """Create canonical figure and panel evidence from extracted PDF images."""
     steps: list[StepResult] = []
-    figure_output = workdir / "visual_evidence.json"
-    panel_output = workdir / "panel_evidence.json"
+    figure_output = resolve_artifact_path(workdir, "visual_evidence.json")
+    panel_output = resolve_artifact_path(workdir, "panel_evidence.json")
     if figure_output.exists() and panel_output.exists() and not force:
         step = StepResult(
             "visual_panel_extraction",
@@ -854,7 +965,7 @@ def run_visual_panel_extraction(
         "Building canonical figure_evidence and panel_evidence artifacts.",
     )
 
-    evidence_ledger = read_json(workdir / "evidence_ledger.json") or {}
+    evidence_ledger = read_json(resolve_artifact_path(workdir, "evidence_ledger.json")) or {}
     figures = build_figure_evidence_from_ledger(workdir, evidence_ledger)
     if not figures:
         figures = build_figure_evidence_from_images(workdir, images_dir)
@@ -951,10 +1062,10 @@ def _read_visual_copy_move_outputs(workdir: Path) -> dict[str, Any]:
     errors: list[str] = []
     limitations: list[str] = []
     paths = []
-    baseline = workdir / "visual_copy_move.json"
+    baseline = resolve_artifact_path(workdir, "visual_copy_move.json")
     if baseline.exists():
         paths.append(baseline)
-    paths.extend(sorted((workdir / "investigation").rglob("visual_copy_move.json")) if (workdir / "investigation").exists() else [])
+    paths.extend(sorted((resolve_artifact_path(workdir, "investigation")).rglob("visual_copy_move.json")) if (resolve_artifact_path(workdir, "investigation")).exists() else [])
     for path in paths:
         data = read_json(path) or {}
         statuses.append(str(data.get("status") or "unknown"))
@@ -973,10 +1084,10 @@ def _read_visual_copy_move_outputs(workdir: Path) -> dict[str, Any]:
 def _read_image_similarity_outputs(workdir: Path) -> dict[str, Any]:
     candidates: list[dict[str, Any]] = []
     paths = []
-    baseline = workdir / "image_similarity_candidates.json"
+    baseline = resolve_artifact_path(workdir, "image_similarity_candidates.json")
     if baseline.exists():
         paths.append(baseline)
-    paths.extend(sorted((workdir / "investigation").rglob("image_similarity_candidates.json")) if (workdir / "investigation").exists() else [])
+    paths.extend(sorted((resolve_artifact_path(workdir, "investigation")).rglob("image_similarity_candidates.json")) if (resolve_artifact_path(workdir, "investigation")).exists() else [])
     for path in paths:
         data = read_json(path) or {}
         candidates.extend(item for item in (data.get("candidates") or []) if isinstance(item, dict))
@@ -991,8 +1102,8 @@ def run_visual_finding_pipeline(
 ) -> tuple[list[StepResult], dict[str, Any]]:
     """Aggregate visual tool outputs into canonical relationships/findings."""
     steps: list[StepResult] = []
-    relationships_output = workdir / "image_relationships.json"
-    findings_output = workdir / "visual_findings.json"
+    relationships_output = resolve_artifact_path(workdir, "image_relationships.json")
+    findings_output = resolve_artifact_path(workdir, "visual_findings.json")
     if relationships_output.exists() and findings_output.exists() and not force:
         step = StepResult(
             "visual_finding_pipeline",
@@ -1003,7 +1114,7 @@ def run_visual_finding_pipeline(
         record_step(steps, step, progress)
         return steps, {"finding_pipeline": {"status": "reused", "relationships_output": str(relationships_output), "findings_output": str(findings_output)}}
 
-    panel_doc = read_json(workdir / "panel_evidence.json") or {}
+    panel_doc = read_json(resolve_artifact_path(workdir, "panel_evidence.json")) or {}
     panels = [item for item in (panel_doc.get("panels") or []) if isinstance(item, dict)]
     if not panels:
         relationship_doc = {
@@ -1036,7 +1147,7 @@ def run_visual_finding_pipeline(
 
     emit_step_start(progress, "visual_finding_pipeline", "视觉证据聚合管线", "Aggregating visual relationships and findings.")
     copy_move_result = _read_visual_copy_move_outputs(workdir)
-    exact_duplicates = read_json(workdir / "exact_image_duplicates.json") or {}
+    exact_duplicates = read_json(resolve_artifact_path(workdir, "exact_image_duplicates.json")) or {}
     dhash_candidates = _read_image_similarity_outputs(workdir)
     relationships = build_relationships(
         copy_move_result=copy_move_result,
@@ -1063,7 +1174,7 @@ def run_visual_finding_pipeline(
         "source_artifacts": {
             "copy_move": copy_move_result.get("source_paths") or [],
             "image_similarity": dhash_candidates.get("source_paths") or [],
-            "exact_duplicates": str(workdir / "exact_image_duplicates.json") if (workdir / "exact_image_duplicates.json").exists() else None,
+            "exact_duplicates": str(resolve_artifact_path(workdir, "exact_image_duplicates.json")) if (resolve_artifact_path(workdir, "exact_image_duplicates.json")).exists() else None,
         },
         "errors": errors,
         "limitations": limitations,
@@ -1125,7 +1236,7 @@ def run_investigation_rounds(
     manifest: dict[str, Any] = {
         "enabled": agent_enabled,
         "max_rounds": MAX_INVESTIGATION_ROUNDS,
-        "rounds_artifact": str(workdir / "investigation_rounds.jsonl"),
+        "rounds_artifact": str(resolve_artifact_path(workdir, "investigation_rounds.jsonl")),
         "plans": [],
     }
     if not agent_enabled:
@@ -1300,7 +1411,7 @@ def run_investigation_tool_action(
     force: bool,
     progress: ProgressCallback | None,
 ) -> tuple[StepResult, list[str]]:
-    action_dir = workdir / "investigation" / f"round_{action.round_id:02d}" / safe_action_dir_name(action.action_id)
+    action_dir = resolve_artifact_path(workdir, "investigation") / f"round_{action.round_id:02d}" / safe_action_dir_name(action.action_id)
     action_dir.mkdir(parents=True, exist_ok=True)
     key = f"investigation_{action.round_id:02d}_{safe_action_dir_name(action.action_id)}"
 
@@ -1321,7 +1432,7 @@ def run_investigation_tool_action(
             str(output),
         ]
     elif action.tool_id == SOURCE_DATA_FINDINGS_TOOL_ID:
-        profile = workdir / "source_data_profile.json"
+        profile = resolve_artifact_path(workdir, "source_data_profile.json")
         if not profile.exists():
             step = StepResult(key, "Agent Investigation Tool", "skipped", "source_data_profile.json missing.")
             emit_step_result(progress, step)
@@ -1345,8 +1456,8 @@ def run_investigation_tool_action(
             "--max-findings-per-category",
             str(params["max_findings_per_category"]),
         ]
-        if (workdir / "full.md").exists():
-            command.extend(["--full-md", str(workdir / "full.md")])
+        if (resolve_artifact_path(workdir, "full.md")).exists():
+            command.extend(["--full-md", str(resolve_artifact_path(workdir, "full.md"))])
     elif action.tool_id == SOURCE_DATA_PAIR_FORENSICS_TOOL_ID:
         output = action_dir / "source_data_pair_forensics.json"
         params = action.params
@@ -1388,7 +1499,7 @@ def run_investigation_tool_action(
             str(params.get("max_findings", 50)),
         ]
     elif action.tool_id == IMAGE_SIMILARITY_TOOL_ID:
-        images_dir = workdir / "images"
+        images_dir = resolve_artifact_path(workdir, "images")
         if not images_dir.is_dir():
             step = StepResult(key, "Agent Investigation Tool", "skipped", "images directory missing.")
             emit_step_result(progress, step)
@@ -1408,7 +1519,7 @@ def run_investigation_tool_action(
             str(params.get("max_candidates", 200)),
         ]
     elif action.tool_id == TOOL_ID_COPY_MOVE:
-        panel_json = workdir / "panel_evidence.json"
+        panel_json = resolve_artifact_path(workdir, "panel_evidence.json")
         if not panel_json.exists():
             step = StepResult(key, "Agent Investigation Tool", "skipped", "panel_evidence.json missing.")
             emit_step_result(progress, step)
@@ -1421,7 +1532,7 @@ def run_investigation_tool_action(
             "engine.static_audit.tools.copy_move_detection",
             str(panel_json),
             "--figure-json",
-            str(workdir / "visual_evidence.json"),
+            str(resolve_artifact_path(workdir, "visual_evidence.json")),
             "--output",
             str(output),
             "--workdir",
@@ -1530,21 +1641,21 @@ def generate_report(
     agent_mode: str,
     steps: list[StepResult],
 ) -> Path:
-    mineru_manifest = read_json(workdir / "mineru_manifest.json")
-    material_inventory = read_json(workdir / "material_inventory.json")
-    material_plan = read_json(workdir / "agent_material_plan.json")
-    ledger = read_json(workdir / "evidence_ledger.json")
-    numeric = read_json(workdir / "numeric_forensics.json")
-    profile = read_json(workdir / "source_data_profile.json")
-    findings = read_json(workdir / "source_data_findings.json")
-    pair_forensics = read_json(workdir / "source_data_pair_forensics.json")
-    duplicates = read_json(workdir / "exact_image_duplicates.json")
-    similarity = read_json(workdir / "image_similarity_candidates.json")
+    mineru_manifest = read_json(resolve_artifact_path(workdir, "mineru_manifest.json"))
+    material_inventory = read_json(resolve_artifact_path(workdir, "material_inventory.json"))
+    material_plan = read_json(resolve_artifact_path(workdir, "agent_material_plan.json"))
+    ledger = read_json(resolve_artifact_path(workdir, "evidence_ledger.json"))
+    numeric = read_json(resolve_artifact_path(workdir, "numeric_forensics.json"))
+    profile = read_json(resolve_artifact_path(workdir, "source_data_profile.json"))
+    findings = read_json(resolve_artifact_path(workdir, "source_data_findings.json"))
+    pair_forensics = read_json(resolve_artifact_path(workdir, "source_data_pair_forensics.json"))
+    duplicates = read_json(resolve_artifact_path(workdir, "exact_image_duplicates.json"))
+    similarity = read_json(resolve_artifact_path(workdir, "image_similarity_candidates.json"))
     investigation_records = read_investigation_records(workdir)
-    static_bundle = read_json(workdir / "static_audit_bundle.json")
-    vlm = read_json(workdir / "vlm_triage_selected.json")
-    agent_plan = read_json(workdir / "agent_audit_plan.json") if agent_mode in {"plan", "full"} else None
-    agent_review = read_json(workdir / "agent_review.json") if agent_mode in {"review", "full"} else None
+    static_bundle = read_json(resolve_artifact_path(workdir, "static_audit_bundle.json"))
+    vlm = read_json(resolve_artifact_path(workdir, "vlm_triage_selected.json"))
+    agent_plan = read_json(resolve_artifact_path(workdir, "agent_audit_plan.json")) if agent_mode in {"plan", "full"} else None
+    agent_review = read_json(resolve_artifact_path(workdir, "agent_review.json")) if agent_mode in {"review", "full"} else None
 
     lines: list[str] = []
     lines.append(f"# Veritas Paper Audit Report: {case_id}")
@@ -1571,8 +1682,8 @@ def generate_report(
             ["paper_dir", paper_dir],
             ["paper_pdf", paper_pdf],
             ["selected_source_data_dir", source_data_dir or "not_selected"],
-            ["material_inventory", workdir / "material_inventory.json"],
-            ["agent_material_plan", workdir / "agent_material_plan.json"],
+            ["material_inventory", resolve_artifact_path(workdir, "material_inventory.json")],
+            ["agent_material_plan", resolve_artifact_path(workdir, "agent_material_plan.json")],
             ["workdir", workdir],
             ["agent_mode", agent_mode],
             ["generated_at", datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")],
@@ -2018,7 +2129,7 @@ def generate_report(
         lines.append(f"- {item}")
     lines.append("")
 
-    report_path = workdir / "final_audit_report.md"
+    report_path = resolve_artifact_path(workdir, "final_audit_report.md")
     report_path.write_text("\n".join(lines), encoding="utf-8")
     return report_path
 
@@ -2037,7 +2148,7 @@ def build_static_audit_bundle(
     claims, claim_mappings, findings = collect_claims_and_findings(workdir, evidence_items)
     traces = collect_agent_traces(workdir, agent_manifest)
 
-    material_plan = read_json(workdir / "agent_material_plan.json") or {}
+    material_plan = read_json(resolve_artifact_path(workdir, "agent_material_plan.json")) or {}
     if material_plan.get("missing_materials"):
         findings.append(
             Finding(
@@ -2075,8 +2186,8 @@ def build_static_audit_bundle(
             "paper_dir": str(paper_dir),
             "paper_pdf": str(paper_pdf),
             "source_data_dir": str(source_data_dir) if source_data_dir else None,
-            "material_inventory": str(workdir / "material_inventory.json"),
-            "agent_material_plan": str(workdir / "agent_material_plan.json"),
+            "material_inventory": str(resolve_artifact_path(workdir, "material_inventory.json")),
+            "agent_material_plan": str(resolve_artifact_path(workdir, "agent_material_plan.json")),
             "optional_lanes": agent_manifest.get("optional_lanes", []),
             "workdir": str(workdir),
         },
@@ -2105,16 +2216,16 @@ def build_static_audit_bundle(
         metadata={
             "agent": agent_manifest,
             "investigation_records": read_investigation_records(workdir),
-            "material_plan": read_json(workdir / "agent_material_plan.json") or {},
+            "material_plan": read_json(resolve_artifact_path(workdir, "agent_material_plan.json")) or {},
             "claim_mapping_policy": {
                 "canonical_preference": "agent_refined",
                 "fallback": "deterministic_scaffolding",
-                "deterministic_scaffolding_artifact": str(workdir / "source_data_findings.json"),
-                "agent_claim_artifact": str(workdir / "agent_claim_extractor.json"),
-                "agent_source_data_artifact": str(workdir / "agent_source_data_auditor.json"),
+                "deterministic_scaffolding_artifact": str(resolve_artifact_path(workdir, "source_data_findings.json")),
+                "agent_claim_artifact": str(resolve_artifact_path(workdir, "agent_claim_extractor.json")),
+                "agent_source_data_artifact": str(resolve_artifact_path(workdir, "agent_source_data_auditor.json")),
             },
             "deterministic_claim_mappings": (
-                (read_json(workdir / "source_data_findings.json") or {}).get("claim_to_source_data")
+                (read_json(resolve_artifact_path(workdir, "source_data_findings.json")) or {}).get("claim_to_source_data")
                 or []
             ),
         },
@@ -2154,7 +2265,7 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
                 )
             )
 
-    visual_evidence = read_json(workdir / "visual_evidence.json") or {}
+    visual_evidence = read_json(resolve_artifact_path(workdir, "visual_evidence.json")) or {}
     for figure in (visual_evidence.get("figures") or [])[:200]:
         if not isinstance(figure, dict):
             continue
@@ -2177,7 +2288,7 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
             )
         )
 
-    panel_evidence = read_json(workdir / "panel_evidence.json") or {}
+    panel_evidence = read_json(resolve_artifact_path(workdir, "panel_evidence.json")) or {}
     for panel in (panel_evidence.get("panels") or [])[:1000]:
         if not isinstance(panel, dict):
             continue
@@ -2204,7 +2315,7 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
             )
         )
 
-    source_findings = read_json(workdir / "source_data_findings.json") or {}
+    source_findings = read_json(resolve_artifact_path(workdir, "source_data_findings.json")) or {}
     for finding in (source_findings.get("priority_findings") or [])[:100]:
         items.append(
             EvidenceItem(
@@ -2221,7 +2332,7 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
                 metadata={"finding_id": finding.get("finding_id")},
             )
         )
-    pair_forensics = read_json(workdir / "source_data_pair_forensics.json") or {}
+    pair_forensics = read_json(resolve_artifact_path(workdir, "source_data_pair_forensics.json")) or {}
     for finding in (pair_forensics.get("priority_findings") or [])[:100]:
         items.append(
             EvidenceItem(
@@ -2246,11 +2357,11 @@ def collect_claims_and_findings(
     workdir: Path,
     evidence_items: list[EvidenceItem],
 ) -> tuple[list[Claim], list[ClaimMapping], list[Finding]]:
-    source_findings = read_json(workdir / "source_data_findings.json") or {}
-    pair_forensics = read_json(workdir / "source_data_pair_forensics.json") or {}
+    source_findings = read_json(resolve_artifact_path(workdir, "source_data_findings.json")) or {}
+    pair_forensics = read_json(resolve_artifact_path(workdir, "source_data_pair_forensics.json")) or {}
     deterministic_mappings = source_findings.get("claim_to_source_data") or []
-    agent_claims = read_json(workdir / "agent_claim_extractor.json") or {}
-    agent_source = read_json(workdir / "agent_source_data_auditor.json") or {}
+    agent_claims = read_json(resolve_artifact_path(workdir, "agent_claim_extractor.json")) or {}
+    agent_source = read_json(resolve_artifact_path(workdir, "agent_source_data_auditor.json")) or {}
     evidence_by_finding = {
         item.metadata.get("finding_id"): item.evidence_id
         for item in evidence_items
@@ -2280,7 +2391,7 @@ def collect_claims_and_findings(
 
     findings: list[Finding] = []
     # PaperFraud rule matches → canonical findings
-    paperfraud_matches = read_json(workdir / "paperfraud_rule_matches.json") or {}
+    paperfraud_matches = read_json(resolve_artifact_path(workdir, "paperfraud_rule_matches.json")) or {}
     findings.extend(paperfraud_findings_from_matches(paperfraud_matches))
     for item in source_findings.get("priority_findings") or []:
         finding_id = str(item.get("finding_id"))
@@ -2316,7 +2427,7 @@ def collect_claims_and_findings(
                 metadata={**item, "source_artifact": "source_data_pair_forensics.json"},
             )
         )
-    visual_findings = read_json(workdir / "visual_findings.json") or {}
+    visual_findings = read_json(resolve_artifact_path(workdir, "visual_findings.json")) or {}
     for item in visual_findings.get("findings") or []:
         if not isinstance(item, dict):
             continue
@@ -2531,7 +2642,7 @@ def run_agent_roles(
     role_manifest: list[dict[str, Any]] = []
     for role in ROLE_DEFINITIONS:
         output_path = workdir / role.output_artifact
-        trace_path = workdir / "agent_traces" / f"{role.role_id}.json"
+        trace_path = resolve_artifact_path(workdir, "agent_traces") / f"{role.role_id}.json"
         existing_trace = read_agent_trace(trace_path)
         if (
             not force
@@ -2625,7 +2736,7 @@ def run_agent_roles(
 def collect_agent_traces(workdir: Path, agent_manifest: dict[str, Any]) -> list[AgentTrace]:
     traces: list[AgentTrace] = []
     for role in ROLE_DEFINITIONS:
-        trace_path = workdir / "agent_traces" / f"{role.role_id}.json"
+        trace_path = resolve_artifact_path(workdir, "agent_traces") / f"{role.role_id}.json"
         trace = read_agent_trace(trace_path)
         if trace is None:
             trace = skipped_trace(role, "Role trace was missing and has been backfilled.")
@@ -2744,7 +2855,7 @@ def write_reserved_role_output(workdir: Path, role: RoleDefinition, trace: Agent
 
 
 def write_role_trace(workdir: Path, trace: AgentTrace) -> None:
-    role_dir = workdir / "agent_traces"
+    role_dir = resolve_artifact_path(workdir, "agent_traces")
     role_dir.mkdir(parents=True, exist_ok=True)
     path = role_dir / f"{trace.role_id}.json"
     path.write_text(json.dumps(asdict(trace), ensure_ascii=False, indent=2), encoding="utf-8")
@@ -2781,6 +2892,7 @@ def _run_static_audit_from_args(
     if args.fresh:
         safe_remove_workdir(workdir, output_root)
     workdir.mkdir(parents=True, exist_ok=True)
+    ensure_output_subdirs(workdir)
 
     paper_pdf = discover_pdf(paper_dir)
     env = load_env(not args.no_env_file)
@@ -2805,7 +2917,7 @@ def _run_static_audit_from_args(
         progress,
     )
 
-    material_inventory_path = workdir / "material_inventory.json"
+    material_inventory_path = resolve_artifact_path(workdir, "material_inventory.json")
     if material_inventory_path.exists() and not args.force:
         material_inventory = read_json(material_inventory_path) or {}
         record_step(
@@ -2828,7 +2940,7 @@ def _run_static_audit_from_args(
         "material_inventory": str(material_inventory_path),
     }
 
-    agent_material_plan_path = workdir / "agent_material_plan.json"
+    agent_material_plan_path = resolve_artifact_path(workdir, "agent_material_plan.json")
     if agent_material_plan_path.exists() and not args.force:
         material_plan = read_json(agent_material_plan_path) or material_plan_from_inventory(
             case_id=case_id,
@@ -2925,7 +3037,7 @@ def _run_static_audit_from_args(
     source_finding_params = dict(DEFAULT_SOURCE_FINDING_PARAMS)
     source_finding_params.update(source_finding_params_from_lane(source_lane))
     if args.agent_mode in {"plan", "full"}:
-        agent_plan_path = workdir / "agent_audit_plan.json"
+        agent_plan_path = resolve_artifact_path(workdir, "agent_audit_plan.json")
         emit_step_start(
             progress,
             "agent_plan",
@@ -2964,7 +3076,7 @@ def _run_static_audit_from_args(
         agent_manifest["plan"] = None
         agent_manifest["selected_tool_ids"] = list(PAPER_STATIC_AUDIT_TOOL_IDS)
 
-    mineru_outputs = [workdir / "full.md", workdir / "mineru_manifest.json", workdir / "images"]
+    mineru_outputs = [resolve_artifact_path(workdir, "full.md"), resolve_artifact_path(workdir, "mineru_manifest.json"), resolve_artifact_path(workdir, "images")]
     if exists_all(mineru_outputs) and not args.force:
         record_step(steps, StepResult("mineru", "MinerU PDF 解析", "reused", "Existing MinerU outputs found."), progress)
     elif not env.get("MINERU_API_TOKEN"):
@@ -2990,7 +3102,7 @@ def _run_static_audit_from_args(
             )
         )
 
-    if (workdir / "full.md").exists():
+    if (resolve_artifact_path(workdir, "full.md")).exists():
         steps.append(
             run_command(
                 "evidence_ledger",
@@ -3000,9 +3112,9 @@ def _run_static_audit_from_args(
                     "scripts/build_evidence_ledger.py",
                     str(workdir),
                     "--output",
-                    str(workdir / "evidence_ledger.json"),
+                    str(resolve_artifact_path(workdir, "evidence_ledger.json")),
                 ],
-                [workdir / "evidence_ledger.json"],
+                [resolve_artifact_path(workdir, "evidence_ledger.json")],
                 cwd=AUDITOR_ROOT,
                 env=env,
                 force=args.force,
@@ -3018,9 +3130,9 @@ def _run_static_audit_from_args(
                     "scripts/numeric_forensics.py",
                     str(workdir),
                     "--output",
-                    str(workdir / "numeric_forensics.json"),
+                    str(resolve_artifact_path(workdir, "numeric_forensics.json")),
                 ],
-                [workdir / "numeric_forensics.json"],
+                [resolve_artifact_path(workdir, "numeric_forensics.json")],
                 cwd=AUDITOR_ROOT,
                 env=env,
                 force=args.force,
@@ -3028,7 +3140,7 @@ def _run_static_audit_from_args(
             )
         )
         # ── PaperFraud rule matching ──────────────────────────────────
-        paperfraud_output = workdir / "paperfraud_rule_matches.json"
+        paperfraud_output = resolve_artifact_path(workdir, "paperfraud_rule_matches.json")
         if paperfraud_output.exists() and not args.force:
             record_step(
                 steps,
@@ -3047,7 +3159,7 @@ def _run_static_audit_from_args(
                 "PaperFraud 规则库匹配",
                 "Matching structured PaperFraud rules against parsed paper text.",
             )
-            run_paperfraud_rule_match(workdir / "full.md", paperfraud_output)
+            run_paperfraud_rule_match(resolve_artifact_path(workdir, "full.md"), paperfraud_output)
             record_step(
                 steps,
                 StepResult("paperfraud_rule_match", "PaperFraud 规则库匹配", "ran", str(paperfraud_output)),
@@ -3069,25 +3181,25 @@ def _run_static_audit_from_args(
                     "engine.static_audit.tools.source_data_profile",
                     str(source_data_dir),
                     "--output",
-                    str(workdir / "source_data_profile.json"),
+                    str(resolve_artifact_path(workdir, "source_data_profile.json")),
                 ],
-                [workdir / "source_data_profile.json"],
+                [resolve_artifact_path(workdir, "source_data_profile.json")],
                 cwd=PROJECT_ROOT,
                 env=env,
                 force=args.force,
                 progress=progress,
             )
         )
-        if (workdir / "source_data_profile.json").exists():
+        if (resolve_artifact_path(workdir, "source_data_profile.json")).exists():
             command = [
                 sys.executable,
                 "-m",
                 "engine.static_audit.tools.source_data_findings",
                 str(source_data_dir),
                 "--profile",
-                str(workdir / "source_data_profile.json"),
+                str(resolve_artifact_path(workdir, "source_data_profile.json")),
                 "--output",
-                str(workdir / "source_data_findings.json"),
+                str(resolve_artifact_path(workdir, "source_data_findings.json")),
                 "--min-overlap",
                 str(source_finding_params["min_overlap"]),
                 "--min-support",
@@ -3095,14 +3207,14 @@ def _run_static_audit_from_args(
                 "--max-findings-per-category",
                 str(source_finding_params["max_findings_per_category"]),
             ]
-            if (workdir / "full.md").exists():
-                command.extend(["--full-md", str(workdir / "full.md")])
+            if (resolve_artifact_path(workdir, "full.md")).exists():
+                command.extend(["--full-md", str(resolve_artifact_path(workdir, "full.md"))])
             steps.append(
                 run_command(
                     "source_data_findings",
                     "Source Data findings",
                     command,
-                    [workdir / "source_data_findings.json"],
+                    [resolve_artifact_path(workdir, "source_data_findings.json")],
                     cwd=PROJECT_ROOT,
                     env=env,
                     force=args.force,
@@ -3119,9 +3231,9 @@ def _run_static_audit_from_args(
                         "engine.static_audit.tools.source_data_pair_forensics",
                         str(source_data_dir),
                         "--output",
-                        str(workdir / "source_data_pair_forensics.json"),
+                        str(resolve_artifact_path(workdir, "source_data_pair_forensics.json")),
                     ],
-                    [workdir / "source_data_pair_forensics.json"],
+                    [resolve_artifact_path(workdir, "source_data_pair_forensics.json")],
                     cwd=PROJECT_ROOT,
                     env=env,
                     force=args.force,
@@ -3138,9 +3250,9 @@ def _run_static_audit_from_args(
                         "engine.static_audit.tools.source_data_cross_sheet",
                         str(source_data_dir),
                         "--output",
-                        str(workdir / "source_data_cross_sheet.json"),
+                        str(resolve_artifact_path(workdir, "source_data_cross_sheet.json")),
                     ],
-                    [workdir / "source_data_cross_sheet.json"],
+                    [resolve_artifact_path(workdir, "source_data_cross_sheet.json")],
                     cwd=PROJECT_ROOT,
                     env=env,
                     force=args.force,
@@ -3173,7 +3285,7 @@ def _run_static_audit_from_args(
         record_step(steps, StepResult("source_data_pair_forensics", "Source Data pair forensics", "skipped", source_skip_detail), progress)
         record_step(steps, StepResult("source_data_cross_sheet", "Source Data cross-sheet duplicates", "skipped", source_skip_detail), progress)
 
-    images_dir = workdir / "images"
+    images_dir = resolve_artifact_path(workdir, "images")
     if images_dir.is_dir():
         steps.append(
             run_command(
@@ -3184,9 +3296,9 @@ def _run_static_audit_from_args(
                     str(PROJECT_ROOT / "scripts" / "exact_image_duplicates.py"),
                     str(images_dir),
                     "--output",
-                    str(workdir / "exact_image_duplicates.json"),
+                    str(resolve_artifact_path(workdir, "exact_image_duplicates.json")),
                 ],
-                [workdir / "exact_image_duplicates.json"],
+                [resolve_artifact_path(workdir, "exact_image_duplicates.json")],
                 cwd=PROJECT_ROOT,
                 env=env,
                 force=args.force,
@@ -3239,8 +3351,8 @@ def _run_static_audit_from_args(
     agent_manifest["investigation"] = investigation_manifest
 
     visual_copy_move_outputs = (
-        list((workdir / "investigation").rglob("visual_copy_move.json"))
-        if (workdir / "investigation").exists()
+        list((resolve_artifact_path(workdir, "investigation")).rglob("visual_copy_move.json"))
+        if (resolve_artifact_path(workdir, "investigation")).exists()
         else []
     )
     if visual_copy_move_outputs:
@@ -3264,7 +3376,7 @@ def _run_static_audit_from_args(
     steps.extend(visual_finding_steps)
     agent_manifest.setdefault("visual_forensics", {}).update(visual_finding_manifest)
 
-    if (workdir / "vlm_triage_selected.json").exists():
+    if (resolve_artifact_path(workdir, "vlm_triage_selected.json")).exists():
         record_step(steps, StepResult("vlm_triage", "VLM 抽样初筛", "reused", "Existing VLM triage artifact found."), progress)
     else:
         record_step(
@@ -3274,7 +3386,7 @@ def _run_static_audit_from_args(
         )
 
     if args.agent_mode in {"review", "full"}:
-        agent_review_path = workdir / "agent_review.json"
+        agent_review_path = resolve_artifact_path(workdir, "agent_review.json")
         if agent_review_path.exists() and not args.force:
             agent_manifest["review"] = {
                 "status": "reused",
@@ -3353,7 +3465,7 @@ def _run_static_audit_from_args(
         steps=steps,
         agent_manifest=agent_manifest,
     )
-    bundle_path = workdir / "static_audit_bundle.json"
+    bundle_path = resolve_artifact_path(workdir, "static_audit_bundle.json")
     bundle.write_json(bundle_path)
     record_step(steps, StepResult("static_audit_bundle", "生成 Static Audit Bundle", "ran", str(bundle_path)), progress)
 
@@ -3385,7 +3497,7 @@ def _run_static_audit_from_args(
         "static_audit_bundle": str(bundle_path),
         "final_report": str(report_path),
     }
-    manifest_path = workdir / "audit_run_manifest.json"
+    manifest_path = resolve_artifact_path(workdir, "audit_run_manifest.json")
     manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
 
     html_report_path = write_static_audit_html(workdir, case_id)

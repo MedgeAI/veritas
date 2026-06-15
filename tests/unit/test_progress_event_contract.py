@@ -69,7 +69,7 @@ def test_failed_event_requires_log_ref(tmp_path: Path):
     }
     result = enforce_event_contract(event, workdir=tmp_path)
     assert result.get("log_ref") is not None
-    assert result["log_ref"].startswith("logs/")
+    assert result["log_ref"].startswith("agents/logs/")
 
 
 def test_long_detail_written_to_log_file(tmp_path: Path):
@@ -132,7 +132,7 @@ def test_log_ref_is_relative_path(tmp_path: Path):
     assert log_ref is not None
     # Must not start with / — relative to workdir.
     assert not Path(log_ref).is_absolute()
-    assert log_ref.startswith("logs/")
+    assert log_ref.startswith("agents/logs/")
 
 
 def test_enforce_event_contract_without_workdir():
@@ -157,7 +157,7 @@ def test_write_long_text_creates_log(tmp_path: Path):
     """Non-empty text creates a log file and returns relative path."""
     ref = _write_long_text_to_log(tmp_path, "my_step", "hello world")
     assert ref is not None
-    assert ref.startswith("logs/my_step_")
+    assert ref.startswith("agents/logs/my_step_")
     assert ref.endswith(".log")
     assert (tmp_path / ref).read_text(encoding="utf-8") == "hello world"
 

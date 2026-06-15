@@ -9,6 +9,7 @@ from engine.static_audit.investigation import InvestigationAction
 from engine.static_audit.orchestrator import (
     StepResult,
     build_static_audit_bundle,
+    resolve_artifact_path,
     run_investigation_tool_action,
     run_visual_finding_pipeline,
     run_visual_panel_extraction,
@@ -23,7 +24,7 @@ def write_json(path: Path, data) -> None:
 
 def test_run_visual_panel_extraction_writes_canonical_artifacts(tmp_path) -> None:
     workdir = tmp_path / "work"
-    images_dir = workdir / "images"
+    images_dir = resolve_artifact_path(workdir, "images")
     images_dir.mkdir(parents=True)
     shutil.copyfile(
         Path("tests/fixtures/visual/synthetic_2x2_clean/images/Figure1.png"),
@@ -36,8 +37,8 @@ def test_run_visual_panel_extraction_writes_canonical_artifacts(tmp_path) -> Non
         force=True,
     )
 
-    visual_evidence = json.loads((workdir / "visual_evidence.json").read_text(encoding="utf-8"))
-    panel_evidence = json.loads((workdir / "panel_evidence.json").read_text(encoding="utf-8"))
+    visual_evidence = json.loads(resolve_artifact_path(workdir, "visual_evidence.json").read_text(encoding="utf-8"))
+    panel_evidence = json.loads(resolve_artifact_path(workdir, "panel_evidence.json").read_text(encoding="utf-8"))
     assert steps[0].key == "visual_panel_extraction"
     assert steps[0].status == "ran"
     assert manifest["panel_extraction"]["figure_count"] == 1
@@ -49,7 +50,7 @@ def test_run_visual_panel_extraction_writes_canonical_artifacts(tmp_path) -> Non
 def test_visual_finding_pipeline_and_bundle_include_visual_findings(tmp_path) -> None:
     workdir = tmp_path / "work"
     write_json(
-        workdir / "visual_evidence.json",
+        resolve_artifact_path(workdir, "visual_evidence.json"),
         {
             "schema_version": "1.0",
             "status": "ran",
@@ -69,7 +70,7 @@ def test_visual_finding_pipeline_and_bundle_include_visual_findings(tmp_path) ->
         },
     )
     write_json(
-        workdir / "panel_evidence.json",
+        resolve_artifact_path(workdir, "panel_evidence.json"),
         {
             "schema_version": "1.0",
             "status": "ran",
@@ -100,7 +101,7 @@ def test_visual_finding_pipeline_and_bundle_include_visual_findings(tmp_path) ->
         },
     )
     write_json(
-        workdir / "investigation/round_01/action_01/visual_copy_move.json",
+        resolve_artifact_path(workdir, "investigation") / "round_01" / "action_01" / "visual_copy_move.json",
         {
             "schema_version": "1.0",
             "status": "ran",
@@ -119,7 +120,7 @@ def test_visual_finding_pipeline_and_bundle_include_visual_findings(tmp_path) ->
             "limitations": [],
         },
     )
-    write_json(workdir / "agent_material_plan.json", {"status": "ok", "selected_optional_lanes": []})
+    write_json(resolve_artifact_path(workdir, "agent_material_plan.json"), {"status": "ok", "selected_optional_lanes": []})
 
     steps, manifest = run_visual_finding_pipeline(workdir=workdir, force=True)
     bundle = build_static_audit_bundle(
@@ -132,8 +133,8 @@ def test_visual_finding_pipeline_and_bundle_include_visual_findings(tmp_path) ->
         agent_manifest={"visual_forensics": manifest},
     )
 
-    relationships = json.loads((workdir / "image_relationships.json").read_text(encoding="utf-8"))
-    findings = json.loads((workdir / "visual_findings.json").read_text(encoding="utf-8"))
+    relationships = json.loads(resolve_artifact_path(workdir, "image_relationships.json").read_text(encoding="utf-8"))
+    findings = json.loads(resolve_artifact_path(workdir, "visual_findings.json").read_text(encoding="utf-8"))
     assert relationships["relationship_count"] == 1
     assert findings["finding_count"] == 1
     assert findings["finding_cluster_count"] == 1
@@ -150,7 +151,7 @@ def test_visual_finding_pipeline_and_bundle_include_visual_findings(tmp_path) ->
 def test_investigation_tool_action_runs_visual_copy_move(tmp_path) -> None:
     workdir = tmp_path / "work"
     write_json(
-        workdir / "panel_evidence.json",
+        resolve_artifact_path(workdir, "panel_evidence.json"),
         {
             "schema_version": "1.0",
             "panels": [
@@ -159,7 +160,7 @@ def test_investigation_tool_action_runs_visual_copy_move(tmp_path) -> None:
             ],
         },
     )
-    write_json(workdir / "visual_evidence.json", {"schema_version": "1.0", "figures": []})
+    write_json(resolve_artifact_path(workdir, "visual_evidence.json"), {"schema_version": "1.0", "figures": []})
     action = InvestigationAction(
         round_id=1,
         action_id="IR-01-A001",

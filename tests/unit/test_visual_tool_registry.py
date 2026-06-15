@@ -73,22 +73,22 @@ class TestVisualToolProperties:
 
     def test_panel_extraction_input_output_artifacts(self):
         tool = TOOLS[TOOL_ID_PANEL_EXTRACTION]
-        assert "images/" in tool.input_artifacts
-        assert "visual_evidence.json" in tool.output_artifacts
-        assert "panel_evidence.json" in tool.output_artifacts
+        assert "visual/images/" in tool.input_artifacts
+        assert "visual/evidence.json" in tool.output_artifacts
+        assert "visual/panel_evidence.json" in tool.output_artifacts
 
     def test_copy_move_input_output_artifacts(self):
         tool = TOOLS[TOOL_ID_COPY_MOVE]
-        assert "panel_evidence.json" in tool.input_artifacts
-        assert "visual_evidence.json" in tool.input_artifacts
-        assert "visual_copy_move.json" in tool.output_artifacts
+        assert "visual/panel_evidence.json" in tool.input_artifacts
+        assert "visual/evidence.json" in tool.input_artifacts
+        assert "visual/copy_move.json" in tool.output_artifacts
 
     def test_finding_pipeline_input_output_artifacts(self):
         tool = TOOLS[TOOL_ID_FINDING_PIPELINE]
-        assert "panel_evidence.json" in tool.input_artifacts
-        assert "visual_copy_move.json" in tool.input_artifacts
-        assert "image_relationships.json" in tool.output_artifacts
-        assert "visual_findings.json" in tool.output_artifacts
+        assert "visual/panel_evidence.json" in tool.input_artifacts
+        assert "visual/copy_move.json" in tool.input_artifacts
+        assert "visual/relationships.json" in tool.output_artifacts
+        assert "visual/findings.json" in tool.output_artifacts
 
 
 class TestVisualToolParamCoercion:
