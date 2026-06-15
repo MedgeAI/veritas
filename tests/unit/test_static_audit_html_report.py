@@ -6,6 +6,7 @@ from engine.static_audit.html_report import render_static_audit_html
 
 
 def write_json(path, data) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
 

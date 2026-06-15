@@ -13,6 +13,9 @@ PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID = "paperconan.numeric_forensics"
 TOOL_ID_PANEL_EXTRACTION = "visual.panel_extraction"
 TOOL_ID_COPY_MOVE = "visual.copy_move"
 TOOL_ID_FINDING_PIPELINE = "visual.finding_pipeline"
+TOOL_ID_TRU_FOR = "visual.tru_for"
+TOOL_ID_PROVENANCE_GRAPH = "visual.provenance_graph"
+TOOL_ID_SILA_DENSE = "visual.copy_move_dense"
 
 EXECUTION_PHASE_MANDATORY_BOOTSTRAP = "mandatory_bootstrap"
 EXECUTION_PHASE_AGENT_SELECTABLE = "agent_selectable"
@@ -276,6 +279,53 @@ TOOLS: dict[str, ToolDefinition] = {
         input_artifacts=("visual/panel_evidence.json", "visual/copy_move.json", "visual/exact_duplicates.json"),
         output_artifacts=("visual/relationships.json", "visual/findings.json"),
     ),
+    TOOL_ID_TRU_FOR: ToolDefinition(
+        tool_id=TOOL_ID_TRU_FOR,
+        step_key="visual_tru_for",
+        title="TruFor 深度学习伪造检测",
+        source="engine/static_audit/tools",
+        description="Detect forged regions in figures using TruFor SegFormer-B2. Requires GPU; skip-only without GPU.",
+        expected_outputs=("forged_region_evidence.json",),
+        parameter_defaults={"score_threshold": 0.5},
+        agent_selectable=True,
+        input_artifacts=("visual_evidence.json",),
+        output_artifacts=("forged_region_evidence.json",),
+        param_schema={"score_threshold": {"type": "number", "minimum": 0.0, "maximum": 1.0}},
+    ),
+    TOOL_ID_PROVENANCE_GRAPH: ToolDefinition(
+        tool_id=TOOL_ID_PROVENANCE_GRAPH,
+        step_key="visual_provenance_graph",
+        title="溯源图构建",
+        source="engine/static_audit/tools",
+        description="Build provenance graph from cross-figure content sharing using dhash pre-filter and RootSIFT+MAGSAC++.",
+        expected_outputs=("provenance_graph.json",),
+        parameter_defaults={"dhash_threshold": 20, "max_candidate_pairs": 500, "min_keypoints": 20, "min_area": 0.01},
+        agent_selectable=True,
+        input_artifacts=("visual_evidence.json",),
+        output_artifacts=("provenance_graph.json",),
+        param_schema={
+            "dhash_threshold": {"type": "integer", "minimum": 0, "maximum": 64},
+            "max_candidate_pairs": {"type": "integer", "minimum": 10, "maximum": 5000},
+            "min_keypoints": {"type": "integer", "minimum": 4, "maximum": 200},
+            "min_area": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+        },
+    ),
+    TOOL_ID_SILA_DENSE: ToolDefinition(
+        tool_id=TOOL_ID_SILA_DENSE,
+        step_key="visual_copy_move_dense",
+        title="SILA Dense Copy-Move 检测",
+        source="engine/static_audit/tools",
+        description="Detect copy-move forgery using SILA dense features (Zernike/PCT/FMT). Requires Docker.",
+        expected_outputs=("visual_copy_move_dense.json",),
+        parameter_defaults={"min_score": 0.05, "max_relationships": 500},
+        agent_selectable=True,
+        input_artifacts=("panel_evidence.json", "visual_evidence.json"),
+        output_artifacts=("visual_copy_move_dense.json",),
+        param_schema={
+            "min_score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+            "max_relationships": {"type": "integer", "minimum": 1, "maximum": 5000},
+        },
+    ),
     "static_audit.bundle": ToolDefinition(
         tool_id="static_audit.bundle",
         step_key="static_audit_bundle",
@@ -367,7 +417,11 @@ PAPER_STATIC_AUDIT_TOOL_IDS = (
     PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID,
     "image.exact_duplicates",
     TOOL_ID_PANEL_EXTRACTION,
+    TOOL_ID_COPY_MOVE,
     TOOL_ID_FINDING_PIPELINE,
+    TOOL_ID_TRU_FOR,
+    TOOL_ID_PROVENANCE_GRAPH,
+    TOOL_ID_SILA_DENSE,
     "agent.review",
     "report.render_markdown",
 )
@@ -553,6 +607,46 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
         }
     if tool_id == TOOL_ID_FINDING_PIPELINE:
         return {}
+    if tool_id == TOOL_ID_TRU_FOR:
+        defaults = TOOLS[tool_id].parameter_defaults
+        return {
+            "score_threshold": _bounded_float(
+                params.get("score_threshold", defaults.get("score_threshold", 0.5)),
+                "score_threshold", 0.0, 1.0,
+            ),
+        }
+    if tool_id == TOOL_ID_PROVENANCE_GRAPH:
+        defaults = TOOLS[tool_id].parameter_defaults
+        return {
+            "dhash_threshold": _bounded_int(
+                params.get("dhash_threshold", defaults.get("dhash_threshold", 20)),
+                "dhash_threshold", 0, 64,
+            ),
+            "max_candidate_pairs": _bounded_int(
+                params.get("max_candidate_pairs", defaults.get("max_candidate_pairs", 500)),
+                "max_candidate_pairs", 10, 5000,
+            ),
+            "min_keypoints": _bounded_int(
+                params.get("min_keypoints", defaults.get("min_keypoints", 20)),
+                "min_keypoints", 4, 200,
+            ),
+            "min_area": _bounded_float(
+                params.get("min_area", defaults.get("min_area", 0.01)),
+                "min_area", 0.0, 1.0,
+            ),
+        }
+    if tool_id == TOOL_ID_SILA_DENSE:
+        defaults = TOOLS[tool_id].parameter_defaults
+        return {
+            "min_score": _bounded_float(
+                params.get("min_score", defaults.get("min_score", 0.05)),
+                "min_score", 0.0, 1.0,
+            ),
+            "max_relationships": _bounded_int(
+                params.get("max_relationships", defaults.get("max_relationships", 500)),
+                "max_relationships", 1, 5000,
+            ),
+        }
     return dict(params)
 
 
