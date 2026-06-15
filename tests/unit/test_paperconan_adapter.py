@@ -25,7 +25,7 @@ def test_paperconan_tool_registered() -> None:
     assert tool.source == "third_party/paperconan"
     assert tool.agent_selectable is True
     assert tool.deterministic is True
-    assert "paperconan_scan.json" in tool.output_artifacts
+    assert "numeric/paperconan_scan.json" in tool.output_artifacts
 
 
 def test_paperconan_coerce_params_valid() -> None:

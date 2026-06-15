@@ -6,7 +6,7 @@ from engine.static_audit.tools.paperfraud_rules import (
     paperfraud_findings_from_matches,
     run_paperfraud_rule_match,
 )
-from engine.static_audit.orchestrator import collect_claims_and_findings
+from engine.static_audit.orchestrator import collect_claims_and_findings, resolve_artifact_path
 from engine.tools.registry import (
     STATIC_AUDIT_V1_TOOL_IDS,
     tool_catalog_for_agent,
@@ -14,7 +14,8 @@ from engine.tools.registry import (
 
 
 def test_paperfraud_rule_match_writes_artifact_and_reviewer_form(tmp_path) -> None:
-    full_md = tmp_path / "full.md"
+    full_md = resolve_artifact_path(tmp_path, "full.md")
+    full_md.parent.mkdir(parents=True, exist_ok=True)
     full_md.write_text(
         """
         # Example clinical study
@@ -25,7 +26,7 @@ def test_paperfraud_rule_match_writes_artifact_and_reviewer_form(tmp_path) -> No
         """,
         encoding="utf-8",
     )
-    output_path = tmp_path / "paperfraud_rule_matches.json"
+    output_path = resolve_artifact_path(tmp_path, "paperfraud_rule_matches.json")
 
     artifact = run_paperfraud_rule_match(full_md, output_path)
     data = json.loads(output_path.read_text(encoding="utf-8"))
@@ -37,12 +38,13 @@ def test_paperfraud_rule_match_writes_artifact_and_reviewer_form(tmp_path) -> No
 
 
 def test_paperfraud_matches_convert_to_canonical_findings(tmp_path) -> None:
-    full_md = tmp_path / "full.md"
+    full_md = resolve_artifact_path(tmp_path, "full.md")
+    full_md.parent.mkdir(parents=True, exist_ok=True)
     full_md.write_text(
         "This randomized controlled trial reports p-value significance without effect size.",
         encoding="utf-8",
     )
-    artifact = run_paperfraud_rule_match(full_md, tmp_path / "paperfraud_rule_matches.json")
+    artifact = run_paperfraud_rule_match(full_md, resolve_artifact_path(tmp_path, "paperfraud_rule_matches.json"))
 
     findings = paperfraud_findings_from_matches(artifact)
 
@@ -61,9 +63,10 @@ def test_paperfraud_rule_match_registered_in_static_audit_catalog() -> None:
 
 
 def test_paperfraud_rule_matches_merge_into_canonical_findings(tmp_path) -> None:
-    full_md = tmp_path / "full.md"
+    full_md = resolve_artifact_path(tmp_path, "full.md")
+    full_md.parent.mkdir(parents=True, exist_ok=True)
     full_md.write_text("A cohort study reports p-value significance without effect size.", encoding="utf-8")
-    run_paperfraud_rule_match(full_md, tmp_path / "paperfraud_rule_matches.json")
+    run_paperfraud_rule_match(full_md, resolve_artifact_path(tmp_path, "paperfraud_rule_matches.json"))
 
     _claims, _mappings, findings = collect_claims_and_findings(tmp_path, [])
 

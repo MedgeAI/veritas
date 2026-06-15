@@ -3,16 +3,17 @@ from __future__ import annotations
 import json
 
 from engine.static_audit.models import EvidenceItem
-from engine.static_audit.orchestrator import collect_claims_and_findings
+from engine.static_audit.orchestrator import collect_claims_and_findings, resolve_artifact_path
 
 
 def write_json(path, data) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
 
 def test_agent_refined_mapping_is_canonical_over_deterministic_scaffolding(tmp_path) -> None:
     write_json(
-        tmp_path / "source_data_findings.json",
+        resolve_artifact_path(tmp_path, "source_data_findings.json"),
         {
             "claim_to_source_data": [
                 {
@@ -39,7 +40,7 @@ def test_agent_refined_mapping_is_canonical_over_deterministic_scaffolding(tmp_p
         },
     )
     write_json(
-        tmp_path / "agent_claim_extractor.json",
+        resolve_artifact_path(tmp_path, "agent_claim_extractor.json"),
         {
             "claims": [
                 {
@@ -54,7 +55,7 @@ def test_agent_refined_mapping_is_canonical_over_deterministic_scaffolding(tmp_p
         },
     )
     write_json(
-        tmp_path / "agent_source_data_auditor.json",
+        resolve_artifact_path(tmp_path, "agent_source_data_auditor.json"),
         {
             "claim_to_source_data": [
                 {
