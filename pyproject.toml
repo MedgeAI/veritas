@@ -8,7 +8,11 @@ version = "0.1.0"
 description = "Prototype verification engine for computational research."
 readme = "README.md"
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "PyJWT>=2.8.0",
+    "bcrypt>=4.0.0",
+    "pyyaml>=6.0.3",
+]
 
 [project.scripts]
 veritas = "cli.main:main"
@@ -23,3 +27,9 @@ where = ["."]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0.3",
+    "ruff>=0.15.17",
+]
