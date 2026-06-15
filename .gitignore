@@ -49,9 +49,7 @@ web/frontend/dist/
 web/frontend/coverage/
 web/frontend/node_modules
 
-# Third-party reference repos and project docs (local-only, not pushed)
-.gitmodules
-third_party/
+# Project docs (local-only, not pushed)
 docs/
 
 # Conversation handoff files are local working material

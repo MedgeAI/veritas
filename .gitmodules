@@ -1,0 +1,18 @@
+[submodule "third_party/research-integrity-auditor"]
+	path = third_party/research-integrity-auditor
+	url = https://github.com/cylqwe7855-alt/research-integrity-auditor
+[submodule "third_party/deepwiki-open"]
+	path = third_party/deepwiki-open
+	url = https://github.com/AsyncFuncAI/deepwiki-open
+[submodule "third_party/AsyncReview"]
+	path = third_party/AsyncReview
+	url = https://github.com/AsyncFuncAI/AsyncReview
+[submodule "third_party/elis"]
+	path = third_party/elis
+	url = https://github.com/researchintegrity/elis
+[submodule "third_party/geng-academic-fraud-detector"]
+	path = third_party/geng-academic-fraud-detector
+	url = https://github.com/wooly99/geng-academic-fraud-detector
+[submodule "third_party/paperconan"]
+	path = third_party/paperconan
+	url = https://github.com/zixixr/paperconan
