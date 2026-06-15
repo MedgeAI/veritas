@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from web.backend.veritas_web.app import VeritasRequestHandler, VeritasWebApp
+from web.backend.veritas_web.auth import AuthContext
 from web.backend.veritas_web.runner import AuditRunner
 
 
@@ -56,6 +57,7 @@ def test_run_detail_route_uses_five_path_segments(tmp_path) -> None:
 
     handler = VeritasRequestHandler.__new__(VeritasRequestHandler)
     handler.app = app
+    handler.auth_context = AuthContext(user_id="operator", roles=frozenset({"admin"}))
     handler.path = f"/api/cases/{case.case_id}/runs/{run.run_id}"
     handler._send_json = lambda payload, status=None: captured.append(payload)
 

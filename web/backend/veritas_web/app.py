@@ -12,6 +12,7 @@ from .artifacts import ArtifactService
 from .auth import AuthContext, AuthProvider, NoAuthProvider
 from .case_store import CaseStore
 from .config import AuthConfig, create_auth_provider
+from .models import CaseRecord
 from .runner import AuditRunner
 
 
@@ -99,16 +100,18 @@ class VeritasRequestHandler(BaseHTTPRequestHandler):
             self._send_json({"cases": [case.to_dict() for case in self.app.store.list_cases(user_id=user_id)]})
             return
         if len(parts) == 3 and parts[:2] == ["api", "cases"]:
-            user_id = self.auth_context.user_id
-            self._send_json(self.app.store.get_case(parts[2], user_id=user_id).to_dict())
+            self._send_json(self._require_case_access(parts[2]).to_dict())
             return
         if len(parts) == 5 and parts[:2] == ["api", "cases"] and parts[3] == "runs":
+            self._require_case_access(parts[2])
             self._send_json(self.app.store.get_run(parts[2], parts[4]).to_dict())
             return
         if len(parts) == 6 and parts[:2] == ["api", "cases"] and parts[3] == "runs" and parts[5] == "events":
+            self._require_case_access(parts[2])
             self._send_json({"events": self.app.store.list_events(parts[2], parts[4])})
             return
         if len(parts) == 4 and parts[:2] == ["api", "cases"] and parts[3] == "artifacts":
+            self._require_case_access(parts[2])
             self._send_json({"artifacts": [ref.to_dict() for ref in self.app.artifacts.list_artifacts(parts[2])]})
             return
         if len(parts) == 5 and parts[:2] == ["api", "cases"] and parts[3] == "artifacts":
@@ -137,21 +140,28 @@ class VeritasRequestHandler(BaseHTTPRequestHandler):
             self._send_json(case.to_dict(), status=HTTPStatus.CREATED)
             return
         if len(parts) == 4 and parts[:2] == ["api", "cases"] and parts[3] == "inputs":
+            self._require_case_access(parts[2])
             if "content_base64" in payload:
                 path = self.app.store.write_input_base64(parts[2], str(payload.get("filename", "paper.pdf")), str(payload["content_base64"]))
             elif "content" in payload:
                 path = self.app.store.write_input(parts[2], str(payload.get("filename", "paper.pdf")), str(payload["content"]).encode("utf-8"))
             else:
                 raise ValueError("input upload requires content_base64 or content")
-            self._send_json({"path": str(path), "case": self.app.store.get_case(parts[2]).to_dict()})
+            self._send_json({"path": str(path), "case": self._require_case_access(parts[2]).to_dict()})
             return
         if len(parts) == 4 and parts[:2] == ["api", "cases"] and parts[3] == "runs":
+            self._require_case_access(parts[2])
             run = self.app.runner.start(parts[2], payload)
             self._send_json(run.to_dict(), status=HTTPStatus.ACCEPTED)
             return
         raise FileNotFoundError("route not found")
 
+    def _require_case_access(self, case_id: str) -> CaseRecord:
+        """Return the case if the authenticated user owns it."""
+        return self.app.store.get_case(case_id, user_id=self.auth_context.user_id)
+
     def _send_artifact(self, case_id: str, artifact_id: str) -> None:
+        self._require_case_access(case_id)
         path = self.app.artifacts.artifact_path(case_id, artifact_id)
         if not path:
             raise FileNotFoundError(f"artifact not found: {artifact_id}")
@@ -163,6 +173,7 @@ class VeritasRequestHandler(BaseHTTPRequestHandler):
         self._send_bytes(path.read_bytes(), content_type=content_type)
 
     def _send_report_html(self, case_id: str) -> None:
+        self._require_case_access(case_id)
         path = self.app.artifacts.report_html_path(case_id)
         if not path:
             raise FileNotFoundError("final HTML report not found")

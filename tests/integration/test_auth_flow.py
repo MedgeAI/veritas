@@ -12,10 +12,8 @@ import socket
 import threading
 from http.server import ThreadingHTTPServer
 from pathlib import Path
-from typing import Any
 
 import jwt
-import pytest
 
 from web.backend.veritas_web.app import VeritasWebApp, make_handler
 from web.backend.veritas_web.auth import (
@@ -23,6 +21,7 @@ from web.backend.veritas_web.auth import (
     BearerTokenProvider,
     NoAuthProvider,
 )
+from web.backend.veritas_web.case_store import CaseStore
 from web.backend.veritas_web.config import AuthConfig, create_auth_provider
 
 
@@ -93,6 +92,31 @@ def _make_jwt(secret: str, user_id: str, issuer: str = "veritas") -> str:
         "iat": now,
     }
     return jwt.encode(payload, secret, algorithm="HS256")
+
+
+def _seed_completed_case_with_artifacts(tmp_path: Path) -> tuple[Path, str, str]:
+    """Create an Alice-owned completed case with run data and report artifacts."""
+    data_root = tmp_path / "web_data"
+    output_root = tmp_path / "outputs"
+    store = CaseStore(data_root)
+    case = store.create_case(user_id="alice", paper_title="Alice Paper", case_id="alice-private")
+    run = store.create_run(case.case_id)
+    workdir = output_root / case.case_id / "research-integrity-audit"
+    workdir.mkdir(parents=True)
+    (workdir / "static_audit_bundle.json").write_text(
+        json.dumps({"secret": "alice-data"}),
+        encoding="utf-8",
+    )
+    (workdir / "final_audit_report.html").write_text(
+        "<html>Alice private report</html>",
+        encoding="utf-8",
+    )
+    run.status = "completed"
+    run.workdir = str(workdir)
+    run.summary = {"workdir": str(workdir)}
+    store.save_run(run)
+    store.append_event(case.case_id, run.run_id, {"event": "alice_private_event"})
+    return data_root, case.case_id, run.run_id
 
 
 # ---------------------------------------------------------------------------
@@ -291,6 +315,42 @@ class TestCrossUserIsolation:
                 headers=_basic_header("bob", "bob-pass"),
             )
             assert status == 403
+        finally:
+            server.shutdown()
+
+    def test_basic_mode_case_subresources_enforce_owner(self, tmp_path: Path) -> None:
+        db_path = str(tmp_path / "test_users.db")
+        provider = BasicAuthProvider(db_path)
+        provider.add_user("alice", "alice-pass", roles="operator")
+        provider.add_user("bob", "bob-pass", roles="operator")
+        data_root, case_id, run_id = _seed_completed_case_with_artifacts(tmp_path)
+
+        server, port = _start_server(tmp_path, provider, data_root=data_root)
+        try:
+            bob = _basic_header("bob", "bob-pass")
+            protected_reads = [
+                f"/api/cases/{case_id}/runs/{run_id}",
+                f"/api/cases/{case_id}/runs/{run_id}/events",
+                f"/api/cases/{case_id}/artifacts",
+                f"/api/cases/{case_id}/artifacts/static_audit_bundle",
+                f"/api/cases/{case_id}/report/html",
+            ]
+            for path in protected_reads:
+                status, _, _ = _request(port, "GET", path, headers=bob)
+                assert status == 403, path
+
+            status, _, _ = _request(
+                port,
+                "POST",
+                f"/api/cases/{case_id}/inputs",
+                headers=bob,
+                body={"filename": "stolen.txt", "content": "tampered"},
+            )
+            assert status == 403
+
+            stored_case = CaseStore(data_root).get_case(case_id, user_id="alice")
+            assert stored_case.input_count == 0
+            assert not any((data_root / "cases" / case_id / "inputs").iterdir())
         finally:
             server.shutdown()
 

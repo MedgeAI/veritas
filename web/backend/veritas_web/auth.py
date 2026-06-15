@@ -133,12 +133,17 @@ class BearerTokenProvider(AuthProvider):
                 self.shared_secret,
                 algorithms=["HS256"],
                 issuer=self.issuer,
+                options={"require": ["exp", "iss", "userId"]},
             )
         except jwt.InvalidTokenError:
             return None
 
+        user_id = payload.get("userId")
+        if not isinstance(user_id, str) or not user_id.strip():
+            return None
+
         return AuthContext(
-            user_id=payload["userId"],
+            user_id=user_id.strip(),
             email=None,
             roles=frozenset({"operator"}),
             metadata={

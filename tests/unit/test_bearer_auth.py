@@ -63,6 +63,30 @@ class TestBearerTokenProviderAuthenticate:
         assert ctx is not None
         assert ctx.metadata["userName"] == ""
 
+    def test_valid_signature_missing_required_user_id_returns_none(self, provider: BearerTokenProvider) -> None:
+        payload = _valid_payload()
+        del payload["userId"]
+        token = _make_token(payload)
+        headers = {"Authorization": f"Bearer {token}"}
+
+        assert provider.authenticate(headers) is None
+
+    def test_valid_signature_empty_required_user_id_returns_none(self, provider: BearerTokenProvider) -> None:
+        payload = _valid_payload()
+        payload["userId"] = ""
+        token = _make_token(payload)
+        headers = {"Authorization": f"Bearer {token}"}
+
+        assert provider.authenticate(headers) is None
+
+    def test_valid_signature_missing_required_exp_returns_none(self, provider: BearerTokenProvider) -> None:
+        payload = _valid_payload()
+        del payload["exp"]
+        token = _make_token(payload)
+        headers = {"Authorization": f"Bearer {token}"}
+
+        assert provider.authenticate(headers) is None
+
     def test_invalid_signature_returns_none(self, provider: BearerTokenProvider) -> None:
         token = _make_token(_valid_payload(), secret="wrong-secret")
         headers = {"Authorization": f"Bearer {token}"}

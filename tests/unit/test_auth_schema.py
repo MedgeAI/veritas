@@ -4,13 +4,10 @@ Verifies AuthContext creation, NoAuthProvider behavior, and AuthConfig.from_env(
 """
 from __future__ import annotations
 
-import os
-
 import pytest
 
 from web.backend.veritas_web.auth import (
     AuthContext,
-    AuthProvider,
     NoAuthProvider,
 )
 from web.backend.veritas_web.config import AuthConfig
