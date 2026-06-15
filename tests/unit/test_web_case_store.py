@@ -6,7 +6,7 @@ from web.backend.veritas_web.case_store import CaseStore
 def test_case_store_creates_case_and_input(tmp_path) -> None:
     store = CaseStore(tmp_path / "web_data")
 
-    case = store.create_case(paper_title="Demo paper", owner="operator", case_id="demo-case")
+    case = store.create_case(paper_title="Demo paper", user_id="operator", case_id="demo-case")
     input_path = store.write_input(case.case_id, "paper.pdf", b"%PDF-1.4\n")
     loaded = store.get_case(case.case_id)
 

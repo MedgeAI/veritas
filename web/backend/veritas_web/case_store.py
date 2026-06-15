@@ -25,36 +25,99 @@ class CaseStore:
         self.cases_root = self.root / "cases"
         self.cases_root.mkdir(parents=True, exist_ok=True)
 
-    def create_case(
-        self,
-        paper_title: str | None = None,
-        owner: str = "operator",
-        case_id: str | None = None,
-    ) -> CaseRecord:
-        record = CaseRecord(
-            case_id=safe_id(case_id or f"case-{utc_now().replace(':', '').replace('-', '')}-{uuid4().hex[:8]}"),
-            paper_title=paper_title or "Unknown until parsed",
-            owner=owner,
-        )
-        case_dir = self.case_dir(record.case_id)
-        if case_dir.exists():
-            raise FileExistsError(f"case already exists: {record.case_id}")
-        (case_dir / "inputs").mkdir(parents=True)
-        (case_dir / "runs").mkdir(parents=True)
-        self.save_case(record)
-        return record
+    # ------------------------------------------------------------------
+    # Internal helpers (no ownership check)
+    # ------------------------------------------------------------------
 
-    def list_cases(self) -> list[CaseRecord]:
-        records = []
-        for path in sorted(self.cases_root.glob("*/case.json")):
-            records.append(CaseRecord.from_dict(read_json(path)))
-        return records
-
-    def get_case(self, case_id: str) -> CaseRecord:
+    def _load_case(self, case_id: str) -> CaseRecord:
+        """Load a case without ownership check (internal use)."""
         path = self.case_dir(case_id) / "case.json"
         if not path.exists():
             raise FileNotFoundError(f"case not found: {case_id}")
         return CaseRecord.from_dict(read_json(path))
+
+    def _check_owner(self, record: CaseRecord, user_id: str | None) -> None:
+        """Raise PermissionError if user_id is provided and does not match owner."""
+        if user_id is not None and record.owner != user_id:
+            raise PermissionError(f"user '{user_id}' is not the owner of case '{record.case_id}'")
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+
+    def list_cases(self, user_id: str | None = None) -> list[CaseRecord]:
+        """List cases visible to user_id.
+
+        When user_id is provided only cases owned by that user are returned.
+        When user_id is None (internal calls) all cases are returned.
+        Future: support visibility == 'public' and shared_with.
+        """
+        records = []
+        for path in sorted(self.cases_root.glob("*/case.json")):
+            record = CaseRecord.from_dict(read_json(path))
+            if user_id is None or record.owner == user_id:
+                records.append(record)
+        return records
+
+    def get_case(self, case_id: str, user_id: str | None = None) -> CaseRecord:
+        """Load a case. When user_id is provided, enforce ownership check."""
+        record = self._load_case(case_id)
+        self._check_owner(record, user_id)
+        return record
+
+    def create_case(
+        self,
+        case: CaseRecord | None = None,
+        user_id: str = "operator",
+        *,
+        paper_title: str | None = None,
+        case_id: str | None = None,
+    ) -> CaseRecord:
+        """Create a new case owned by user_id.
+
+        Accepts either a fully-formed CaseRecord (preferred) or the legacy
+        keyword arguments paper_title / case_id for convenience.
+        """
+        if case is None:
+            case = CaseRecord(
+                case_id=safe_id(case_id or f"case-{utc_now().replace(':', '').replace('-', '')}-{uuid4().hex[:8]}"),
+                paper_title=paper_title or "Unknown until parsed",
+            )
+        case.owner = user_id
+        case_dir = self.case_dir(case.case_id)
+        if case_dir.exists():
+            raise FileExistsError(f"case already exists: {case.case_id}")
+        (case_dir / "inputs").mkdir(parents=True)
+        (case_dir / "runs").mkdir(parents=True)
+        self.save_case(case)
+        return case
+
+    def update_case(
+        self,
+        case_id: str,
+        updates: dict[str, Any],
+        user_id: str | None = None,
+    ) -> CaseRecord:
+        """Update a case. Only the owner may update."""
+        record = self._load_case(case_id)
+        self._check_owner(record, user_id)
+        for key, value in updates.items():
+            if key in {"case_id"}:
+                continue  # case_id is immutable
+            if hasattr(record, key):
+                setattr(record, key, value)
+        self.save_case(record)
+        return record
+
+    def delete_case(self, case_id: str, user_id: str | None = None) -> bool:
+        """Delete a case and its directory. Only the owner may delete."""
+        record = self._load_case(case_id)
+        self._check_owner(record, user_id)
+        case_dir = self.case_dir(case_id)
+        if case_dir.exists():
+            shutil.rmtree(case_dir)
+            return True
+        return False
 
     def save_case(self, record: CaseRecord) -> None:
         record.updated_at = utc_now()
@@ -81,7 +144,7 @@ class CaseStore:
         return path
 
     def write_input(self, case_id: str, filename: str, content: bytes) -> Path:
-        case_record = self.get_case(case_id)
+        case_record = self._load_case(case_id)
         target = self.inputs_dir(case_id) / safe_id(Path(filename).name)
         if not target.name:
             raise ValueError("input filename is required")
@@ -106,7 +169,7 @@ class CaseStore:
             shutil.copytree(source, target)
         else:
             shutil.copy2(source, target)
-        case_record = self.get_case(case_id)
+        case_record = self._load_case(case_id)
         case_record.input_count = len(list(self.inputs_dir(case_id).iterdir()))
         if case_record.status == "Draft":
             case_record.status = "Uploaded"
@@ -114,11 +177,11 @@ class CaseStore:
         return target
 
     def create_run(self, case_id: str, agent_mode: str = "review") -> AuditRunRecord:
-        self.get_case(case_id)
+        self._load_case(case_id)
         run_id = f"run-{utc_now().replace(':', '').replace('-', '')}-{uuid4().hex[:8]}"
         record = AuditRunRecord(run_id=run_id, case_id=case_id, agent_mode=agent_mode)
         self.save_run(record)
-        case_record = self.get_case(case_id)
+        case_record = self._load_case(case_id)
         case_record.latest_run_id = run_id
         self.save_case(case_record)
         return record
@@ -135,9 +198,9 @@ class CaseStore:
             records.append(AuditRunRecord.from_dict(read_json(path)))
         return records
 
-    def list_all_runs(self) -> list[AuditRunRecord]:
+    def list_all_runs(self, user_id: str | None = None) -> list[AuditRunRecord]:
         records = []
-        for case in self.list_cases():
+        for case in self.list_cases(user_id=user_id):
             records.extend(self.list_runs(case.case_id))
         return records
 
