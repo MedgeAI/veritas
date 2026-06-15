@@ -17,6 +17,41 @@ from typing import Any, Literal
 
 VISUAL_SCHEMA_VERSION = "1.0"
 
+
+@dataclass
+class ForgedRegionEvidence:
+    """TruFor deep-learning forgery detection result for a figure or panel."""
+    forged_region_evidence_id: str
+    figure_id: str
+    status: Literal["completed", "skipped", "failed"]
+    skip_reason: str | None = None
+    integrity_score: float | None = None
+    is_suspicious: bool = False
+    localization_map_path: str | None = None
+    confidence_map_path: str | None = None
+    image_width: int = 0
+    image_height: int = 0
+    inference_seconds: float = 0.0
+    metadata: dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> ForgedRegionEvidence:
+        return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
+
+    def validate(self) -> list[str]:
+        errors = []
+        if not self.forged_region_evidence_id:
+            errors.append("forged_region_evidence_id is required")
+        if not self.figure_id:
+            errors.append("figure_id is required")
+        if self.integrity_score is not None and not 0.0 <= self.integrity_score <= 1.0:
+            errors.append(f"integrity_score must be in [0, 1], got {self.integrity_score}")
+        return errors
+
+
 # Forbidden phrases that must never appear in reports or findings
 # Software-level constraint; final judgment always requires human review
 FORBIDDEN_PHRASES = [
