@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import logging
 import shutil
 import subprocess
 import sys
@@ -31,6 +32,8 @@ from typing import Any
 from PIL import Image
 
 from engine.static_audit.visual_schemas import FigureEvidence, PanelEvidence, VISUAL_SCHEMA_VERSION
+
+logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Paths
@@ -79,8 +82,19 @@ def extract_panels_batch(
     # Check prerequisites
     extract_script = ELIS_PANEL_EXTRACTOR / "extract.py"
     if not extract_script.is_file():
+        logger.warning(
+            "ELIS panel-extractor not found at %s. "
+            "Panel extraction skipped; falling back to whole-figure panels.",
+            extract_script,
+        )
         return {fid: [] for fid, _ in figure_paths}
     if not weights_path.is_file():
+        logger.warning(
+            "Model weights not found at %s. "
+            "Run `make download-models` to download YOLOv5 weights. "
+            "Panel extraction skipped; falling back to whole-figure panels.",
+            weights_path,
+        )
         return {fid: [] for fid, _ in figure_paths}
 
     # Create batch output directory
