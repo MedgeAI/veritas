@@ -122,19 +122,37 @@ class TestBuildRelationships:
         assert build_relationships({"relationships": []}) == []
 
     def test_skip_self_pairs(self):
-        """Relationships where source == target are skipped."""
-        copy_move = {
+        """Self-pairs are allowed for copy_move_single but skipped for other types."""
+        # copy_move_single allows source == target (within-panel detection)
+        copy_move_single = {
             "relationships": [
                 {
                     "source_panel_id": "PE-0001-01",
                     "target_panel_id": "PE-0001-01",
+                    "source_type": "copy_move_single",
                     "score": 1.0,
-                    "match_method": "orb_ransac",
+                    "match_method": "rootsift_magsac_single",
                     "inlier_count": 100,
                 },
             ],
         }
-        rels = build_relationships(copy_move)
+        rels = build_relationships(copy_move_single)
+        assert len(rels) == 1
+
+        # copy_move_cross with source == target should be skipped
+        copy_move_cross = {
+            "relationships": [
+                {
+                    "source_panel_id": "PE-0001-01",
+                    "target_panel_id": "PE-0001-01",
+                    "source_type": "copy_move_cross",
+                    "score": 0.75,
+                    "match_method": "rootsift_magsac_cross",
+                    "inlier_count": 50,
+                },
+            ],
+        }
+        rels = build_relationships(copy_move_cross)
         assert rels == []
 
     def test_relationship_ids_are_sequential(self):

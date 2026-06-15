@@ -1,6 +1,6 @@
 # audit-paper 当前通用流程说明
 
-更新时间：2026-06-12
+更新时间：2026-06-15
 
 本文描述当前 `audit-paper` 闭环的数据流和 Agent 参与位置，不绑定任何具体论文 case。
 
@@ -34,15 +34,22 @@ CLI
        -> MinerU PDF parse
        -> evidence_ledger.json
        -> numeric_forensics.json
+       -> paperfraud_rule_matches.json
        -> exact_image_duplicates.json
+       -> visual_evidence.json
+       -> panel_evidence.json
   -> Source Data optional lane
        -> source_data_profile.json
        -> source_data_findings.json
        -> source_data_pair_forensics.json
+       -> source_data_cross_sheet.json
   -> AgentInvestigationPlanner
        -> agent_investigation_plan_round_XX.json
        -> investigation_rounds.jsonl
        -> investigation/round_XX/action_YY/<tool artifact>
+  -> visual finding pipeline
+       -> image_relationships.json
+       -> visual_findings.json
   -> agent_review.json
   -> ClaimExtractor / SourceDataAuditor / JudgeAgent
        -> context_pack_*.json
@@ -61,7 +68,10 @@ CLI
 - `mineru.parse_pdf`：生成 `full.md`、`images/`、`mineru_manifest.json`。
 - `paper.evidence_ledger`：生成论文内容、表格、图片、caption 的结构化索引。
 - `paper.numeric_forensics`：从 PDF 解析结果里提取数字取证线索。
+- `paperfraud.rule_match`：对解析后的论文文本执行 PaperFraud 方法论规则匹配，生成复核提示。
 - `image.exact_duplicates`：对 MinerU 抽取图片做字节级重复检查。
+- `visual.panel_extraction`：生成 canonical `visual_evidence.json` 和 `panel_evidence.json`。当前是 first-party OpenCV/Canny/contour 启发式实现，失败时允许 whole-figure fallback panel，并写入 limitation。
+- `visual.finding_pipeline`：聚合 exact duplicate、dHash、可选 copy-move 输出，生成 `image_relationships.json` 和 `visual_findings.json`。
 
 这些步骤不由 Agent 决定是否跳过。MinerU 是远端服务，若接口断连，Veritas 侧会做 3 次尝试和退避等待，但不能保证远端服务一定可用。
 
@@ -90,7 +100,25 @@ CSV/TSV、raw data、archive 等材料会进入 `unsupported_materials`，不被
 
 ## ELIS-Style 图像取证内测扩展
 
-当前代码已具备字节级重复和 dHash 近似候选。下一阶段内测路线决定借鉴 ELIS (Scientific Integrity System) 的完整图像取证栈，在 happy path 下补齐更强视觉审查能力。
+当前代码已具备 canonical visual artifacts、OpenCV panel extraction、Agent-selectable ORB/SIFT copy-move、字节级重复和 dHash 近似候选。下一阶段内测路线决定借鉴 ELIS (Scientific Integrity System) 的完整图像取证栈，在 happy path 下替换或增强这些传统 CV 路径。
+
+当前已落地数据流：
+
+```text
+MinerU images
+  -> visual.panel_extraction
+       -> visual_evidence.json
+       -> panel_evidence.json
+       -> panel crops
+  -> AgentInvestigationPlanner
+       -> may select visual.copy_move
+       -> investigation/round_XX/action_YY/visual_copy_move.json
+  -> visual.finding_pipeline
+       -> image_relationships.json
+       -> visual_findings.json
+  -> HTML Visual Evidence Package
+  -> Web Visual Forensics Gallery
+```
 
 目标数据流：
 
@@ -121,6 +149,7 @@ MinerU images / ELIS pdf-extractor images
 - ELIS 工具作为 Veritas adapter/tool 接入 Tool Registry，不直接把 ELIS FastAPI/Celery/MongoDB/Redis 主服务并入主链路。
 - 图像取证工具输出只生成候选事实和人工复核任务，不自动形成最终诚信判定。
 - 重型工具必须有超时、失败记录、artifact hash 和 limitations；单个工具失败不应阻断 Markdown/HTML 报告生成。
+- TruFor、CBIR/Milvus、YOLOv5 panel-extractor 和 RootSIFT/MAGSAC copy-move 在 adapter、registry、fixture 和报告消费完成前，不是当前稳定输出。
 
 ## AgentInvestigationPlanner
 
@@ -140,15 +169,16 @@ MinerU images / ELIS pdf-extractor images
 - `source_data.profile`
 - `source_data.findings`
 - `source_data.pair_forensics`
+- `source_data.cross_sheet`
+- `visual.copy_move`
 
 ELIS-style 内测增强后，Agent-selectable visual tools 预计扩展为：
 
-- `image.panel_extract`
-- `image.copy_move`
-- `image.copy_move_keypoint`
-- `image.trufor`
-- `image.cbir_index`
-- `image.cbir_search`
+- `visual.panel_extraction` 的 ELIS YOLOv5 adapter 或独立 pdf/panel extraction tool。
+- `visual.copy_move` 的 RootSIFT/MAGSAC 版本。
+- `visual.copy_move_dense`。
+- `visual.tru_for`。
+- `visual.cbir_index` / `visual.cbir_search`。
 
 追加调查输出不会覆盖 baseline artifacts，而是写入：
 
@@ -244,9 +274,10 @@ HTML 报告展示 Top-N priority findings，不假设某个 case 固定只有 3 
 ## 当前边界
 
 - `image_similarity_candidates` 当前是 optional investigation tool，不再是固定 baseline。
+- `visual.copy_move` 当前是 optional investigation tool，不是固定 baseline。
 - investigation 追加产物目前只展示在 `Agent Investigation Path` 和 artifact 链接中，尚未自动合并进 canonical finding 表。
 - CSV/TSV Source Data 还未正式执行，只进入材料清单和 unsupported materials。
-- ELIS-style 图像取证栈、vLLM/VLM 视觉初筛仍未接入正式 pipeline；已作为内测 happy path 下一阶段目标。
+- ELIS-style YOLO/RootSIFT/TruFor/CBIR、vLLM/VLM 视觉初筛仍未接入稳定 pipeline；已作为内测 happy path 下一阶段目标。
 - 代码执行型 runtime 审查尚未并入 `audit-paper` 主链路。
 
 ## 泛化约束

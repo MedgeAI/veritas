@@ -4,6 +4,8 @@
 > 决策完成：2026-06-15（grill-me 会话）
 > 约束来源：`AGENTS.md` § 当前内测增强路线 + § 第三方仓库使用原则
 
+> 状态校准：本文记录“复用决策”和“落地计划”，不是当前已完成实现清单。当前代码仍使用 first-party OpenCV panel extraction 和 ORB/SIFT copy-move 过渡实现；ELIS adapter 尚未替换主链路。
+
 ---
 
 ## 战略约束（已决策）
@@ -32,55 +34,55 @@
 
 ## 一、P0 已决策模块
 
-### 1. `panel-extractor` — YOLOv5 panel 检测 + 分类 ✅ 接入
+### 1. `panel-extractor` — YOLOv5 panel 检测 + 分类 ✅ 已决策接入，待落地
 
 - **位置**：`third_party/elis/system_modules/panel-extractor/`
 - **决策**：
-  - ✅ **接入**，优先级 P0 第 1 位
+  - ✅ **接入方向已决策**，优先级 P0 第 1 位
   - ✅ **YOLOv5 完全替换 OpenCV**，删除 OpenCV panel 提取代码（Q6=A，OpenCV 效果差，不保留 fallback）
   - ✅ `PanelEvidence` schema 增加 `panel_type` 字段
   - ✅ **全部重写测试**，用 YOLOv5 真实行为生成 golden fixture（Q8=A）
-- **落地**：
+- **计划改动**：
   - 重写 `engine/static_audit/tools/panel_extraction.py`，内部调 YOLOv5 `extract.run()`
   - `PanelEvidence` 增加 `panel_type: Optional[str]`（enum: `blots` / `graphs` / `microscopy` / `body_imagery` / `flow_cytometry` / `unknown`）
   - 删除 OpenCV Canny/contour/filter_contours 代码
   - 删除/重写 `tests/unit/test_panel_extraction.py` 和 `tests/unit/test_visual_fixtures.py` 中绑定 OpenCV 行为的测试
 
-### 2. `copy-move-detection-keypoint` — RootSIFT + MAGSAC++ ✅ 接入
+### 2. `copy-move-detection-keypoint` — RootSIFT + MAGSAC++ ✅ 已决策接入，待落地
 
 - **位置**：`third_party/elis/system_modules/copy-move-detection-keypoint/`
 - **决策**：
-  - ✅ **接入**，优先级 P0 第 2 位
+  - ✅ **接入方向已决策**，优先级 P0 第 2 位
   - ✅ **升级默认**：默认 method 改为 RootSIFT+MAGSAC++
   - ✅ **直接删除 ORB 代码路径**，不保留 deprecated（Q4=C → Q11=D）
   - ✅ `image_relationship` schema 增加 `flip_detected: bool` 字段
-- **落地**：
+- **计划改动**：
   - 重写 `engine/static_audit/tools/copy_move_detection.py`，内部调 ELIS keypoint 模块
   - 删除 `_detect_keypoints_descriptors` 中 ORB 分支和 `_match_descriptors` 中 BFMatcher 逻辑
   - `param_schema` 的 `method` enum 删除 `"orb"`
   - registry 默认 `method` 改为 `"rootsift_magsac"`
   - 增加 `flip_detected` 到 `image_relationship` schema 和 `visual_finding_pipeline`
 
-### 3. `copy-move-detection` (SILA) — 非 keypoint 方法 ✅ 接入
+### 3. `copy-move-detection` (SILA) — 非 keypoint 方法 ✅ 已决策接入，待落地
 
 - **位置**：`third_party/elis/system_modules/copy-move-detection/`
 - **决策**：
-  - ✅ **接入**，优先级 P0 第 3 位（Q7=A）
+  - ✅ **接入方向已决策**，优先级 P0 第 3 位（Q7=A）
   - ✅ 与 keypoint 版一起进入 P0
-- **落地**：
+- **计划改动**：
   - 新增 `engine/static_audit/tools/copy_move_dense.py`
   - registry 注册 `tool_id="visual.copy_move_dense"`，`agent_selectable=True`
   - 输出 relationship 格式与 `visual.copy_move` 对齐
   - `visual_finding_pipeline` 增加对 dense 方法 relationship 的归一化消费
 
-### 4. `TruFor` — 深度学习伪造检测 ✅ 接入（skip-only）
+### 4. `TruFor` — 深度学习伪造检测 ✅ 已决策接入（skip-only），待落地
 
 - **位置**：`third_party/elis/system_modules/TruFor/`
 - **决策**：
-  - ✅ **接入**，优先级 P0 第 4 位（最后）
+  - ✅ **接入方向已决策**，优先级 P0 第 4 位（最后）
   - ✅ **无 GPU 直接 skip 写入 limitations**，不实际跑推理（Q5=A）
   - ✅ 只写 adapter + 注册 tool_id + pipeline 集成
-- **落地**：
+- **计划改动**：
   - 新增 `engine/static_audit/tools/tru_for.py`
   - registry 注册 `tool_id="visual.tru_for"`，`agent_selectable=True`
   - adapter 检测 GPU 可用性：无 GPU → 返回 `_empty_result("not_available", ...)`
@@ -139,7 +141,7 @@
 
 | 维度 | 决策 |
 |---|---|
-| **GPU 策略** | 无 GPU 时 TruFor skip 写入 limitations；YOLOv5 / RootSIFT 为传统 CV，CPU 可跑 |
+| **GPU 策略** | 无 GPU 时 TruFor skip 写入 limitations；YOLOv5 可先 CPU/GPU 验证但不承诺性能；RootSIFT/MAGSAC 和 dense copy-move 优先 CPU 可跑路径 |
 | **许可证** | Veritas 不开源（内部工具），AGPL-3.0 传染性不触发；可安全使用所有 ELIS 模块 |
 | **模型权重管理** | `make download-models` Makefile target（Q10=D），与 `make sync` 分离 |
 | **失败隔离** | 重型工具失败写入 manifest + `investigation_rounds.jsonl` + 报告 limitations，不阻塞 happy path |
@@ -149,7 +151,7 @@
 
 ## 六、落地顺序与任务清单
 
-落地顺序：**先 YOLOv5 → 再 keypoint/SILA → 最后 TruFor**（Q9=A）。
+落地顺序：**先补 current visual v1 golden/失败隔离测试 → YOLOv5 → keypoint/SILA → TruFor skip-only**（Q9=A 的工程化版本）。
 
 理由：YOLOv5 改变 `PanelEvidence` schema（加 `panel_type`），下游 copy-move 和 finding pipeline 都要适配。先稳定 schema，一次改到位，避免返工。
 

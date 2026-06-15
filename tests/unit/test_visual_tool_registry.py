@@ -62,7 +62,7 @@ class TestVisualToolProperties:
         assert tool.deterministic is True
         assert tool.step_key == "visual_copy_move"
         assert "min_matches" in tool.parameter_defaults
-        assert "ransac_threshold" in tool.parameter_defaults
+        assert "min_score" in tool.parameter_defaults
 
     def test_finding_pipeline_is_report_only(self):
         tool = TOOLS[TOOL_ID_FINDING_PIPELINE]
@@ -100,44 +100,37 @@ class TestVisualToolParamCoercion:
 
     def test_copy_move_params_defaults(self):
         params = coerce_tool_params(TOOL_ID_COPY_MOVE, {})
-        assert params["method"] == "orb"
-        assert params["min_matches"] == 10
-        assert params["ratio_threshold"] == 0.75
-        assert params["ransac_threshold"] == 3.0
-        assert params["min_score"] == 0.15
+        assert params["method"] == "rootsift_magsac"
+        assert params["min_matches"] == 20
+        assert params["min_score"] == 0.05
         assert params["max_relationships"] == 500
 
     def test_copy_move_params_custom(self):
         params = coerce_tool_params(
             TOOL_ID_COPY_MOVE,
-            {"method": "sift", "min_matches": 30, "ransac_threshold": 5.0, "min_score": 0.2},
+            {"method": "rootsift_magsac", "min_matches": 30, "min_score": 0.1},
         )
-        assert params["method"] == "sift"
+        assert params["method"] == "rootsift_magsac"
         assert params["min_matches"] == 30
-        assert params["ransac_threshold"] == 5.0
-        assert params["min_score"] == 0.2
+        assert params["min_score"] == 0.1
 
     def test_copy_move_params_accept_legacy_aliases(self):
         params = coerce_tool_params(
             TOOL_ID_COPY_MOVE,
-            {"min_keypoints": 25, "min_match_distance": 4.0},
+            {"min_keypoints": 25},
         )
         assert params["min_matches"] == 25
-        assert params["ransac_threshold"] == 4.0
 
     def test_copy_move_params_validation_min_keypoints(self):
         with pytest.raises(ValueError, match="min_matches"):
             coerce_tool_params(TOOL_ID_COPY_MOVE, {"min_matches": 2})
 
         with pytest.raises(ValueError, match="min_matches"):
-            coerce_tool_params(TOOL_ID_COPY_MOVE, {"min_matches": 150})
+            coerce_tool_params(TOOL_ID_COPY_MOVE, {"min_matches": 250})
 
-    def test_copy_move_params_validation_min_match_distance(self):
-        with pytest.raises(ValueError, match="ransac_threshold"):
-            coerce_tool_params(TOOL_ID_COPY_MOVE, {"ransac_threshold": 0.1})
-
-        with pytest.raises(ValueError, match="ransac_threshold"):
-            coerce_tool_params(TOOL_ID_COPY_MOVE, {"ransac_threshold": 150.0})
+    def test_copy_move_params_validation_method(self):
+        with pytest.raises(ValueError, match="method"):
+            coerce_tool_params(TOOL_ID_COPY_MOVE, {"method": "orb"})
 
     def test_finding_pipeline_params_empty(self):
         params = coerce_tool_params(TOOL_ID_FINDING_PIPELINE, {})

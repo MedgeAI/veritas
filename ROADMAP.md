@@ -1,6 +1,6 @@
 # Veritas Roadmap
 
-Updated: 2026-06-12
+Updated: 2026-06-15
 
 Veritas 当前定位是投稿前的实验室内部论文风控工具，先聚焦干实验论文，帮助 PI 在投稿前发现 Source Data、图像、claim/evidence 对账和材料完整性上的高风险信号。它不是最终科研诚信裁决系统，也不是论文价值评价工具。
 
@@ -48,7 +48,7 @@ Veritas 当前定位是投稿前的实验室内部论文风控工具，先聚焦
 - `precheck` / `run` / `report` 和 subprocess runtime 已有基础能力，但 claim-to-code/runtime replay 还不是 `audit-paper` 稳定主链路。
 - VLM 批量图表初筛当前在 `audit-paper` 中仍是 skipped 状态。
 - TruFor、CBIR/Milvus、跨论文检索还不是稳定主链路。
-- 视觉取证已形成代码闭环，但真实撤稿论文 fixture、精度评估和误报基线还没有达到 PRD 中的产品验收标准。
+- 视觉取证已形成 first-party beta 代码闭环，但当前底层仍是 OpenCV panel extraction 与 ORB/SIFT copy-move 过渡实现；真实撤稿论文 fixture、精度评估和误报基线还没有达到 PRD 中的产品验收标准。
 - Web P1 是内测 operator 工作台，不是完整 SaaS、多租户任务系统、远程 worker 集群或协作审阅平台。
 
 ---
@@ -110,11 +110,13 @@ Now
 - `visual.finding_pipeline` report-only aggregation tool。
 - `visual_evidence.json`、`panel_evidence.json`、`image_relationships.json`、`visual_findings.json` canonical artifacts。
 - HTML Visual Evidence Package 和 Web Visual Forensics Gallery。
+- 当前算法基线：`visual.panel_extraction` 使用 OpenCV/Canny/contour 启发式，`visual.copy_move` 使用 ORB/SIFT + BFMatcher + RANSAC，并由 AgentInvestigationPlanner 可选触发。
+- 已决策但未落地：ELIS YOLOv5 panel-extractor、RootSIFT/MAGSAC keypoint copy-move、SILA dense copy-move、TruFor skip/adapter、CBIR/Milvus。
 
 ### Must Have
 
-- Panel extraction 在清晰多 panel 图上达到可演示准确率。
-- Copy-move 检测输出 overlay、method、score、inlier count、relationship source type。
+- Current visual v1 在清晰多 panel 图上能产出可复核 panel artifacts，并明确 fallback limitations。
+- Copy-move 检测输出 overlay、method、score、inlier count、relationship source type；如果 Agent 未选择 `visual.copy_move`，报告必须清楚显示该检查未执行。
 - exact duplicate、dHash、copy-move 都能统一映射到 panel-level `image_relationship`。
 - 每个 visual finding 都回链到 panel id、原始 figure、工具输出和人工复核问题。
 - 视觉工具失败时写入 skipped/not_available/failed，不影响基础报告。
@@ -218,9 +220,10 @@ Now
 
 ### Candidate Capabilities
 
-- TruFor heatmap：只作为伪造区域初筛，不作为最终证据。
+- TruFor heatmap：只作为伪造区域初筛，不作为最终证据；无 GPU 或模型不可用时应 skip 并写 limitations。
 - CBIR/Milvus：优先 single-paper internal similarity，再考虑跨论文检索。
-- YOLO-style panel extraction：仅当传统 CV 在真实样本准确率不足时再评估。
+- YOLOv5/ELIS panel extraction：已决策作为下一步 adapter 路线，用于替换当前 OpenCV 过渡实现。
+- RootSIFT/MAGSAC 和 dense copy-move：已决策作为下一步 adapter 路线，用于替换或增强当前 ORB/SIFT 过渡实现。
 - VLM visual triage：描述视觉事实和排序人工复核优先级，不输出最终判断。
 
 ### Decision Gates
@@ -252,4 +255,3 @@ Now
 - Consistency First：一致性问题优先级高于 matching 和 completeness。
 - Human Review Always：高风险候选必须给人工复核问题和良性解释，不做最终裁决。
 - Fail Isolated：重型视觉、VLM、runtime、外部服务失败必须被记录，但不能破坏基础报告。
-

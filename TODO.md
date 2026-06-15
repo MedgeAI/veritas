@@ -1,6 +1,6 @@
 # Veritas 当前 TODO
 
-更新时间：2026-06-15（鉴权子资源隔离修复；视觉取证 Phase 1 + ELIS 调研记录保留）
+更新时间：2026-06-15（根目录文档校准；视觉 v1 当前状态与 ELIS adapter 路线拆分）
 
 ## 产品定位（最新）
 
@@ -26,6 +26,12 @@
 
 最新产品阶段已经从"老板演示 demo"推进到"内测 happy path"。因此下一阶段允许借鉴并接入 ELIS (Scientific Integrity System) 的完整图像取证思路，包括 PDF 图片提取、panel 拆分、copy-move、TruFor、CBIR/Milvus 和可视化证据包；但这些能力必须先通过 Veritas adapter、Tool Registry 和 runtime 接口进入，不得直接把 ELIS FastAPI/Celery/MongoDB/Redis/Web UI 主服务变成 Veritas 主链路。
 
+当前代码事实：
+
+- 已落地：canonical visual schema/artifacts、OpenCV panel extraction、ORB/SIFT copy-move、visual finding pipeline、HTML Visual Evidence Package、Web Visual Forensics Gallery。
+- 未落地：ELIS YOLOv5 panel-extractor、RootSIFT/MAGSAC keypoint copy-move、SILA dense copy-move、TruFor adapter、CBIR/Milvus adapter。
+- 后续文档和代码评审必须区分“已决策接入”和“已稳定落地”，不能把 ELIS 能力写成当前可用主链路。
+
 当前原则：
 
 - 真实论文 case 只能作为 fixture，不得成为默认逻辑。
@@ -48,7 +54,8 @@
 - ✅ **YOLOv5 panel-extractor API 分析完成**：主入口 `from extract import run`，输出 CSV + 裁剪图像，5 个类别（Blots、Graphs、Microscopy、Body Imagery、Flow Cytometry）。
 - ✅ **模型下载脚本创建**：`scripts/download_panel_extraction_models.sh`，Makefile target `make download-models`。
 - ✅ **决策文档更新**：`README.md`、`AGENTS.md`、`TODO.md` 记录 ELIS 复用决策。
-- **下一步**：在有 GPU 的机器上下载模型权重，编写 YOLOv5 adapter，删除 OpenCV 代码路径。
+- ⚠️ **状态校准**：上述是复用和替换决策，不代表 ELIS adapter 已经进入主链路。当前 `visual.panel_extraction` 仍是 OpenCV 过渡实现，`visual.copy_move` 仍是 ORB/SIFT 过渡实现。
+- **下一步**：补 visual v1 golden/失败隔离测试；在有 GPU 或可控模型环境的机器上下载模型权重，编写 YOLOv5 adapter，完成 registry/fixture/report 消费后再删除 OpenCV 代码路径。
 
 ### 2026-06-15: Web 鉴权系统 hardening
 
@@ -71,9 +78,9 @@
 - ✅ 合成 Fixture：5 个 fixture（clean + 4 种 copy 类型）+ 10 fixture validation tests
 - ✅ 依赖管理：`pyproject.toml` 添加 Pillow、opencv-python-headless、scikit-image
 
-**ELIS 仓库调研**（完成分析报告）：
+**ELIS 仓库调研**（完成分析报告；部分旧许可证结论已被 2026-06-15 内部工具决策覆盖）：
 - ✅ 分析 9 个 submodule：panel-extractor (YOLO)、TruFor、copy-move (dense/keypoint)、CBIR、provenance、pdf-extractor、watermark-removal、elis-frontend
-- ✅ 许可证评估：ELIS 主仓库 AGPLv3（不能用）、YOLO AGPL-3.0（不能用）、TruFor BSD（可以用）
+- ✅ 许可证评估更新：Veritas 当前按内部不开源工具处理，AGPL 传染性不触发；仍需保留部署、数据边界和未来开源风险说明。
 - ✅ 技术架构设计：本地 CPU + 远程 GPU 混合架构（SSH + Docker 调用）
 - ✅ 调研 PRD：`docs/product/Veritas-视觉取证增强调研PRD-ELIS超集方案.md`
 - ✅ 关键发现：传统 CV 假阳性高（panel extraction ~60%），需要引入深度学习模型（RT-DETR、TruFor）
@@ -112,24 +119,25 @@
 
 ### 当前决策（2026-06-15）
 
-- 视觉取证部分先不继续补丁式修复；后续按重做方案重新评估 schema、tool、report 和 Web gallery 的边界。
+- 视觉取证 current v1 已经形成代码闭环，但算法和测试不能按“可信产品级取证”合并结论；短期先补 golden smoke、strict evidence refs、失败隔离和负例测试。
+- ELIS-style 能力按 adapter 替换路线推进，不直接接入 ELIS 主服务，也不把未来工具写成当前稳定能力。
 - 本轮已优先完成 Web 鉴权系统 hardening：JWT 必需字段校验和 case 子资源 owner gate 已落地。
 
 ### P0: 视觉取证增强 Phase 2（深度学习 + GPU）
 
-**背景**：Phase 1 传统 CV 实现假阳性过高（panel extraction ~60%，copy-move ~30%），需要引入深度学习模型提升准确率。
+**背景**：Phase 1 传统 CV 实现是假阳性较高的过渡方案（panel extraction / copy-move 都未达到 PRD 产品验收），需要引入 ELIS-style adapter 和更强 fixture 评估。当前不要把传统 CV 结果写成最终证据。
 
 **目标**：实现 ELIS 超集，panel extraction 准确率 >85%，copy-move 假阳性 <15%，新增 TruFor 伪造检测。
 
-**技术方案**：本地 CPU + 远程 GPU 混合架构
-- Layer 1: 传统 CV（本地 CPU，fallback）
-- Layer 2: 深度学习（远程 GPU，YOLO/RT-DETR + TruFor）
-- Layer 3: 向量检索（独立服务，CBIR/Milvus）
+**技术方案**：adapter-first，本地 CPU + 远程 GPU 混合架构
+- Layer 1: 当前传统 CV 只作为迁移期 baseline，不作为长期 fallback 承诺。
+- Layer 2: 深度学习/ELIS adapter（YOLOv5 panel-extractor、TruFor；无 GPU 时 skip 写 limitations）。
+- Layer 3: keypoint/dense copy-move 和向量检索（RootSIFT/MAGSAC、SILA、CBIR/Milvus）。
 
 **待决策问题**（今天调研后）：
-1. **方案选择**：A. 完全自建（推荐，无 AGPL 风险）/ B. Docker 镜像复用（需检查 submodule LICENSE）/ C. 混合方案
+1. **方案选择**：adapter 包装 ELIS `system_modules`，不直接接入 ELIS 主服务；如未来开源或商业分发，再重新做许可证 gate。
 2. **GPU 访问方式**：SSH 直接调用 / HTTP API / Celery Worker
-3. **YOLO 替代品**：RT-DETR (Apache 2.0, 推荐) / Detectron2 (Apache 2.0) / YOLOv8 (AGPL, 不能用)
+3. **YOLO 替代品**：当前内部工具可评估 ELIS/YOLOv5；若未来开源或外部分发，再优先评估 RT-DETR / Detectron2 等 Apache 2.0 方案，重新做 AGPL gate。
 
 **下周实施计划**（如果选方案 A）：
 - Day 1-2: 检查 ELIS submodule 许可证 + 构建 Docker 镜像（RT-DETR、TruFor）
@@ -138,10 +146,10 @@
 - Day 7: 验证准确率 + 准备 demo
 
 **成功标准**：
-- Panel extraction 准确率：~60% → >85%
-- Copy-move 假阳性率：~30% → <15%
-- TruFor 检测率：N/A → >90%
-- Pipeline 成功率：100%（GPU 失败时 fallback 到 CPU）
+- Panel extraction：在公开/golden fixture 上达到约定 bbox/label 阈值，且 fallback 不伪装成成功。
+- Copy-move：clean 负例、同图/跨图正例、缩放/亮度/旋转等 fixture 有明确命中和误报记录。
+- TruFor：无 GPU/模型时返回 `not_available` 并写 manifest、limitations、report；有 GPU 时再评估检测率。
+- Pipeline 成功率：重型工具失败隔离，基础报告仍生成。
 
 ### P0: ELIS-style 图像取证栈内测闭环（原计划，已被 Phase 2 覆盖）
 

@@ -1,8 +1,11 @@
 # Test Audit: Visual Forensics / Agent / Source Data Changes
 
 审计日期：2026-06-15
+状态校准：2026-06-15 根目录文档更新时复核，本文件是一次测试可信度审计记录，不是当前全部测试的最新运行报告。下面的 154 passed 只对应当时列出的目标命令；当前验证仍应以 `make test` / `make lint-python` 为准。
 
 范围：当前工作区 staged/untracked 改动中的测试可信度审计，重点包括视觉取证 schema/tool/orchestrator/report/Web、Agent context/runner、Source Data pair forensics 和相关 CLI/registry 测试。
+
+当前代码事实：canonical visual artifacts 和 Web Gallery 已进入主链路，但底层 panel extraction / copy-move 仍是 OpenCV + ORB/SIFT 过渡实现。ELIS YOLOv5、RootSIFT/MAGSAC、TruFor、CBIR 仍属于待接入 adapter 路线；本审计中的“不可按视觉取证 Phase 1 已可信完成合并”结论仍适用。
 
 验证命令：
 

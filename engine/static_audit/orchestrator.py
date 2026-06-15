@@ -50,7 +50,7 @@ from engine.static_audit.tools.paperfraud_rules import (
 from engine.static_audit.tools.panel_extraction import (
     build_figure_evidence_from_images,
     build_figure_evidence_from_ledger,
-    extract_panels,
+    extract_panels_batch,
     whole_figure_panel,
 )
 from engine.static_audit.tools.visual_finding_pipeline import (
@@ -978,35 +978,44 @@ def run_visual_panel_extraction(
     if not figures:
         limitations.append("No extracted figure images were available for panel extraction.")
 
+    # Collect (figure_id, absolute_image_path) pairs for figures that exist on disk
+    figure_path_pairs: list[tuple[str, Path]] = []
+    figure_by_id: dict[str, dict[str, Any]] = {}
     for figure in figures:
+        fid = str(figure.get("figure_id") or "")
+        figure_by_id[fid] = figure
         source_path = _resolve_workdir_path(workdir, str(figure.get("source_image_path") or ""))
         if source_path is None:
             errors.append(f"Figure image not found: {figure.get('source_image_path')}")
             extraction_statuses.append("failed")
             continue
+        figure_path_pairs.append((fid, source_path))
 
-        result = extract_panels(source_path, figure_id=str(figure.get("figure_id") or ""), output_dir=workdir)
-        extraction_statuses.append(str(result.get("status") or "skipped"))
-        errors.extend(str(item) for item in (result.get("errors") or []))
-        limitations.extend(str(item) for item in (result.get("limitations") or []))
+    # Batch YOLOv5 panel extraction — single subprocess call for all figures
+    if figure_path_pairs:
+        batch_panels = extract_panels_batch(figure_path_pairs, output_dir=workdir)
+        extraction_statuses.append("ran" if any(batch_panels.values()) else "skipped")
+    else:
+        batch_panels = {}
 
-        result_panels = [item for item in (result.get("panels") or []) if isinstance(item, dict)]
+    # Distribute panels to figures; fallback for figures with zero panels
+    for fid, source_path in figure_path_pairs:
+        figure = figure_by_id.get(fid)
+        if figure is None:
+            continue
+        result_panels = batch_panels.get(fid, [])
         if not result_panels:
             fallback_panel = whole_figure_panel(figure, workdir=workdir, output_dir=workdir)
             if fallback_panel:
                 result_panels = [fallback_panel]
                 limitations.append(
-                    f"{figure.get('figure_id')}: contour panel extraction did not emit panels; whole-figure fallback panel was created."
+                    f"{fid}: YOLOv5 panel extraction did not detect panels; whole-figure fallback panel was created."
                 )
 
         panels.extend(result_panels)
         figure["panel_count"] = len(result_panels)
-        if result.get("figure_evidence"):
-            extracted_figure = result["figure_evidence"]
-            figure["width"] = figure.get("width") or extracted_figure.get("width")
-            figure["height"] = figure.get("height") or extracted_figure.get("height")
-            metadata = figure.get("metadata") if isinstance(figure.get("metadata"), dict) else {}
-            figure["metadata"] = {**metadata, "panel_extraction_status": result.get("status")}
+        metadata = figure.get("metadata") if isinstance(figure.get("metadata"), dict) else {}
+        figure["metadata"] = {**metadata, "panel_extraction_status": "ran" if result_panels else "skipped"}
 
     status = "ran" if figures else "skipped"
     if figures and not panels:
@@ -1538,15 +1547,11 @@ def run_investigation_tool_action(
             "--workdir",
             str(workdir),
             "--method",
-            str(params.get("method", "orb")),
+            str(params.get("method", "rootsift_magsac")),
             "--min-matches",
-            str(params.get("min_matches", 10)),
-            "--ratio-threshold",
-            str(params.get("ratio_threshold", 0.75)),
-            "--ransac-threshold",
-            str(params.get("ransac_threshold", 3.0)),
+            str(params.get("min_matches", 20)),
             "--min-score",
-            str(params.get("min_score", 0.15)),
+            str(params.get("min_score", 0.05)),
             "--max-relationships",
             str(params.get("max_relationships", 500)),
         ]
@@ -2266,7 +2271,7 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
             )
 
     visual_evidence = read_json(resolve_artifact_path(workdir, "visual_evidence.json")) or {}
-    for figure in (visual_evidence.get("figures") or [])[:200]:
+    for figure in visual_evidence.get("figures") or []:
         if not isinstance(figure, dict):
             continue
         figure_id = str(figure.get("figure_id") or "")
@@ -2289,7 +2294,7 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
         )
 
     panel_evidence = read_json(resolve_artifact_path(workdir, "panel_evidence.json")) or {}
-    for panel in (panel_evidence.get("panels") or [])[:1000]:
+    for panel in panel_evidence.get("panels") or []:
         if not isinstance(panel, dict):
             continue
         panel_id = str(panel.get("panel_id") or "")

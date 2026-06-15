@@ -314,17 +314,31 @@ class TestImageRelationship:
         assert any("score" in e for e in errors)
 
     def test_image_relationship_same_panels(self):
-        """Source and target panels must be different."""
+        """Source and target panels must be different, except for copy_move_single."""
+        # copy_move_single allows same panel (within-panel detection)
         rel = ImageRelationship(
             relationship_id="IR-0001",
             source_type="copy_move_single",
             source_panel_id="PE-0001-01",
-            target_panel_id="PE-0001-01",  # Same as source
+            target_panel_id="PE-0001-01",
             score=0.75,
-            match_method="orb_ransac",
+            match_method="rootsift_magsac_single",
             inlier_count=25,
         )
         errors = rel.validate()
+        assert not any("different" in e for e in errors)
+
+        # copy_move_cross with same panels should fail
+        rel_cross = ImageRelationship(
+            relationship_id="IR-0002",
+            source_type="copy_move_cross",
+            source_panel_id="PE-0001-01",
+            target_panel_id="PE-0001-01",
+            score=0.75,
+            match_method="rootsift_magsac_cross",
+            inlier_count=25,
+        )
+        errors = rel_cross.validate()
         assert any("different" in e for e in errors)
 
     def test_image_relationship_invalid_homography(self):

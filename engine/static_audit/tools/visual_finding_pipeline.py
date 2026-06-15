@@ -125,6 +125,7 @@ def _load_copy_move_relationships(
             "inlier_count": int(item.get("inlier_count", 0) or 0),
             "homography": _optional_list(item.get("homography")),
             "overlay_path": _optional_str(item.get("overlay_path")),
+            "flip_detected": bool(item.get("flip_detected", False)),
         })
     return out
 
@@ -271,6 +272,7 @@ def build_relationships(
         inlier_count: int = 0,
         homography: list | None = None,
         overlay_path: str | None = None,
+        flip_detected: bool = False,
     ) -> dict:
         nonlocal counter
         counter += 1
@@ -284,6 +286,7 @@ def build_relationships(
             "inlier_count": inlier_count,
             "homography": homography,
             "overlay_path": overlay_path,
+            "flip_detected": flip_detected,
             "metadata": {},
         }
 
@@ -306,9 +309,15 @@ def build_relationships(
     # Pass 2: copy-move relationships
     for rel in cm_rels:
         src, tgt = rel["source_panel_id"], rel["target_panel_id"]
-        if not src or not tgt or src == tgt:
+        if not src or not tgt:
             continue
-        pk = _pair_key(src, tgt)
+        # copy_move_single allows source == target (within-panel detection)
+        is_single = rel.get("source_type") == "copy_move_single"
+        if not is_single and src == tgt:
+            continue
+        # Use frozenset for cross-type dedup (same pair across copy-move/dhash/exact)
+        # For single-image (src==tgt), use a special key that won't collide
+        pk = _pair_key(src, tgt) if src != tgt else ("__single__", src)
         if pk in seen_pairs:
             continue
         seen_pairs.add(pk)
@@ -319,6 +328,7 @@ def build_relationships(
             inlier_count=rel.get("inlier_count", 0),
             homography=rel.get("homography"),
             overlay_path=rel.get("overlay_path"),
+            flip_detected=rel.get("flip_detected", False),
         ))
 
     # Pass 3: dHash candidates
@@ -478,6 +488,12 @@ def build_visual_findings(
         questions = list(MANUAL_REVIEW_QUESTIONS[source_type])
         summary = _generate_summary(source_type, src, tgt)
 
+        # Flip detection: add review question if horizontal flip detected
+        flip_detected = bool(rel.get("flip_detected", False))
+        if flip_detected:
+            questions.append("检测到水平翻转复制 — 请核实是否为正常实验对称性或镜像操作。")
+            summary += " [FLIP DETECTED]"
+
         # Language compliance: drop finding if any text violates
         all_text = [summary] + benign + questions
         violated = False
@@ -517,6 +533,7 @@ def build_visual_findings(
             "metadata": {
                 "match_method": rel.get("match_method", ""),
                 "inlier_count": rel.get("inlier_count", 0),
+                "flip_detected": flip_detected,
                 "raw_score": raw_score,
                 "normalized_score": score,
                 "displayed_score": displayed_score,

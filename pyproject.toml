@@ -15,6 +15,11 @@ dependencies = [
     "Pillow>=10.0.0",
     "opencv-python-headless>=4.8.0",
     "scikit-image>=0.21.0",
+    "torch>=2.0.0",
+    "torchvision>=0.15.0",
+    "gdown>=5.2.0",
+    "scikit-learn>=1.0.0",
+    "scipy>=1.7.0",
 ]
 
 [project.scripts]
@@ -42,3 +47,12 @@ dev = [
     "pytest>=9.0.3",
     "ruff>=0.15.17",
 ]
+
+[[tool.uv.index]]
+name = "pytorch-cu121"
+url = "https://download.pytorch.org/whl/cu121"
+explicit = true
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu121" }
+torchvision = { index = "pytorch-cu121" }

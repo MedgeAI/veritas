@@ -234,7 +234,7 @@ TOOLS: dict[str, ToolDefinition] = {
         step_key="visual_panel_extraction",
         title="图片 Panel 拆分",
         source="engine/static_audit/tools",
-        description="Extract individual panels from composite figures using layout heuristics.",
+        description="Extract individual panels from composite figures using YOLOv5 object detection with semantic classification.",
         expected_outputs=("visual/evidence.json", "visual/panel_evidence.json"),
         execution_phase=EXECUTION_PHASE_MANDATORY_BOOTSTRAP,
         agent_selectable=False,
@@ -246,24 +246,20 @@ TOOLS: dict[str, ToolDefinition] = {
         step_key="visual_copy_move",
         title="图片 Copy-Move 检测",
         source="engine/static_audit/tools",
-        description="Detect copy-move forgery within images using dense keypoint matching.",
+        description="Detect copy-move forgery within and across panels using RootSIFT+MAGSAC++ keypoint matching.",
         expected_outputs=("visual/copy_move.json",),
         parameter_defaults={
-            "method": "orb",
-            "min_matches": 10,
-            "ratio_threshold": 0.75,
-            "ransac_threshold": 3.0,
-            "min_score": 0.15,
+            "method": "rootsift_magsac",
+            "min_matches": 20,
+            "min_score": 0.05,
             "max_relationships": 500,
         },
         agent_selectable=True,
         input_artifacts=("visual/panel_evidence.json", "visual/evidence.json"),
         output_artifacts=("visual/copy_move.json",),
         param_schema={
-            "method": {"type": "string", "enum": ["orb", "sift"]},
-            "min_matches": {"type": "integer", "minimum": 4, "maximum": 100},
-            "ratio_threshold": {"type": "number", "minimum": 0.40, "maximum": 0.95},
-            "ransac_threshold": {"type": "number", "minimum": 0.5, "maximum": 20.0},
+            "method": {"type": "string", "enum": ["rootsift_magsac"]},
+            "min_matches": {"type": "integer", "minimum": 4, "maximum": 200},
             "min_score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
             "max_relationships": {"type": "integer", "minimum": 1, "maximum": 5000},
         },
@@ -531,31 +527,19 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
         return {}
     if tool_id == TOOL_ID_COPY_MOVE:
         defaults = TOOLS[tool_id].parameter_defaults
-        method = str(params.get("method", defaults.get("method", "orb"))).lower()
-        if method not in {"orb", "sift"}:
-            raise ValueError(f"method must be one of ['orb', 'sift'], got {method!r}")
+        method = str(params.get("method", defaults.get("method", "rootsift_magsac"))).lower()
+        if method not in {"rootsift_magsac"}:
+            raise ValueError(f"method must be 'rootsift_magsac', got {method!r}")
         return {
             "method": method,
             "min_matches": _bounded_int(
-                params.get("min_matches", params.get("min_keypoints", defaults.get("min_matches", 10))),
+                params.get("min_matches", params.get("min_keypoints", defaults.get("min_matches", 20))),
                 "min_matches",
                 4,
-                100,
-            ),
-            "ratio_threshold": _bounded_float(
-                params.get("ratio_threshold", defaults.get("ratio_threshold", 0.75)),
-                "ratio_threshold",
-                0.40,
-                0.95,
-            ),
-            "ransac_threshold": _bounded_float(
-                params.get("ransac_threshold", params.get("min_match_distance", defaults.get("ransac_threshold", 3.0))),
-                "ransac_threshold",
-                0.5,
-                20.0,
+                200,
             ),
             "min_score": _bounded_float(
-                params.get("min_score", defaults.get("min_score", 0.15)),
+                params.get("min_score", defaults.get("min_score", 0.05)),
                 "min_score",
                 0.0,
                 1.0,

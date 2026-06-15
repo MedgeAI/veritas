@@ -120,6 +120,14 @@ Agent 调用层最新状态：`engine/investigation/context_pack.py` 为 materia
 
 老板演示 demo 已完成。最新决策：下一阶段面向内测 happy path，允许完整借鉴 ELIS (Scientific Integrity System) 的图像取证栈，优先增强静态审查的视觉证据能力。
 
+当前代码状态需要区分清楚：
+
+- 已落地：canonical `figure_evidence` / `panel_evidence` / `visual_finding` / `image_relationship` schema、`visual.panel_extraction`、`visual.copy_move`、`visual.finding_pipeline`、HTML Visual Evidence Package 和 Web Visual Forensics Gallery。
+- 当前 `visual.panel_extraction` 仍是 first-party OpenCV/Canny/contour 启发式实现，失败时会创建 whole-figure fallback panel。
+- 当前 `visual.copy_move` 仍是 first-party ORB/SIFT + BFMatcher + RANSAC 实现，由 AgentInvestigationPlanner 可选触发；不是固定 baseline。
+- 已决策但未落地：用 ELIS `panel-extractor` / RootSIFT+MAGSAC++ / SILA dense copy-move / TruFor / CBIR 等 adapter 替换或增强现有传统 CV 路径。
+- 文档中提到的 TruFor、CBIR/Milvus、YOLOv5/RootSIFT 能力在进入 `engine/tools/registry.py` 并产出 fixture-backed artifact 前，不得写成稳定主链路。
+
 目标能力：
 
 ```text
@@ -147,8 +155,8 @@ PDF / MinerU images
 **ELIS 复用决策（2026-06-15）**：
 
 - **Veritas 不开源（内部工具）**：AGPL-3.0 传染性不触发，可安全使用所有 ELIS 模块。
-- **直接复用 ELIS `system_modules`**：panel-extractor（YOLOv5）、copy-move-detection（RootSIFT+MAGSAC++）、TruFor、CBIR 等。
-- **删除传统 CV 实现**：OpenCV panel extraction 和 ORB copy-move 效果差，不保留 fallback。
+- **以 adapter 方式复用 ELIS `system_modules`**：panel-extractor（YOLOv5）、copy-move-detection（RootSIFT+MAGSAC++ / dense）、TruFor、CBIR 等。
+- **替换传统 CV 实现是下一步工程任务**：OpenCV panel extraction 和 ORB copy-move 是当前过渡实现；完成 ELIS adapter、registry、fixture 和报告消费后再删除，不在文档中假装已经删除。
 - **详见 [`ELIS_REUSE_DECISIONS.md`](ELIS_REUSE_DECISIONS.md)**。
 
 ## 当前 1 周 Demo 方向
@@ -185,7 +193,7 @@ veritas.yml / veritas.json
 6. `configs/methodology/`
 7. `engine/tools/registry.py`
 
-`docs/` 现在作为产品、开发和决策文档进入仓库。后续 Agent 应优先读取相关 `docs/product/` 和 `docs/development/` 文档，但不要把真实论文、真实运行产物或密钥写入 `docs/`。
+`docs/` 是产品、开发和决策文档的工作区；当前 `.gitignore` 仍默认忽略新文件，只有显式纳入版本控制的文档才可假设存在。后续 Agent 可优先读取相关 `docs/product/` 和 `docs/development/` 文档辅助判断，但不要让提交版功能依赖未跟踪的本地 docs，也不要把真实论文、真实运行产物或密钥写入 `docs/`。
 
 如果要修改 opencode 论文审查上下文、skill 或领域先验，先读：
 
@@ -372,7 +380,7 @@ tests/        单测、集成测试和 e2e 测试
 
 - `input/`、`outputs/`、`web_data/`、`web/frontend/dist/`、`web/frontend/node_modules/` 和 `.env*` 默认是本地输入、运行产物、构建产物或密钥，不要提交。
 - `.gitmodules` 和 `third_party/` 通过 git submodule 跟踪，commit hash 锁定；升级必须由维护者显式 `git submodule update --remote` 后 commit 新 gitlink，走 PR review。新人 `git clone --recursive` 即可完整还原。
-- `docs/` 当前仍为本地工作文档，不提交。
+- `docs/` 当前是维护型文档工作区，但 `.gitignore` 默认忽略新文件；只有显式跟踪的文档才进入提交。重要产品边界和工程约束必须同步到根目录文档或 `configs/`，不能只存在本地 docs。
 - 真实论文、真实运行产物和密钥不能写入 `docs/`、报告模板或示例 fixture。
 
 ## 当前执行口径
@@ -388,11 +396,11 @@ tests/        单测、集成测试和 e2e 测试
 
 最新优先级：
 
-1. 定义 canonical `figure_evidence` / `panel_evidence` / `visual_finding` / `image_relationship` schema。
-2. 以 adapter 方式接入 ELIS-style 图像取证工具：pdf-extractor、panel-extractor、copy-move、TruFor、CBIR/Milvus。
-3. 将 ELIS-style 工具注册进 Tool Registry，并接入 AgentInvestigationPlanner。
-4. HTML 报告增加视觉证据包和人工复核 checklist。
-5. 把 investigation 追加产物并入 canonical finding/evidence 图。
+1. 稳定当前 `audit-paper` happy path，确保 Source Data、PaperFraud rule match、visual artifacts、Agent roles 和 HTML 报告可重复产出。
+2. 补强 visual v1 的 fixture/golden 测试，尤其是 panel ground truth、copy-move 负例、失败隔离和 strict evidence refs。
+3. 以 adapter 方式接入 ELIS-style 图像取证工具：pdf-extractor、panel-extractor、copy-move keypoint/dense、TruFor、CBIR/Milvus。
+4. 将 ELIS-style 工具注册进 Tool Registry，并接入 AgentInvestigationPlanner；所有输出必须回链到 canonical figure/panel ids。
+5. 把 investigation 追加产物并入 canonical finding/evidence 图，明确去重、优先级和 report limitations。
 6. 验证 opencode SDK / opencode 风格 Agent 能否接入 claim-to-code mapping。
 7. 定义 `veritas.yml` schema，YAML 主、JSON 兼容。
 8. 增强 subprocess runtime，产出结构化 execution evidence。

@@ -54,3 +54,6 @@ docs/
 
 # Conversation handoff files are local working material
 *-handoff.md
+
+# Model weights (binary artifacts, download separately)
+models/

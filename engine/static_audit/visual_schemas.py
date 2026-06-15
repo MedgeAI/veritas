@@ -123,9 +123,12 @@ class PanelEvidence:
         width: Panel width in pixels
         height: Panel height in pixels
         extraction_confidence: Confidence score 0.0-1.0 from extraction algorithm
-        extraction_method: Method used, e.g. "contour_edge_detection"
+        extraction_method: Method used, e.g. "yolov5_panel_extractor"
+        panel_type: Semantic panel type from YOLOv5 classifier (e.g. "Blots", "Graphs")
         metadata: Additional provenance or extraction metadata
     """
+    PANEL_TYPES = ("Blots", "Graphs", "Microscopy", "Body Imagery", "Flow Cytometry")
+
     panel_id: str
     parent_figure_id: str
     label: str
@@ -135,6 +138,7 @@ class PanelEvidence:
     height: int
     extraction_confidence: float
     extraction_method: str
+    panel_type: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -171,6 +175,10 @@ class PanelEvidence:
         if not 0.0 <= self.extraction_confidence <= 1.0:
             errors.append(
                 f"extraction_confidence must be in [0.0, 1.0], got {self.extraction_confidence}"
+            )
+        if self.panel_type is not None and self.panel_type not in self.PANEL_TYPES:
+            errors.append(
+                f"panel_type must be one of {self.PANEL_TYPES}, got {self.panel_type!r}"
             )
         return errors
 
@@ -268,10 +276,11 @@ class ImageRelationship:
         source_panel_id: Reference to source PanelEvidence.panel_id
         target_panel_id: Reference to target PanelEvidence.panel_id
         score: Confidence score 0.0-1.0
-        match_method: Method used, e.g. "orb_ransac", "sift_ransac"
-        inlier_count: Number of inlier matches from RANSAC
+        match_method: Method used, e.g. "rootsift_magsac_single", "rootsift_magsac_cross"
+        inlier_count: Number of inlier matches from geometric verification
         homography: 3x3 homography matrix, or None
         overlay_path: Relative path to overlay visualization, or None
+        flip_detected: Whether horizontal flip was detected (cross-image only)
         metadata: Additional provenance or analysis metadata
     """
     relationship_id: str
@@ -289,6 +298,7 @@ class ImageRelationship:
     inlier_count: int
     homography: list[list[float]] | None = None
     overlay_path: str | None = None
+    flip_detected: bool = False
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -314,8 +324,8 @@ class ImageRelationship:
             errors.append("source_panel_id is required")
         if not self.target_panel_id:
             errors.append("target_panel_id is required")
-        if self.source_panel_id == self.target_panel_id:
-            errors.append("source_panel_id and target_panel_id must be different")
+        if self.source_panel_id == self.target_panel_id and self.source_type != "copy_move_single":
+            errors.append("source_panel_id and target_panel_id must be different (unless copy_move_single)")
         if not 0.0 <= self.score <= 1.0:
             errors.append(f"score must be in [0.0, 1.0], got {self.score}")
         if not self.match_method:

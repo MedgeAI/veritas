@@ -1,475 +1,372 @@
-"""Panel extraction tool using traditional CV (OpenCV).
+"""Panel extraction tool using YOLOv5 object detection.
 
-This module implements panel extraction from figure images using contour-based
-edge detection. It detects multi-panel figures and extracts individual panels
-with bounding boxes, labels, and crop paths.
+This module extracts individual panels from composite scientific figure images
+by calling the ELIS panel-extractor (YOLOv5) via subprocess.  It replaces the
+previous OpenCV contour-based approach with learned panel detection and
+semantic classification (Blots, Graphs, Microscopy, Body Imagery).
 
-Algorithm:
-1. Grayscale conversion
-2. Gaussian blur to reduce noise
-3. Canny edge detection (adaptive thresholds)
-4. Morphological close to connect broken edges
-5. Contour detection (RETR_EXTERNAL)
-6. Contour filtering (area, aspect ratio, extent)
-7. Panel labeling (top-to-bottom, left-to-right)
-8. Crop extraction and saving
+Architecture:
+  Veritas orchestrator
+    → extract_panels_batch() — single subprocess call with all images
+    → ELIS panel-extractor (YOLOv5) — model loads once, processes all images
+    → PANELS.csv — one row per detected panel
+    → _parse_yolov5_csv() — convert to PanelEvidence schema
+    → visual_evidence.json + panel_evidence.json
+
+When YOLOv5 detects zero panels for a figure, the orchestrator falls back to
+whole_figure_panel() which creates a single panel covering the entire image.
 """
 
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import shutil
+import subprocess
+import sys
 from pathlib import Path
 from typing import Any
 
-try:  # pragma: no cover - exercised through not_available paths when absent
-    import cv2
-    import numpy as np
-    from PIL import Image
-except ImportError:  # pragma: no cover
-    cv2 = None  # type: ignore[assignment]
-    np = None  # type: ignore[assignment]
-    Image = None  # type: ignore[assignment]
+from PIL import Image
 
-from engine.static_audit.visual_constants import PANEL_EXTRACTION_DEFAULTS
 from engine.static_audit.visual_schemas import FigureEvidence, PanelEvidence, VISUAL_SCHEMA_VERSION
 
+# ---------------------------------------------------------------------------
+# Paths
+# ---------------------------------------------------------------------------
 
-def detect_edges(image: np.ndarray) -> np.ndarray:
-    """Detect edges using Canny with adaptive thresholds.
+_REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+ELIS_PANEL_EXTRACTOR = _REPO_ROOT / "third_party" / "elis" / "system_modules" / "panel-extractor"
+DEFAULT_WEIGHTS = _REPO_ROOT / "models" / "panel_extraction" / "model_4_class.pt"
 
-    Args:
-        image: Input image (BGR or grayscale)
-
-    Returns:
-        Edge map
-    """
-    if len(image.shape) == 3:
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    else:
-        gray = image
-
-    # Apply Gaussian blur to reduce noise
-    blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-
-    # Compute adaptive thresholds based on median gradient
-    median = np.median(blurred)
-    lower = int(max(0, (1.0 - 0.33) * median))
-    upper = int(min(255, (1.0 + 0.33) * median))
-
-    # Fallback to fixed thresholds if median is too low or too high
-    if lower < 10 or upper > 245:
-        lower, upper = 50, 150
-
-    # Apply Canny edge detection
-    edges = cv2.Canny(blurred, lower, upper)
-
-    return edges
+EXTRACTION_METHOD_YOLOV5 = "yolov5_panel_extractor"
+EXTRACTION_METHOD_FALLBACK = "whole_figure_fallback"
 
 
-def _adaptive_kernel_size(image_shape: tuple[int, int]) -> int:
-    """Compute morphological kernel size from image dimensions.
-
-    The kernel must be smaller than the expected gap between panels so that
-    morphological closing connects broken edges within a panel without merging
-    adjacent panels.  Using 1/50 of the shorter side, clamped to [5, 15],
-    gives a reasonable default for typical figure layouts.
-
-    Args:
-        image_shape: Image shape (height, width).
-
-    Returns:
-        Odd kernel size in pixels.
-    """
-    shorter = min(image_shape)
-    k = max(5, min(15, shorter // 50))
-    # Ensure odd size for symmetric morphology
-    return k if k % 2 == 1 else k + 1
+# ---------------------------------------------------------------------------
+# Batch YOLOv5 extraction
+# ---------------------------------------------------------------------------
 
 
-def connect_edges(edges: np.ndarray, kernel_size: int = 0) -> np.ndarray:
-    """Connect broken edges using morphological closing.
-
-    Args:
-        edges: Edge map from Canny.
-        kernel_size: Size of morphological kernel.  When 0 (default) the size
-            is chosen adaptively from the image dimensions; pass an explicit
-            value to override.
-
-    Returns:
-        Connected edge map.
-    """
-    if kernel_size <= 0:
-        kernel_size = _adaptive_kernel_size(edges.shape)
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (kernel_size, kernel_size))
-    closed = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
-    return closed
-
-
-def find_contours(connected_edges: np.ndarray) -> list[np.ndarray]:
-    """Find contours in the connected edge map.
-
-    Args:
-        connected_edges: Connected edge map
-
-    Returns:
-        List of contours
-    """
-    contours, _ = cv2.findContours(connected_edges, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    return contours
-
-
-def filter_contours(
-    contours: list[np.ndarray],
-    image_shape: tuple[int, int],
-    min_area_ratio: float = 0.05,
-    max_area_ratio: float = 0.95,
-    min_extent: float = 0.6,
-    min_aspect_ratio: float = 0.2,
-    max_aspect_ratio: float = 5.0,
-) -> list[np.ndarray]:
-    """Filter contours based on area, aspect ratio, and extent.
-
-    Args:
-        contours: List of contours
-        image_shape: Image shape (height, width)
-        min_area_ratio: Minimum panel area as fraction of image area
-        max_area_ratio: Maximum panel area as fraction of image area
-        min_extent: Minimum extent (contour area / bounding rect area)
-        min_aspect_ratio: Minimum aspect ratio (width / height)
-        max_aspect_ratio: Maximum aspect ratio (width / height)
-
-    Returns:
-        Filtered list of contours
-    """
-    image_area = image_shape[0] * image_shape[1]
-    filtered = []
-
-    for contour in contours:
-        # Compute bounding rect
-        x, y, w, h = cv2.boundingRect(contour)
-        area = w * h
-        aspect_ratio = w / h if h > 0 else 0
-
-        # Compute extent
-        contour_area = cv2.contourArea(contour)
-        extent = contour_area / area if area > 0 else 0
-
-        # Filter criteria
-        area_ratio = area / image_area
-        if min_area_ratio <= area_ratio <= max_area_ratio:
-            if extent >= min_extent:
-                if min_aspect_ratio <= aspect_ratio <= max_aspect_ratio:
-                    filtered.append(contour)
-
-    return filtered
-
-
-def _has_dominant_contour(
-    contours: list[np.ndarray],
-    image_shape: tuple[int, int],
-    threshold: float = 0.40,
-) -> bool:
-    """Return True when a single contour covers a dominant fraction of the image.
-
-    This is the hallmark signature of panels being merged by an oversized
-    morphological kernel: instead of N similarly-sized panel contours we get
-    one giant contour that swallows most of the image area.
-
-    Args:
-        contours: Filtered contours.
-        image_shape: Image shape (height, width).
-        threshold: Area ratio above which the largest contour is considered
-            dominant.
-
-    Returns:
-        True when the largest contour exceeds the threshold.
-    """
-    if not contours:
-        return False
-    image_area = image_shape[0] * image_shape[1]
-    largest = max(cv2.boundingRect(c)[2] * cv2.boundingRect(c)[3] for c in contours)
-    return (largest / image_area) > threshold
-
-
-def sort_contours_by_position(contours: list[np.ndarray]) -> list[np.ndarray]:
-    """Sort contours by position (top-to-bottom, left-to-right).
-
-    Args:
-        contours: List of contours
-
-    Returns:
-        Sorted list of contours
-    """
-    # Get bounding rects
-    rects = [cv2.boundingRect(c) for c in contours]
-
-    # Sort by y coordinate first, then x coordinate
-    sorted_contours = [c for _, c in sorted(zip(rects, contours), key=lambda x: (x[0][1], x[0][0]))]
-
-    return sorted_contours
-
-
-def assign_panel_labels(count: int) -> list[str]:
-    """Assign panel labels (a, b, c, ...).
-
-    Args:
-        count: Number of panels
-
-    Returns:
-        List of labels
-    """
-    labels = []
-    for i in range(count):
-        if i < 26:
-            labels.append(chr(ord("a") + i))
-        else:
-            # For more than 26 panels, use aa, ab, ac, ...
-            labels.append(chr(ord("a") + (i // 26) - 1) + chr(ord("a") + (i % 26)))
-    return labels
-
-
-def extract_panels(
-    figure_path: Path,
+def extract_panels_batch(
+    figure_paths: list[tuple[str, Path]],
     *,
-    figure_id: str,
     output_dir: Path,
-    min_area_ratio: float = PANEL_EXTRACTION_DEFAULTS["min_area_ratio"],
-    max_area_ratio: float = PANEL_EXTRACTION_DEFAULTS["max_area_ratio"],
-    min_extent: float = PANEL_EXTRACTION_DEFAULTS["min_extent"],
-    min_panel_count: int = PANEL_EXTRACTION_DEFAULTS["min_panel_count"],
-    max_panel_count: int = PANEL_EXTRACTION_DEFAULTS["max_panel_count"],
-) -> dict[str, Any]:
-    """Extract panels from a figure image.
+    weights_path: Path = DEFAULT_WEIGHTS,
+    device: str = "0",
+    conf_thres: float = 0.4,
+    iou_thres: float = 0.4,
+    imgsz: int = 640,
+) -> dict[str, list[dict[str, Any]]]:
+    """Run YOLOv5 panel extraction on all figures in a single subprocess.
 
     Args:
-        figure_path: Path to figure image
-        figure_id: Figure identifier
-        output_dir: Output directory for panels
-        min_area_ratio: Minimum panel area as fraction of image area
-        max_area_ratio: Maximum panel area as fraction of image area
-        min_extent: Minimum extent (contour area / bounding rect area)
-        min_panel_count: Minimum number of panels to detect
-        max_panel_count: Maximum number of panels to detect
+        figure_paths: List of (figure_id, absolute_image_path) tuples.
+        output_dir: Working directory for panel output.
+        weights_path: Path to YOLOv5 model weights.
+        device: CUDA device ('0') or 'cpu'.
+        conf_thres: Confidence threshold.
+        iou_thres: NMS IoU threshold.
+        imgsz: Inference image size.
 
     Returns:
-        Dictionary with figure_evidence and panel_evidence
+        Dict mapping figure_id → list of PanelEvidence dicts.
     """
-    if cv2 is None or np is None or Image is None:
-        return {
-            "schema_version": VISUAL_SCHEMA_VERSION,
-            "created_by": "engine/static_audit/tools/panel_extraction.py",
-            "status": "not_available",
-            "figure_id": figure_id,
-            "source_image_path": str(figure_path),
-            "panel_count": 0,
-            "panels": [],
-            "errors": ["OpenCV, NumPy, or Pillow is not installed; panel extraction was not computed."],
-            "limitations": ["Install opencv-python-headless, numpy, and Pillow to enable panel extraction."],
-        }
+    if not figure_paths:
+        return {}
 
-    # Check if image exists
-    if not figure_path.exists():
-        return {
-            "schema_version": VISUAL_SCHEMA_VERSION,
-            "created_by": "engine/static_audit/tools/panel_extraction.py",
-            "status": "failed",
-            "figure_id": figure_id,
-            "source_image_path": str(figure_path),
-            "panel_count": 0,
-            "panels": [],
-            "errors": [f"Figure image not found: {figure_path}"],
-            "limitations": [],
-        }
+    # Check prerequisites
+    extract_script = ELIS_PANEL_EXTRACTOR / "extract.py"
+    if not extract_script.is_file():
+        return {fid: [] for fid, _ in figure_paths}
+    if not weights_path.is_file():
+        return {fid: [] for fid, _ in figure_paths}
 
-    # Load image
-    image = cv2.imread(str(figure_path))
-    if image is None:
-        return {
-            "schema_version": VISUAL_SCHEMA_VERSION,
-            "created_by": "engine/static_audit/tools/panel_extraction.py",
-            "status": "failed",
-            "figure_id": figure_id,
-            "source_image_path": str(figure_path),
-            "panel_count": 0,
-            "panels": [],
-            "errors": [f"Failed to load image: {figure_path}"],
-            "limitations": [],
-        }
+    # Create batch output directory
+    batch_output = output_dir / "yolov5_batch"
+    batch_output.mkdir(parents=True, exist_ok=True)
 
-    height, width = image.shape[:2]
+    # Build command: pass all image paths to a single YOLOv5 invocation
+    input_paths = [str(path) for _, path in figure_paths]
+    cmd = [
+        sys.executable,
+        str(extract_script),
+        "--input-path",
+        *input_paths,
+        "--output-path",
+        str(batch_output),
+        "--weights",
+        str(weights_path),
+        "--device",
+        device,
+        "--conf-thres",
+        str(conf_thres),
+        "--iou-thres",
+        str(iou_thres),
+        "--imgsz",
+        str(imgsz),
+        "--save_img", "True",
+    ]
 
-    # Get image dimensions from PIL for consistency
-    with Image.open(figure_path) as img:
-        pil_width, pil_height = img.size
+    try:
+        subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=max(300, len(figure_paths) * 5),
+            check=False,
+        )
+    except (subprocess.TimeoutExpired, OSError):
+        return {fid: [] for fid, _ in figure_paths}
 
-    # Detect edges
-    edges = detect_edges(image)
-
-    # Connect edges with adaptive kernel; fall back to a smaller kernel when
-    # the first pass merges distinct panels into one dominant contour.
-    connected = connect_edges(edges)
-    contours = find_contours(connected)
-    filtered_contours = filter_contours(
-        contours,
-        image.shape,
-        min_area_ratio=min_area_ratio,
-        max_area_ratio=max_area_ratio,
-        min_extent=min_extent,
+    # Parse PANELS.csv and distribute to figures
+    csv_path = batch_output / "PANELS.csv"
+    return _distribute_panels_from_csv(
+        csv_path, figure_paths, batch_output, output_dir,
     )
 
-    current_kernel = _adaptive_kernel_size(image.shape)
-    if len(filtered_contours) < min_panel_count and _has_dominant_contour(contours, image.shape):
-        smaller_kernel = max(3, current_kernel // 2)
-        # Ensure odd
-        if smaller_kernel % 2 == 0:
-            smaller_kernel += 1
-        if smaller_kernel < current_kernel:
-            connected = connect_edges(edges, kernel_size=smaller_kernel)
-            contours = find_contours(connected)
-            filtered_contours = filter_contours(
-                contours,
-                image.shape,
-                min_area_ratio=min_area_ratio,
-                max_area_ratio=max_area_ratio,
-                min_extent=min_extent,
-            )
-            current_kernel = smaller_kernel
 
-    # Check if we found any panels
-    if len(filtered_contours) < min_panel_count:
-        return {
-            "schema_version": VISUAL_SCHEMA_VERSION,
-            "created_by": "engine/static_audit/tools/panel_extraction.py",
-            "status": "skipped",
-            "figure_id": figure_id,
-            "source_image_path": str(figure_path),
-            "panel_count": 0,
-            "panels": [],
-            "errors": [],
-            "limitations": [
-                f"Could not detect at least {min_panel_count} panel(s). "
-                f"Found {len(filtered_contours)} contour(s). "
-                "This may be a single-panel figure or a complex layout."
-            ],
-        }
+def _distribute_panels_from_csv(
+    csv_path: Path,
+    figure_paths: list[tuple[str, Path]],
+    batch_output: Path,
+    output_dir: Path,
+) -> dict[str, list[dict[str, Any]]]:
+    """Parse PANELS.csv and map panels to their parent figures.
 
-    # Limit to max_panel_count
-    if len(filtered_contours) > max_panel_count:
-        filtered_contours = filtered_contours[:max_panel_count]
+    The CSV FIGNAME column contains the image file stem.  We match stems back
+    to figure_ids via the figure_paths list.
+    """
+    # Build stem → figure_id mapping
+    stem_to_fid: dict[str, str] = {}
+    for fid, path in figure_paths:
+        stem_to_fid[path.stem] = fid
 
-    # Sort contours by position
-    sorted_contours = sort_contours_by_position(filtered_contours)
+    # Initialize result for all figures
+    result: dict[str, list[dict[str, Any]]] = {fid: [] for fid, _ in figure_paths}
 
-    # Assign labels
-    labels = assign_panel_labels(len(sorted_contours))
+    if not csv_path.is_file():
+        return result
 
-    # Extract panels
-    panels = []
+    # Parse CSV — ELIS uses ", " (comma-space) as separator
+    rows: list[dict[str, str]] = []
+    with open(csv_path, newline="") as f:
+        content = f.read()
+    # ELIS writes rows with ", " separator; normalise to standard CSV
+    content = content.replace(", ", ",")
+    reader = csv.DictReader(content.splitlines())
+    for row in reader:
+        rows.append(row)
+
+    # Group rows by FIGNAME
+    from collections import defaultdict
+
+    grouped: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in rows:
+        figname = row.get("FIGNAME", "")
+        if figname:
+            grouped[figname].append(row)
+
+    # Convert to PanelEvidence dicts
+    for figname, fig_rows in grouped.items():
+        fid = stem_to_fid.get(figname)
+        if fid is None:
+            continue
+        panels = _convert_csv_rows_to_panels(fid, fig_rows, batch_output, output_dir)
+        result[fid] = panels
+
+    return result
+
+
+def _convert_csv_rows_to_panels(
+    figure_id: str,
+    rows: list[dict[str, str]],
+    batch_output: Path,
+    output_dir: Path,
+) -> list[dict[str, Any]]:
+    """Convert PANELS.csv rows for one figure into PanelEvidence dicts."""
+    panels: list[dict[str, Any]] = []
     panels_dir = output_dir / "panels" / figure_id
     panels_dir.mkdir(parents=True, exist_ok=True)
 
-    for i, (contour, label) in enumerate(zip(sorted_contours, labels)):
-        x, y, w, h = cv2.boundingRect(contour)
+    for idx, row in enumerate(rows):
+        try:
+            x0 = int(float(row.get("X0", "0")))
+            y0 = int(float(row.get("Y0", "0")))
+            x1 = int(float(row.get("X1", "0")))
+            y1 = int(float(row.get("Y1", "0")))
+        except (ValueError, TypeError):
+            continue
 
-        # Compute extraction confidence based on extent and contour regularity
-        contour_area = cv2.contourArea(contour)
-        bbox_area = w * h
-        extent = contour_area / bbox_area if bbox_area > 0 else 0
-        confidence = min(1.0, extent * 1.2)  # Scale up slightly
+        w = x1 - x0
+        h = y1 - y0
+        if w <= 0 or h <= 0:
+            continue
 
-        # Crop panel
-        panel_crop = image[y : y + h, x : x + w]
+        panel_type_raw = row.get("LABEL", "")
+        # Normalise panel type to schema-allowed values
+        panel_type = _normalise_panel_type(panel_type_raw)
+        label = _index_to_label(idx)
 
-        # Save panel crop
-        panel_filename = f"{label}.png"
-        panel_path = panels_dir / panel_filename
-        cv2.imwrite(str(panel_path), panel_crop)
+        # Move crop from batch output to canonical location
+        crop_src = _find_crop_file(batch_output, row.get("FIGNAME", ""), idx, panel_type_raw)
+        crop_dst = panels_dir / f"{label}.png"
+        if crop_src and crop_src.is_file():
+            shutil.move(str(crop_src), str(crop_dst))
+        elif not crop_dst.is_file():
+            # Crop file not found; skip this panel
+            continue
 
-        # Create panel evidence
-        panel_id = f"{figure_id}-{i + 1:02d}"
-        panel_evidence = PanelEvidence(
+        rel_crop = str(crop_dst.relative_to(output_dir))
+        panel_id = f"{figure_id}-{idx + 1:02d}"
+
+        panel = PanelEvidence(
             panel_id=panel_id,
             parent_figure_id=figure_id,
             label=label,
-            bbox=[x, y, w, h],
-            crop_path=f"panels/{figure_id}/{panel_filename}",
+            bbox=[x0, y0, w, h],
+            crop_path=rel_crop,
             width=w,
             height=h,
-            extraction_confidence=round(confidence, 3),
-            extraction_method="contour_edge_detection",
+            extraction_confidence=0.8,
+            extraction_method=EXTRACTION_METHOD_YOLOV5,
+            panel_type=panel_type,
             metadata={
-                "contour_area": float(contour_area),
-                "extent": round(extent, 3),
+                "yolov5_label": panel_type_raw,
+                "yolov5_id": row.get("ID", ""),
             },
         )
-        panels.append(panel_evidence.to_dict())
+        panels.append(panel.to_dict())
 
-    # Create figure evidence
-    # Try to compute relative path, fallback to absolute path
-    try:
-        relative_image_path = str(figure_path.relative_to(output_dir))
-    except ValueError:
-        # If figure_path is not under output_dir, use a relative path from workdir
-        # This happens when figure_path is in a fixture directory
-        relative_image_path = str(figure_path)
-        # Try to extract just the filename or a sensible relative path
-        if "images" in str(figure_path):
-            # Extract path starting from "images/"
-            parts = str(figure_path).split("images/")
-            if len(parts) > 1:
-                relative_image_path = "images/" + parts[-1]
+    return panels
 
-    figure_evidence = FigureEvidence(
-        figure_id=figure_id,
-        source_image_path=relative_image_path,
-        label="",  # Will be filled by figure canonicalizer
-        caption="",  # Will be filled by figure canonicalizer
-        page_number=None,  # Will be filled by figure canonicalizer
-        bbox=None,  # Will be filled by figure canonicalizer
-        width=pil_width,
-        height=pil_height,
-        panel_count=len(panels),
-        metadata={"extraction_status": "ran"},
-    )
 
-    return {
-        "schema_version": VISUAL_SCHEMA_VERSION,
-        "created_by": "engine/static_audit/tools/panel_extraction.py",
-        "status": "ran",
-        "figure_id": figure_id,
-        "source_image_path": relative_image_path,
-        "figure_evidence": figure_evidence.to_dict(),
-        "panel_count": len(panels),
-        "panels": panels,
-        "errors": [],
-        "limitations": [],
-    }
+def _find_crop_file(
+    batch_output: Path,
+    figname: str,
+    panel_index: int,
+    class_name: str,
+) -> Path | None:
+    """Locate the crop file written by YOLOv5 for a given panel.
+
+    ELIS saves crops as: {batch_output}/{figname}_{1-based-index}_{ClassName}.png
+    """
+    # ELIS uses 1-based crop index in filename
+    crop_idx = panel_index + 1
+    # Try exact class name first
+    candidate = batch_output / f"{figname}_{crop_idx}_{class_name}.png"
+    if candidate.is_file():
+        return candidate
+    # Try common variations (singular/plural)
+    for alt in _class_name_variations(class_name):
+        candidate = batch_output / f"{figname}_{crop_idx}_{alt}.png"
+        if candidate.is_file():
+            return candidate
+    # Glob fallback: any file matching {figname}_{crop_idx}_*.png
+    matches = list(batch_output.glob(f"{figname}_{crop_idx}_*.png"))
+    return matches[0] if matches else None
+
+
+def _class_name_variations(name: str) -> list[str]:
+    """Return singular/plural variations of a YOLOv5 class name."""
+    if not name:
+        return []
+    variations = [name]
+    if name.endswith("s"):
+        variations.append(name[:-1])  # Blots → Blot
+    else:
+        variations.append(name + "s")  # Blot → Blots
+    return variations
+
+
+def _normalise_panel_type(raw: str) -> str | None:
+    """Map a YOLOv5 class name to a PanelEvidence.PANEL_TYPES value."""
+    if not raw:
+        return None
+    # Direct match
+    if raw in PanelEvidence.PANEL_TYPES:
+        return raw
+    # Case-insensitive match
+    lower = raw.lower()
+    for pt in PanelEvidence.PANEL_TYPES:
+        if pt.lower() == lower:
+            return pt
+    # Singular/plural match
+    for pt in PanelEvidence.PANEL_TYPES:
+        if pt.lower().startswith(lower) or lower.startswith(pt.lower()):
+            return pt
+    return raw  # Keep original if no match; schema validation is lenient
+
+
+def _index_to_label(index: int) -> str:
+    """Convert a 0-based panel index to an alphabetic label (a, b, c, ...)."""
+    if index < 26:
+        return chr(ord("a") + index)
+    return chr(ord("a") + (index // 26) - 1) + chr(ord("a") + (index % 26))
+
+
+# ---------------------------------------------------------------------------
+# Figure evidence builders (unchanged from previous version)
+# ---------------------------------------------------------------------------
+
+
+def _deduplicate_ledger_figures(raw_figures: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Merge figure entries pointing to the same image file.
+
+    The upstream evidence ledger builder concatenates figure entries from
+    multiple sources (markdown refs, content blocks, middle blocks) without
+    deduplication.  When the same image is referenced in both markdown and
+    structured blocks, this produces duplicate entries.
+
+    Dedup key: resolved image relative path.  When duplicates are found,
+    prefer the entry with richer structural data (content/middle sources
+    have page/bbox; markdown sources have alt_text).  All metadata is merged.
+    """
+    seen: dict[str, dict[str, Any]] = {}
+
+    for fig in raw_figures:
+        if not isinstance(fig, dict):
+            continue
+        image_ref = fig.get("image_ref")
+        rel_path = None
+        if isinstance(image_ref, dict):
+            rel_path = image_ref.get("relative_path") or image_ref.get("path")
+        if not rel_path:
+            rel_path = fig.get("source_image_path")
+        if not rel_path:
+            seen[f"__no_path_{id(fig)}"] = fig
+            continue
+
+        if rel_path in seen:
+            existing = seen[rel_path]
+            if fig.get("page") and not existing.get("page"):
+                fig.setdefault("metadata", {})
+                fig["metadata"]["_merged_from"] = existing.get("id")
+                seen[rel_path] = fig
+            elif not fig.get("page") and existing.get("page"):
+                existing.setdefault("metadata", {})
+                existing["metadata"]["_merged_from"] = fig.get("id")
+        else:
+            seen[rel_path] = fig
+
+    return list(seen.values())
 
 
 def build_figure_evidence_from_ledger(
     workdir: Path,
     evidence_ledger: dict[str, Any],
 ) -> list[dict[str, Any]]:
-    """Build figure evidence from evidence ledger.
-
-    Args:
-        workdir: Working directory
-        evidence_ledger: Evidence ledger from build_evidence_ledger.py
-
-    Returns:
-        List of figure_evidence dicts
-    """
+    """Build figure evidence from evidence ledger."""
     figures = []
 
-    # Extract figures from the current first-party ledger shape and tolerate
-    # older/fixture shapes used while the evidence-ledger contract was forming.
     raw_figures = evidence_ledger.get("figures")
     if not isinstance(raw_figures, list):
         raw_figures = evidence_ledger.get("items", [])
     if not isinstance(raw_figures, list):
         raw_figures = []
+
+    raw_figures = _deduplicate_ledger_figures(raw_figures)
 
     for index, item in enumerate(raw_figures, start=1):
         if not isinstance(item, dict):
@@ -486,7 +383,6 @@ def build_figure_evidence_from_ledger(
             page = item.get("page")
             bbox = item.get("bbox")
 
-            # Get image dimensions
             image_path = workdir / image_ref
             if image_path.exists():
                 with Image.open(image_path) as img:
@@ -503,7 +399,7 @@ def build_figure_evidence_from_ledger(
                 bbox=bbox,
                 width=width,
                 height=height,
-                panel_count=0,  # Will be updated by panel extraction
+                panel_count=0,
                 metadata={"source": "evidence_ledger"},
             )
             figures.append(figure_evidence.to_dict())
@@ -522,8 +418,6 @@ def _image_ref_to_relative_path(image_ref: Any) -> str:
 def build_figure_evidence_from_images(workdir: Path, images_dir: Path) -> list[dict[str, Any]]:
     """Build canonical figure evidence directly from extracted image files."""
     figures: list[dict[str, Any]] = []
-    if Image is None:
-        return figures
     image_paths = [
         path
         for path in sorted(images_dir.rglob("*"))
@@ -557,7 +451,7 @@ def build_figure_evidence_from_images(workdir: Path, images_dir: Path) -> list[d
 
 
 def whole_figure_panel(figure: dict[str, Any], *, workdir: Path, output_dir: Path) -> dict[str, Any] | None:
-    """Create one panel covering the full figure when contour splitting fails."""
+    """Create one panel covering the full figure when panel detection fails."""
     source_rel = str(figure.get("source_image_path") or "")
     if not source_rel:
         return None
@@ -586,69 +480,56 @@ def whole_figure_panel(figure: dict[str, Any], *, workdir: Path, output_dir: Pat
         width=width,
         height=height,
         extraction_confidence=0.5,
-        extraction_method="whole_figure_fallback",
-        metadata={"source_image_path": source_rel, "fallback_reason": "no_contour_panels_detected"},
+        extraction_method=EXTRACTION_METHOD_FALLBACK,
+        metadata={"source_image_path": source_rel, "fallback_reason": "yolov5_detected_no_panels"},
     ).to_dict()
 
 
+# ---------------------------------------------------------------------------
+# CLI entry point (kept for standalone usage / testing)
+# ---------------------------------------------------------------------------
+
+
 def parse_args() -> argparse.Namespace:
-    """Parse command-line arguments."""
-    parser = argparse.ArgumentParser(description="Extract panels from figure images.")
-    parser.add_argument("figure_path", help="Path to figure image")
+    parser = argparse.ArgumentParser(description="Extract panels from figure images using YOLOv5.")
+    parser.add_argument("figure_paths", nargs="+", help="Path(s) to figure image(s)")
     parser.add_argument("--output", required=True, help="Output JSON path")
     parser.add_argument("--output-dir", required=True, help="Output directory for panels")
-    parser.add_argument("--figure-id", required=True, help="Figure identifier")
-    parser.add_argument(
-        "--min-area-ratio",
-        type=float,
-        default=PANEL_EXTRACTION_DEFAULTS["min_area_ratio"],
-        help="Minimum panel area as fraction of image area",
-    )
-    parser.add_argument(
-        "--max-area-ratio",
-        type=float,
-        default=PANEL_EXTRACTION_DEFAULTS["max_area_ratio"],
-        help="Maximum panel area as fraction of image area",
-    )
-    parser.add_argument(
-        "--min-extent",
-        type=float,
-        default=PANEL_EXTRACTION_DEFAULTS["min_extent"],
-        help="Minimum extent (contour area / bounding rect area)",
-    )
+    parser.add_argument("--weights", default=str(DEFAULT_WEIGHTS), help="Path to YOLOv5 weights")
+    parser.add_argument("--device", default="0", help="CUDA device or 'cpu'")
+    parser.add_argument("--conf-thres", type=float, default=0.4)
+    parser.add_argument("--iou-thres", type=float, default=0.4)
     return parser.parse_args()
 
 
 def main() -> int:
-    """Main entry point."""
     args = parse_args()
-    figure_path = Path(args.figure_path).expanduser().resolve()
-    output = Path(args.output).expanduser().resolve()
     output_dir = Path(args.output_dir).expanduser().resolve()
 
-    result = extract_panels(
-        figure_path,
-        figure_id=args.figure_id,
+    figure_paths = [(Path(p).stem, Path(p).expanduser().resolve()) for p in args.figure_paths]
+    batch_result = extract_panels_batch(
+        [(stem, path) for stem, path in figure_paths],
         output_dir=output_dir,
-        min_area_ratio=args.min_area_ratio,
-        max_area_ratio=args.max_area_ratio,
-        min_extent=args.min_extent,
+        weights_path=Path(args.weights),
+        device=args.device,
+        conf_thres=args.conf_thres,
+        iou_thres=args.iou_thres,
     )
 
+    total_panels = sum(len(v) for v in batch_result.values())
+    result = {
+        "schema_version": VISUAL_SCHEMA_VERSION,
+        "status": "ran" if total_panels > 0 else "skipped",
+        "figure_count": len(figure_paths),
+        "panel_count": total_panels,
+        "panels_by_figure": {fid: panels for fid, panels in batch_result.items()},
+    }
+
+    output = Path(args.output).expanduser().resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
 
-    print(
-        json.dumps(
-            {
-                "output": str(output),
-                "status": result["status"],
-                "panel_count": result["panel_count"],
-            },
-            ensure_ascii=False,
-        )
-    )
-
+    print(json.dumps({"output": str(output), "status": result["status"], "panel_count": total_panels}))
     return 0
 
 

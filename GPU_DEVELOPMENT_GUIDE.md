@@ -3,6 +3,8 @@
 > 生成日期：2026-06-15
 > 目标：在有 GPU 的机器上克隆 Veritas 并继续 YOLOv5 adapter 开发
 
+> 当前状态：本指南服务于后续 ELIS YOLOv5 adapter 开发。当前 `audit-paper` 主链路不依赖 YOLOv5 权重；`visual.panel_extraction` 仍是 OpenCV 过渡实现，`visual.copy_move` 仍是 ORB/SIFT 过渡实现。
+
 ---
 
 ## 1. 克隆仓库
@@ -12,8 +14,8 @@
 git clone git@github.com:MedgeAI/veritas.git
 cd veritas
 
-# 切换到 feature 分支
-git checkout feat/elis-integration
+# 按维护者指定分支工作；当前仓库默认分支可能是 master
+git status --short
 
 # 初始化 ELIS submodule（包含 YOLOv5 panel-extractor 等）
 git submodule update --init --recursive
@@ -305,18 +307,7 @@ make audit PAPER_DIR=<paper_dir> CASE_ID=<case_id>
 
 ## 10. 提交 + 推送
 
-```bash
-git add -A
-git commit -m "feat: YOLOv5 panel extraction adapter
-
-- Rewrite panel_extraction.py to call YOLOv5 extract.run()
-- Add panel_type field to PanelEvidence schema
-- Delete OpenCV Canny/contour code
-- Add golden fixture tests
-- Verify on real paper figures"
-
-git push origin feat/elis-integration
-```
+提交前必须先确认 `make test` 和 `make lint-python`。不要提交模型权重、真实论文、真实运行产物、`outputs/`、`web_data/` 或本地密钥。分支和提交信息按维护者要求执行；不要从本指南机械复制固定分支名。
 
 ---
 

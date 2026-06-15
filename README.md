@@ -1,5 +1,7 @@
 # Veritas
 
+Updated: 2026-06-15
+
 **Veritas 是一个实验室内部论文风控工具（当前聚焦干实验论文子集），帮助导师（通讯作者）在投稿前主动发现学生数据中的问题，填补监管真空，避免背锅。**
 
 **核心动机**：问题论文频发，导师由于脱离科研一线，导致监管真空，导师本人并不知情，无法核实数据真伪。
@@ -38,6 +40,7 @@ MVP 聚焦：
 - `precheck` / `run` / `report` 和 `runtime/subprocess` 已有基础能力；但 `audit-paper` 仍以静态证据、Source Data 和 Agent 结构化复核为主，claim-to-code/runtime replay 还不是稳定主链路。
 - 缺少代码、环境或结果文件时，报告应按 `execution_status: not_provided`、`skipped` 或 completeness issue 呈现，不伪造成已验证复现。
 - Web P1 是内测工作台，不是完整 SaaS、多租户任务系统或远程 worker 集群。
+- 视觉取证已经有 first-party beta 闭环：`visual_evidence.json`、`panel_evidence.json`、`image_relationships.json`、`visual_findings.json`、HTML Visual Evidence Package 和 Web Visual Forensics Gallery。当前实现仍是 OpenCV panel extraction + ORB/SIFT copy-move 过渡路径，ELIS YOLOv5/RootSIFT/TruFor/CBIR adapter 还不是稳定主链路。
 
 ## 当前内测增强方向
 
@@ -53,9 +56,9 @@ Veritas 将借鉴 ELIS (Scientific Integrity System) 的完整图像取证思路
 
 边界是：ELIS 能力必须通过 Veritas adapter、Tool Registry 和 runtime 接口接入；不直接复用 ELIS 的 FastAPI/Celery/MongoDB/Redis 主服务。前端可以复用 `third_party/elis/system_modules/elis-frontend` 的 Vite/React/Tailwind 基础设施模式，但产品信息架构、视觉语言和审查流程必须是 Veritas first-party。所有视觉工具输出都只是候选证据和人工复核入口，不做最终科研诚信判定。
 
-**当前决策（2026-06-15）**：Veritas 是内部工具，不开源。直接复用 ELIS `system_modules` 的 AGPL-3.0 模块（panel-extractor、copy-move-detection、TruFor 等），不担心许可证传染性。详见 [`ELIS_REUSE_DECISIONS.md`](ELIS_REUSE_DECISIONS.md)。
+**当前决策（2026-06-15）**：Veritas 是内部工具，不开源。可以以 adapter 方式复用 ELIS `system_modules` 的 AGPL-3.0 模块（panel-extractor、copy-move-detection、TruFor 等），不担心许可证传染性。当前代码仍保留 first-party 传统 CV 过渡实现；ELIS adapter 落地后再替换，不把未来工具写成已验证能力。详见 [`ELIS_REUSE_DECISIONS.md`](ELIS_REUSE_DECISIONS.md)。
 
-**模型权重下载**（需要 GPU 机器开发时执行）：
+**模型权重下载**（仅用于后续 YOLOv5 panel-extractor adapter 开发；当前主链路不要求该权重）：
 
 ```bash
 # 下载 YOLOv5 panel extraction 模型（~50MB，需要科学上网）
@@ -75,6 +78,7 @@ engine/       claim 审计、静态审查内核、Agent 调查、报告逻辑
 runtime/      本地执行后端，未来可独立成服务
 protocols/    垂直领域规则，先从医学生信开始
 configs/      opencode 与运行配置
+docs/         产品、开发和决策文档工作区；新文件默认仍被 .gitignore 忽略，重要文档需显式跟踪
 examples/     demo manifest 和轻量样例
 scripts/      可复用本地工具脚本
 web/          Web P1：stdlib backend + Vite React frontend
@@ -99,7 +103,7 @@ web_data/     Web P1 本地 case store 与运行状态，不进入提交
 - `web/frontend/node_modules/`：前端依赖。
 - `.env`：本地密钥。
 - `.gitmodules` / `third_party/`：通过 git submodule 跟踪并锁定 commit hash，`git clone --recursive` 完整还原；升级必须由维护者显式 commit 新 gitlink。
-- `docs/`：当前工作区作为本地增强上下文和能力积累；如果仍保持 local-only，不要让产品功能依赖它们必然存在。若决定共享，需要同步调整 `.gitignore` 和提交策略。
+- `docs/`：产品、开发和决策文档工作区。当前 `.gitignore` 仍默认忽略新文件，因此只有显式纳入版本控制的 docs 可被提交版流程依赖；真实论文、运行产物和密钥不能写入。
 
 ## 第三方参考和能力吸收
 
@@ -203,16 +207,13 @@ selected optional lanes + paper_pdf + workdir + env
   |
   v
 +-----------------------------+
-| ELIS-style visual forensics |
-| next internal beta path     |
+| visual panel evidence       |
+| current first-party path    |
 +-----------------------------+
   |
   +-- canonical figure_evidence.json
   +-- panel_evidence.json
-  +-- copy_move_findings.json
-  +-- trufor_findings.json
-  +-- image_relationships.json
-  +-- visual evidence package
+  +-- current implementation is OpenCV heuristic; ELIS YOLOv5 adapter is planned
   |
   v
 +-----------------------------+
@@ -228,6 +229,18 @@ selected optional lanes + paper_pdf + workdir + env
   +-- writes investigation_rounds.jsonl
   +-- writes investigation/round_XX/action_YY artifacts
       e.g. image_similarity_candidates.json
+      e.g. visual_copy_move.json when visual.copy_move is selected
+  |
+  v
++-----------------------------+
+| visual finding pipeline     |
++-----------------------------+
+  |
+  +-- consumes panel_evidence + exact duplicates + optional visual_copy_move + optional dHash outputs
+  +-- writes image_relationships.json
+  +-- writes visual_findings.json
+  +-- renders visual evidence package in HTML/Web
+  +-- ELIS RootSIFT / TruFor / CBIR adapters are planned extensions
   |
   v
 +-----------------------------+
@@ -346,11 +359,12 @@ IMAGE_DUPLICATE_CHECK
   +-- image similarity is optional and may be selected by AgentInvestigationPlanner
   |
   v
-ELIS_VISUAL_FORENSICS?              (planned internal beta)
+VISUAL_PANEL_EVIDENCE
   |
-  +-- adapter/runtime available -> panel/copy-move/TruFor/CBIR tools
-  +-- partial tool failure ------> warning + limitations + continue
-  +-- unavailable --------------> skipped
+  +-- images dir exists -> visual_evidence.json + panel_evidence.json
+  +-- extraction emits no panel -> whole-figure fallback panel + limitation
+  +-- images dir missing -> skipped
+  +-- current implementation is OpenCV heuristic; ELIS YOLOv5 adapter is planned
   |
   v
 AGENT_INVESTIGATION?
@@ -363,6 +377,13 @@ AGENT_INVESTIGATION?
   |      +-- accepted actions -> orchestrator executes and writes investigation_rounds.jsonl
   |
   +-- agent_mode off --------------> skipped
+  |
+  v
+VISUAL_FINDING_PIPELINE
+  |
+  +-- consumes panel_evidence + exact duplicates + optional visual_copy_move + optional dHash outputs
+  +-- writes image_relationships.json and visual_findings.json
+  +-- ELIS TruFor/CBIR outputs are not yet stable inputs
   |
   v
 VLM_TRIAGE

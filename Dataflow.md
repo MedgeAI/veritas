@@ -1,5 +1,7 @@
 # Veritas 当前端到端数据流
 
+更新时间：2026-06-15
+
 本文只描述当前已落地的 `audit-paper` + Web P1 数据流，目的是快速恢复项目掌控感。
 
 当前核心事实：
@@ -61,6 +63,11 @@ Audit Workdir
   |    source_data_findings.json
   |    source_data_pair_forensics.json
   |    exact_image_duplicates.json
+  |    visual_evidence.json
+  |    panel_evidence.json
+  |    image_relationships.json
+  |    visual_findings.json
+  |    investigation/round_XX/action_YY/visual_copy_move.json   # only if selected
   |    investigation_rounds.jsonl
   |    context_pack_*.json
   |    logs/*.json
@@ -76,8 +83,9 @@ Browser
   |  GET /api/cases/{case_id}/runs/{run_id}/events
   |  GET /api/cases/{case_id}/artifacts
   |  GET /api/cases/{case_id}/report/html
+  |  GET /api/cases/{case_id}/visual/{figures|panels|relationships|findings}
   v
-Mission Control / Evidence Workspace / Report Center
+Mission Control / Evidence Workspace / Visual Forensics / Report Center
 ```
 
 ## 2. 目录职责
@@ -93,6 +101,7 @@ web/frontend/
 - `web/frontend/src/pages/NewAuditPage.jsx`：创建 case、上传文件、启动审查。
 - `web/frontend/src/pages/MissionControlPage.jsx`：轮询 run 状态和 progress events。
 - `web/frontend/src/pages/EvidenceWorkspacePage.jsx`：读取结构化 artifacts。
+- `web/frontend/src/pages/VisualForensicsPage.jsx`：读取 visual artifacts，展示 figure、panel、relationship、visual finding 和人工复核任务。
 - `web/frontend/src/pages/ReportCenterPage.jsx`：iframe 预览最终 HTML 报告。
 - `web/frontend/src/services/api.js`：封装所有 `/api/*` 调用。
 
@@ -422,6 +431,10 @@ numeric_forensics.json
 exact_image_duplicates.json
   |
   v
+visual_evidence.json
+panel_evidence.json
+  |
+  v
 AgentInvestigationPlanner
   |
   v
@@ -429,6 +442,10 @@ investigation_rounds.jsonl
 workdir/investigation/*
 context_pack_investigation_plan.json
 logs/*.json
+  |
+  v
+image_relationships.json
+visual_findings.json
   |
   v
 agent_review.json
@@ -463,7 +480,10 @@ outputs/{case_id}/research-integrity-audit/
 - `mineru`
 - `evidence_ledger`
 - `numeric_forensics`
+- `paperfraud_rule_match`（如果 `full.md` 存在）
 - `exact_image_duplicates`
+- `visual_panel_extraction`（如果 `images/` 存在；当前是 OpenCV 启发式实现，可能退化为 whole-figure fallback panel）
+- `visual_finding_pipeline`
 - `agent_review`
 - `ClaimExtractor`
 - `SourceDataAuditor`
@@ -479,16 +499,20 @@ outputs/{case_id}/research-integrity-audit/
 - `source_data_profile`
 - `source_data_findings`
 - `source_data_pair_forensics`
+- `source_data_cross_sheet`
 - `image_similarity_candidates`
+- `visual_copy_move`
 - `vlm_triage`
-- future ELIS-style tools
+- future ELIS-style tools（YOLOv5 panel-extractor、RootSIFT/MAGSAC、TruFor、CBIR/Milvus）
 
 原因：
 
 - Source Data 不一定存在。
 - Source Data 不一定是当前工具支持的 XLSX/XLSM。
 - `image_similarity_candidates` 当前是 Agent-selectable optional investigation tool。
+- `visual.copy_move` 当前是 Agent-selectable optional investigation tool；只有被 AgentInvestigationPlanner 选择后才会在 `workdir/investigation/` 下生成 `visual_copy_move.json`。
 - `vlm_triage` 目前 orchestrator 中还是占位。
+- ELIS YOLOv5/RootSIFT/TruFor/CBIR adapter 尚未进入稳定主链路。
 
 ## 9.1 Agent 调用层
 
@@ -522,6 +546,10 @@ static_audit_bundle       -> static_audit_bundle.json
 investigation_rounds      -> investigation_rounds.jsonl
 final_markdown_report     -> final_audit_report.md
 final_html_report         -> final_audit_report.html
+visual_evidence           -> visual_evidence.json
+panel_evidence            -> panel_evidence.json
+image_relationships       -> image_relationships.json
+visual_findings           -> visual_findings.json
 ```
 
 前端调用：
@@ -530,6 +558,11 @@ final_html_report         -> final_audit_report.html
 GET /api/cases/{case_id}/artifacts
 GET /api/cases/{case_id}/artifacts/{artifact_id}
 GET /api/cases/{case_id}/report/html
+GET /api/cases/{case_id}/visual/figures
+GET /api/cases/{case_id}/visual/panels
+GET /api/cases/{case_id}/visual/relationships
+GET /api/cases/{case_id}/visual/findings
+GET /api/cases/{case_id}/visual/images/{relative_path}
 ```
 
 这些 endpoint 读取的是 `outputs/` 中的审查产物，可能包含论文、source data 和审查结论摘要。因此访问控制不依赖 artifact 文件路径本身，而是在路由层先校验 `{case_id}` owner。未通过 owner gate 时返回 `403 Forbidden`，不会暴露 artifact 是否存在、大小或 HTML 内容。
@@ -538,6 +571,7 @@ GET /api/cases/{case_id}/report/html
 
 - `EvidenceWorkspacePage.jsx` 读 JSON / JSONL / Markdown。
 - `ReportCenterPage.jsx` 用 iframe 打开 HTML 报告。
+- `VisualForensicsPage.jsx` 读取 visual JSON 和 panel/overlay 图片；图片路径由 backend 在 case workdir 内解析，不能越权到其他 case 或工作目录外。
 
 ## 11. 状态机
 
