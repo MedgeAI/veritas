@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from itertools import combinations
@@ -62,6 +63,54 @@ def _resolve_panel_image_path(panel: dict, workdir: Path) -> Path | None:
     if candidate.exists():
         return candidate
     return None
+
+
+def _remap_overlay_to_unique(
+    relationships: list[dict[str, Any]],
+    workdir: Path,
+) -> None:
+    """Rename overlay files in-place so each relationship has a unique path.
+
+    The ELIS detector derives overlay filenames from input image stems, which
+    can collide when different panels share the same crop filename (e.g.
+    fallback panels).  This function renames each overlay to a
+    relationship-indexed path and updates ``overlay_path`` accordingly.
+
+    When multiple relationships share the same source overlay path, the first
+    relationship renames the file; subsequent relationships copy from the
+    already-renamed file to their own unique path.
+    """
+    # Track source paths that have already been moved: original -> current location
+    moved_srcs: dict[str, Path] = {}
+
+    for idx, rel in enumerate(relationships):
+        raw = rel.get("overlay_path") or ""
+        if not raw:
+            continue
+        src = workdir / raw
+        suffix = src.suffix or ".png"
+        unique_name = f"rel_{idx:04d}_overlay{suffix}"
+        dst = src.parent / unique_name
+        if src == dst:
+            continue
+
+        if src.exists():
+            # Source still at original location — rename it.
+            try:
+                src.rename(dst)
+                rel["overlay_path"] = str(dst.relative_to(workdir)) if dst.is_relative_to(workdir) else str(dst)
+                moved_srcs[raw] = dst
+            except OSError:
+                continue
+        elif raw in moved_srcs:
+            # Source was already moved by an earlier relationship — copy.
+            prev = moved_srcs[raw]
+            if prev.exists():
+                try:
+                    shutil.copy2(prev, dst)
+                    rel["overlay_path"] = str(dst.relative_to(workdir)) if dst.is_relative_to(workdir) else str(dst)
+                except OSError:
+                    continue
 
 
 def _empty_result(
@@ -349,6 +398,11 @@ def detect_copy_move(
     # Re-number relationship IDs after sorting
     for i, rel in enumerate(relationships, start=1):
         rel["relationship_id"] = f"IR-{i:04d}"
+
+    # Ensure every relationship has a unique overlay file path.
+    # The ELIS detector derives overlay names from input image stems, which
+    # can collide when different panels share the same crop filename.
+    _remap_overlay_to_unique(relationships, workdir)
 
     total_examined = len(panels_with_crops) + len(figure_evidence)
     status = "ran" if relationships else "skipped"

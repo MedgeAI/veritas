@@ -1,31 +1,40 @@
 """Provenance graph builder for cross-figure content sharing analysis.
 
 Builds a provenance graph from figure images by:
-1. Computing dhash for all figures
-2. Pre-filtering candidate pairs (hamming distance <= threshold)
+1. Computing SSCD embeddings for all figures
+2. Pre-filtering candidate pairs (cosine similarity >= threshold)
 3. Verifying candidates with RootSIFT+MAGSAC++ (via ELIS runner)
 4. Building a weighted graph with shared_area as edge weights
 5. Computing MST and connected components
 6. Exporting vis.js-compatible visualization data
 
-This follows the ELIS provenance-analysis architecture, replacing CBIR with
-dhash for candidate selection (Veritas does not use Milvus).
+This follows the ELIS provenance-analysis architecture, replacing dhash
+with SSCD embedding + cosine similarity for candidate selection.
 """
 
 from __future__ import annotations
 
 import json
+import logging
+import shutil
 import subprocess
 import sys
 from dataclasses import dataclass, field
-from itertools import combinations
 from pathlib import Path
 from typing import Any
 
+from engine.embeddings import SSCDEncoder
 from engine.static_audit.visual_schemas import VISUAL_SCHEMA_VERSION
 
+logger = logging.getLogger(__name__)
+
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-ELIS_KEYPOINT_SRC = _REPO_ROOT / "third_party" / "elis" / "system_modules" / "copy-move-detection-keypoint" / "src"
+ELIS_KEYPOINT_SRC = (
+    _REPO_ROOT / "third_party" / "elis" / "system_modules"
+    / "copy-move-detection-keypoint" / "src"
+)
+
+EMBEDDING_ARTIFACT_RELATIVE = "visual/image_embeddings.json"
 
 
 @dataclass
@@ -45,6 +54,7 @@ class ProvenanceEdge:
     shared_area_target: float
     matched_keypoints: int
     is_flipped: bool
+    cosine_similarity: float = 0.0
 
 
 @dataclass
@@ -69,6 +79,7 @@ class ProvenanceGraph:
                     "shared_area_target": round(e.shared_area_target, 4),
                     "matched_keypoints": e.matched_keypoints,
                     "is_flipped": e.is_flipped,
+                    "cosine_similarity": round(e.cosine_similarity, 4),
                 }
                 for e in self.edges
             ],
@@ -90,49 +101,130 @@ class ProvenanceGraph:
         }
 
 
-def _dhash(path: Path, hash_size: int = 8) -> int:
-    from PIL import Image
-    with Image.open(path) as image:
-        resized = image.convert("L").resize((hash_size + 1, hash_size))
-        pixels = list(resized.getdata())
-    value = 0
-    for row in range(hash_size):
-        for col in range(hash_size):
-            left = pixels[row * (hash_size + 1) + col]
-            right = pixels[row * (hash_size + 1) + col + 1]
-            value = (value << 1) | int(left > right)
-    return value
+def _cosine_similarity(a: list[float], b: list[float]) -> float:
+    """Compute cosine similarity between two L2-normalized vectors."""
+    if len(a) != len(b):
+        return 0.0
+    return sum(x * y for x, y in zip(a, b))
 
 
-def _hamming(a: int, b: int) -> int:
-    return bin(a ^ b).count("1")
-
-
-def _find_dhash_candidates(
-    figures: list[tuple[str, Path]],
-    threshold: int = 20,
+def _find_embedding_candidates(
+    embeddings: dict[str, list[float]],
+    threshold: float = 0.85,
     max_pairs: int = 500,
-) -> list[tuple[str, str, int]]:
-    """Find candidate pairs by dhash hamming distance."""
-    hashes = []
-    for fid, path in figures:
-        try:
-            hashes.append((fid, path, _dhash(path)))
-        except Exception:
-            continue
+) -> list[tuple[str, str, float]]:
+    """Find candidate pairs by cosine similarity on SSCD embeddings."""
+    candidates: list[tuple[str, str, float]] = []
+    ids = list(embeddings.keys())
+    for i, fid_a in enumerate(ids):
+        emb_a = embeddings[fid_a]
+        for fid_b in ids[i + 1 :]:
+            emb_b = embeddings[fid_b]
+            sim = _cosine_similarity(emb_a, emb_b)
+            if sim >= threshold:
+                candidates.append((fid_a, fid_b, sim))
 
-    candidates = []
-    for (fid_a, _, ha), (fid_b, _, hb) in combinations(hashes, 2):
-        dist = _hamming(ha, hb)
-        if dist <= threshold:
-            candidates.append((fid_a, fid_b, dist))
-
-    candidates.sort(key=lambda x: x[2])
+    candidates.sort(key=lambda x: x[2], reverse=True)
     return candidates[:max_pairs]
 
 
+def _save_embeddings_artifact(
+    embeddings: dict[str, list[float]],
+    figure_paths: dict[str, Path],
+    workdir: Path,
+) -> Path | None:
+    """Save embeddings to visual/image_embeddings.json artifact."""
+    output_dir = workdir / "visual"
+    try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        artifact_path = output_dir / "image_embeddings.json"
+        data = {
+            "schema_version": VISUAL_SCHEMA_VERSION,
+            "embeddings": [
+                {
+                    "figure_id": fid,
+                    "image_path": str(figure_paths.get(fid, "")),
+                    "embedding": emb,
+                }
+                for fid, emb in embeddings.items()
+            ],
+        }
+        artifact_path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+        return artifact_path
+    except OSError as exc:
+        logger.warning("Failed to write image embeddings artifact: %s", exc)
+        return None
+
+
+def _try_write_pgvector(
+    embeddings: dict[str, list[float]],
+    figure_paths: dict[str, Path],
+    workdir: Path,
+) -> bool:
+    """Attempt to write embeddings to pgvector if web backend is available.
+
+    Error handling strategy (matches D-7 "CLI 不强依赖 PG"):
+      - ImportError: web modules missing → return False (expected in CLI).
+      - ConnectionError / OperationalError: PG unreachable → log warning,
+        return False. Embeddings are already persisted as a JSON artifact,
+        so the caller can proceed without PG.
+      - Any other exception (data errors, schema errors, unexpected failures)
+        is re-raised so bugs are not hidden behind a silent return False.
+
+    Returns:
+        True on successful write, False when pgvector is not reachable.
+    """
+    try:
+        from sqlalchemy.exc import OperationalError
+    except ImportError:
+        return False
+
+    try:
+        from web.backend.veritas_web.database import get_db_session
+        from web.backend.veritas_web.models import ImageEmbeddingModel
+    except ImportError:
+        return False
+
+    try:
+        with get_db_session() as session:
+            case_id = workdir.name
+            for fid, emb in embeddings.items():
+                path = figure_paths.get(fid)
+                if not path:
+                    continue
+                existing = (
+                    session.query(ImageEmbeddingModel)
+                    .filter(
+                        ImageEmbeddingModel.case_id == case_id,
+                        ImageEmbeddingModel.figure_id == fid,
+                    )
+                    .first()
+                )
+                if existing:
+                    existing.embedding = emb
+                else:
+                    session.add(
+                        ImageEmbeddingModel(
+                            case_id=case_id,
+                            panel_id=fid,
+                            figure_id=fid,
+                            image_path=str(path.relative_to(workdir)),
+                            embedding=emb,
+                        )
+                    )
+            session.commit()
+        return True
+    except (ConnectionError, OperationalError) as exc:
+        logger.warning(
+            "pgvector not reachable, embeddings remain in JSON artifact only: %s",
+            exc,
+        )
+        return False
+    # Data errors, schema errors, etc. propagate — they indicate real bugs.
+
+
 def _verify_candidates_subprocess(
-    candidates: list[tuple[str, str, int]],
+    candidates: list[tuple[str, str, float]],
     figure_paths: dict[str, Path],
     output_dir: Path,
     min_keypoints: int = 20,
@@ -309,7 +401,7 @@ def build_provenance_graph(
     figure_evidence: list[dict[str, Any]],
     *,
     workdir: Path,
-    dhash_threshold: int = 20,
+    embedding_threshold: float = 0.85,
     max_candidate_pairs: int = 500,
     min_keypoints: int = 20,
     min_area: float = 0.01,
@@ -317,10 +409,13 @@ def build_provenance_graph(
 ) -> dict[str, Any]:
     """Build a provenance graph from figure evidence.
 
+    Uses SSCD embeddings + cosine similarity for candidate pre-filtering,
+    then verifies candidates with RootSIFT+MAGSAC++ keypoint matching.
+
     Args:
         figure_evidence: List of figure evidence dicts.
         workdir: Working directory for resolving paths and writing output.
-        dhash_threshold: Max hamming distance for dhash pre-filter.
+        embedding_threshold: Min cosine similarity for candidate pre-filter.
         max_candidate_pairs: Max pairs to verify with keypoint matching.
         min_keypoints: Min matched keypoints for valid edge.
         min_area: Min shared area for valid edge.
@@ -329,6 +424,8 @@ def build_provenance_graph(
     Returns:
         Canonical provenance graph dict.
     """
+    limitations: list[str] = []
+
     # Collect figures with valid image paths
     figures_with_paths: list[tuple[str, Path]] = []
     figure_path_map: dict[str, Path] = {}
@@ -345,23 +442,106 @@ def build_provenance_graph(
     if len(figures_with_paths) < 2:
         return {
             "schema_version": VISUAL_SCHEMA_VERSION,
-            "status": "skipped",
+            "status": "failed",
+            "failure_category": "dependency",
             "error": "Not enough figures with valid image paths.",
             "nodes": [], "edges": [], "statistics": {},
         }
 
-    # Phase 1: dhash pre-filtering
-    candidates = _find_dhash_candidates(figures_with_paths, dhash_threshold, max_candidate_pairs)
+    # Phase 0: Initialize SSCD encoder
+    try:
+        encoder = SSCDEncoder()
+    except Exception as exc:
+        logger.warning("SSCD encoder initialization failed: %s", exc)
+        limitations.append(
+            f"SSCD encoder initialization failed: {exc}. "
+            "Provenance graph could not be built."
+        )
+        return {
+            "schema_version": VISUAL_SCHEMA_VERSION,
+            "status": "failed",
+            "failure_category": "dependency",
+            "error": f"SSCD encoder initialization failed: {exc}",
+            "limitations": limitations,
+            "nodes": [], "edges": [], "statistics": {},
+        }
 
-    # Phase 2: RootSIFT+MAGSAC++ verification
-    output_dir = workdir / "provenance"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    verified = _verify_candidates_subprocess(
-        candidates, figure_path_map, output_dir, min_keypoints, min_area,
+    if not encoder.available:
+        limitations.append(
+            "SSCD model weights not found. "
+            "Provenance graph could not be built."
+        )
+        return {
+            "schema_version": VISUAL_SCHEMA_VERSION,
+            "status": "failed",
+            "failure_category": "dependency",
+            "error": "SSCD model weights not found.",
+            "limitations": limitations,
+            "nodes": [], "edges": [], "statistics": {},
+        }
+
+    # Phase 1: Compute SSCD embeddings
+    image_paths = [path for _, path in figures_with_paths]
+    try:
+        raw_embeddings = encoder.encode_batch(image_paths)
+    except Exception as exc:
+        logger.warning("SSCD embedding extraction failed: %s", exc)
+        limitations.append(
+            f"SSCD embedding extraction failed: {exc}. "
+            "Provenance graph could not be built."
+        )
+        return {
+            "schema_version": VISUAL_SCHEMA_VERSION,
+            "status": "failed",
+            "failure_category": "runtime",
+            "error": f"SSCD embedding extraction failed: {exc}",
+            "limitations": limitations,
+            "nodes": [], "edges": [], "statistics": {},
+        }
+
+    embeddings: dict[str, list[float]] = {}
+    for (fid, _path), emb in zip(figures_with_paths, raw_embeddings):
+        if emb is not None:
+            embeddings[fid] = emb
+
+    if len(embeddings) < 2:
+        limitations.append(
+            f"Only {len(embeddings)} of {len(figures_with_paths)} figures "
+            "produced valid embeddings; need >= 2 for provenance."
+        )
+        return {
+            "schema_version": VISUAL_SCHEMA_VERSION,
+            "status": "failed",
+            "failure_category": "runtime",
+            "error": "Not enough valid embeddings.",
+            "limitations": limitations,
+            "nodes": [], "edges": [], "statistics": {},
+        }
+
+    # Persist embeddings as CLI artifact
+    _save_embeddings_artifact(embeddings, figure_path_map, workdir)
+
+    # Optional: write to pgvector in web context
+    _try_write_pgvector(embeddings, figure_path_map, workdir)
+
+    # Phase 2: Cosine similarity pre-filtering
+    candidates = _find_embedding_candidates(
+        embeddings, embedding_threshold, max_candidate_pairs,
     )
 
-    # Phase 3: Build graph
-    nodes = []
+    # Phase 3: RootSIFT+MAGSAC++ verification — only if there are candidates
+    verified: list[dict[str, Any]] = []
+    if candidates:
+        output_dir = workdir / "provenance"
+        output_dir.mkdir(parents=True, exist_ok=True)
+        verified = _verify_candidates_subprocess(
+            candidates, figure_path_map, output_dir, min_keypoints, min_area,
+        )
+    else:
+        limitations.append("No embedding-similar figure pairs found; RootSIFT verification skipped.")
+
+    # Phase 4: Build graph
+    nodes: list[ProvenanceNode] = []
     for fid, path in figures_with_paths:
         try:
             rel_path = str(path.relative_to(workdir))
@@ -374,7 +554,13 @@ def build_provenance_graph(
             is_query=(fid == query_figure_id),
         ))
 
-    edges = []
+    # Build cosine similarity lookup from candidates
+    cosine_map: dict[tuple[str, str], float] = {}
+    for fid_a, fid_b, sim in candidates:
+        cosine_map[(fid_a, fid_b)] = sim
+        cosine_map[(fid_b, fid_a)] = sim
+
+    edges: list[ProvenanceEdge] = []
     node_ids = {n.id for n in nodes}
     for r in verified:
         if not r.get("success") or not r.get("found_forgery"):
@@ -401,9 +587,10 @@ def build_provenance_graph(
             shared_area_target=tgt_area,
             matched_keypoints=kp,
             is_flipped=r.get("is_flipped", False),
+            cosine_similarity=cosine_map.get((src_id, tgt_id), 0.0),
         ))
 
-    # Phase 4: MST + connected components
+    # Phase 5: MST + connected components
     graph = ProvenanceGraph(nodes=nodes, edges=edges)
     graph.spanning_tree_edges = _build_mst([n.id for n in nodes], edges)
     graph.connected_components = _connected_components([n.id for n in nodes], edges)
@@ -412,10 +599,14 @@ def build_provenance_graph(
     result["status"] = "ran"
     result["candidate_pairs_tested"] = len(candidates)
     result["edges_found"] = len(edges)
-    result["limitations"] = []
     if not edges:
-        result["limitations"].append(
+        limitations.append(
             "No provenance edges found. Figures do not share detectable content."
         )
+        # Clean up RootSIFT intermediate data — nothing to show without edges.
+        prov_dir = workdir / "provenance"
+        if prov_dir.is_dir():
+            shutil.rmtree(str(prov_dir), ignore_errors=True)
+    result["limitations"] = limitations
 
     return result

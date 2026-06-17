@@ -227,27 +227,15 @@ class TestBuildRelationships:
         dhash = {
             "candidates": [
                 {
-                    "left_image": "/tmp/case/images/Figure1.png",
-                    "right_image": "/tmp/case/images/Figure2.png",
+                    "source_panel_id": "FE-0001-01",
+                    "target_panel_id": "FE-0002-01",
                     "distance": 2,
                     "max_distance": 8,
                 }
             ]
         }
-        panels = [
-            {
-                "panel_id": "FE-0001-01",
-                "crop_path": "panels/FE-0001/a.png",
-                "metadata": {"source_image_path": "images/Figure1.png"},
-            },
-            {
-                "panel_id": "FE-0002-01",
-                "crop_path": "panels/FE-0002/a.png",
-                "metadata": {"source_image_path": "images/Figure2.png"},
-            },
-        ]
 
-        rels = build_relationships(dhash_candidates=dhash, panel_evidence=panels)
+        rels = build_relationships(dhash_candidates=dhash)
 
         assert len(rels) == 1
         assert rels[0]["source_type"] == "dhash_similar"

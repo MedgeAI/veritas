@@ -18,7 +18,9 @@ from typing import Any
 from engine.static_audit.visual_constants import (
     BENIGN_EXPLANATIONS,
     MANUAL_REVIEW_QUESTIONS,
-    score_to_risk_level,
+    MODALITY_WEIGHT,
+    compute_risk_level,
+    trufor_integrity_risk_level,
 )
 from engine.static_audit.visual_schemas import check_language_compliance
 
@@ -87,24 +89,6 @@ def _panel_image_index(panel_evidence: list[dict] | None) -> dict[str, str]:
     return index
 
 
-def _lookup_panel_id(value: Any, image_to_panel: dict[str, str]) -> str:
-    direct = _panel_id(value)
-    if direct and direct in set(image_to_panel.values()):
-        return direct
-    key = _normalize_path_key(value)
-    if not key:
-        return direct
-    if key in image_to_panel:
-        return image_to_panel[key]
-    name = Path(key).name
-    if name in image_to_panel:
-        return image_to_panel[name]
-    for indexed_path, panel_id in image_to_panel.items():
-        if key.endswith(indexed_path) or indexed_path.endswith(key):
-            return panel_id
-    return direct
-
-
 def _load_copy_move_relationships(
     copy_move_result: dict,
 ) -> list[dict]:
@@ -130,6 +114,19 @@ def _load_copy_move_relationships(
     return out
 
 
+def _direct_lookup(value: Any, image_to_panel: dict[str, str]) -> str:
+    """Resolve a value to a panel ID via direct path lookup (no fuzzy suffix matching)."""
+    direct = _panel_id(value)
+    if direct and direct in set(image_to_panel.values()):
+        return direct
+    key = _normalize_path_key(value)
+    if not key:
+        return direct
+    if key in image_to_panel:
+        return image_to_panel[key]
+    return image_to_panel.get(Path(key).name, direct)
+
+
 def _load_exact_duplicate_relationships(
     exact_duplicates: dict,
     image_to_panel: dict[str, str] | None = None,
@@ -143,8 +140,8 @@ def _load_exact_duplicate_relationships(
             if not isinstance(item, dict):
                 continue
             out.append({
-                "source_panel_id": _lookup_panel_id(item.get("source_panel_id"), image_to_panel),
-                "target_panel_id": _lookup_panel_id(item.get("target_panel_id"), image_to_panel),
+                "source_panel_id": _direct_lookup(item.get("source_panel_id"), image_to_panel),
+                "target_panel_id": _direct_lookup(item.get("target_panel_id"), image_to_panel),
                 "score": 1.0,
                 "match_method": "byte_hash",
                 "inlier_count": 0,
@@ -156,7 +153,7 @@ def _load_exact_duplicate_relationships(
         for group in duplicate_groups:
             if not isinstance(group, list):
                 continue
-            panel_ids = [_lookup_panel_id(path, image_to_panel) for path in group]
+            panel_ids = [_direct_lookup(path, image_to_panel) for path in group]
             panel_ids = [pid for pid in panel_ids if pid]
             for src, tgt in combinations(panel_ids, 2):
                 out.append({
@@ -173,10 +170,13 @@ def _load_exact_duplicate_relationships(
 
 def _load_dhash_relationships(
     dhash_candidates: dict,
-    image_to_panel: dict[str, str] | None = None,
 ) -> list[dict]:
-    """Extract relationship dicts from dHash candidates result."""
-    image_to_panel = image_to_panel or {}
+    """Extract relationship dicts from dHash candidates result.
+
+    After schema v2.0 the candidates carry canonical panel identifiers
+    (``source_panel_id`` / ``target_panel_id``) directly, so no path
+    resolution is needed.
+    """
     raw = dhash_candidates.get("candidates", [])
     if not isinstance(raw, list):
         return []
@@ -190,8 +190,8 @@ def _load_dhash_relationships(
         if score is None and item.get("distance") is not None:
             score = max(0.0, 1.0 - (distance / max(max_distance, 1.0)))
         out.append({
-            "source_panel_id": _lookup_panel_id(item.get("source_panel_id") or item.get("left_image"), image_to_panel),
-            "target_panel_id": _lookup_panel_id(item.get("target_panel_id") or item.get("right_image"), image_to_panel),
+            "source_panel_id": _panel_id(item.get("source_panel_id")),
+            "target_panel_id": _panel_id(item.get("target_panel_id")),
             "score": _parse_score(score),
             "match_method": "dhash",
             "inlier_count": 0,
@@ -228,7 +228,7 @@ def build_relationships(
         exact_duplicates: Output from exact duplicate detection.
             Expected shape: {"duplicates": [{source_panel_id, target_panel_id,
             overlay_path?}, ...]}
-        dhash_candidates: Output from dHash similarity detection.
+        dhash_candidates: Output from dHash similarity detection (schema v2.0).
             Expected shape: {"candidates": [{source_panel_id, target_panel_id,
             score, overlay_path?}, ...]}
 
@@ -250,7 +250,7 @@ def build_relationships(
         else []
     )
     dh_rels = (
-        _load_dhash_relationships(dhash_candidates, image_to_panel)
+        _load_dhash_relationships(dhash_candidates)
         if dhash_candidates
         else []
     )
@@ -429,16 +429,60 @@ def _generate_summary(category: str, src: str, tgt: str) -> str:
     return template.format(src=src, tgt=tgt)
 
 
+def _generate_trufor_summary(figure_id: str, integrity_score: float) -> str:
+    """Generate a language-compliant summary for a TruFor forged-region finding."""
+    return (
+        f"TruFor 完整性检测发现 {figure_id} 存在可疑伪造区域"
+        f" (integrity_score={integrity_score:.2f})"
+    )
+
+
+def _dominant_modality(
+    src: str,
+    tgt: str,
+    panel_map: dict[str, dict],
+) -> str | None:
+    """Return the panel_type with the higher modality weight for a pair.
+
+    When a relationship spans two different panel types the weight that
+    yields the *higher* forensic signal is used so that risk is not
+    silently downgraded by a mixed-modality pair.
+    """
+    src_type = (
+        panel_map.get(src, {}).get("panel_type")
+        if isinstance(panel_map.get(src), dict)
+        else None
+    )
+    tgt_type = (
+        panel_map.get(tgt, {}).get("panel_type")
+        if isinstance(panel_map.get(tgt), dict)
+        else None
+    )
+    if src_type is None and tgt_type is None:
+        return None
+    if src_type is None:
+        return tgt_type
+    if tgt_type is None:
+        return src_type
+    src_weight = MODALITY_WEIGHT.get(src_type, 0.5)
+    tgt_weight = MODALITY_WEIGHT.get(tgt_type, 0.5)
+    return src_type if src_weight >= tgt_weight else tgt_type
+
+
 def build_visual_findings(
     relationships: list[dict],
     *,
     high_score_threshold: float = 0.4,
     critical_score_threshold: float = 0.7,
     panel_evidence: list[dict] | None = None,
+    forged_region_evidence: list[dict] | None = None,
 ) -> list[dict]:
-    """Convert high-score relationships into visual findings.
+    """Convert high-score relationships and TruFor evidence into visual findings.
 
     Only relationships with score >= high_score_threshold are converted.
+    Suspicious forged-region evidence items (is_suspicious=True) generate
+    additional figure-level findings.
+
     Each finding is enriched with:
       - risk_level: mapped from score via score_to_risk_level
       - benign_explanations: from BENIGN_EXPLANATIONS templates
@@ -454,6 +498,9 @@ def build_visual_findings(
         critical_score_threshold: Not used directly; score_to_risk_level
             handles the mapping. Kept in signature for API compatibility.
         panel_evidence: Optional list of panel evidence dicts for metadata.
+        forged_region_evidence: Optional list of ForgedRegionEvidence dicts
+            from TruFor detection. Only items with is_suspicious=True and
+            integrity_score >= 0.5 produce findings.
 
     Returns:
         List of visual finding dicts matching VisualFinding schema fields.
@@ -482,7 +529,8 @@ def build_visual_findings(
             continue
 
         counter += 1
-        risk_level = score_to_risk_level(score)
+        panel_type = _dominant_modality(src, tgt, panel_map)
+        risk_level = compute_risk_level(score, modality=panel_type)
 
         benign = list(BENIGN_EXPLANATIONS[source_type])
         questions = list(MANUAL_REVIEW_QUESTIONS[source_type])
@@ -515,7 +563,9 @@ def build_visual_findings(
             confidence_adjustments.append("raw score normalized to [0,1]")
         if extraction_quality == "whole_figure_fallback":
             displayed_score = min(score, 0.39)
-            risk_level = _cap_risk_level(score_to_risk_level(displayed_score), "medium")
+            risk_level = _cap_risk_level(
+                compute_risk_level(displayed_score, modality=panel_type), "medium"
+            )
             confidence_adjustments.append("risk capped because at least one panel is whole_figure_fallback")
 
         finding: dict = {
@@ -548,6 +598,68 @@ def build_visual_findings(
             },
         }
         findings.append(finding)
+
+    # ------------------------------------------------------------------
+    # TruFor forged-region findings (figure-level, additive)
+    # ------------------------------------------------------------------
+    if forged_region_evidence:
+        for fre in forged_region_evidence:
+            if not isinstance(fre, dict):
+                continue
+            if not fre.get("is_suspicious"):
+                continue
+            integrity_score = _parse_score(fre.get("integrity_score"))
+            if integrity_score < 0.5:
+                continue
+            figure_id = str(fre.get("figure_id") or "")
+            if not figure_id:
+                continue
+            risk_level = trufor_integrity_risk_level(integrity_score)
+            benign = list(BENIGN_EXPLANATIONS["forged_region_suspicious"])
+            questions = list(MANUAL_REVIEW_QUESTIONS["forged_region_suspicious"])
+            summary = _generate_trufor_summary(figure_id, integrity_score)
+
+            # Language compliance
+            all_text = [summary] + benign + questions
+            violated = False
+            for text in all_text:
+                if check_language_compliance(text):
+                    violated = True
+                    break
+            if violated:
+                continue
+
+            counter += 1
+            finding = {
+                "finding_id": f"VF-{counter:04d}",
+                "category": "forged_region_suspicious",
+                "risk_level": risk_level,
+                "summary": summary,
+                "source_panel_id": "",
+                "target_panel_id": "",
+                "relationship_id": "",
+                "score": _normalized_score(integrity_score),
+                "benign_explanations": benign,
+                "manual_review_questions": questions,
+                "overlay_path": _optional_str(fre.get("localization_map_path")),
+                "metadata": {
+                    "source": "tru_for",
+                    "forged_region_evidence_id": str(
+                        fre.get("forged_region_evidence_id") or ""
+                    ),
+                    "figure_id": figure_id,
+                    "integrity_score": integrity_score,
+                    "confidence_map_path": _optional_str(
+                        fre.get("confidence_map_path")
+                    ),
+                    "panel_extraction_quality": "unknown",
+                    "source_parent_figure_id": figure_id,
+                    "target_parent_figure_id": figure_id,
+                    "source_extraction_method": "tru_for",
+                    "target_extraction_method": "tru_for",
+                },
+            }
+            findings.append(finding)
 
     return findings
 
@@ -631,6 +743,7 @@ def _visual_review_question(category: str, extraction_quality: str) -> str:
         "copy_move_cross": "复核跨图匹配区域是否来自同一实验主体、共享对照或不应重复出现的局部区域。",
         "exact_duplicate": "复核字节级重复文件是否为合法导出/引用同一原图，或是否错误复用到不同图表语义。",
         "dhash_similar": "复核感知哈希相似图像是否由相似实验条件、压缩、缩放或真实重复导致。",
+        "forged_region_suspicious": "复核 TruFor 标记的可疑伪造区域，结合原始图像和 localization heatmap 判断是否为独立实验证据或合理图像操作。",
     }.get(category, "复核视觉相似候选的图注、panel 语义、原始图和导出流程。")
     if extraction_quality == "whole_figure_fallback":
         return base + " 该任务包含 whole_figure_fallback panel，优先确认是否需要重新拆 panel 后再判断。"

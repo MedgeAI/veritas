@@ -67,6 +67,21 @@ def _setup_elis_path() -> None:
         sys.path.insert(0, src)
 
 
+def _native_bool(value: Any) -> bool:
+    """Convert numpy bool_ (or any truthy value) to a native Python bool."""
+    return bool(value)
+
+
+def _native_float(value: Any) -> float:
+    """Convert numpy float64 (or any numeric value) to a native Python float."""
+    return float(value)
+
+
+def _native_int(value: Any) -> int:
+    """Convert numpy int64 (or any numeric value) to a native Python int."""
+    return int(value)
+
+
 def _run_single(panels: list[dict[str, str]], output_dir: str, min_keypoints: int, min_area: float) -> list[dict[str, Any]]:
     """Run single-image copy-move detection on each panel."""
     _setup_elis_path()
@@ -92,14 +107,14 @@ def _run_single(panels: list[dict[str, str]], output_dir: str, min_keypoints: in
             result = detector.detect_single_image(path)
             results.append({
                 "panel_id": panel_id,
-                "success": result.get("success", False),
-                "found_forgery": result.get("found_forgery", False),
-                "matched_keypoints": result.get("matched_keypoints", 0),
-                "num_clusters": result.get("num_clusters", 0),
-                "mask_path": result.get("mask_path", ""),
-                "matches_path": result.get("matches_path", ""),
-                "clusters_path": result.get("clusters_path", ""),
-                "error": result.get("error", ""),
+                "success": _native_bool(result.get("success", False)),
+                "found_forgery": _native_bool(result.get("found_forgery", False)),
+                "matched_keypoints": _native_int(result.get("matched_keypoints", 0)),
+                "num_clusters": _native_int(result.get("num_clusters", 0)),
+                "mask_path": str(result.get("mask_path", "")),
+                "matches_path": str(result.get("matches_path", "")),
+                "clusters_path": str(result.get("clusters_path", "")),
+                "error": str(result.get("error", "")),
             })
         except Exception as e:
             results.append({
@@ -140,18 +155,18 @@ def _run_cross(pairs: list[dict[str, str]], output_dir: str, min_keypoints: int,
                 "pair_id": pair_id,
                 "source_figure_id": pair.get("source_figure_id", ""),
                 "target_figure_id": pair.get("target_figure_id", ""),
-                "success": result.get("success", False),
-                "found_forgery": result.get("found_forgery", False),
-                "matched_keypoints": result.get("matched_keypoints", 0),
-                "shared_area_source": result.get("shared_area_source", 0.0),
-                "shared_area_target": result.get("shared_area_target", 0.0),
-                "is_flipped": result.get("is_flipped", False),
-                "num_clusters_source": result.get("num_clusters_source", 0),
-                "num_clusters_target": result.get("num_clusters_target", 0),
-                "mask_path": result.get("mask_path", ""),
-                "matches_path": result.get("matches_path", ""),
-                "clusters_path": result.get("clusters_path", ""),
-                "error": result.get("error", ""),
+                "success": _native_bool(result.get("success", False)),
+                "found_forgery": _native_bool(result.get("found_forgery", False)),
+                "matched_keypoints": _native_int(result.get("matched_keypoints", 0)),
+                "shared_area_source": _native_float(result.get("shared_area_source", 0.0)),
+                "shared_area_target": _native_float(result.get("shared_area_target", 0.0)),
+                "is_flipped": _native_bool(result.get("is_flipped", False)),
+                "num_clusters_source": _native_int(result.get("num_clusters_source", 0)),
+                "num_clusters_target": _native_int(result.get("num_clusters_target", 0)),
+                "mask_path": str(result.get("mask_path", "")),
+                "matches_path": str(result.get("matches_path", "")),
+                "clusters_path": str(result.get("clusters_path", "")),
+                "error": str(result.get("error", "")),
             })
         except Exception as e:
             results.append({

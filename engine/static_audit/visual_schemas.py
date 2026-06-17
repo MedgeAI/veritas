@@ -162,7 +162,7 @@ class PanelEvidence:
         panel_type: Semantic panel type from YOLOv5 classifier (e.g. "Blots", "Graphs")
         metadata: Additional provenance or extraction metadata
     """
-    PANEL_TYPES = ("Blots", "Graphs", "Microscopy", "Body Imagery", "Flow Cytometry")
+    PANEL_TYPES = ("Blots", "Graphs", "Microscopy", "Body Imaging", "Flow Cytometry")
 
     panel_id: str
     parent_figure_id: str
@@ -174,6 +174,7 @@ class PanelEvidence:
     extraction_confidence: float
     extraction_method: str
     panel_type: str | None = None
+    paper_figure_label: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -220,16 +221,20 @@ class PanelEvidence:
 
 @dataclass
 class VisualFinding:
-    """Candidate issue produced by copy-move, duplicate, or manual review.
+    """Candidate issue produced by copy-move, duplicate, TruFor, or manual review.
 
     Attributes:
         finding_id: Stable identifier, e.g. "VF-0001"
-        category: Finding category, e.g. "copy_move_single", "copy_move_cross"
+        category: Finding category, e.g. "copy_move_single", "copy_move_cross",
+            "forged_region_suspicious"
         risk_level: Risk level from RiskLevel literal
         summary: Human-readable summary of the finding
         source_panel_id: Reference to source PanelEvidence.panel_id
+            (empty for forged_region_suspicious findings)
         target_panel_id: Reference to target PanelEvidence.panel_id
+            (empty for forged_region_suspicious findings)
         relationship_id: Reference to ImageRelationship.relationship_id
+            (empty for forged_region_suspicious findings)
         score: Confidence score 0.0-1.0
         benign_explanations: List of benign explanations to consider
         manual_review_questions: List of questions for manual review
@@ -243,13 +248,14 @@ class VisualFinding:
         "exact_duplicate",
         "dhash_similar",
         "local_reuse",
+        "forged_region_suspicious",
     ]
     risk_level: Literal["info", "low", "medium", "high", "critical"]
     summary: str
-    source_panel_id: str
-    target_panel_id: str
-    relationship_id: str
-    score: float
+    source_panel_id: str = ""
+    target_panel_id: str = ""
+    relationship_id: str = ""
+    score: float = 0.0
     benign_explanations: list[str] = field(default_factory=list)
     manual_review_questions: list[str] = field(default_factory=list)
     overlay_path: str | None = None
@@ -278,12 +284,13 @@ class VisualFinding:
             errors.append(f"invalid risk_level: {self.risk_level}")
         if not self.summary:
             errors.append("summary is required")
-        if not self.source_panel_id:
-            errors.append("source_panel_id is required")
-        if not self.target_panel_id:
-            errors.append("target_panel_id is required")
-        if not self.relationship_id:
-            errors.append("relationship_id is required")
+        if self.category != "forged_region_suspicious":
+            if not self.source_panel_id:
+                errors.append("source_panel_id is required")
+            if not self.target_panel_id:
+                errors.append("target_panel_id is required")
+            if not self.relationship_id:
+                errors.append("relationship_id is required")
         if not 0.0 <= self.score <= 1.0:
             errors.append(f"score must be in [0.0, 1.0], got {self.score}")
         # Check language compliance

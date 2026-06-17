@@ -48,20 +48,45 @@ def run_paperfraud_rule_match(full_md_path: Path, output_path: Path) -> dict[str
 
 
 def paperfraud_findings_from_matches(artifact: dict[str, Any]) -> list[Finding]:
-    """Convert triggered PaperFraud rules into canonical static-audit findings."""
+    """Convert triggered PaperFraud rules into canonical static-audit findings.
+
+    Rules with non-empty excerpts produce Findings with ``evidence_source``
+    set to ``"text_match"`` and ``evidence_refs`` pointing back into
+    ``full.md``.  Rules without excerpts are not elevated to Findings;
+    instead they are written into ``artifact["methodology_checklist"]``
+    for optional downstream consumption.
+    """
     findings: list[Finding] = []
+    methodology_checklist: list[dict[str, Any]] = []
+
     for index, item in enumerate(artifact.get("triggered_rules") or [], start=1):
         if not isinstance(item, dict):
             continue
         rule_id = str(item.get("rule_id") or f"rule-{index}")
         severity = str(item.get("severity") or "yellow")
+        excerpts = item.get("excerpts") or []
+
+        if not excerpts:
+            # No textual evidence → checklist item, not a Finding.
+            methodology_checklist.append({
+                "rule_id": rule_id,
+                "rule_type": item.get("rule_type") or "methodology_review",
+                "category": item.get("category") or "",
+                "severity": severity,
+                "title": str(item.get("title") or rule_id),
+                "human_review": str(item.get("human_review") or ""),
+            })
+            continue
+
+        evidence_refs = [f"full.md#rule:{rule_id}"]
         findings.append(
             Finding(
                 finding_id=f"PF-{_safe_id(rule_id)}",
                 category=f"paperfraud.{item.get('rule_type') or 'methodology_review'}",
                 risk_level=SEVERITY_TO_RISK.get(severity, "low"),
                 summary=str(item.get("title") or rule_id),
-                evidence_refs=[],
+                evidence_source="text_match",
+                evidence_refs=evidence_refs,
                 benign_explanations=[
                     "Rule match may reflect legitimate reporting language.",
                     "Reviewer should verify whether the method was actually absent or only phrased differently.",
@@ -74,10 +99,12 @@ def paperfraud_findings_from_matches(artifact: dict[str, Any]) -> list[Finding]:
                     "severity": severity,
                     "category": item.get("category") or "",
                     "evidence": item.get("evidence") or "",
-                    "excerpts": item.get("excerpts") or [],
+                    "excerpts": excerpts,
                 },
             )
         )
+
+    artifact["methodology_checklist"] = methodology_checklist
     return findings
 
 

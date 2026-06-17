@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any
 
 from engine.static_audit.investigation import read_investigation_records
+from engine.static_audit.paths import resolve_artifact_path
 
 MAX_EVIDENCE_CARDS = 8
 SOURCE_DATA_FINDINGS_ARTIFACT = "source_data_findings.json"
@@ -118,10 +119,10 @@ def visual_evidence_section(workdir: Path) -> str:
     """
     from engine.static_audit.visual_schemas import check_language_compliance
 
-    visual_evidence = read_json(workdir / "visual_evidence.json") or {}
-    panel_evidence = read_json(workdir / "panel_evidence.json") or {}
-    relationships = read_json(workdir / "image_relationships.json") or {}
-    findings = read_json(workdir / "visual_findings.json") or {}
+    visual_evidence = read_json(resolve_artifact_path(workdir, "visual_evidence.json")) or {}
+    panel_evidence = read_json(resolve_artifact_path(workdir, "panel_evidence.json")) or {}
+    relationships = read_json(resolve_artifact_path(workdir, "image_relationships.json")) or {}
+    findings = read_json(resolve_artifact_path(workdir, "visual_findings.json")) or {}
 
     figures = visual_evidence.get("figures") or []
     panels = panel_evidence.get("panels") or []
@@ -457,21 +458,24 @@ def _visual_review_checklist(questions: list[str]) -> str:
 
 
 def render_static_audit_html(workdir: Path, case_id: str) -> str:
-    manifest = read_json(workdir / "audit_run_manifest.json") or {}
-    bundle = read_json(workdir / "static_audit_bundle.json") or {}
-    material_inventory = read_json(workdir / "material_inventory.json") or {}
-    material_plan = read_json(workdir / "agent_material_plan.json") or {}
-    source_findings = read_json(workdir / "source_data_findings.json") or {}
-    pair_forensics = read_json(workdir / "source_data_pair_forensics.json") or {}
-    source_profile = read_json(workdir / "source_data_profile.json") or {}
-    numeric = read_json(workdir / "numeric_forensics.json") or {}
-    ledger = read_json(workdir / "evidence_ledger.json") or {}
-    exact_images = read_json(workdir / "exact_image_duplicates.json") or {}
-    similarity = read_json(workdir / "image_similarity_candidates.json") or {}
-    paperfraud_matches = read_json(workdir / "paperfraud_rule_matches.json") or {}
-    agent_judge = read_json(workdir / "agent_judge.json") or {}
-    source_auditor = read_json(workdir / "agent_source_data_auditor.json") or {}
-    claim_extractor = read_json(workdir / "agent_claim_extractor.json") or {}
+    def _load(name: str) -> Any:
+        return read_json(resolve_artifact_path(workdir, name)) or {}
+
+    manifest = _load("audit_run_manifest.json")
+    bundle = _load("static_audit_bundle.json")
+    material_inventory = _load("material_inventory.json")
+    material_plan = _load("agent_material_plan.json")
+    source_findings = _load("source_data_findings.json")
+    pair_forensics = _load("source_data_pair_forensics.json")
+    source_profile = _load("source_data_profile.json")
+    numeric = _load("numeric_forensics.json")
+    ledger = _load("evidence_ledger.json")
+    exact_images = _load("exact_image_duplicates.json")
+    similarity = _load("image_similarity_candidates.json")
+    paperfraud_matches = _load("paperfraud_rule_matches.json")
+    agent_judge = _load("agent_judge.json")
+    source_auditor = _load("agent_source_data_auditor.json")
+    claim_extractor = _load("agent_claim_extractor.json")
     investigation_records = read_investigation_records(workdir)
 
     primary_findings = collect_report_findings(source_findings, pair_forensics, bundle)
@@ -1271,7 +1275,8 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
 
 
 def write_static_audit_html(workdir: Path, case_id: str) -> Path:
-    path = workdir / "final_audit_report.html"
+    path = resolve_artifact_path(workdir, "final_audit_report.html")
+    path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(render_static_audit_html(workdir, case_id), encoding="utf-8")
     return path
 

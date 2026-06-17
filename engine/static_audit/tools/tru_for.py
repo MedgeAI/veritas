@@ -4,8 +4,11 @@ Wraps the ELIS TruFor deep-learning forgery detector as a Veritas tool.
 Runs TruFor inference on all figure images via subprocess, producing
 per-figure ``ForgedRegionEvidence`` records with localization heatmaps.
 
-When GPU is unavailable or model weights are missing, the tool returns
-``status="skipped"`` and writes limitations — it does NOT block the pipeline.
+Startup prerequisites are checked in three layers (D-5):
+  1. ``timm`` -- importable; missing means ``make sync`` is needed.
+  2. Model weights -- ``models/trufor/weights/trufor.pth.tar`` must exist;
+     missing causes the entire tool to be *skipped* with ONE limitation.
+  3. GPU/CPU -- CUDA preferred, CPU fallback; never skipped for lack of GPU.
 """
 
 from __future__ import annotations
@@ -22,13 +25,49 @@ _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 DEFAULT_WEIGHTS = _REPO_ROOT / "models" / "trufor" / "weights" / "trufor.pth.tar"
 
 
-def _check_gpu_available() -> bool:
-    """Check if CUDA GPU is available for TruFor inference."""
+def _check_prerequisites(weights_path: Path) -> dict[str, Any] | str:
+    """Three-layer prerequisite check (D-5).
+
+    Returns:
+        ``"cuda:0"`` or ``"cpu"`` when all checks pass.
+        A ``skipped`` result dict when a layer blocks execution.
+    """
+    # Layer 1: timm
+    try:
+        import timm  # noqa: F401
+    except ImportError:
+        return _skipped_result(
+            "timm not installed. Run `make sync` to install dependencies."
+        )
+
+    # Layer 2: model weights
+    if not weights_path.is_file():
+        return _skipped_result(
+            f"TruFor model weights not found at {weights_path}."
+        )
+
+    # Layer 3: GPU / CPU
     try:
         import torch
-        return torch.cuda.is_available()
+        return "cuda:0" if torch.cuda.is_available() else "cpu"
     except ImportError:
-        return False
+        return "cpu"
+
+
+def _skipped_result(reason: str) -> dict[str, Any]:
+    """Return a skipped result with exactly ONE limitation entry."""
+    return {
+        "schema_version": VISUAL_SCHEMA_VERSION,
+        "created_by": "engine/static_audit/tools/tru_for.py",
+        "status": "skipped",
+        "failure_category": "environment",
+        "figure_count": 0,
+        "forged_region_count": 0,
+        "suspicious_count": 0,
+        "forged_region_evidence": [],
+        "errors": [],
+        "limitations": [f"TruFor skipped: {reason}"],
+    }
 
 
 def run_tru_for(
@@ -36,7 +75,6 @@ def run_tru_for(
     *,
     workdir: Path,
     weights_path: Path = DEFAULT_WEIGHTS,
-    device: str = "cuda:0",
     score_threshold: float = 0.5,
 ) -> dict[str, Any]:
     """Run TruFor forgery detection on all figures.
@@ -45,7 +83,6 @@ def run_tru_for(
         figure_evidence: List of figure evidence dicts with source_image_path.
         workdir: Working directory for resolving image paths and writing output.
         weights_path: Path to TruFor model weights.
-        device: CUDA device or 'cpu'.
         score_threshold: Threshold for is_suspicious flag.
 
     Returns:
@@ -54,18 +91,11 @@ def run_tru_for(
     output_dir = workdir / "tru_for"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # Check prerequisites
-    if not weights_path.is_file():
-        return _empty_result(
-            "skipped",
-            limitations=[f"TruFor model weights not found at {weights_path}. Run `make download-trufor-models`."],
-        )
-
-    if not _check_gpu_available() and device.startswith("cuda"):
-        return _empty_result(
-            "skipped",
-            limitations=["TruFor requires GPU (CUDA) but no GPU is available. Skipping TruFor analysis."],
-        )
+    # Three-layer prerequisite check (D-5).
+    prereq = _check_prerequisites(weights_path)
+    if isinstance(prereq, dict):
+        return prereq  # skipped result
+    device = prereq  # "cuda:0" or "cpu"
 
     # Build figure list with absolute paths
     figures = []
@@ -81,7 +111,10 @@ def run_tru_for(
             })
 
     if not figures:
-        return _empty_result("skipped", limitations=["No figure images available for TruFor analysis."])
+        return _failed_result(
+            failure_category="dependency",
+            errors=["No figure images available for TruFor analysis."],
+        )
 
     # Call runner subprocess
     input_data = {
@@ -102,13 +135,13 @@ def run_tru_for(
             check=False,
         )
         if proc.returncode != 0:
-            return _empty_result(
-                "failed",
+            return _failed_result(
+                failure_category="runtime",
                 errors=[f"TruFor runner exited with code {proc.returncode}: {proc.stderr[:500]}"],
             )
         runner_output = json.loads(proc.stdout)
     except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError) as e:
-        return _empty_result("failed", errors=[f"TruFor runner failed: {e}"])
+        return _failed_result(failure_category="runtime", errors=[f"TruFor runner failed: {e}"])
 
     # Convert runner results to ForgedRegionEvidence
     forged_evidence = []
@@ -161,6 +194,20 @@ def run_tru_for(
         forged_evidence.append(fre.to_dict())
 
     suspicious_count = sum(1 for f in forged_evidence if f.get("is_suspicious"))
+
+    # Delete heatmaps for non-suspicious figures to save disk space.
+    # Only pred_map/conf_map for suspicious figures are kept as visual evidence.
+    for f in forged_evidence:
+        if f.get("is_suspicious"):
+            continue
+        for key in ("localization_map_path", "confidence_map_path"):
+            rel = f.get(key)
+            if rel:
+                abs_path = workdir / rel
+                if abs_path.is_file():
+                    abs_path.unlink()
+                f[key] = None
+
     if forged_evidence:
         limitations.append(
             f"TruFor processed {len(forged_evidence)} figures; "
@@ -168,10 +215,18 @@ def run_tru_for(
             f"These are candidates for human review, not conclusions."
         )
 
+    # "ran" only if we actually produced evidence.  Empty results after a
+    # successful subprocess call is still a failure — something is wrong.
+    if not forged_evidence:
+        return _failed_result(
+            failure_category="runtime",
+            errors=errors or ["TruFor runner returned no results for any figure."],
+        )
+
     return {
         "schema_version": VISUAL_SCHEMA_VERSION,
         "created_by": "engine/static_audit/tools/tru_for.py",
-        "status": "ran" if forged_evidence else "skipped",
+        "status": "ran",
         "figure_count": len(figures),
         "forged_region_count": len(forged_evidence),
         "suspicious_count": suspicious_count,
@@ -181,19 +236,27 @@ def run_tru_for(
     }
 
 
-def _empty_result(
-    status: str,
+def _failed_result(
+    *,
+    failure_category: str,
     errors: list[str] | None = None,
-    limitations: list[str] | None = None,
 ) -> dict[str, Any]:
+    """Return a failed result with explicit failure category.
+
+    failure_category values:
+    - "environment": missing GPU, model weights, Docker, etc.
+    - "dependency": upstream artifact missing (visual_evidence.json, etc.)
+    - "runtime": inference error, subprocess crash, etc.
+    """
     return {
         "schema_version": VISUAL_SCHEMA_VERSION,
         "created_by": "engine/static_audit/tools/tru_for.py",
-        "status": status,
+        "status": "failed",
+        "failure_category": failure_category,
         "figure_count": 0,
         "forged_region_count": 0,
         "suspicious_count": 0,
         "forged_region_evidence": [],
         "errors": errors or [],
-        "limitations": limitations or [],
+        "limitations": [],
     }

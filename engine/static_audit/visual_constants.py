@@ -43,22 +43,57 @@ FINDING_PIPELINE_DEFAULTS = {
 }
 
 
-def score_to_risk_level(score: float) -> str:
-    """Map a score to a risk level.
+# Modality weights for dual-dimension risk scoring.
+# Higher weight = higher forensic relevance for the modality.
+MODALITY_WEIGHT: dict[str, float] = {
+    "Blots": 1.0,
+    "Microscopy": 0.9,
+    "Body Imaging": 0.6,
+    "Flow Cytometry": 0.2,
+    "Graphs": 0.2,
+}
+_DEFAULT_MODALITY_WEIGHT = 0.5
+
+
+def compute_risk_level(score: float, modality: str | None = None) -> str:
+    """Map a score to a risk level, adjusted by modality weight.
+
+    The final score is ``score * weight`` where *weight* is:
+
+    * **1.0** when *modality* is ``None`` (backward-compatible — no
+      modality adjustment).
+    * :data:`MODALITY_WEIGHT` value when *modality* is a recognised key.
+    * **0.5** when *modality* is a string not present in
+      :data:`MODALITY_WEIGHT` (unknown modality).
+
+    Existing thresholds (0.7 / 0.4 / 0.25) are then applied to the
+    weighted score.
 
     Args:
-        score: Confidence score in [0.0, 1.0]
+        score: Confidence score in [0.0, 1.0].
+        modality: Panel type string (e.g. "Blots", "Graphs").
+            ``None`` disables modality weighting entirely.
 
     Returns:
-        Risk level: "critical", "high", "medium", or "low"
+        Risk level: "critical", "high", "medium", or "low".
     """
-    if score >= SCORE_THRESHOLD_CRITICAL:
+    if modality is None:
+        weight = 1.0
+    else:
+        weight = MODALITY_WEIGHT.get(modality, _DEFAULT_MODALITY_WEIGHT)
+    final_score = score * weight
+    if final_score >= SCORE_THRESHOLD_CRITICAL:
         return "critical"
-    if score >= SCORE_THRESHOLD_HIGH:
+    if final_score >= SCORE_THRESHOLD_HIGH:
         return "high"
-    if score >= SCORE_THRESHOLD_MEDIUM:
+    if final_score >= SCORE_THRESHOLD_MEDIUM:
         return "medium"
     return "low"
+
+
+def score_to_risk_level(score: float) -> str:
+    """Backward-compatible wrapper — calls compute_risk_level(score, None)."""
+    return compute_risk_level(score, None)
 
 
 # Benign explanations for different finding categories
@@ -82,6 +117,11 @@ BENIGN_EXPLANATIONS = {
         "dHash 候选只是分类线索，需要人工复核",
         "相似的图像可能来自相似的实验条件或样本",
     ],
+    "forged_region_suspicious": [
+        "TruFor 神经网络检测的伪造区域是筛查信号，需要人工复核原始图像",
+        "高 integrity_score 可能由图像拼接、过度后处理或非伪造的图像编辑引起",
+        "部分检测可能源于正常的图像裁剪、标注或格式转换",
+    ],
 }
 
 # Manual review questions for different finding categories
@@ -104,4 +144,23 @@ MANUAL_REVIEW_QUESTIONS = {
         "人工复核 dHash 候选，确认是否为合法的相似性",
         "检查相似的图像是否来自相似的实验条件",
     ],
+    "forged_region_suspicious": [
+        "在原始图像上复核 TruFor 标记的可疑区域，判断是否为独立实验证据",
+        "检查 localization heatmap 是否与图像拼接、裁剪边界或正常后处理区域吻合",
+        "结合图注和实验设计判断该区域是否可能来自合理的图像操作",
+    ],
 }
+
+
+def trufor_integrity_risk_level(integrity_score: float) -> str:
+    """Map TruFor integrity_score to risk level.
+
+    - score >= 0.9 -> "high"
+    - score >= 0.7 -> "medium"
+    - score >= 0.5 -> "low"
+    """
+    if integrity_score >= 0.9:
+        return "high"
+    if integrity_score >= 0.7:
+        return "medium"
+    return "low"

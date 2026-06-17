@@ -3,7 +3,7 @@
 This module extracts individual panels from composite scientific figure images
 by calling the ELIS panel-extractor (YOLOv5) via subprocess.  It replaces the
 previous OpenCV contour-based approach with learned panel detection and
-semantic classification (Blots, Graphs, Microscopy, Body Imagery).
+semantic classification (Blots, Graphs, Microscopy, Body Imaging, Flow Cytometry).
 
 Architecture:
   Veritas orchestrator
@@ -41,10 +41,21 @@ logger = logging.getLogger(__name__)
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 ELIS_PANEL_EXTRACTOR = _REPO_ROOT / "third_party" / "elis" / "system_modules" / "panel-extractor"
-DEFAULT_WEIGHTS = _REPO_ROOT / "models" / "panel_extraction" / "model_4_class.pt"
+DEFAULT_WEIGHTS = _REPO_ROOT / "models" / "panel_extraction" / "model_5_class.pt"
+
+# 5-class YOLOv5 panel classification labels
+YOLOV5_CLASS_LABELS = ["Blots", "Graphs", "Microscopy", "Body Imaging", "Flow Cytometry"]
 
 EXTRACTION_METHOD_YOLOV5 = "yolov5_panel_extractor"
 EXTRACTION_METHOD_FALLBACK = "whole_figure_fallback"
+
+# Maximum panels per figure.  YOLOv5 over-segments grid images (spatial
+# transcriptomics, blot montages) — e.g. a 4×10 cell grid yields 40 detections.
+# Real multi-panel figures in biomedical papers rarely exceed 9 panels.
+# Distribution on paper2: 1-9 panels = normal, 12+ = over-segmentation (no
+# values in 10-11 range).  When exceeded, the orchestrator falls back to a
+# single whole-figure panel.
+MAX_PANELS_PER_FIGURE = 16
 
 
 # ---------------------------------------------------------------------------
@@ -61,6 +72,7 @@ def extract_panels_batch(
     conf_thres: float = 0.4,
     iou_thres: float = 0.4,
     imgsz: int = 640,
+    figure_labels: dict[str, str] | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
     """Run YOLOv5 panel extraction on all figures in a single subprocess.
 
@@ -72,6 +84,9 @@ def extract_panels_batch(
         conf_thres: Confidence threshold.
         iou_thres: NMS IoU threshold.
         imgsz: Inference image size.
+        figure_labels: Optional mapping of figure_id → paper_figure_label
+            (e.g. from evidence ledger caption). Used for crop filenames and
+            panel evidence metadata.
 
     Returns:
         Dict mapping figure_id → list of PanelEvidence dicts.
@@ -137,7 +152,7 @@ def extract_panels_batch(
     # Parse PANELS.csv and distribute to figures
     csv_path = batch_output / "PANELS.csv"
     return _distribute_panels_from_csv(
-        csv_path, figure_paths, batch_output, output_dir,
+        csv_path, figure_paths, batch_output, output_dir, figure_labels=figure_labels,
     )
 
 
@@ -146,11 +161,17 @@ def _distribute_panels_from_csv(
     figure_paths: list[tuple[str, Path]],
     batch_output: Path,
     output_dir: Path,
+    figure_labels: dict[str, str] | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
     """Parse PANELS.csv and map panels to their parent figures.
 
     The CSV FIGNAME column contains the image file stem.  We match stems back
     to figure_ids via the figure_paths list.
+
+    Args:
+        figure_labels: Optional mapping of figure_id → paper_figure_label
+            from the evidence ledger. Used for crop filenames and panel
+            evidence metadata.
     """
     # Build stem → figure_id mapping
     stem_to_fid: dict[str, str] = {}
@@ -187,7 +208,8 @@ def _distribute_panels_from_csv(
         fid = stem_to_fid.get(figname)
         if fid is None:
             continue
-        panels = _convert_csv_rows_to_panels(fid, fig_rows, batch_output, output_dir)
+        paper_label = (figure_labels or {}).get(fid)
+        panels = _convert_csv_rows_to_panels(fid, fig_rows, batch_output, output_dir, paper_figure_label=paper_label)
         result[fid] = panels
 
     return result
@@ -198,8 +220,18 @@ def _convert_csv_rows_to_panels(
     rows: list[dict[str, str]],
     batch_output: Path,
     output_dir: Path,
+    paper_figure_label: str | None = None,
 ) -> list[dict[str, Any]]:
     """Convert PANELS.csv rows for one figure into PanelEvidence dicts."""
+    if len(rows) > MAX_PANELS_PER_FIGURE:
+        logger.warning(
+            "Figure %s: YOLOv5 produced %d panels (max=%d). "
+            "Likely over-segmentation of a grid/montage image. "
+            "Falling back to whole-figure panel.",
+            figure_id, len(rows), MAX_PANELS_PER_FIGURE,
+        )
+        return []
+
     panels: list[dict[str, Any]] = []
     panels_dir = output_dir / "panels" / figure_id
     panels_dir.mkdir(parents=True, exist_ok=True)
@@ -225,7 +257,8 @@ def _convert_csv_rows_to_panels(
 
         # Move crop from batch output to canonical location
         crop_src = _find_crop_file(batch_output, row.get("FIGNAME", ""), idx, panel_type_raw)
-        crop_dst = panels_dir / f"{label}.png"
+        crop_filename = _build_crop_filename(paper_figure_label, figure_id, idx + 1, panel_type_raw)
+        crop_dst = panels_dir / crop_filename
         if crop_src and crop_src.is_file():
             shutil.move(str(crop_src), str(crop_dst))
         elif not crop_dst.is_file():
@@ -246,6 +279,7 @@ def _convert_csv_rows_to_panels(
             extraction_confidence=0.8,
             extraction_method=EXTRACTION_METHOD_YOLOV5,
             panel_type=panel_type,
+            paper_figure_label=paper_figure_label,
             metadata={
                 "yolov5_label": panel_type_raw,
                 "yolov5_id": row.get("ID", ""),
@@ -318,6 +352,28 @@ def _index_to_label(index: int) -> str:
     if index < 26:
         return chr(ord("a") + index)
     return chr(ord("a") + (index // 26) - 1) + chr(ord("a") + (index % 26))
+
+
+def _sanitize_for_filename(name: str) -> str:
+    """Sanitize a string for use in a filename (replace spaces, strip unsafe chars)."""
+    return name.replace(" ", "_").replace("/", "_")
+
+
+def _build_crop_filename(
+    paper_figure_label: str | None,
+    figure_id: str,
+    panel_index: int,
+    modality: str,
+) -> str:
+    """Build a human-readable crop filename for a panel.
+
+    Format: {paper_figure_label or figure_id}_panel{idx:02d}_{modality}.png
+    Example: Fig3b_panel01_Blots.png (with label)
+    Example: figure-0003_panel01_Graphs.png (fallback)
+    """
+    label_part = _sanitize_for_filename(paper_figure_label) if paper_figure_label else _sanitize_for_filename(figure_id)
+    modality_part = _sanitize_for_filename(modality) if modality else "unknown"
+    return f"{label_part}_panel{panel_index:02d}_{modality_part}.png"
 
 
 # ---------------------------------------------------------------------------
@@ -473,9 +529,11 @@ def whole_figure_panel(figure: dict[str, Any], *, workdir: Path, output_dir: Pat
     if not source_path.exists() or not source_path.is_file():
         return None
     figure_id = str(figure.get("figure_id") or "FE-UNKNOWN")
+    paper_figure_label = figure.get("label") or None
     panel_dir = output_dir / "panels" / figure_id
     panel_dir.mkdir(parents=True, exist_ok=True)
-    crop_path = panel_dir / "a.png"
+    crop_filename = _build_crop_filename(paper_figure_label, figure_id, 1, "whole_figure")
+    crop_path = panel_dir / crop_filename
     if not crop_path.exists():
         shutil.copyfile(source_path, crop_path)
     try:
@@ -495,6 +553,7 @@ def whole_figure_panel(figure: dict[str, Any], *, workdir: Path, output_dir: Pat
         height=height,
         extraction_confidence=0.5,
         extraction_method=EXTRACTION_METHOD_FALLBACK,
+        paper_figure_label=paper_figure_label,
         metadata={"source_image_path": source_rel, "fallback_reason": "yolov5_detected_no_panels"},
     ).to_dict()
 

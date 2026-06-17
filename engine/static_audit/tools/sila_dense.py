@@ -125,6 +125,7 @@ def detect_sila_dense(
     figure_evidence: list[dict],
     *,
     workdir: Path,
+    output_base: Path | None = None,
     method: str = "sila_dense",
     min_score: float = 0.05,
     max_relationships: int = 500,
@@ -135,20 +136,12 @@ def detect_sila_dense(
     ImageRelationship dicts for the Veritas finding pipeline.
     """
     if not _docker_available():
-        return {
-            "schema_version": VISUAL_SCHEMA_VERSION,
-            "created_by": "engine/static_audit/tools/sila_dense.py",
-            "status": "skipped",
-            "method": method,
-            "panel_count": 0,
-            "relationship_count": 0,
-            "relationships": [],
-            "errors": [],
-            "limitations": [
-                f"Docker image '{DOCKER_IMAGE}' not found. "
-                f"Build with: docker build -t {DOCKER_IMAGE} third_party/elis/system_modules/copy-move-detection/"
-            ],
-        }
+        return _sila_failed(
+            "environment",
+            [f"Docker image '{DOCKER_IMAGE}' not found. "
+             f"Build with: docker build -t {DOCKER_IMAGE} third_party/elis/system_modules/copy-move-detection/"],
+            method=method,
+        )
 
     panels_with_crops = []
     for panel in panel_evidence:
@@ -160,19 +153,13 @@ def detect_sila_dense(
             panels_with_crops.append((panel, crop_path))
 
     if not panels_with_crops:
-        return {
-            "schema_version": VISUAL_SCHEMA_VERSION,
-            "created_by": "engine/static_audit/tools/sila_dense.py",
-            "status": "skipped",
-            "method": method,
-            "panel_count": 0,
-            "relationship_count": 0,
-            "relationships": [],
-            "errors": [],
-            "limitations": ["No panels with valid crop paths available."],
-        }
+        return _sila_failed(
+            "dependency",
+            ["No panels with valid crop paths available."],
+            method=method,
+        )
 
-    output_base = workdir / "sila_dense"
+    output_base = output_base or (workdir / "sila_dense")
     relationships: list[dict[str, Any]] = []
     errors: list[str] = []
     counter = 0
@@ -204,8 +191,9 @@ def detect_sila_dense(
                 mask_img = np.array(Image.open(mask_path).convert("L"))
                 coverage = float(np.count_nonzero(mask_img)) / max(mask_img.size, 1)
                 score = min(1.0, coverage * 5)  # Scale up for visibility
-            except Exception:
-                score = 0.5  # Default score if coverage calculation fails
+            except Exception as exc:
+                errors.append(f"SILA dense mask coverage failed for {panel_id}: {exc}")
+                continue
 
             if score >= min_score:
                 counter += 1
@@ -241,28 +229,39 @@ def detect_sila_dense(
     for i, rel in enumerate(relationships, start=1):
         rel["relationship_id"] = f"IR-SILA-{i:04d}"
 
-    status = "ran" if relationships else "skipped"
-    if not relationships and panels_with_crops:
-        return {
-            "schema_version": VISUAL_SCHEMA_VERSION,
-            "created_by": "engine/static_audit/tools/sila_dense.py",
-            "status": status,
-            "method": method,
-            "panel_count": len(panels_with_crops),
-            "relationship_count": 0,
-            "relationships": [],
-            "errors": errors,
-            "limitations": ["SILA dense did not detect copy-move in any panel above threshold."],
-        }
-
+    # Tool ran successfully; 0 relationships is a valid negative result.
+    limitations = [] if relationships else [
+        "SILA dense did not detect copy-move in any panel above threshold."
+    ]
     return {
         "schema_version": VISUAL_SCHEMA_VERSION,
         "created_by": "engine/static_audit/tools/sila_dense.py",
-        "status": status,
+        "status": "ran",
+        "failure_category": None,
         "method": method,
         "panel_count": len(panels_with_crops),
         "relationship_count": len(relationships),
         "relationships": relationships,
+        "errors": errors,
+        "limitations": limitations,
+    }
+
+
+def _sila_failed(
+    failure_category: str,
+    errors: list[str],
+    *,
+    method: str = "sila_dense",
+) -> dict[str, Any]:
+    return {
+        "schema_version": VISUAL_SCHEMA_VERSION,
+        "created_by": "engine/static_audit/tools/sila_dense.py",
+        "status": "failed",
+        "failure_category": failure_category,
+        "method": method,
+        "panel_count": 0,
+        "relationship_count": 0,
+        "relationships": [],
         "errors": errors,
         "limitations": [],
     }

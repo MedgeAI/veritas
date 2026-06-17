@@ -5,11 +5,17 @@ from __future__ import annotations
 import json
 
 from engine.static_audit.html_report._core import visual_evidence_section
+from engine.static_audit.paths import resolve_artifact_path
 
 
 def write_json(path, data) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+
+
+def _path(tmp_path, name: str):
+    """Resolve artifact name to the correct subdirectory path for test fixtures."""
+    return resolve_artifact_path(tmp_path, name)
 
 
 def test_visual_evidence_section_empty(tmp_path) -> None:
@@ -29,7 +35,7 @@ def test_visual_evidence_section_empty(tmp_path) -> None:
 def test_visual_evidence_section_with_figures(tmp_path) -> None:
     """When visual_evidence.json has figures, they should appear in the section."""
     write_json(
-        tmp_path / "visual_evidence.json",
+        _path(tmp_path, "visual_evidence.json"),
         {
             "version": "1.0",
             "figures": [
@@ -48,7 +54,7 @@ def test_visual_evidence_section_with_figures(tmp_path) -> None:
         },
     )
     write_json(
-        tmp_path / "panel_evidence.json",
+        _path(tmp_path, "panel_evidence.json"),
         {
             "version": "1.0",
             "panels": [
@@ -89,7 +95,7 @@ def test_visual_evidence_section_with_figures(tmp_path) -> None:
 def test_visual_evidence_section_with_relationships(tmp_path) -> None:
     """When image_relationships.json has relationships, they should appear in the table."""
     write_json(
-        tmp_path / "image_relationships.json",
+        _path(tmp_path, "image_relationships.json"),
         {
             "version": "1.0",
             "relationships": [
@@ -118,7 +124,7 @@ def test_visual_evidence_section_with_relationships(tmp_path) -> None:
 def test_visual_evidence_section_with_findings(tmp_path) -> None:
     """When visual_findings.json has findings, they should appear in cards."""
     write_json(
-        tmp_path / "visual_findings.json",
+        _path(tmp_path, "visual_findings.json"),
         {
             "version": "1.0",
             "findings": [
@@ -148,7 +154,7 @@ def test_visual_evidence_section_with_findings(tmp_path) -> None:
 
 def test_visual_evidence_section_with_review_queue_and_clusters(tmp_path) -> None:
     write_json(
-        tmp_path / "panel_evidence.json",
+        _path(tmp_path, "panel_evidence.json"),
         {
             "version": "1.0",
             "panels": [
@@ -167,7 +173,7 @@ def test_visual_evidence_section_with_review_queue_and_clusters(tmp_path) -> Non
         },
     )
     write_json(
-        tmp_path / "visual_findings.json",
+        _path(tmp_path, "visual_findings.json"),
         {
             "version": "1.0",
             "finding_count": 1,
@@ -230,7 +236,7 @@ def test_visual_evidence_section_with_review_queue_and_clusters(tmp_path) -> Non
 def test_visual_evidence_section_language_compliance(tmp_path) -> None:
     """Findings with forbidden phrases should not render the forbidden text."""
     write_json(
-        tmp_path / "visual_findings.json",
+        _path(tmp_path, "visual_findings.json"),
         {
             "version": "1.0",
             "findings": [
@@ -258,9 +264,9 @@ def test_visual_evidence_section_in_full_report(tmp_path) -> None:
     from engine.static_audit.html_report._core import render_static_audit_html
 
     # Write minimal required artifacts
-    write_json(tmp_path / "audit_run_manifest.json", {"steps": []})
-    write_json(tmp_path / "static_audit_bundle.json", {"agent_traces": [], "claim_mappings": []})
-    write_json(tmp_path / "visual_evidence.json", {
+    write_json(_path(tmp_path, "audit_run_manifest.json"), {"steps": []})
+    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": []})
+    write_json(_path(tmp_path, "visual_evidence.json"), {
         "version": "1.0",
         "figures": [{"figure_id": "FE-0001", "source_image_path": "images/Figure1.png", "label": "Figure 1", "caption": "Test", "page_number": 1, "bbox": None, "width": 100, "height": 100, "panel_count": 0}],
     })
