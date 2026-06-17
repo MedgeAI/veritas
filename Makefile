@@ -25,7 +25,7 @@ PAPER_DIR ?=
 CASE_ID ?= local-paper-demo
 AGENT_MODE ?= review
 AGENT_MODEL ?= dashscope/qwen3.7-plus
-AGENT_TIMEOUT_SECONDS ?= 180
+AGENT_TIMEOUT_SECONDS ?= 600
 AGENT_MAX_RETRIES ?= 1
 PROGRESS ?= plain
 
@@ -36,6 +36,7 @@ FRONTEND_DIR := web/frontend
 
 .PHONY: help show-config sync install setup \
 	up down rebuild restart logs ps shell health docker-health \
+	db-up db-down db-init db-migrate \
 	precheck run report demo audit audit-off audit-fresh report-path \
 	web-backend web-frontend web-install web-build web-preview \
 	test test-unit test-integration test-e2e lint lint-python lint-web web-test \
@@ -102,6 +103,27 @@ shell: ## Enter the Docker web service shell
 
 docker-health: ## Check Docker web service health through port 80
 	@curl -sf http://127.0.0.1/api/health | $(PYTHON) -m json.tool || echo "Docker web service unavailable"
+
+# -- Database lifecycle --------------------------------------------------
+
+db-up: ## Start PostgreSQL with pgvector via Docker Compose
+	$(COMPOSE) up -d postgres
+	@echo "Waiting for PostgreSQL..."
+	@for i in $$(seq 1 15); do \
+		if docker compose exec -T postgres pg_isready -U veritas >/dev/null 2>&1; then \
+			echo "PostgreSQL ready."; break; \
+		fi; \
+		sleep 1; \
+	done
+
+db-down: ## Stop PostgreSQL container
+	$(COMPOSE) stop postgres
+
+db-init: db-up ## Initialise database tables (development only)
+	$(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.database import init_db; init_db()"
+
+db-migrate: ## Migrate web_data/ JSON files to PostgreSQL
+	$(PY_ENV) $(PYTHON) scripts/migrate_web_data_to_postgres.py
 
 # -- CLI audit flow ------------------------------------------------------
 
@@ -211,8 +233,18 @@ web-test: ## Run frontend tests
 
 # -- Model weights -------------------------------------------------------
 
-download-models: ## Download YOLOv5 panel extraction model weights (~50MB)
+download-models: ## Download model weights (YOLOv5 panel extraction + TruFor)
 	./scripts/download_panel_extraction_models.sh
+	@echo ""
+	@echo "Checking TruFor weights..."
+	@if [ ! -f models/trufor/weights/trufor.pth.tar ]; then \
+		echo "TruFor weights not found at models/trufor/weights/trufor.pth.tar"; \
+		echo "Download from https://github.com/danielgatis/trufor/releases and place in models/trufor/weights/trufor.pth.tar"; \
+		mkdir -p models/trufor/weights; \
+		echo "You can also run: gdown <TRUFOR_GDRIVE_ID> -O models/trufor/weights/trufor.pth.tar"; \
+	else \
+		echo "TruFor weights found."; \
+	fi
 
 # -- Cleanup -------------------------------------------------------------
 

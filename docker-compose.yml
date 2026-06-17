@@ -1,4 +1,22 @@
 services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: veritas-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: veritas
+      POSTGRES_USER: veritas
+      POSTGRES_PASSWORD: veritas
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U veritas"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   veritas:
     build:
       context: .
@@ -19,6 +37,7 @@ services:
       - VERITAS_PORT=8765
       - VERITAS_DATA_ROOT=/app/web_data
       - VERITAS_OUTPUT_ROOT=/app/outputs
+      - VERITAS_DATABASE_URL=postgresql://veritas:veritas@postgres:5432/veritas
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8765/api/health"]
       interval: 60s
@@ -30,3 +49,9 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
