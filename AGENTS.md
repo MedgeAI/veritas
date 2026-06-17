@@ -65,13 +65,13 @@
 - 报告按 issue_category 分层呈现：高危发现（consistency）→ 匹配问题（matching）→ 完整性问题（completeness）
 - 每个 finding 给出明确的"建议行动"（如"立即要求学生解释"、"核对计算过程"、"要求学生提交代码"）
 - 报告重点呈现"高危发现 Top 5"和"人工复核任务清单"
-- 当前聚焦干实验论文（Python/R 医学生信与生物医药），暂不泛化到湿实验、临床试验等
+- 当前聚焦干实验论文（Python/R 医学生信与生物医药，含使用流行病学/临床试验数据的计算论文：横断面研究、病例对照研究、队列研究、TCGA/GEO 临床数据分析等）
 
 ## 当前范围
 
 MVP 聚焦：
 
-- **干实验论文**：Python/R 医学生信与生物医药干实验论文（不泛化到湿实验）
+- **干实验论文**：Python/R 医学生信与生物医药干实验论文，包含使用流行病学/临床试验数据的计算论文（横断面研究、病例对照研究、队列研究、TCGA/GEO 临床数据分析等）
 - 投稿前技术复核，而不是学术价值评价
 - 服务式流程：用户提交材料，我们代跑
 - CLI-first，同时提供 Web P1 工作台用于内测 happy path
@@ -84,7 +84,8 @@ MVP 聚焦：
 - 自动提交 patch
 - 完整 SaaS 任务系统和多租户运营后台
 - 远程 worker 集群
-- 湿实验、临床试验、材料科学等非干实验论文（后续再泛化）
+
+PaperFraud 规则适用性：PaperFraud `study_design.yaml` 中的所有规则对 Veritas 全部相关，包括流行病学/临床试验数据分析的检测规则，不禁用任何规则。
 
 历史决策：先做最简单的一版验证，不急着铺完整 runtime；但 `audit-paper` 入口必须接入 opencode，不能退化成纯确定性脚本。
 
@@ -99,7 +100,7 @@ MVP 聚焦：
 -> opencode AgentInvestigationPlanner 基于已生成 artifacts 选择最多 3 轮后续确定性调查工具
 -> opencode agent_review 读取结构化产物做 claim/finding 复核
 -> opencode role layer 顺序执行 ClaimExtractor / SourceDataAuditor / JudgeAgent
--> AgentStepRunner 为所有 Agent 调用写入 bounded context_pack_*.json 和 logs/*.json
+-> AgentStepRunner 为所有 Agent 调用写入 bounded context_pack_*.json 和 logs/*.log
 -> 产出结构化证据草案和 Markdown/HTML 报告
 -> 再把 runtime / claim-to-code verification 纳入更稳定的 happy path
 ```
@@ -108,7 +109,7 @@ MVP 聚焦：
 
 最新补充：`image_similarity_candidates` 已从固定 baseline 移到 Agent-selectable investigation tool。`AgentInvestigationPlanner` 只能选择 Tool Registry 中 `agent_selectable=True` 且 deterministic 的工具；执行记录写入 `investigation_rounds.jsonl`，追加工具输出写入 `workdir/investigation/`，不得覆盖 baseline artifacts。
 
-Agent 调用层最新状态：`engine/investigation/context_pack.py` 为 material plan、review 和 role layer 构建 bounded `AgentContextPack`；`engine/investigation/agent_step_runner.py` 统一执行 opencode、JSON extraction、schema validation、retry、错误分类和 `logs/*.json` 写入。`opencode_agent.py` 仍通过 legacy adapter 保持 orchestrator 兼容。后续若修改 Agent 行为，优先维护 context pack、runner result 和 manifest/report provenance 的契约，不要回退到裸自然语言输出。
+Agent 调用层最新状态：`engine/investigation/context_pack.py` 为 material plan、review 和 role layer 构建 bounded `AgentContextPack`；`engine/investigation/agent_step_runner.py` 统一执行 opencode、JSON extraction、schema validation、retry、错误分类和 `logs/*.log` 写入。`opencode_agent.py` 仍通过 legacy adapter 保持 orchestrator 兼容。后续若修改 Agent 行为，优先维护 context pack、runner result 和 manifest/report provenance 的契约，不要回退到裸自然语言输出。
 
 也就是说，当前第一刀不是直接做完整 `veritas.yml -> runtime -> report`，而是先验证：
 
@@ -125,6 +126,7 @@ Agent 调用层最新状态：`engine/investigation/context_pack.py` 为 materia
 - 已落地：canonical `figure_evidence` / `panel_evidence` / `visual_finding` / `image_relationship` schema、`visual.panel_extraction`、`visual.copy_move`、`visual.finding_pipeline`、HTML Visual Evidence Package 和 Web Visual Forensics Gallery。
 - 当前 `visual.panel_extraction` 仍是 first-party OpenCV/Canny/contour 启发式实现，失败时会创建 whole-figure fallback panel。
 - 当前 `visual.copy_move` 仍是 first-party ORB/SIFT + BFMatcher + RANSAC 实现，由 AgentInvestigationPlanner 可选触发；不是固定 baseline。
+- 当前 `visual.copy_move_dense` / SILA dense 是重型可选调查工具，支持 Web Visual Forensics Gallery 中按选中 panel 手动触发；不得在 `audit-paper` baseline 中对所有 panels 无条件全量运行。
 - 已决策但未落地：用 ELIS `panel-extractor` / RootSIFT+MAGSAC++ / SILA dense copy-move / TruFor / CBIR 等 adapter 替换或增强现有传统 CV 路径。
 - 文档中提到的 TruFor、CBIR/Milvus、YOLOv5/RootSIFT 能力在进入 `engine/tools/registry.py` 并产出 fixture-backed artifact 前，不得写成稳定主链路。
 

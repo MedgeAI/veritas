@@ -57,3 +57,4 @@ docs/
 
 # Model weights (binary artifacts, download separately)
 models/
+local_outputs/*

@@ -70,7 +70,7 @@ Audit Workdir
   |    investigation/round_XX/action_YY/visual_copy_move.json   # only if selected
   |    investigation_rounds.jsonl
   |    context_pack_*.json
-  |    logs/*.json
+  |    logs/*.log
   |    agent_review.json
   |    agent_role_*.json
   |    static_audit_bundle.json
@@ -441,7 +441,7 @@ AgentInvestigationPlanner
 investigation_rounds.jsonl
 workdir/investigation/*
 context_pack_investigation_plan.json
-logs/*.json
+logs/*.log
   |
   v
 image_relationships.json
@@ -489,7 +489,7 @@ outputs/{case_id}/research-integrity-audit/
 - `SourceDataAuditor`
 - `JudgeAgent`
 - `context_pack_*.json`
-- `logs/*.json`
+- `logs/*.log`
 - `static_audit_bundle`
 - `final_audit_report.md`
 - `final_audit_report.html`
@@ -524,7 +524,7 @@ outputs/{case_id}/research-integrity-audit/
 - 通过 `--file <context_pack>` 传入 bounded context。
 - 抽取 JSON 并执行 schema validation。
 - 根据错误类别重试。
-- 写入 `logs/*.json`，记录 validation、retry、error_category 和 log reference。
+- 写入 `logs/*.log`，记录 validation、retry、error_category 和 log reference。
 
 `opencode_agent.py` 暂时把新的 runner result 转回 legacy `AgentRunResult`，以保持 orchestrator、manifest 和报告渲染侧兼容。后续需要把 `error_category`、`log_ref` 和 context pack provenance 提升到报告与 manifest 的一等字段。
 

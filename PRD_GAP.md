@@ -24,7 +24,7 @@
 - XLSX Source Data 已有 profile、findings、pair/row-offset forensics。
 - `AgentInvestigationPlanner` 已接入 P0 最小闭环：最多 3 轮规划、Tool Registry 校验、独立 investigation artifacts、`investigation_rounds.jsonl` 和 HTML 摘要展示。
 - `agent_review`、`ClaimExtractor`、`SourceDataAuditor`、`JudgeAgent` 已经是真实 opencode 调用，不只是 fake trace。
-- Agent 调用层已进入 `AgentStepRunner + AgentContextPack` 形态：bounded context、JSON extraction、schema validation、retry、错误分类和 `logs/*.json` 已落地，`opencode_agent.py` 通过 legacy adapter 保持 orchestrator 兼容。
+- Agent 调用层已进入 `AgentStepRunner + AgentContextPack` 形态：bounded context、JSON extraction、schema validation、retry、错误分类和 `logs/*.log` 已落地，`opencode_agent.py` 通过 legacy adapter 保持 orchestrator 兼容。
 - Web P1 已加入 run heartbeat：`last_event_at` 会在启动和 progress 时更新，stale run 恢复为 `interrupted`，旧版无 heartbeat 的遗留 run 才恢复为 `failed/interrupted_by_backend_restart`。
 - 本地开发工具链已切到 `uv + Makefile + ruff`：`make sync/test/lint-python/audit/web-*` 是当前推荐入口。
 - `static_audit_bundle.json` 已成为一层结构化 bundle。
