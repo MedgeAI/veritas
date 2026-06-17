@@ -12,7 +12,6 @@ from pathlib import Path
 # Output directory structure: layer artifacts by responsibility for Agent and human readability.
 # See outputs/<case_id>/research-integrity-audit/README.md for full documentation.
 OUTPUT_DIRS = {
-    "inputs": "inputs",           # Original input files (PDF)
     "mineru": "mineru",           # MinerU PDF parsing intermediate artifacts
     "materials": "materials",     # Material inventory and plans
     "source_data": "source_data", # Source Data tool outputs
@@ -73,6 +72,12 @@ ARTIFACT_PATH_MAP = {
     "visual_copy_move.json": "visual/copy_move.json",
     "exact_image_duplicates.json": "visual/exact_duplicates.json",
     "image_similarity_candidates.json": "visual/similarity_candidates.json",
+    "forged_region_evidence.json": "visual/forged_region_evidence.json",
+    "provenance_graph.json": "visual/provenance_graph.json",
+    "visual_copy_move_dense.json": "visual/copy_move_dense.json",
+    "tru_for": "visual/tru_for",
+    "provenance": "visual/provenance",
+    "sila_dense": "visual/sila_dense",
     "panels": "visual/panels",
     "yolov5_batch": "visual/yolov5_batch",
     # Agent outputs
@@ -82,6 +87,11 @@ ARTIFACT_PATH_MAP = {
     "agent_claim_extractor.json": "agents/claim_extractor.json",
     "agent_source_data_auditor.json": "agents/source_data_auditor.json",
     "agent_judge.json": "agents/judge.json",
+    "agent_defense.json": "agents/defense.json",
+    "agent_digit_pattern.json": "agents/digit_pattern.json",
+    "agent_math_consistency.json": "agents/math_consistency.json",
+    "agent_domain_sanity.json": "agents/domain_sanity.json",
+    "agent_visual_triage.json": "agents/visual_triage.json",
     "agent_traces": "agents/traces",
     "context_pack_material_plan.json": "agents/context_pack_material_plan.json",
     "context_pack_claim_extractor.json": "agents/context_pack_claim_extractor.json",

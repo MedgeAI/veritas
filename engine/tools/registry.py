@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any
 
 
@@ -17,10 +18,18 @@ TOOL_ID_TRU_FOR = "visual.tru_for"
 TOOL_ID_PROVENANCE_GRAPH = "visual.provenance_graph"
 TOOL_ID_SILA_DENSE = "visual.copy_move_dense"
 
-EXECUTION_PHASE_MANDATORY_BOOTSTRAP = "mandatory_bootstrap"
-EXECUTION_PHASE_AGENT_SELECTABLE = "agent_selectable"
-EXECUTION_PHASE_RESERVED = "reserved"
-EXECUTION_PHASE_REPORT_ONLY = "report_only"
+class ExecutionPhase(str, Enum):
+    """Tool execution phase — controls when and how a tool runs in the audit pipeline.
+
+    MANDATORY_BASELINE:   runs unconditionally in the baseline pipeline.
+    CONDITIONAL_BASELINE: runs when preconditions (e.g. Source Data) are met.
+    AGENT_SELECTABLE:     only runs via Agent investigation rounds.
+    REPORT_ONLY:          consumes existing artifacts for report generation.
+    """
+    MANDATORY_BASELINE   = "mandatory_baseline"
+    CONDITIONAL_BASELINE = "conditional_baseline"
+    AGENT_SELECTABLE     = "agent_selectable"
+    REPORT_ONLY          = "report_only"
 
 SOURCE_DATA_FINDINGS_DEFAULT_PARAMS = {
     "min_overlap": 12,
@@ -39,11 +48,28 @@ class ToolDefinition:
     deterministic: bool = True
     expected_outputs: tuple[str, ...] = ()
     parameter_defaults: dict[str, Any] = field(default_factory=dict)
-    execution_phase: str = EXECUTION_PHASE_AGENT_SELECTABLE
-    agent_selectable: bool = False
+    execution_phase: ExecutionPhase = ExecutionPhase.AGENT_SELECTABLE
     input_artifacts: tuple[str, ...] = ()
     output_artifacts: tuple[str, ...] = ()
     param_schema: dict[str, dict[str, Any]] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        # Backward-compatible agent_selectable derived from execution_phase.
+        # Use object.__setattr__ to bypass frozen dataclass restriction.
+        object.__setattr__(
+            self,
+            "_agent_selectable",
+            self.execution_phase == ExecutionPhase.AGENT_SELECTABLE,
+        )
+
+    @property
+    def agent_selectable(self) -> bool:
+        """Whether this tool can be selected by Agent investigation rounds.
+
+        Derived from execution_phase == AGENT_SELECTABLE.
+        Kept as a read-only property for backward compatibility.
+        """
+        return self._agent_selectable
 
 
 TOOLS: dict[str, ToolDefinition] = {
@@ -54,7 +80,7 @@ TOOLS: dict[str, ToolDefinition] = {
         source="third_party/research-integrity-auditor",
         description="Convert the paper PDF into Markdown, images, and MinerU manifest artifacts.",
         expected_outputs=("mineru/full.md", "mineru/mineru_manifest.json", "visual/images/"),
-        execution_phase=EXECUTION_PHASE_MANDATORY_BOOTSTRAP,
+        execution_phase=ExecutionPhase.MANDATORY_BASELINE,
         input_artifacts=("paper.pdf",),
         output_artifacts=("mineru/full.md", "mineru/mineru_manifest.json", "visual/images/"),
     ),
@@ -65,7 +91,7 @@ TOOLS: dict[str, ToolDefinition] = {
         source="third_party/research-integrity-auditor",
         description="Build a structured evidence ledger from MinerU output.",
         expected_outputs=("mineru/evidence_ledger.json",),
-        execution_phase=EXECUTION_PHASE_MANDATORY_BOOTSTRAP,
+        execution_phase=ExecutionPhase.MANDATORY_BASELINE,
         input_artifacts=("mineru/full.md", "mineru/mineru_manifest.json"),
         output_artifacts=("mineru/evidence_ledger.json",),
     ),
@@ -76,7 +102,7 @@ TOOLS: dict[str, ToolDefinition] = {
         source="third_party/research-integrity-auditor",
         description="Run deterministic numeric forensics over parsed PDF tables.",
         expected_outputs=("numeric/forensics.json",),
-        execution_phase=EXECUTION_PHASE_MANDATORY_BOOTSTRAP,
+        execution_phase=ExecutionPhase.MANDATORY_BASELINE,
         input_artifacts=("mineru/full.md",),
         output_artifacts=("numeric/forensics.json",),
     ),
@@ -87,7 +113,7 @@ TOOLS: dict[str, ToolDefinition] = {
         source="engine/static_audit/adapters/paperfraud_knowledge",
         description="Match PaperFraud methodology and fraud-pattern rules against parsed paper text and generate reviewer prompts.",
         expected_outputs=("numeric/paperfraud_rules.json",),
-        execution_phase=EXECUTION_PHASE_MANDATORY_BOOTSTRAP,
+        execution_phase=ExecutionPhase.MANDATORY_BASELINE,
         input_artifacts=("mineru/full.md",),
         output_artifacts=("numeric/paperfraud_rules.json",),
     ),
@@ -98,7 +124,7 @@ TOOLS: dict[str, ToolDefinition] = {
         source="engine/static_audit",
         description="Scan submitted paper directory and classify optional evidence artifacts without interpreting them.",
         expected_outputs=("materials/material_inventory.json",),
-        execution_phase=EXECUTION_PHASE_MANDATORY_BOOTSTRAP,
+        execution_phase=ExecutionPhase.MANDATORY_BASELINE,
         output_artifacts=("materials/material_inventory.json",),
     ),
     "agent.material_plan": ToolDefinition(
@@ -109,7 +135,7 @@ TOOLS: dict[str, ToolDefinition] = {
         description="Select optional evidence lanes from material_inventory.json using Tool Registry constraints.",
         deterministic=False,
         expected_outputs=("materials/agent_material_plan.json",),
-        execution_phase=EXECUTION_PHASE_RESERVED,
+        execution_phase=ExecutionPhase.AGENT_SELECTABLE,
         input_artifacts=("materials/material_inventory.json",),
         output_artifacts=("materials/agent_material_plan.json",),
     ),
@@ -120,7 +146,7 @@ TOOLS: dict[str, ToolDefinition] = {
         source="veritas/scripts",
         description="Profile XLSX source data workbooks and sheets.",
         expected_outputs=("source_data/profile.json",),
-        agent_selectable=True,
+        execution_phase=ExecutionPhase.CONDITIONAL_BASELINE,
         input_artifacts=("materials/agent_material_plan.json",),
         output_artifacts=("source_data/profile.json",),
     ),
@@ -132,7 +158,7 @@ TOOLS: dict[str, ToolDefinition] = {
         description="Find duplicate columns, fixed relationships, formula-derived columns, and claim-to-source-data candidates.",
         expected_outputs=("source_data/findings.json",),
         parameter_defaults=SOURCE_DATA_FINDINGS_DEFAULT_PARAMS,
-        agent_selectable=True,
+        execution_phase=ExecutionPhase.CONDITIONAL_BASELINE,
         input_artifacts=("source_data/profile.json", "mineru/full.md"),
         output_artifacts=("source_data/findings.json",),
         param_schema={
@@ -156,7 +182,7 @@ TOOLS: dict[str, ToolDefinition] = {
             "max_findings_per_category": 50,
             "min_duplicate_row_width": 2,
         },
-        agent_selectable=True,
+        execution_phase=ExecutionPhase.CONDITIONAL_BASELINE,
         input_artifacts=("source_data/profile.json",),
         output_artifacts=("source_data/pair_forensics.json",),
         param_schema={
@@ -180,7 +206,7 @@ TOOLS: dict[str, ToolDefinition] = {
             "min_support_rate": 0.8,
             "max_findings": 50,
         },
-        agent_selectable=True,
+        execution_phase=ExecutionPhase.CONDITIONAL_BASELINE,
         input_artifacts=("source_data_dir",),
         output_artifacts=("source_data/cross_sheet.json",),
         param_schema={
@@ -199,7 +225,7 @@ TOOLS: dict[str, ToolDefinition] = {
         parameter_defaults={
             "profile": "review",
         },
-        agent_selectable=True,
+        execution_phase=ExecutionPhase.AGENT_SELECTABLE,
         input_artifacts=("source_data_dir",),
         output_artifacts=("numeric/paperconan_scan.json",),
         param_schema={
@@ -213,7 +239,7 @@ TOOLS: dict[str, ToolDefinition] = {
         source="veritas/scripts",
         description="Find byte-identical extracted image files.",
         expected_outputs=("visual/exact_duplicates.json",),
-        execution_phase=EXECUTION_PHASE_MANDATORY_BOOTSTRAP,
+        execution_phase=ExecutionPhase.MANDATORY_BASELINE,
         input_artifacts=("visual/images/",),
         output_artifacts=("visual/exact_duplicates.json",),
     ),
@@ -224,7 +250,6 @@ TOOLS: dict[str, ToolDefinition] = {
         source="engine/static_audit/tools",
         description="Find deterministic near-duplicate image candidates with dHash when Pillow is available.",
         expected_outputs=("visual/similarity_candidates.json",),
-        agent_selectable=True,
         input_artifacts=("visual/images/",),
         output_artifacts=("visual/similarity_candidates.json",),
         param_schema={
@@ -239,8 +264,7 @@ TOOLS: dict[str, ToolDefinition] = {
         source="engine/static_audit/tools",
         description="Extract individual panels from composite figures using YOLOv5 object detection with semantic classification.",
         expected_outputs=("visual/evidence.json", "visual/panel_evidence.json"),
-        execution_phase=EXECUTION_PHASE_MANDATORY_BOOTSTRAP,
-        agent_selectable=False,
+        execution_phase=ExecutionPhase.MANDATORY_BASELINE,
         input_artifacts=("visual/images/",),
         output_artifacts=("visual/evidence.json", "visual/panel_evidence.json"),
     ),
@@ -257,7 +281,6 @@ TOOLS: dict[str, ToolDefinition] = {
             "min_score": 0.05,
             "max_relationships": 500,
         },
-        agent_selectable=True,
         input_artifacts=("visual/panel_evidence.json", "visual/evidence.json"),
         output_artifacts=("visual/copy_move.json",),
         param_schema={
@@ -274,8 +297,7 @@ TOOLS: dict[str, ToolDefinition] = {
         source="engine/static_audit/tools",
         description="Aggregate visual evidence into canonical visual_finding records for report generation.",
         expected_outputs=("visual/relationships.json", "visual/findings.json"),
-        execution_phase=EXECUTION_PHASE_REPORT_ONLY,
-        agent_selectable=False,
+        execution_phase=ExecutionPhase.REPORT_ONLY,
         input_artifacts=("visual/panel_evidence.json", "visual/copy_move.json", "visual/exact_duplicates.json"),
         output_artifacts=("visual/relationships.json", "visual/findings.json"),
     ),
@@ -285,11 +307,11 @@ TOOLS: dict[str, ToolDefinition] = {
         title="TruFor 深度学习伪造检测",
         source="engine/static_audit/tools",
         description="Detect forged regions in figures using TruFor SegFormer-B2. Requires GPU; skip-only without GPU.",
-        expected_outputs=("forged_region_evidence.json",),
+        expected_outputs=("visual/forged_region_evidence.json",),
         parameter_defaults={"score_threshold": 0.5},
-        agent_selectable=True,
-        input_artifacts=("visual_evidence.json",),
-        output_artifacts=("forged_region_evidence.json",),
+        execution_phase=ExecutionPhase.MANDATORY_BASELINE,
+        input_artifacts=("visual/evidence.json",),
+        output_artifacts=("visual/forged_region_evidence.json",),
         param_schema={"score_threshold": {"type": "number", "minimum": 0.0, "maximum": 1.0}},
     ),
     TOOL_ID_PROVENANCE_GRAPH: ToolDefinition(
@@ -298,11 +320,11 @@ TOOLS: dict[str, ToolDefinition] = {
         title="溯源图构建",
         source="engine/static_audit/tools",
         description="Build provenance graph from cross-figure content sharing using dhash pre-filter and RootSIFT+MAGSAC++.",
-        expected_outputs=("provenance_graph.json",),
+        expected_outputs=("visual/provenance_graph.json",),
         parameter_defaults={"dhash_threshold": 20, "max_candidate_pairs": 500, "min_keypoints": 20, "min_area": 0.01},
-        agent_selectable=True,
-        input_artifacts=("visual_evidence.json",),
-        output_artifacts=("provenance_graph.json",),
+        execution_phase=ExecutionPhase.MANDATORY_BASELINE,
+        input_artifacts=("visual/evidence.json",),
+        output_artifacts=("visual/provenance_graph.json",),
         param_schema={
             "dhash_threshold": {"type": "integer", "minimum": 0, "maximum": 64},
             "max_candidate_pairs": {"type": "integer", "minimum": 10, "maximum": 5000},
@@ -316,14 +338,14 @@ TOOLS: dict[str, ToolDefinition] = {
         title="SILA Dense Copy-Move 检测",
         source="engine/static_audit/tools",
         description="Detect copy-move forgery using SILA dense features (Zernike/PCT/FMT). Requires Docker.",
-        expected_outputs=("visual_copy_move_dense.json",),
-        parameter_defaults={"min_score": 0.05, "max_relationships": 500},
-        agent_selectable=True,
-        input_artifacts=("panel_evidence.json", "visual_evidence.json"),
-        output_artifacts=("visual_copy_move_dense.json",),
+        expected_outputs=("visual/copy_move_dense.json",),
+        parameter_defaults={"min_score": 0.05, "max_relationships": 500, "max_panels": 20},
+        input_artifacts=("visual/panel_evidence.json", "visual/evidence.json"),
+        output_artifacts=("visual/copy_move_dense.json",),
         param_schema={
             "min_score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
             "max_relationships": {"type": "integer", "minimum": 1, "maximum": 5000},
+            "max_panels": {"type": "integer", "minimum": 1, "maximum": 50},
         },
     ),
     "static_audit.bundle": ToolDefinition(
@@ -333,7 +355,7 @@ TOOLS: dict[str, ToolDefinition] = {
         source="engine/static_audit",
         description="Write Veritas first-party static_audit_bundle.json.",
         expected_outputs=("reports/static_audit_bundle.json",),
-        execution_phase=EXECUTION_PHASE_REPORT_ONLY,
+        execution_phase=ExecutionPhase.REPORT_ONLY,
         output_artifacts=("reports/static_audit_bundle.json",),
     ),
     "agent.review": ToolDefinition(
@@ -344,7 +366,7 @@ TOOLS: dict[str, ToolDefinition] = {
         description="Review deterministic artifacts and produce structured claim/finding review.",
         deterministic=False,
         expected_outputs=("agents/review.json",),
-        execution_phase=EXECUTION_PHASE_RESERVED,
+        execution_phase=ExecutionPhase.AGENT_SELECTABLE,
         output_artifacts=("agents/review.json",),
     ),
     "agent.role.claim_extractor": ToolDefinition(
@@ -355,7 +377,7 @@ TOOLS: dict[str, ToolDefinition] = {
         description="Extract structured technical claims from parsed paper artifacts.",
         deterministic=False,
         expected_outputs=("agents/claim_extractor.json", "agent_traces/claim_extractor.json"),
-        execution_phase=EXECUTION_PHASE_RESERVED,
+        execution_phase=ExecutionPhase.AGENT_SELECTABLE,
         output_artifacts=("agents/claim_extractor.json", "agent_traces/claim_extractor.json"),
     ),
     "agent.role.source_data_auditor": ToolDefinition(
@@ -366,7 +388,7 @@ TOOLS: dict[str, ToolDefinition] = {
         description="Review Source Data findings and claim-to-source-data mappings.",
         deterministic=False,
         expected_outputs=("agents/source_data_auditor.json", "agent_traces/source_data_auditor.json"),
-        execution_phase=EXECUTION_PHASE_RESERVED,
+        execution_phase=ExecutionPhase.AGENT_SELECTABLE,
         output_artifacts=("agents/source_data_auditor.json", "agent_traces/source_data_auditor.json"),
     ),
     "agent.role.judge": ToolDefinition(
@@ -377,7 +399,7 @@ TOOLS: dict[str, ToolDefinition] = {
         description="Synthesize role outputs without making a final misconduct judgment.",
         deterministic=False,
         expected_outputs=("agents/judge.json", "agent_traces/judge.json"),
-        execution_phase=EXECUTION_PHASE_RESERVED,
+        execution_phase=ExecutionPhase.AGENT_SELECTABLE,
         output_artifacts=("agents/judge.json", "agent_traces/judge.json"),
     ),
     "report.render_markdown": ToolDefinition(
@@ -387,7 +409,7 @@ TOOLS: dict[str, ToolDefinition] = {
         source="veritas/scripts",
         description="Render the final Markdown report and run manifest.",
         expected_outputs=("reports/final_audit_report.md", "reports/audit_run_manifest.json"),
-        execution_phase=EXECUTION_PHASE_REPORT_ONLY,
+        execution_phase=ExecutionPhase.REPORT_ONLY,
         input_artifacts=("reports/static_audit_bundle.json",),
         output_artifacts=("reports/final_audit_report.md", "reports/audit_run_manifest.json"),
     ),
@@ -398,7 +420,7 @@ TOOLS: dict[str, ToolDefinition] = {
         source="engine/static_audit",
         description="Render a single-file static-audit HTML demo report from structured artifacts.",
         expected_outputs=("reports/final_audit_report.html",),
-        execution_phase=EXECUTION_PHASE_REPORT_ONLY,
+        execution_phase=ExecutionPhase.REPORT_ONLY,
         input_artifacts=("reports/audit_run_manifest.json", "reports/static_audit_bundle.json"),
         output_artifacts=("reports/final_audit_report.html",),
     ),
@@ -421,7 +443,6 @@ PAPER_STATIC_AUDIT_TOOL_IDS = (
     TOOL_ID_FINDING_PIPELINE,
     TOOL_ID_TRU_FOR,
     TOOL_ID_PROVENANCE_GRAPH,
-    TOOL_ID_SILA_DENSE,
     "agent.review",
     "report.render_markdown",
 )
@@ -464,7 +485,7 @@ def tool_catalog_for_agent() -> list[dict[str, Any]]:
             "description": tool.description,
             "expected_outputs": list(tool.expected_outputs),
             "parameter_defaults": tool.parameter_defaults,
-            "execution_phase": tool.execution_phase,
+            "execution_phase": tool.execution_phase.value,
             "agent_selectable": tool.agent_selectable,
             "input_artifacts": list(tool.input_artifacts),
             "output_artifacts": list(tool.output_artifacts or tool.expected_outputs),
@@ -645,6 +666,10 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
             "max_relationships": _bounded_int(
                 params.get("max_relationships", defaults.get("max_relationships", 500)),
                 "max_relationships", 1, 5000,
+            ),
+            "max_panels": _bounded_int(
+                params.get("max_panels", defaults.get("max_panels", 20)),
+                "max_panels", 1, 50,
             ),
         }
     return dict(params)

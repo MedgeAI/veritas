@@ -68,6 +68,7 @@ class Finding:
     risk_level: RiskLevel
     summary: str
     issue_category: IssueCategory = "consistency"
+    evidence_source: Literal["file", "figure", "execution", "claim_match", "text_match"] = "file"
     evidence_refs: list[str] = field(default_factory=list)
     claim_refs: list[str] = field(default_factory=list)
     benign_explanations: list[str] = field(default_factory=list)

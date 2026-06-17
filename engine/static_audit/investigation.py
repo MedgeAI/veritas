@@ -93,7 +93,8 @@ class InvestigationRecord:
 
 
 def investigation_rounds_path(workdir: Path) -> Path:
-    return workdir / INVESTIGATION_ROUNDS_FILENAME
+    """Return the path to investigation_rounds.jsonl in the investigation subdirectory."""
+    return workdir / "investigation" / INVESTIGATION_ROUNDS_FILENAME
 
 
 def append_investigation_record(workdir: Path, record: InvestigationRecord) -> None:

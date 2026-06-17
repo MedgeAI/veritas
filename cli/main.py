@@ -99,6 +99,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="Retries after invalid Agent JSON output.",
     )
     audit_parser.add_argument(
+        "--skip-unavailable-tools",
+        action="store_true",
+        help="Allow pipeline to continue when tools fail due to missing environment prerequisites (GPU, Docker). "
+             "Without this flag, environment failures abort the pipeline.",
+    )
+    audit_parser.add_argument(
         "--progress",
         choices=["auto", "plain", "jsonl", "off"],
         default="auto",
@@ -129,6 +135,7 @@ def main(argv: list[str] | None = None) -> int:
             args.opencode_bin,
             args.agent_timeout_seconds,
             args.agent_max_retries,
+            args.skip_unavailable_tools,
             args.progress,
         )
     raise ValueError(f"Unsupported command: {args.command}")

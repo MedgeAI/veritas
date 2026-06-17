@@ -24,15 +24,25 @@ _PAPERCONAN_SRC = Path(__file__).parents[4] / "third_party" / "paperconan" / "sr
 if _PAPERCONAN_SRC.is_dir() and str(_PAPERCONAN_SRC) not in sys.path:
     sys.path.insert(0, str(_PAPERCONAN_SRC))
 
-from paperconan import scan_dir  # noqa: E402
-from paperconan.schema import PaperconanInputError  # noqa: E402
-
 
 __all__ = ["run_paperconan_scan", "PaperconanAdapterError"]
+
+_SUPPORTED_SOURCE_SUFFIXES = {".xlsx", ".csv", ".tsv", ".pdf", ".docx"}
 
 
 class PaperconanAdapterError(RuntimeError):
     """Raised when the paperconan adapter fails to run or transform results."""
+
+
+def _load_paperconan() -> tuple[Any, type[Exception]]:
+    try:
+        from paperconan import scan_dir
+        from paperconan.schema import PaperconanInputError
+    except ModuleNotFoundError as exc:
+        raise PaperconanAdapterError(
+            f"paperconan dependency is not available: {exc.name}. Run dependency sync before scanning source data."
+        ) from exc
+    return scan_dir, PaperconanInputError
 
 
 def run_paperconan_scan(
@@ -74,6 +84,26 @@ def run_paperconan_scan(
     output_dir.mkdir(parents=True, exist_ok=True)
     artifact_path = output_dir / "paperconan_scan.json"
 
+    if not any(path.is_file() and path.suffix.lower() in _SUPPORTED_SOURCE_SUFFIXES for path in source_data_dir.rglob("*")):
+        error_result = {
+            "tool": "paperconan",
+            "tool_version": "unknown",
+            "status": "no_data",
+            "error": "no supported files found in source_data_dir",
+            "findings_summary": {
+                "high": 0,
+                "medium": 0,
+                "low": 0,
+                "by_kind": {},
+                "total": 0,
+            },
+            "artifact_path": str(artifact_path),
+        }
+        _write_error_artifact(artifact_path, error_result)
+        return error_result
+
+    scan_dir, paperconan_input_error = _load_paperconan()
+
     try:
         scan_result = scan_dir(
             in_dir=str(source_data_dir),
@@ -84,7 +114,7 @@ def run_paperconan_scan(
             write_json=True,
             evidence=True,
         )
-    except PaperconanInputError as e:
+    except paperconan_input_error as e:
         # No supported files found — record as "no_data", not a hard failure
         error_result = {
             "tool": "paperconan",

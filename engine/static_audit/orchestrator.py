@@ -61,6 +61,7 @@ from engine.static_audit.tools.visual_finding_pipeline import (
 )
 from engine.static_audit.visual_schemas import check_language_compliance
 from engine.static_audit.roles import ROLE_DEFINITIONS, RoleDefinition, skipped_trace
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from engine.investigation.agent_models import PROGRESS_EVENT_SUMMARY_MAX_CHARS
 from engine.investigation.opencode_agent import (
     DEFAULT_SOURCE_FINDING_PARAMS,
@@ -84,6 +85,9 @@ from engine.tools.registry import (
     TOOL_ID_COPY_MOVE,
     TOOL_ID_FINDING_PIPELINE,
     TOOL_ID_PANEL_EXTRACTION,
+    TOOL_ID_TRU_FOR,
+    TOOL_ID_PROVENANCE_GRAPH,
+    TOOL_ID_SILA_DENSE,
     selected_tool_ids_from_plan,
     source_data_findings_params_from_plan,
 )
@@ -95,7 +99,6 @@ MAX_INVESTIGATION_ROUNDS = 3
 # Output directory structure: layer artifacts by responsibility for Agent and human readability.
 # See outputs/<case_id>/research-integrity-audit/README.md for full documentation.
 OUTPUT_DIRS = {
-    "inputs": "inputs",           # Original input files (PDF)
     "mineru": "mineru",           # MinerU PDF parsing intermediate artifacts
     "materials": "materials",     # Material inventory and plans
     "source_data": "source_data", # Source Data tool outputs
@@ -137,6 +140,12 @@ ARTIFACT_PATH_MAP = {
     "image_similarity_candidates.json": "visual/similarity_candidates.json",
     "panels": "visual/panels",
     "yolov5_batch": "visual/yolov5_batch",
+    "forged_region_evidence.json": "visual/forged_region_evidence.json",
+    "provenance_graph.json": "visual/provenance_graph.json",
+    "visual_copy_move_dense.json": "visual/copy_move_dense.json",
+    "tru_for": "visual/tru_for",
+    "provenance": "visual/provenance",
+    "sila_dense": "visual/sila_dense",
     # Agent outputs
     "agent_audit_plan.json": "agents/audit_plan.json",
     "agent_plan.json": "agents/plan.json",
@@ -144,6 +153,11 @@ ARTIFACT_PATH_MAP = {
     "agent_claim_extractor.json": "agents/claim_extractor.json",
     "agent_source_data_auditor.json": "agents/source_data_auditor.json",
     "agent_judge.json": "agents/judge.json",
+    "agent_defense.json": "agents/defense.json",
+    "agent_digit_pattern.json": "agents/digit_pattern.json",
+    "agent_math_consistency.json": "agents/math_consistency.json",
+    "agent_domain_sanity.json": "agents/domain_sanity.json",
+    "agent_visual_triage.json": "agents/visual_triage.json",
     "agent_traces": "agents/traces",
     "context_pack_material_plan.json": "agents/context_pack_material_plan.json",
     "context_pack_claim_extractor.json": "agents/context_pack_claim_extractor.json",
@@ -219,6 +233,9 @@ STEP_TOOL_IDS = {
     "visual_panel_extraction": TOOL_ID_PANEL_EXTRACTION,
     "visual_copy_move": TOOL_ID_COPY_MOVE,
     "visual_finding_pipeline": TOOL_ID_FINDING_PIPELINE,
+    "visual_tru_for": TOOL_ID_TRU_FOR,
+    "visual_provenance_graph": TOOL_ID_PROVENANCE_GRAPH,
+    "visual_copy_move_dense": TOOL_ID_SILA_DENSE,
     "agent_plan": "agent.plan",
     "agent_review": "agent.review",
     "agent_role_claim_extractor": "agent.role.claim_extractor",
@@ -435,6 +452,12 @@ def parse_args() -> argparse.Namespace:
         type=int,
         default=1,
         help="Retries after invalid Agent JSON output.",
+    )
+    parser.add_argument(
+        "--skip-unavailable-tools",
+        action="store_true",
+        help="Allow pipeline to continue when tools fail due to missing environment prerequisites (GPU, Docker). "
+             "Without this flag, environment failures abort the pipeline.",
     )
     return parser.parse_args()
 
@@ -993,6 +1016,10 @@ def run_visual_panel_extraction(
 
     # Batch YOLOv5 panel extraction — single subprocess call for all figures
     if figure_path_pairs:
+        # Clean stale panel crops from previous runs to prevent orphans
+        panels_dir = workdir / "panels"
+        if panels_dir.is_dir():
+            shutil.rmtree(str(panels_dir), ignore_errors=True)
         batch_panels = extract_panels_batch(figure_path_pairs, output_dir=workdir)
         extraction_statuses.append("ran" if any(batch_panels.values()) else "skipped")
     else:
@@ -1125,7 +1152,12 @@ def run_visual_finding_pipeline(
 
     panel_doc = read_json(resolve_artifact_path(workdir, "panel_evidence.json")) or {}
     panels = [item for item in (panel_doc.get("panels") or []) if isinstance(item, dict)]
-    if not panels:
+    forged_region_doc = read_json(resolve_artifact_path(workdir, "forged_region_evidence.json")) or {}
+    forged_region_items = [
+        item for item in (forged_region_doc.get("forged_region_evidence") or [])
+        if isinstance(item, dict)
+    ]
+    if not panels and not forged_region_items:
         relationship_doc = {
             "schema_version": "1.0",
             "created_by": "engine/static_audit/orchestrator.py",
@@ -1164,13 +1196,23 @@ def run_visual_finding_pipeline(
         dhash_candidates=dhash_candidates,
         panel_evidence=panels,
     )
-    findings = build_visual_findings(relationships, panel_evidence=panels)
+    findings = build_visual_findings(
+        relationships,
+        panel_evidence=panels,
+        forged_region_evidence=forged_region_items,
+    )
     finding_clusters = build_visual_finding_clusters(findings)
     review_queue = visual_review_queue(finding_clusters)
     limitations = [
         "Visual relationships are screening signals and require manual review before escalation.",
     ]
     limitations.extend(copy_move_result.get("limitations") or [])
+    if forged_region_items:
+        limitations.append(
+            "TruFor forged-region findings are deep-learning screening signals; "
+            "a suspicious integrity_score does not constitute proof of manipulation "
+            "and requires human review of the original image and localization heatmap."
+        )
     errors = list(copy_move_result.get("errors") or [])
 
     relationship_doc = {
@@ -1184,6 +1226,7 @@ def run_visual_finding_pipeline(
             "copy_move": copy_move_result.get("source_paths") or [],
             "image_similarity": dhash_candidates.get("source_paths") or [],
             "exact_duplicates": str(resolve_artifact_path(workdir, "exact_image_duplicates.json")) if (resolve_artifact_path(workdir, "exact_image_duplicates.json")).exists() else None,
+            "tru_for": str(resolve_artifact_path(workdir, "forged_region_evidence.json")) if (resolve_artifact_path(workdir, "forged_region_evidence.json")).exists() else None,
         },
         "errors": errors,
         "limitations": limitations,
@@ -1223,6 +1266,186 @@ def run_visual_finding_pipeline(
             "copy_move_status": copy_move_result.get("status"),
         }
     }
+
+
+def run_tru_for_detection(
+    *,
+    workdir: Path,
+    force: bool,
+    allow_env_skip: bool = False,
+    panel_extraction_status: str | None = None,
+    progress: ProgressCallback | None = None,
+) -> tuple[list[StepResult], dict[str, Any]]:
+    """Run TruFor forgery detection on all figures."""
+    steps: list[StepResult] = []
+    output_path = resolve_artifact_path(workdir, "forged_region_evidence.json")
+    if output_path.exists() and not force:
+        record_step(steps, StepResult("visual_tru_for", "TruFor 深度学习伪造检测", "reused", "Existing forged_region_evidence.json found."), progress)
+        return steps, {"tru_for": {"status": "reused", "output": str(output_path)}}
+
+    emit_step_start(progress, "visual_tru_for", "TruFor 深度学习伪造检测", "Running TruFor forgery detection on all figures.")
+
+    visual_evidence_path = resolve_artifact_path(workdir, "visual_evidence.json")
+    if not visual_evidence_path.exists():
+        # If panel_extraction was skipped or ran with no figures, this is a legitimate skip.
+        if panel_extraction_status in ("skipped", "ran"):
+            record_step(steps, StepResult("visual_tru_for", "TruFor 深度学习伪造检测", "skipped", "No visual evidence from upstream."), progress)
+            return steps, {"tru_for": {"status": "skipped", "detail": "no visual evidence"}}
+        # Otherwise, it's a dependency failure.
+        record_step(steps, StepResult("visual_tru_for", "TruFor 深度学习伪造检测", "failed", "visual_evidence.json not found (upstream dependency)."), progress)
+        return steps, {"tru_for": {"status": "failed", "failure_category": "dependency", "detail": "missing visual_evidence.json"}}
+
+    visual_evidence = read_json(visual_evidence_path) or {}
+    figures = visual_evidence.get("figures", [])
+
+    if not figures:
+        # Legitimate scenario: paper has no figures. Skip without failure.
+        record_step(steps, StepResult("visual_tru_for", "TruFor 深度学习伪造检测", "skipped", "Paper has no figures."), progress)
+        return steps, {"tru_for": {"status": "skipped", "detail": "no figures in paper"}}
+
+    try:
+        from engine.static_audit.tools.tru_for import run_tru_for
+        result = run_tru_for(figures, workdir=workdir)
+    except Exception as e:
+        result = {"status": "failed", "failure_category": "runtime", "forged_region_evidence": [], "errors": [str(e)], "limitations": []}
+
+    write_json_artifact(output_path, result)
+    status = result.get("status", "failed")
+    failure_category = result.get("failure_category")
+
+    # Environment failures are only skippable with explicit opt-in
+    if status == "failed" and failure_category == "environment" and not allow_env_skip:
+        detail = f"FAILED (environment): {'; '.join(result.get('errors', []))}"
+        record_step(steps, StepResult("visual_tru_for", "TruFor 深度学习伪造检测", "failed", detail), progress)
+        return steps, {"tru_for": {"status": "failed", "failure_category": failure_category, "output": str(output_path), **result}}
+
+    detail = f"figures={result.get('figure_count', 0)} forged_regions={result.get('forged_region_count', 0)} suspicious={result.get('suspicious_count', 0)}"
+    if result.get("limitations"):
+        detail += f" limitations={len(result['limitations'])}"
+    step_status = "ran" if status == "ran" else "failed"
+    if status == "failed" and failure_category == "environment" and allow_env_skip:
+        detail = f"SKIPPED (environment): {'; '.join(result.get('errors', []))}"
+        step_status = "skipped_with_opt_in"
+    record_step(steps, StepResult("visual_tru_for", "TruFor 深度学习伪造检测", step_status, detail), progress)
+    return steps, {"tru_for": {"status": status, "output": str(output_path), **result}}
+
+
+def run_provenance_graph(
+    *,
+    workdir: Path,
+    force: bool,
+    allow_env_skip: bool = False,
+    panel_extraction_status: str | None = None,
+    progress: ProgressCallback | None = None,
+) -> tuple[list[StepResult], dict[str, Any]]:
+    """Build provenance graph from cross-figure content sharing."""
+    steps: list[StepResult] = []
+    output_path = resolve_artifact_path(workdir, "provenance_graph.json")
+    if output_path.exists() and not force:
+        record_step(steps, StepResult("visual_provenance_graph", "溯源图构建", "reused", "Existing provenance_graph.json found."), progress)
+        return steps, {"provenance_graph": {"status": "reused", "output": str(output_path)}}
+
+    emit_step_start(progress, "visual_provenance_graph", "溯源图构建", "Building provenance graph from figure evidence.")
+
+    visual_evidence_path = resolve_artifact_path(workdir, "visual_evidence.json")
+    if not visual_evidence_path.exists():
+        if panel_extraction_status in ("skipped", "ran"):
+            record_step(steps, StepResult("visual_provenance_graph", "溯源图构建", "skipped", "No visual evidence from upstream."), progress)
+            return steps, {"provenance_graph": {"status": "skipped", "detail": "no visual evidence"}}
+        record_step(steps, StepResult("visual_provenance_graph", "溯源图构建", "failed", "visual_evidence.json not found (upstream dependency)."), progress)
+        return steps, {"provenance_graph": {"status": "failed", "failure_category": "dependency", "detail": "missing visual_evidence.json"}}
+
+    visual_evidence = read_json(visual_evidence_path) or {}
+    figures = visual_evidence.get("figures", [])
+
+    if len(figures) < 2:
+        # Legitimate scenario: paper has fewer than 2 figures. Skip without failure.
+        record_step(steps, StepResult("visual_provenance_graph", "溯源图构建", "skipped", f"Paper has {len(figures)} figure(s), need >= 2 for provenance."), progress)
+        return steps, {"provenance_graph": {"status": "skipped", "detail": "insufficient figures"}}
+
+    try:
+        from engine.static_audit.tools.provenance_graph import build_provenance_graph
+        result = build_provenance_graph(figures, workdir=workdir)
+    except Exception as e:
+        result = {"status": "failed", "failure_category": "runtime", "error": str(e), "nodes": [], "edges": [], "statistics": {}}
+
+    write_json_artifact(output_path, result)
+    status = result.get("status", "failed")
+    stats = result.get("statistics", {})
+    detail = f"nodes={stats.get('node_count', 0)} edges={stats.get('edge_count', 0)} components={stats.get('component_count', 0)}"
+    if result.get("limitations"):
+        detail += f" limitations={len(result['limitations'])}"
+    failure_category = result.get("failure_category")
+    step_status = "ran" if status == "ran" else "failed"
+    if status == "failed" and failure_category in ("dependency", "environment") and allow_env_skip:
+        detail = f"SKIPPED ({failure_category}): {detail}"
+        step_status = "skipped_with_opt_in"
+    record_step(steps, StepResult("visual_provenance_graph", "溯源图构建", step_status, detail), progress)
+    return steps, {"provenance_graph": {"status": status, "output": str(output_path), **result}}
+
+
+def run_sila_dense_detection(
+    *,
+    workdir: Path,
+    force: bool,
+    allow_env_skip: bool = False,
+    panel_extraction_status: str | None = None,
+    progress: ProgressCallback | None = None,
+) -> tuple[list[StepResult], dict[str, Any]]:
+    """Run SILA dense copy-move detection via Docker."""
+    steps: list[StepResult] = []
+    output_path = resolve_artifact_path(workdir, "visual_copy_move_dense.json")
+    if output_path.exists() and not force:
+        record_step(steps, StepResult("visual_copy_move_dense", "SILA Dense Copy-Move", "reused", "Existing visual_copy_move_dense.json found."), progress)
+        return steps, {"sila_dense": {"status": "reused", "output": str(output_path)}}
+
+    emit_step_start(progress, "visual_copy_move_dense", "SILA Dense Copy-Move", "Running SILA dense copy-move detection via Docker.")
+
+    panel_evidence_path = resolve_artifact_path(workdir, "panel_evidence.json")
+    if not panel_evidence_path.exists():
+        if panel_extraction_status in ("skipped", "ran"):
+            record_step(steps, StepResult("visual_copy_move_dense", "SILA Dense Copy-Move", "skipped", "No panel evidence from upstream."), progress)
+            return steps, {"sila_dense": {"status": "skipped", "detail": "no panel evidence"}}
+        record_step(steps, StepResult("visual_copy_move_dense", "SILA Dense Copy-Move", "failed", "panel_evidence.json not found (upstream dependency)."), progress)
+        return steps, {"sila_dense": {"status": "failed", "failure_category": "dependency", "detail": "missing panel_evidence.json"}}
+
+    panel_evidence = read_json(panel_evidence_path) or {}
+    panels = panel_evidence.get("panels", [])
+
+    visual_evidence_path = resolve_artifact_path(workdir, "visual_evidence.json")
+    visual_evidence = read_json(visual_evidence_path) or {} if visual_evidence_path.exists() else {}
+    figures = visual_evidence.get("figures", [])
+
+    if not panels:
+        # Legitimate scenario: no panels extracted (paper has no figures or extraction found none).
+        record_step(steps, StepResult("visual_copy_move_dense", "SILA Dense Copy-Move", "skipped", "No panels to process."), progress)
+        return steps, {"sila_dense": {"status": "skipped", "detail": "no panels"}}
+
+    try:
+        from engine.static_audit.tools.sila_dense import detect_sila_dense
+        result = detect_sila_dense(panels, figures, workdir=workdir)
+    except Exception as e:
+        result = {"status": "failed", "failure_category": "runtime", "relationships": [], "errors": [str(e)], "limitations": []}
+
+    write_json_artifact(output_path, result)
+    status = result.get("status", "failed")
+    failure_category = result.get("failure_category")
+
+    # Environment failures are only skippable with explicit opt-in
+    if status == "failed" and failure_category == "environment" and not allow_env_skip:
+        detail = f"FAILED (environment): {'; '.join(result.get('errors', []))}"
+        record_step(steps, StepResult("visual_copy_move_dense", "SILA Dense Copy-Move", "failed", detail), progress)
+        return steps, {"sila_dense": {"status": "failed", "failure_category": failure_category, "output": str(output_path), **result}}
+
+    detail = f"panels={result.get('panel_count', 0)} relationships={result.get('relationship_count', 0)}"
+    if result.get("limitations"):
+        detail += f" limitations={len(result['limitations'])}"
+    step_status = "ran" if status == "ran" else "failed"
+    if status == "failed" and failure_category == "environment" and allow_env_skip:
+        detail = f"SKIPPED (environment): {'; '.join(result.get('errors', []))}"
+        step_status = "skipped_with_opt_in"
+    record_step(steps, StepResult("visual_copy_move_dense", "SILA Dense Copy-Move", step_status, detail), progress)
+    return steps, {"sila_dense": {"status": status, "output": str(output_path), **result}}
 
 
 def run_investigation_rounds(
@@ -1336,7 +1559,11 @@ def run_investigation_rounds(
             break
 
         new_artifact_count = 0
-        for action in actions:
+        new_findings_count = 0
+
+        # Strategy 6: Run independent actions in parallel within a round
+        # Actions are independent if they don't depend on each other's outputs
+        def _run_action(action):
             signature = action.signature()
             record_base = {
                 "round_id": round_id,
@@ -1353,31 +1580,24 @@ def run_investigation_rounds(
                 },
             }
             if signature in seen_signatures:
-                append_investigation_record(
-                    workdir,
-                    InvestigationRecord(
-                        **record_base,
-                        status="skipped",
-                        validation_status="rejected",
-                        detail="Duplicate tool_id + params + depends_on_artifacts action.",
-                    ),
-                )
-                continue
+                return record_base, InvestigationRecord(
+                    **record_base,
+                    status="skipped",
+                    validation_status="rejected",
+                    detail="Duplicate tool_id + params + depends_on_artifacts action.",
+                ), 0, 0
+
             missing_artifacts = [
                 artifact for artifact in action.depends_on_artifacts if not artifact_exists(workdir, artifact)
             ]
             if missing_artifacts:
-                append_investigation_record(
-                    workdir,
-                    InvestigationRecord(
-                        **record_base,
-                        status="skipped",
-                        validation_status="rejected",
-                        detail=f"Missing depends_on_artifacts: {missing_artifacts}",
-                    ),
-                )
                 seen_signatures.add(signature)
-                continue
+                return record_base, InvestigationRecord(
+                    **record_base,
+                    status="skipped",
+                    validation_status="rejected",
+                    detail=f"Missing depends_on_artifacts: {missing_artifacts}",
+                ), 0, 0
 
             step, output_artifacts = run_investigation_tool_action(
                 action=action,
@@ -1387,23 +1607,73 @@ def run_investigation_rounds(
                 force=force,
                 progress=progress,
             )
-            steps.append(step)
-            new_artifact_count += sum(1 for artifact in output_artifacts if Path(artifact).exists())
-            append_investigation_record(
-                workdir,
-                InvestigationRecord(
-                    **record_base,
-                    status=step.status,
-                    validation_status="accepted",
-                    output_artifacts=output_artifacts,
-                    detail=step.detail,
-                    command=step.command,
-                ),
-            )
             seen_signatures.add(signature)
+            artifact_count = sum(1 for artifact in output_artifacts if Path(artifact).exists())
 
+            # Count new findings produced
+            findings_count = 0
+            for artifact in output_artifacts:
+                artifact_path = Path(artifact)
+                if artifact_path.exists() and "findings" in artifact_path.name:
+                    try:
+                        with open(artifact_path) as f:
+                            data = json.load(f)
+                        if isinstance(data, dict):
+                            findings_count = len(data.get("findings", []))
+                        elif isinstance(data, list):
+                            findings_count = len(data)
+                    except (json.JSONDecodeError, OSError):
+                        pass
+
+            record = InvestigationRecord(
+                **record_base,
+                status=step.status,
+                validation_status="accepted",
+                output_artifacts=output_artifacts,
+                detail=step.detail,
+                command=step.command,
+            )
+            steps.append(step)
+            return record_base, record, artifact_count, findings_count
+
+        # Run actions - parallel if multiple, sequential if single or dependent
+        if len(actions) > 1:
+            # Check for dependencies between actions
+            has_deps = False
+            for i, a1 in enumerate(actions):
+                for a2 in actions[i+1:]:
+                    if any(out in a2.depends_on_artifacts for out in a1.output_artifacts):
+                        has_deps = True
+                        break
+                if has_deps:
+                    break
+
+            if has_deps:
+                # Sequential execution for dependent actions
+                results = [_run_action(action) for action in actions]
+            else:
+                # Parallel execution for independent actions (Strategy 6)
+                with ThreadPoolExecutor(max_workers=min(len(actions), 4)) as executor:
+                    futures = {executor.submit(_run_action, action): action for action in actions}
+                    results = []
+                    for future in as_completed(futures):
+                        results.append(future.result())
+        else:
+            results = [_run_action(action) for action in actions]
+
+        for record_base, record, artifact_count, findings_count in results:
+            append_investigation_record(workdir, record)
+            new_artifact_count += artifact_count
+            new_findings_count += findings_count
+
+        # Strategy 2: Enhanced early termination
+        # Stop if no new artifacts OR no new findings produced
         if new_artifact_count == 0:
             stop_reason = "no_new_artifacts"
+            break
+        if new_findings_count == 0 and round_id > 1:
+            # Only stop after round 1 if no new findings (round 1 might set up context)
+            stop_reason = "no_new_findings"
             break
 
     manifest["stop_reason"] = stop_reason or "max_rounds_reached"
@@ -1527,6 +1797,9 @@ def run_investigation_tool_action(
             "--max-candidates",
             str(params.get("max_candidates", 200)),
         ]
+        panel_evidence_json = resolve_artifact_path(workdir, "panel_evidence.json")
+        if panel_evidence_json.exists():
+            command.extend(["--panel-evidence", str(panel_evidence_json)])
     elif action.tool_id == TOOL_ID_COPY_MOVE:
         panel_json = resolve_artifact_path(workdir, "panel_evidence.json")
         if not panel_json.exists():
@@ -1556,7 +1829,9 @@ def run_investigation_tool_action(
             str(params.get("max_relationships", 500)),
         ]
     else:
-        step = StepResult(key, "Agent Investigation Tool", "skipped", f"Unsupported action tool_id: {action.tool_id}")
+        # Tool is registered but implementation is not yet available
+        step = StepResult(key, "Agent Investigation Tool", "skipped",
+                         f"Tool '{action.tool_id}' is registered but not yet implemented.")
         emit_step_result(progress, step)
         return step, []
 
@@ -1733,7 +2008,7 @@ def generate_report(
         "investigation_rounds.jsonl",
         "static_audit_bundle.json",
     ]:
-        path = workdir / name
+        path = resolve_artifact_path(workdir, name)
         artifact_rows.append([name, "present" if path.exists() else "missing", path.stat().st_size if path.exists() else "-"])
     artifact_rows.append(["final_audit_report.html", "generated_after_markdown", "-"])
     lines.append(markdown_table(["Artifact", "Status", "Bytes"], artifact_rows))
@@ -2256,9 +2531,10 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
         ("visual_copy_move.json", "output_artifact"),
         ("image_relationships.json", "output_artifact"),
         ("visual_findings.json", "output_artifact"),
+        ("forged_region_evidence.json", "output_artifact"),
         ("investigation_rounds.jsonl", "output_artifact"),
     ]:
-        path = workdir / name
+        path = resolve_artifact_path(workdir, name)
         if path.exists():
             items.append(
                 EvidenceItem(
@@ -2447,14 +2723,20 @@ def collect_claims_and_findings(
             for panel_id in [item.get("source_panel_id"), item.get("target_panel_id")]
             if panel_id in evidence_by_panel
         ]
-        relationship_artifact = evidence_by_artifact.get("image_relationships.json")
-        if relationship_artifact:
-            evidence_refs.append(relationship_artifact)
+        category = str(item.get("category") or "visual_finding")
+        if category == "forged_region_suspicious":
+            tru_for_artifact = evidence_by_artifact.get("forged_region_evidence.json")
+            if tru_for_artifact:
+                evidence_refs.append(tru_for_artifact)
+        else:
+            relationship_artifact = evidence_by_artifact.get("image_relationships.json")
+            if relationship_artifact:
+                evidence_refs.append(relationship_artifact)
         questions = [str(value) for value in (item.get("manual_review_questions") or []) if not check_language_compliance(str(value))]
         findings.append(
             Finding(
                 finding_id=finding_id,
-                category=str(item.get("category") or "visual_finding"),
+                category=category,
                 risk_level=str(item.get("risk_level") or "medium"),  # type: ignore[arg-type]
                 summary=summary,
                 issue_category="consistency",
@@ -2645,8 +2927,11 @@ def run_agent_roles(
 ) -> tuple[list[StepResult], list[dict[str, Any]]]:
     steps: list[StepResult] = []
     role_manifest: list[dict[str, Any]] = []
+
+    # Phase 1: Quick checks (reuse/skip) - sequential, fast
+    roles_to_run = []
     for role in ROLE_DEFINITIONS:
-        output_path = workdir / role.output_artifact
+        output_path = resolve_artifact_path(workdir, role.output_artifact)
         trace_path = resolve_artifact_path(workdir, "agent_traces") / f"{role.role_id}.json"
         existing_trace = read_agent_trace(trace_path)
         if (
@@ -2701,40 +2986,51 @@ def run_agent_roles(
             role_manifest.append({"role_id": role.role_id, "status": trace.status, "output": str(output_path)})
             continue
 
-        emit_step_start(
-            progress,
-            step_key,
-            f"opencode Agent role: {role.title}",
-            f"Calling opencode role agent {role.role_id}.",
-        )
-        result = run_agent_role(
-            role_id=role.role_id,
-            case_id=case_id,
-            workdir=workdir,
-            project_root=project_root,
-            env=env,
-            model=model,
-            opencode_bin=opencode_bin,
-            timeout_seconds=timeout_seconds,
-            max_retries=max_retries,
-        )
-        payload = write_role_agent_result(output_path, role, case_id, result)
-        trace = trace_from_role_result(role, output_path, result, payload, model)
-        write_role_trace(workdir, trace)
-        metadata = result_metadata(result, output_path)
-        metadata["role_id"] = role.role_id
-        role_manifest.append(metadata)
-        record_step(
-            steps,
-            StepResult(
+        roles_to_run.append((role, output_path, trace_path))
+
+    # Phase 2: Run roles in parallel (Strategy 1)
+    if roles_to_run:
+        def _run_single_role(role_data):
+            role, output_path, trace_path = role_data
+            step_key = f"agent_role_{role.role_id}"
+            emit_step_start(
+                progress,
+                step_key,
+                f"opencode Agent role: {role.title}",
+                f"Calling opencode role agent {role.role_id}.",
+            )
+            result = run_agent_role(
+                role_id=role.role_id,
+                case_id=case_id,
+                workdir=workdir,
+                project_root=project_root,
+                env=env,
+                model=model,
+                opencode_bin=opencode_bin,
+                timeout_seconds=timeout_seconds,
+                max_retries=max_retries,
+            )
+            payload = write_role_agent_result(output_path, role, case_id, result)
+            trace = trace_from_role_result(role, output_path, result, payload, model)
+            write_role_trace(workdir, trace)
+            metadata = result_metadata(result, output_path)
+            metadata["role_id"] = role.role_id
+            step = StepResult(
                 step_key,
                 f"opencode Agent role: {role.title}",
                 agent_step_status(result.status),
                 result.detail,
                 result.command,
-            ),
-            progress,
-        )
+            )
+            return step, metadata
+
+        with ThreadPoolExecutor(max_workers=len(roles_to_run)) as executor:
+            futures = {executor.submit(_run_single_role, rd): rd[0] for rd in roles_to_run}
+            for future in as_completed(futures):
+                step, metadata = future.result()
+                steps.append(step)
+                role_manifest.append(metadata)
+
     return steps, role_manifest
 
 
@@ -2846,7 +3142,7 @@ def role_output_summary(role_id: str, payload: dict[str, Any]) -> dict[str, Any]
 
 
 def write_reserved_role_output(workdir: Path, role: RoleDefinition, trace: AgentTrace) -> None:
-    output_path = workdir / role.output_artifact
+    output_path = resolve_artifact_path(workdir, role.output_artifact)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
         "schema_version": "1.0",
@@ -3091,12 +3387,15 @@ def _run_static_audit_from_args(
             progress,
         )
     else:
+        # MinerU outputs to root directory, not subdirectories
+        # We check root paths here, and relocate to subdirectories after evidence_ledger
+        mineru_root_outputs = [workdir / "full.md", workdir / "mineru_manifest.json", workdir / "images"]
         steps.append(
             run_command(
                 "mineru",
                 "MinerU PDF 解析",
                 [sys.executable, "scripts/mineru_convert.py", str(paper_pdf), "--output", str(workdir)],
-                mineru_outputs,
+                mineru_root_outputs,
                 cwd=AUDITOR_ROOT,
                 env=env,
                 force=args.force,
@@ -3106,8 +3405,11 @@ def _run_static_audit_from_args(
                 stream_output=True,
             )
         )
+        # Note: Don't relocate MinerU outputs yet. build_evidence_ledger.py needs them in root.
+        # Relocation will happen after evidence_ledger step.
 
-    if (resolve_artifact_path(workdir, "full.md")).exists():
+    # Check root directory for full.md since MinerU outputs there before relocation
+    if (workdir / "full.md").exists():
         steps.append(
             run_command(
                 "evidence_ledger",
@@ -3126,6 +3428,8 @@ def _run_static_audit_from_args(
                 progress=progress,
             )
         )
+        # Now relocate MinerU outputs to layered subdirectories
+        _relocate_mineru_outputs(workdir)
         steps.append(
             run_command(
                 "numeric_forensics",
@@ -3310,16 +3614,8 @@ def _run_static_audit_from_args(
                 progress=progress,
             )
         )
-        record_step(
-            steps,
-            StepResult(
-                "image_similarity_candidates",
-                "图片近似相似候选检查",
-                "skipped",
-                "Optional investigation tool; AgentInvestigationPlanner may select it.",
-            ),
-            progress,
-        )
+        # image_similarity_candidates is deferred to post-investigation phase.
+        # It runs as Agent-selectable or deterministic fallback after investigation rounds.
     else:
         record_step(steps, StepResult("exact_image_duplicates", "图片字节级重复检查", "skipped", "images directory missing."), progress)
         record_step(
@@ -3336,6 +3632,25 @@ def _run_static_audit_from_args(
     )
     steps.extend(visual_steps)
     agent_manifest["visual_forensics"] = visual_manifest
+
+    # MANDATORY_BASELINE visual tools: run unconditionally in the baseline pipeline.
+    # SILA dense remains an Agent investigation tool (AGENT_SELECTABLE) because it
+    # is resource-heavy and must run with a bounded panel selection.
+    allow_env_skip = getattr(args, "skip_unavailable_tools", False)
+    panel_extraction_status = agent_manifest.get("visual_forensics", {}).get("panel_extraction", {}).get("status")
+    tru_for_steps, tru_for_manifest = run_tru_for_detection(
+        workdir=workdir, force=args.force, allow_env_skip=allow_env_skip,
+        panel_extraction_status=panel_extraction_status, progress=progress,
+    )
+    steps.extend(tru_for_steps)
+    agent_manifest.setdefault("visual_forensics", {}).update(tru_for_manifest)
+
+    provenance_steps, provenance_manifest = run_provenance_graph(
+        workdir=workdir, force=args.force, allow_env_skip=allow_env_skip,
+        panel_extraction_status=panel_extraction_status, progress=progress,
+    )
+    steps.extend(provenance_steps)
+    agent_manifest.setdefault("visual_forensics", {}).update(provenance_manifest)
 
     investigation_steps, investigation_manifest = run_investigation_rounds(
         case_id=case_id,
@@ -3355,24 +3670,120 @@ def _run_static_audit_from_args(
     steps.extend(investigation_steps)
     agent_manifest["investigation"] = investigation_manifest
 
-    visual_copy_move_outputs = (
-        list((resolve_artifact_path(workdir, "investigation")).rglob("visual_copy_move.json"))
-        if (resolve_artifact_path(workdir, "investigation")).exists()
-        else []
+    # AGENT_SELECTABLE with deterministic fallback:
+    # image_similarity and copy_move run via Agent investigation rounds, but
+    # fall back to deterministic execution when the Agent planner fails or is
+    # disabled.  Fallback output is written to investigation/fallback/ so the
+    # finding pipeline picks it up via rglob without overwriting baseline
+    # artifacts.
+    investigation_dir = resolve_artifact_path(workdir, "investigation")
+    agent_similarity_outputs = (
+        sorted(investigation_dir.rglob("image_similarity_candidates.json"))
+        if investigation_dir.exists() else []
     )
-    if visual_copy_move_outputs:
+    agent_copy_move_outputs = (
+        sorted(investigation_dir.rglob("visual_copy_move.json"))
+        if investigation_dir.exists() else []
+    )
+    agent_planner_failed = (
+        not investigation_manifest.get("enabled", True)
+        or investigation_manifest.get("stop_reason") == "planner_failed"
+    )
+
+    # --- image_similarity_candidates ---
+    if agent_similarity_outputs:
         record_step(
             steps,
-            StepResult("visual_copy_move", "图片 Copy-Move 检测", "ran", "visual.copy_move output was produced by AgentInvestigationPlanner."),
+            StepResult("image_similarity_candidates", "图片近似相似候选检查", "ran",
+                       "image.similarity_candidates output was produced by AgentInvestigationPlanner."),
+            progress,
+        )
+    elif agent_planner_failed and images_dir.is_dir():
+        fallback_dir = investigation_dir / "fallback"
+        fallback_dir.mkdir(parents=True, exist_ok=True)
+        fallback_output = fallback_dir / "image_similarity_candidates.json"
+        similarity_cmd = [
+            sys.executable, "-m", "engine.static_audit.tools.image_similarity",
+            str(images_dir),
+            "--output", str(fallback_output),
+            "--max-distance", "8",
+            "--max-candidates", "200",
+        ]
+        panel_evidence_json = resolve_artifact_path(workdir, "panel_evidence.json")
+        if panel_evidence_json.exists():
+            similarity_cmd.extend(["--panel-evidence", str(panel_evidence_json)])
+        steps.append(run_command(
+            "image_similarity_candidates",
+            "图片近似相似候选检查（确定性回退）",
+            similarity_cmd,
+            [fallback_output],
+            cwd=PROJECT_ROOT, env=env, force=args.force, progress=progress,
+        ))
+        if steps[-1].status == "ran":
+            steps[-1].detail = "Ran as deterministic fallback: Agent investigation planner failed."
+    elif not images_dir.is_dir():
+        record_step(
+            steps,
+            StepResult("image_similarity_candidates", "图片近似相似候选检查", "skipped",
+                       "images directory missing."),
             progress,
         )
     else:
         record_step(
             steps,
-            StepResult("visual_copy_move", "图片 Copy-Move 检测", "skipped", "AgentInvestigationPlanner did not select visual.copy_move for this run."),
+            StepResult("image_similarity_candidates", "图片近似相似候选检查", "skipped",
+                       "AgentInvestigationPlanner did not select image.similarity_candidates for this run."),
             progress,
         )
 
+    # --- visual_copy_move ---
+    if agent_copy_move_outputs:
+        record_step(
+            steps,
+            StepResult("visual_copy_move", "图片 Copy-Move 检测", "ran",
+                       "visual.copy_move output was produced by AgentInvestigationPlanner."),
+            progress,
+        )
+    elif agent_planner_failed and resolve_artifact_path(workdir, "panel_evidence.json").exists():
+        fallback_dir = investigation_dir / "fallback"
+        fallback_dir.mkdir(parents=True, exist_ok=True)
+        fallback_output = fallback_dir / "visual_copy_move.json"
+        panel_json = resolve_artifact_path(workdir, "panel_evidence.json")
+        steps.append(run_command(
+            "visual_copy_move",
+            "图片 Copy-Move 检测（确定性回退）",
+            [
+                sys.executable, "-m", "engine.static_audit.tools.copy_move_detection",
+                str(panel_json),
+                "--figure-json", str(resolve_artifact_path(workdir, "visual_evidence.json")),
+                "--output", str(fallback_output),
+                "--workdir", str(workdir),
+                "--method", "rootsift_magsac",
+                "--min-matches", "20",
+                "--min-score", "0.05",
+                "--max-relationships", "500",
+            ],
+            [fallback_output],
+            cwd=PROJECT_ROOT, env=env, force=args.force, progress=progress,
+        ))
+        if steps[-1].status == "ran":
+            steps[-1].detail = "Ran as deterministic fallback: Agent investigation planner failed."
+    elif not resolve_artifact_path(workdir, "panel_evidence.json").exists():
+        record_step(
+            steps,
+            StepResult("visual_copy_move", "图片 Copy-Move 检测", "skipped",
+                       "panel_evidence.json missing."),
+            progress,
+        )
+    else:
+        record_step(
+            steps,
+            StepResult("visual_copy_move", "图片 Copy-Move 检测", "skipped",
+                       "AgentInvestigationPlanner did not select visual.copy_move for this run."),
+            progress,
+        )
+
+    # REPORT_ONLY: finding pipeline aggregates existing visual artifacts.
     visual_finding_steps, visual_finding_manifest = run_visual_finding_pipeline(
         workdir=workdir,
         force=args.force,
@@ -3533,6 +3944,77 @@ def _run_static_audit_from_args(
     return summary
 
 
+def _relocate_mineru_outputs(workdir: Path) -> None:
+    """Move MinerU outputs from root to layered subdirectories.
+
+    MinerU script outputs to workdir root, but ARTIFACT_PATH_MAP expects:
+    - full.md, layout.json, *_manifest.json → mineru/
+    - images/ → visual/images/
+    """
+    mineru_dir = workdir / "mineru"
+    mineru_dir.mkdir(parents=True, exist_ok=True)
+
+    # Move MinerU intermediate artifacts to mineru/
+    mineru_files = ["full.md", "layout.json", "mineru_manifest.json", "mineru_submission.json", "mineru_result.zip"]
+    for filename in mineru_files:
+        src = workdir / filename
+        dst = mineru_dir / filename
+        if src.exists():
+            if dst.exists():
+                dst.unlink()
+            src.rename(dst)
+
+    # Move middle JSON files (if any)
+    for middle_json in workdir.glob("*_middle.json"):
+        dst = mineru_dir / middle_json.name
+        if dst.exists():
+            dst.unlink()
+        middle_json.rename(dst)
+
+    # Move MinerU hash-prefixed files (content_list, model, origin.pdf)
+    for pattern in ("*_content_list.json", "*_content_list_v2.json", "*_model.json", "*_origin.pdf"):
+        for src in workdir.glob(pattern):
+            dst = mineru_dir / src.name
+            if dst.exists():
+                dst.unlink()
+            src.rename(dst)
+
+    # Move images/ to visual/images/
+    images_src = workdir / "images"
+    if images_src.exists():
+        visual_dir = workdir / "visual"
+        visual_dir.mkdir(parents=True, exist_ok=True)
+        images_dst = visual_dir / "images"
+        if images_dst.exists():
+            shutil.rmtree(images_dst)
+        images_src.rename(images_dst)
+
+    # Update evidence_ledger.json to use new image paths
+    ledger_path = resolve_artifact_path(workdir, "evidence_ledger.json")
+    if ledger_path.exists():
+        try:
+            import json
+            ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+            _update_ledger_image_paths(ledger, "images/", "visual/images/")
+            ledger_path.write_text(json.dumps(ledger, ensure_ascii=False, indent=2), encoding="utf-8")
+        except Exception:
+            pass  # If update fails, continue without updating
+
+
+def _update_ledger_image_paths(obj: Any, old_prefix: str, new_prefix: str) -> None:
+    """Recursively update image paths in evidence ledger."""
+    if isinstance(obj, dict):
+        for key, value in obj.items():
+            if key in ("source_image_path", "relative_path", "path") and isinstance(value, str):
+                if value.startswith(old_prefix):
+                    obj[key] = new_prefix + value[len(old_prefix):]
+            elif isinstance(value, (dict, list)):
+                _update_ledger_image_paths(value, old_prefix, new_prefix)
+    elif isinstance(obj, list):
+        for item in obj:
+            _update_ledger_image_paths(item, old_prefix, new_prefix)
+
+
 def run_static_audit(
     paper_dir: str | Path,
     *,
@@ -3544,8 +4026,9 @@ def run_static_audit(
     agent_mode: str = "full",
     agent_model: str = "dashscope/qwen3.7-plus",
     opencode_bin: str = "opencode",
-    agent_timeout_seconds: int = 300,
+    agent_timeout_seconds: int = 600,
     agent_max_retries: int = 1,
+    skip_unavailable_tools: bool = False,
     progress: ProgressCallback | None = None,
 ) -> dict[str, Any]:
     args = argparse.Namespace(
@@ -3560,6 +4043,7 @@ def run_static_audit(
         opencode_bin=opencode_bin,
         agent_timeout_seconds=agent_timeout_seconds,
         agent_max_retries=agent_max_retries,
+        skip_unavailable_tools=skip_unavailable_tools,
     )
     return _run_static_audit_from_args(args, progress=progress)
 
