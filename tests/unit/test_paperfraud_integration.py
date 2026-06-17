@@ -41,7 +41,11 @@ def test_paperfraud_matches_convert_to_canonical_findings(tmp_path) -> None:
     full_md = resolve_artifact_path(tmp_path, "full.md")
     full_md.parent.mkdir(parents=True, exist_ok=True)
     full_md.write_text(
-        "This randomized controlled trial reports p-value significance without effect size.",
+        "We conducted a randomized controlled trial. "
+        "Table 1 shows baseline characteristics of all participants. "
+        "We used t-test for comparison between groups. "
+        "The results showed t = 2.45, p < 0.05 indicating statistical significance. "
+        "All patients gave informed consent and ethics approval was obtained.",
         encoding="utf-8",
     )
     artifact = run_paperfraud_rule_match(full_md, resolve_artifact_path(tmp_path, "paperfraud_rule_matches.json"))
@@ -65,7 +69,13 @@ def test_paperfraud_rule_match_registered_in_static_audit_catalog() -> None:
 def test_paperfraud_rule_matches_merge_into_canonical_findings(tmp_path) -> None:
     full_md = resolve_artifact_path(tmp_path, "full.md")
     full_md.parent.mkdir(parents=True, exist_ok=True)
-    full_md.write_text("A cohort study reports p-value significance without effect size.", encoding="utf-8")
+    full_md.write_text(
+        "A cohort study reports baseline characteristics in Table 1. "
+        "We used t-test for comparison between groups. "
+        "The results showed t = 2.45, p < 0.05 indicating statistical significance. "
+        "All patients gave informed consent.",
+        encoding="utf-8",
+    )
     run_paperfraud_rule_match(full_md, resolve_artifact_path(tmp_path, "paperfraud_rule_matches.json"))
 
     _claims, _mappings, findings = collect_claims_and_findings(tmp_path, [])

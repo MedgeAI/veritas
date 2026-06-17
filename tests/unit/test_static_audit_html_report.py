@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 
 from engine.static_audit.html_report import render_static_audit_html
+from engine.static_audit.paths import resolve_artifact_path
 
 
 def write_json(path, data) -> None:
@@ -10,9 +11,13 @@ def write_json(path, data) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
 
 
+def _path(tmp_path, name: str):
+    return resolve_artifact_path(tmp_path, name)
+
+
 def test_static_audit_html_report_renders_priority_evidence_card(tmp_path) -> None:
     write_json(
-        tmp_path / "source_data_findings.json",
+        _path(tmp_path, "source_data_findings.json"),
         {
             "summary": {"priority_findings": 1, "claim_to_source_data_mappings": 1},
             "priority_findings": [
@@ -44,9 +49,9 @@ def test_static_audit_html_report_renders_priority_evidence_card(tmp_path) -> No
             ],
         },
     )
-    write_json(tmp_path / "source_data_profile.json", {"summary": {"workbook_count": 1}})
-    write_json(tmp_path / "static_audit_bundle.json", {"agent_traces": [], "claim_mappings": [1]})
-    write_json(tmp_path / "agent_judge.json", {"summary": {"technical_risk_summary": "Review needed."}})
+    write_json(_path(tmp_path, "source_data_profile.json"), {"summary": {"workbook_count": 1}})
+    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": [1]})
+    write_json(_path(tmp_path, "agent_judge.json"), {"summary": {"technical_risk_summary": "Review needed."}})
 
     html = render_static_audit_html(tmp_path, "case-a")
 
@@ -59,7 +64,7 @@ def test_static_audit_html_report_renders_priority_evidence_card(tmp_path) -> No
 
 def test_static_audit_html_report_pattern_view_is_case_agnostic(tmp_path) -> None:
     write_json(
-        tmp_path / "source_data_pair_forensics.json",
+        _path(tmp_path, "source_data_pair_forensics.json"),
         {
             "summary": {"priority_findings": 2},
             "priority_findings": [
@@ -89,7 +94,7 @@ def test_static_audit_html_report_pattern_view_is_case_agnostic(tmp_path) -> Non
         },
     )
     write_json(
-        tmp_path / "agent_claim_extractor.json",
+        _path(tmp_path, "agent_claim_extractor.json"),
         {
             "claims": [
                 {
@@ -101,7 +106,7 @@ def test_static_audit_html_report_pattern_view_is_case_agnostic(tmp_path) -> Non
         },
     )
     write_json(
-        tmp_path / "agent_source_data_auditor.json",
+        _path(tmp_path, "agent_source_data_auditor.json"),
         {
             "claim_to_source_data": [
                 {
@@ -120,9 +125,9 @@ def test_static_audit_html_report_pattern_view_is_case_agnostic(tmp_path) -> Non
             ],
         },
     )
-    write_json(tmp_path / "source_data_findings.json", {"summary": {}, "priority_findings": []})
-    write_json(tmp_path / "source_data_profile.json", {"summary": {"workbook_count": 1, "sheet_count": 2}})
-    write_json(tmp_path / "static_audit_bundle.json", {"agent_traces": [], "claim_mappings": [1]})
+    write_json(_path(tmp_path, "source_data_findings.json"), {"summary": {}, "priority_findings": []})
+    write_json(_path(tmp_path, "source_data_profile.json"), {"summary": {"workbook_count": 1, "sheet_count": 2}})
+    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": [1]})
 
     html = render_static_audit_html(tmp_path, "case-generic")
 
@@ -137,7 +142,7 @@ def test_static_audit_html_report_pattern_view_is_case_agnostic(tmp_path) -> Non
 
 def test_static_audit_html_report_merges_source_and_pair_priority_findings(tmp_path) -> None:
     write_json(
-        tmp_path / "source_data_findings.json",
+        _path(tmp_path, "source_data_findings.json"),
         {
             "summary": {"priority_findings": 1},
             "priority_findings": [
@@ -155,7 +160,7 @@ def test_static_audit_html_report_merges_source_and_pair_priority_findings(tmp_p
         },
     )
     write_json(
-        tmp_path / "source_data_pair_forensics.json",
+        _path(tmp_path, "source_data_pair_forensics.json"),
         {
             "summary": {"priority_findings": 1},
             "priority_findings": [
@@ -173,7 +178,7 @@ def test_static_audit_html_report_merges_source_and_pair_priority_findings(tmp_p
             ],
         },
     )
-    write_json(tmp_path / "static_audit_bundle.json", {"agent_traces": [], "claim_mappings": []})
+    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": []})
 
     html = render_static_audit_html(tmp_path, "case-merged")
 
@@ -184,11 +189,11 @@ def test_static_audit_html_report_merges_source_and_pair_priority_findings(tmp_p
 
 def test_static_audit_html_report_uses_pass_verdict_without_findings(tmp_path) -> None:
     write_json(
-        tmp_path / "audit_run_manifest.json",
+        _path(tmp_path, "audit_run_manifest.json"),
         {"steps": [{"key": "evidence_ledger", "title": "Evidence ledger", "status": "ran"}]},
     )
     write_json(
-        tmp_path / "static_audit_bundle.json",
+        _path(tmp_path, "static_audit_bundle.json"),
         {
             "evidence_items": [{"evidence_id": "EV-001"}],
             "claims": [],
@@ -207,7 +212,7 @@ def test_static_audit_html_report_uses_pass_verdict_without_findings(tmp_path) -
 
 def test_static_audit_html_report_renders_canonical_non_source_data_finding(tmp_path) -> None:
     write_json(
-        tmp_path / "static_audit_bundle.json",
+        _path(tmp_path, "static_audit_bundle.json"),
         {
             "evidence_items": [
                 {
@@ -257,7 +262,7 @@ def test_static_audit_html_report_renders_canonical_non_source_data_finding(tmp_
 
 def test_static_audit_html_report_renders_paperfraud_rule_matches(tmp_path) -> None:
     write_json(
-        tmp_path / "paperfraud_rule_matches.json",
+        _path(tmp_path, "paperfraud_rule_matches.json"),
         {
             "summary": {
                 "total_rules_loaded": 48,
@@ -287,7 +292,7 @@ def test_static_audit_html_report_renders_paperfraud_rule_matches(tmp_path) -> N
             ],
         },
     )
-    write_json(tmp_path / "static_audit_bundle.json", {"agent_traces": [], "claim_mappings": []})
+    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": []})
 
     html = render_static_audit_html(tmp_path, "case-paperfraud")
 

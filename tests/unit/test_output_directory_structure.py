@@ -14,7 +14,7 @@ from engine.static_audit.orchestrator import (
 
 def test_output_dirs_has_expected_categories() -> None:
     """Verify OUTPUT_DIRS defines all expected categories."""
-    expected = {"inputs", "mineru", "materials", "source_data", "visual", "numeric", "agents", "reports"}
+    expected = {"mineru", "materials", "source_data", "visual", "numeric", "agents", "reports"}
     assert set(OUTPUT_DIRS.keys()) == expected
 
 

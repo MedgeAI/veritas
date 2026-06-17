@@ -10,6 +10,7 @@ from engine.tools.registry import (
     TOOL_ID_COPY_MOVE,
     TOOL_ID_FINDING_PIPELINE,
     TOOL_ID_PANEL_EXTRACTION,
+    ExecutionPhase,
     coerce_tool_params,
     validate_investigation_tool_action,
 )
@@ -51,7 +52,7 @@ class TestVisualToolProperties:
 
     def test_panel_extraction_is_mandatory_bootstrap(self):
         tool = TOOLS[TOOL_ID_PANEL_EXTRACTION]
-        assert tool.execution_phase == "mandatory_bootstrap"
+        assert tool.execution_phase == ExecutionPhase.MANDATORY_BASELINE
         assert tool.agent_selectable is False
         assert tool.deterministic is True
         assert tool.step_key == "visual_panel_extraction"

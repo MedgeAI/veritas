@@ -43,7 +43,7 @@ def test_tool_catalog_for_investigation_only_exposes_deterministic_selectable_to
     exposed = {item["tool_id"] for item in catalog}
 
     assert IMAGE_SIMILARITY_TOOL_ID in exposed
-    assert SOURCE_DATA_FINDINGS_TOOL_ID in exposed
+    assert SOURCE_DATA_FINDINGS_TOOL_ID not in exposed
     assert "agent.review" not in exposed
     assert "mineru.parse_pdf" not in exposed
     assert all(item["param_schema"] is not None for item in catalog)
