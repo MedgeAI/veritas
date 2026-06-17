@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from engine.investigation.agent_models import AgentContextPack, TruncationConfig
+from engine.static_audit.paths import resolve_artifact_path
 
 TRUNCATION_MARKER = "\n[...truncated...]\n"
 
@@ -98,15 +99,16 @@ def _scan_workdir_artifacts(workdir: Path) -> list[dict[str, Any]]:
     if not workdir.is_dir():
         return manifest
 
-    for path in sorted(workdir.iterdir()):
+    for path in sorted(workdir.rglob("*")):
         if not path.is_file():
             continue
         if path.suffix.lower() in _EXCLUDED_EXTENSIONS:
             continue
+        artifact_id = path.relative_to(workdir).as_posix()
         size_bytes = path.stat().st_size
         summary = _artifact_file_summary(path)
         manifest.append({
-            "id": path.name,
+            "id": artifact_id,
             "type": _artifact_type(path),
             "size_bytes": size_bytes,
             "summary": summary,
@@ -158,6 +160,21 @@ def _read_json_safe(path: Path) -> dict[str, Any] | list[Any] | None:
         return None
 
 
+def _artifact_path(workdir: Path, artifact_name: str) -> Path:
+    """Return the canonical artifact path, falling back to legacy flat files."""
+    mapped = resolve_artifact_path(workdir, artifact_name)
+    if mapped.exists():
+        return mapped
+    legacy = workdir / artifact_name
+    if legacy.exists():
+        return legacy
+    return mapped
+
+
+def _read_json_artifact(workdir: Path, artifact_name: str) -> dict[str, Any] | list[Any] | None:
+    return _read_json_safe(_artifact_path(workdir, artifact_name))
+
+
 def _default_truncation_config(role: str) -> TruncationConfig:
     if role == "judge":
         return TruncationConfig(max_tokens_per_pack=40_000, max_tokens_per_excerpt=8_000)
@@ -168,7 +185,7 @@ def _extract_evidence_refs(workdir: Path) -> list[dict[str, Any]]:
     """Extract evidence_refs: pointers to artifact_id + line ranges."""
     refs: list[dict[str, Any]] = []
 
-    source_findings = _read_json_safe(workdir / "source_data_findings.json")
+    source_findings = _read_json_artifact(workdir, "source_data_findings.json")
     if isinstance(source_findings, dict):
         for item in (source_findings.get("priority_findings") or [])[:10]:
             if isinstance(item, dict):
@@ -179,7 +196,7 @@ def _extract_evidence_refs(workdir: Path) -> list[dict[str, Any]]:
                     "category": item.get("category"),
                 })
 
-    pair_forensics = _read_json_safe(workdir / "source_data_pair_forensics.json")
+    pair_forensics = _read_json_artifact(workdir, "source_data_pair_forensics.json")
     if isinstance(pair_forensics, dict):
         for item in (pair_forensics.get("priority_findings") or [])[:10]:
             if isinstance(item, dict):
@@ -190,7 +207,7 @@ def _extract_evidence_refs(workdir: Path) -> list[dict[str, Any]]:
                     "category": item.get("category"),
                 })
 
-    image_dups = _read_json_safe(workdir / "exact_image_duplicates.json")
+    image_dups = _read_json_artifact(workdir, "exact_image_duplicates.json")
     if isinstance(image_dups, dict) and image_dups.get("duplicate_group_count", 0) > 0:
         refs.append({
             "artifact_id": "exact_image_duplicates.json",
@@ -208,20 +225,20 @@ def _extract_top_n_findings(
     """Extract Top-N findings from deterministic audit artifacts."""
     findings: list[dict[str, Any]] = []
 
-    source_findings = _read_json_safe(workdir / "source_data_findings.json")
+    source_findings = _read_json_artifact(workdir, "source_data_findings.json")
     if isinstance(source_findings, dict):
         for item in (source_findings.get("priority_findings") or [])[:n]:
             if isinstance(item, dict):
                 findings.append(_compact_priority_finding(item))
 
-    pair_forensics = _read_json_safe(workdir / "source_data_pair_forensics.json")
+    pair_forensics = _read_json_artifact(workdir, "source_data_pair_forensics.json")
     if isinstance(pair_forensics, dict):
         remaining = n - len(findings)
         for item in (pair_forensics.get("priority_findings") or [])[:remaining]:
             if isinstance(item, dict):
                 findings.append(_compact_pair_forensics_finding(item))
 
-    numeric = _read_json_safe(workdir / "numeric_forensics.json")
+    numeric = _read_json_artifact(workdir, "numeric_forensics.json")
     if isinstance(numeric, dict):
         remaining = n - len(findings)
         benford = numeric.get("benford") or {}
@@ -273,7 +290,7 @@ def _collect_limitations(workdir: Path) -> list[str]:
         "source_data_pair_forensics.json",
         "numeric_forensics.json",
     ):
-        data = _read_json_safe(workdir / name)
+        data = _read_json_artifact(workdir, name)
         if not isinstance(data, dict):
             continue
         for lim in data.get("limitations", []):
@@ -422,15 +439,15 @@ def _extend_unique_strings(target: list[str], values: Any) -> None:
 
 
 def _build_judge_context_summary(workdir: Path) -> dict[str, Any]:
-    claim_output = _read_json_safe(workdir / "agent_claim_extractor.json")
-    source_output = _read_json_safe(workdir / "agent_source_data_auditor.json")
-    material_inventory = _read_json_safe(workdir / "material_inventory.json")
-    material_plan = _read_json_safe(workdir / "agent_material_plan.json")
-    numeric = _read_json_safe(workdir / "numeric_forensics.json")
-    source_findings = _read_json_safe(workdir / "source_data_findings.json")
-    pair_forensics = _read_json_safe(workdir / "source_data_pair_forensics.json")
-    visual_findings = _read_json_safe(workdir / "visual_findings.json")
-    image_relationships = _read_json_safe(workdir / "image_relationships.json")
+    claim_output = _read_json_artifact(workdir, "agent_claim_extractor.json")
+    source_output = _read_json_artifact(workdir, "agent_source_data_auditor.json")
+    material_inventory = _read_json_artifact(workdir, "material_inventory.json")
+    material_plan = _read_json_artifact(workdir, "agent_material_plan.json")
+    numeric = _read_json_artifact(workdir, "numeric_forensics.json")
+    source_findings = _read_json_artifact(workdir, "source_data_findings.json")
+    pair_forensics = _read_json_artifact(workdir, "source_data_pair_forensics.json")
+    visual_findings = _read_json_artifact(workdir, "visual_findings.json")
+    image_relationships = _read_json_artifact(workdir, "image_relationships.json")
 
     claims = claim_output.get("claims") if isinstance(claim_output, dict) else []
     if not isinstance(claims, list):
@@ -570,7 +587,7 @@ def _build_bounded_excerpts(
     """Create bounded excerpts for large artifacts using head_tail_truncate."""
     excerpts: dict[str, str] = {}
     for name in artifact_names:
-        path = workdir / name
+        path = _artifact_path(workdir, name)
         if not path.exists():
             continue
         try:
@@ -666,7 +683,7 @@ def build_material_inventory_context_pack(
     manifest = _scan_workdir_artifacts(workdir)
     bounded_excerpts: dict[str, str] = {}
 
-    inv_path = workdir / "material_inventory.json"
+    inv_path = _artifact_path(workdir, "material_inventory.json")
     if inv_path.exists():
         try:
             text = inv_path.read_text(encoding="utf-8")

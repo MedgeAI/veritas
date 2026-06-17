@@ -12,6 +12,7 @@ from engine.investigation.context_pack import (
     estimate_tokens,
     head_tail_truncate,
 )
+from engine.static_audit.paths import resolve_artifact_path
 
 
 def _write_json(path: Path, data: dict | list) -> None:
@@ -173,6 +174,38 @@ def test_build_review_context_pack_with_findings() -> None:
         assert "source_data_findings.json" in pack.bounded_excerpts
         assert len(pack.limitations) >= 1
         assert "No code environment provided" in pack.limitations
+
+
+def test_review_context_pack_reads_layered_artifacts() -> None:
+    import tempfile
+
+    with tempfile.TemporaryDirectory() as td:
+        workdir = Path(td)
+        _write_json(resolve_artifact_path(workdir, "material_inventory.json"), {
+            "summary": {"file_count": 2},
+            "limitations": ["Layered material limitation"],
+        })
+        _write_json(resolve_artifact_path(workdir, "source_data_findings.json"), {
+            "summary": {"total_findings": 1},
+            "priority_findings": [
+                {
+                    "finding_id": "FD-LAYERED",
+                    "risk_level": "high",
+                    "category": "duplicate_columns",
+                    "workbook": "source.xlsx",
+                    "sheet": "Fig1",
+                }
+            ],
+        })
+
+        pack = build_review_context_pack(workdir, "test-case")
+
+        artifact_ids = {item["id"] for item in pack.artifact_manifest}
+        assert "materials/material_inventory.json" in artifact_ids
+        assert "source_data/findings.json" in artifact_ids
+        assert any(finding.get("finding_id") == "FD-LAYERED" for finding in pack.top_n_findings)
+        assert "source_data_findings.json" in pack.bounded_excerpts
+        assert "Layered material limitation" in pack.limitations
 
 
 def test_build_role_context_pack_claim_extractor() -> None:
