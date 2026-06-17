@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+import pytest
+
 from web.backend.veritas_web.case_store import CaseStore
+from web.backend.veritas_web.models import normalize_case_status, normalize_run_status
 
 
 def test_case_store_creates_case_and_input(tmp_path) -> None:
@@ -35,3 +38,14 @@ def test_case_store_lists_runs(tmp_path) -> None:
 
     assert {run.run_id for run in store.list_runs(case.case_id)} == {first.run_id, second.run_id}
     assert {run.run_id for run in store.list_all_runs()} == {first.run_id, second.run_id}
+
+
+def test_status_normalizers_reject_invalid_values() -> None:
+    assert normalize_case_status("Draft") == "Draft"
+    assert normalize_run_status("queued") == "queued"
+
+    with pytest.raises(ValueError, match="invalid case status"):
+        normalize_case_status("completed_typo")
+
+    with pytest.raises(ValueError, match="invalid run status"):
+        normalize_run_status("running_typo")

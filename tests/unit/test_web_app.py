@@ -4,8 +4,9 @@ import base64
 from pathlib import Path
 from typing import Any
 
-from web.backend.veritas_web.app import VeritasRequestHandler, VeritasWebApp
-from web.backend.veritas_web.auth import AuthContext
+from fastapi.testclient import TestClient
+
+from web.backend.veritas_web.app import create_app
 from web.backend.veritas_web.runner import AuditRunner
 
 
@@ -33,50 +34,221 @@ def fake_audit_func(paper_dir: Path, **kwargs: Any) -> dict[str, Any]:
     }
 
 
-def test_stdlib_app_wiring_runs_web_audit_flow_without_socket(tmp_path) -> None:
-    app = VeritasWebApp(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
-    app.runner = AuditRunner(app.store, audit_func=fake_audit_func, output_root=tmp_path / "outputs")
-    case = app.store.create_case(case_id="demo-case")
-    app.store.write_input_base64(case.case_id, "paper.pdf", base64.b64encode(b"%PDF-1.4\n").decode("ascii"))
-    run = app.store.create_run(case.case_id)
+def test_fastapi_app_runs_web_audit_flow(tmp_path: Path) -> None:
+    """Verify the FastAPI app can run an audit end-to-end via TestClient."""
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
 
-    completed = app.runner.run_sync(case.case_id, run.run_id, {"agent_mode": "review"})
-    html_path = app.artifacts.report_html_path(case.case_id)
+    # Create case and upload input
+    resp = client.post("/api/cases", json={"case_id": "demo-case", "paper_title": "Test"})
+    assert resp.status_code == 201
 
-    assert completed.status == "completed"
-    assert [event["event"] for event in app.store.list_events(case.case_id, run.run_id)] == ["audit_start", "audit_end"]
-    assert html_path is not None
-    assert "Veritas 静态审查 Demo" in html_path.read_text(encoding="utf-8")
+    resp = client.post("/api/cases/demo-case/inputs", json={
+        "filename": "paper.pdf",
+        "content_base64": base64.b64encode(b"%PDF-1.4\n").decode("ascii"),
+    })
+    assert resp.status_code == 200
+
+    # Start a run (uses the real runner with fake audit func — but we can't easily
+    # inject the fake here without restructuring.  Instead, test the data flow.)
+    deps = app.state.dependencies
+    deps.runner = AuditRunner(deps.store, audit_func=fake_audit_func, output_root=str(tmp_path / "outputs"))
+
+    resp = client.post("/api/cases/demo-case/runs", json={"agent_mode": "review"})
+    assert resp.status_code == 202
+    run_data = resp.json()
+    run_id = run_data["run_id"]
+
+    # Wait a moment for the background thread to finish
+    import time
+    for _ in range(50):
+        time.sleep(0.1)
+        resp = client.get(f"/api/cases/demo-case/runs/{run_id}")
+        if resp.json().get("status") in ("completed", "failed"):
+            break
+
+    resp = client.get(f"/api/cases/demo-case/runs/{run_id}")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "completed"
+
+    # Check events
+    resp = client.get(f"/api/cases/demo-case/runs/{run_id}/events")
+    assert resp.status_code == 200
+    events = resp.json()["events"]
+    assert [e["event"] for e in events] == ["audit_start", "audit_end"]
+
+    # Check HTML report
+    resp = client.get("/api/cases/demo-case/report/html")
+    assert resp.status_code == 200
+    assert "Veritas 静态审查 Demo" in resp.text
 
 
-def test_run_detail_route_uses_five_path_segments(tmp_path) -> None:
-    app = VeritasWebApp(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
-    case = app.store.create_case(case_id="paper2_zhanglab")
-    run = app.store.create_run(case.case_id)
-    captured: list[dict[str, Any]] = []
+def test_run_detail_route_returns_run_data(tmp_path: Path) -> None:
+    """Verify GET /api/cases/{id}/runs/{id} returns correct run data."""
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
+    deps = app.state.dependencies
+    deps.runner = AuditRunner(deps.store, audit_func=fake_audit_func, output_root=str(tmp_path / "outputs"))
 
-    handler = VeritasRequestHandler.__new__(VeritasRequestHandler)
-    handler.app = app
-    handler.auth_context = AuthContext(user_id="operator", roles=frozenset({"admin"}))
-    handler.path = f"/api/cases/{case.case_id}/runs/{run.run_id}"
-    handler._send_json = lambda payload, status=None: captured.append(payload)
+    resp = client.post("/api/cases", json={"case_id": "paper2_zhanglab", "paper_title": "Test"})
+    assert resp.status_code == 201
 
-    handler._route_get()
+    resp = client.post("/api/cases/paper2_zhanglab/runs", json={"agent_mode": "review"})
+    assert resp.status_code == 202
+    run_id = resp.json()["run_id"]
 
-    assert captured[0]["case_id"] == case.case_id
-    assert captured[0]["run_id"] == run.run_id
+    resp = client.get(f"/api/cases/paper2_zhanglab/runs/{run_id}")
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["case_id"] == "paper2_zhanglab"
+    assert data["run_id"] == run_id
 
 
-def test_web_app_marks_stale_runs_interrupted_on_startup(tmp_path) -> None:
-    initial_app = VeritasWebApp(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
-    case = initial_app.store.create_case(case_id="demo-case")
-    run = initial_app.store.create_run(case.case_id)
+def test_tool_catalog_uses_app_database_session(tmp_path: Path) -> None:
+    db_url = f"sqlite:///{tmp_path / 'test.db'}"
+    app = create_app(
+        data_root=tmp_path / "web_data",
+        output_root=tmp_path / "outputs",
+        database_url=db_url,
+    )
+    client = TestClient(app, raise_server_exceptions=False)
+
+    resp = client.get("/api/tools/catalog")
+
+    assert resp.status_code == 200
+    tools = resp.json()["tools"]
+    assert tools
+    assert all(tool["agent_selectable"] and tool["deterministic"] for tool in tools)
+
+
+def test_app_dependencies_are_isolated_per_fastapi_app(tmp_path: Path) -> None:
+    app1 = create_app(data_root=tmp_path / "web_data_1", output_root=tmp_path / "outputs_1")
+    app2 = create_app(data_root=tmp_path / "web_data_2", output_root=tmp_path / "outputs_2")
+    client1 = TestClient(app1, raise_server_exceptions=False)
+    client2 = TestClient(app2, raise_server_exceptions=False)
+
+    resp = client1.post("/api/cases", json={"case_id": "case-one", "paper_title": "One"})
+    assert resp.status_code == 201
+    resp = client2.post("/api/cases", json={"case_id": "case-two", "paper_title": "Two"})
+    assert resp.status_code == 201
+
+    resp = client1.get("/api/cases")
+
+    assert resp.status_code == 200
+    assert [case["case_id"] for case in resp.json()["cases"]] == ["case-one"]
+
+
+def test_tools_health_reports_probe_results(tmp_path: Path) -> None:
+    app = create_app(
+        data_root=tmp_path / "web_data",
+        output_root=tmp_path / "outputs",
+    )
+    client = TestClient(app, raise_server_exceptions=False)
+
+    resp = client.get("/api/tools/health")
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert "docker_available" in data
+    assert "gpu_available" in data
+    assert "sscd_model_available" in data
+    assert set(data["details"]) == {"docker", "gpu", "sscd_model_path"}
+
+
+def test_review_decision_rejects_invalid_status(tmp_path: Path) -> None:
+    db_url = f"sqlite:///{tmp_path / 'test.db'}"
+    app = create_app(
+        data_root=tmp_path / "web_data",
+        output_root=tmp_path / "outputs",
+        database_url=db_url,
+    )
+    client = TestClient(app, raise_server_exceptions=False)
+
+    resp = client.post("/api/cases", json={"case_id": "review-case", "paper_title": "Test"})
+    assert resp.status_code == 201
+
+    resp = client.post(
+        "/api/cases/review-case/review-items/finding-1/decision",
+        json={"status": "made_up_status", "note": "invalid"},
+    )
+
+    assert resp.status_code == 422
+
+
+def test_embedding_endpoints_return_503_without_database_session(tmp_path: Path) -> None:
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
+
+    resp = client.post("/api/cases", json={"case_id": "embedding-case", "paper_title": "Test"})
+    assert resp.status_code == 201
+    app.state.dependencies._session_factory = None
+
+    for path in (
+        "/api/cases/embedding-case/embeddings/status",
+        "/api/cases/embedding-case/similarity?panel_id=P1",
+        "/api/cases/embedding-case/similarity/pairs",
+    ):
+        resp = client.get(path)
+        assert resp.status_code == 503
+        assert resp.json()["detail"]["error"] == "database_unavailable"
+
+
+def test_review_items_missing_workdir_returns_404(tmp_path: Path) -> None:
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
+
+    resp = client.post("/api/cases", json={"case_id": "review-empty", "paper_title": "Test"})
+    assert resp.status_code == 201
+
+    resp = client.get("/api/cases/review-empty/review-items")
+
+    assert resp.status_code == 404
+    assert resp.json()["detail"]["error"] == "audit_workdir_missing"
+
+
+def test_review_items_return_503_without_database_session(tmp_path: Path) -> None:
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
+
+    resp = client.post("/api/cases", json={"case_id": "review-db", "paper_title": "Test"})
+    assert resp.status_code == 201
+    deps = app.state.dependencies
+    run = deps.store.create_run("review-db")
+    workdir = tmp_path / "outputs" / "review-db" / "research-integrity-audit"
+    workdir.mkdir(parents=True)
+    run.status = "completed"
+    run.workdir = str(workdir)
+    deps.store.save_run(run)
+    deps._session_factory = None
+
+    resp = client.get("/api/cases/review-db/review-items")
+
+    assert resp.status_code == 503
+    assert resp.json()["detail"]["error"] == "database_unavailable"
+
+
+def test_web_app_marks_stale_runs_failed_on_startup(tmp_path: Path) -> None:
+    """Verify stale runs are recovered on app startup."""
+    db_path = tmp_path / "test.db"
+    db_url = f"sqlite:///{db_path}"
+
+    # First app: create a run and mark it as running
+    app1 = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs", database_url=db_url)
+    client1 = TestClient(app1, raise_server_exceptions=False)
+
+    resp = client1.post("/api/cases", json={"case_id": "demo-case", "paper_title": "Test"})
+    assert resp.status_code == 201
+
+    deps = app1.state.dependencies
+    run = deps.store.create_run("demo-case")
     run.status = "running"
-    initial_app.store.save_run(run)
+    deps.store.save_run(run)
 
-    restarted_app = VeritasWebApp(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
-    recovered_run = restarted_app.store.get_run(case.case_id, run.run_id)
+    # Second app: should recover the stale run (shares same DB file)
+    app2 = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs", database_url=db_url)
+    client2 = TestClient(app2, raise_server_exceptions=False)
 
-    assert restarted_app.recovered_interrupted_runs == 1
-    assert recovered_run.status == "failed"
-    assert recovered_run.error == "interrupted_by_backend_restart"
+    resp = client2.get(f"/api/cases/demo-case/runs/{run.run_id}")
+    assert resp.status_code == 200
+    assert resp.json()["status"] == "failed"
+    assert resp.json()["error"] == "interrupted_by_backend_restart"

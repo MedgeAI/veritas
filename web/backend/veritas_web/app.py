@@ -1,308 +1,230 @@
+"""FastAPI application for the Veritas web backend.
+
+Replaces the previous stdlib ``ThreadingHTTPServer`` implementation.
+All API routes live in ``routers/`` sub-modules; this file wires them
+together, sets up CORS, serves the frontend static build, and exposes
+the ``serve()`` entry point used by the Makefile.
+"""
+
 from __future__ import annotations
 
-import json
 import mimetypes
-from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import os
 from pathlib import Path
 from typing import Any
-from urllib.parse import parse_qs, urlparse
+
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from .artifacts import ArtifactService
-from .auth import AuthContext, AuthProvider, NoAuthProvider
+from .auth import AuthProvider, NoAuthProvider
 from .case_store import CaseStore
 from .config import AuthConfig, create_auth_provider
-from .models import CaseRecord
+from .database import create_db_engine
+from .dependencies import AppDependencies, set_dependencies
+from .investigations import WebInvestigationService
 from .runner import AuditRunner
+from .routers import artifacts, cases, embeddings, investigations, review, tools, visual
+from .tool_catalog import seed_tool_registry
 
 
 class VeritasWebApp:
+    """Kept for backward compat — some modules import this class."""
+
     def __init__(
         self,
         data_root: str | Path = "web_data",
         output_root: str | Path = "outputs",
         frontend_dist: str | Path | None = None,
+        database_url: str | None = None,
     ) -> None:
-        self.store = CaseStore(data_root)
+        self.store = CaseStore(data_root, database_url=_resolve_database_url(data_root, database_url))
         self.runner = AuditRunner(self.store, output_root=output_root)
         self.recovered_interrupted_runs = self.runner.recover_interrupted_runs()
         self.artifacts = ArtifactService(self.store)
-        self.frontend_dist = Path(frontend_dist) if frontend_dist else Path(__file__).resolve().parents[2] / "frontend" / "dist"
-
-
-class VeritasRequestHandler(BaseHTTPRequestHandler):
-    server_version = "VeritasWeb/0.1"
-    app: VeritasWebApp
-    auth_provider: AuthProvider
-    auth_context: AuthContext
-
-    def _authenticate(self) -> bool:
-        """Authenticate the current request.
-
-        Populates ``self.auth_context`` on success.  Returns ``True`` when
-        the request should proceed, ``False`` when a 401 has been sent.
-        """
-        if isinstance(self.auth_provider, NoAuthProvider):
-            self.auth_context = AuthContext(
-                user_id="operator",
-                roles=frozenset({"admin"}),
-            )
-            return True
-
-        ctx = self.auth_provider.authenticate(dict(self.headers))
-        if ctx is None:
-            self.send_response(HTTPStatus.UNAUTHORIZED)
-            self._send_cors_headers()
-            challenge = getattr(self.auth_provider, "challenge_headers", None)
-            if callable(challenge):
-                for key, value in challenge().items():
-                    self.send_header(key, value)
-            self.send_header("Content-Length", "0")
-            self.end_headers()
-            return False
-        self.auth_context = ctx
-        return True
-
-    def do_OPTIONS(self) -> None:  # noqa: N802
-        self.send_response(HTTPStatus.NO_CONTENT)
-        self._send_cors_headers()
-        self.end_headers()
-
-    def do_GET(self) -> None:  # noqa: N802
-        try:
-            if not self._authenticate():
-                return
-            self._route_get()
-        except Exception as exc:
-            self._send_error(exc)
-
-    def do_POST(self) -> None:  # noqa: N802
-        try:
-            if not self._authenticate():
-                return
-            self._route_post()
-        except Exception as exc:
-            self._send_error(exc)
-
-    def _route_get(self) -> None:
-        parts, _query = self._path_parts()
-        if parts == ["api", "health"]:
-            self._send_json(
-                {
-                    "status": "ok",
-                    "runner_mode": "thread",
-                    "recovered_interrupted_runs": self.app.recovered_interrupted_runs,
-                }
-            )
-            return
-        if parts == ["api", "cases"]:
-            user_id = self.auth_context.user_id
-            self._send_json({"cases": [case.to_dict() for case in self.app.store.list_cases(user_id=user_id)]})
-            return
-        if len(parts) == 3 and parts[:2] == ["api", "cases"]:
-            self._send_json(self._require_case_access(parts[2]).to_dict())
-            return
-        if len(parts) == 5 and parts[:2] == ["api", "cases"] and parts[3] == "runs":
-            self._require_case_access(parts[2])
-            self._send_json(self.app.store.get_run(parts[2], parts[4]).to_dict())
-            return
-        if len(parts) == 6 and parts[:2] == ["api", "cases"] and parts[3] == "runs" and parts[5] == "events":
-            self._require_case_access(parts[2])
-            self._send_json({"events": self.app.store.list_events(parts[2], parts[4])})
-            return
-        if len(parts) == 4 and parts[:2] == ["api", "cases"] and parts[3] == "artifacts":
-            self._require_case_access(parts[2])
-            self._send_json({"artifacts": [ref.to_dict() for ref in self.app.artifacts.list_artifacts(parts[2])]})
-            return
-        if len(parts) == 5 and parts[:2] == ["api", "cases"] and parts[3] == "artifacts":
-            self._send_artifact(parts[2], parts[4])
-            return
-        if len(parts) == 5 and parts[:2] == ["api", "cases"] and parts[3:] == ["report", "html"]:
-            self._send_report_html(parts[2])
-            return
-        # Visual endpoints
-        if len(parts) == 5 and parts[:2] == ["api", "cases"] and parts[3] == "visual":
-            self._send_visual_artifact(parts[2], parts[4])
-            return
-        if len(parts) >= 6 and parts[:2] == ["api", "cases"] and parts[3] == "visual" and parts[4] == "images":
-            image_path = "/".join(parts[5:])
-            self._send_visual_image(parts[2], image_path)
-            return
-        if parts and parts[0] == "api":
-            raise FileNotFoundError("route not found")
-        self._send_frontend_static(parts)
-        return
-
-    def _route_post(self) -> None:
-        parts, _query = self._path_parts()
-        payload = self._read_json()
-        if parts == ["api", "cases"]:
-            user_id = self.auth_context.user_id
-            paper_title = payload.get("paper_title")
-            raw_case_id = payload.get("case_id")
-            case = self.app.store.create_case(
-                user_id=user_id,
-                paper_title=paper_title,
-                case_id=str(raw_case_id) if raw_case_id else None,
-            )
-            self._send_json(case.to_dict(), status=HTTPStatus.CREATED)
-            return
-        if len(parts) == 4 and parts[:2] == ["api", "cases"] and parts[3] == "inputs":
-            self._require_case_access(parts[2])
-            if "content_base64" in payload:
-                path = self.app.store.write_input_base64(parts[2], str(payload.get("filename", "paper.pdf")), str(payload["content_base64"]))
-            elif "content" in payload:
-                path = self.app.store.write_input(parts[2], str(payload.get("filename", "paper.pdf")), str(payload["content"]).encode("utf-8"))
-            else:
-                raise ValueError("input upload requires content_base64 or content")
-            self._send_json({"path": str(path), "case": self._require_case_access(parts[2]).to_dict()})
-            return
-        if len(parts) == 4 and parts[:2] == ["api", "cases"] and parts[3] == "runs":
-            self._require_case_access(parts[2])
-            run = self.app.runner.start(parts[2], payload)
-            self._send_json(run.to_dict(), status=HTTPStatus.ACCEPTED)
-            return
-        raise FileNotFoundError("route not found")
-
-    def _require_case_access(self, case_id: str) -> CaseRecord:
-        """Return the case if the authenticated user owns it."""
-        return self.app.store.get_case(case_id, user_id=self.auth_context.user_id)
-
-    def _send_artifact(self, case_id: str, artifact_id: str) -> None:
-        self._require_case_access(case_id)
-        path = self.app.artifacts.artifact_path(case_id, artifact_id)
-        if not path:
-            raise FileNotFoundError(f"artifact not found: {artifact_id}")
-        content_type = "application/json"
-        if path.suffix == ".jsonl":
-            content_type = "application/x-ndjson"
-        elif path.suffix == ".md":
-            content_type = "text/markdown; charset=utf-8"
-        self._send_bytes(path.read_bytes(), content_type=content_type)
-
-    def _send_report_html(self, case_id: str) -> None:
-        self._require_case_access(case_id)
-        path = self.app.artifacts.report_html_path(case_id)
-        if not path:
-            raise FileNotFoundError("final HTML report not found")
-        self._send_bytes(path.read_bytes(), content_type="text/html; charset=utf-8")
-
-    def _send_visual_artifact(self, case_id: str, artifact_type: str) -> None:
-        """Serve visual artifact JSON by type: figures, panels, relationships, findings."""
-        self._require_case_access(case_id)
-        artifact_map = {
-            "figures": "visual_evidence",
-            "panels": "panel_evidence",
-            "relationships": "image_relationships",
-            "findings": "visual_findings",
-        }
-        artifact_id = artifact_map.get(artifact_type)
-        if not artifact_id:
-            raise FileNotFoundError(f"unknown visual artifact type: {artifact_type}")
-        path = self.app.artifacts.artifact_path(case_id, artifact_id)
-        if not path:
-            self._send_json({"error": "not_found", "detail": f"visual artifact not found: {artifact_type}"}, status=HTTPStatus.NOT_FOUND)
-            return
-        data = json.loads(path.read_text(encoding="utf-8"))
-        self._send_json(data)
-
-    def _send_visual_image(self, case_id: str, relative_path: str) -> None:
-        """Serve an image file from the case workdir with correct content-type."""
-        self._require_case_access(case_id)
-        path = self.app.artifacts.visual_image_path(case_id, relative_path)
-        if not path:
-            raise FileNotFoundError(f"image not found: {relative_path}")
-        content_type = mimetypes.guess_type(str(path))[0] or "application/octet-stream"
-        self._send_bytes(path.read_bytes(), content_type=content_type)
-
-    def _send_frontend_static(self, parts: list[str]) -> None:
-        dist = self.app.frontend_dist
-        index_path = dist / "index.html"
-        if not index_path.exists():
-            raise FileNotFoundError("frontend dist not found; run `npm run build` in web/frontend or use Vite dev server")
-
-        target = index_path
-        if parts:
-            candidate = (dist / Path(*parts)).resolve()
-            dist_resolved = dist.resolve()
-            if dist_resolved == candidate or dist_resolved in candidate.parents:
-                if candidate.is_file():
-                    target = candidate
-
-        content_type = mimetypes.guess_type(str(target))[0] or "application/octet-stream"
-        if content_type.startswith("text/") or content_type in {"application/javascript", "application/json"}:
-            content_type = f"{content_type}; charset=utf-8"
-        self._send_bytes(target.read_bytes(), content_type=content_type)
-
-    def _path_parts(self) -> tuple[list[str], dict[str, list[str]]]:
-        parsed = urlparse(self.path)
-        return [part for part in parsed.path.split("/") if part], parse_qs(parsed.query)
-
-    def _read_json(self) -> dict[str, Any]:
-        length = int(self.headers.get("Content-Length", "0"))
-        if length == 0:
-            return {}
-        raw = self.rfile.read(length)
-        return json.loads(raw.decode("utf-8"))
-
-    def _send_json(self, payload: dict[str, Any], status: HTTPStatus = HTTPStatus.OK) -> None:
-        self._send_bytes(
-            json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8"),
-            status=status,
-            content_type="application/json; charset=utf-8",
+        self.investigations = WebInvestigationService(self.store, self.artifacts)
+        self.frontend_dist = (
+            Path(frontend_dist)
+            if frontend_dist
+            else Path(__file__).resolve().parents[2] / "frontend" / "dist"
         )
 
-    def _send_bytes(
-        self,
-        payload: bytes,
-        status: HTTPStatus = HTTPStatus.OK,
-        content_type: str = "application/octet-stream",
-    ) -> None:
-        self.send_response(status)
-        self._send_cors_headers()
-        self.send_header("Content-Type", content_type)
-        self.send_header("Content-Length", str(len(payload)))
-        self.end_headers()
-        self.wfile.write(payload)
 
-    def _send_error(self, exc: Exception) -> None:
-        if isinstance(exc, PermissionError):
-            status = HTTPStatus.FORBIDDEN
-        elif isinstance(exc, FileNotFoundError):
-            status = HTTPStatus.NOT_FOUND
-        else:
-            status = HTTPStatus.BAD_REQUEST
-        self._send_json({"error": type(exc).__name__, "detail": str(exc)}, status=status)
+def create_app(
+    data_root: str | Path = "web_data",
+    output_root: str | Path = "outputs",
+    frontend_dist: str | Path | None = None,
+    database_url: str | None = None,
+    auth_provider: AuthProvider | None = None,
+) -> FastAPI:
+    """Build and return the configured FastAPI application."""
+    app = FastAPI(title="Veritas Web P1", version="0.1.0")
 
-    def _send_cors_headers(self) -> None:
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET,POST,OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
+    # --- Core services ------------------------------------------------
+    resolved_database_url = _resolve_database_url(data_root, database_url)
+    store = CaseStore(data_root, database_url=resolved_database_url)
+    runner = AuditRunner(store, output_root=output_root)
+    artifacts_svc = ArtifactService(store)
+    investigations_svc = WebInvestigationService(store, artifacts_svc)
+    auth = auth_provider or create_auth_provider(AuthConfig.from_env())
 
-    def log_message(self, format: str, *args: Any) -> None:
-        return
+    # --- Dependency injection -----------------------------------------
+    # Use CaseStore's engine if it has one (avoids duplicate in-memory SQLite DBs)
+    engine = getattr(store, "_engine", None) or (
+        create_db_engine() if (database_url or store.sql_mode) else None
+    )
+    deps = AppDependencies(store=store, auth_provider=auth, engine=engine)
+    deps.runner = runner  # type: ignore[attr-defined]
+    deps.artifacts = artifacts_svc  # type: ignore[attr-defined]
+    deps.investigations = investigations_svc  # type: ignore[attr-defined]
+    app.state.dependencies = deps
+    set_dependencies(deps)
+
+    if deps._session_factory is not None:
+        session = deps._session_factory()
+        try:
+            seed_tool_registry(session)
+        finally:
+            session.close()
+
+    recovered = runner.recover_interrupted_runs()
+
+    # --- Middleware ----------------------------------------------------
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=False,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # --- Exception handlers -------------------------------------------
+    @app.exception_handler(FileNotFoundError)
+    async def handle_not_found(request: Request, exc: FileNotFoundError) -> JSONResponse:
+        return JSONResponse(status_code=404, content={"error": "NotFound", "detail": str(exc)})
+
+    @app.exception_handler(PermissionError)
+    async def handle_forbidden(request: Request, exc: PermissionError) -> JSONResponse:
+        return JSONResponse(status_code=403, content={"error": "Forbidden", "detail": str(exc)})
+
+    @app.exception_handler(ValueError)
+    async def handle_bad_request(request: Request, exc: ValueError) -> JSONResponse:
+        return JSONResponse(status_code=400, content={"error": "BadRequest", "detail": str(exc)})
+
+    # --- Routers -------------------------------------------------------
+    app.include_router(cases.router, prefix="/api")
+    app.include_router(artifacts.router, prefix="/api")
+    app.include_router(investigations.router, prefix="/api")
+    app.include_router(visual.router, prefix="/api")
+    app.include_router(review.router, prefix="/api")
+    app.include_router(tools.router, prefix="/api")
+    app.include_router(embeddings.router, prefix="/api")
+
+    # --- Health endpoint -----------------------------------------------
+    @app.get("/api/health")
+    def health() -> dict[str, Any]:
+        return {
+            "status": "ok",
+            "runner_mode": "thread_pool",
+            "recovered_interrupted_runs": recovered,
+        }
+
+    # --- Frontend static files ----------------------------------------
+    dist = (
+        Path(frontend_dist)
+        if frontend_dist
+        else Path(__file__).resolve().parents[2] / "frontend" / "dist"
+    )
+
+    if dist.exists() and (dist / "index.html").exists():
+        # Catch-all for SPA: serve index.html for non-API, non-file paths
+        @app.get("/{path:path}")
+        async def serve_spa(path: str) -> Any:
+            from fastapi.responses import FileResponse
+
+            dist_resolved = dist.resolve()
+            target = (dist / path).resolve()
+            if target == dist_resolved or dist_resolved in target.parents:
+                if target.exists() and target.is_file():
+                    content_type = mimetypes.guess_type(str(target))[0] or "application/octet-stream"
+                    return FileResponse(target, media_type=content_type)
+            return FileResponse(dist / "index.html")
+    else:
+
+        @app.get("/{path:path}")
+        async def frontend_not_found(path: str) -> JSONResponse:
+            return JSONResponse(
+                status_code=404,
+                content={
+                    "error": "FrontendNotBuilt",
+                    "detail": "frontend dist not found; run `npm run build` in web/frontend or use Vite dev server",
+                },
+            )
+
+    return app
 
 
-def make_handler(app: VeritasWebApp, auth_provider: AuthProvider | None = None) -> type[VeritasRequestHandler]:
-    if auth_provider is None:
-        auth_provider = create_auth_provider(AuthConfig.from_env())
+def _resolve_database_url(data_root: str | Path, database_url: str | None = None) -> str:
+    if database_url:
+        return database_url
+    env_url = os.environ.get("VERITAS_DATABASE_URL")
+    if env_url:
+        return env_url
+    root = Path(data_root)
+    root.mkdir(parents=True, exist_ok=True)
+    return f"sqlite:///{root / 'veritas_web.sqlite3'}"
 
-    class Handler(VeritasRequestHandler):
-        pass
 
-    Handler.app = app
-    Handler.auth_provider = auth_provider
-    return Handler
+# Module-level app — created lazily so that test imports don't trigger DB connections.
+# Use ``create_app(...)`` explicitly in tests; ``uvicorn`` resolves ``app`` on demand.
+_app: FastAPI | None = None
 
 
-def serve(host: str = "127.0.0.1", port: int = 8765, data_root: str = "web_data", output_root: str = "outputs") -> None:
-    app = VeritasWebApp(data_root=data_root, output_root=output_root)
-    auth_provider = create_auth_provider(AuthConfig.from_env())
-    server = ThreadingHTTPServer((host, port), make_handler(app, auth_provider=auth_provider))
-    auth_mode = "none" if isinstance(auth_provider, NoAuthProvider) else type(auth_provider).__name__
+def get_app() -> FastAPI:
+    """Return the module-level FastAPI app, creating it on first call."""
+    global _app
+    if _app is None:
+        _app = create_app()
+    return _app
+
+
+# For ``uvicorn web.backend.veritas_web.app:app`` — resolves via module attribute lookup.
+class _LazyApp:
+    """Proxy that defers ``create_app()`` until the ASGI server actually calls it."""
+
+    def __getattr__(self, name: str) -> Any:
+        return getattr(get_app(), name)
+
+    async def __call__(self, scope: Any, receive: Any, send: Any) -> None:
+        await get_app()(scope, receive, send)
+
+
+app = _LazyApp()
+
+
+def serve(
+    host: str = "127.0.0.1",
+    port: int = 8765,
+    data_root: str = "web_data",
+    output_root: str = "outputs",
+) -> None:
+    """Start the web server with uvicorn.  Used by the Makefile."""
+    import uvicorn
+
+    global app
+    app = create_app(data_root=data_root, output_root=output_root)
+    auth_mode = "none" if isinstance(
+        create_auth_provider(AuthConfig.from_env()), NoAuthProvider
+    ) else type(create_auth_provider(AuthConfig.from_env())).__name__
     print(f"Veritas Web backend listening on http://{host}:{port} (auth: {auth_mode})")
-    server.serve_forever()
+    uvicorn.run(app, host=host, port=port, log_level="info")
 
 
 if __name__ == "__main__":
-    serve()
+    serve(
+        host=os.environ.get("VERITAS_HOST", "127.0.0.1"),
+        port=int(os.environ.get("VERITAS_PORT", "8765")),
+        data_root=os.environ.get("VERITAS_DATA_ROOT", "web_data"),
+        output_root=os.environ.get("VERITAS_OUTPUT_ROOT", "outputs"),
+    )

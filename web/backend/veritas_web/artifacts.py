@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
+from engine.static_audit.paths import resolve_artifact_path
+
 from .case_store import CaseStore
 from .models import ArtifactRef
 
@@ -17,6 +19,7 @@ KNOWN_ARTIFACTS = (
     ("panel_evidence", "json", "Panel Evidence", "panel_evidence.json"),
     ("image_relationships", "json", "Image Relationships", "image_relationships.json"),
     ("visual_findings", "json", "Visual Findings", "visual_findings.json"),
+    ("visual_copy_move_dense", "json", "SILA Dense Copy-Move", "visual_copy_move_dense.json"),
 )
 
 
@@ -28,16 +31,16 @@ class ArtifactService:
         workdir = self.latest_workdir(case_id)
         refs = []
         for artifact_id, kind, label, filename in KNOWN_ARTIFACTS:
-            path = workdir / filename if workdir else Path(filename)
-            size_bytes, updated_at = file_metadata(path) if workdir and path.exists() else (None, None)
+            path = artifact_file_path(workdir, filename) if workdir else Path(filename)
+            size_bytes, updated_at = file_metadata(path) if path and path.exists() else (None, None)
             refs.append(
                 ArtifactRef(
                     artifact_id=artifact_id,
                     kind=kind,
                     label=label,
-                    path=str(path),
+                    path=str(path or Path(filename)),
                     url=self.artifact_url(case_id, artifact_id),
-                    exists=bool(workdir and path.exists()),
+                    exists=bool(path and path.exists()),
                     size_bytes=size_bytes,
                     updated_at=updated_at,
                 )
@@ -50,8 +53,7 @@ class ArtifactService:
             return None
         for known_id, _kind, _label, filename in KNOWN_ARTIFACTS:
             if known_id == artifact_id:
-                path = workdir / filename
-                return path if path.exists() else None
+                return artifact_file_path(workdir, filename)
         return None
 
     def report_html_path(self, case_id: str) -> Path | None:
@@ -94,3 +96,13 @@ def file_metadata(path: Path) -> tuple[int, str]:
     stat = path.stat()
     updated_at = datetime.fromtimestamp(stat.st_mtime, timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
     return stat.st_size, updated_at
+
+
+def artifact_file_path(workdir: Path, filename: str) -> Path | None:
+    mapped = resolve_artifact_path(workdir, filename)
+    if mapped.exists():
+        return mapped
+    legacy = workdir / filename
+    if legacy.exists():
+        return legacy
+    return None

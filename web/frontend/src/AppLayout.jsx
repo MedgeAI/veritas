@@ -11,6 +11,8 @@ const MissionControlPage = lazy(() => import('./pages/MissionControlPage.jsx'));
 const EvidenceWorkspacePage = lazy(() => import('./pages/EvidenceWorkspacePage.jsx'));
 const ReportCenterPage = lazy(() => import('./pages/ReportCenterPage.jsx'));
 const VisualForensicsPage = lazy(() => import('./pages/VisualForensicsPage.jsx'));
+const InvestigationBoardPage = lazy(() => import('./pages/InvestigationBoardPage.jsx'));
+const ReviewQueuePage = lazy(() => import('./pages/ReviewQueuePage.jsx'));
 const PlaceholderPage = lazy(() => import('./pages/PlaceholderPage.jsx'));
 
 const PAGE_META = {
@@ -292,21 +294,9 @@ function AppLayout() {
       case 'visual':
         return <VisualForensicsPage {...shared} />;
       case 'investigation':
-        return (
-          <PlaceholderPage
-            title={PAGE_META.investigation[0]}
-            body={PAGE_META.investigation[1]}
-            lanes={['AgentInvestigationPlanner', 'Tool Registry', 'investigation_rounds.jsonl', 'workdir/investigation/']}
-          />
-        );
+        return <InvestigationBoardPage {...shared} />;
       case 'review':
-        return (
-          <PlaceholderPage
-            title={PAGE_META.review[0]}
-            body={PAGE_META.review[1]}
-            lanes={['priority findings', 'benign explanations', '人工复核动作', 'PI / 作者视图切换']}
-          />
-        );
+        return <ReviewQueuePage {...shared} />;
       case 'advanced':
         return (
           <PlaceholderPage

@@ -49,6 +49,36 @@ It does not set fake Agent or fake MinerU mode.
 - `GET /api/cases/{case_id}/artifacts/{artifact_id}`
 - `GET /api/cases/{case_id}/report/html`
 
+## Visual Evidence
+
+- `GET /api/cases/{case_id}/visual/figures`
+- `GET /api/cases/{case_id}/visual/panels`
+- `GET /api/cases/{case_id}/visual/relationships`
+- `GET /api/cases/{case_id}/visual/findings`
+- `GET /api/cases/{case_id}/visual/images/{relative_path}`
+
+## Manual Investigations
+
+- `GET /api/cases/{case_id}/investigations`
+- `POST /api/cases/{case_id}/investigations`
+
+Manual investigation payloads are Tool Registry bounded. The first supported Web-triggered tool is `visual.copy_move_dense`; it requires explicit panel selection and enforces `max_panels`.
+
+```json
+{
+  "tool_id": "visual.copy_move_dense",
+  "panel_ids": ["figure-content-0004-01"],
+  "params": {
+    "min_score": 0.05,
+    "max_relationships": 100,
+    "max_panels": 20
+  },
+  "hypothesis": "Manual Web review of selected panels for dense copy-move candidates."
+}
+```
+
+Results are written under `workdir/investigation/web/`, and a record is appended to `investigation/investigation_rounds.jsonl`.
+
 ## Frontend Serving
 
 Development uses Vite under `web/frontend` and proxies `/api` to the stdlib backend.

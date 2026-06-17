@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import os
 import traceback
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
-from threading import Thread
 from typing import Any, Callable
 
 from engine.static_audit.orchestrator import run_static_audit
@@ -20,16 +21,17 @@ class AuditRunner:
         store: CaseStore,
         audit_func: AuditFunction = run_static_audit,
         output_root: str | Path = "outputs",
+        max_workers: int = 3,
     ) -> None:
         self.store = store
         self.audit_func = audit_func
         self.output_root = str(output_root)
+        self._executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="audit")
 
     def start(self, case_id: str, params: dict[str, Any] | None = None) -> AuditRunRecord:
         params = params or {}
         run = self.store.create_run(case_id, agent_mode=str(params.get("agent_mode", "review")))
-        thread = Thread(target=self.run_sync, args=(case_id, run.run_id, params), daemon=True)
-        thread.start()
+        self._executor.submit(self.run_sync, case_id, run.run_id, params)
         return run
 
     def run_sync(self, case_id: str, run_id: str, params: dict[str, Any] | None = None) -> AuditRunRecord:
@@ -58,7 +60,7 @@ class AuditRunner:
                 no_env_file=bool(params.get("no_env_file", False)),
                 agent_mode=str(params.get("agent_mode", "review")),
                 agent_model=str(params.get("agent_model", "dashscope/qwen3.7-plus")),
-                opencode_bin=str(params.get("opencode_bin", "opencode")),
+                opencode_bin=str(params.get("opencode_bin") or os.environ.get("OPENCODE_BIN", "opencode")),
                 agent_timeout_seconds=int(params.get("agent_timeout_seconds", 300)),
                 agent_max_retries=int(params.get("agent_max_retries", 1)),
                 progress=progress,
