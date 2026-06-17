@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -88,6 +89,7 @@ from engine.tools.registry import (
     TOOL_ID_TRU_FOR,
     TOOL_ID_PROVENANCE_GRAPH,
     TOOL_ID_SILA_DENSE,
+    TOOL_ID_IMAGE_QUALITY,
     selected_tool_ids_from_plan,
     source_data_findings_params_from_plan,
 )
@@ -236,6 +238,7 @@ STEP_TOOL_IDS = {
     "visual_tru_for": TOOL_ID_TRU_FOR,
     "visual_provenance_graph": TOOL_ID_PROVENANCE_GRAPH,
     "visual_copy_move_dense": TOOL_ID_SILA_DENSE,
+    "visual_image_quality": TOOL_ID_IMAGE_QUALITY,
     "agent_plan": "agent.plan",
     "agent_review": "agent.review",
     "agent_role_claim_extractor": "agent.role.claim_extractor",
@@ -1330,6 +1333,53 @@ def run_tru_for_detection(
     return steps, {"tru_for": {"status": status, "output": str(output_path), **result}}
 
 
+def run_image_quality_detection(
+    *,
+    workdir: Path,
+    force: bool,
+    panel_extraction_status: str | None = None,
+    progress: ProgressCallback | None = None,
+) -> tuple[list[StepResult], dict[str, Any]]:
+    """Run lightweight image quality anomaly detection on all figures."""
+    steps: list[StepResult] = []
+    output_path = resolve_artifact_path(workdir, "image_quality.json")
+    if output_path.exists() and not force:
+        record_step(steps, StepResult("visual_image_quality", "图片质量异常检测", "reused", "Existing image_quality.json found."), progress)
+        return steps, {"image_quality": {"status": "reused", "output": str(output_path)}}
+
+    emit_step_start(progress, "visual_image_quality", "图片质量异常检测", "Running image quality anomaly detection.")
+
+    visual_evidence_path = resolve_artifact_path(workdir, "visual_evidence.json")
+    if not visual_evidence_path.exists():
+        if panel_extraction_status in ("skipped", "ran"):
+            record_step(steps, StepResult("visual_image_quality", "图片质量异常检测", "skipped", "No visual evidence from upstream."), progress)
+            return steps, {"image_quality": {"status": "skipped", "detail": "no visual evidence"}}
+        record_step(steps, StepResult("visual_image_quality", "图片质量异常检测", "failed", "visual_evidence.json not found (upstream dependency)."), progress)
+        return steps, {"image_quality": {"status": "failed", "failure_category": "dependency", "detail": "missing visual_evidence.json"}}
+
+    visual_evidence = read_json(visual_evidence_path) or {}
+    figures = visual_evidence.get("figures", [])
+
+    if not figures:
+        record_step(steps, StepResult("visual_image_quality", "图片质量异常检测", "skipped", "Paper has no figures."), progress)
+        return steps, {"image_quality": {"status": "skipped", "detail": "no figures in paper"}}
+
+    try:
+        from engine.static_audit.tools.image_quality import run_image_quality
+        result = run_image_quality(figures, workdir=workdir)
+    except Exception as e:
+        result = {"status": "failed", "anomaly_count": 0, "anomalies": [], "errors": [str(e)], "limitations": []}
+
+    write_json_artifact(output_path, result)
+    status = result.get("status", "failed")
+    detail = f"figures={result.get('figure_count', 0)} anomalies={result.get('anomaly_count', 0)}"
+    if result.get("limitations"):
+        detail += f" limitations={len(result['limitations'])}"
+    step_status = "ran" if status == "ran" else "failed"
+    record_step(steps, StepResult("visual_image_quality", "图片质量异常检测", step_status, detail), progress)
+    return steps, {"image_quality": {"status": status, "output": str(output_path), **result}}
+
+
 def run_provenance_graph(
     *,
     workdir: Path,
@@ -2414,6 +2464,159 @@ def generate_report(
     return report_path
 
 
+def _parse_sheet_figure_keys(sheet_name: str) -> list[tuple[str, str, str | None]]:
+    """Extract (kind, figure_number, panel_letter) from a source data sheet name.
+
+    Handles formats beyond what figure_keys_from_sheet_name covers, such as
+    comma-separated panels ("fig.7j,k") and ranges ("fig.5 l-n").
+    """
+    text = re.sub(r"[\s ]+", " ", sheet_name).strip()
+    text_lower = text.lower()
+    is_extended = "extended data" in text_lower
+    kind = "extended_data" if is_extended else "main_figure"
+    if is_extended:
+        m = re.search(r"extended\s+data\s+fig\.?\s*(\d+)([a-z]?)", text_lower)
+    else:
+        m = re.search(r"fig\.?\s*(\d+)([a-z]?)", text_lower)
+    if not m:
+        return []
+    fig_num = m.group(1)
+    first_panel = m.group(2) or None
+    keys: list[tuple[str, str, str | None]] = []
+    if first_panel:
+        keys.append((kind, fig_num, first_panel))
+    else:
+        keys.append((kind, fig_num, None))
+    rest = text_lower[m.end():]
+    for pm in re.finditer(r"[,]\s*([a-z])", rest):
+        keys.append((kind, fig_num, pm.group(1)))
+    for pm in re.finditer(r"\band\s+([a-z])", rest):
+        keys.append((kind, fig_num, pm.group(1)))
+    for pm in re.finditer(r"([a-z])\s*[-–]\s*([a-z])", rest):
+        s, e = ord(pm.group(1)), ord(pm.group(2))
+        if 0 < e - s < 10:
+            for i in range(s, e + 1):
+                keys.append((kind, fig_num, chr(i)))
+    return keys
+
+
+def _panels_from_caption_body(body: str) -> set[str]:
+    """Extract single-letter panel references from a figure caption body.
+
+    Matches the standard format "a, description. b, description." where panel
+    labels appear after sentence-ending punctuation followed by whitespace.
+    """
+    panels: set[str] = set()
+    for m in re.finditer(r"(?<=[\.\;]\s)([a-z](?:\s*,\s*[a-z])*)\s*,", body):
+        for letter in re.findall(r"[a-z]", m.group(1)):
+            panels.add(letter)
+    for m in re.finditer(r"(?<=[\.\;]\s)([a-z])\s*[-–]\s*([a-z])\s*,", body):
+        s, e = ord(m.group(1)), ord(m.group(2))
+        if 0 < e - s < 10:
+            for i in range(s, e + 1):
+                panels.add(chr(i))
+    return panels
+
+
+def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
+    """Generate completeness findings for figure panels without source data sheets."""
+    profile = read_json(resolve_artifact_path(workdir, "source_data_profile.json"))
+    if not profile or not profile.get("workbooks"):
+        return []
+
+    # Collect figure keys covered by source data sheets.
+    covered: set[tuple[str, str, str | None]] = set()
+    for wb in profile["workbooks"]:
+        for sheet in wb.get("sheets", []):
+            for key in _parse_sheet_figure_keys(sheet.get("name", "")):
+                covered.add(key)
+
+    # Collect figure panel references from the evidence ledger.
+    ledger = read_json(resolve_artifact_path(workdir, "evidence_ledger.json"))
+    if not ledger:
+        return []
+    captions = ledger.get("captions", [])
+
+    # Map: (kind, fig_num) -> set of panel letters
+    paper_panels: dict[tuple[str, str], set[str]] = {}
+
+    for cap in captions:
+        raw = cap.get("raw_label", "") or ""
+        text = cap.get("text", "") or ""
+
+        # Main figure caption: raw_label = "Fig. N" (no panel letter), text has "|"
+        main_fig_match = re.match(r"(?:Extended Data )?Fig\.\s*(\d+)$", raw)
+        if main_fig_match and "|" in text and "See next page" not in text:
+            fig_num = main_fig_match.group(1)
+            is_ext = "Extended Data" in raw
+            kind = "extended_data" if is_ext else "main_figure"
+            body = text.split("|", 1)[-1].strip()
+            panels = _panels_from_caption_body(body)
+            paper_panels.setdefault((kind, fig_num), set()).update(panels)
+
+        # Body text reference: raw_label = "Fig. 7d" (with panel letter)
+        panel_ref_match = re.match(
+            r"(Extended Data )?Fig\.\s*(\d+)([a-z])$", raw
+        )
+        if panel_ref_match:
+            is_ext = bool(panel_ref_match.group(1))
+            kind = "extended_data" if is_ext else "main_figure"
+            fig_num = panel_ref_match.group(2)
+            panel = panel_ref_match.group(3)
+            paper_panels.setdefault((kind, fig_num), set()).add(panel)
+
+    # Also scan the full paper markdown for "Fig. Xy" references.
+    # This catches panels mentioned in body text that are not in ledger captions.
+    full_md_path = resolve_artifact_path(workdir, "full.md")
+    if full_md_path.exists():
+        try:
+            full_text = full_md_path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            full_text = ""
+        for m in re.finditer(
+            r"(?:Extended\s+Data\s+)?Fig\.\s*(\d+)([a-z])", full_text
+        ):
+            prefix = full_text[max(0, m.start() - 20) : m.start()]
+            is_ext = "Extended Data" in prefix or "extended data" in prefix.lower()
+            kind = "extended_data" if is_ext else "main_figure"
+            fig_num = m.group(1)
+            panel = m.group(2)
+            paper_panels.setdefault((kind, fig_num), set()).add(panel)
+
+    # Generate findings for paper panels not covered by source data.
+    findings: list[Finding] = []
+    counter = 1
+    for (kind, fig_num), panels in sorted(paper_panels.items()):
+        for panel in sorted(panels):
+            if (kind, fig_num, panel) not in covered:
+                if kind == "extended_data":
+                    fig_id = f"Extended Data Fig. {fig_num}{panel}"
+                else:
+                    fig_id = f"Fig. {fig_num}{panel}"
+                findings.append(
+                    Finding(
+                        finding_id=f"COMP-SRC-{counter:03d}",
+                        category="source_data_missing",
+                        risk_level="medium",
+                        summary=f"Figure {fig_id} has no corresponding source data sheet",
+                        issue_category="completeness",
+                        metadata={
+                            "figure_id": fig_id,
+                            "kind": kind,
+                            "figure_number": fig_num,
+                            "panel": panel,
+                            "covered_sheets": sorted(
+                                f"{k[1]}.{k[2]}" if k[2] else k[1]
+                                for k in covered
+                                if k[0] == kind and k[1] == fig_num and k[2] is not None
+                            ),
+                        },
+                    )
+                )
+                counter += 1
+    return findings
+
+
 def build_static_audit_bundle(
     *,
     paper_dir: Path,
@@ -2459,6 +2662,8 @@ def build_static_audit_bundle(
                 },
             )
         )
+
+    findings.extend(_find_missing_source_data_findings(workdir))
 
     return StaticAuditBundle(
         case_id=case_id,
@@ -3644,6 +3849,13 @@ def _run_static_audit_from_args(
     )
     steps.extend(tru_for_steps)
     agent_manifest.setdefault("visual_forensics", {}).update(tru_for_manifest)
+
+    iq_steps, iq_manifest = run_image_quality_detection(
+        workdir=workdir, force=args.force,
+        panel_extraction_status=panel_extraction_status, progress=progress,
+    )
+    steps.extend(iq_steps)
+    agent_manifest.setdefault("visual_forensics", {}).update(iq_manifest)
 
     provenance_steps, provenance_manifest = run_provenance_graph(
         workdir=workdir, force=args.force, allow_env_skip=allow_env_skip,

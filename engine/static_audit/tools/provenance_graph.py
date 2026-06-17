@@ -272,10 +272,24 @@ def _verify_candidates_subprocess(
             check=False,
         )
         if proc.returncode != 0:
+            stderr_snippet = (proc.stderr or "").strip()[:500]
+            logger.error(
+                "RootSIFT verification subprocess failed (exit %d) for %d pairs: %s",
+                proc.returncode, len(pairs), stderr_snippet,
+            )
             return []
         result = json.loads(proc.stdout)
         return result.get("results", [])
-    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
+    except subprocess.TimeoutExpired:
+        logger.error(
+            "RootSIFT verification subprocess timed out for %d pairs", len(pairs),
+        )
+        return []
+    except (json.JSONDecodeError, OSError) as exc:
+        logger.error(
+            "RootSIFT verification subprocess error for %d pairs: %s",
+            len(pairs), exc,
+        )
         return []
 
 
@@ -537,6 +551,12 @@ def build_provenance_graph(
         verified = _verify_candidates_subprocess(
             candidates, figure_path_map, output_dir, min_keypoints, min_area,
         )
+        if not verified:
+            limitations.append(
+                f"RootSIFT+MAGSAC++ verification produced 0 edges from "
+                f"{len(candidates)} SSCD candidate pairs. "
+                f"Check subprocess logs for errors or threshold issues."
+            )
     else:
         limitations.append("No embedding-similar figure pairs found; RootSIFT verification skipped.")
 
