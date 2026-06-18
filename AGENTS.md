@@ -119,7 +119,9 @@ Agent 调用层最新状态：`engine/investigation/context_pack.py` 为 materia
 
 ## 当前内测增强路线
 
-老板演示 demo 已完成。最新决策：下一阶段面向内测 happy path，允许完整借鉴 ELIS (Scientific Integrity System) 的图像取证栈，优先增强静态审查的视觉证据能力。
+**P0 已完成**：`audit-paper` happy path 已稳定走通，能产出完整的结构化证据和报告（Source Data、PaperFraud rule match、visual artifacts、HTML 报告）。paper1 全量审计验证通过（257 figures、811 panels、493 pair forensics findings、14 分钟完成）。
+
+**进入 P1 阶段**：面向内测，允许完整借鉴 ELIS (Scientific Integrity System) 的图像取证栈，优先增强静态审查的视觉证据能力，重点是视觉 overlap/reuse detection 和 ELIS adapter 接入。
 
 当前代码状态需要区分清楚：
 
@@ -387,24 +389,29 @@ tests/        单测、集成测试和 e2e 测试
 
 ## 当前执行口径
 
-上文“当前范围”是产品边界，本节只补工程执行口径：
+上文”当前范围”是产品边界，本节只补工程执行口径：
 
-- P0 仍是 `audit-paper` happy path 能稳定走通并产出结构化证据和报告。
-- P1 是 ELIS-style 视觉取证、Web P1 工作台、可靠性和关键差异化。
+- **P0 已完成**：`audit-paper` happy path 已稳定走通，能产出完整的结构化证据和报告。paper1 全量审计验证通过。
+- **P1 是当前重点**：ELIS-style 视觉取证（overlap/reuse detection）、Web P1 工作台、可靠性和关键差异化。
 - `precheck` / `run` / `report` 已存在，但不要因此把当前产品表述成完整 SaaS 或完整 runtime 审查系统。
 - PI / 课题组是第一付费方和主要报告读者；报告要保持谨慎风险语言和人工复核入口。
 
 ## 当前开发优先级
 
-最新优先级：
+**P1 优先级（当前阶段）**：
 
-1. 稳定当前 `audit-paper` happy path，确保 Source Data、PaperFraud rule match、visual artifacts、Agent roles 和 HTML 报告可重复产出。
-2. 补强 visual v1 的 fixture/golden 测试，尤其是 panel ground truth、copy-move 负例、失败隔离和 strict evidence refs。
-3. 以 adapter 方式接入 ELIS-style 图像取证工具：pdf-extractor、panel-extractor、copy-move keypoint/dense、TruFor、CBIR/Milvus。
-4. 将 ELIS-style 工具注册进 Tool Registry，并接入 AgentInvestigationPlanner；所有输出必须回链到 canonical figure/panel ids。
-5. 把 investigation 追加产物并入 canonical finding/evidence 图，明确去重、优先级和 report limitations。
-6. 验证 opencode SDK / opencode 风格 Agent 能否接入 claim-to-code mapping。
-7. 定义 `veritas.yml` schema，YAML 主、JSON 兼容。
+1. **视觉 overlap/reuse detection**：实现 `visual.overlap_reuse` tool，支持 tile-level retrieval + geometric verification，产出 overlap evidence artifact 和 HTML 报告展示。详见 `VISUAL_OVERLAP_PRD.md`。
+2. **ELIS adapter 接入**：以 adapter 方式接入 ELIS-style 图像取证工具：panel-extractor、copy-move keypoint/dense、TruFor、CBIR/Milvus。
+3. **Tool Registry 扩展**：将 ELIS-style 工具注册进 Tool Registry，并接入 AgentInvestigationPlanner；所有输出必须回链到 canonical figure/panel ids。
+4. **视觉 fixture/golden 测试**：补强 visual v1 的 fixture/golden 测试，尤其是 panel ground truth、copy-move 负例、overlap 正负例、失败隔离和 strict evidence refs。
+5. **Web P1 工作台**：完善 Web Visual Forensics Gallery，支持 overlap graph、relationship detail drawer、manual review workflow。
+6. **investigation 产物整合**：把 investigation 追加产物并入 canonical finding/evidence 图，明确去重、优先级和 report limitations。
+7. **opencode Agent 层**：安装并验证 opencode，确保 Agent roles（ClaimExtractor、SourceDataAuditor、JudgeAgent）正常工作。
+
+**后续优先级**：
+
+8. 验证 opencode SDK / opencode 风格 Agent 能否接入 claim-to-code mapping。
+9. 定义 `veritas.yml` schema，YAML 主、JSON 兼容。
 8. 增强 subprocess runtime，产出结构化 execution evidence。
 9. 接百炼 Qwen vLLM 做图表初筛。
 10. 生成 Markdown/PDF 报告，支持作者视图和 PI 视图。

@@ -80,6 +80,14 @@ setup: sync web-install ## Sync Python and frontend dependencies
 
 # -- Docker lifecycle ----------------------------------------------------
 
+DOCKER_BUILD_ARGS := --build-arg USER_UID=$$(id -u) --build-arg USER_GID=$$(id -g) --build-arg USERNAME=veritas
+
+docker-build: ## Build Docker image with host user UID/GID (for bind mount compatibility)
+	docker build $(DOCKER_BUILD_ARGS) -t veritas:latest .
+
+docker-build-dev: ## Build development Docker image (runs as root)
+	docker build -f Dockerfile.dev -t veritas:dev .
+
 up: ## Start the Docker web service
 	$(COMPOSE) up -d
 

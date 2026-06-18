@@ -1,6 +1,6 @@
 # Veritas
 
-Updated: 2026-06-15
+Updated: 2026-06-18
 
 **Veritas 是一个实验室内部论文风控工具（当前聚焦干实验论文子集），帮助导师（通讯作者）在投稿前主动发现学生数据中的问题，填补监管真空，避免背锅。**
 
@@ -539,6 +539,102 @@ docker compose -f docker-compose.dev.yml down -v && ./scripts/dev.sh up
 日常开发循环：改代码 → 浏览器自动刷新（Vite HMR + uvicorn --reload 双热重载）。
 
 > **前提**：宿主机需要 Docker + NVIDIA GPU driver。模型权重需提前放到 `models/` 目录（`make download-models` 或手动下载）。
+
+### 容器架构
+
+Veritas 有两套 Docker 编排配置：开发环境（`docker-compose.dev.yml`）和生产环境（`docker-compose.yml`）。两套配置都是 **2 个容器**（后端 + 数据库），前端处理方式不同。
+
+#### 开发环境
+
+```bash
+docker compose -f docker-compose.dev.yml up
+```
+
+| 容器 | 镜像 | 用途 | 运行用户 |
+|---|---|---|---|
+| `veritas-backend-dev` | `veritas-backend` | 后端服务（热重载） | root |
+| `veritas-pg-dev` | `pgvector/pgvector:pg16` | PostgreSQL 数据库 | postgres |
+
+**前端**：宿主机上的 Vite dev server（不是容器），监听 `localhost:5173`，`/api` 请求代理到 `backend:8765`。
+
+**架构特点**：
+- 后端以 root 运行，简化 bind mount 权限处理
+- 代码通过 bind mount 挂载到 `/workspace`，uvicorn --reload 热重载
+- outputs/web_data 通过 bind mount 挂载，宿主机可直接观察产物
+
+#### 生产环境
+
+```bash
+docker compose -f docker-compose.yml up
+```
+
+| 容器 | 镜像 | 用途 | 运行用户 |
+|---|---|---|---|
+| `veritas-web` | `veritas` | 后端服务 + 前端静态文件 | veritas (UID 1000) |
+| `veritas-postgres` | `pgvector/pgvector:pg16` | PostgreSQL 数据库 | postgres |
+
+**前端**：在 Dockerfile 多阶段构建时打包进后端镜像，由后端直接提供静态文件服务。
+
+**架构特点**：
+- 前端静态文件在构建时打包进镜像，不需要独立的前端容器
+- 后端以非 root 用户 `veritas` 运行，符合最小权限原则
+- 数据通过 `/data/veritas/` 挂载，与宿主机文件权限需要对齐 UID
+
+#### UID 映射与 Bind Mount
+
+生产环境中，如果后端容器以 `veritas` 用户（UID 1000）运行，而宿主机挂载目录的 owner 是不同 UID（如 1047），会导致权限问题。解决方案是构建时传入宿主机 UID：
+
+```bash
+# 构建镜像（自动传入当前用户 UID/GID）
+make docker-build
+
+# 验证容器内用户
+docker run --rm veritas:latest id
+# 输出：uid=1047(veritas) gid=1048(veritas) groups=1048(veritas)
+```
+
+`make docker-build` 封装了 `--build-arg USER_UID=$(id -u) --build-arg USER_GID=$(id -g)`，确保容器内 UID 与宿主机一致，bind mount 无权限问题。
+
+#### 镜像列表
+
+| 镜像 | 大小 | 用途 | 构建方式 |
+|---|---|---|---|
+| `veritas:latest` | ~6.9GB | 生产环境后端 + 前端 | `make docker-build`（传入 UID/GID） |
+| `veritas-backend:latest` | ~12.5GB | 开发环境后端（含 CUDA + PyTorch） | `docker compose -f docker-compose.dev.yml build` |
+| `pgvector/pgvector:pg16` | ~250MB | PostgreSQL 数据库 | 官方镜像 |
+
+#### 架构图
+
+```text
+┌─────────────────────────────────────────────────────────┐
+│ 开发环境                                                 │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  宿主机                                                  │
+│  ├─ Vite dev server (localhost:5173)                    │
+│  │   └─ /api/* ──────────┐                              │
+│  │                       │ 代理                         │
+│  ├─ Docker               ▼                              │
+│  │   ├─ backend:8765 ◄──┘                               │
+│  │   │   └─ FastAPI + 热重载（root 运行）                │
+│  │   └─ postgres:5432                                   │
+│  │       └─ PostgreSQL + pgvector                       │
+│  │                                                      │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│ 生产环境                                                 │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  Docker                                                 │
+│  ├─ veritas-web:8765 → 映射到宿主机 :80                 │
+│  │   ├─ FastAPI 后端（veritas 用户运行）                 │
+│  │   └─ 前端静态文件（/build/dist）                      │
+│  └─ postgres:5432                                       │
+│      └─ PostgreSQL + pgvector                           │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
 
 确定性预检查：
 

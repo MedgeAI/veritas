@@ -554,6 +554,99 @@ def row_offset_rounding_bias_findings(sheet: SheetVectors, params: PairForensics
     ]
 
 
+def paired_difference_spread_findings(sheet: SheetVectors, params: PairForensicsParams) -> list[dict[str, Any]]:
+    """Detect column pairs whose paired differences are anomalously narrow.
+
+    For every pair of numeric columns (A, B) sharing >= min_pairs rows,
+    compute d_i = A_i - B_i.  Flag when the spread of |d_i| is tiny
+    relative to the magnitude of the underlying data -- a pattern
+    inconsistent with independent biological measurements.
+    """
+    columns = sorted(sheet.numeric_columns)
+    findings = []
+    for left_index, left_col in enumerate(columns):
+        left_values = sheet.numeric_columns[left_col]
+        if is_low_information_numeric_column(left_values, params):
+            continue
+        for right_col in columns[left_index + 1 :]:
+            right_values = sheet.numeric_columns[right_col]
+            if is_low_information_numeric_column(right_values, params):
+                continue
+            common_rows = sorted(set(left_values).intersection(right_values))
+            if len(common_rows) < params.min_pairs:
+                continue
+            diffs: list[float] = []
+            abs_a_list: list[float] = []
+            abs_b_list: list[float] = []
+            all_values: list[float] = []
+            for row in common_rows:
+                a_val = float(left_values[row])
+                b_val = float(right_values[row])
+                diffs.append(a_val - b_val)
+                abs_a_list.append(abs(a_val))
+                abs_b_list.append(abs(b_val))
+                all_values.extend([abs(a_val), abs(b_val)])
+            abs_diffs = [abs(d) for d in diffs]
+            mean_magnitude = sum(abs_a_list[i] + abs_b_list[i] for i in range(len(abs_a_list))) / (2 * len(abs_a_list))
+            max_abs_diff = max(abs_diffs)
+            min_abs_diff = min(abs_diffs)
+            data_range = max(all_values) - min(all_values) if all_values else 0.0
+            diff_spread = max_abs_diff - min_abs_diff
+            # Condition 1: max |d_i| < 5% of mean magnitude of the data.
+            narrow_vs_magnitude = mean_magnitude > 0 and max_abs_diff < 0.05 * mean_magnitude
+            # Condition 2: spread of |d_i| is narrow relative to combined data range
+            # AND the absolute differences are themselves small relative to that range.
+            # Both sub-conditions are required so that a constant-offset column pair
+            # (where diff_spread == 0 but |d_i| is large) does not false-trigger.
+            narrow_vs_range = (
+                data_range > 0
+                and diff_spread < 0.01 * data_range
+                and max_abs_diff < 0.01 * data_range
+            )
+            if not (narrow_vs_magnitude or narrow_vs_range):
+                continue
+            risk = "high" if len(common_rows) >= 10 else "medium"
+            sample_pairs = [
+                {
+                    "row": row,
+                    "value_a": normalized_number(left_values[row]),
+                    "value_b": normalized_number(right_values[row]),
+                    "difference": normalized_number(Decimal(str(diffs[i]))),
+                }
+                for i, row in enumerate(common_rows[:5])
+            ]
+            findings.append(
+                {
+                    "finding_id": None,
+                    "category": "paired_difference_too_narrow",
+                    "risk_level": risk,
+                    "confidence": "high",
+                    "workbook": sheet.workbook,
+                    "sheet": sheet.sheet,
+                    "column_a": col_to_name(left_col),
+                    "column_b": col_to_name(right_col),
+                    "column_labels": [column_label(sheet, left_col), column_label(sheet, right_col)],
+                    "pair_count": len(common_rows),
+                    "max_abs_diff": round(max_abs_diff, 8),
+                    "min_abs_diff": round(min_abs_diff, 8),
+                    "data_range": round(data_range, 8),
+                    "sample_pairs": sample_pairs,
+                    "benign_explanations": [
+                        "配对测量可能来自同一仪器的高精度重复读数",
+                        "配对差异过窄可能是技术重复而非生物学重复",
+                    ],
+                    "pressure_test_result": "needs_paired_difference_independence_review",
+                    "next_steps": [
+                        "确认配对数据是否为独立生物学重复",
+                        "要求提供原始仪器输出文件验证测量独立性",
+                    ],
+                }
+            )
+    return sorted(findings, key=lambda item: (-risk_rank(item["risk_level"]), -item["pair_count"]))[
+        : params.max_findings_per_category
+    ]
+
+
 def assign_ids(findings: list[dict[str, Any]]) -> None:
     counters: Counter[str] = Counter()
     prefixes = {
@@ -564,6 +657,7 @@ def assign_ids(findings: list[dict[str, Any]]) -> None:
         "long_format_paired_ratio_reuse": "LPR",
         "long_format_within_pair_ratio_enrichment": "LPE",
         "row_offset_partial_copy_rounding_bias": "RBR",
+        "paired_difference_too_narrow": "PDS",
     }
     for finding in findings:
         category = finding["category"]
@@ -592,6 +686,7 @@ def _finding_support(finding: dict[str, Any]) -> tuple[int, int]:
         or finding.get("matched_pairs")
         or finding.get("matched_pair_groups")
         or finding.get("duplicate_row_count")
+        or finding.get("pair_count")
         or finding.get("exact_reuse_pairs")
         or 0
     )
@@ -641,6 +736,7 @@ def _category_review_question(category: str) -> str:
         "duplicate_row_vector": "多行低宽度数值向量重复，需确认重复行是否代表同一样本、模板行或独立测量。",
         "long_format_within_pair_ratio_enrichment": "多个 long-format pair 出现相同比例富集，需确认是否由阈值化/归一化预期产生。",
         "row_offset_partial_copy_rounding_bias": "固定行偏移同时出现精度变化和部分复用，需确认后半区是否为独立原始记录。",
+        "paired_difference_too_narrow": "配对列之间的差异分布异常狭窄，需确认配对测量是否来自独立生物学重复或高精度技术重复。",
     }
     return questions.get(category, "该 Source Data pattern 需要结合样本语义和原始记录人工复核。")
 
@@ -804,6 +900,7 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
     long_ratio_reuse = []
     long_ratio_enrichment = []
     rounding_bias = []
+    narrow_diff_spread = []
     workbook_count = 0
     sheet_count = 0
     for workbook_path in sorted(xlsx_root.glob("*.xlsx")):
@@ -821,6 +918,7 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
             long_ratio_reuse.extend(long_format_paired_ratio_reuse_findings(sheet, params))
             long_ratio_enrichment.extend(long_format_within_pair_ratio_enrichment_findings(sheet, params))
             rounding_bias.extend(row_offset_rounding_bias_findings(sheet, params))
+            narrow_diff_spread.extend(paired_difference_spread_findings(sheet, params))
 
     findings = [
         *scalar_findings,
@@ -829,6 +927,7 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
         *long_ratio_reuse,
         *long_ratio_enrichment,
         *rounding_bias,
+        *narrow_diff_spread,
     ]
     findings = sorted(findings, key=lambda item: (-risk_rank(item["risk_level"]), str(item.get("workbook")), str(item.get("sheet"))))
     assign_ids(findings)
@@ -861,6 +960,7 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
             "long_format_paired_ratio_reuse_findings": len(long_ratio_reuse),
             "long_format_within_pair_ratio_enrichment_findings": len(long_ratio_enrichment),
             "rounding_bias_findings": len(rounding_bias),
+            "paired_difference_too_narrow_findings": len(narrow_diff_spread),
             "by_category": dict(by_category),
             "errors": len(errors),
         },
@@ -874,6 +974,7 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
         "long_format_paired_ratio_reuse_findings": long_ratio_reuse,
         "long_format_within_pair_ratio_enrichment_findings": long_ratio_enrichment,
         "rounding_bias_findings": rounding_bias,
+        "paired_difference_too_narrow_findings": narrow_diff_spread,
         "errors": errors,
         "limitations": [
             "该工具只识别 XLSX 中的通用行偏移、配对比例复用、long-format 成对比例复用和低宽度行重复模式，不判断最终科研诚信。",

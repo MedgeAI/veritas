@@ -31,6 +31,7 @@ class InvestigationAction:
     depends_on_artifacts: list[str]
     expected_evidence_type: str
     stop_if_no_new_evidence: bool = True
+    output_artifacts: list[str] = field(default_factory=list)
 
     def signature(self) -> str:
         payload = {
@@ -51,6 +52,7 @@ class InvestigationAction:
             "depends_on_artifacts": self.depends_on_artifacts,
             "expected_evidence_type": self.expected_evidence_type,
             "stop_if_no_new_evidence": self.stop_if_no_new_evidence,
+            "output_artifacts": self.output_artifacts,
             "signature": self.signature(),
         }
 

@@ -75,6 +75,7 @@ ARTIFACT_PATH_MAP = {
     "forged_region_evidence.json": "visual/forged_region_evidence.json",
     "provenance_graph.json": "visual/provenance_graph.json",
     "visual_copy_move_dense.json": "visual/copy_move_dense.json",
+    "image_quality.json": "visual/image_quality.json",
     "tru_for": "visual/tru_for",
     "provenance": "visual/provenance",
     "sila_dense": "visual/sila_dense",

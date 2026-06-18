@@ -83,6 +83,7 @@ from engine.tools.registry import (
     SOURCE_DATA_FINDINGS_TOOL_ID,
     SOURCE_DATA_PAIR_FORENSICS_TOOL_ID,
     STATIC_AUDIT_V1_TOOL_IDS,
+    TOOLS,
     TOOL_ID_COPY_MOVE,
     TOOL_ID_FINDING_PIPELINE,
     TOOL_ID_PANEL_EXTRACTION,
@@ -682,6 +683,10 @@ def priority_row(finding: dict[str, Any]) -> list[str]:
     support = finding.get("support_rows") or finding.get("equal_rows")
     overlap = finding.get("overlap_rows")
     support_text = f"{support}/{overlap}" if support and overlap else fmt_int(support)
+    # Append pattern_strength if available
+    pattern_strength = finding.get("pattern_strength")
+    if pattern_strength:
+        support_text = f"{support_text} ({pattern_strength})"
     return [
         finding.get("finding_id", "-"),
         finding.get("risk_level", "-"),
@@ -907,15 +912,20 @@ def safe_action_dir_name(action_id: str) -> str:
 
 
 def investigation_action_from_dict(round_id: int, action: dict[str, Any]) -> InvestigationAction:
+    tool_id = str(action.get("tool_id"))
+    # Get output_artifacts from tool registry if available
+    tool_def = TOOLS.get(tool_id)
+    output_artifacts = list(tool_def.output_artifacts) if tool_def and tool_def.output_artifacts else []
     return InvestigationAction(
         round_id=round_id,
         action_id=str(action.get("action_id") or f"IR-{round_id:02d}-A001"),
-        tool_id=str(action.get("tool_id")),
+        tool_id=tool_id,
         params=action.get("params") if isinstance(action.get("params"), dict) else {},
         hypothesis=str(action.get("hypothesis") or ""),
         depends_on_artifacts=[str(item) for item in (action.get("depends_on_artifacts") or [])],
         expected_evidence_type=normalize_expected_evidence_type(str(action.get("expected_evidence_type") or "")),
         stop_if_no_new_evidence=bool(action.get("stop_if_no_new_evidence", True)),
+        output_artifacts=output_artifacts,
     )
 
 

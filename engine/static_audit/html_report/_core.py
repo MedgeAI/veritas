@@ -2624,10 +2624,20 @@ def support_text(finding: dict[str, Any]) -> str:
         or finding.get("equal_rows")
     )
     overlap = finding.get("overlap_rows") or finding.get("overlap_pairs") or finding.get("overlap_pair_groups")
+    pattern_strength = finding.get("pattern_strength")
+
     if support and overlap:
-        return f"支持行数 {support}/{overlap}，support_rate={finding.get('support_rate', '-')}"
+        base = f"支持行数 {support}/{overlap}，support_rate={finding.get('support_rate', '-')}"
+        if pattern_strength:
+            return f"{base}，pattern_strength={pattern_strength}"
+        return base
     if support:
-        return f"支持行数 {support}"
+        base = f"支持行数 {support}"
+        if pattern_strength:
+            return f"{base}，pattern_strength={pattern_strength}"
+        return base
+    if pattern_strength:
+        return f"support 未记录，pattern_strength={pattern_strength}"
     return "support 未记录"
 
 

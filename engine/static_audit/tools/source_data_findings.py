@@ -175,17 +175,49 @@ def referenced_columns(formulas: list[str]) -> list[str]:
     return columns
 
 
+def _adjacent_row_rate(col: int, formulas: list[dict]) -> float:
+    """Fraction of formulas that reference the same column at an adjacent row.
+
+    For example, B25=B24*0.9 references column B at row 24, which is adjacent
+    to the cell's own row 25.  A high rate indicates chained derivation.
+    """
+    if not formulas:
+        return 0.0
+    col_name = col_to_name(col)
+    adjacent = 0
+    for item in formulas:
+        ref = item.get("ref", "")
+        formula_text = item.get("formula", "")
+        ref_match = re.match(r"\$?([A-Z]+)\$?(\d+)", ref)
+        if not ref_match:
+            continue
+        target_row = int(ref_match.group(2))
+        for match in FORMULA_REF_RE.finditer(formula_text):
+            if match.group(1) == col_name and abs(int(match.group(2)) - target_row) == 1:
+                adjacent += 1
+                break
+    return adjacent / len(formulas)
+
+
 def formula_findings(sheet: SheetVectors, limit: int) -> list[dict]:
     findings = []
     for col, formulas in sorted(sheet.formulas_by_column.items()):
         patterns = Counter(formula_pattern(item["formula"]) for item in formulas)
         top_pattern, top_count = patterns.most_common(1)[0]
         refs = referenced_columns([item["formula"] for item in formulas])
+        formula_count = len(formulas)
+        adjacent_rate = _adjacent_row_rate(col, formulas)
+        if formula_count >= 5 and adjacent_rate >= 0.5:
+            risk = "high"
+        elif formula_count >= 3:
+            risk = "medium"
+        else:
+            risk = "low"
         findings.append(
             {
                 "finding_id": None,
                 "category": "formula_derived_column",
-                "risk_level": "info",
+                "risk_level": risk,
                 "confidence": "high",
                 "workbook": sheet.workbook,
                 "sheet": sheet.sheet,
@@ -373,6 +405,22 @@ def relationship_record(
     risk = "low" if formula_involved else ("high" if support_rows >= 100 else "medium")
     if index_like:
         risk = "low"
+
+    # Calculate pattern_strength: mechanical regularity coverage, not造假概率
+    support_rate = support_rows / overlap_rows if overlap_rows > 0 else 0
+    if support_rate >= 0.99:
+        pattern_strength = "complete"
+    elif support_rate >= 0.8:
+        pattern_strength = "strong"
+    elif support_rate >= 0.5:
+        pattern_strength = "moderate"
+    else:
+        pattern_strength = "weak"
+
+    pattern_strength_reason = (
+        f"{relationship}={value} covers {support_rows}/{overlap_rows} overlapping rows"
+    )
+
     return {
         "finding_id": None,
         "category": relationship,
@@ -385,7 +433,9 @@ def relationship_record(
         "relationship_value": value,
         "overlap_rows": overlap_rows,
         "support_rows": support_rows,
-        "support_rate": round(support_rows / overlap_rows, 4),
+        "support_rate": round(support_rate, 4),
+        "pattern_strength": pattern_strength,
+        "pattern_strength_reason": pattern_strength_reason,
         "artifact_likelihood": (
             "high" if index_like else ("medium" if formula_involved else "unknown")
         ),

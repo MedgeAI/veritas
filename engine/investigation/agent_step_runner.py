@@ -105,6 +105,7 @@ class AgentStepRunner:
                     cwd=self.project_root,
                     env=env,
                     text=True,
+                    encoding="utf-8",
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     timeout=timeout_seconds,

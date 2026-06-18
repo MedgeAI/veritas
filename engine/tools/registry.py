@@ -17,6 +17,7 @@ TOOL_ID_FINDING_PIPELINE = "visual.finding_pipeline"
 TOOL_ID_TRU_FOR = "visual.tru_for"
 TOOL_ID_PROVENANCE_GRAPH = "visual.provenance_graph"
 TOOL_ID_SILA_DENSE = "visual.copy_move_dense"
+TOOL_ID_IMAGE_QUALITY = "visual.image_quality"
 
 class ExecutionPhase(str, Enum):
     """Tool execution phase — controls when and how a tool runs in the audit pipeline.
@@ -348,6 +349,17 @@ TOOLS: dict[str, ToolDefinition] = {
             "max_panels": {"type": "integer", "minimum": 1, "maximum": 50},
         },
     ),
+    TOOL_ID_IMAGE_QUALITY: ToolDefinition(
+        tool_id=TOOL_ID_IMAGE_QUALITY,
+        step_key="visual_image_quality",
+        title="图片质量异常检测",
+        source="engine/static_audit/tools",
+        description="Detect image quality anomalies: uniform borders, globally uniform images, and near-solid-color figures.",
+        expected_outputs=("visual/image_quality.json",),
+        execution_phase=ExecutionPhase.MANDATORY_BASELINE,
+        input_artifacts=("visual/evidence.json",),
+        output_artifacts=("visual/image_quality.json",),
+    ),
     "static_audit.bundle": ToolDefinition(
         tool_id="static_audit.bundle",
         step_key="static_audit_bundle",
@@ -443,6 +455,7 @@ PAPER_STATIC_AUDIT_TOOL_IDS = (
     TOOL_ID_FINDING_PIPELINE,
     TOOL_ID_TRU_FOR,
     TOOL_ID_PROVENANCE_GRAPH,
+    TOOL_ID_IMAGE_QUALITY,
     "agent.review",
     "report.render_markdown",
 )
@@ -464,6 +477,7 @@ STATIC_AUDIT_V1_TOOL_IDS = (
     TOOL_ID_PANEL_EXTRACTION,
     TOOL_ID_COPY_MOVE,
     TOOL_ID_FINDING_PIPELINE,
+    TOOL_ID_IMAGE_QUALITY,
     "agent.review",
     "agent.role.claim_extractor",
     "agent.role.source_data_auditor",
@@ -627,6 +641,8 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
             ),
         }
     if tool_id == TOOL_ID_FINDING_PIPELINE:
+        return {}
+    if tool_id == TOOL_ID_IMAGE_QUALITY:
         return {}
     if tool_id == TOOL_ID_TRU_FOR:
         defaults = TOOLS[tool_id].parameter_defaults
