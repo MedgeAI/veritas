@@ -86,6 +86,7 @@ from engine.tools.registry import (
     TOOLS,
     TOOL_ID_COPY_MOVE,
     TOOL_ID_FINDING_PIPELINE,
+    TOOL_ID_OVERLAP_REUSE,
     TOOL_ID_PANEL_EXTRACTION,
     TOOL_ID_TRU_FOR,
     TOOL_ID_PROVENANCE_GRAPH,
@@ -1130,6 +1131,31 @@ def _read_visual_copy_move_outputs(workdir: Path) -> dict[str, Any]:
     }
 
 
+def _read_overlap_reuse_outputs(workdir: Path) -> dict[str, Any]:
+    """Merge baseline + investigation overlap_reuse.json outputs."""
+    relationships: list[dict[str, Any]] = []
+    statuses: list[str] = []
+    limitations: list[str] = []
+    paths = []
+    baseline = resolve_artifact_path(workdir, "overlap_reuse.json")
+    if baseline.exists():
+        paths.append(baseline)
+    inv_dir = resolve_artifact_path(workdir, "investigation")
+    if inv_dir.exists():
+        paths.extend(sorted(inv_dir.rglob("overlap_reuse.json")))
+    for path in paths:
+        data = read_json(path) or {}
+        statuses.append(str(data.get("status") or "unknown"))
+        relationships.extend(item for item in (data.get("relationships") or []) if isinstance(item, dict))
+        limitations.extend(str(item) for item in (data.get("limitations") or []))
+    return {
+        "status": _visual_status(statuses) if statuses else "skipped",
+        "relationships": relationships,
+        "limitations": limitations,
+        "source_paths": [str(path) for path in paths],
+    }
+
+
 def _read_image_similarity_outputs(workdir: Path) -> dict[str, Any]:
     candidates: list[dict[str, Any]] = []
     paths = []
@@ -1203,11 +1229,13 @@ def run_visual_finding_pipeline(
     copy_move_result = _read_visual_copy_move_outputs(workdir)
     exact_duplicates = read_json(resolve_artifact_path(workdir, "exact_image_duplicates.json")) or {}
     dhash_candidates = _read_image_similarity_outputs(workdir)
+    overlap_reuse_result = _read_overlap_reuse_outputs(workdir)
     relationships = build_relationships(
         copy_move_result=copy_move_result,
         exact_duplicates=exact_duplicates,
         dhash_candidates=dhash_candidates,
         panel_evidence=panels,
+        overlap_reuse_result=overlap_reuse_result,
     )
     findings = build_visual_findings(
         relationships,
@@ -1220,6 +1248,7 @@ def run_visual_finding_pipeline(
         "Visual relationships are screening signals and require manual review before escalation.",
     ]
     limitations.extend(copy_move_result.get("limitations") or [])
+    limitations.extend(overlap_reuse_result.get("limitations") or [])
     if forged_region_items:
         limitations.append(
             "TruFor forged-region findings are deep-learning screening signals; "
@@ -1239,6 +1268,7 @@ def run_visual_finding_pipeline(
             "copy_move": copy_move_result.get("source_paths") or [],
             "image_similarity": dhash_candidates.get("source_paths") or [],
             "exact_duplicates": str(resolve_artifact_path(workdir, "exact_image_duplicates.json")) if (resolve_artifact_path(workdir, "exact_image_duplicates.json")).exists() else None,
+            "overlap_reuse": str(resolve_artifact_path(workdir, "overlap_reuse.json")) if (resolve_artifact_path(workdir, "overlap_reuse.json")).exists() else None,
             "tru_for": str(resolve_artifact_path(workdir, "forged_region_evidence.json")) if (resolve_artifact_path(workdir, "forged_region_evidence.json")).exists() else None,
         },
         "errors": errors,
@@ -1388,6 +1418,59 @@ def run_image_quality_detection(
     step_status = "ran" if status == "ran" else "failed"
     record_step(steps, StepResult("visual_image_quality", "图片质量异常检测", step_status, detail), progress)
     return steps, {"image_quality": {"status": status, "output": str(output_path), **result}}
+
+
+def run_overlap_reuse_detection(
+    *,
+    workdir: Path,
+    force: bool,
+    panel_extraction_status: str | None = None,
+    progress: ProgressCallback | None = None,
+) -> tuple[list[StepResult], dict[str, Any]]:
+    """Run cross-panel overlap/reuse detection via tile-level retrieval."""
+    steps: list[StepResult] = []
+    output_path = resolve_artifact_path(workdir, "overlap_reuse.json")
+    if output_path.exists() and not force:
+        record_step(steps, StepResult("visual_overlap_reuse", "视觉 Overlap/Reuse 检测", "reused", "Existing overlap_reuse.json found."), progress)
+        return steps, {"overlap_reuse": {"status": "reused", "output": str(output_path)}}
+
+    emit_step_start(progress, "visual_overlap_reuse", "视觉 Overlap/Reuse 检测", "Running tile-level overlap retrieval.")
+
+    panel_evidence_path = resolve_artifact_path(workdir, "panel_evidence.json")
+    visual_evidence_path = resolve_artifact_path(workdir, "visual_evidence.json")
+    if not panel_evidence_path.exists():
+        record_step(steps, StepResult("visual_overlap_reuse", "视觉 Overlap/Reuse 检测", "skipped", "No panel_evidence.json."), progress)
+        return steps, {"overlap_reuse": {"status": "skipped", "detail": "no panel evidence"}}
+
+    panels = (read_json(panel_evidence_path) or {}).get("panels", [])
+    if len(panels) < 2:
+        record_step(steps, StepResult("visual_overlap_reuse", "视觉 Overlap/Reuse 检测", "skipped", f"Only {len(panels)} panel(s)."), progress)
+        return steps, {"overlap_reuse": {"status": "skipped", "detail": "insufficient panels"}}
+
+    figures = []
+    if visual_evidence_path.exists():
+        figures = (read_json(visual_evidence_path) or {}).get("figures", [])
+
+    try:
+        from engine.static_audit.tools.overlap_reuse import detect_overlap_reuse
+        result = detect_overlap_reuse(panels, figures, workdir=workdir)
+    except Exception as e:
+        result = {
+            "status": "failed",
+            "relationship_count": 0,
+            "relationships": [],
+            "errors": [str(e)],
+            "limitations": ["overlap_reuse tool raised an exception"],
+        }
+
+    write_json_artifact(output_path, result)
+    status = result.get("status", "failed")
+    detail = f"panels={result.get('panel_count', 0)} tiles={result.get('tile_count', 0)} rels={result.get('relationship_count', 0)}"
+    if result.get("limitations"):
+        detail += f" limitations={len(result['limitations'])}"
+    step_status = "ran" if status in ("ran", "skipped") else "failed"
+    record_step(steps, StepResult("visual_overlap_reuse", "视觉 Overlap/Reuse 检测", step_status, detail), progress)
+    return steps, {"overlap_reuse": {"status": status, "output": str(output_path), **result}}
 
 
 def run_provenance_graph(
@@ -1888,6 +1971,41 @@ def run_investigation_tool_action(
             "--max-relationships",
             str(params.get("max_relationships", 500)),
         ]
+    elif action.tool_id == TOOL_ID_OVERLAP_REUSE:
+        panel_json = resolve_artifact_path(workdir, "panel_evidence.json")
+        if not panel_json.exists():
+            step = StepResult(key, "Agent Investigation Tool", "skipped", "panel_evidence.json missing.")
+            emit_step_result(progress, step)
+            return step, []
+        output = action_dir / "overlap_reuse.json"
+        try:
+            from engine.static_audit.tools.overlap_reuse import detect_overlap_reuse
+            panels_data = json.loads(panel_json.read_text())
+            panels_list = panels_data.get("panels", panels_data) if isinstance(panels_data, dict) else panels_data
+            figures = []
+            visual_path = resolve_artifact_path(workdir, "visual_evidence.json")
+            if visual_path.exists():
+                figures_data = json.loads(visual_path.read_text())
+                figures = figures_data.get("figures", figures_data) if isinstance(figures_data, dict) else figures_data
+            params = action.params
+            result = detect_overlap_reuse(
+                panels_list, figures, workdir=workdir,
+                tile_size=int(params.get("tile_size", 128)),
+                tile_stride=int(params.get("tile_stride", 64)),
+                max_candidate_pairs=int(params.get("max_candidate_pairs", 500)),
+                min_inliers=int(params.get("min_inliers", 10)),
+                min_overlap_area=float(params.get("min_overlap_area", 0.01)),
+                max_relationships=int(params.get("max_relationships", 500)),
+            )
+            output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
+        except Exception as e:
+            result = {"status": "failed", "relationships": [], "errors": [str(e)]}
+            output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
+        status = result.get("status", "failed")
+        detail = f"panels={result.get('panel_count', 0)} rels={result.get('relationship_count', 0)}"
+        step = StepResult(key, "Agent Investigation Tool", "ran" if status == "ran" else "failed", detail)
+        emit_step_result(progress, step)
+        return step, [str(output)]
     else:
         # Tool is registered but implementation is not yet available
         step = StepResult(key, "Agent Investigation Tool", "skipped",

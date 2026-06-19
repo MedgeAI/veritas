@@ -151,16 +151,22 @@ def _run_cross(pairs: list[dict[str, str]], output_dir: str, min_keypoints: int,
         target = pair["target"]
         try:
             result = detector.detect_cross_image(source, target)
+            matched_kp = _native_int(result.get("matched_keypoints", 0))
             results.append({
                 "pair_id": pair_id,
+                "source_panel_id": pair.get("source_panel_id", ""),
+                "target_panel_id": pair.get("target_panel_id", ""),
                 "source_figure_id": pair.get("source_figure_id", ""),
                 "target_figure_id": pair.get("target_figure_id", ""),
                 "success": _native_bool(result.get("success", False)),
                 "found_forgery": _native_bool(result.get("found_forgery", False)),
-                "matched_keypoints": _native_int(result.get("matched_keypoints", 0)),
+                "matched_keypoints": matched_kp,
+                "inlier_count": matched_kp,
+                "keypoint_count": matched_kp,
                 "shared_area_source": _native_float(result.get("shared_area_source", 0.0)),
                 "shared_area_target": _native_float(result.get("shared_area_target", 0.0)),
                 "is_flipped": _native_bool(result.get("is_flipped", False)),
+                "flip_detected": _native_bool(result.get("is_flipped", False)),
                 "num_clusters_source": _native_int(result.get("num_clusters_source", 0)),
                 "num_clusters_target": _native_int(result.get("num_clusters_target", 0)),
                 "mask_path": str(result.get("mask_path", "")),
@@ -171,14 +177,19 @@ def _run_cross(pairs: list[dict[str, str]], output_dir: str, min_keypoints: int,
         except Exception as e:
             results.append({
                 "pair_id": pair_id,
+                "source_panel_id": pair.get("source_panel_id", ""),
+                "target_panel_id": pair.get("target_panel_id", ""),
                 "source_figure_id": pair.get("source_figure_id", ""),
                 "target_figure_id": pair.get("target_figure_id", ""),
                 "success": False,
                 "found_forgery": False,
                 "matched_keypoints": 0,
+                "inlier_count": 0,
+                "keypoint_count": 0,
                 "shared_area_source": 0.0,
                 "shared_area_target": 0.0,
                 "is_flipped": False,
+                "flip_detected": False,
                 "error": str(e),
             })
     return results
