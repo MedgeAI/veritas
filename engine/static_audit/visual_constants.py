@@ -122,6 +122,11 @@ BENIGN_EXPLANATIONS = {
         "高 integrity_score 可能由图像拼接、过度后处理或非伪造的图像编辑引起",
         "部分检测可能源于正常的图像裁剪、标注或格式转换",
     ],
+    "overlap_reuse_cross_panel": [
+        "可能是同一原始视野的不同通道、合法 shared control 或重复展示的 reference panel。",
+        "某些标准化实验流程中，同一对照图像在不同 figure 中重复展示是常见做法。",
+        "图像可能在出版组装过程中被意外复用为占位符。",
+    ],
 }
 
 # Manual review questions for different finding categories
@@ -148,6 +153,12 @@ MANUAL_REVIEW_QUESTIONS = {
         "在原始图像上复核 TruFor 标记的可疑区域，判断是否为独立实验证据",
         "检查 localization heatmap 是否与图像拼接、裁剪边界或正常后处理区域吻合",
         "结合图注和实验设计判断该区域是否可能来自合理的图像操作",
+    ],
+    "overlap_reuse_cross_panel": [
+        "两个 panel 是否声称代表不同实验条件、样本、时间点或处理组？",
+        "图注或方法是否声明 shared control / same field of view？",
+        "作者能否提供原始显微图、仪器导出文件或未裁剪图？",
+        "两个 panel 的 figure label 是否暗示它们来自不同的实验？",
     ],
 }
 

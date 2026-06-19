@@ -20,6 +20,7 @@ KNOWN_ARTIFACTS = (
     ("image_relationships", "json", "Image Relationships", "image_relationships.json"),
     ("visual_findings", "json", "Visual Findings", "visual_findings.json"),
     ("visual_copy_move_dense", "json", "SILA Dense Copy-Move", "visual_copy_move_dense.json"),
+    ("visual_overlap_reuse", "json", "Visual Overlap/Reuse", "overlap_reuse.json"),
 )
 
 

@@ -7,6 +7,12 @@ from pathlib import Path
 
 FIXTURES_DIR = Path("tests/fixtures/visual")
 
+_OVERLAP_FIXTURE_PREFIXES = ("synthetic_overlap_",)
+
+
+def _is_overlap_fixture(name: str) -> bool:
+    return any(name.startswith(p) for p in _OVERLAP_FIXTURE_PREFIXES)
+
 
 class TestSyntheticFixtures:
     """Test synthetic fixture validity."""
@@ -19,6 +25,11 @@ class TestSyntheticFixtures:
             "synthetic_copy_scaled",
             "synthetic_copy_rotated",
             "synthetic_copy_brightness",
+            "synthetic_overlap_crop",
+            "synthetic_overlap_scale",
+            "synthetic_overlap_flip",
+            "synthetic_overlap_negative_similar",
+            "synthetic_overlap_negative_low_texture",
         ]
         for fixture_name in expected_fixtures:
             fixture_dir = FIXTURES_DIR / fixture_name
@@ -33,10 +44,12 @@ class TestSyntheticFixtures:
                     f"Fixture {fixture_dir.name} missing ground_truth.json"
                 )
 
-    def test_fixture_has_images(self):
-        """Each fixture should have images directory with Figure1.png and Figure2.png."""
+    def test_figure_fixture_has_images(self):
+        """Figure-based fixtures (non-overlap) should have Figure1.png and Figure2.png."""
         for fixture_dir in FIXTURES_DIR.iterdir():
             if fixture_dir.is_dir() and fixture_dir.name.startswith("synthetic_"):
+                if _is_overlap_fixture(fixture_dir.name):
+                    continue
                 images_dir = fixture_dir / "images"
                 assert images_dir.exists(), f"Fixture {fixture_dir.name} missing images directory"
                 assert (images_dir / "Figure1.png").exists(), (
@@ -46,10 +59,25 @@ class TestSyntheticFixtures:
                     f"Fixture {fixture_dir.name} missing Figure2.png"
                 )
 
+    def test_overlap_fixture_has_panel_images(self):
+        """Overlap fixtures should have panel_a.png and panel_b.png."""
+        for fixture_dir in FIXTURES_DIR.iterdir():
+            if fixture_dir.is_dir() and _is_overlap_fixture(fixture_dir.name):
+                images_dir = fixture_dir / "images"
+                assert images_dir.exists(), f"Fixture {fixture_dir.name} missing images directory"
+                assert (images_dir / "panel_a.png").exists(), (
+                    f"Overlap fixture {fixture_dir.name} missing panel_a.png"
+                )
+                assert (images_dir / "panel_b.png").exists(), (
+                    f"Overlap fixture {fixture_dir.name} missing panel_b.png"
+                )
+
     def test_ground_truth_schema_valid(self):
-        """Ground truth should have valid schema."""
+        """Figure-based fixtures should have valid schema."""
         for fixture_dir in FIXTURES_DIR.iterdir():
             if fixture_dir.is_dir() and fixture_dir.name.startswith("synthetic_"):
+                if _is_overlap_fixture(fixture_dir.name):
+                    continue
                 ground_truth_path = fixture_dir / "ground_truth.json"
                 ground_truth = json.loads(ground_truth_path.read_text())
 
@@ -74,10 +102,45 @@ class TestSyntheticFixtures:
                     assert "target_panel_id" in rel
                     assert "source_type" in rel
 
+    def test_overlap_ground_truth_schema_valid(self):
+        """Overlap fixtures should have valid overlap-specific schema."""
+        for fixture_dir in FIXTURES_DIR.iterdir():
+            if fixture_dir.is_dir() and _is_overlap_fixture(fixture_dir.name):
+                ground_truth_path = fixture_dir / "ground_truth.json"
+                ground_truth = json.loads(ground_truth_path.read_text())
+
+                assert "schema_version" in ground_truth
+                assert "fixture_type" in ground_truth
+                assert "expected_overlap" in ground_truth
+                assert isinstance(ground_truth["expected_overlap"], bool)
+                assert "expected_overlap_area_ratio_source" in ground_truth
+                assert "expected_overlap_area_ratio_target" in ground_truth
+                assert "ground_truth_polygon_source" in ground_truth
+                assert "ground_truth_polygon_target" in ground_truth
+                assert "panels" in ground_truth
+                assert "panel_a" in ground_truth["panels"]
+                assert "panel_b" in ground_truth["panels"]
+
+    def test_overlap_positive_fixtures_expect_overlap(self):
+        """Positive overlap fixtures (crop/scale/flip) should expect overlap."""
+        for name in ("synthetic_overlap_crop", "synthetic_overlap_scale", "synthetic_overlap_flip"):
+            gt = json.loads((FIXTURES_DIR / name / "ground_truth.json").read_text())
+            assert gt["expected_overlap"] is True, f"{name} should expect overlap"
+            assert len(gt["ground_truth_polygon_source"]) > 0
+            assert len(gt["ground_truth_polygon_target"]) > 0
+
+    def test_overlap_negative_fixtures_expect_no_overlap(self):
+        """Negative overlap fixtures should NOT expect overlap."""
+        for name in ("synthetic_overlap_negative_similar", "synthetic_overlap_negative_low_texture"):
+            gt = json.loads((FIXTURES_DIR / name / "ground_truth.json").read_text())
+            assert gt["expected_overlap"] is False, f"{name} should NOT expect overlap"
+
     def test_synthetic_fixture_has_expected_panels(self):
-        """Each synthetic fixture should have correct panel count."""
+        """Each synthetic figure-based fixture should have correct panel count."""
         for fixture_dir in FIXTURES_DIR.iterdir():
             if fixture_dir.is_dir() and fixture_dir.name.startswith("synthetic_"):
+                if _is_overlap_fixture(fixture_dir.name):
+                    continue
                 ground_truth_path = fixture_dir / "ground_truth.json"
                 ground_truth = json.loads(ground_truth_path.read_text())
 
@@ -90,7 +153,7 @@ class TestSyntheticFixtures:
     def test_synthetic_copy_has_known_relationship(self):
         """Copy fixtures should have at least one expected relationship."""
         for fixture_dir in FIXTURES_DIR.iterdir():
-            if fixture_dir.is_dir() and "copy" in fixture_dir.name:
+            if fixture_dir.is_dir() and "copy" in fixture_dir.name and not _is_overlap_fixture(fixture_dir.name):
                 ground_truth_path = fixture_dir / "ground_truth.json"
                 ground_truth = json.loads(ground_truth_path.read_text())
 
@@ -109,9 +172,11 @@ class TestSyntheticFixtures:
         )
 
     def test_synthetic_fixture_images_exist(self):
-        """All referenced images in ground truth should exist."""
+        """All referenced images in ground truth should exist (figure-based fixtures only)."""
         for fixture_dir in FIXTURES_DIR.iterdir():
             if fixture_dir.is_dir() and fixture_dir.name.startswith("synthetic_"):
+                if _is_overlap_fixture(fixture_dir.name):
+                    continue
                 ground_truth_path = fixture_dir / "ground_truth.json"
                 ground_truth = json.loads(ground_truth_path.read_text())
 
@@ -124,7 +189,7 @@ class TestSyntheticFixtures:
     def test_copy_relationship_references_valid_panels(self):
         """Copy relationships should reference valid panel IDs."""
         for fixture_dir in FIXTURES_DIR.iterdir():
-            if fixture_dir.is_dir() and "copy" in fixture_dir.name:
+            if fixture_dir.is_dir() and "copy" in fixture_dir.name and not _is_overlap_fixture(fixture_dir.name):
                 ground_truth_path = fixture_dir / "ground_truth.json"
                 ground_truth = json.loads(ground_truth_path.read_text())
 
@@ -148,7 +213,7 @@ class TestSyntheticFixtures:
     def test_copy_panel_has_copy_source(self):
         """Panels marked as copies should have copy_source field."""
         for fixture_dir in FIXTURES_DIR.iterdir():
-            if fixture_dir.is_dir() and "copy" in fixture_dir.name:
+            if fixture_dir.is_dir() and "copy" in fixture_dir.name and not _is_overlap_fixture(fixture_dir.name):
                 ground_truth_path = fixture_dir / "ground_truth.json"
                 ground_truth = json.loads(ground_truth_path.read_text())
 

@@ -249,6 +249,7 @@ class VisualFinding:
         "dhash_similar",
         "local_reuse",
         "forged_region_suspicious",
+        "overlap_reuse_cross_panel",
     ]
     risk_level: Literal["info", "low", "medium", "high", "critical"]
     summary: str
@@ -332,6 +333,7 @@ class ImageRelationship:
         "exact_duplicate",
         "dhash_similar",
         "cbir_similar",
+        "overlap_reuse_cross_panel",
     ]
     source_panel_id: str
     target_panel_id: str

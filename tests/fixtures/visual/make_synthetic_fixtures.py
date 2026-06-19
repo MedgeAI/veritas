@@ -377,6 +377,291 @@ def make_clean_fixture(output_dir: Path) -> dict[str, Any]:
     return ground_truth
 
 
+def _make_textured_panel(
+    width: int,
+    height: int,
+    seed: int = 0,
+) -> Image.Image:
+    """Create a textured panel with pseudo-random dots for overlap detection.
+
+    Uses deterministic positioning so the same seed always produces the same
+    texture, making it suitable for keypoint-based detection.
+    """
+    import hashlib
+
+    img = Image.new("RGB", (width, height), (40, 40, 40))
+    draw = ImageDraw.Draw(img)
+    rng_seed = int(hashlib.md5(str(seed).encode()).hexdigest()[:8], 16) % (2**31)
+
+    for i in range(80):
+        rng_seed = (rng_seed * 1103515245 + 12345) % (2**31)
+        x = rng_seed % width
+        rng_seed = (rng_seed * 1103515245 + 12345) % (2**31)
+        y = rng_seed % height
+        rng_seed = (rng_seed * 1103515245 + 12345) % (2**31)
+        r = 2 + rng_seed % 6
+        rng_seed = (rng_seed * 1103515245 + 12345) % (2**31)
+        c = 100 + rng_seed % 156
+        rng_seed = (rng_seed * 1103515245 + 12345) % (2**31)
+        c2 = 100 + rng_seed % 156
+        rng_seed = (rng_seed * 1103515245 + 12345) % (2**31)
+        c3 = 100 + rng_seed % 156
+        draw.ellipse([x - r, y - r, x + r, y + r], fill=(c, c2, c3))
+
+    for i in range(0, width, 12):
+        rng_seed = (rng_seed * 1103515245 + 12345) % (2**31)
+        v = 60 + rng_seed % 100
+        draw.line([(i, 0), (i, height)], fill=(v, v, v), width=1)
+
+    return img
+
+
+def make_overlap_crop_fixture(output_dir: Path) -> dict[str, Any]:
+    """Create a fixture where a crop from panel_a appears in panel_b.
+
+    A 120x90 sub-region from the centre of panel_a is pasted into a
+    different position in panel_b, simulating partial panel reuse.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    images_dir = output_dir / "images"
+    images_dir.mkdir(exist_ok=True)
+
+    panel_a = _make_textured_panel(300, 240, seed=100)
+    crop_box = (80, 60, 200, 170)
+    crop_region = panel_a.crop(crop_box)
+
+    panel_b_base = _make_textured_panel(300, 240, seed=200)
+    paste_pos = (30, 40)
+    panel_b = panel_b_base.copy()
+    panel_b.paste(crop_region, paste_pos)
+
+    panel_a.save(images_dir / "panel_a.png")
+    panel_b.save(images_dir / "panel_b.png")
+
+    src_poly = [
+        [crop_box[0], crop_box[1]],
+        [crop_box[2], crop_box[1]],
+        [crop_box[2], crop_box[3]],
+        [crop_box[0], crop_box[3]],
+    ]
+    tgt_poly = [
+        [paste_pos[0], paste_pos[1]],
+        [paste_pos[0] + crop_region.width, paste_pos[1]],
+        [paste_pos[0] + crop_region.width, paste_pos[1] + crop_region.height],
+        [paste_pos[0], paste_pos[1] + crop_region.height],
+    ]
+
+    crop_area = crop_region.width * crop_region.height
+    gt: dict[str, Any] = {
+        "schema_version": "1.0",
+        "fixture_type": "synthetic_overlap_crop",
+        "expected_overlap": True,
+        "expected_transform_type": "translation",
+        "expected_overlap_area_ratio_source": round(
+            crop_area / (panel_a.width * panel_a.height), 4
+        ),
+        "expected_overlap_area_ratio_target": round(
+            crop_area / (panel_b.width * panel_b.height), 4
+        ),
+        "ground_truth_polygon_source": src_poly,
+        "ground_truth_polygon_target": tgt_poly,
+        "panels": {
+            "panel_a": {"width": panel_a.width, "height": panel_a.height},
+            "panel_b": {"width": panel_b.width, "height": panel_b.height},
+        },
+    }
+    (output_dir / "ground_truth.json").write_text(json.dumps(gt, indent=2))
+    return gt
+
+
+def make_overlap_scale_fixture(output_dir: Path) -> dict[str, Any]:
+    """Create a fixture where a sub-region from panel_a is scaled and pasted into panel_b."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    images_dir = output_dir / "images"
+    images_dir.mkdir(exist_ok=True)
+
+    panel_a = _make_textured_panel(300, 240, seed=300)
+    crop_box = (60, 50, 220, 190)
+    crop_region = panel_a.crop(crop_box)
+
+    scale = 0.6
+    scaled = crop_region.resize(
+        (int(crop_region.width * scale), int(crop_region.height * scale))
+    )
+
+    panel_b_base = _make_textured_panel(300, 240, seed=400)
+    paste_pos = (50, 60)
+    panel_b = panel_b_base.copy()
+    panel_b.paste(scaled, paste_pos)
+
+    panel_a.save(images_dir / "panel_a.png")
+    panel_b.save(images_dir / "panel_b.png")
+
+    src_poly = [
+        [crop_box[0], crop_box[1]],
+        [crop_box[2], crop_box[1]],
+        [crop_box[2], crop_box[3]],
+        [crop_box[0], crop_box[3]],
+    ]
+    tgt_poly = [
+        [paste_pos[0], paste_pos[1]],
+        [paste_pos[0] + scaled.width, paste_pos[1]],
+        [paste_pos[0] + scaled.width, paste_pos[1] + scaled.height],
+        [paste_pos[0], paste_pos[1] + scaled.height],
+    ]
+    scaled_area = scaled.width * scaled.height
+    gt: dict[str, Any] = {
+        "schema_version": "1.0",
+        "fixture_type": "synthetic_overlap_scale",
+        "expected_overlap": True,
+        "expected_transform_type": "affine_scale",
+        "scale_factor": scale,
+        "expected_overlap_area_ratio_source": round(
+            scaled_area / (panel_a.width * panel_a.height), 4
+        ),
+        "expected_overlap_area_ratio_target": round(
+            scaled_area / (panel_b.width * panel_b.height), 4
+        ),
+        "ground_truth_polygon_source": src_poly,
+        "ground_truth_polygon_target": tgt_poly,
+        "panels": {
+            "panel_a": {"width": panel_a.width, "height": panel_a.height},
+            "panel_b": {"width": panel_b.width, "height": panel_b.height},
+        },
+    }
+    (output_dir / "ground_truth.json").write_text(json.dumps(gt, indent=2))
+    return gt
+
+
+def make_overlap_flip_fixture(output_dir: Path) -> dict[str, Any]:
+    """Create a fixture where a sub-region from panel_a is horizontally flipped and pasted into panel_b."""
+    output_dir.mkdir(parents=True, exist_ok=True)
+    images_dir = output_dir / "images"
+    images_dir.mkdir(exist_ok=True)
+
+    panel_a = _make_textured_panel(300, 240, seed=500)
+    crop_box = (70, 50, 230, 190)
+    crop_region = panel_a.crop(crop_box)
+
+    flipped = crop_region.transpose(Image.FLIP_LEFT_RIGHT)
+
+    panel_b_base = _make_textured_panel(300, 240, seed=600)
+    paste_pos = (40, 40)
+    panel_b = panel_b_base.copy()
+    panel_b.paste(flipped, paste_pos)
+
+    panel_a.save(images_dir / "panel_a.png")
+    panel_b.save(images_dir / "panel_b.png")
+
+    src_poly = [
+        [crop_box[0], crop_box[1]],
+        [crop_box[2], crop_box[1]],
+        [crop_box[2], crop_box[3]],
+        [crop_box[0], crop_box[3]],
+    ]
+    tgt_poly = [
+        [paste_pos[0], paste_pos[1]],
+        [paste_pos[0] + flipped.width, paste_pos[1]],
+        [paste_pos[0] + flipped.width, paste_pos[1] + flipped.height],
+        [paste_pos[0], paste_pos[1] + flipped.height],
+    ]
+    flip_area = flipped.width * flipped.height
+    gt: dict[str, Any] = {
+        "schema_version": "1.0",
+        "fixture_type": "synthetic_overlap_flip",
+        "expected_overlap": True,
+        "expected_transform_type": "flip_horizontal",
+        "expected_overlap_area_ratio_source": round(
+            flip_area / (panel_a.width * panel_a.height), 4
+        ),
+        "expected_overlap_area_ratio_target": round(
+            flip_area / (panel_b.width * panel_b.height), 4
+        ),
+        "ground_truth_polygon_source": src_poly,
+        "ground_truth_polygon_target": tgt_poly,
+        "panels": {
+            "panel_a": {"width": panel_a.width, "height": panel_a.height},
+            "panel_b": {"width": panel_b.width, "height": panel_b.height},
+        },
+    }
+    (output_dir / "ground_truth.json").write_text(json.dumps(gt, indent=2))
+    return gt
+
+
+def make_overlap_negative_similar_fixture(output_dir: Path) -> dict[str, Any]:
+    """Create a negative fixture: two panels with similar structure but NO actual pixel overlap.
+
+    Both panels use the same dot-line texture template with different seeds,
+    simulating two images from the same experimental protocol (e.g. similar
+    gel layout) but with genuinely different content.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    images_dir = output_dir / "images"
+    images_dir.mkdir(exist_ok=True)
+
+    panel_a = _make_textured_panel(300, 240, seed=700)
+    panel_b = _make_textured_panel(300, 240, seed=701)
+
+    panel_a.save(images_dir / "panel_a.png")
+    panel_b.save(images_dir / "panel_b.png")
+
+    gt: dict[str, Any] = {
+        "schema_version": "1.0",
+        "fixture_type": "synthetic_overlap_negative_similar",
+        "expected_overlap": False,
+        "expected_transform_type": None,
+        "expected_overlap_area_ratio_source": 0.0,
+        "expected_overlap_area_ratio_target": 0.0,
+        "ground_truth_polygon_source": [],
+        "ground_truth_polygon_target": [],
+        "panels": {
+            "panel_a": {"width": panel_a.width, "height": panel_a.height},
+            "panel_b": {"width": panel_b.width, "height": panel_b.height},
+        },
+    }
+    (output_dir / "ground_truth.json").write_text(json.dumps(gt, indent=2))
+    return gt
+
+
+def make_overlap_negative_low_texture_fixture(output_dir: Path) -> dict[str, Any]:
+    """Create a negative fixture: two low-texture panels (near-solid backgrounds).
+
+    Keypoint detectors should produce very few matches on these.
+    """
+    output_dir.mkdir(parents=True, exist_ok=True)
+    images_dir = output_dir / "images"
+    images_dir.mkdir(exist_ok=True)
+
+    panel_a = Image.new("RGB", (300, 240), (128, 130, 132))
+    draw_a = ImageDraw.Draw(panel_a)
+    for y in range(0, 240, 40):
+        draw_a.line([(0, y), (300, y)], fill=(132, 134, 136), width=1)
+    panel_b = Image.new("RGB", (300, 240), (130, 128, 132))
+    draw_b = ImageDraw.Draw(panel_b)
+    for y in range(0, 240, 40):
+        draw_b.line([(0, y), (300, y)], fill=(134, 132, 136), width=1)
+
+    panel_a.save(images_dir / "panel_a.png")
+    panel_b.save(images_dir / "panel_b.png")
+
+    gt: dict[str, Any] = {
+        "schema_version": "1.0",
+        "fixture_type": "synthetic_overlap_negative_low_texture",
+        "expected_overlap": False,
+        "expected_transform_type": None,
+        "expected_overlap_area_ratio_source": 0.0,
+        "expected_overlap_area_ratio_target": 0.0,
+        "ground_truth_polygon_source": [],
+        "ground_truth_polygon_target": [],
+        "panels": {
+            "panel_a": {"width": panel_a.width, "height": panel_a.height},
+            "panel_b": {"width": panel_b.width, "height": panel_b.height},
+        },
+    }
+    (output_dir / "ground_truth.json").write_text(json.dumps(gt, indent=2))
+    return gt
+
+
 def generate_all_fixtures(base_dir: Path) -> list[dict[str, Any]]:
     """Generate all synthetic fixtures.
 
@@ -397,6 +682,21 @@ def generate_all_fixtures(base_dir: Path) -> list[dict[str, Any]]:
     fixtures.append(make_fixture_with_known_copies(base_dir / "synthetic_copy_rotated", "rotated"))
     fixtures.append(
         make_fixture_with_known_copies(base_dir / "synthetic_copy_brightness", "brightness")
+    )
+
+    # Overlap fixtures (positive controls)
+    fixtures.append(make_overlap_crop_fixture(base_dir / "synthetic_overlap_crop"))
+    fixtures.append(make_overlap_scale_fixture(base_dir / "synthetic_overlap_scale"))
+    fixtures.append(make_overlap_flip_fixture(base_dir / "synthetic_overlap_flip"))
+
+    # Overlap negative fixtures
+    fixtures.append(
+        make_overlap_negative_similar_fixture(base_dir / "synthetic_overlap_negative_similar")
+    )
+    fixtures.append(
+        make_overlap_negative_low_texture_fixture(
+            base_dir / "synthetic_overlap_negative_low_texture"
+        )
     )
 
     return fixtures

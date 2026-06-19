@@ -1754,7 +1754,7 @@ def pattern_key_for_finding(finding: dict[str, Any]) -> str:
         return "formula_derivation"
     category_text = category.lower()
     source_text = source_artifact.lower()
-    if any(token in category_text or token in source_text for token in ("image", "visual", "panel", "trufor", "copy_move", "cbir", "similarity")):
+    if any(token in category_text or token in source_text for token in ("image", "visual", "panel", "trufor", "copy_move", "cbir", "similarity", "overlap")):
         return "visual_forensics"
     if any(token in category_text or token in source_text for token in ("numeric", "benford", "number")):
         return "numeric_forensics"
@@ -2784,6 +2784,12 @@ def category_label(category: Any) -> str:
         "duplicate_row_vector": "行向量重复",
         "long_format_within_pair_ratio_enrichment": "配对内部比例富集",
         "row_offset_partial_copy_rounding_bias": "行偏移复制/舍入偏差",
+        "copy_move_single": "单图内 Copy-Move",
+        "copy_move_cross": "跨图 Copy-Move",
+        "exact_duplicate": "字节级完全重复",
+        "dhash_similar": "感知哈希相似",
+        "overlap_reuse_cross_panel": "跨 Panel 局部重叠",
+        "forged_region_suspicious": "伪造区域可疑",
     }
     return labels.get(str(category), str(category))
 

@@ -76,6 +76,8 @@ ARTIFACT_PATH_MAP = {
     "provenance_graph.json": "visual/provenance_graph.json",
     "visual_copy_move_dense.json": "visual/copy_move_dense.json",
     "image_quality.json": "visual/image_quality.json",
+    "overlap_reuse.json": "visual/overlap_reuse.json",
+    "overlap": "visual/overlap",
     "tru_for": "visual/tru_for",
     "provenance": "visual/provenance",
     "sila_dense": "visual/sila_dense",

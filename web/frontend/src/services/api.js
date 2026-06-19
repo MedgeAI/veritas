@@ -124,6 +124,10 @@ export async function fetchVisualFindings(caseId) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/visual/findings`);
 }
 
+export async function fetchOverlapReuse(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/artifacts/visual_overlap_reuse`);
+}
+
 export async function listInvestigations(caseId) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/investigations`);
 }

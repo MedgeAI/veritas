@@ -201,6 +201,37 @@ def _load_dhash_relationships(
     return out
 
 
+def _load_overlap_reuse_relationships(
+    overlap_reuse_result: dict,
+) -> list[dict]:
+    """Extract relationships from overlap_reuse result into normalized format."""
+    raw = overlap_reuse_result.get("relationships", [])
+    if not isinstance(raw, list):
+        return []
+    out: list[dict] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        out.append({
+            "source_panel_id": str(item.get("source_panel_id") or ""),
+            "target_panel_id": str(item.get("target_panel_id") or ""),
+            "score": float(item.get("score") or 0.0),
+            "match_method": str(item.get("verification_method") or "rootsift_magsac"),
+            "inlier_count": int(item.get("inlier_count") or 0),
+            "homography": item.get("homography"),
+            "overlay_path": item.get("overlay_path"),
+            "flip_detected": bool(item.get("flip_detected", False)),
+            "metadata": {
+                "candidate_method": item.get("candidate_method"),
+                "transform_type": item.get("transform_type"),
+                "overlap_area_ratio_source": item.get("overlap_area_ratio_source"),
+                "overlap_area_ratio_target": item.get("overlap_area_ratio_target"),
+                "inlier_ratio": item.get("inlier_ratio"),
+            },
+        })
+    return out
+
+
 # ---------------------------------------------------------------------------
 # Relationship builder
 # ---------------------------------------------------------------------------
@@ -211,6 +242,7 @@ def build_relationships(
     exact_duplicates: dict | None = None,
     dhash_candidates: dict | None = None,
     panel_evidence: list[dict] | None = None,
+    overlap_reuse_result: dict | None = None,
 ) -> list[dict]:
     """Merge copy-move, exact duplicates, and dHash into unified relationships.
 
@@ -252,6 +284,11 @@ def build_relationships(
     dh_rels = (
         _load_dhash_relationships(dhash_candidates)
         if dhash_candidates
+        else []
+    )
+    ov_rels = (
+        _load_overlap_reuse_relationships(overlap_reuse_result)
+        if overlap_reuse_result
         else []
     )
 
@@ -347,6 +384,25 @@ def build_relationships(
             overlay_path=rel.get("overlay_path"),
         ))
 
+    # Pass 4: overlap_reuse relationships
+    for rel in ov_rels:
+        src, tgt = rel["source_panel_id"], rel["target_panel_id"]
+        if not src or not tgt or src == tgt:
+            continue
+        pk = _pair_key(src, tgt)
+        if pk in seen_pairs:
+            continue
+        seen_pairs.add(pk)
+        result.append(_make_rel(
+            src=src, tgt=tgt, score=rel["score"],
+            source_type="overlap_reuse_cross_panel",
+            match_method=rel["match_method"],
+            inlier_count=rel.get("inlier_count", 0),
+            homography=rel.get("homography"),
+            overlay_path=rel.get("overlay_path"),
+            flip_detected=rel.get("flip_detected", False),
+        ))
+
     return result
 
 
@@ -420,6 +476,9 @@ def _generate_summary(category: str, src: str, tgt: str) -> str:
         ),
         "dhash_similar": (
             "dHash 检测发现 panel {src} 与 {tgt} 感知哈希相似"
+        ),
+        "overlap_reuse_cross_panel": (
+            "Overlap/reuse 检测发现 panel {src} 与 {tgt} 存在局部区域复用"
         ),
     }
     template = templates.get(
@@ -567,6 +626,10 @@ def build_visual_findings(
                 compute_risk_level(displayed_score, modality=panel_type), "medium"
             )
             confidence_adjustments.append("risk capped because at least one panel is whole_figure_fallback")
+
+        # Overlap reuse: cap risk at high (never critical by default)
+        if source_type == "overlap_reuse_cross_panel":
+            risk_level = _cap_risk_level(risk_level, "high")
 
         finding: dict = {
             "finding_id": f"VF-{counter:04d}",

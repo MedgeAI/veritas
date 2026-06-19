@@ -18,6 +18,7 @@ TOOL_ID_TRU_FOR = "visual.tru_for"
 TOOL_ID_PROVENANCE_GRAPH = "visual.provenance_graph"
 TOOL_ID_SILA_DENSE = "visual.copy_move_dense"
 TOOL_ID_IMAGE_QUALITY = "visual.image_quality"
+TOOL_ID_OVERLAP_REUSE = "visual.overlap_reuse"
 
 class ExecutionPhase(str, Enum):
     """Tool execution phase — controls when and how a tool runs in the audit pipeline.
@@ -360,6 +361,35 @@ TOOLS: dict[str, ToolDefinition] = {
         input_artifacts=("visual/evidence.json",),
         output_artifacts=("visual/image_quality.json",),
     ),
+    TOOL_ID_OVERLAP_REUSE: ToolDefinition(
+        tool_id=TOOL_ID_OVERLAP_REUSE,
+        step_key="visual_overlap_reuse",
+        title="视觉 Overlap/Reuse 检测",
+        source="engine/static_audit/tools",
+        description="Detect cross-panel local image region reuse via tile-level retrieval and geometric verification.",
+        expected_outputs=("visual/overlap_reuse.json",),
+        parameter_defaults={
+            "tile_size": 128,
+            "tile_stride": 64,
+            "candidate_method": "dhash_tile",
+            "max_candidate_pairs": 500,
+            "min_inliers": 10,
+            "min_overlap_area": 0.01,
+            "max_relationships": 500,
+        },
+        execution_phase=ExecutionPhase.AGENT_SELECTABLE,
+        input_artifacts=("visual/panel_evidence.json", "visual/evidence.json"),
+        output_artifacts=("visual/overlap_reuse.json",),
+        param_schema={
+            "tile_size": {"type": "integer", "minimum": 64, "maximum": 512},
+            "tile_stride": {"type": "integer", "minimum": 32, "maximum": 512},
+            "candidate_method": {"type": "string", "enum": ["dhash_tile", "sscd_tile", "hybrid"]},
+            "max_candidate_pairs": {"type": "integer", "minimum": 10, "maximum": 10000},
+            "min_inliers": {"type": "integer", "minimum": 4, "maximum": 200},
+            "min_overlap_area": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+            "max_relationships": {"type": "integer", "minimum": 1, "maximum": 5000},
+        },
+    ),
     "static_audit.bundle": ToolDefinition(
         tool_id="static_audit.bundle",
         step_key="static_audit_bundle",
@@ -686,6 +716,37 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
             "max_panels": _bounded_int(
                 params.get("max_panels", defaults.get("max_panels", 20)),
                 "max_panels", 1, 50,
+            ),
+        }
+    if tool_id == TOOL_ID_OVERLAP_REUSE:
+        defaults = TOOLS[tool_id].parameter_defaults
+        return {
+            "tile_size": _bounded_int(
+                params.get("tile_size", defaults.get("tile_size", 128)),
+                "tile_size", 64, 512,
+            ),
+            "tile_stride": _bounded_int(
+                params.get("tile_stride", defaults.get("tile_stride", 64)),
+                "tile_stride", 32, 512,
+            ),
+            "candidate_method": str(
+                params.get("candidate_method", defaults.get("candidate_method", "dhash_tile"))
+            ),
+            "max_candidate_pairs": _bounded_int(
+                params.get("max_candidate_pairs", defaults.get("max_candidate_pairs", 500)),
+                "max_candidate_pairs", 10, 10000,
+            ),
+            "min_inliers": _bounded_int(
+                params.get("min_inliers", defaults.get("min_inliers", 10)),
+                "min_inliers", 4, 200,
+            ),
+            "min_overlap_area": _bounded_float(
+                params.get("min_overlap_area", defaults.get("min_overlap_area", 0.01)),
+                "min_overlap_area", 0.0, 1.0,
+            ),
+            "max_relationships": _bounded_int(
+                params.get("max_relationships", defaults.get("max_relationships", 500)),
+                "max_relationships", 1, 5000,
             ),
         }
     return dict(params)
