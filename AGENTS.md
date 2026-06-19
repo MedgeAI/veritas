@@ -160,7 +160,7 @@ PDF / MinerU images
 
 - **Veritas 不开源（内部工具）**：AGPL-3.0 传染性不触发，可安全使用所有 ELIS 模块。
 - **以 adapter 方式复用 ELIS `system_modules`**：panel-extractor（YOLOv5）、copy-move-detection（RootSIFT+MAGSAC++ / dense）、TruFor、CBIR 等。
-- **替换传统 CV 实现是下一步工程任务**：OpenCV panel extraction 和 ORB copy-move 是当前过渡实现；完成 ELIS adapter、registry、fixture 和报告消费后再删除，不在文档中假装已经删除。
+- **ELIS adapter 已替换传统 CV 实现**：YOLOv5 panel extraction、RootSIFT+MAGSAC++ copy-move、TruFor skip-only、SILA dense 均已通过 subprocess adapter 接入主链路。`visual.overlap_reuse` 为 P1 新增工具。详见 [`ELIS_REUSE_DECISIONS.md`](ELIS_REUSE_DECISIONS.md)。
 - **详见 [`ELIS_REUSE_DECISIONS.md`](ELIS_REUSE_DECISIONS.md)**。
 
 ## 当前 1 周 Demo 方向
@@ -400,13 +400,15 @@ tests/        单测、集成测试和 e2e 测试
 
 **P1 优先级（当前阶段）**：
 
-1. **视觉 overlap/reuse detection**：实现 `visual.overlap_reuse` tool，支持 tile-level retrieval + geometric verification，产出 overlap evidence artifact 和 HTML 报告展示。详见 `VISUAL_OVERLAP_PRD.md`。
-2. **ELIS adapter 接入**：以 adapter 方式接入 ELIS-style 图像取证工具：panel-extractor、copy-move keypoint/dense、TruFor、CBIR/Milvus。
-3. **Tool Registry 扩展**：将 ELIS-style 工具注册进 Tool Registry，并接入 AgentInvestigationPlanner；所有输出必须回链到 canonical figure/panel ids。
+1. **视觉 overlap/reuse detection** ✅ 已实现：`visual.overlap_reuse` tool 已注册，tile-level dHash retrieval + RootSIFT+MAGSAC++ verification，产出 `visual/overlap_reuse.json`，5 个 synthetic fixtures，19 个单测通过。详见 `VISUAL_OVERLAP_PRD.md`。
+2. **ELIS adapter 接入** ✅ 已完成：panel-extractor (YOLOv5)、copy-move keypoint (RootSIFT+MAGSAC++)、copy-move dense (SILA Docker)、TruFor (skip-only) 均已通过 subprocess adapter 接入主链路。详见 `ELIS_REUSE_DECISIONS.md`。
+3. **Tool Registry 扩展** ✅ 已完成：所有 ELIS-style 工具已注册到 `engine/tools/registry.py`，`visual.overlap_reuse` 为 agent-selectable。
 4. **视觉 fixture/golden 测试**：补强 visual v1 的 fixture/golden 测试，尤其是 panel ground truth、copy-move 负例、overlap 正负例、失败隔离和 strict evidence refs。
-5. **Web P1 工作台**：完善 Web Visual Forensics Gallery，支持 overlap graph、relationship detail drawer、manual review workflow。
-6. **investigation 产物整合**：把 investigation 追加产物并入 canonical finding/evidence 图，明确去重、优先级和 report limitations。
-7. **opencode Agent 层**：安装并验证 opencode，确保 Agent roles（ClaimExtractor、SourceDataAuditor、JudgeAgent）正常工作。
+5. **Source Data pattern_strength 增强** ✅ 已完成：`fixed_difference` / `fixed_ratio` 已有 `pattern_strength` 字段（complete/strong/moderate/weak），HTML 报告已渲染。
+6. **Web P1 工作台**：完善 Web Visual Forensics Gallery，支持 overlap graph、relationship detail drawer、manual review workflow。
+7. **investigation 产物整合** ✅ 已完成：`_read_overlap_reuse_outputs()` 合并 baseline + investigation 产出，通过 `seen_pairs` 去重。
+8. **opencode Agent 层** ✅ 已完成：`engine/investigation/` 完整实现，AgentStepRunner、context_pack、role_runners 正常工作。
+9. **Ground Truth Pipeline**：从 PubPeer ground truth 提炼通用检测原语的 5 阶段 pipeline（parser → mapper → gap_analyzer → design_spec → anti_overfit）。paper2 数据已就绪。
 
 **后续优先级**：
 

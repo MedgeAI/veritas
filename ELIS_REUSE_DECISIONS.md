@@ -1,10 +1,10 @@
 # ELIS `system_modules` 可复用点梳理
 
 > 生成日期：2026-06-15
-> 决策完成：2026-06-15（grill-me 会话）
+> 更新校准：2026-06-18（P0 模块已全部落地）
 > 约束来源：`AGENTS.md` § 当前内测增强路线 + § 第三方仓库使用原则
 
-> 状态校准：本文记录“复用决策”和“落地计划”，不是当前已完成实现清单。当前代码仍使用 first-party OpenCV panel extraction 和 ORB/SIFT copy-move 过渡实现；ELIS adapter 尚未替换主链路。
+> 状态校准：P0 四个模块（YOLOv5 panel-extractor、RootSIFT+MAGSAC++ copy-move、SILA dense、TruFor skip-only）已全部集成到主链路。本文档记录历史决策和 P1 后续规划。
 
 ---
 
@@ -18,77 +18,46 @@
 
 ---
 
-## 当前 Veritas 视觉取证能力基线
+## 当前 Veritas 视觉取证能力基线（P0 已落地）
 
-| tool_id | 实现位置 | 算法 | 局限 |
+| tool_id | 实现位置 | 算法 | 状态 |
 |---|---|---|---|
-| `image.exact_duplicates` | 字节哈希 | 只能检测完全相同的文件 |
-| `image.similarity_candidates` | `engine/static_audit/tools/image_similarity.py` | dHash 64bit 全局感知哈希 | 裁剪/旋转/对比度调整均无法检测 |
-| `visual.panel_extraction` | `engine/static_audit/tools/panel_extraction.py` | OpenCV Canny + 轮廓边缘检测 | 无 panel 分类能力；复杂布局易失败；**将被删除** |
-| `visual.copy_move` | `engine/static_audit/tools/copy_move_detection.py` | ORB/SIFT + BFMatcher + RANSAC | 无翻转检测；精度低；**ORB 路径将被删除** |
-| `visual.finding_pipeline` | `engine/static_audit/tools/visual_finding_pipeline.py` | 聚合 relationships → findings → clusters → review queue | 已有完整 pipeline，新模块只需接入 relationship 输出 |
-
-**TruFor（深度学习伪造检测）和跨论文 CBIR 检索当前完全空白。**
+| `visual.panel_extraction` | `engine/static_audit/tools/panel_extraction.py` | YOLOv5（ELIS panel-extractor） | ✅ 已替换 OpenCV |
+| `visual.copy_move` | `engine/static_audit/tools/copy_move_detection.py` | RootSIFT + MAGSAC++（ELIS keypoint） | ✅ 已替换 ORB/BFMatcher |
+| `visual.copy_move_dense` | `engine/static_audit/tools/sila_dense.py` | SILA Zernike/PCT/FMT（Docker） | ✅ 已接入 |
+| `visual.tru_for` | `engine/static_audit/tools/tru_for.py` | SegFormer-B2 + Noiseprint++ | ✅ skip-only 已接入 |
+| `visual.overlap_reuse` | `engine/static_audit/tools/overlap_reuse.py` | Tile-level dHash + RootSIFT+MAGSAC++ | ✅ P1 新增 |
+| `visual.provenance_graph` | `engine/static_audit/tools/provenance_graph.py` | SSCD + RootSIFT+MAGSAC++ | ✅ 已接入 |
+| `visual.image_quality` | `engine/static_audit/tools/image_quality.py` | 像素统计异常检测 | ✅ 已接入 |
+| `image.exact_duplicates` | 字节哈希 | 完全相同文件检测 | ✅ baseline |
+| `image.similarity_candidates` | `engine/static_audit/tools/image_similarity.py` | dHash 64bit 全局感知哈希 | ✅ agent-selectable |
+| `visual.finding_pipeline` | `engine/static_audit/tools/visual_finding_pipeline.py` | 聚合 relationships → findings → clusters → review queue | ✅ 已接入 overlap_reuse |
 
 ---
 
-## 一、P0 已决策模块
+## 一、P0 已完成模块
 
-### 1. `panel-extractor` — YOLOv5 panel 检测 + 分类 ✅ 已决策接入，待落地
+### 1. `panel-extractor` — YOLOv5 panel 检测 + 分类 ✅ 已落地
 
 - **位置**：`third_party/elis/system_modules/panel-extractor/`
-- **决策**：
-  - ✅ **接入方向已决策**，优先级 P0 第 1 位
-  - ✅ **YOLOv5 完全替换 OpenCV**，删除 OpenCV panel 提取代码（Q6=A，OpenCV 效果差，不保留 fallback）
-  - ✅ `PanelEvidence` schema 增加 `panel_type` 字段
-  - ✅ **全部重写测试**，用 YOLOv5 真实行为生成 golden fixture（Q8=A）
-- **计划改动**：
-  - 重写 `engine/static_audit/tools/panel_extraction.py`，内部调 YOLOv5 `extract.run()`
-  - `PanelEvidence` 增加 `panel_type: Optional[str]`（enum: `blots` / `graphs` / `microscopy` / `body_imagery` / `flow_cytometry` / `unknown`）
-  - 删除 OpenCV Canny/contour/filter_contours 代码
-  - 删除/重写 `tests/unit/test_panel_extraction.py` 和 `tests/unit/test_visual_fixtures.py` 中绑定 OpenCV 行为的测试
+- **状态**：✅ 已集成。`panel_extraction.py` 通过 subprocess 调用 YOLOv5，`PanelEvidence` 含 `panel_type` 字段。
+- **历史决策**：YOLOv5 完全替换 OpenCV（Q6=A）；全部重写测试。
 
-### 2. `copy-move-detection-keypoint` — RootSIFT + MAGSAC++ ✅ 已决策接入，待落地
+### 2. `copy-move-detection-keypoint` — RootSIFT + MAGSAC++ ✅ 已落地
 
 - **位置**：`third_party/elis/system_modules/copy-move-detection-keypoint/`
-- **决策**：
-  - ✅ **接入方向已决策**，优先级 P0 第 2 位
-  - ✅ **升级默认**：默认 method 改为 RootSIFT+MAGSAC++
-  - ✅ **直接删除 ORB 代码路径**，不保留 deprecated（Q4=C → Q11=D）
-  - ✅ `image_relationship` schema 增加 `flip_detected: bool` 字段
-- **计划改动**：
-  - 重写 `engine/static_audit/tools/copy_move_detection.py`，内部调 ELIS keypoint 模块
-  - 删除 `_detect_keypoints_descriptors` 中 ORB 分支和 `_match_descriptors` 中 BFMatcher 逻辑
-  - `param_schema` 的 `method` enum 删除 `"orb"`
-  - registry 默认 `method` 改为 `"rootsift_magsac"`
-  - 增加 `flip_detected` 到 `image_relationship` schema 和 `visual_finding_pipeline`
+- **状态**：✅ 已集成。`copy_move_detection.py` 通过 `_elis_copy_move_runner` 调用。ORB 代码路径已删除，`flip_detected` 字段已加入 schema。
+- **历史决策**：默认 method 改为 `rootsift_magsac`；直接删除 ORB 代码路径。
 
-### 3. `copy-move-detection` (SILA) — 非 keypoint 方法 ✅ 已决策接入，待落地
+### 3. `copy-move-detection` (SILA) — 非 keypoint 方法 ✅ 已落地
 
 - **位置**：`third_party/elis/system_modules/copy-move-detection/`
-- **决策**：
-  - ✅ **接入方向已决策**，优先级 P0 第 3 位（Q7=A）
-  - ✅ 与 keypoint 版一起进入 P0
-- **计划改动**：
-  - 新增 `engine/static_audit/tools/copy_move_dense.py`
-  - registry 注册 `tool_id="visual.copy_move_dense"`，`agent_selectable=True`
-  - 输出 relationship 格式与 `visual.copy_move` 对齐
-  - `visual_finding_pipeline` 增加对 dense 方法 relationship 的归一化消费
+- **状态**：✅ 已集成。`sila_dense.py` 通过 Docker 运行。`visual.copy_move_dense` tool_id 已注册。
 
-### 4. `TruFor` — 深度学习伪造检测 ✅ 已决策接入（skip-only），待落地
+### 4. `TruFor` — 深度学习伪造检测 ✅ 已落地（skip-only）
 
 - **位置**：`third_party/elis/system_modules/TruFor/`
-- **决策**：
-  - ✅ **接入方向已决策**，优先级 P0 第 4 位（最后）
-  - ✅ **无 GPU 直接 skip 写入 limitations**，不实际跑推理（Q5=A）
-  - ✅ 只写 adapter + 注册 tool_id + pipeline 集成
-- **计划改动**：
-  - 新增 `engine/static_audit/tools/tru_for.py`
-  - registry 注册 `tool_id="visual.tru_for"`，`agent_selectable=True`
-  - adapter 检测 GPU 可用性：无 GPU → 返回 `_empty_result("not_available", ...)`
-  - 输出 schema 预留 `forged_region_evidence`（localization_map_path / integrity_score / reliability_map_path）
-  - `visual_finding_pipeline` 增加对 `forged_region_evidence` 的归一化消费
-  - 内测验证目标：schema 正确、registry 可发现、pipeline 能消费空结果、limitations 正确写入
+- **状态**：✅ 已集成。`tru_for.py` 检测 GPU 可用性，无 GPU 时 skip 写入 limitations。`forged_region_evidence` schema 已实现。
 
 ---
 
@@ -149,52 +118,34 @@
 
 ---
 
-## 六、落地顺序与任务清单
+## 六、落地顺序（P0 全部完成）
 
-落地顺序：**先补 current visual v1 golden/失败隔离测试 → YOLOv5 → keypoint/SILA → TruFor skip-only**（Q9=A 的工程化版本）。
+P0 落地顺序：**先补 visual v1 golden/失败隔离测试 → YOLOv5 → keypoint/SILA → TruFor skip-only**。
 
-理由：YOLOv5 改变 `PanelEvidence` schema（加 `panel_type`），下游 copy-move 和 finding pipeline 都要适配。先稳定 schema，一次改到位，避免返工。
+所有 P0 Phase 1-4 任务已全部完成（2026-06-18 校准）。
 
-### Phase 1: YOLOv5 Panel Extraction
+### Phase 1: YOLOv5 Panel Extraction ✅
 
-- [ ] 1.1 阅读 `third_party/elis/system_modules/panel-extractor/` 源码，确认 Python API 和输出格式
-- [ ] 1.2 `scripts/download_models.sh` → 改为 `Makefile` target `download-models`
-- [ ] 1.3 `PanelEvidence` schema 增加 `panel_type: Optional[str]` 字段（更新 `visual_schemas.py`）
-- [ ] 1.4 重写 `engine/static_audit/tools/panel_extraction.py`，内部调 YOLOv5
-- [ ] 1.5 删除 OpenCV Canny/contour/filter_contours 代码
-- [ ] 1.6 重写 `tests/unit/test_panel_extraction.py` 和 `tests/unit/test_visual_fixtures.py`
-- [ ] 1.7 适配下游：`copy_move_detection.py` 和 `visual_finding_pipeline.py` 适配新 `PanelEvidence`
-- [ ] 1.8 验证：`make test` 全部通过
+- [x] 1.1 阅读 ELIS panel-extractor 源码
+- [x] 1.2 Makefile target `download-models`
+- [x] 1.3 `PanelEvidence` 增加 `panel_type` 字段
+- [x] 1.4 重写 `panel_extraction.py` 调 YOLOv5
+- [x] 1.5 删除 OpenCV 代码
+- [x] 1.6 重写测试
+- [x] 1.7 适配下游
+- [x] 1.8 `make test` 通过
 
-### Phase 2: Keypoint Copy-Move 增强
+### Phase 2: Keypoint Copy-Move 增强 ✅
 
-- [ ] 2.1 阅读 `third_party/elis/system_modules/copy-move-detection-keypoint/` 源码，确认 RootSIFT+MAGSAC++ API
-- [ ] 2.2 重写 `engine/static_audit/tools/copy_move_detection.py`
-- [ ] 2.3 删除 ORB/BFMatcher/RANSAC 代码路径
-- [ ] 2.4 `image_relationship` schema 增加 `flip_detected: bool`
-- [ ] 2.5 registry 更新：`method` enum 删除 `"orb"`，默认改为 `"rootsift_magsac"`
-- [ ] 2.6 重写 `tests/unit/test_copy_move_detection.py`
-- [ ] 2.7 `visual_finding_pipeline.py` 适配 `flip_detected` 字段
-- [ ] 2.8 验证：`make test` 全部通过
+- [x] 2.1-2.8 全部完成
 
-### Phase 3: SILA Dense Copy-Move
+### Phase 3: SILA Dense Copy-Move ✅
 
-- [ ] 3.1 阅读 `third_party/elis/system_modules/copy-move-detection/` 源码，确认 Zernike/PCT/FMT API
-- [ ] 3.2 新增 `engine/static_audit/tools/copy_move_dense.py`
-- [ ] 3.3 registry 注册 `tool_id="visual.copy_move_dense"`
-- [ ] 3.4 `visual_finding_pipeline.py` 增加 dense relationship 归一化
-- [ ] 3.5 新增 `tests/unit/test_copy_move_dense.py`
-- [ ] 3.6 验证：`make test` 全部通过
+- [x] 3.1-3.6 全部完成
 
-### Phase 4: TruFor Adapter (skip-only)
+### Phase 4: TruFor Adapter (skip-only) ✅
 
-- [ ] 4.1 阅读 `third_party/elis/system_modules/TruFor/` 源码，确认推理 API 和输出格式
-- [ ] 4.2 `forged_region_evidence` schema 设计（`visual_schemas.py`）
-- [ ] 4.3 新增 `engine/static_audit/tools/tru_for.py`（adapter + GPU 检测 + skip 语义）
-- [ ] 4.4 registry 注册 `tool_id="visual.tru_for"`，`agent_selectable=True`
-- [ ] 4.5 `visual_finding_pipeline.py` 增加 `forged_region_evidence` 归一化
-- [ ] 4.6 新增 `tests/unit/test_tru_for.py`（验证 skip 语义和空结果 schema）
-- [ ] 4.7 验证：`make test` 全部通过；`make audit` 跑通 happy path，TruFor 写入 limitations
+- [x] 4.1-4.7 全部完成
 
 ---
 
