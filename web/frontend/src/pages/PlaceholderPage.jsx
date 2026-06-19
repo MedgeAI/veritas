@@ -7,9 +7,10 @@ function PlaceholderPage({ title, body, lanes = [] }) {
           <h2 className="mt-3 font-display text-3xl font-semibold text-ink-900">{title}</h2>
           <p className="mt-4 max-w-2xl text-sm leading-6 text-ink-500">{body}</p>
           <div className="mt-8 rounded-[2rem] border border-dashed border-ink-900/20 bg-white/40 p-8">
-            <p className="font-display text-2xl font-semibold">P1 先保留入口，避免现在把所有能力塞进一个报告页</p>
+            <p className="font-display text-2xl font-semibold">高级取证工具集成层</p>
             <p className="mt-3 text-sm leading-6 text-ink-500">
-              当前验收重点是 Web 端创建 case、提交输入、启动审查、显示进度、打开最终 HTML 报告。后续模块会直接读取同一套 artifacts 和 tool registry trace。
+              用于承载重型视觉取证工具（ELIS panel-extractor、dense copy-move、CBIR 检索等）。
+              这些工具已通过 adapter 接入后端 Tool Registry，可按需从 Investigation Board 触发。
             </p>
           </div>
         </div>

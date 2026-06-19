@@ -269,6 +269,17 @@ function VisualForensicsPage({ selectedCase }) {
       </section>
 
       {/* SSCD Pre-filter: Two-step flow */}
+      {embeddingStatusBlocked ? (
+        <section className="dossier-panel rounded-[2rem] p-6">
+          <h3 className="section-title flex items-center gap-2">
+            <FiCpu className="text-ink-500" />
+            SSCD 相似 Panel 预筛
+          </h3>
+          <p className="mt-3 text-sm text-ink-400">
+            SSCD embedding 模型未部署，此功能暂不可用。当前使用 copy-move / overlap-reuse / exact duplicate 作为主要视觉取证手段。
+          </p>
+        </section>
+      ) : (
       <section className="dossier-panel rounded-[2rem] p-6">
         <h3 className="section-title flex items-center gap-2">
           <FiCpu className="text-ink-500" />
@@ -282,11 +293,7 @@ function VisualForensicsPage({ selectedCase }) {
         <div className="mt-4 flex flex-wrap items-center gap-4">
           {/* Embedding status */}
           <div className="text-sm">
-            {embeddingStatusBlocked ? (
-              <span className="text-risk-700">
-                索引不可用：{describeEmbeddingStatus(embeddingStatus, 'embedding backend unavailable')}
-              </span>
-            ) : embeddingStatus?.status === 'partial' ? (
+            {embeddingStatus?.status === 'partial' ? (
               <span className="text-amber-700">
                 部分索引 {indexedPanelCount}
                 {embeddingStatus.expected_count ? ` / ${embeddingStatus.expected_count}` : ''} 个 panel
@@ -388,6 +395,7 @@ function VisualForensicsPage({ selectedCase }) {
           </p>
         )}
       </section>
+      )}
 
       <ManualInvestigationPanel
         selectedPanelList={selectedPanelList}

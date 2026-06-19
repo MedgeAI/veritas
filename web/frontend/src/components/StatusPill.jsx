@@ -1,7 +1,9 @@
 const TONES = {
   ok: 'border-signal-500/25 bg-signal-100 text-signal-700',
   warn: 'border-caution-500/25 bg-caution-100 text-caution-700',
+  warning: 'border-caution-500/25 bg-caution-100 text-caution-700',
   risk: 'border-risk-500/25 bg-risk-100 text-risk-700',
+  critical: 'border-risk-500/40 bg-risk-100 text-risk-700',
   neutral: 'border-ink-900/10 bg-white/55 text-ink-500',
   running: 'border-signal-500/25 bg-signal-100 text-signal-700',
 };
