@@ -125,12 +125,10 @@ Agent 调用层最新状态：`engine/investigation/context_pack.py` 为 materia
 
 当前代码状态需要区分清楚：
 
-- 已落地：canonical `figure_evidence` / `panel_evidence` / `visual_finding` / `image_relationship` schema、`visual.panel_extraction`、`visual.copy_move`、`visual.finding_pipeline`、HTML Visual Evidence Package 和 Web Visual Forensics Gallery。
-- 当前 `visual.panel_extraction` 仍是 first-party OpenCV/Canny/contour 启发式实现，失败时会创建 whole-figure fallback panel。
-- 当前 `visual.copy_move` 仍是 first-party ORB/SIFT + BFMatcher + RANSAC 实现，由 AgentInvestigationPlanner 可选触发；不是固定 baseline。
+- 已落地：canonical `figure_evidence` / `panel_evidence` / `visual_finding` / `image_relationship` schema、`visual.panel_extraction`（YOLOv5 adapter）、`visual.copy_move`（RootSIFT+MAGSAC++ adapter）、`visual.finding_pipeline`、`visual.overlap_reuse`、HTML Visual Evidence Package 和 Web Visual Forensics Gallery（含 overlap graph + detail drawer）。
 - 当前 `visual.copy_move_dense` / SILA dense 是重型可选调查工具，支持 Web Visual Forensics Gallery 中按选中 panel 手动触发；不得在 `audit-paper` baseline 中对所有 panels 无条件全量运行。
-- 已决策但未落地：用 ELIS `panel-extractor` / RootSIFT+MAGSAC++ / SILA dense copy-move / TruFor / CBIR 等 adapter 替换或增强现有传统 CV 路径。
-- 文档中提到的 TruFor、CBIR/Milvus、YOLOv5/RootSIFT 能力在进入 `engine/tools/registry.py` 并产出 fixture-backed artifact 前，不得写成稳定主链路。
+- `visual.overlap_reuse` 已从 baseline 移除，仅通过 Agent investigation 或手动选择触发。数据契约已修复：ELIS runner 输出字段与下游消费者对齐，shared_area 作为 homography 缺失时的 fallback。
+- 文档中提到的 TruFor、CBIR/Milvus 能力在进入 `engine/tools/registry.py` 并产出 fixture-backed artifact 前，不得写成稳定主链路。
 
 目标能力：
 
@@ -163,27 +161,27 @@ PDF / MinerU images
 - **ELIS adapter 已替换传统 CV 实现**：YOLOv5 panel extraction、RootSIFT+MAGSAC++ copy-move、TruFor skip-only、SILA dense 均已通过 subprocess adapter 接入主链路。`visual.overlap_reuse` 为 P1 新增工具。详见 [`ELIS_REUSE_DECISIONS.md`](ELIS_REUSE_DECISIONS.md)。
 - **详见 [`ELIS_REUSE_DECISIONS.md`](ELIS_REUSE_DECISIONS.md)**。
 
-## 当前 1 周 Demo 方向
+## 当前 Demo / 汇报重点
 
-完整 demo 的目标仍然是：
+**当前可演示能力**（`make audit PAPER_DIR=<dir> CASE_ID=<case_id>`）：
 
 ```text
-veritas.yml / veritas.json
--> PDF 解析
--> Agent claim-to-code mapping
--> precheck
--> subprocess eval run
--> claim match
--> vLLM 图表初筛
--> Markdown/PDF 报告
+论文 PDF + Source Data 输入
+-> MinerU PDF 解析（evidence ledger）
+-> Source Data 内部一致性检测（duplicate columns / fixed difference / fixed ratio / pair forensics / cross-sheet）
+-> PaperFraud rule match
+-> 视觉取证全链路：panel extraction (YOLOv5) -> exact duplicate -> copy-move (RootSIFT+MAGSAC++) -> overlap/reuse (tile dHash + keypoint verification) -> TruFor skip-only
+-> Agent investigation（最多 3 轮，可选触发 visual.overlap_reuse / image_similarity 等）
+-> HTML 报告（Top-N findings、证据定位、良性解释、人工复核清单）
+-> Web 工作台（Visual Forensics Gallery、Overlap Graph、Detail Drawer）
 ```
 
-但实现顺序调整为：
+**paper1 全量审计验证**：257 figures、811 panels、493 pair forensics findings、14 分钟完成。394 个测试全部通过（uv 环境 Python 3.12）。
 
-1. 先验证论文解析和 evidence ledger
-2. 再验证 opencode Agent 能否做 claim-to-code mapping
-3. 再补 `veritas.yml`
-4. 再补 subprocess runtime 和报告
+**演示注意事项**：
+- 报告呈现的是结构化证据和人工复核任务，不是最终科研诚信判定
+- TruFor / SILA dense / CBIR 为重型可选工具，演示时可展示入口但不强求全量运行
+- `visual.overlap_reuse` 仅在 investigation 中触发，不在 baseline 全量运行
 
 ## 开发前先读
 
@@ -392,31 +390,32 @@ tests/        单测、集成测试和 e2e 测试
 上文”当前范围”是产品边界，本节只补工程执行口径：
 
 - **P0 已完成**：`audit-paper` happy path 已稳定走通，能产出完整的结构化证据和报告。paper1 全量审计验证通过。
-- **P1 是当前重点**：ELIS-style 视觉取证（overlap/reuse detection）、Web P1 工作台、可靠性和关键差异化。
+- **P1 当前重点**：面向老板演示和内测。ELIS-style 视觉取证（overlap/reuse detection 已完成）、Web P1 工作台、可靠性和关键差异化。
+- **PubPeer Ground Truth Pipeline**：代码框架已就绪（`engine/ground_truth/`），演示后继续迭代。
 - `precheck` / `run` / `report` 已存在，但不要因此把当前产品表述成完整 SaaS 或完整 runtime 审查系统。
 - PI / 课题组是第一付费方和主要报告读者；报告要保持谨慎风险语言和人工复核入口。
 
 ## 当前开发优先级
 
-**P1 优先级（当前阶段）**：
+**P1 优先级（当前阶段 — 面向演示和内测）**：
 
-1. **视觉 overlap/reuse detection** ✅ 已实现：`visual.overlap_reuse` tool 已注册，tile-level dHash retrieval + RootSIFT+MAGSAC++ verification，产出 `visual/overlap_reuse.json`，5 个 synthetic fixtures，19 个单测通过。详见 `VISUAL_OVERLAP_PRD.md`。
+1. **视觉 overlap/reuse detection** ✅ 已实现：`visual.overlap_reuse` tool 已注册，tile-level dHash retrieval + RootSIFT+MAGSAC++ verification，产出 `visual/overlap_reuse.json`，5 个 synthetic fixtures，19 个单测通过。数据契约已修复，investigation dispatch 已接入。详见 `VISUAL_OVERLAP_PRD.md`。
 2. **ELIS adapter 接入** ✅ 已完成：panel-extractor (YOLOv5)、copy-move keypoint (RootSIFT+MAGSAC++)、copy-move dense (SILA Docker)、TruFor (skip-only) 均已通过 subprocess adapter 接入主链路。详见 `ELIS_REUSE_DECISIONS.md`。
 3. **Tool Registry 扩展** ✅ 已完成：所有 ELIS-style 工具已注册到 `engine/tools/registry.py`，`visual.overlap_reuse` 为 agent-selectable。
-4. **视觉 fixture/golden 测试**：补强 visual v1 的 fixture/golden 测试，尤其是 panel ground truth、copy-move 负例、overlap 正负例、失败隔离和 strict evidence refs。
-5. **Source Data pattern_strength 增强** ✅ 已完成：`fixed_difference` / `fixed_ratio` 已有 `pattern_strength` 字段（complete/strong/moderate/weak），HTML 报告已渲染。
-6. **Web P1 工作台**：完善 Web Visual Forensics Gallery，支持 overlap graph、relationship detail drawer、manual review workflow。
-7. **investigation 产物整合** ✅ 已完成：`_read_overlap_reuse_outputs()` 合并 baseline + investigation 产出，通过 `seen_pairs` 去重。
-8. **opencode Agent 层** ✅ 已完成：`engine/investigation/` 完整实现，AgentStepRunner、context_pack、role_runners 正常工作。
-9. **Ground Truth Pipeline**：从 PubPeer ground truth 提炼通用检测原语的 5 阶段 pipeline（parser → mapper → gap_analyzer → design_spec → anti_overfit）。paper2 数据已就绪。
+4. **Source Data pattern_strength 增强** ✅ 已完成：`fixed_difference` / `fixed_ratio` 已有 `pattern_strength` 字段（complete/strong/moderate/weak），HTML 报告已渲染。
+5. **investigation 产物整合** ✅ 已完成：`_read_overlap_reuse_outputs()` 合并 baseline + investigation 产出，通过 `seen_pairs` 去重。
+6. **opencode Agent 层** ✅ 已完成：`engine/investigation/` 完整实现，AgentStepRunner、context_pack、role_runners 正常工作。
+7. **Web P1 工作台**：完善 Web Visual Forensics Gallery，支持 overlap graph、relationship detail drawer、manual review workflow。
+8. **视觉 fixture/golden 测试**：补强 visual v1 的 fixture/golden 测试，尤其是 panel ground truth、copy-move 负例、overlap 正负例、失败隔离和 strict evidence refs。
 
-**后续优先级**：
+**P2 — 演示后推进**：
 
-8. 验证 opencode SDK / opencode 风格 Agent 能否接入 claim-to-code mapping。
-9. 定义 `veritas.yml` schema，YAML 主、JSON 兼容。
-8. 增强 subprocess runtime，产出结构化 execution evidence。
-9. 接百炼 Qwen vLLM 做图表初筛。
-10. 生成 Markdown/PDF 报告，支持作者视图和 PI 视图。
+9. **Ground Truth Pipeline**：从 PubPeer ground truth 提炼通用检测原语的 5 阶段 pipeline（parser → mapper → gap_analyzer → design_spec → anti_overfit）。paper2 数据已就绪，代码框架已实现（`engine/ground_truth/`），待演示后继续迭代。
+10. 验证 opencode SDK / opencode 风格 Agent 能否接入 claim-to-code mapping。
+11. 定义 `veritas.yml` schema，YAML 主、JSON 兼容。
+12. 增强 subprocess runtime，产出结构化 execution evidence。
+13. 接百炼 Qwen vLLM 做图表初筛。
+14. 生成 Markdown/PDF 报告，支持作者视图和 PI 视图。
 
 加入真实外部集成时，如果短期阻塞 demo，先做 typed adapter + mock fixture，并在文档中写清缺口。
 
