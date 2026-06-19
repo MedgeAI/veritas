@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "fixture_type": "synthetic_overlap_flip",
+  "expected_overlap": true,
+  "expected_transform_type": "flip_horizontal",
+  "expected_overlap_area_ratio_source": 0.3111,
+  "expected_overlap_area_ratio_target": 0.3111,
+  "ground_truth_polygon_source": [
+    [
+      70,
+      50
+    ],
+    [
+      230,
+      50
+    ],
+    [
+      230,
+      190
+    ],
+    [
+      70,
+      190
+    ]
+  ],
+  "ground_truth_polygon_target": [
+    [
+      40,
+      40
+    ],
+    [
+      200,
+      40
+    ],
+    [
+      200,
+      180
+    ],
+    [
+      40,
+      180
+    ]
+  ],
+  "panels": {
+    "panel_a": {
+      "width": 300,
+      "height": 240
+    },
+    "panel_b": {
+      "width": 300,
+      "height": 240
+    }
+  }
+}

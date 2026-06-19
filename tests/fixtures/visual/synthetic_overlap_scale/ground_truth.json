@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0",
+  "fixture_type": "synthetic_overlap_scale",
+  "expected_overlap": true,
+  "expected_transform_type": "affine_scale",
+  "scale_factor": 0.6,
+  "expected_overlap_area_ratio_source": 0.112,
+  "expected_overlap_area_ratio_target": 0.112,
+  "ground_truth_polygon_source": [
+    [
+      60,
+      50
+    ],
+    [
+      220,
+      50
+    ],
+    [
+      220,
+      190
+    ],
+    [
+      60,
+      190
+    ]
+  ],
+  "ground_truth_polygon_target": [
+    [
+      50,
+      60
+    ],
+    [
+      146,
+      60
+    ],
+    [
+      146,
+      144
+    ],
+    [
+      50,
+      144
+    ]
+  ],
+  "panels": {
+    "panel_a": {
+      "width": 300,
+      "height": 240
+    },
+    "panel_b": {
+      "width": 300,
+      "height": 240
+    }
+  }
+}
