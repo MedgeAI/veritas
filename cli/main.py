@@ -4,10 +4,10 @@ import argparse
 from pathlib import Path
 import sys
 
-
 if __package__ in {None, ""}:
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from engine._logging import configure_logging
 from cli.commands import audit_paper, precheck, report, run
 
 
@@ -115,6 +115,7 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    configure_logging()
     args = build_parser().parse_args(argv)
     if args.command == "run":
         return run.handle(args.manifest, args.output_dir, args.role)
