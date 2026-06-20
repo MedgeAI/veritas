@@ -555,6 +555,54 @@ def run_investigation_tool_action(
     return step, [str(output)]
 
 
+def _build_dependency_layers(roles_to_run: list[tuple]) -> list[list[tuple]]:
+    """根据 input_artifacts 构建依赖分层，确保前置角色先执行。
+
+    例如：
+    - claim_extractor 无依赖 → Layer 1
+    - source_data_auditor 依赖 agent_claim_extractor.json → Layer 2
+    - judge 依赖 agent_claim_extractor.json + agent_source_data_auditor.json → Layer 3
+
+    返回按层级排序的列表，每层内部可并行执行。
+    """
+    # 构建角色名称到 role_data 的映射
+    role_map = {rd[0].role_id: rd for rd in roles_to_run}
+
+    # 构建依赖图：role_id -> 依赖的 role_ids
+    deps = {}
+    for role, _, _ in roles_to_run:
+        role_deps = []
+        for artifact in role.input_artifacts:
+            # 检查 artifact 是否是其他角色的输出
+            for other_role, _, _ in roles_to_run:
+                if other_role.output_artifact == artifact:
+                    role_deps.append(other_role.role_id)
+        deps[role.role_id] = set(role_deps)
+
+    # 分层：每次取出无依赖的角色组成一层，然后从依赖图中移除
+    layers = []
+    remaining = set(deps.keys())
+
+    while remaining:
+        # 找出所有依赖都已满足的角色
+        layer = []
+        for role_id in remaining:
+            if all(dep not in remaining for dep in deps[role_id]):
+                layer.append(role_id)
+
+        if not layer:
+            # 防止死循环：如果有循环依赖，把所有剩余角色放在最后一层
+            layer = list(remaining)
+
+        # 添加到层级列表
+        layers.append([role_map[rid] for rid in layer])
+
+        # 从剩余集合中移除已分层的角色
+        remaining -= set(layer)
+
+    return layers
+
+
 def run_agent_roles(
     *,
     case_id: str,
@@ -633,7 +681,7 @@ def run_agent_roles(
 
         roles_to_run.append((role, output_path, trace_path))
 
-    # Phase 2: Run roles in parallel (Strategy 1)
+    # Phase 2: Run roles in dependency order (respecting input_artifacts)
     if roles_to_run:
         def _run_single_role(role_data):
             role, output_path, trace_path = role_data
@@ -669,12 +717,16 @@ def run_agent_roles(
             )
             return step, metadata
 
-        with ThreadPoolExecutor(max_workers=len(roles_to_run)) as executor:
-            futures = {executor.submit(_run_single_role, rd): rd[0] for rd in roles_to_run}
-            for future in as_completed(futures):
-                step, metadata = future.result()
-                steps.append(step)
-                role_manifest.append(metadata)
+        # 根据 input_artifacts 构建依赖分层，按层级顺序执行
+        layers = _build_dependency_layers(roles_to_run)
+        for layer in layers:
+            # 每层内部并行执行，层间顺序执行
+            with ThreadPoolExecutor(max_workers=len(layer)) as executor:
+                futures = {executor.submit(_run_single_role, rd): rd[0] for rd in layer}
+                for future in as_completed(futures):
+                    step, metadata = future.result()
+                    steps.append(step)
+                    role_manifest.append(metadata)
 
     return steps, role_manifest
 
