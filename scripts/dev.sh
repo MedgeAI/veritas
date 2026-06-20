@@ -82,6 +82,19 @@ cmd_up() {
     log "启动 Veritas 本地开发环境"
     echo ""
 
+    # 0. 检查 ELIS provenance 镜像
+    if ! docker images | grep -q "veritas-elis-provenance.*latest"; then
+        log "构建 ELIS provenance 镜像（首次约 3 分钟）..."
+        if "$PROJECT_ROOT/scripts/build-elis-provenance.sh"; then
+            ok "ELIS provenance 镜像就绪"
+        else
+            err "ELIS provenance 镜像构建失败，provenance 功能不可用"
+            err "手动构建: make build-elis-provenance"
+        fi
+    else
+        ok "ELIS provenance 镜像已存在"
+    fi
+
     # 1. PostgreSQL + Backend
     log "启动 PostgreSQL (port $PG_PORT) + Backend (port $API_PORT)..."
     $COMPOSE up -d postgres backend
@@ -162,11 +175,18 @@ cmd_status() {
     echo "========================"
     echo ""
 
+    # ELIS Provenance
+    if docker images | grep -q "veritas-elis-provenance.*latest"; then
+        ok "ELIS provenance: 镜像就绪"
+    else
+        err "ELIS provenance: 镜像缺失 (make build-elis-provenance)"
+    fi
+
     # PostgreSQL
     if docker exec veritas-pg-dev pg_isready -U veritas >/dev/null 2>&1; then
-        ok "PostgreSQL  : 运行中 (port $PG_PORT)"
+        ok "PostgreSQL    : 运行中 (port $PG_PORT)"
     else
-        err "PostgreSQL  : 未运行"
+        err "PostgreSQL    : 未运行"
     fi
 
     # Backend

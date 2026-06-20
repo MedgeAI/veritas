@@ -41,7 +41,8 @@ FRONTEND_DIR := web/frontend
 	web-backend web-frontend web-install web-build web-preview \
 	test test-fast test-unit test-integration test-e2e test-visual test-model \
 	lint lint-python lint-web web-test \
-	clean-demo clean-cache clean-web wipe-local
+	clean-demo clean-cache clean-web wipe-local \
+	build-elis-provenance check-elis-provenance
 
 help: ## Show available commands
 	@echo "Veritas local operations"
@@ -112,6 +113,21 @@ shell: ## Enter the Docker web service shell
 
 docker-health: ## Check Docker web service health through port 80
 	@curl -sf http://127.0.0.1/api/health | $(PYTHON) -m json.tool || echo "Docker web service unavailable"
+
+# -- ELIS Provenance Container -------------------------------------------
+
+build-elis-provenance: ## Build veritas-elis-provenance Docker image from ELIS submodule
+	@./scripts/build-elis-provenance.sh
+
+check-elis-provenance: ## Check if veritas-elis-provenance image exists
+	@if docker images | grep -q "veritas-elis-provenance.*latest"; then \
+		echo "✓ veritas-elis-provenance:latest exists"; \
+		docker images | grep "veritas-elis-provenance"; \
+	else \
+		echo "✗ veritas-elis-provenance:latest not found"; \
+		echo "  Run: make build-elis-provenance"; \
+		exit 1; \
+	fi
 
 # -- Database lifecycle --------------------------------------------------
 
