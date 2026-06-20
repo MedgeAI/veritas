@@ -21,6 +21,7 @@ KNOWN_ARTIFACTS = (
     ("visual_findings", "json", "Visual Findings", "visual_findings.json"),
     ("visual_copy_move_dense", "json", "SILA Dense Copy-Move", "visual_copy_move_dense.json"),
     ("visual_overlap_reuse", "json", "Visual Overlap/Reuse", "overlap_reuse.json"),
+    ("provenance_graph", "json", "Provenance Graph (MST)", "provenance_graph.json"),
 )
 
 

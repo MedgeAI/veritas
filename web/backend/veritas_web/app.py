@@ -25,7 +25,7 @@ from .database import create_db_engine
 from .dependencies import AppDependencies, set_dependencies
 from .investigations import WebInvestigationService
 from .runner import AuditRunner
-from .routers import artifacts, cases, embeddings, investigations, review, tools, visual
+from .routers import artifacts, cases, cbir, embeddings, investigations, review, tools, visual
 from .tool_catalog import seed_tool_registry
 
 
@@ -120,6 +120,7 @@ def create_app(
     app.include_router(review.router, prefix="/api")
     app.include_router(tools.router, prefix="/api")
     app.include_router(embeddings.router, prefix="/api")
+    app.include_router(cbir.router, prefix="/api")
 
     # --- Health endpoint -----------------------------------------------
     @app.get("/api/health")

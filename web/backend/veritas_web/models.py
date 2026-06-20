@@ -353,6 +353,8 @@ class ImageEmbeddingModel(Base):
     __tablename__ = "image_embeddings"
     __table_args__ = (
         Index("idx_image_embeddings_case", "case_id"),
+        Index("idx_image_embeddings_level", "case_id", "embedding_level"),
+        UniqueConstraint("case_id", "panel_id", "embedding_level", name="uq_image_embedding_case_panel_level"),
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -361,6 +363,9 @@ class ImageEmbeddingModel(Base):
     figure_id = Column(String(128), nullable=True)
     image_path = Column(Text, nullable=False)
     embedding = Column(JSON, nullable=True)  # 512-dim float list; pgvector Vector in production
+    embedding_level = Column(String(16), default="panel", nullable=False)  # "panel" or "figure"
+    embedding_model = Column(String(64), default="sscd_disc_mixup", nullable=False)
+    embedding_dim = Column(Integer, default=512, nullable=False)
     indexed_at = Column(String(32), default=utc_now)
 
     case = relationship("CaseModel", back_populates="image_embeddings")
