@@ -282,23 +282,6 @@ function VisualForensicsPage({ selectedCase }) {
         records={investigationRecords}
       />
 
-      {/* Figures Grid */}
-      <section className="dossier-panel rounded-[2rem] p-6">
-        <h3 className="section-title">Figures &amp; Panels</h3>
-        <p className="mt-2 text-sm text-ink-500">PDF 提取的 figure 和检测到的 panel。</p>
-        {figures.length === 0 ? (
-          <p className="mt-4 text-sm text-ink-500">未提取到 figure 级图像证据。</p>
-        ) : (
-          <FigureGrid
-            figures={figures}
-            panels={panels}
-            caseId={selectedCase.case_id}
-            selectedPanelIds={selectedPanelIds}
-            onTogglePanel={togglePanelSelection}
-          />
-        )}
-      </section>
-
       {/* Overlap Reuse Graph */}
       {overlapRelationships.length > 0 && (
         <section className="dossier-panel rounded-[2rem] p-6">
@@ -476,71 +459,6 @@ function MetricCard({ label, value }) {
   );
 }
 
-function FigureGrid({ figures, panels, caseId, selectedPanelIds, onTogglePanel }) {
-  const panelsByFigure = useMemo(() => {
-    const map = {};
-    for (const panel of panels) {
-      const parent = panel.parent_figure_id;
-      if (!map[parent]) map[parent] = [];
-      map[parent].push(panel);
-    }
-    return map;
-  }, [panels]);
-
-  return (
-    <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
-      {figures.map((figure) => {
-        const figurePanels = panelsByFigure[figure.figure_id] || [];
-        return (
-          <div key={figure.figure_id} className="rounded-2xl border border-ink-900/8 bg-paper-100/70 p-4">
-            <img
-              src={visualImageUrl(caseId, figure.source_image_path)}
-              alt={figure.label}
-              className="h-[180px] w-full rounded-xl object-cover border border-ink-900/8 bg-ink-50"
-              loading="lazy"
-              onError={(e) => { e.target.style.display = 'none'; }}
-            />
-            <h4 className="mt-3 font-semibold text-ink-900">{figure.label}</h4>
-            <p className="mt-1 text-xs text-ink-500 line-clamp-2">{figure.caption}</p>
-            <p className="mt-2 font-mono text-[10px] text-ink-300">
-              {figure.figure_id} | panels: {figure.panel_count}
-            </p>
-            {figurePanels.length > 0 && (
-              <div className="mt-3 grid grid-cols-3 gap-2">
-                {figurePanels.slice(0, 9).map((panel) => (
-                  <label
-                    key={panel.panel_id}
-                    className={`relative block cursor-pointer rounded-lg border p-1 transition ${
-                      selectedPanelIds.has(panel.panel_id)
-                        ? 'border-signal-500 bg-signal-100/40'
-                        : 'border-ink-900/8 bg-paper-100/50'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      className="absolute left-2 top-2 h-4 w-4 accent-signal-700"
-                      checked={selectedPanelIds.has(panel.panel_id)}
-                      onChange={() => onTogglePanel(panel.panel_id)}
-                    />
-                    <img
-                      src={visualImageUrl(caseId, panel.crop_path)}
-                      alt={panel.label}
-                      className="h-[60px] w-full rounded object-cover bg-ink-50"
-                      loading="lazy"
-                      onError={(e) => { e.target.style.display = 'none'; }}
-                    />
-                    <p className="mt-1 text-center text-[10px] font-semibold">{panel.label}</p>
-                  </label>
-                ))}
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
 function InvestigationResults({ results, caseId }) {
   if (!results.length) {
     return null;
@@ -672,10 +590,10 @@ function FindingCards({ findings, panels, caseId }) {
               score: {(finding.score || 0).toFixed(3)} | source: {finding.source_panel_id} | target: {finding.target_panel_id}
             </p>
 
-            {/* Panel comparison */}
-            <details className="mt-3">
-              <summary className="cursor-pointer text-sm font-semibold text-ink-700">Panel 比较</summary>
-              <div className="mt-2 grid grid-cols-2 gap-3">
+            {/* Panel comparison (always visible for immediate evidence) */}
+            <div className="mt-4 rounded-xl border border-ink-900/8 bg-white/60 p-3">
+              <p className="mb-2 text-xs font-semibold text-ink-600">证据对比</p>
+              <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-xs text-ink-400">Source: {finding.source_panel_id}</p>
                   <img
@@ -702,7 +620,7 @@ function FindingCards({ findings, panels, caseId }) {
                   <p className="text-xs text-ink-400">Overlay: <span className="font-mono">{finding.overlay_path}</span></p>
                 </div>
               )}
-            </details>
+            </div>
 
             {/* Benign explanations */}
             {finding.benign_explanations && finding.benign_explanations.length > 0 && (
