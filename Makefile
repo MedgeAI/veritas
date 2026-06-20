@@ -129,6 +129,11 @@ check-elis-provenance: ## Check if veritas-elis-provenance image exists
 		exit 1; \
 	fi
 
+# -- Tool Availability Check ----------------------------------------------
+
+check-tools: ## Check all tool availability (Docker images, model weights, dependencies, GPU)
+	@./scripts/dev.sh check-tools
+
 # -- Database lifecycle --------------------------------------------------
 
 db-up: ## Start PostgreSQL with pgvector via Docker Compose

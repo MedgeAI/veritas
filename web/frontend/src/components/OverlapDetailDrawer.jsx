@@ -1,3 +1,4 @@
+import { FiAlertTriangle, FiX } from 'react-icons/fi';
 import { visualImageUrl } from '../services/api.js';
 
 /**
@@ -47,7 +48,7 @@ export default function OverlapDetailDrawer({ relationship, caseId, onClose }) {
           className="text-gray-400 hover:text-gray-600 text-xl leading-none"
           aria-label="Close"
         >
-          ×
+          <FiX className="text-lg" aria-hidden="true" />
         </button>
       </div>
 
@@ -70,8 +71,9 @@ export default function OverlapDetailDrawer({ relationship, caseId, onClose }) {
         </div>
 
         {flip_detected && (
-          <div className="text-xs bg-purple-50 text-purple-800 px-2 py-1 rounded">
-            ⚠️ 水平翻转检出
+          <div className="text-xs bg-purple-50 text-purple-800 px-2 py-1 rounded flex items-center gap-1">
+            <FiAlertTriangle className="shrink-0" aria-hidden="true" />
+            水平翻转检出
           </div>
         )}
 

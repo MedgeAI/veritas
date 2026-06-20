@@ -34,6 +34,7 @@ FRONTEND_PORT=5173
 log()  { printf '\033[36m[veritas-dev]\033[0m %s\n' "$*"; }
 ok()   { printf '\033[32m[veritas-dev]\033[0m %s\n' "$*"; }
 err()  { printf '\033[31m[veritas-dev]\033[0m %s\n' "$*" >&2; }
+warn() { printf '\033[33m[veritas-dev]\033[0m %s\n' "$*"; }
 
 wait_for_pg() {
     for i in $(seq 1 30); do
@@ -68,6 +69,118 @@ kill_port() {
     fi
 }
 
+# --- 工具可用性检查 ---------------------------------------------------------
+
+check_docker_image() {
+    local image=$1
+    local description=$2
+
+    if docker images | grep -q "$image.*latest"; then
+        ok "✓ $description: 镜像就绪"
+        return 0
+    else
+        err "✗ $description: 镜像缺失"
+        return 1
+    fi
+}
+
+check_model_weights() {
+    local path=$1
+    local description=$2
+
+    if [[ -f "$path" ]]; then
+        ok "✓ $description: $path"
+        return 0
+    else
+        err "✗ $description: 缺失 $path"
+        return 1
+    fi
+}
+
+check_python_dependency() {
+    local module=$1
+    local description=$2
+
+    cd "$PROJECT_ROOT"
+    # 使用 uv run python 而不是系统 python，确保使用虚拟环境中的包
+    if docker compose -f "$COMPOSE_FILE" exec -T backend \
+        uv run python -c "import $module" 2>/dev/null; then
+        ok "✓ $description: 已安装"
+        return 0
+    else
+        err "✗ $description: 未安装"
+        return 1
+    fi
+}
+
+check_pytorch_cuda() {
+    cd "$PROJECT_ROOT"
+    if docker compose -f "$COMPOSE_FILE" exec -T backend \
+        uv run python -c "import torch; assert torch.cuda.is_available(), 'CUDA not available'" 2>/dev/null; then
+        ok "✓ PyTorch CUDA: 可用"
+        return 0
+    else
+        warn "⚠ PyTorch CUDA: 不可用（GPU 工具将无法运行）"
+        return 1
+    fi
+}
+
+check_all_tools() {
+    log "=== 工具可用性检查 ==="
+    echo ""
+
+    local all_ok=true
+
+    # 1. Docker 镜像检查
+    log "Docker 镜像:"
+    if ! check_docker_image "veritas-elis-provenance" "ELIS provenance (MST 溯源图)"; then
+        all_ok=false
+        echo "  → 构建: make build-elis-provenance"
+    fi
+    echo ""
+
+    # 2. 模型权重检查
+    log "模型权重:"
+    check_model_weights "$PROJECT_ROOT/models/panel_extraction/model_4_class.pt" "Panel extraction (YOLOv5 4-class)" || all_ok=false
+    check_model_weights "$PROJECT_ROOT/models/panel_extraction/model_5_class.pt" "Panel extraction (YOLOv5 5-class)" || all_ok=false
+    check_model_weights "$PROJECT_ROOT/models/trufor/weights/trufor.pth.tar" "TruFor (伪造检测)" || all_ok=false
+    check_model_weights "$PROJECT_ROOT/models/sscd/sscd_disc_mixup.torchscript.pt" "SSCD (embedding encoder)" || all_ok=false
+    echo ""
+
+    # 3. Python 依赖检查（在 backend 容器中）
+    log "Python 依赖（backend 容器）:"
+    check_python_dependency "torch" "PyTorch" || all_ok=false
+    check_python_dependency "cv2" "OpenCV" || all_ok=false
+    # 注意：YOLOv5 通过 subprocess 调用 ELIS 脚本，不需要 Python import
+    echo ""
+
+    # 4. PyTorch CUDA 检查
+    log "GPU 支持:"
+    if ! check_pytorch_cuda; then
+        warn "  → GPU 工具（TruFor/SILA dense/SSCD）需要 CUDA 支持"
+        warn "  → 如果开发机有 GPU，请确保 Docker 配置了 NVIDIA runtime"
+    fi
+    echo ""
+
+    # 5. 总结
+    if $all_ok; then
+        ok "========================================="
+        ok " ✓ 所有工具就绪，可以运行完整审计"
+        ok "========================================="
+    else
+        warn "========================================="
+        warn " ⚠ 部分工具缺失，某些功能不可用"
+        warn "========================================="
+        echo ""
+        echo "修复建议:"
+        echo "  • 镜像缺失: make build-elis-provenance"
+        echo "  • 权重缺失: make download-models"
+        echo "  • 依赖缺失: make sync (然后 rebuild backend: docker compose build backend)"
+        echo "  • CUDA 不可用: 检查 NVIDIA driver 和 Docker runtime 配置"
+    fi
+    echo ""
+}
+
 init_db() {
     log "初始化数据库表结构..."
     cd "$PROJECT_ROOT"
@@ -96,19 +209,6 @@ cmd_up() {
     log "启动 Veritas 本地开发环境"
     echo ""
 
-    # 0. 检查 ELIS provenance 镜像
-    if ! docker images | grep -q "veritas-elis-provenance.*latest"; then
-        log "构建 ELIS provenance 镜像（首次约 3 分钟）..."
-        if "$PROJECT_ROOT/scripts/build-elis-provenance.sh"; then
-            ok "ELIS provenance 镜像就绪"
-        else
-            err "ELIS provenance 镜像构建失败，provenance 功能不可用"
-            err "手动构建: make build-elis-provenance"
-        fi
-    else
-        ok "ELIS provenance 镜像已存在"
-    fi
-
     # 1. PostgreSQL + Backend
     log "启动 PostgreSQL (port $PG_PORT) + Backend (port $API_PORT)..."
     $COMPOSE up -d postgres backend
@@ -124,13 +224,16 @@ cmd_up() {
         return 1
     fi
 
-    # 3. 初始化 DB
+    # 3. 工具可用性检查（在容器启动后运行）
+    check_all_tools
+
+    # 4. 初始化 DB
     init_db
 
-    # 4. 释放可能被占用的前端端口
+    # 5. 释放可能被占用的前端端口
     kill_port "$FRONTEND_PORT"
 
-    # 5. 前端（宿主机 Vite dev server）
+    # 6. 前端（宿主机 Vite dev server）
     log "启动 Vite 前端 (port $FRONTEND_PORT)..."
     cd "$PROJECT_ROOT/web/frontend"
     npm run dev -- --port "$FRONTEND_PORT" > /tmp/veritas-frontend.log 2>&1 &
@@ -253,24 +356,30 @@ cmd_db_reset() {
     echo ""
 }
 
+cmd_check_tools() {
+    check_all_tools
+}
+
 # --- main ------------------------------------------------------------------
 
 case "${1:-help}" in
-    up)        cmd_up        ;;
-    down)      cmd_down      ;;
-    build)     cmd_build     ;;
-    status)    cmd_status    ;;
-    logs)      cmd_logs      ;;
-    db-reset)  cmd_db_reset  ;;
+    up)          cmd_up          ;;
+    down)        cmd_down        ;;
+    build)       cmd_build       ;;
+    status)      cmd_status      ;;
+    logs)        cmd_logs        ;;
+    db-reset)    cmd_db_reset    ;;
+    check-tools) cmd_check_tools ;;
     *)
-        echo "用法: $0 {up|down|build|status|logs|db-reset}"
+        echo "用法: $0 {up|down|build|status|logs|db-reset|check-tools}"
         echo ""
-        echo "  up        启动 PostgreSQL + Backend 容器 + Vite 前端"
-        echo "  down      停止所有（PG 数据保留）"
-        echo "  build     重建 Backend 镜像并重启"
-        echo "  status    查看运行状态"
-        echo "  logs      查看 Backend 容器 + 前端日志"
-        echo "  db-reset  重置数据库（删除所有表并重建）"
+        echo "  up          启动 PostgreSQL + Backend 容器 + Vite 前端"
+        echo "  down        停止所有（PG 数据保留）"
+        echo "  build       重建 Backend 镜像并重启"
+        echo "  status      查看运行状态"
+        echo "  logs        查看 Backend 容器 + 前端日志"
+        echo "  db-reset    重置数据库（删除所有表并重建）"
+        echo "  check-tools 检查所有工具可用性（镜像、权重、依赖、GPU）"
         exit 1
         ;;
 esac

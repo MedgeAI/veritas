@@ -3,10 +3,10 @@ import { FiPlay, FiUploadCloud } from 'react-icons/fi';
 import { createCase, startRun, uploadInput } from '../services/api.js';
 
 const DEFAULT_PARAMS = {
-  agent_mode: 'review',
+  agent_mode: 'full',
   fresh: true,
   force: true,
-  agent_timeout_seconds: 300,
+  agent_timeout_seconds: 600,
   agent_max_retries: 1,
 };
 
@@ -28,7 +28,6 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
   });
   const [params, setParams] = useState(DEFAULT_PARAMS);
   const [files, setFiles] = useState([]);
-  const [createdCase, setCreatedCase] = useState(null);
   const [busy, setBusy] = useState(false);
   const [log, setLog] = useState([]);
   const [error, setError] = useState('');
@@ -48,61 +47,43 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
     setParams((current) => ({ ...current, [key]: value }));
   }
 
-  async function ensureCase() {
-    if (createdCase) return createdCase;
-    const payload = {
-      case_id: form.case_id || undefined,
-      paper_title: form.paper_title || undefined,
-      owner: form.owner || 'operator',
-    };
-    const record = await createCase(payload);
-    setCreatedCase(record);
-    onCaseCreated(record);
-    appendLog(`created case ${record.case_id}`);
-    return record;
-  }
-
-  async function uploadFiles(caseId) {
-    if (!files.length) {
-      throw new Error('请至少上传一个 PDF 或材料文件');
-    }
-    if (!pdfCount) {
-      throw new Error('输入中必须包含论文 PDF');
-    }
-    setUploadProgress({});
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const fileKey = file.webkitRelativePath || file.name;
-      setUploadProgress((prev) => ({ ...prev, [fileKey]: 0 }));
-      await uploadInput(caseId, file, {
-        onProgress: (percent) => setUploadProgress((prev) => ({ ...prev, [fileKey]: percent })),
-      });
-      setUploadProgress((prev) => ({ ...prev, [fileKey]: 100 }));
-      appendLog(`uploaded ${fileKey}`);
-    }
-  }
-
-  async function handleCreateOnly() {
-    setBusy(true);
-    setError('');
-    try {
-      await ensureCase();
-    } catch (nextError) {
-      setError(nextError.message || String(nextError));
-    } finally {
-      setBusy(false);
-    }
-  }
-
   async function handleStart() {
     setBusy(true);
     setError('');
     try {
-      const record = await ensureCase();
-      await uploadFiles(record.case_id);
+      // 创建 case
+      const payload = {
+        case_id: form.case_id || undefined,
+        paper_title: form.paper_title || undefined,
+        owner: form.owner || 'operator',
+      };
+      const record = await createCase(payload);
+      appendLog(`created case ${record.case_id}`);
+      onCaseCreated(record);
+
+      // 上传文件
+      if (!files.length) {
+        throw new Error('请至少上传一个 PDF 或材料文件');
+      }
+      if (!pdfCount) {
+        throw new Error('输入中必须包含论文 PDF');
+      }
+      setUploadProgress({});
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        const fileKey = file.webkitRelativePath || file.name;
+        setUploadProgress((prev) => ({ ...prev, [fileKey]: 0 }));
+        await uploadInput(record.case_id, file, {
+          onProgress: (percent) => setUploadProgress((prev) => ({ ...prev, [fileKey]: percent })),
+        });
+        setUploadProgress((prev) => ({ ...prev, [fileKey]: 100 }));
+        appendLog(`uploaded ${fileKey}`);
+      }
+
+      // 启动审查
       const run = await startRun(record.case_id, {
         ...params,
-        agent_timeout_seconds: Number(params.agent_timeout_seconds || 300),
+        agent_timeout_seconds: Number(params.agent_timeout_seconds || 600),
         agent_max_retries: Number(params.agent_max_retries || 1),
       });
       appendLog(`started run ${run.run_id}`);
@@ -119,7 +100,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
       <section className="dossier-panel rounded-[2rem] p-6">
         <div className="grid gap-4 md:grid-cols-3">
           <label className="md:col-span-1">
-            <span className="metric-label">Case ID</span>
+            <span className="metric-label">Case ID (可选)</span>
             <input
               className="input-field mt-2"
               name="case_id"
@@ -127,20 +108,20 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
               spellCheck={false}
               value={form.case_id}
               onChange={(event) => updateForm('case_id', event.target.value)}
-              placeholder="paper2-static-web…"
-              disabled={Boolean(createdCase) || busy}
+              placeholder="留空自动生成"
+              disabled={busy}
             />
           </label>
           <label className="md:col-span-2">
-            <span className="metric-label">Paper Title</span>
+            <span className="metric-label">Paper Title (可选)</span>
             <input
               className="input-field mt-2"
               name="paper_title"
               autoComplete="off"
               value={form.paper_title}
               onChange={(event) => updateForm('paper_title', event.target.value)}
-              placeholder="Unknown until parsed…"
-              disabled={Boolean(createdCase) || busy}
+              placeholder="留空从 PDF 提取"
+              disabled={busy}
             />
           </label>
         </div>
@@ -205,8 +186,8 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
           <label>
             <span className="metric-label">Agent Mode</span>
             <select className="input-field mt-2" name="agent_mode" value={params.agent_mode} onChange={(event) => updateParam('agent_mode', event.target.value)}>
-              <option value="review">review</option>
               <option value="full">full</option>
+              <option value="review">review</option>
               <option value="off">off</option>
             </select>
           </label>
@@ -246,9 +227,6 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
         ) : null}
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <button type="button" className="btn-secondary" onClick={handleCreateOnly} disabled={busy || Boolean(createdCase)}>
-            创建 Case
-          </button>
           <button type="button" className="btn-primary" onClick={handleStart} disabled={busy}>
             <FiPlay aria-hidden="true" />
             上传并启动审查
@@ -267,8 +245,8 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
   --case-id <case_id> \\
   --fresh \\
   --force \\
-  --agent-mode review \\
-  --agent-timeout-seconds 300 \\
+  --agent-mode full \\
+  --agent-timeout-seconds 600 \\
   --agent-max-retries 1 \\
   --progress plain`}
         </pre>

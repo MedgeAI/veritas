@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { FiPlay, FiRefreshCw, FiCpu, FiLink } from 'react-icons/fi';
+import { FiCheck, FiCpu, FiLink, FiPlay, FiRefreshCw, FiShuffle } from 'react-icons/fi';
 import StatusPill from '../components/StatusPill.jsx';
 import OverlapGraph from '../components/OverlapGraph.jsx';
 import OverlapDetailDrawer from '../components/OverlapDetailDrawer.jsx';
@@ -173,8 +173,9 @@ function VisualForensicsPage({ selectedCase }) {
                 {embeddingStatus.detail ? <span className="ml-2 text-ink-400">{embeddingStatus.detail}</span> : null}
               </span>
             ) : indexedPanelCount > 0 ? (
-              <span className="text-emerald-700">
-                ✓ 已索引 {indexedPanelCount} 个 panel
+              <span className="text-emerald-700 inline-flex items-center gap-1">
+                <FiCheck className="shrink-0" aria-hidden="true" />
+                已索引 {indexedPanelCount} 个 panel
                 {embeddingStatus.last_indexed_at && (
                   <span className="text-ink-400 ml-2">({embeddingStatus.last_indexed_at})</span>
                 )}
@@ -242,7 +243,7 @@ function VisualForensicsPage({ selectedCase }) {
                 <div key={i} className="flex items-center justify-between rounded-lg border border-ink-900/5 bg-white/40 px-3 py-2">
                   <div className="flex items-center gap-3 text-sm">
                     <span className="font-mono text-ink-700">{pair.source_panel_id}</span>
-                    <span className="text-ink-300">↔</span>
+                    <FiShuffle className="text-ink-300 shrink-0" aria-hidden="true" />
                     <span className="font-mono text-ink-700">{pair.target_panel_id}</span>
                     <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
                       {(pair.similarity * 100).toFixed(1)}%

@@ -29,17 +29,6 @@ const PAGE_META = {
   advanced: ['Advanced Lab', '预留 pdf-extractor、panel-extractor、copy-move 与 CBIR 服务。'],
 };
 
-const WORKSPACE_STORAGE_KEY = 'veritas.workspace.v1';
-const LEGACY_STORAGE_KEYS = ['veritas.activePage', 'veritas.caseId', 'veritas.runId'];
-
-function readLocalString(key) {
-  try {
-    return localStorage.getItem(key) || '';
-  } catch {
-    return '';
-  }
-}
-
 function workspaceFromUrl() {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -51,40 +40,9 @@ function workspaceFromUrl() {
       activePage: PAGE_META[activePage] ? activePage : 'cases',
       caseId,
       runId,
-      restoredFrom: 'url',
     };
   } catch {
     return null;
-  }
-}
-
-function readWorkspace() {
-  const urlWorkspace = workspaceFromUrl();
-  if (urlWorkspace) return urlWorkspace;
-  try {
-    const raw = localStorage.getItem(WORKSPACE_STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return {
-        activePage: PAGE_META[parsed.activePage] ? parsed.activePage : 'cases',
-        caseId: String(parsed.caseId || ''),
-        runId: String(parsed.runId || ''),
-        restoredFrom: 'workspace',
-      };
-    }
-    return {
-      activePage: readLocalString('veritas.activePage') || 'cases',
-      caseId: readLocalString('veritas.caseId'),
-      runId: readLocalString('veritas.runId'),
-      restoredFrom: 'legacy',
-    };
-  } catch {
-    return {
-      activePage: 'cases',
-      caseId: '',
-      runId: '',
-      restoredFrom: 'none',
-    };
   }
 }
 
@@ -106,39 +64,20 @@ function writeWorkspaceUrl(value) {
   }
 }
 
-function writeWorkspace(value) {
-  try {
-    localStorage.setItem(
-      WORKSPACE_STORAGE_KEY,
-      JSON.stringify({
-        version: 1,
-        activePage: PAGE_META[value.activePage] ? value.activePage : 'cases',
-        caseId: value.caseId || '',
-        runId: value.runId || '',
-        updatedAt: new Date().toISOString(),
-      }),
-    );
-    for (const key of LEGACY_STORAGE_KEYS) {
-      localStorage.removeItem(key);
-    }
-  } catch {
-    return;
-  }
-}
-
 function AppLayout() {
-  const [initialWorkspace] = useState(() => readWorkspace());
-  const [activePage, setActivePage] = useState(initialWorkspace.activePage);
+  // 默认打开 New Audit 页面（ChatGPT 模式：聚焦"开始新任务"）
+  const urlWorkspace = workspaceFromUrl();
+  const [activePage, setActivePage] = useState(urlWorkspace?.activePage || 'newAudit');
   const [cases, setCases] = useState([]);
-  const [selectedCaseId, setSelectedCaseId] = useState(initialWorkspace.caseId);
-  const [selectedRunId, setSelectedRunId] = useState(initialWorkspace.runId);
+  const [selectedCaseId, setSelectedCaseId] = useState(urlWorkspace?.caseId || '');
+  const [selectedRunId, setSelectedRunId] = useState(urlWorkspace?.runId || '');
   const [loadError, setLoadError] = useState('');
   const [workspaceNotice, setWorkspaceNotice] = useState(() => {
-    if (!initialWorkspace.caseId && !initialWorkspace.runId) return null;
+    if (!urlWorkspace?.caseId && !urlWorkspace?.runId) return null;
     return {
       tone: 'neutral',
-      title: initialWorkspace.restoredFrom === 'url' ? '已打开链接中的工作区' : '已恢复上次工作区',
-      detail: `恢复的是 case/run 选择，不代表任务仍在执行。case=${initialWorkspace.caseId || '-'} run=${initialWorkspace.runId || '-'}`,
+      title: '已打开链接中的工作区',
+      detail: `恢复的是 case/run 选择，不代表任务仍在执行。case=${urlWorkspace?.caseId || '-'} run=${urlWorkspace?.runId || '-'}`,
       dismissible: true,
     };
   });
@@ -206,7 +145,6 @@ function AppLayout() {
       caseId: selectedCaseId,
       runId: selectedRunId,
     };
-    writeWorkspace(workspace);
     writeWorkspaceUrl(workspace);
   }, [activePage, selectedCaseId, selectedRunId]);
 
@@ -240,7 +178,8 @@ function AppLayout() {
     startTransition(() => {
       setSelectedCaseId(caseId);
       setSelectedRunId(nextCase?.latest_run_id || '');
-      setActivePage('mission');
+      // 从 cases 页面进入 → 跳转到 mission；否则保持当前页面，只切换 case 数据
+      setActivePage((current) => (current === 'cases' ? 'mission' : current));
     });
     setWorkspaceNotice(null);
   }
@@ -321,7 +260,14 @@ function AppLayout() {
       <a className="skip-link" href="#main-content">
         跳到主内容
       </a>
-      <Sidebar activePage={activePage} onNavigate={navigate} caseCount={cases.length} />
+      <Sidebar
+        activePage={activePage}
+        onNavigate={navigate}
+        cases={cases}
+        selectedCaseId={selectedCaseId}
+        onSelectCase={selectCase}
+        caseCount={cases.length}
+      />
 
       <main id="main-content" className="min-w-0 flex-1 px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
         <Topbar selectedCase={selectedCase} selectedRunId={selectedRunId} onRefresh={refreshCases} />

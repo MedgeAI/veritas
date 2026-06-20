@@ -47,7 +47,7 @@ WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
 RUN pip install -q uv && \
-    uv sync --frozen --no-dev
+    uv sync --frozen --no-dev --all-extras
 
 # ── Layer 3: 运行时配置 ────────────────────────────────────────────────
 RUN mkdir -p /app/models /app/outputs /app/web_data
