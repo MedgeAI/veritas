@@ -1,6 +1,6 @@
 # Veritas
 
-Updated: 2026-06-18
+Updated: 2026-06-20
 
 **Veritas 是一个实验室内部论文风控工具（当前聚焦干实验论文子集），帮助导师（通讯作者）在投稿前主动发现学生数据中的问题，填补监管真空，避免背锅。**
 
@@ -13,7 +13,7 @@ Updated: 2026-06-18
 
 **问题分层**：所有 finding 按 `consistency`（一致性，最严重）> `matching`（匹配性）> `completeness`（完整性，材料缺失）分层，帮助导师判断优先级。
 
-当前仓库仍以 `audit-paper` 审查闭环为核心，但已开始补 Web P1：在浏览器里创建 case、上传输入、启动与 CLI 等价的审查、观察进度、打开最终 HTML 报告，并在 Visual Forensics Gallery 中对选中的 panel 手动触发受 Tool Registry 约束的重型视觉调查。
+当前仓库以 `audit-paper` 审查闭环为核心，同时提供 Web P1 工作台：在浏览器里创建 case、上传输入、启动与 CLI 等价的审查、观察进度、打开最终 HTML 报告，并在 Visual Forensics Gallery 中对选中的 panel 手动触发受 Tool Registry 约束的重型视觉调查。
 
 ## 当前范围
 
@@ -36,28 +36,57 @@ MVP 聚焦：
 
 ## 当前执行口径
 
-- P0 仍是 `audit-paper` happy path 能稳定走通并产出结构化证据、`static_audit_bundle.json`、run manifest 和 Markdown/HTML 报告。
+- **P0 已完成**：`audit-paper` happy path 已稳定走通，能产出完整的结构化证据和报告（Source Data、PaperFraud rule match、visual artifacts、HTML 报告）。paper1 全量审计验证通过（257 figures、811 panels、493 pair forensics findings、14 分钟完成）。
+- **P1 当前重点**：面向内测和演示。视觉取证能力已增强，ELIS-style adapter 已落地。
 - `precheck` / `run` / `report` 和 `runtime/subprocess` 已有基础能力；但 `audit-paper` 仍以静态证据、Source Data 和 Agent 结构化复核为主，claim-to-code/runtime replay 还不是稳定主链路。
 - 缺少代码、环境或结果文件时，报告应按 `execution_status: not_provided`、`skipped` 或 completeness issue 呈现，不伪造成已验证复现。
 - Web P1 是内测工作台，不是完整 SaaS、多租户任务系统或远程 worker 集群。
-- 视觉取证已经有 first-party beta 闭环：`visual_evidence.json`、`panel_evidence.json`、`image_relationships.json`、`visual_findings.json`、HTML Visual Evidence Package 和 Web Visual Forensics Gallery。当前实现仍是 OpenCV panel extraction + ORB/SIFT copy-move 过渡路径，ELIS YOLOv5/RootSIFT/TruFor/CBIR adapter 还不是稳定主链路。
-- SILA dense copy-move 这类重型工具不作为 `audit-paper` 固定 baseline 全量运行；当前通过 Agent/Web explicit investigation 触发，必须有 panel selection、Tool Registry 参数边界和失败隔离记录。
+- **视觉取证已落地**：canonical `figure_evidence` / `panel_evidence` / `visual_finding` / `image_relationship` schema、`visual.panel_extraction`（YOLOv5 adapter）、`visual.copy_move`（RootSIFT+MAGSAC++ adapter）、`visual.finding_pipeline`、`visual.overlap_reuse`、HTML Visual Evidence Package 和 Web Visual Forensics Gallery（含 overlap graph + detail drawer）。
+- `visual.copy_move_dense` / SILA dense 是重型可选调查工具，支持 Web Visual Forensics Gallery 中按选中 panel 手动触发；不得在 `audit-paper` baseline 中对所有 panels 无条件全量运行。
+- `visual.overlap_reuse` 已从 baseline 移除，仅通过 Agent investigation 或手动选择触发。
 
-## 当前内测增强方向
+## 当前内测增强路线
 
-老板演示 demo 已完成。下一阶段目标是让内测用户在 happy path 下体验更强的静态审查能力，尤其是图像和视觉取证。
+**P0 已完成**：`audit-paper` happy path 已稳定走通，能产出完整的结构化证据和报告（Source Data、PaperFraud rule match、visual artifacts、HTML 报告）。paper1 全量审计验证通过（257 figures、811 panels、493 pair forensics findings、14 分钟完成）。394 个测试全部通过（uv 环境 Python 3.12）。
 
-Veritas 将借鉴 ELIS (Scientific Integrity System) 的完整图像取证思路：
+**进入 P1 阶段**：面向内测，允许完整借鉴 ELIS (Scientific Integrity System) 的图像取证栈，优先增强静态审查的视觉证据能力，重点是视觉 overlap/reuse detection 和 ELIS adapter 接入。
 
-- PDF 图片提取和 panel 拆分。
-- copy-move dense/keypoint 图内复用检测。
-- TruFor 神经网络伪造检测。
-- CBIR + Milvus 单论文内部相似检索。
-- 视觉证据包和人工复核 checklist。
+当前代码状态需要区分清楚：
 
-边界是：ELIS 能力必须通过 Veritas adapter、Tool Registry 和 runtime 接口接入；不直接复用 ELIS 的 FastAPI/Celery/MongoDB/Redis 主服务。前端可以复用 `third_party/elis/system_modules/elis-frontend` 的 Vite/React/Tailwind 基础设施模式，但产品信息架构、视觉语言和审查流程必须是 Veritas first-party。所有视觉工具输出都只是候选证据和人工复核入口，不做最终科研诚信判定。
+- **已落地**：canonical `figure_evidence` / `panel_evidence` / `visual_finding` / `image_relationship` schema、`visual.panel_extraction`（YOLOv5 adapter）、`visual.copy_move`（RootSIFT+MAGSAC++ adapter）、`visual.finding_pipeline`、`visual.overlap_reuse`、HTML Visual Evidence Package 和 Web Visual Forensics Gallery（含 overlap graph + detail drawer）。
+- 当前 `visual.copy_move_dense` / SILA dense 是重型可选调查工具，支持 Web Visual Forensics Gallery 中按选中 panel 手动触发；不得在 `audit-paper` baseline 中对所有 panels 无条件全量运行。
+- `visual.overlap_reuse` 已从 baseline 移除，仅通过 Agent investigation 或手动选择触发。数据契约已修复：ELIS runner 输出字段与下游消费者对齐，shared_area 作为 homography 缺失时的 fallback。
+- 文档中提到的 TruFor、CBIR/Milvus 能力在进入 `engine/tools/registry.py` 并产出 fixture-backed artifact 前，不得写成稳定主链路。
 
-**当前决策（2026-06-15）**：Veritas 是内部工具，不开源。可以以 adapter 方式复用 ELIS `system_modules` 的 AGPL-3.0 模块（panel-extractor、copy-move-detection、TruFor 等），不担心许可证传染性。当前代码仍保留 first-party 传统 CV 过渡实现；ELIS adapter 落地后再替换，不把未来工具写成已验证能力。详见 [`ELIS_REUSE_DECISIONS.md`](ELIS_REUSE_DECISIONS.md)。
+目标能力：
+
+```text
+PDF / MinerU images
+-> canonical figure_evidence
+-> ELIS-style pdf-extractor / panel-extractor
+-> copy-move dense/keypoint detection
+-> TruFor forged-region heatmap
+-> CBIR + Milvus single-paper internal similarity
+-> AgentInvestigationPlanner 选择后续视觉调查工具
+-> HTML visual evidence package
+-> human review checklist
+```
+
+工程边界：
+
+- ELIS 是能力来源和架构参考，不是 Veritas 主服务。
+- 不直接把 ELIS FastAPI/Celery/MongoDB/Redis/Web UI 接进主链路。
+- 可以复用 `third_party/elis/system_modules/elis-frontend` 的 Vite/React/Tailwind/布局基础设施，但 Veritas 前端必须放在 `web/frontend/`，业务流程和视觉语言必须是一方实现。
+- 先把 ELIS 能力封装成 adapter/tool，注册到 `engine/tools/registry.py`，再由 orchestrator/runtime 执行。
+- `figure_evidence` 是 canonical 图像证据入口；panel、mask、heatmap、CBIR match 都必须回链到 canonical figure/panel id。
+- 重型视觉工具可以在 happy path 内测中失败隔离；失败必须写入 manifest、`investigation_rounds.jsonl` 和报告 limitations。
+- 视觉工具输出只作为候选事实和人工复核任务，不构成最终科研诚信判定。
+
+**ELIS 复用决策（2026-06-15）**：
+
+- **Veritas 不开源（内部工具）**：AGPL-3.0 传染性不触发，可安全使用所有 ELIS 模块。
+- **以 adapter 方式复用 ELIS `system_modules`**：panel-extractor（YOLOv5）、copy-move-detection（RootSIFT+MAGSAC++ / dense）、TruFor、CBIR 等。
+- **ELIS adapter 已替换传统 CV 实现**：YOLOv5 panel extraction、RootSIFT+MAGSAC++ copy-move、TruFor skip-only、SILA dense 均已通过 subprocess adapter 接入主链路。`visual.overlap_reuse` 为 P1 新增工具。详见 [`ELIS_REUSE_DECISIONS.md`](ELIS_REUSE_DECISIONS.md)。
 
 **模型权重下载**（仅用于后续 YOLOv5 panel-extractor adapter 开发；当前主链路不要求该权重）：
 
@@ -80,6 +109,8 @@ runtime/      本地执行后端，未来可独立成服务
 protocols/    垂直领域规则，先从医学生信开始
 configs/      opencode 与运行配置
 docs/         产品、开发和决策文档工作区；新文件默认仍被 .gitignore 忽略，重要文档需显式跟踪
+capabilities/ 能力目录定义
+ground_truth/ Ground truth 数据和标注
 examples/     demo manifest 和轻量样例
 scripts/      可复用本地工具脚本
 web/          Web P1：stdlib backend + Vite React frontend
@@ -91,7 +122,15 @@ web_data/     Web P1 本地 case store 与运行状态，不进入提交
 
 `engine/tools/registry.py` 是当前静态审查工具集合的 source of truth。opencode 可以在 `agent_plan` 中选择 tool_id 和填写参数，但只有 Tool Registry 允许的 tool_id 会被 Python orchestrator 执行。
 
-`engine/static_audit/` 是 Veritas first-party 静态审查内核，负责 schema、protocol、roles、tools、orchestrator 和 `static_audit_bundle.json`。`third_party/research-integrity-auditor` 仍作为 upstream reference，已吸收到 `engine/static_audit/upstream/research_integrity_auditor/` 的只读镜像中。
+`engine/static_audit/` 是 Veritas first-party 静态审查内核，负责 schema、protocol、roles、tools、orchestrator 和 `static_audit_bundle.json`。2026-06-20 重构后，orchestrator 已拆分为模块化架构：
+- `orchestrator.py`: 主编排逻辑（~350 行）
+- `_shared.py`: 共享常量、工具函数和类型定义
+- `report.py`: 报告生成逻辑
+- `investigation_dispatch.py`: 调查分发和 Agent 调用
+- `visual_pipeline.py`: 视觉取证管道编排
+- `html_report/`: HTML 报告模块
+
+`third_party/research-integrity-auditor` 仍作为 upstream reference，已吸收到 `engine/static_audit/upstream/research_integrity_auditor/` 的只读镜像中。
 
 各模块职责和调用关系详见 [CodeMAP.md](CodeMAP.md)。
 
@@ -209,12 +248,12 @@ selected optional lanes + paper_pdf + workdir + env
   v
 +-----------------------------+
 | visual panel evidence       |
-| current first-party path    |
+| ELIS YOLOv5 adapter         |
 +-----------------------------+
   |
   +-- canonical figure_evidence.json
   +-- panel_evidence.json
-  +-- current implementation is OpenCV heuristic; ELIS YOLOv5 adapter is planned
+  +-- YOLOv5 panel extraction (MAX_PANELS_PER_FIGURE = 12)
   |
   v
 +-----------------------------+
@@ -285,23 +324,23 @@ selected optional lanes + paper_pdf + workdir + env
 
 ### 图像产物清单与必要性
 
-`audit-paper` 的视觉取证管线会产生四类图像产物。以下为 paper2（Nature 论文，254 figures）的实际测量：
+`audit-paper` 的视觉取证管线会产生四类图像产物。以下为 paper1（257 figures）的实际测量：
 
 | 目录 | 大小 | 文件数 | 内容 | 必要性 |
 |---|---|---|---|---|
 | `visual/images/` | 7.7 MB | 261 | MinerU 提取的原始 figure 图片 | ✅ **必须** — 所有视觉工具的源数据 |
-| `panels/` | ~24 MB | ~552 | YOLOv5 panel 裁剪图（每图 1–12 个 panel） | ✅ **必须** — HTML 报告展示 + copy-move 检测输入 |
-| `tru_for/` | ~5 MB | ~66 | TruFor 伪造热力图（仅保留 `is_suspicious=True` 的图） | ⚠️ **按需** — 只有 33/254 张图被标记为 suspicious，每张保留 pred_map + conf_map |
+| `panels/` | ~24 MB | ~811 | YOLOv5 panel 裁剪图（每图 1–12 个 panel） | ✅ **必须** — HTML 报告展示 + copy-move 检测输入 |
+| `tru_for/` | ~5 MB | ~66 | TruFor 伪造热力图（仅保留 `is_suspicious=True` 的图） | ⚠️ **按需** — skip-only 模式，每张保留 pred_map + conf_map |
 | `provenance/` | 0 MB | 0 | RootSIFT 验证中间数据 | ❌ **无 edges 时不生成** — 0 edges 时自动清理 |
 
 **设计决策**：
 
 - **Panel 裁剪上限**：`MAX_PANELS_PER_FIGURE = 12`。YOLOv5 会将网格图（空间转录组 4×10）和 blot montage 过度拆分为 20–40 个 "panel"，实际应为 1 张整图。超过上限时退回 `whole_figure_fallback`。
-- **TruFor 瘦身**：非 suspicious 图的 pred_map / conf_map 在推理完成后立即删除。254 张图 × 2 maps = 508 files → 33 suspicious × 2 = 66 files（31 MB → 5 MB）。
+- **TruFor 瘦身**：非 suspicious 图的 pred_map / conf_map 在推理完成后立即删除。
 - **Provenance 按需生成**：embedding 预筛选 → RootSIFT 验证 → 0 edges 时清理中间数据。避免为无相似图的论文保留无用的 RootSIFT 输出。
 - **Panel 目录清理**：orchestrator 在 panel extraction 重跑前清理 `panels/` 目录，防止旧 run 的残留文件（orphaned crops）积累。
 
-**典型总量**：一份 250 图论文的视觉产物约 **37 MB**（7.7 + 24 + 5 MB），相比优化前的 **73 MB** 减少约 50%。
+**典型总量**：一份 250 图论文的视觉产物约 **37 MB**（7.7 + 24 + 5 MB）。
 
 ## audit-paper 状态机 / State Machine
 
@@ -385,7 +424,7 @@ VISUAL_PANEL_EVIDENCE
   +-- images dir exists -> visual_evidence.json + panel_evidence.json
   +-- extraction emits no panel -> whole-figure fallback panel + limitation
   +-- images dir missing -> skipped
-  +-- current implementation is OpenCV heuristic; ELIS YOLOv5 adapter is planned
+  +-- ELIS YOLOv5 adapter (MAX_PANELS_PER_FIGURE = 12)
   |
   v
 AGENT_INVESTIGATION?
@@ -827,4 +866,4 @@ make test
 make lint-python
 ```
 
-当前 pytest 只收集本仓 `tests/`，不会扫描 `third_party/` 上游仓库测试。`ruff` 作为 `uv` dev 依赖管理，lint 默认排除 `engine/static_audit/upstream/` 上游镜像。
+当前测试套件包含 446 个测试用例（uv 环境 Python 3.12），覆盖单测、集成测试和 e2e 测试。pytest 只收集本仓 `tests/`，不会扫描 `third_party/` 上游仓库测试。`ruff` 作为 `uv` dev 依赖管理，lint 默认排除 `engine/static_audit/upstream/` 上游镜像。
