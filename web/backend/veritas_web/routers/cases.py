@@ -83,6 +83,19 @@ async def upload_input(
             raise HTTPException(status_code=400, detail="input upload requires content_base64 or content")
 
     updated_case = deps.store.get_case(case_id, user_id=case.owner)
+
+    # 自动提取 paper_title：如果是 PDF 文件且 title 为空或默认值，用文件名更新
+    if filename.lower().endswith(".pdf"):
+        current_title = updated_case.paper_title or ""
+        if not current_title or current_title == "Unknown until parsed":
+            # 用文件名（去掉 .pdf 后缀）作为 paper_title
+            extracted_title = filename[:-4]  # 去掉 ".pdf"
+            updated_case = deps.store.update_case(
+                case_id,
+                {"paper_title": extracted_title},
+                user_id=case.owner,
+            )
+
     return {"path": str(path), "case": updated_case.to_dict()}
 
 
