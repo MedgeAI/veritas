@@ -1,0 +1,194 @@
+# Capability Catalog — Veritas Detection Capabilities
+#
+# Each capability records:
+#   - capability_id: unique identifier matching the taxonomy
+#   - category: visual | source_data | completeness | numeric
+#   - description: one-line capability summary
+#   - registry_tool_id: associated tool_id in engine/tools/registry.py (if any)
+#   - version: semantic version
+#   - driven_by: list of ground-truth sources that drove this capability
+#   - test_coverage: list of test files
+#   - validation_papers: list of papers used for cross-validation
+#
+# This file is the METADATA layer. engine/tools/registry.py is the EXECUTION layer.
+# They are linked by registry_tool_id / capability_id.
+
+capabilities:
+  # ── Visual ──────────────────────────────────────────
+  - capability_id: "visual.exact_duplicate"
+    category: "visual"
+    description: "Byte-level exact image duplicate detection via hash comparison"
+    registry_tool_id: "image.exact_duplicates"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage:
+      - "tests/unit/test_visual_fixtures.py"
+
+  - capability_id: "visual.copy_move_keypoint"
+    category: "visual"
+    description: "RootSIFT + MAGSAC++ keypoint copy-move detection (single/cross image)"
+    registry_tool_id: "visual.copy_move"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage:
+      - "tests/unit/test_copy_move_detection.py"
+
+  - capability_id: "visual.copy_move_dense"
+    category: "visual"
+    description: "SILA dense copy-move detection (Zernike/PCT/FMT)"
+    registry_tool_id: "visual.copy_move_dense"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []
+
+  - capability_id: "visual.tru_for_forgery"
+    category: "visual"
+    description: "TruFor deep-learning forgery detection (SegFormer-B2 + Noiseprint++)"
+    registry_tool_id: "visual.tru_for"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []
+
+  - capability_id: "visual.image_quality"
+    category: "visual"
+    description: "Lightweight pixel-statistics image quality anomaly detection"
+    registry_tool_id: "visual.image_quality"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []
+
+  - capability_id: "visual.provenance_sscd"
+    category: "visual"
+    description: "SSCD embedding + RootSIFT provenance graph construction"
+    registry_tool_id: "visual.provenance_graph"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []
+
+  - capability_id: "visual.overlap_reuse"
+    category: "visual"
+    description: "Tile-level overlap/reuse detection with geometric verification"
+    registry_tool_id: "visual.overlap_reuse"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage:
+      - "tests/unit/test_overlap_reuse.py"
+
+  # ── Source Data ─────────────────────────────────────
+  - capability_id: "source_data.formula_derived_column"
+    category: "source_data"
+    description: "Detect columns derived from Excel formulas"
+    registry_tool_id: "source_data.findings"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage:
+      - "tests/unit/test_source_data_findings.py"
+
+  - capability_id: "source_data.fixed_difference"
+    category: "source_data"
+    description: "Fixed difference between two numeric columns"
+    registry_tool_id: "source_data.findings"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage:
+      - "tests/unit/test_source_data_findings.py"
+
+  - capability_id: "source_data.fixed_ratio"
+    category: "source_data"
+    description: "Fixed ratio between two numeric columns"
+    registry_tool_id: "source_data.findings"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage:
+      - "tests/unit/test_source_data_findings.py"
+
+  - capability_id: "source_data.duplicate_columns"
+    category: "source_data"
+    description: "Exact duplicate numeric columns (different header, same data)"
+    registry_tool_id: "source_data.findings"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage:
+      - "tests/unit/test_source_data_findings.py"
+
+  - capability_id: "source_data.row_offset_scalar"
+    category: "source_data"
+    description: "Row-offset with fixed scalar multiplication"
+    registry_tool_id: "source_data.pair_forensics"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []
+
+  - capability_id: "source_data.row_offset_exact_reuse"
+    category: "source_data"
+    description: "Row-offset exact data reuse (N+K = N)"
+    registry_tool_id: "source_data.pair_forensics"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []
+
+  - capability_id: "source_data.paired_ratio_reuse"
+    category: "source_data"
+    description: "Paired ratio reuse across sample groups"
+    registry_tool_id: "source_data.pair_forensics"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []
+
+  - capability_id: "source_data.paired_difference_spread"
+    category: "source_data"
+    description: "Anomalously narrow paired difference distribution"
+    registry_tool_id: "source_data.pair_forensics"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []
+
+  - capability_id: "source_data.duplicate_row_vector"
+    category: "source_data"
+    description: "Duplicated row vector with selective modification"
+    registry_tool_id: "source_data.pair_forensics"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []
+
+  # ── Completeness ────────────────────────────────────
+  - capability_id: "completeness.missing_source_data"
+    category: "completeness"
+    description: "Paper references source data that was not submitted"
+    registry_tool_id: "material.inventory"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []
+
+  - capability_id: "completeness.missing_code"
+    category: "completeness"
+    description: "Paper references code that was not submitted"
+    registry_tool_id: "material.inventory"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []
+
+  # ── Numeric ─────────────────────────────────────────
+  - capability_id: "numeric.terminal_digit_anomaly"
+    category: "numeric"
+    description: "Terminal digit distribution anomaly"
+    registry_tool_id: "numeric.forensics"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []
+
+  - capability_id: "numeric.variance_anomaly"
+    category: "numeric"
+    description: "Variance anomaly in numeric columns"
+    registry_tool_id: "numeric.forensics"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []
+
+  - capability_id: "numeric.benfords_law"
+    category: "numeric"
+    description: "Benford's law deviation"
+    registry_tool_id: "numeric.forensics"
+    version: "1.0.0"
+    driven_by: []
+    test_coverage: []

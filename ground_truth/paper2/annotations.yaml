@@ -1,0 +1,73 @@
+# Paper 2 Ground Truth Annotations
+# Source: https://www.pubpeer.com/publications/D62F4176543D09E95E22FA5C304BDA
+# Paper: Single-cell and spatial transcriptomics reveal mechanisms of radioresistance
+#        and immune escape in recurrent nasopharyngeal carcinoma (Nature Genetics 2025)
+
+paper:
+  title: "Single-cell and spatial transcriptomics reveal mechanisms of radioresistance and immune escape in recurrent nasopharyngeal carcinoma"
+  doi: "10.1038/s41588-025-02253-8"
+  pubpeer_url: "https://www.pubpeer.com/publications/D62F4176543D09E95E22FA5C304BDA"
+
+claims:
+  - claim_type: "visual.copy_move_keypoint"
+    target: "Extended Data Fig. 4h"
+    description: "upper center image ≈ upper left image after 90° clockwise rotation"
+    evidence_type: "image"
+    comment_id: "#1"
+    confirmed_by_human: true
+
+  - claim_type: "source_data.duplicate_columns"
+    target: "Fig. 5c (Source Data)"
+    description: "Row 25/64, 27/66, 29/68, 39/78 have identical values for both markers (H-Score_CD3, H-Score_COLLAGENIV); formula B25=B24×0.9"
+    evidence_type: "source_data"
+    comment_id: "#3"
+    confirmed_by_human: true
+
+  - claim_type: "source_data.row_offset_exact_reuse"
+    target: "Fig. 8f (MOESM11)"
+    description: "N vs N+20 RT/PT ratio duplication 20/20 pairs; RT(N+20)=PT(N+20)×[RT(N)/PT(N)]; 12/40 pairs show RT=2.000×PT"
+    evidence_type: "source_data"
+    comment_id: "#4"
+    confirmed_by_human: true
+
+  - claim_type: "source_data.row_offset_exact_reuse"
+    target: "Fig. 6i (MOESM9)"
+    description: "N vs N+20 RT/PT ratio duplication 19/20 pairs; RT(N+20)=PT(N+20)×[RT(N)/PT(N)]; 10/40 pairs show RT=2.000×PT"
+    evidence_type: "source_data"
+    comment_id: "#5"
+    confirmed_by_human: true
+
+  - claim_type: "completeness.missing_source_data"
+    target: "Fig. 7i"
+    description: "No source data provided for Fig. 7i"
+    evidence_type: "completeness"
+    comment_id: "#7"
+    confirmed_by_human: true
+
+  - claim_type: "source_data.duplicate_row_vector"
+    target: "Fig. 3f (Supplementary Data 6)"
+    description: "Pairs 21-40 copied from Pairs 1-20 with selective modifications; 60% PT and 50% RT values identical to 10 decimal places"
+    evidence_type: "source_data"
+    comment_id: "#8"
+    confirmed_by_human: true
+
+  - claim_type: "source_data.fixed_ratio"
+    target: "Fig. 7d (Supplementary Data 6)"
+    description: "Pairs 21-40 = Pairs 1-20 × 1.2 exactly (SD of ratios = 0.0000); uniform scaling factor of 1.2 applied to all 40 values"
+    evidence_type: "source_data"
+    comment_id: "#9"
+    confirmed_by_human: true
+
+  - claim_type: "visual.image_quality"
+    target: "Fig. 3j Beta-ACTIN blot"
+    description: "Blot has no background unlike other blots shown"
+    evidence_type: "image"
+    comment_id: "#10"
+    confirmed_by_human: true
+
+  - claim_type: "source_data.paired_difference_spread"
+    target: "Extended Data Fig. 3g"
+    description: "All 15 paired differences between C66 and TW03 PBS control restricted to ±0.01 or ±0.02 OD units; intra-group CV 1.5%-26%"
+    evidence_type: "source_data"
+    comment_id: "#12"
+    confirmed_by_human: true
