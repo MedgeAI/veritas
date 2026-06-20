@@ -497,7 +497,7 @@ def build_figure_evidence_from_images(workdir: Path, images_dir: Path) -> list[d
         try:
             with Image.open(image_path) as img:
                 width, height = img.size
-        except Exception:
+        except OSError:
             width, height = 0, 0
         try:
             relative = str(image_path.relative_to(workdir))
@@ -539,7 +539,7 @@ def whole_figure_panel(figure: dict[str, Any], *, workdir: Path, output_dir: Pat
     try:
         with Image.open(source_path) as img:
             width, height = img.size
-    except Exception:
+    except OSError:
         width = int(figure.get("width") or 0)
         height = int(figure.get("height") or 0)
     rel_crop = str(crop_path.relative_to(output_dir))

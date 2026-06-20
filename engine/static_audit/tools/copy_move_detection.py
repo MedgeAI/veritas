@@ -221,7 +221,7 @@ def _run_cross_figure_detection(
         try:
             h = _dhash(fig["path"])
             hashes.append((fig["figure_id"], fig["path"], h))
-        except Exception:
+        except OSError:
             continue
 
     if len(hashes) < 2:

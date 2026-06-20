@@ -20,12 +20,15 @@ Usage::
 
 from __future__ import annotations
 
+import logging
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
 import yaml
+
+logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
@@ -99,7 +102,7 @@ def load_knowledge_base() -> list[PaperFraudRule]:
                     source=rd.get("source", f"paperfraud/{yaml_file.name}"),
                 ))
         except Exception as e:
-            print(f"[PaperFraud KB] Warning: failed to load {yaml_file.name}: {e}")
+            logger.warning("[PaperFraud KB] failed to load %s: %s", yaml_file.name, e)
 
     return rules
 

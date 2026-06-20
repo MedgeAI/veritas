@@ -10,11 +10,14 @@ to ImageRelationship dicts compatible with the Veritas finding pipeline.
 
 from __future__ import annotations
 
+import logging
 import subprocess
 from pathlib import Path
 from typing import Any
 
 from engine.static_audit.visual_schemas import VISUAL_SCHEMA_VERSION
+
+logger = logging.getLogger(__name__)
 
 DOCKER_IMAGE = "veritas-sila-dense:latest"
 
@@ -192,6 +195,8 @@ def detect_sila_dense(
                 coverage = float(np.count_nonzero(mask_img)) / max(mask_img.size, 1)
                 score = min(1.0, coverage * 5)  # Scale up for visibility
             except Exception as exc:
+                # Failure isolation: mask coverage is best-effort; skip on any error.
+                logger.warning("SILA dense mask coverage failed for %s: %s", panel_id, exc)
                 errors.append(f"SILA dense mask coverage failed for {panel_id}: {exc}")
                 continue
 

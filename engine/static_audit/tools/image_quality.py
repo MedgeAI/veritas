@@ -13,10 +13,13 @@ No ML dependencies — uses Pillow only.
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
 
 from engine.static_audit.visual_schemas import VISUAL_SCHEMA_VERSION
+
+logger = logging.getLogger(__name__)
 
 _IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".gif"}
 
@@ -62,7 +65,7 @@ def _analyze_image(image_path: Path) -> list[dict[str, Any]]:
 
     try:
         img = Image.open(image_path)
-    except Exception as e:
+    except OSError as e:
         return [{"_error": f"Cannot open image: {e}"}]
 
     if img.mode not in ("L", "RGB", "RGBA", "P"):
@@ -152,6 +155,8 @@ def run_image_quality(
         try:
             fig_anomalies = _analyze_image(fig_path)
         except Exception as e:
+            # Failure isolation: per-figure analysis must not abort the scan.
+            logger.warning("Image quality analysis failed for %s: %s", figure_id, e)
             errors.append(f"Analysis failed for {figure_id}: {e}")
             continue
 

@@ -56,6 +56,8 @@ from typing import Any
 
 logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
 
+logger = logging.getLogger(__name__)
+
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 ELIS_KEYPOINT_SRC = _REPO_ROOT / "third_party" / "elis" / "system_modules" / "copy-move-detection-keypoint" / "src"
 
@@ -117,6 +119,8 @@ def _run_single(panels: list[dict[str, str]], output_dir: str, min_keypoints: in
                 "error": str(result.get("error", "")),
             })
         except Exception as e:
+            # Failure isolation: per-panel detector errors must not abort the batch.
+            logger.warning("Single-image copy-move failed for panel %s: %s", panel_id, e)
             results.append({
                 "panel_id": panel_id,
                 "success": False,
@@ -175,6 +179,8 @@ def _run_cross(pairs: list[dict[str, str]], output_dir: str, min_keypoints: int,
                 "error": str(result.get("error", "")),
             })
         except Exception as e:
+            # Failure isolation: per-pair detector errors must not abort the batch.
+            logger.warning("Cross-image copy-move failed for pair %s: %s", pair_id, e)
             results.append({
                 "pair_id": pair_id,
                 "source_panel_id": pair.get("source_panel_id", ""),

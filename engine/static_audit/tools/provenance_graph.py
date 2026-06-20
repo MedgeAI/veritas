@@ -156,72 +156,6 @@ def _save_embeddings_artifact(
         return None
 
 
-def _try_write_pgvector(
-    embeddings: dict[str, list[float]],
-    figure_paths: dict[str, Path],
-    workdir: Path,
-) -> bool:
-    """Attempt to write embeddings to pgvector if web backend is available.
-
-    Error handling strategy (matches D-7 "CLI 不强依赖 PG"):
-      - ImportError: web modules missing → return False (expected in CLI).
-      - ConnectionError / OperationalError: PG unreachable → log warning,
-        return False. Embeddings are already persisted as a JSON artifact,
-        so the caller can proceed without PG.
-      - Any other exception (data errors, schema errors, unexpected failures)
-        is re-raised so bugs are not hidden behind a silent return False.
-
-    Returns:
-        True on successful write, False when pgvector is not reachable.
-    """
-    try:
-        from sqlalchemy.exc import OperationalError
-    except ImportError:
-        return False
-
-    try:
-        from web.backend.veritas_web.database import get_db_session
-        from web.backend.veritas_web.models import ImageEmbeddingModel
-    except ImportError:
-        return False
-
-    try:
-        with get_db_session() as session:
-            case_id = workdir.name
-            for fid, emb in embeddings.items():
-                path = figure_paths.get(fid)
-                if not path:
-                    continue
-                existing = (
-                    session.query(ImageEmbeddingModel)
-                    .filter(
-                        ImageEmbeddingModel.case_id == case_id,
-                        ImageEmbeddingModel.figure_id == fid,
-                    )
-                    .first()
-                )
-                if existing:
-                    existing.embedding = emb
-                else:
-                    session.add(
-                        ImageEmbeddingModel(
-                            case_id=case_id,
-                            panel_id=fid,
-                            figure_id=fid,
-                            image_path=str(path.relative_to(workdir)),
-                            embedding=emb,
-                        )
-                    )
-            session.commit()
-        return True
-    except (ConnectionError, OperationalError) as exc:
-        logger.warning(
-            "pgvector not reachable, embeddings remain in JSON artifact only: %s",
-            exc,
-        )
-        return False
-    # Data errors, schema errors, etc. propagate — they indicate real bugs.
-
 
 def _verify_candidates_subprocess(
     candidates: list[tuple[str, str, float]],
@@ -534,9 +468,6 @@ def build_provenance_graph(
 
     # Persist embeddings as CLI artifact
     _save_embeddings_artifact(embeddings, figure_path_map, workdir)
-
-    # Optional: write to pgvector in web context
-    _try_write_pgvector(embeddings, figure_path_map, workdir)
 
     # Phase 2: Cosine similarity pre-filtering
     candidates = _find_embedding_candidates(

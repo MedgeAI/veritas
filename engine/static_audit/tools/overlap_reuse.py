@@ -19,17 +19,19 @@ the tool never blocks the audit pipeline.
 
 from __future__ import annotations
 
+import argparse
 import json
-import math
+import logging
 import subprocess
 import sys
-from itertools import combinations
 from pathlib import Path
 from typing import Any
 
 from PIL import Image
 
 from engine.static_audit.visual_schemas import VISUAL_SCHEMA_VERSION
+
+logger = logging.getLogger(__name__)
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"}
 MIN_PANEL_SIZE = 64
@@ -98,7 +100,7 @@ def _generate_tiles(
     """
     try:
         img = Image.open(image_path)
-    except Exception:
+    except OSError:
         return []
 
     w, h = img.size
@@ -321,6 +323,8 @@ def _polygon_intersection_area(
             clipped = _clip_polygon_by_edge(clipped, edge_start, edge_end)
         return _polygon_area(clipped)
     except Exception:
+        # Sutherland-Hodgman clipping can fail on degenerate polygons;
+        # fall back to bbox overlap rather than crashing the pipeline.
         return _bbox_overlap_area(poly_a, poly_b)
 
 
@@ -545,7 +549,7 @@ def detect_overlap_reuse(
         try:
             with Image.open(path) as img:
                 panel_size_map[panel_id] = img.size
-        except Exception:
+        except OSError:
             continue
 
     rel_idx = 0

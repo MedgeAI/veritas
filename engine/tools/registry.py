@@ -19,6 +19,7 @@ TOOL_ID_PROVENANCE_GRAPH = "visual.provenance_graph"
 TOOL_ID_SILA_DENSE = "visual.copy_move_dense"
 TOOL_ID_IMAGE_QUALITY = "visual.image_quality"
 TOOL_ID_OVERLAP_REUSE = "visual.overlap_reuse"
+SOURCE_DATA_VERDICT_TOOL_ID = "source_data.verdict"
 
 class ExecutionPhase(str, Enum):
     """Tool execution phase — controls when and how a tool runs in the audit pipeline.
@@ -216,6 +217,18 @@ TOOLS: dict[str, ToolDefinition] = {
             "min_support_rate": {"type": "number", "minimum": 0.5, "maximum": 1.0},
             "max_findings": {"type": "integer", "minimum": 10, "maximum": 200},
         },
+    ),
+    SOURCE_DATA_VERDICT_TOOL_ID: ToolDefinition(
+        tool_id=SOURCE_DATA_VERDICT_TOOL_ID,
+        step_key="source_data_verdict",
+        title="Source Data LLM 语义裁决",
+        source="engine/static_audit/tools",
+        description="Sheet-level LLM verdict: adjudicates source data findings as true_positive / false_positive / uncertain using column context from XLSX files.",
+        deterministic=False,
+        expected_outputs=("source_data/findings_verdict.json",),
+        execution_phase=ExecutionPhase.CONDITIONAL_BASELINE,
+        input_artifacts=("source_data/findings.json", "source_data/pair_forensics.json", "source_data/profile.json"),
+        output_artifacts=("source_data/findings_verdict.json",),
     ),
     PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID: ToolDefinition(
         tool_id=PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID,
@@ -478,6 +491,7 @@ PAPER_STATIC_AUDIT_TOOL_IDS = (
     SOURCE_DATA_FINDINGS_TOOL_ID,
     SOURCE_DATA_PAIR_FORENSICS_TOOL_ID,
     SOURCE_DATA_CROSS_SHEET_TOOL_ID,
+    SOURCE_DATA_VERDICT_TOOL_ID,
     PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID,
     "image.exact_duplicates",
     TOOL_ID_PANEL_EXTRACTION,
@@ -501,6 +515,7 @@ STATIC_AUDIT_V1_TOOL_IDS = (
     SOURCE_DATA_FINDINGS_TOOL_ID,
     SOURCE_DATA_PAIR_FORENSICS_TOOL_ID,
     SOURCE_DATA_CROSS_SHEET_TOOL_ID,
+    SOURCE_DATA_VERDICT_TOOL_ID,
     PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID,
     "image.exact_duplicates",
     "image.similarity_candidates",

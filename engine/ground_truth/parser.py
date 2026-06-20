@@ -14,7 +14,7 @@ Each claim must meet the Minimum Executable Specification:
 from __future__ import annotations
 
 import re
-from dataclasses import asdict, dataclass, field
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any, Literal
 

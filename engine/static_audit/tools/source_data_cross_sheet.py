@@ -8,12 +8,15 @@ multiple experiments, or same data packaged as different experiments).
 from __future__ import annotations
 
 import json
+import logging
 import sys
 from argparse import ArgumentParser
 from dataclasses import dataclass, field
 from itertools import combinations
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 try:
     from openpyxl import load_workbook
@@ -164,7 +167,9 @@ def find_cross_sheet_duplicates(
             for sheet_name in sheet_names:
                 columns = extract_numeric_columns(xlsx_file, sheet_name)
                 all_columns.extend(columns)
-        except Exception:
+        except (OSError, ValueError) as exc:
+            # Failure isolation: skip unreadable or malformed workbooks.
+            logger.warning("Skipping %s: %s", xlsx_file.name, exc)
             continue
 
     # Compare every pair of columns from different sheets
@@ -288,7 +293,7 @@ def main(argv: list[str] | None = None) -> int:
     output_path = Path(output_value) if output_value else None
 
     if not source_data_dir.exists():
-        print(f"Error: {source_data_dir} does not exist", file=sys.stderr)
+        logger.error("source_data_dir does not exist: %s", source_data_dir)
         return 1
 
     results = run_cross_sheet_detection(
@@ -301,7 +306,7 @@ def main(argv: list[str] | None = None) -> int:
     if output_path:
         output_path.parent.mkdir(parents=True, exist_ok=True)
         output_path.write_text(json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8")
-        print(f"Results written to {output_path}", file=sys.stderr)
+        logger.info("Results written to %s", output_path)
     else:
         print(json.dumps(results, indent=2, ensure_ascii=False))
 

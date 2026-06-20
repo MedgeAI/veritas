@@ -31,6 +31,21 @@ FIGURE_RE = re.compile(
 )
 FORMULA_REF_RE = re.compile(r"\$?([A-Z]+)\$?(\d+)")
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?。！？])\s+")
+SUMMARY_MEAN_TERMS = ("mean", "average")
+SUMMARY_SUM_TERMS = ("sum", "total")
+SUMMARY_N_TERMS = ("n total", "n=", "n ", "count", "number")
+TIME_EVENT_TERMS = (
+    "day",
+    "days",
+    "time",
+    "week",
+    "weeks",
+    "control",
+    "tumor free",
+    "tumour free",
+    "survival",
+    "event",
+)
 
 
 @dataclass
@@ -134,6 +149,143 @@ def column_label(sheet: SheetVectors, col: int) -> str:
         if len(labels) >= 4:
             break
     return " / ".join(labels)
+
+
+def _label_lower(sheet: SheetVectors, col: int) -> str:
+    return column_label(sheet, col).lower()
+
+
+def _has_any(text: str, terms: tuple[str, ...]) -> bool:
+    return any(term in text for term in terms)
+
+
+def _is_mean_label(label: str) -> bool:
+    return _has_any(label, SUMMARY_MEAN_TERMS)
+
+
+def _is_sum_label(label: str) -> bool:
+    return _has_any(label, SUMMARY_SUM_TERMS)
+
+
+def _is_n_label(label: str) -> bool:
+    return _has_any(label, SUMMARY_N_TERMS)
+
+
+def _decimal_close(left: Decimal, right: Decimal, tolerance: Decimal = Decimal("0.0001")) -> bool:
+    return abs(left - right) <= tolerance
+
+
+def _integer_like_ratio(value: Decimal) -> bool:
+    if value <= 1:
+        return False
+    return _decimal_close(value, value.to_integral_value(), Decimal("0.000001"))
+
+
+def is_summary_statistic_pair(sheet: SheetVectors, left_col: int, right_col: int, rows: list[int]) -> bool:
+    """Return True when a pair looks like Mean/Sum with an N column.
+
+    These are traceability facts, not suspicious fixed relationships: if Sum is
+    Mean multiplied by a stable N, row-offset ratio reuse is mathematically
+    expected.
+    """
+    left_label = _label_lower(sheet, left_col)
+    right_label = _label_lower(sheet, right_col)
+    if _is_mean_label(left_label) and _is_sum_label(right_label):
+        mean_col, sum_col = left_col, right_col
+    elif _is_sum_label(left_label) and _is_mean_label(right_label):
+        mean_col, sum_col = right_col, left_col
+    else:
+        return False
+
+    usable_rows = [
+        row
+        for row in rows
+        if row in sheet.numeric_columns.get(mean_col, {})
+        and row in sheet.numeric_columns.get(sum_col, {})
+        and sheet.numeric_columns[mean_col][row] != 0
+    ]
+    if len(usable_rows) < 3:
+        return False
+
+    ratios = [
+        sheet.numeric_columns[sum_col][row] / sheet.numeric_columns[mean_col][row]
+        for row in usable_rows
+    ]
+    integer_like = [ratio for ratio in ratios if _integer_like_ratio(ratio)]
+    if len(integer_like) / len(ratios) < 0.8:
+        return False
+
+    n_columns = [
+        col
+        for col in sheet.numeric_columns
+        if col not in {mean_col, sum_col} and _is_n_label(_label_lower(sheet, col))
+    ]
+    if not n_columns:
+        # The Mean/Sum labels plus a stable integer multiplier are already a
+        # strong summary-statistics signal, but keep this fallback conservative.
+        distinct_ratios = {decimal_key(ratio, "0.001") for ratio in integer_like}
+        return len(distinct_ratios) <= 2
+
+    for n_col in n_columns:
+        matched = 0
+        compared = 0
+        for row, ratio in zip(usable_rows, ratios):
+            n_value = sheet.numeric_columns.get(n_col, {}).get(row)
+            if n_value is None:
+                continue
+            compared += 1
+            if _decimal_close(ratio, n_value, Decimal("0.001")):
+                matched += 1
+        if compared and matched / compared >= 0.8:
+            return True
+    return False
+
+
+def zero_inflated_pair_artifact(
+    sheet: SheetVectors,
+    left_col: int,
+    right_col: int,
+    rows: list[int],
+) -> tuple[bool, str | None]:
+    if len(rows) < 20:
+        return False, None
+    left_values = sheet.numeric_columns[left_col]
+    right_values = sheet.numeric_columns[right_col]
+    both_zero = 0
+    non_zero_rows = 0
+    equal_non_zero = 0
+    for row in rows:
+        left = left_values.get(row)
+        right = right_values.get(row)
+        if left is None or right is None:
+            continue
+        if left == 0 and right == 0:
+            both_zero += 1
+        else:
+            non_zero_rows += 1
+            if left == right:
+                equal_non_zero += 1
+    zero_rate = both_zero / len(rows)
+    non_zero_support = equal_non_zero / non_zero_rows if non_zero_rows else 0.0
+    if zero_rate >= 0.7 and (non_zero_rows < 5 or non_zero_support < 0.98):
+        return True, f"zero-inflated matrix candidate: {both_zero}/{len(rows)} shared zero rows"
+    return False, None
+
+
+def is_time_event_design_pair(sheet: SheetVectors, columns: list[int], rows: list[int]) -> bool:
+    labels = " / ".join(_label_lower(sheet, col) for col in columns)
+    if not _has_any(labels, TIME_EVENT_TERMS):
+        return False
+    low_cardinality = 0
+    for col in columns:
+        values = [sheet.numeric_columns.get(col, {}).get(row) for row in rows]
+        values = [value for value in values if value is not None]
+        if not values:
+            continue
+        distinct = {normalized_number(value) for value in values}
+        if len(distinct) <= 3 or len(distinct) / len(values) <= 0.2:
+            low_cardinality += 1
+    return low_cardinality >= max(1, len(columns) - 1)
 
 
 def is_integer_like(value: Decimal) -> bool:
@@ -274,11 +426,21 @@ def duplicate_column_findings(
             index_like = is_index_like_column(
                 sheet.numeric_columns[left_col], equal
             ) and is_index_like_column(sheet.numeric_columns[right_col], equal)
+            zero_artifact, zero_reason = zero_inflated_pair_artifact(sheet, left_col, right_col, rows)
+            event_artifact = is_time_event_design_pair(sheet, [left_col, right_col], equal)
             risk = (
                 "low"
-                if index_like
+                if index_like or zero_artifact or event_artifact
                 else ("high" if len(equal) >= 100 and left_label != right_label else "medium")
             )
+            artifact_likelihood = "high" if index_like or zero_artifact or event_artifact else "unknown"
+            artifact_reason = None
+            if index_like:
+                artifact_reason = "both columns look like repeated sequential index/subject-id columns"
+            elif zero_artifact:
+                artifact_reason = zero_reason
+            elif event_artifact:
+                artifact_reason = "low-cardinality time/event or grouped endpoint columns"
             findings.append(
                 {
                     "finding_id": None,
@@ -292,12 +454,8 @@ def duplicate_column_findings(
                     "overlap_rows": len(rows),
                     "equal_rows": len(equal),
                     "support_rate": round(support, 4),
-                    "artifact_likelihood": "high" if index_like else "unknown",
-                    "artifact_reason": (
-                        "both columns look like repeated sequential index/subject-id columns"
-                        if index_like
-                        else None
-                    ),
+                    "artifact_likelihood": artifact_likelihood,
+                    "artifact_reason": artifact_reason,
                     "sample_rows": equal[:20],
                     "sample_pairs": [
                         {
@@ -311,7 +469,13 @@ def duplicate_column_findings(
                         "两列可能是重复展示同一指标、技术重复或空值填充结果。",
                         "如果列标签表示不同实验组或不同处理条件，则需要人工复核。",
                     ],
-                    "pressure_test_result": "needs_column_semantics_review",
+                    "pressure_test_result": (
+                        "likely_zero_inflated_matrix_artifact"
+                        if zero_artifact
+                        else "likely_time_event_design_artifact"
+                        if event_artifact
+                        else "needs_column_semantics_review"
+                    ),
                     "next_steps": [
                         "核对列标题、sheet 注释和对应 figure panel。",
                         "确认是否为合法重复、派生列或数据复制。",
@@ -402,8 +566,10 @@ def relationship_record(
     index_like = is_index_like_column(
         sheet.numeric_columns[left_col], rows
     ) and is_index_like_column(sheet.numeric_columns[right_col], rows)
-    risk = "low" if formula_involved else ("high" if support_rows >= 100 else "medium")
-    if index_like:
+    summary_pair = is_summary_statistic_pair(sheet, left_col, right_col, rows)
+    event_artifact = is_time_event_design_pair(sheet, [left_col, right_col], rows)
+    risk = "low" if formula_involved or summary_pair else ("high" if support_rows >= 100 else "medium")
+    if index_like or event_artifact:
         risk = "low"
 
     # Calculate pattern_strength: mechanical regularity coverage, not造假概率
@@ -437,11 +603,17 @@ def relationship_record(
         "pattern_strength": pattern_strength,
         "pattern_strength_reason": pattern_strength_reason,
         "artifact_likelihood": (
-            "high" if index_like else ("medium" if formula_involved else "unknown")
+            "high"
+            if index_like or summary_pair or event_artifact
+            else ("medium" if formula_involved else "unknown")
         ),
         "artifact_reason": (
             "both columns look like sequential index/subject-id columns with a constant offset"
             if index_like
+            else "Mean/Sum/N summary-statistics relationship"
+            if summary_pair
+            else "low-cardinality time/event or grouped endpoint columns"
+            if event_artifact
             else ("formula column involved" if formula_involved else None)
         ),
         "sample_rows": rows[:20],
@@ -461,6 +633,10 @@ def relationship_record(
         "pressure_test_result": (
             "likely_index_or_design_artifact"
             if index_like
+            else "likely_summary_statistic_derivation"
+            if summary_pair
+            else "likely_time_event_design_artifact"
+            if event_artifact
             else "likely_formula_or_transform_if_column_semantics_confirmed"
             if formula_involved
             else "needs_semantics_and_formula_review"

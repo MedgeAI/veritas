@@ -55,6 +55,8 @@ from torch.nn import functional as F
 
 logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(message)s")
 
+logger = logging.getLogger(__name__)
+
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 ELIS_TRUFOR_SRC = _REPO_ROOT / "third_party" / "elis" / "system_modules" / "TruFor" / "docker" / "src"
 DEFAULT_WEIGHTS = _REPO_ROOT / "models" / "trufor" / "weights" / "trufor.pth.tar"
@@ -156,6 +158,9 @@ def run_batch(
     try:
         model = _load_model(weights_path, device)
     except Exception as e:
+        # Failure isolation: model load failure should not crash the pipeline;
+        # record skip_reason for every figure and return gracefully.
+        logger.warning("TruFor model load failed: %s", e)
         for fig in figures:
             results.append({
                 "figure_id": fig["figure_id"],

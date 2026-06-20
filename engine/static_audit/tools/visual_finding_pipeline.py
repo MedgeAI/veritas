@@ -10,6 +10,7 @@ All text output is checked against FORBIDDEN_PHRASES from visual_schemas.
 
 from __future__ import annotations
 
+import re
 from collections import defaultdict
 from itertools import combinations
 from pathlib import Path
@@ -423,6 +424,35 @@ def _cap_risk_level(value: str, max_value: str) -> str:
     return max_value
 
 
+def _panel_index(panel_evidence: list[dict] | None) -> dict[str, dict]:
+    panel_map: dict[str, dict] = {}
+    if not panel_evidence:
+        return panel_map
+    parent_first: dict[str, dict] = {}
+    for pe in panel_evidence:
+        if not isinstance(pe, dict):
+            continue
+        panel_id = str(pe.get("panel_id") or "")
+        if panel_id:
+            panel_map[panel_id] = pe
+        parent_id = str(pe.get("parent_figure_id") or "")
+        if parent_id and parent_id not in parent_first:
+            parent_first[parent_id] = pe
+    for parent_id, pe in parent_first.items():
+        panel_map.setdefault(parent_id, pe)
+    return panel_map
+
+
+def _resolve_panel(panel_id: str, panel_map: dict[str, dict]) -> dict:
+    if panel_id in panel_map:
+        return panel_map[panel_id]
+    if panel_id and not panel_id.endswith("-01"):
+        candidate = f"{panel_id}-01"
+        if candidate in panel_map:
+            return panel_map[candidate]
+    return {}
+
+
 def _panel_extraction_quality(source_panel: dict, target_panel: dict) -> str:
     methods = {
         str(panel.get("extraction_method") or "")
@@ -440,6 +470,8 @@ def _parent_figure_id(panel: dict, fallback_panel_id: str) -> str:
     if isinstance(panel, dict) and panel.get("parent_figure_id"):
         return str(panel.get("parent_figure_id"))
     text = str(fallback_panel_id or "")
+    if re.match(r"^figure-content-\d{4}$", text):
+        return text
     if "-" in text:
         return text.rsplit("-", 1)[0]
     return text
@@ -507,16 +539,10 @@ def _dominant_modality(
     yields the *higher* forensic signal is used so that risk is not
     silently downgraded by a mixed-modality pair.
     """
-    src_type = (
-        panel_map.get(src, {}).get("panel_type")
-        if isinstance(panel_map.get(src), dict)
-        else None
-    )
-    tgt_type = (
-        panel_map.get(tgt, {}).get("panel_type")
-        if isinstance(panel_map.get(tgt), dict)
-        else None
-    )
+    src_panel = _resolve_panel(src, panel_map)
+    tgt_panel = _resolve_panel(tgt, panel_map)
+    src_type = src_panel.get("panel_type") if isinstance(src_panel, dict) else None
+    tgt_type = tgt_panel.get("panel_type") if isinstance(tgt_panel, dict) else None
     if src_type is None and tgt_type is None:
         return None
     if src_type is None:
@@ -564,11 +590,7 @@ def build_visual_findings(
     Returns:
         List of visual finding dicts matching VisualFinding schema fields.
     """
-    panel_map: dict[str, dict] = {}
-    if panel_evidence:
-        for pe in panel_evidence:
-            if isinstance(pe, dict) and pe.get("panel_id"):
-                panel_map[str(pe["panel_id"])] = pe
+    panel_map = _panel_index(panel_evidence)
 
     findings: list[dict] = []
     counter = 0
@@ -611,8 +633,8 @@ def build_visual_findings(
         if violated:
             continue
 
-        pe_meta = panel_map.get(src, {})
-        target_pe_meta = panel_map.get(tgt, {})
+        pe_meta = _resolve_panel(src, panel_map)
+        target_pe_meta = _resolve_panel(tgt, panel_map)
         source_method = str(pe_meta.get("extraction_method") or "unknown")
         target_method = str(target_pe_meta.get("extraction_method") or "unknown")
         extraction_quality = _panel_extraction_quality(pe_meta, target_pe_meta)
@@ -626,6 +648,16 @@ def build_visual_findings(
                 compute_risk_level(displayed_score, modality=panel_type), "medium"
             )
             confidence_adjustments.append("risk capped because at least one panel is whole_figure_fallback")
+
+        if panel_type in {"Graphs", "Flow Cytometry"} and source_type in {
+            "copy_move_single",
+            "copy_move_cross",
+            "overlap_reuse_cross_panel",
+        }:
+            risk_level = _cap_risk_level(risk_level, "medium")
+            confidence_adjustments.append(
+                f"risk capped because {panel_type} panels often match axes, text, legends, or plot geometry"
+            )
 
         # Overlap reuse: cap risk at high (never critical by default)
         if source_type == "overlap_reuse_cross_panel":
@@ -654,6 +686,9 @@ def build_visual_findings(
                 "panel_extraction_quality": extraction_quality,
                 "source_parent_figure_id": _parent_figure_id(pe_meta, src),
                 "target_parent_figure_id": _parent_figure_id(target_pe_meta, tgt),
+                "panel_type": panel_type,
+                "source_panel_type": pe_meta.get("panel_type"),
+                "target_panel_type": target_pe_meta.get("panel_type"),
                 "source_extraction_method": source_method,
                 "target_extraction_method": target_method,
                 "source_panel_metadata": pe_meta.get("metadata", {}),
@@ -678,6 +713,14 @@ def build_visual_findings(
             if not figure_id:
                 continue
             risk_level = trufor_integrity_risk_level(integrity_score)
+            trufor_panel = _resolve_panel(figure_id, panel_map)
+            trufor_panel_type = trufor_panel.get("panel_type") if isinstance(trufor_panel, dict) else None
+            confidence_adjustments: list[str] = []
+            if trufor_panel_type not in {"Blots", "Microscopy"}:
+                risk_level = _cap_risk_level(risk_level, "medium")
+                confidence_adjustments.append(
+                    "risk capped because TruFor finding is figure-level and not a Blots/Microscopy panel"
+                )
             benign = list(BENIGN_EXPLANATIONS["forged_region_suspicious"])
             questions = list(MANUAL_REVIEW_QUESTIONS["forged_region_suspicious"])
             summary = _generate_trufor_summary(figure_id, integrity_score)
@@ -716,6 +759,8 @@ def build_visual_findings(
                         fre.get("confidence_map_path")
                     ),
                     "panel_extraction_quality": "unknown",
+                    "panel_type": trufor_panel_type,
+                    "risk_cap_reason": "; ".join(confidence_adjustments) or None,
                     "source_parent_figure_id": figure_id,
                     "target_parent_figure_id": figure_id,
                     "source_extraction_method": "tru_for",
