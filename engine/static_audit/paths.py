@@ -60,6 +60,7 @@ ARTIFACT_PATH_MAP = {
     "source_data_findings.json": "source_data/findings.json",
     "source_data_pair_forensics.json": "source_data/pair_forensics.json",
     "source_data_cross_sheet.json": "source_data/cross_sheet.json",
+    "source_data_findings_verdict.json": "source_data/findings_verdict.json",
     # Numeric forensics outputs
     "numeric_forensics.json": "numeric/forensics.json",
     "paperfraud_rule_matches.json": "numeric/paperfraud_rules.json",
