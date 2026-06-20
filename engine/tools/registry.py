@@ -19,6 +19,7 @@ TOOL_ID_PROVENANCE_GRAPH = "visual.provenance_graph"
 TOOL_ID_SILA_DENSE = "visual.copy_move_dense"
 TOOL_ID_IMAGE_QUALITY = "visual.image_quality"
 TOOL_ID_OVERLAP_REUSE = "visual.overlap_reuse"
+TOOL_ID_CBIR_SEARCH = "visual.cbir_search"
 SOURCE_DATA_VERDICT_TOOL_ID = "source_data.verdict"
 
 class ExecutionPhase(str, Enum):
@@ -334,17 +335,26 @@ TOOLS: dict[str, ToolDefinition] = {
         step_key="visual_provenance_graph",
         title="溯源图构建",
         source="engine/static_audit/tools",
-        description="Build provenance graph from cross-figure content sharing using dhash pre-filter and RootSIFT+MAGSAC++.",
+        description="Build provenance graph from cross-figure content sharing using ELIS provenance-adapter with recursive BFS expansion.",
         expected_outputs=("visual/provenance_graph.json",),
-        parameter_defaults={"dhash_threshold": 20, "max_candidate_pairs": 500, "min_keypoints": 20, "min_area": 0.01},
+        parameter_defaults={
+            "descriptor_type": "cv_rsift",
+            "min_keypoints": 20,
+            "min_area": 0.01,
+            "max_depth": 3,
+            "check_flip": True,
+            "max_workers": 4,
+        },
         execution_phase=ExecutionPhase.MANDATORY_BASELINE,
         input_artifacts=("visual/evidence.json",),
         output_artifacts=("visual/provenance_graph.json",),
         param_schema={
-            "dhash_threshold": {"type": "integer", "minimum": 0, "maximum": 64},
-            "max_candidate_pairs": {"type": "integer", "minimum": 10, "maximum": 5000},
+            "descriptor_type": {"type": "string", "enum": ["cv_rsift", "cv_sift", "vlfeat_sift_heq"]},
             "min_keypoints": {"type": "integer", "minimum": 4, "maximum": 200},
             "min_area": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+            "max_depth": {"type": "integer", "minimum": 1, "maximum": 10},
+            "check_flip": {"type": "boolean"},
+            "max_workers": {"type": "integer", "minimum": 1, "maximum": 16},
         },
     ),
     TOOL_ID_SILA_DENSE: ToolDefinition(
@@ -401,6 +411,27 @@ TOOLS: dict[str, ToolDefinition] = {
             "min_inliers": {"type": "integer", "minimum": 4, "maximum": 200},
             "min_overlap_area": {"type": "number", "minimum": 0.0, "maximum": 1.0},
             "max_relationships": {"type": "integer", "minimum": 1, "maximum": 5000},
+        },
+    ),
+    TOOL_ID_CBIR_SEARCH: ToolDefinition(
+        tool_id=TOOL_ID_CBIR_SEARCH,
+        step_key="visual_cbir_search",
+        title="CBIR 跨面板相似性检索",
+        source="engine/static_audit/tools",
+        description="Content-Based Image Retrieval over extracted panels: computes per-panel feature vectors and retrieves similar panel pairs via cosine similarity.",
+        expected_outputs=("visual/cbir_search.json",),
+        parameter_defaults={
+            "top_k": 5,
+            "min_score": 0.70,
+            "max_pairs": 500,
+        },
+        execution_phase=ExecutionPhase.AGENT_SELECTABLE,
+        input_artifacts=("visual/panel_evidence.json", "visual/evidence.json"),
+        output_artifacts=("visual/cbir_search.json",),
+        param_schema={
+            "top_k": {"type": "integer", "minimum": 1, "maximum": 50},
+            "min_score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
+            "max_pairs": {"type": "integer", "minimum": 1, "maximum": 5000},
         },
     ),
     "static_audit.bundle": ToolDefinition(
@@ -699,15 +730,16 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
         }
     if tool_id == TOOL_ID_PROVENANCE_GRAPH:
         defaults = TOOLS[tool_id].parameter_defaults
+        descriptor_type = str(
+            params.get("descriptor_type", defaults.get("descriptor_type", "cv_rsift"))
+        ).lower()
+        if descriptor_type not in {"cv_rsift", "cv_sift", "vlfeat_sift_heq"}:
+            raise ValueError(
+                f"descriptor_type must be one of ['cv_rsift', 'cv_sift', 'vlfeat_sift_heq'], "
+                f"got {descriptor_type!r}"
+            )
         return {
-            "dhash_threshold": _bounded_int(
-                params.get("dhash_threshold", defaults.get("dhash_threshold", 20)),
-                "dhash_threshold", 0, 64,
-            ),
-            "max_candidate_pairs": _bounded_int(
-                params.get("max_candidate_pairs", defaults.get("max_candidate_pairs", 500)),
-                "max_candidate_pairs", 10, 5000,
-            ),
+            "descriptor_type": descriptor_type,
             "min_keypoints": _bounded_int(
                 params.get("min_keypoints", defaults.get("min_keypoints", 20)),
                 "min_keypoints", 4, 200,
@@ -715,6 +747,15 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
             "min_area": _bounded_float(
                 params.get("min_area", defaults.get("min_area", 0.01)),
                 "min_area", 0.0, 1.0,
+            ),
+            "max_depth": _bounded_int(
+                params.get("max_depth", defaults.get("max_depth", 3)),
+                "max_depth", 1, 10,
+            ),
+            "check_flip": bool(params.get("check_flip", defaults.get("check_flip", True))),
+            "max_workers": _bounded_int(
+                params.get("max_workers", defaults.get("max_workers", 4)),
+                "max_workers", 1, 16,
             ),
         }
     if tool_id == TOOL_ID_SILA_DENSE:
