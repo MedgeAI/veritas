@@ -39,7 +39,8 @@ FRONTEND_DIR := web/frontend
 	db-up db-down db-init db-migrate \
 	precheck run report demo audit audit-off audit-fresh report-path \
 	web-backend web-frontend web-install web-build web-preview \
-	test test-unit test-integration test-e2e lint lint-python lint-web web-test \
+	test test-fast test-unit test-integration test-e2e test-visual test-model \
+	lint lint-python lint-web web-test \
 	clean-demo clean-cache clean-web wipe-local
 
 help: ## Show available commands
@@ -71,8 +72,8 @@ show-config: ## Print effective Makefile variables
 
 # -- Setup ---------------------------------------------------------------
 
-sync: ## Sync Python dependencies with uv
-	$(UV_ENV) $(UV) sync --dev
+sync: ## Sync Python dependencies with uv (includes all optional extras)
+	$(UV_ENV) $(UV) sync --dev --all-extras
 
 install: sync ## Install/sync the Python environment with uv
 
@@ -219,14 +220,23 @@ health: ## Check local web backend health
 test: ## Run all Python tests
 	$(PY_ENV) $(PYTEST) -q
 
+test-fast: ## Fast tests: unit tests only, no models, no heavy visual, target <30s
+	$(PY_ENV) $(PYTEST) tests/unit/ -x --tb=short -q -k "not test_copy_move and not test_overlap_reuse and not test_visual_finding and not test_visual_fixtures and not test_tru_for and not test_sila and not test_paperconan and not test_web_app"
+
 test-unit: ## Run unit tests
 	$(PY_ENV) $(PYTEST) -q tests/unit
 
-test-integration: ## Run integration tests
-	$(PY_ENV) $(PYTEST) -q tests/integration
+test-integration: ## Integration tests: e2e + web + CLI smoke
+	$(PY_ENV) $(PYTEST) tests/e2e/ tests/integration/ -x --tb=short -q
 
 test-e2e: ## Run end-to-end tests
 	$(PY_ENV) $(PYTEST) -q tests/e2e
+
+test-visual: ## Visual tests: OpenCV/fixture-heavy
+	$(PY_ENV) $(PYTEST) tests/unit/test_copy_move_detection.py tests/unit/test_overlap_reuse.py tests/unit/test_visual_finding_pipeline.py tests/unit/test_visual_fixtures.py tests/unit/test_visual_report.py tests/unit/test_visual_orchestrator.py -x --tb=short -q
+
+test-model: ## Model tests: TruFor/SSCD/SILA/Docker/GPU (not in CI fast gate)
+	$(PY_ENV) $(PYTEST) tests/ -x --tb=short -q -k "tru_for or sila or sscd or embedding"
 
 lint: lint-python lint-web ## Run Python and frontend lint checks
 
