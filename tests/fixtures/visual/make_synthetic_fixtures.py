@@ -48,7 +48,10 @@ def make_panel_content(
         for x in range(10, width, 20):
             for y in range(10, height, 20):
                 radius = 3 + (seed % 5)
-                draw.ellipse([x - radius, y - radius, x + radius, y + radius], fill=(255, 255, 255))
+                draw.ellipse(
+                    [x - radius, y - radius, x + radius, y + radius],
+                    fill=(255, 255, 255),
+                )
     elif pattern == "lines":
         # Create a line pattern
         for y in range(0, height, 15):
@@ -59,7 +62,9 @@ def make_panel_content(
         for x in range(0, width, cell_size):
             for y in range(0, height, cell_size):
                 if ((x // cell_size) + (y // cell_size)) % 2 == 0:
-                    draw.rectangle([x, y, x + cell_size, y + cell_size], fill=(255, 255, 255))
+                    draw.rectangle(
+                        [x, y, x + cell_size, y + cell_size], fill=(255, 255, 255)
+                    )
 
     return img
 
@@ -104,7 +109,10 @@ def make_2x2_panel_figure(
         (border_width, border_width),  # Top-left
         (2 * border_width + panel_width, border_width),  # Top-right
         (border_width, 2 * border_width + panel_height),  # Bottom-left
-        (2 * border_width + panel_width, 2 * border_width + panel_height),  # Bottom-right
+        (
+            2 * border_width + panel_width,
+            2 * border_width + panel_height,
+        ),  # Bottom-right
     ]
 
     for i, (panel, (x, y)) in enumerate(zip(panel_contents, positions)):
@@ -233,7 +241,8 @@ def make_fixture_with_known_copies(
     ]
     make_2x2_panel_figure(
         images_dir / "Figure1.png",
-        panel_contents=figure1_panels + [  # Fill remaining 2 slots
+        panel_contents=figure1_panels
+        + [  # Fill remaining 2 slots
             make_panel_content(200, 150, (200, 150, 100), "solid", 2),
             make_panel_content(200, 150, (150, 200, 100), "solid", 3),
         ],
@@ -255,7 +264,8 @@ def make_fixture_with_known_copies(
     ]
     make_2x2_panel_figure(
         images_dir / "Figure2.png",
-        panel_contents=figure2_panels + [  # Fill remaining 2 slots
+        panel_contents=figure2_panels
+        + [  # Fill remaining 2 slots
             make_panel_content(200, 150, (200, 100, 150), "solid", 5),
             make_panel_content(200, 150, (150, 150, 200), "solid", 6),
         ],
@@ -285,7 +295,12 @@ def make_fixture_with_known_copies(
                 "expected_panels": 4,
                 "panels": [
                     {"panel_id": "PE-0002-01", "label": "a", "is_source": False},
-                    {"panel_id": "PE-0002-02", "label": "b", "is_copy": True, "copy_source": "PE-0001-01"},
+                    {
+                        "panel_id": "PE-0002-02",
+                        "label": "b",
+                        "is_copy": True,
+                        "copy_source": "PE-0001-01",
+                    },
                     {"panel_id": "PE-0002-03", "label": "c", "is_source": False},
                     {"panel_id": "PE-0002-04", "label": "d", "is_source": False},
                 ],
@@ -677,11 +692,19 @@ def generate_all_fixtures(base_dir: Path) -> list[dict[str, Any]]:
     fixtures.append(make_clean_fixture(base_dir / "synthetic_2x2_clean"))
 
     # Copy fixtures (positive controls)
-    fixtures.append(make_fixture_with_known_copies(base_dir / "synthetic_copy_exact", "exact"))
-    fixtures.append(make_fixture_with_known_copies(base_dir / "synthetic_copy_scaled", "scaled"))
-    fixtures.append(make_fixture_with_known_copies(base_dir / "synthetic_copy_rotated", "rotated"))
     fixtures.append(
-        make_fixture_with_known_copies(base_dir / "synthetic_copy_brightness", "brightness")
+        make_fixture_with_known_copies(base_dir / "synthetic_copy_exact", "exact")
+    )
+    fixtures.append(
+        make_fixture_with_known_copies(base_dir / "synthetic_copy_scaled", "scaled")
+    )
+    fixtures.append(
+        make_fixture_with_known_copies(base_dir / "synthetic_copy_rotated", "rotated")
+    )
+    fixtures.append(
+        make_fixture_with_known_copies(
+            base_dir / "synthetic_copy_brightness", "brightness"
+        )
     )
 
     # Overlap fixtures (positive controls)
@@ -691,7 +714,9 @@ def generate_all_fixtures(base_dir: Path) -> list[dict[str, Any]]:
 
     # Overlap negative fixtures
     fixtures.append(
-        make_overlap_negative_similar_fixture(base_dir / "synthetic_overlap_negative_similar")
+        make_overlap_negative_similar_fixture(
+            base_dir / "synthetic_overlap_negative_similar"
+        )
     )
     fixtures.append(
         make_overlap_negative_low_texture_fixture(
@@ -705,7 +730,9 @@ def generate_all_fixtures(base_dir: Path) -> list[dict[str, Any]]:
 if __name__ == "__main__":
     import sys
 
-    output_dir = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("tests/fixtures/visual")
+    output_dir = (
+        Path(sys.argv[1]) if len(sys.argv) > 1 else Path("tests/fixtures/visual")
+    )
     fixtures = generate_all_fixtures(output_dir)
     print(f"Generated {len(fixtures)} synthetic fixtures in {output_dir}")
     for fixture in fixtures:

@@ -9,7 +9,9 @@ from web.backend.veritas_web.models import normalize_case_status, normalize_run_
 def test_case_store_creates_case_and_input(tmp_path) -> None:
     store = CaseStore(tmp_path / "web_data")
 
-    case = store.create_case(paper_title="Demo paper", user_id="operator", case_id="demo-case")
+    case = store.create_case(
+        paper_title="Demo paper", user_id="operator", case_id="demo-case"
+    )
     input_path = store.write_input(case.case_id, "paper.pdf", b"%PDF-1.4\n")
     loaded = store.get_case(case.case_id)
 
@@ -24,10 +26,16 @@ def test_case_store_records_run_events(tmp_path) -> None:
     case = store.create_case(case_id="demo-case")
     run = store.create_run(case.case_id)
 
-    store.append_event(case.case_id, run.run_id, {"event": "audit_start", "case_id": case.case_id})
-    store.append_event(case.case_id, run.run_id, {"event": "audit_end", "status": "completed"})
+    store.append_event(
+        case.case_id, run.run_id, {"event": "audit_start", "case_id": case.case_id}
+    )
+    store.append_event(
+        case.case_id, run.run_id, {"event": "audit_end", "status": "completed"}
+    )
 
-    assert [event["event"] for event in store.list_events(case.case_id, run.run_id)] == ["audit_start", "audit_end"]
+    assert [
+        event["event"] for event in store.list_events(case.case_id, run.run_id)
+    ] == ["audit_start", "audit_end"]
 
 
 def test_case_store_lists_runs(tmp_path) -> None:
@@ -36,8 +44,14 @@ def test_case_store_lists_runs(tmp_path) -> None:
     first = store.create_run(case.case_id)
     second = store.create_run(case.case_id)
 
-    assert {run.run_id for run in store.list_runs(case.case_id)} == {first.run_id, second.run_id}
-    assert {run.run_id for run in store.list_all_runs()} == {first.run_id, second.run_id}
+    assert {run.run_id for run in store.list_runs(case.case_id)} == {
+        first.run_id,
+        second.run_id,
+    }
+    assert {run.run_id for run in store.list_all_runs()} == {
+        first.run_id,
+        second.run_id,
+    }
 
 
 def test_status_normalizers_reject_invalid_values() -> None:

@@ -7,7 +7,11 @@ from pathlib import Path
 
 import pytest
 
-from web.backend.veritas_web.database import Base, create_db_engine, create_session_factory
+from web.backend.veritas_web.database import (
+    Base,
+    create_db_engine,
+    create_session_factory,
+)
 from web.backend.veritas_web.embeddings import (
     SSCDEncoder,
     _cosine_similarity,
@@ -19,9 +23,14 @@ from web.backend.veritas_web.embeddings import (
 )
 
 
-def _make_test_image(path: Path, color: tuple[int, int, int] = (128, 128, 128), size: tuple[int, int] = (256, 256)) -> None:
+def _make_test_image(
+    path: Path,
+    color: tuple[int, int, int] = (128, 128, 128),
+    size: tuple[int, int] = (256, 256),
+) -> None:
     """Create a minimal PNG image for testing."""
     from PIL import Image
+
     img = Image.new("RGB", size, color)
     path.parent.mkdir(parents=True, exist_ok=True)
     img.save(str(path))
@@ -55,12 +64,26 @@ def workdir_with_panels(tmp_path: Path) -> Path:
     panel_doc = {
         "schema_version": "1.0",
         "panels": [
-            {"panel_id": "P1", "parent_figure_id": "F1", "crop_path": "visual/panels/P1.png"},
-            {"panel_id": "P2", "parent_figure_id": "F1", "crop_path": "visual/panels/P2.png"},
-            {"panel_id": "P3", "parent_figure_id": "F2", "crop_path": "visual/panels/P3.png"},
+            {
+                "panel_id": "P1",
+                "parent_figure_id": "F1",
+                "crop_path": "visual/panels/P1.png",
+            },
+            {
+                "panel_id": "P2",
+                "parent_figure_id": "F1",
+                "crop_path": "visual/panels/P2.png",
+            },
+            {
+                "panel_id": "P3",
+                "parent_figure_id": "F2",
+                "crop_path": "visual/panels/P3.png",
+            },
         ],
     }
-    (workdir / "panel_evidence.json").write_text(json.dumps(panel_doc), encoding="utf-8")
+    (workdir / "panel_evidence.json").write_text(
+        json.dumps(panel_doc), encoding="utf-8"
+    )
     return workdir
 
 
@@ -107,14 +130,16 @@ class TestGetIndexStatus:
 
         # Manually insert some embeddings
         for i in range(3):
-            db_session.add(ImageEmbeddingModel(
-                case_id="test-case",
-                panel_id=f"P{i+1}",
-                figure_id="F1",
-                image_path=f"panels/P{i+1}.png",
-                embedding=[0.1] * 512,
-                indexed_at=_utc_now(),
-            ))
+            db_session.add(
+                ImageEmbeddingModel(
+                    case_id="test-case",
+                    panel_id=f"P{i + 1}",
+                    figure_id="F1",
+                    image_path=f"panels/P{i + 1}.png",
+                    embedding=[0.1] * 512,
+                    indexed_at=_utc_now(),
+                )
+            )
         db_session.commit()
 
         status = get_index_status(db_session, "test-case")
@@ -151,21 +176,36 @@ class TestQuerySimilar:
         from web.backend.veritas_web.models import ImageEmbeddingModel
 
         # Insert embeddings: P1 and P2 are similar, P3 is different
-        db_session.add(ImageEmbeddingModel(
-            case_id="case1", panel_id="P1", figure_id="F1",
-            image_path="p1.png", embedding=[1.0, 0.0, 0.0] + [0.0] * 509,
-            indexed_at=_utc_now(),
-        ))
-        db_session.add(ImageEmbeddingModel(
-            case_id="case1", panel_id="P2", figure_id="F1",
-            image_path="p2.png", embedding=[0.99, 0.01, 0.0] + [0.0] * 509,
-            indexed_at=_utc_now(),
-        ))
-        db_session.add(ImageEmbeddingModel(
-            case_id="case1", panel_id="P3", figure_id="F2",
-            image_path="p3.png", embedding=[0.0, 0.0, 1.0] + [0.0] * 509,
-            indexed_at=_utc_now(),
-        ))
+        db_session.add(
+            ImageEmbeddingModel(
+                case_id="case1",
+                panel_id="P1",
+                figure_id="F1",
+                image_path="p1.png",
+                embedding=[1.0, 0.0, 0.0] + [0.0] * 509,
+                indexed_at=_utc_now(),
+            )
+        )
+        db_session.add(
+            ImageEmbeddingModel(
+                case_id="case1",
+                panel_id="P2",
+                figure_id="F1",
+                image_path="p2.png",
+                embedding=[0.99, 0.01, 0.0] + [0.0] * 509,
+                indexed_at=_utc_now(),
+            )
+        )
+        db_session.add(
+            ImageEmbeddingModel(
+                case_id="case1",
+                panel_id="P3",
+                figure_id="F2",
+                image_path="p3.png",
+                embedding=[0.0, 0.0, 1.0] + [0.0] * 509,
+                indexed_at=_utc_now(),
+            )
+        )
         db_session.commit()
 
         # Query for P1 — should find P2 as similar (cos ≈ 0.99), not P3 (cos ≈ 0)
@@ -180,21 +220,36 @@ class TestQueryAllSimilarPairs:
         from web.backend.veritas_web.embeddings import _utc_now
         from web.backend.veritas_web.models import ImageEmbeddingModel
 
-        db_session.add(ImageEmbeddingModel(
-            case_id="case1", panel_id="P1", figure_id="F1",
-            image_path="p1.png", embedding=[1.0, 0.0, 0.0] + [0.0] * 509,
-            indexed_at=_utc_now(),
-        ))
-        db_session.add(ImageEmbeddingModel(
-            case_id="case1", panel_id="P2", figure_id="F1",
-            image_path="p2.png", embedding=[0.95, 0.05, 0.0] + [0.0] * 509,
-            indexed_at=_utc_now(),
-        ))
-        db_session.add(ImageEmbeddingModel(
-            case_id="case1", panel_id="P3", figure_id="F2",
-            image_path="p3.png", embedding=[0.0, 1.0, 0.0] + [0.0] * 509,
-            indexed_at=_utc_now(),
-        ))
+        db_session.add(
+            ImageEmbeddingModel(
+                case_id="case1",
+                panel_id="P1",
+                figure_id="F1",
+                image_path="p1.png",
+                embedding=[1.0, 0.0, 0.0] + [0.0] * 509,
+                indexed_at=_utc_now(),
+            )
+        )
+        db_session.add(
+            ImageEmbeddingModel(
+                case_id="case1",
+                panel_id="P2",
+                figure_id="F1",
+                image_path="p2.png",
+                embedding=[0.95, 0.05, 0.0] + [0.0] * 509,
+                indexed_at=_utc_now(),
+            )
+        )
+        db_session.add(
+            ImageEmbeddingModel(
+                case_id="case1",
+                panel_id="P3",
+                figure_id="F2",
+                image_path="p3.png",
+                embedding=[0.0, 1.0, 0.0] + [0.0] * 509,
+                indexed_at=_utc_now(),
+            )
+        )
         db_session.commit()
 
         pairs = query_all_similar_pairs(db_session, "case1", threshold=0.9)
@@ -207,11 +262,16 @@ class TestQueryAllSimilarPairs:
         from web.backend.veritas_web.embeddings import _utc_now
         from web.backend.veritas_web.models import ImageEmbeddingModel
 
-        db_session.add(ImageEmbeddingModel(
-            case_id="case1", panel_id="P1", figure_id="F1",
-            image_path="p1.png", embedding=[1.0] + [0.0] * 511,
-            indexed_at=_utc_now(),
-        ))
+        db_session.add(
+            ImageEmbeddingModel(
+                case_id="case1",
+                panel_id="P1",
+                figure_id="F1",
+                image_path="p1.png",
+                embedding=[1.0] + [0.0] * 511,
+                indexed_at=_utc_now(),
+            )
+        )
         db_session.commit()
 
         pairs = query_all_similar_pairs(db_session, "case1", threshold=0.5)
@@ -219,33 +279,43 @@ class TestQueryAllSimilarPairs:
 
 
 class TestIndexPanels:
-    def test_missing_panel_evidence_returns_failed(self, db_session, tmp_path: Path) -> None:
+    def test_missing_panel_evidence_returns_failed(
+        self, db_session, tmp_path: Path
+    ) -> None:
         encoder = SSCDEncoder()
         result = index_panels(db_session, "case1", tmp_path, encoder)
         assert result["status"] == "failed"
         assert result["failure_category"] == "artifact_missing"
 
-    def test_unavailable_model_returns_failed_environment(self, db_session, workdir_with_panels) -> None:
+    def test_unavailable_model_returns_failed_environment(
+        self, db_session, workdir_with_panels
+    ) -> None:
         encoder = SSCDEncoder(model_path=Path("/nonexistent/model.pt"))
         result = index_panels(db_session, "case1", workdir_with_panels, encoder)
         assert result["status"] == "failed"
         assert result["failure_category"] == "environment"
 
-    def test_all_image_encode_failures_return_failed(self, db_session, workdir_with_panels) -> None:
+    def test_all_image_encode_failures_return_failed(
+        self, db_session, workdir_with_panels
+    ) -> None:
         class FailingEncoder:
             available = True
 
             def encode_batch(self, image_paths, batch_size=32):
                 return [None for _path in image_paths]
 
-        result = index_panels(db_session, "case1", workdir_with_panels, FailingEncoder())
+        result = index_panels(
+            db_session, "case1", workdir_with_panels, FailingEncoder()
+        )
 
         assert result["status"] == "failed"
         assert result["failure_category"] == "image_load_failed"
         assert result["indexed_count"] == 0
         assert result["expected_count"] == 3
 
-    def test_partial_image_encode_failures_persist_successes(self, db_session, workdir_with_panels) -> None:
+    def test_partial_image_encode_failures_persist_successes(
+        self, db_session, workdir_with_panels
+    ) -> None:
         from web.backend.veritas_web.models import ImageEmbeddingModel
 
         class PartialEncoder:
@@ -254,9 +324,16 @@ class TestIndexPanels:
             def encode_batch(self, image_paths, batch_size=32):
                 return [[1.0] + [0.0] * 511, None, None]
 
-        result = index_panels(db_session, "case1", workdir_with_panels, PartialEncoder())
+        result = index_panels(
+            db_session, "case1", workdir_with_panels, PartialEncoder()
+        )
 
         assert result["status"] == "partial"
         assert result["indexed_count"] == 1
         assert result["expected_count"] == 3
-        assert db_session.query(ImageEmbeddingModel).filter(ImageEmbeddingModel.case_id == "case1").count() == 1
+        assert (
+            db_session.query(ImageEmbeddingModel)
+            .filter(ImageEmbeddingModel.case_id == "case1")
+            .count()
+            == 1
+        )

@@ -19,7 +19,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from engine.static_audit.visual_schemas import ForgedRegionEvidence, VISUAL_SCHEMA_VERSION
+from engine.static_audit.visual_schemas import (
+    ForgedRegionEvidence,
+    VISUAL_SCHEMA_VERSION,
+)
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 DEFAULT_WEIGHTS = _REPO_ROOT / "models" / "trufor" / "weights" / "trufor.pth.tar"
@@ -42,13 +45,12 @@ def _check_prerequisites(weights_path: Path) -> dict[str, Any] | str:
 
     # Layer 2: model weights
     if not weights_path.is_file():
-        return _skipped_result(
-            f"TruFor model weights not found at {weights_path}."
-        )
+        return _skipped_result(f"TruFor model weights not found at {weights_path}.")
 
     # Layer 3: GPU / CPU
     try:
         import torch
+
         return "cuda:0" if torch.cuda.is_available() else "cpu"
     except ImportError:
         return "cpu"
@@ -105,10 +107,12 @@ def run_tru_for(
             continue
         fig_path = workdir / source
         if fig_path.exists():
-            figures.append({
-                "figure_id": str(fig.get("figure_id") or ""),
-                "path": str(fig_path),
-            })
+            figures.append(
+                {
+                    "figure_id": str(fig.get("figure_id") or ""),
+                    "path": str(fig_path),
+                }
+            )
 
     if not figures:
         return _failed_result(
@@ -137,11 +141,15 @@ def run_tru_for(
         if proc.returncode != 0:
             return _failed_result(
                 failure_category="runtime",
-                errors=[f"TruFor runner exited with code {proc.returncode}: {proc.stderr[:500]}"],
+                errors=[
+                    f"TruFor runner exited with code {proc.returncode}: {proc.stderr[:500]}"
+                ],
             )
         runner_output = json.loads(proc.stdout)
     except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError) as e:
-        return _failed_result(failure_category="runtime", errors=[f"TruFor runner failed: {e}"])
+        return _failed_result(
+            failure_category="runtime", errors=[f"TruFor runner failed: {e}"]
+        )
 
     # Convert runner results to ForgedRegionEvidence
     forged_evidence = []
@@ -153,11 +161,15 @@ def run_tru_for(
         figure_id = r.get("figure_id", "")
 
         if status == "failed":
-            errors.append(f"TruFor failed for {figure_id}: {r.get('skip_reason', 'unknown')}")
+            errors.append(
+                f"TruFor failed for {figure_id}: {r.get('skip_reason', 'unknown')}"
+            )
             continue
 
         if status == "skipped":
-            limitations.append(f"TruFor skipped for {figure_id}: {r.get('skip_reason', 'unknown')}")
+            limitations.append(
+                f"TruFor skipped for {figure_id}: {r.get('skip_reason', 'unknown')}"
+            )
             continue
 
         # Make paths relative to workdir

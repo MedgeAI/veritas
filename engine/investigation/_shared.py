@@ -28,12 +28,16 @@ class AgentRunResult:
 
 def write_agent_result(path: Path, result: AgentRunResult, fallback_kind: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = result.data if result.data is not None else {
-        "schema_version": "1.0",
-        "status": "failed",
-        "kind": fallback_kind,
-        "detail": result.detail,
-    }
+    payload = (
+        result.data
+        if result.data is not None
+        else {
+            "schema_version": "1.0",
+            "status": "failed",
+            "kind": fallback_kind,
+            "detail": result.detail,
+        }
+    )
     path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
@@ -185,7 +189,9 @@ def _run_opencode_json(
         try:
             parsed = extract_json(completed.stdout)
             data = validator(parsed)
-            return AgentRunResult("ok", data, f"opencode {expected} ok", command, runtime, attempt)
+            return AgentRunResult(
+                "ok", data, f"opencode {expected} ok", command, runtime, attempt
+            )
         except Exception as exc:
             last_detail = f"{type(exc).__name__}: {exc}"
             if completed.stdout:
@@ -268,9 +274,13 @@ def _compact_pair_forensics_finding(item: dict[str, Any]) -> dict[str, Any]:
         or item.get("matched_pair_groups")
         or item.get("duplicate_row_count")
         or item.get("exact_reuse_pairs"),
-        "overlap": item.get("overlap_rows") or item.get("overlap_pairs") or item.get("overlap_pair_groups"),
+        "overlap": item.get("overlap_rows")
+        or item.get("overlap_pairs")
+        or item.get("overlap_pair_groups"),
         "support_rate": item.get("support_rate"),
-        "sample_pairs": (item.get("sample_pairs") or item.get("sample_exact_pairs") or [])[:5],
+        "sample_pairs": (
+            item.get("sample_pairs") or item.get("sample_exact_pairs") or []
+        )[:5],
     }
 
 
@@ -361,7 +371,9 @@ def _role_input_files(role_id: str, workdir: Path) -> list[Path]:
     }
     return [
         path
-        for path in (_artifact_path(workdir, name) for name in candidates.get(role_id, []))
+        for path in (
+            _artifact_path(workdir, name) for name in candidates.get(role_id, [])
+        )
         if path.exists()
     ]
 
@@ -373,21 +385,27 @@ def _artifact_summary(workdir: Path) -> dict[str, Any]:
     ledger = _read_json_artifact(workdir, "evidence_ledger.json") or {}
     numeric = _read_json_artifact(workdir, "numeric_forensics.json") or {}
     source_findings = _read_json_artifact(workdir, "source_data_findings.json") or {}
-    pair_forensics = _read_json_artifact(workdir, "source_data_pair_forensics.json") or {}
+    pair_forensics = (
+        _read_json_artifact(workdir, "source_data_pair_forensics.json") or {}
+    )
     image_duplicates = _read_json_artifact(workdir, "exact_image_duplicates.json") or {}
     investigation_records = _read_investigation_records(workdir)
     inventory_summary = material_inventory.get("summary") or {}
     summary["material_inventory"] = {
         "file_count": inventory_summary.get("file_count"),
         "by_material_type": inventory_summary.get("by_material_type", {}),
-        "candidate_source_roots": (material_inventory.get("candidate_source_roots") or [])[:8],
+        "candidate_source_roots": (
+            material_inventory.get("candidate_source_roots") or []
+        )[:8],
         "limitations": material_inventory.get("limitations", []),
     }
     summary["material_plan"] = {
         "status": material_plan.get("status", "ok") if material_plan else "missing",
         "selected_optional_lanes": material_plan.get("selected_optional_lanes", []),
         "missing_materials": material_plan.get("missing_materials", []),
-        "unsupported_materials": (material_plan.get("unsupported_materials") or [])[:12],
+        "unsupported_materials": (material_plan.get("unsupported_materials") or [])[
+            :12
+        ],
     }
     summary["evidence_ledger_stats"] = ledger.get("stats", {})
     summary["evidence_ledger_warnings"] = [
@@ -417,7 +435,9 @@ def _artifact_summary(workdir: Path) -> dict[str, Any]:
             "cluster_count": item.get("cluster_count"),
             "finding_count": item.get("finding_count"),
             "question": str(item.get("question", ""))[:280],
-            "representative_finding_ids": (item.get("representative_finding_ids") or [])[:6],
+            "representative_finding_ids": (
+                item.get("representative_finding_ids") or []
+            )[:6],
         }
         for item in (pair_forensics.get("review_tasks") or [])[:12]
         if isinstance(item, dict)
@@ -431,7 +451,9 @@ def _artifact_summary(workdir: Path) -> dict[str, Any]:
             "sheet": item.get("sheet"),
             "pattern_signature": item.get("pattern_signature"),
             "finding_count": item.get("finding_count"),
-            "representative_finding_ids": (item.get("representative_finding_ids") or [])[:6],
+            "representative_finding_ids": (
+                item.get("representative_finding_ids") or []
+            )[:6],
         }
         for item in (pair_forensics.get("finding_clusters") or [])[:12]
         if isinstance(item, dict)
@@ -456,7 +478,9 @@ def _artifact_summary(workdir: Path) -> dict[str, Any]:
         "duplicate_group_count": image_duplicates.get("duplicate_group_count"),
         "duplicate_image_count": image_duplicates.get("duplicate_image_count"),
     }
-    image_similarity = _read_json_artifact(workdir, "image_similarity_candidates.json") or {}
+    image_similarity = (
+        _read_json_artifact(workdir, "image_similarity_candidates.json") or {}
+    )
     summary["image_similarity_candidates"] = {
         "status": image_similarity.get("status"),
         "method": image_similarity.get("method"),
@@ -499,7 +523,9 @@ def _artifact_summary(workdir: Path) -> dict[str, Any]:
             "finding_count": item.get("finding_count"),
             "relationship_count": item.get("relationship_count"),
             "max_score": item.get("max_score"),
-            "representative_finding_ids": (item.get("representative_finding_ids") or [])[:6],
+            "representative_finding_ids": (
+                item.get("representative_finding_ids") or []
+            )[:6],
         }
         for item in (visual_findings.get("finding_clusters") or [])[:12]
         if isinstance(item, dict)

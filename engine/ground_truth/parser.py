@@ -87,6 +87,7 @@ def parse_manual_annotations(yaml_path: Path) -> list[StructuredClaim]:
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _split_comments(text: str) -> list[tuple[str, str]]:
     """Split a PubPeer post into (comment_id, body) pairs."""
     pattern = re.compile(r"^\*{2}#(\d+)\*{2}", re.MULTILINE)
@@ -105,14 +106,46 @@ def _split_comments(text: str) -> list[tuple[str, str]]:
 
 
 _CLAIM_PATTERNS: list[tuple[re.Pattern, str, EvidenceType]] = [
-    (re.compile(r"(?i)(\d+°\s*(?:clockwise|counterclockwise|rotation|rotate))"), "visual.copy_move_keypoint", "image"),
-    (re.compile(r"(?i)(identical|same|复制|重复).*(?:value|row|entry|值|行)"), "source_data.duplicate_columns", "source_data"),
-    (re.compile(r"(?i)(fixed\s*(?:difference|ratio)|固定[差比])"), "source_data.fixed_difference", "source_data"),
-    (re.compile(r"(?i)(\d+\.\d+)\s*×\s*([A-Z]\w+|PT|RT)"), "source_data.fixed_ratio", "source_data"),
-    (re.compile(r"(?i)(N\+20|N\s*\+\s*\d+).*ratio.*dupl"), "source_data.row_offset_exact_reuse", "source_data"),
-    (re.compile(r"(?i)(no\s*source\s*data|缺.*source\s*data|missing)"), "completeness.missing_source_data", "completeness"),
-    (re.compile(r"(?i)(paired\s*difference|配对[差值]).*(±|range)"), "source_data.paired_difference_spread", "source_data"),
-    (re.compile(r"(?i)(blot|band|条带).*(no\s*background|无背景)"), "visual.image_quality", "image"),
+    (
+        re.compile(r"(?i)(\d+°\s*(?:clockwise|counterclockwise|rotation|rotate))"),
+        "visual.copy_move_keypoint",
+        "image",
+    ),
+    (
+        re.compile(r"(?i)(identical|same|复制|重复).*(?:value|row|entry|值|行)"),
+        "source_data.duplicate_columns",
+        "source_data",
+    ),
+    (
+        re.compile(r"(?i)(fixed\s*(?:difference|ratio)|固定[差比])"),
+        "source_data.fixed_difference",
+        "source_data",
+    ),
+    (
+        re.compile(r"(?i)(\d+\.\d+)\s*×\s*([A-Z]\w+|PT|RT)"),
+        "source_data.fixed_ratio",
+        "source_data",
+    ),
+    (
+        re.compile(r"(?i)(N\+20|N\s*\+\s*\d+).*ratio.*dupl"),
+        "source_data.row_offset_exact_reuse",
+        "source_data",
+    ),
+    (
+        re.compile(r"(?i)(no\s*source\s*data|缺.*source\s*data|missing)"),
+        "completeness.missing_source_data",
+        "completeness",
+    ),
+    (
+        re.compile(r"(?i)(paired\s*difference|配对[差值]).*(±|range)"),
+        "source_data.paired_difference_spread",
+        "source_data",
+    ),
+    (
+        re.compile(r"(?i)(blot|band|条带).*(no\s*background|无背景)"),
+        "visual.image_quality",
+        "image",
+    ),
 ]
 
 
@@ -124,14 +157,16 @@ def _extract_claims_from_comment(body: str, comment_id: str) -> list[StructuredC
         if pattern.search(body):
             target = _extract_target(body)
             first_line = body.split("\n")[0][:200]
-            claims.append(StructuredClaim(
-                claim_type=claim_type,
-                target=target,
-                description=first_line,
-                evidence_type=evidence_type,
-                source="pubpeer",
-                comment_id=comment_id,
-            ))
+            claims.append(
+                StructuredClaim(
+                    claim_type=claim_type,
+                    target=target,
+                    description=first_line,
+                    evidence_type=evidence_type,
+                    source="pubpeer",
+                    comment_id=comment_id,
+                )
+            )
             break
 
     return claims
@@ -147,7 +182,9 @@ def _extract_target(body: str) -> str:
         prefix = "Extended Data " if fig_match.group(1) else ""
         return f"{prefix}Fig. {fig_match.group(2)}"
 
-    sheet_match = re.search(r"(?i)(MOESM\d+|Sheet\s*\d+|Supplementary\s+(?:Data|Table)\s*\d+)", body)
+    sheet_match = re.search(
+        r"(?i)(MOESM\d+|Sheet\s*\d+|Supplementary\s+(?:Data|Table)\s*\d+)", body
+    )
     if sheet_match:
         return sheet_match.group(1)
 

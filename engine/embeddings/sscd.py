@@ -89,7 +89,9 @@ class DiskCacheBackend:
             return None
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
-            if isinstance(data, list) and all(isinstance(x, (int, float)) for x in data):
+            if isinstance(data, list) and all(
+                isinstance(x, (int, float)) for x in data
+            ):
                 return data
             logger.warning("corrupt cache entry %s — discarding", key)
             path.unlink(missing_ok=True)
@@ -135,7 +137,9 @@ class SSCDEncoder:
         self._model = None
         self._model_path = Path(model_path) if model_path else _default_model_path()
         self._device = "cpu"
-        self._cache: CacheBackend | None = DiskCacheBackend(cache_dir) if cache_dir else None
+        self._cache: CacheBackend | None = (
+            DiskCacheBackend(cache_dir) if cache_dir else None
+        )
 
     @property
     def available(self) -> bool:
@@ -191,12 +195,14 @@ class SSCDEncoder:
         self._ensure_loaded()
         assert self._model is not None
 
-        preprocess = T.Compose([
-            T.Resize(224),
-            T.CenterCrop(224),
-            T.ToTensor(),
-            T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        ])
+        preprocess = T.Compose(
+            [
+                T.Resize(224),
+                T.CenterCrop(224),
+                T.ToTensor(),
+                T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            ]
+        )
 
         all_embeddings: list[list[float] | None] = [None] * len(image_paths)
         errors: list[str] = []
@@ -204,7 +210,7 @@ class SSCDEncoder:
         total = len(image_paths)
 
         for batch_start in range(0, total, batch_size):
-            batch_paths = image_paths[batch_start:batch_start + batch_size]
+            batch_paths = image_paths[batch_start : batch_start + batch_size]
             tensors: list[torch.Tensor] = []
             tensor_positions: list[int] = []
 
@@ -240,7 +246,9 @@ class SSCDEncoder:
                         raw = self._model(batch_tensor)
                         raw = torch.nn.functional.normalize(raw, p=2, dim=1)
 
-                    for position, embedding in zip(tensor_positions, raw.cpu().tolist()):
+                    for position, embedding in zip(
+                        tensor_positions, raw.cpu().tolist()
+                    ):
                         all_embeddings[position] = embedding
                         self._cache_put(image_paths[position], embedding)
                 except Exception as exc:
@@ -283,6 +291,7 @@ class SSCDEncoder:
         if self._model is not None:
             return
         import torch
+
         if torch.cuda.is_available():
             self._device = "cuda"
         self._model = torch.jit.load(str(self._model_path), map_location=self._device)

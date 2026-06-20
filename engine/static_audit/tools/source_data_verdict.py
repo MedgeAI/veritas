@@ -25,6 +25,7 @@ Sheets are processed in parallel (ThreadPoolExecutor); each sheet is one LLM
 call.  A typical paper produces 5-12 LLM calls, all parallel, so the wall-clock
 latency equals a single LLM call.
 """
+
 from __future__ import annotations
 
 import json
@@ -102,6 +103,7 @@ Be thorough. Do NOT mark findings as false_positive unless the explanation is cr
 
 # ── XLSX context extraction ─────────────────────────────────────────
 
+
 def _safe_value(cell_value: Any, max_len: int = 60) -> Any:
     """Convert a cell value to a JSON-safe primitive."""
     if cell_value is None:
@@ -116,7 +118,6 @@ def read_xlsx_column_context(
     xlsx_path: Path,
     sheet_name: str,
     *,
-    max_header_rows: int = 15,
     max_sample_rows: int = 5,
 ) -> dict[str, Any] | None:
     """Read column headers + sample values from an XLSX sheet.
@@ -150,9 +151,7 @@ def read_xlsx_column_context(
         # A "data row" has at least one numeric (int/float) cell value.
         all_rows: list[list[Any]] = []
         first_data_row = -1
-        for i, row in enumerate(
-            ws.iter_rows(max_row=200, values_only=True)
-        ):
+        for i, row in enumerate(ws.iter_rows(max_row=200, values_only=True)):
             row_vals = [_safe_value(c) for c in row]
             all_rows.append(row_vals)
             if first_data_row < 0 and any(
@@ -183,16 +182,16 @@ def read_xlsx_column_context(
                     val = str(row[col_idx])
                     if val and val not in hierarchy:
                         hierarchy.append(val)
-            columns.append({
-                "col_idx": col_idx,
-                "name": hierarchy[-1] if hierarchy else None,
-                "header_hierarchy": hierarchy,
-                "sample_values": [
-                    row[col_idx]
-                    for row in data_section
-                    if col_idx < len(row)
-                ],
-            })
+            columns.append(
+                {
+                    "col_idx": col_idx,
+                    "name": hierarchy[-1] if hierarchy else None,
+                    "header_hierarchy": hierarchy,
+                    "sample_values": [
+                        row[col_idx] for row in data_section if col_idx < len(row)
+                    ],
+                }
+            )
 
         return {
             "num_columns": num_cols,
@@ -211,6 +210,7 @@ def read_xlsx_column_context(
 
 
 # ── Sheet context builder ────────────────────────────────────────────
+
 
 def _build_sheet_context(
     workbook_name: str,
@@ -304,6 +304,7 @@ def _build_sheet_context(
 
 # ── Schema validator ─────────────────────────────────────────────────
 
+
 def _validate_verdict_output(data: Any) -> dict:
     """Validate LLM output against the verdict schema.
 
@@ -341,6 +342,7 @@ def _validate_verdict_output(data: Any) -> dict:
 
 
 # ── Single-sheet LLM call ────────────────────────────────────────────
+
 
 def get_sheet_verdict(
     sheet_context: dict[str, Any],
@@ -417,14 +419,19 @@ def get_sheet_verdict(
         "verdict_status": "failed",
         "explanation": f"LLM verdict call failed: {detail}",
         "findings": [
-            {"id": f.get("id"), "verdict": "uncertain", "confidence": 0.0,
-             "explanation": "LLM verdict unavailable"}
+            {
+                "id": f.get("id"),
+                "verdict": "uncertain",
+                "confidence": 0.0,
+                "explanation": "LLM verdict unavailable",
+            }
             for f in sheet_context.get("findings", [])
         ],
     }
 
 
 # ── Grouping logic ───────────────────────────────────────────────────
+
 
 def _group_findings_by_sheet(
     findings_data: dict | None,
@@ -449,6 +456,7 @@ def _group_findings_by_sheet(
 
 
 # ── Main entry point ─────────────────────────────────────────────────
+
 
 def run_source_data_verdict(
     workdir: Path,
@@ -570,8 +578,12 @@ def run_source_data_verdict(
                     "verdict_status": "failed",
                     "explanation": f"Exception: {exc}",
                     "findings": [
-                        {"id": f.get("id"), "verdict": "uncertain", "confidence": 0.0,
-                         "explanation": "LLM verdict unavailable"}
+                        {
+                            "id": f.get("id"),
+                            "verdict": "uncertain",
+                            "confidence": 0.0,
+                            "explanation": "LLM verdict unavailable",
+                        }
                         for f in ctx.get("findings", [])
                     ],
                 }

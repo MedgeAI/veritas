@@ -1,0 +1,81 @@
+# import-linter configuration for Veritas
+# Enforces layered architecture: UI → Engine → Runtime → Config/Types
+#
+# Contracts use `forbidden` type because Veritas has multiple root packages
+# (cli, engine, runtime, protocols, web) rather than a single root.
+# See docs/architecture/DESLOP_SOP.md for full specification.
+
+[importlinter]
+root_packages =
+    cli
+    engine
+    runtime
+    protocols
+    web
+
+# ========================================================================
+# Contract 1: Engine must not import UI layers
+# Engine is business logic — it must not know about CLI or Web entry points.
+# ========================================================================
+[importlinter:contract:engine-no-ui]
+name = Engine must not import CLI or Web
+type = forbidden
+source_modules =
+    engine
+forbidden_modules =
+    cli
+    web
+
+# ========================================================================
+# Contract 2: Runtime must not import Engine or UI
+# Runtime handles command execution and side effects only.
+# It must not contain business reasoning or know about entry points.
+# ========================================================================
+[importlinter:contract:runtime-independence]
+name = Runtime must not import Engine, CLI, or Web
+type = forbidden
+source_modules =
+    runtime
+forbidden_modules =
+    engine
+    cli
+    web
+
+# ========================================================================
+# Contract 3: Protocols must not import Engine or Runtime
+# Protocols (domain rules) are Config/Types layer — pure constraints,
+# no flow logic. They must not depend on implementation.
+# ========================================================================
+[importlinter:contract:protocols-independence]
+name = Protocols must not import Engine, Runtime, CLI, or Web
+type = forbidden
+source_modules =
+    protocols
+forbidden_modules =
+    engine
+    runtime
+    cli
+    web
+
+# ========================================================================
+# Contract 4: UI layers must not import each other
+# CLI and Web are independent entry points. No cross-dependencies.
+# ========================================================================
+[importlinter:contract:ui-independence]
+name = CLI and Web must not depend on each other
+type = independence
+modules =
+    cli
+    web
+
+# ========================================================================
+# Contract 5: Runtime and Protocols must not import each other
+# They are siblings at different conceptual layers but neither depends
+# on the other.
+# ========================================================================
+[importlinter:contract:runtime-protocols-independence]
+name = Runtime and Protocols must not depend on each other
+type = independence
+modules =
+    runtime
+    protocols

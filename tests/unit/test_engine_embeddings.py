@@ -81,7 +81,8 @@ class FakeJobStore:
             "expected_count": expected_count,
             "detail": detail,
             "updated_at": now,
-            "started_at": existing.get("started_at") or (now if status in {"queued", "running"} else None),
+            "started_at": existing.get("started_at")
+            or (now if status in {"queued", "running"} else None),
             "completed_at": now if status not in {"queued", "running"} else None,
         }
         self.jobs[case_id] = job
@@ -163,14 +164,16 @@ def _make_workdir_with_panels(tmp_path: Path, n_panels: int = 3) -> Path:
 
     panels = []
     for i in range(n_panels):
-        pid = f"P{i+1}"
+        pid = f"P{i + 1}"
         img_path = panels_dir / f"{pid}.png"
         _make_test_image(img_path, color=(50 * (i + 1), 50, 50))
-        panels.append({
-            "panel_id": pid,
-            "parent_figure_id": "F1",
-            "crop_path": f"visual/panels/{pid}.png",
-        })
+        panels.append(
+            {
+                "panel_id": pid,
+                "parent_figure_id": "F1",
+                "crop_path": f"visual/panels/{pid}.png",
+            }
+        )
 
     panel_doc = {"schema_version": "1.0", "panels": panels}
     (workdir / "panel_evidence.json").write_text(
@@ -300,9 +303,7 @@ class TestCollectPanelEvidence:
 
     def test_empty_panels(self, tmp_path: Path) -> None:
         doc = {"schema_version": "1.0", "panels": []}
-        (tmp_path / "panel_evidence.json").write_text(
-            json.dumps(doc), encoding="utf-8"
-        )
+        (tmp_path / "panel_evidence.json").write_text(json.dumps(doc), encoding="utf-8")
         records, error = collect_panel_evidence(tmp_path)
         assert error is None  # empty is not an error
         assert records == []
@@ -310,12 +311,14 @@ class TestCollectPanelEvidence:
     def test_missing_image_files_skipped(self, tmp_path: Path) -> None:
         doc = {
             "panels": [
-                {"panel_id": "P1", "parent_figure_id": "F1", "crop_path": "no_such_file.png"},
+                {
+                    "panel_id": "P1",
+                    "parent_figure_id": "F1",
+                    "crop_path": "no_such_file.png",
+                },
             ]
         }
-        (tmp_path / "panel_evidence.json").write_text(
-            json.dumps(doc), encoding="utf-8"
-        )
+        (tmp_path / "panel_evidence.json").write_text(json.dumps(doc), encoding="utf-8")
         records, error = collect_panel_evidence(tmp_path)
         assert error is None
         assert records == []  # missing image → skipped
@@ -325,12 +328,14 @@ class TestCollectPanelEvidence:
         # Overwrite with a panel that has no panel_id
         doc = {
             "panels": [
-                {"panel_id": "", "parent_figure_id": "F1", "crop_path": "visual/panels/P1.png"},
+                {
+                    "panel_id": "",
+                    "parent_figure_id": "F1",
+                    "crop_path": "visual/panels/P1.png",
+                },
             ]
         }
-        (workdir / "panel_evidence.json").write_text(
-            json.dumps(doc), encoding="utf-8"
-        )
+        (workdir / "panel_evidence.json").write_text(json.dumps(doc), encoding="utf-8")
         records, error = collect_panel_evidence(workdir)
         assert error is None
         assert records == []
@@ -383,9 +388,7 @@ class TestEmbeddingIndexer:
 
     def test_no_panels(self, tmp_path: Path) -> None:
         doc = {"panels": []}
-        (tmp_path / "panel_evidence.json").write_text(
-            json.dumps(doc), encoding="utf-8"
-        )
+        (tmp_path / "panel_evidence.json").write_text(json.dumps(doc), encoding="utf-8")
         store = FakeEmbeddingStore()
         encoder = FakeEncoder()
 
@@ -570,10 +573,18 @@ class TestGetIndexStatus:
 
     def test_with_embeddings(self) -> None:
         store = FakeEmbeddingStore()
-        store.bulk_upsert("case1", [
-            {"panel_id": "P1", "figure_id": "F1", "image_path": "p.png",
-             "embedding": [0.1] * 512, "indexed_at": "2026-01-01T00:00:00Z"},
-        ])
+        store.bulk_upsert(
+            "case1",
+            [
+                {
+                    "panel_id": "P1",
+                    "figure_id": "F1",
+                    "image_path": "p.png",
+                    "embedding": [0.1] * 512,
+                    "indexed_at": "2026-01-01T00:00:00Z",
+                },
+            ],
+        )
         status = get_index_status("case1", store)
         assert status.status == "indexed"
         assert status.indexed_count == 1
@@ -590,10 +601,18 @@ class TestGetIndexStatus:
 
     def test_with_job_store_completed_and_embeddings(self) -> None:
         store = FakeEmbeddingStore()
-        store.bulk_upsert("case1", [
-            {"panel_id": "P1", "figure_id": "F1", "image_path": "p.png",
-             "embedding": [0.1] * 512, "indexed_at": "2026-01-01T00:00:00Z"},
-        ])
+        store.bulk_upsert(
+            "case1",
+            [
+                {
+                    "panel_id": "P1",
+                    "figure_id": "F1",
+                    "image_path": "p.png",
+                    "embedding": [0.1] * 512,
+                    "indexed_at": "2026-01-01T00:00:00Z",
+                },
+            ],
+        )
         job_store = FakeJobStore()
         job_store.upsert("case1", "completed", indexed_count=1, expected_count=1)
 
@@ -610,8 +629,11 @@ class TestUpdateIndexJobStatus:
     def test_delegates_to_job_store(self) -> None:
         job_store = FakeJobStore()
         result = update_index_job_status(
-            "case1", "running", job_store,
-            expected_count=5, detail="test",
+            "case1",
+            "running",
+            job_store,
+            expected_count=5,
+            detail="test",
         )
         assert result["status"] == "running"
         assert result["expected_count"] == 5

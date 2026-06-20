@@ -4,6 +4,7 @@ These tests validate the deterministic logic (XLSX reading, grouping,
 schema validation) WITHOUT calling the LLM.  LLM integration is
 covered by integration tests that require opencode to be available.
 """
+
 from __future__ import annotations
 
 import json
@@ -141,31 +142,39 @@ class TestValidateVerdictOutput:
 
     def test_finding_not_dict(self):
         with pytest.raises(ValueError, match="not an object"):
-            _validate_verdict_output({
-                "sheet_verdict": "mixed",
-                "findings": ["oops"],
-            })
+            _validate_verdict_output(
+                {
+                    "sheet_verdict": "mixed",
+                    "findings": ["oops"],
+                }
+            )
 
     def test_finding_missing_id(self):
         with pytest.raises(ValueError, match="missing 'id'"):
-            _validate_verdict_output({
-                "sheet_verdict": "mixed",
-                "findings": [{"verdict": "uncertain"}],
-            })
+            _validate_verdict_output(
+                {
+                    "sheet_verdict": "mixed",
+                    "findings": [{"verdict": "uncertain"}],
+                }
+            )
 
     def test_invalid_finding_verdict(self):
         with pytest.raises(ValueError, match="invalid verdict"):
-            _validate_verdict_output({
-                "sheet_verdict": "mixed",
-                "findings": [{"id": "X", "verdict": "bogus"}],
-            })
+            _validate_verdict_output(
+                {
+                    "sheet_verdict": "mixed",
+                    "findings": [{"id": "X", "verdict": "bogus"}],
+                }
+            )
 
     def test_all_three_verdicts_accepted(self):
         for v in ("true_positive", "false_positive", "uncertain"):
-            _validate_verdict_output({
-                "sheet_verdict": "mixed",
-                "findings": [{"id": "X", "verdict": v}],
-            })
+            _validate_verdict_output(
+                {
+                    "sheet_verdict": "mixed",
+                    "findings": [{"id": "X", "verdict": v}],
+                }
+            )
 
 
 # ── run_source_data_verdict ───────────────────────────────────────────
@@ -197,7 +206,9 @@ def _write_verdict_xlsx(path: Path) -> None:
     wb.save(path)
 
 
-def test_run_source_data_verdict_writes_summary_and_artifact(tmp_path, monkeypatch) -> None:
+def test_run_source_data_verdict_writes_summary_and_artifact(
+    tmp_path, monkeypatch
+) -> None:
     workdir = tmp_path / "work"
     source_dir = tmp_path / "Source Data"
     source_dir.mkdir()
@@ -313,10 +324,15 @@ def test_run_source_data_verdict_writes_summary_and_artifact(tmp_path, monkeypat
     assert [sheet["sheet"] for sheet in persisted["sheets"]] == ["S1", "S2"]
     s1_context = next(ctx for ctx in seen_contexts if ctx["sheet"] == "S1")
     assert s1_context["columns"] is not None
-    assert [finding["id"] for finding in s1_context["findings"]] == ["FR-0001", "DC-0001"]
+    assert [finding["id"] for finding in s1_context["findings"]] == [
+        "FR-0001",
+        "DC-0001",
+    ]
 
 
-def test_run_source_data_verdict_keeps_findings_uncertain_when_sheet_call_fails(tmp_path, monkeypatch) -> None:
+def test_run_source_data_verdict_keeps_findings_uncertain_when_sheet_call_fails(
+    tmp_path, monkeypatch
+) -> None:
     workdir = tmp_path / "work"
     source_dir = tmp_path / "Source Data"
     source_dir.mkdir()
@@ -327,8 +343,20 @@ def test_run_source_data_verdict_keeps_findings_uncertain_when_sheet_call_fails(
         "source_data_findings.json",
         {
             "findings": [
-                {"finding_id": "F-OK", "category": "fixed_ratio", "risk_level": "medium", "workbook": "source.xlsx", "sheet": "S1"},
-                {"finding_id": "F-FAIL", "category": "fixed_ratio", "risk_level": "medium", "workbook": "source.xlsx", "sheet": "S2"},
+                {
+                    "finding_id": "F-OK",
+                    "category": "fixed_ratio",
+                    "risk_level": "medium",
+                    "workbook": "source.xlsx",
+                    "sheet": "S1",
+                },
+                {
+                    "finding_id": "F-FAIL",
+                    "category": "fixed_ratio",
+                    "risk_level": "medium",
+                    "workbook": "source.xlsx",
+                    "sheet": "S2",
+                },
             ]
         },
     )
@@ -437,7 +465,9 @@ class TestReadXlsxContext:
 
 class TestBuildSheetContext:
     PAPER3_SD = Path("/mnt/disk1/LZJ/project/veritas/input/paper3/Source Data")
-    PAPER3_OUT = Path("/mnt/disk1/LZJ/project/veritas/outputs/paper3/research-integrity-audit")
+    PAPER3_OUT = Path(
+        "/mnt/disk1/LZJ/project/veritas/outputs/paper3/research-integrity-audit"
+    )
 
     @pytest.fixture(autouse=True)
     def _skip_if_no_data(self):
@@ -457,7 +487,9 @@ class TestBuildSheetContext:
         key = ("41586_2025_8943_MOESM13_ESM.xlsx", "Extended Data Fig. 3d")
         assert key in grouped
 
-        ctx = _build_sheet_context(key[0], key[1], grouped[key], self.PAPER3_SD, profile)
+        ctx = _build_sheet_context(
+            key[0], key[1], grouped[key], self.PAPER3_SD, profile
+        )
 
         assert ctx["workbook"] == key[0]
         assert ctx["sheet"] == key[1]
@@ -470,7 +502,14 @@ class TestBuildSheetContext:
         ctx = _build_sheet_context(
             "nonexistent.xlsx",
             "Sheet1",
-            [{"finding_id": "X", "category": "fixed_ratio", "workbook": "nonexistent.xlsx", "sheet": "Sheet1"}],
+            [
+                {
+                    "finding_id": "X",
+                    "category": "fixed_ratio",
+                    "workbook": "nonexistent.xlsx",
+                    "sheet": "Sheet1",
+                }
+            ],
             Path("/tmp"),
             None,
         )

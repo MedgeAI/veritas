@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-import pytest
 
 from PIL import Image
 
@@ -39,12 +38,17 @@ class TestCbirSearchRegistry:
         assert tool.deterministic is True
 
     def test_tool_not_in_mandatory_baseline(self):
-        from engine.tools.registry import PAPER_STATIC_AUDIT_TOOL_IDS, STATIC_AUDIT_V1_TOOL_IDS
+        from engine.tools.registry import (
+            PAPER_STATIC_AUDIT_TOOL_IDS,
+            STATIC_AUDIT_V1_TOOL_IDS,
+        )
+
         assert TOOL_ID_CBIR_SEARCH not in PAPER_STATIC_AUDIT_TOOL_IDS
         assert TOOL_ID_CBIR_SEARCH not in STATIC_AUDIT_V1_TOOL_IDS
 
     def test_tool_in_investigation_catalog(self):
         from engine.tools.registry import tool_catalog_for_investigation
+
         catalog = tool_catalog_for_investigation()
         exposed = {item["tool_id"] for item in catalog}
         assert TOOL_ID_CBIR_SEARCH in exposed
@@ -69,7 +73,10 @@ class TestHelpers:
         assert _is_valid_panel({"crop_path": "/tmp/x.png"}) is False
 
     def test_panel_image_path_prefers_crop_path(self):
-        panel = {"crop_path": "visual/crops/p1.png", "source_image_path": "visual/images/fig1.png"}
+        panel = {
+            "crop_path": "visual/crops/p1.png",
+            "source_image_path": "visual/images/fig1.png",
+        }
         assert _panel_image_path(panel) == Path("visual/crops/p1.png")
 
     def test_panel_image_path_falls_back_to_source(self):
@@ -93,6 +100,7 @@ class TestHelpers:
 
     def test_compute_hsv_histogram_unit_norm(self):
         import math
+
         img = Image.new("RGB", (32, 32), (0, 255, 0))
         h = _compute_hsv_histogram(img)
         norm = math.sqrt(sum(x * x for x in h))
@@ -100,6 +108,7 @@ class TestHelpers:
 
     def test_cosine_similarity_identical(self):
         import math
+
         v = [0.1, 0.2, 0.3, 0.4]
         norm = math.sqrt(sum(x * x for x in v))
         unit = [x / norm for x in v]
@@ -228,13 +237,18 @@ class TestCbirInvestigationDispatch:
 
     def test_dispatch_resolves_tool_id(self):
         """The tool_id constant should be importable from investigation_dispatch."""
-        from engine.static_audit.investigation_dispatch import TOOL_ID_CBIR_SEARCH as dispatched_id
+        from engine.static_audit.investigation_dispatch import (
+            TOOL_ID_CBIR_SEARCH as dispatched_id,
+        )
+
         assert dispatched_id == "visual.cbir_search"
 
     def test_dispatch_runs_cbir_tool(self, tmp_path: Path):
         """run_investigation_tool_action should handle TOOL_ID_CBIR_SEARCH."""
         from engine.static_audit.investigation import InvestigationAction
-        from engine.static_audit.investigation_dispatch import run_investigation_tool_action
+        from engine.static_audit.investigation_dispatch import (
+            run_investigation_tool_action,
+        )
 
         # Create fake panel evidence with real images
         visual_dir = tmp_path / "visual"

@@ -28,20 +28,35 @@ def setup_case_workdir(app: VeritasWebApp, case_id: str) -> Path:
         {
             "schema_version": "1.0",
             "panels": [
-                {"panel_id": "P1", "parent_figure_id": "F1", "crop_path": "visual/panels/F1/a.png"},
-                {"panel_id": "P2", "parent_figure_id": "F1", "crop_path": "visual/panels/F1/b.png"},
+                {
+                    "panel_id": "P1",
+                    "parent_figure_id": "F1",
+                    "crop_path": "visual/panels/F1/a.png",
+                },
+                {
+                    "panel_id": "P2",
+                    "parent_figure_id": "F1",
+                    "crop_path": "visual/panels/F1/b.png",
+                },
             ],
         },
     )
     write_json(
         resolve_artifact_path(workdir, "visual_evidence.json"),
-        {"schema_version": "1.0", "figures": [{"figure_id": "F1", "source_image_path": "visual/images/F1.png"}]},
+        {
+            "schema_version": "1.0",
+            "figures": [
+                {"figure_id": "F1", "source_image_path": "visual/images/F1.png"}
+            ],
+        },
     )
     return workdir
 
 
 def test_web_investigation_runs_dense_on_selected_panels(tmp_path, monkeypatch) -> None:
-    app = VeritasWebApp(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    app = VeritasWebApp(
+        data_root=tmp_path / "web_data", output_root=tmp_path / "outputs"
+    )
     workdir = setup_case_workdir(app, "case-investigation")
     captured: dict[str, Any] = {}
 
@@ -64,14 +79,18 @@ def test_web_investigation_runs_dense_on_selected_panels(tmp_path, monkeypatch) 
                     "score": 0.8,
                     "match_method": "sila_dense_single",
                     "inlier_count": 0,
-                    "metadata": {"mask_path": "investigation/web/action/sila_dense/P1/a_mask.png"},
+                    "metadata": {
+                        "mask_path": "investigation/web/action/sila_dense/P1/a_mask.png"
+                    },
                 }
             ],
             "errors": [],
             "limitations": [],
         }
 
-    monkeypatch.setattr("web.backend.veritas_web.investigations.detect_sila_dense", fake_detect)
+    monkeypatch.setattr(
+        "web.backend.veritas_web.investigations.detect_sila_dense", fake_detect
+    )
 
     result = app.investigations.run_investigation(
         "case-investigation",
@@ -92,7 +111,9 @@ def test_web_investigation_runs_dense_on_selected_panels(tmp_path, monkeypatch) 
 
 
 def test_web_investigation_rejects_unknown_panel(tmp_path) -> None:
-    app = VeritasWebApp(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    app = VeritasWebApp(
+        data_root=tmp_path / "web_data", output_root=tmp_path / "outputs"
+    )
     setup_case_workdir(app, "case-missing-panel")
 
     with pytest.raises(ValueError, match="unknown panel_id"):
@@ -103,7 +124,9 @@ def test_web_investigation_rejects_unknown_panel(tmp_path) -> None:
 
 
 def test_web_investigation_list_loads_result_payload(tmp_path, monkeypatch) -> None:
-    app = VeritasWebApp(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    app = VeritasWebApp(
+        data_root=tmp_path / "web_data", output_root=tmp_path / "outputs"
+    )
     setup_case_workdir(app, "case-list-investigation")
 
     monkeypatch.setattr(
@@ -120,7 +143,9 @@ def test_web_investigation_list_loads_result_payload(tmp_path, monkeypatch) -> N
             "limitations": ["none"],
         },
     )
-    app.investigations.run_investigation("case-list-investigation", {"panel_ids": ["P1"]})
+    app.investigations.run_investigation(
+        "case-list-investigation", {"panel_ids": ["P1"]}
+    )
 
     listing = app.investigations.list_investigations("case-list-investigation")
 
@@ -130,8 +155,12 @@ def test_web_investigation_list_loads_result_payload(tmp_path, monkeypatch) -> N
     assert listing["results"][0]["result"]["status"] == "ran"
 
 
-def test_web_investigation_db_write_failure_returns_partial_success(tmp_path, monkeypatch) -> None:
-    app = VeritasWebApp(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+def test_web_investigation_db_write_failure_returns_partial_success(
+    tmp_path, monkeypatch
+) -> None:
+    app = VeritasWebApp(
+        data_root=tmp_path / "web_data", output_root=tmp_path / "outputs"
+    )
     workdir = setup_case_workdir(app, "case-db-failure")
 
     monkeypatch.setattr(
@@ -163,9 +192,13 @@ def test_web_investigation_db_write_failure_returns_partial_success(tmp_path, mo
             pass
 
     monkeypatch.setattr(app.store, "_session", lambda: BrokenSession())
-    monkeypatch.setattr(app.investigations, "_require_workdir", lambda _case_id: workdir)
+    monkeypatch.setattr(
+        app.investigations, "_require_workdir", lambda _case_id: workdir
+    )
 
-    result = app.investigations.run_investigation("case-db-failure", {"panel_ids": ["P1"]})
+    result = app.investigations.run_investigation(
+        "case-db-failure", {"panel_ids": ["P1"]}
+    )
 
     assert result["result"]["status"] == "ran"
     assert "failed to persist investigation record" in result["db_sync_error"]
@@ -173,8 +206,12 @@ def test_web_investigation_db_write_failure_returns_partial_success(tmp_path, mo
     assert len(records) == 1
 
 
-def test_web_investigation_list_reports_missing_result_artifact(tmp_path, monkeypatch) -> None:
-    app = VeritasWebApp(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+def test_web_investigation_list_reports_missing_result_artifact(
+    tmp_path, monkeypatch
+) -> None:
+    app = VeritasWebApp(
+        data_root=tmp_path / "web_data", output_root=tmp_path / "outputs"
+    )
     workdir = setup_case_workdir(app, "case-missing-artifact")
 
     monkeypatch.setattr(
@@ -191,7 +228,9 @@ def test_web_investigation_list_reports_missing_result_artifact(tmp_path, monkey
             "limitations": [],
         },
     )
-    result = app.investigations.run_investigation("case-missing-artifact", {"panel_ids": ["P1"]})
+    result = app.investigations.run_investigation(
+        "case-missing-artifact", {"panel_ids": ["P1"]}
+    )
     (workdir / result["artifact"]).unlink()
 
     listing = app.investigations.list_investigations("case-missing-artifact")
@@ -202,8 +241,12 @@ def test_web_investigation_list_reports_missing_result_artifact(tmp_path, monkey
     assert listing["records"][0]["artifact_errors"][0]["artifact"] == result["artifact"]
 
 
-def test_web_investigation_list_reports_invalid_json_artifact(tmp_path, monkeypatch) -> None:
-    app = VeritasWebApp(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+def test_web_investigation_list_reports_invalid_json_artifact(
+    tmp_path, monkeypatch
+) -> None:
+    app = VeritasWebApp(
+        data_root=tmp_path / "web_data", output_root=tmp_path / "outputs"
+    )
     workdir = setup_case_workdir(app, "case-invalid-artifact")
 
     monkeypatch.setattr(
@@ -220,7 +263,9 @@ def test_web_investigation_list_reports_invalid_json_artifact(tmp_path, monkeypa
             "limitations": [],
         },
     )
-    result = app.investigations.run_investigation("case-invalid-artifact", {"panel_ids": ["P1"]})
+    result = app.investigations.run_investigation(
+        "case-invalid-artifact", {"panel_ids": ["P1"]}
+    )
     (workdir / result["artifact"]).write_text("{bad json", encoding="utf-8")
 
     listing = app.investigations.list_investigations("case-invalid-artifact")

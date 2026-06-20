@@ -16,17 +16,17 @@ const TERMINAL_EMBEDDING_STATUSES = new Set([
   'unavailable',
 ]);
 
-export function isBlockingEmbeddingStatus(status) {
+function isBlockingEmbeddingStatus(status) {
   return Boolean(status?.status && BLOCKING_EMBEDDING_STATUSES.has(status.status));
 }
 
-export function isTerminalEmbeddingStatus(status) {
+function isTerminalEmbeddingStatus(status) {
   return Boolean(
     status?.status && (TERMINAL_EMBEDDING_STATUSES.has(status.status) || Number(status.indexed_count || 0) > 0),
   );
 }
 
-export function describeEmbeddingStatus(status, fallback) {
+function describeEmbeddingStatus(status, fallback) {
   return status?.detail || status?.failure_category || fallback;
 }
 

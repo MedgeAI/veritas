@@ -41,7 +41,9 @@ def test_static_audit_html_report_renders_priority_evidence_card(tmp_path) -> No
                     "mapping_id": "CM-TEST-001",
                     "source_figure_id": "Fig.2",
                     "linked_priority_findings": [{"finding_id": "F-TEST-001"}],
-                    "candidate_claims": [{"text": "Treatment changes the measured endpoint."}],
+                    "candidate_claims": [
+                        {"text": "Treatment changes the measured endpoint."}
+                    ],
                     "matched_paper_references": [
                         {"line_start": 729, "line_end": 730, "match_label": "Fig. 2"}
                     ],
@@ -49,9 +51,17 @@ def test_static_audit_html_report_renders_priority_evidence_card(tmp_path) -> No
             ],
         },
     )
-    write_json(_path(tmp_path, "source_data_profile.json"), {"summary": {"workbook_count": 1}})
-    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": [1]})
-    write_json(_path(tmp_path, "agent_judge.json"), {"summary": {"technical_risk_summary": "Review needed."}})
+    write_json(
+        _path(tmp_path, "source_data_profile.json"), {"summary": {"workbook_count": 1}}
+    )
+    write_json(
+        _path(tmp_path, "static_audit_bundle.json"),
+        {"agent_traces": [], "claim_mappings": [1]},
+    )
+    write_json(
+        _path(tmp_path, "agent_judge.json"),
+        {"summary": {"technical_risk_summary": "Review needed."}},
+    )
 
     html = render_static_audit_html(tmp_path, "case-a")
 
@@ -125,9 +135,18 @@ def test_static_audit_html_report_pattern_view_is_case_agnostic(tmp_path) -> Non
             ],
         },
     )
-    write_json(_path(tmp_path, "source_data_findings.json"), {"summary": {}, "priority_findings": []})
-    write_json(_path(tmp_path, "source_data_profile.json"), {"summary": {"workbook_count": 1, "sheet_count": 2}})
-    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": [1]})
+    write_json(
+        _path(tmp_path, "source_data_findings.json"),
+        {"summary": {}, "priority_findings": []},
+    )
+    write_json(
+        _path(tmp_path, "source_data_profile.json"),
+        {"summary": {"workbook_count": 1, "sheet_count": 2}},
+    )
+    write_json(
+        _path(tmp_path, "static_audit_bundle.json"),
+        {"agent_traces": [], "claim_mappings": [1]},
+    )
 
     html = render_static_audit_html(tmp_path, "case-generic")
 
@@ -141,7 +160,9 @@ def test_static_audit_html_report_pattern_view_is_case_agnostic(tmp_path) -> Non
     assert "PT/RT" not in html
 
 
-def test_static_audit_html_report_uses_specific_pattern_titles_and_does_not_escape_badges(tmp_path) -> None:
+def test_static_audit_html_report_uses_specific_pattern_titles_and_does_not_escape_badges(
+    tmp_path,
+) -> None:
     write_json(
         _path(tmp_path, "source_data_findings.json"),
         {
@@ -177,8 +198,14 @@ def test_static_audit_html_report_uses_specific_pattern_titles_and_does_not_esca
             ],
         },
     )
-    write_json(_path(tmp_path, "source_data_profile.json"), {"summary": {"workbook_count": 1, "sheet_count": 1}})
-    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": []})
+    write_json(
+        _path(tmp_path, "source_data_profile.json"),
+        {"summary": {"workbook_count": 1, "sheet_count": 1}},
+    )
+    write_json(
+        _path(tmp_path, "static_audit_bundle.json"),
+        {"agent_traces": [], "claim_mappings": []},
+    )
 
     html = render_static_audit_html(tmp_path, "case-duplicate-columns")
 
@@ -186,10 +213,15 @@ def test_static_audit_html_report_uses_specific_pattern_titles_and_does_not_esca
     assert "&lt;span class=&quot;conf-badge" not in html
     assert '<span class="conf-badge conf-agent">复核摘要</span>' in html
     assert "Check duplicated columns against the source workbook." in html
-    assert '<span class="conf-badge conf-data">证据记录</span>Check duplicated columns' in html
+    assert (
+        '<span class="conf-badge conf-data">证据记录</span>Check duplicated columns'
+        in html
+    )
 
 
-def test_static_audit_html_report_does_not_truncate_fig_abbreviation_in_agent_pattern_title(tmp_path) -> None:
+def test_static_audit_html_report_does_not_truncate_fig_abbreviation_in_agent_pattern_title(
+    tmp_path,
+) -> None:
     write_json(
         _path(tmp_path, "source_data_findings.json"),
         {
@@ -225,8 +257,14 @@ def test_static_audit_html_report_does_not_truncate_fig_abbreviation_in_agent_pa
             ],
         },
     )
-    write_json(_path(tmp_path, "source_data_profile.json"), {"summary": {"workbook_count": 1, "sheet_count": 1}})
-    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": []})
+    write_json(
+        _path(tmp_path, "source_data_profile.json"),
+        {"summary": {"workbook_count": 1, "sheet_count": 1}},
+    )
+    write_json(
+        _path(tmp_path, "static_audit_bundle.json"),
+        {"agent_traces": [], "claim_mappings": []},
+    )
 
     html = render_static_audit_html(tmp_path, "case-fig-title")
 
@@ -236,7 +274,9 @@ def test_static_audit_html_report_does_not_truncate_fig_abbreviation_in_agent_pa
     assert "<h3>Fig.</h3>" not in html
 
 
-def test_static_audit_html_report_merges_source_and_pair_priority_findings(tmp_path) -> None:
+def test_static_audit_html_report_merges_source_and_pair_priority_findings(
+    tmp_path,
+) -> None:
     write_json(
         _path(tmp_path, "source_data_findings.json"),
         {
@@ -274,7 +314,10 @@ def test_static_audit_html_report_merges_source_and_pair_priority_findings(tmp_p
             ],
         },
     )
-    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": []})
+    write_json(
+        _path(tmp_path, "static_audit_bundle.json"),
+        {"agent_traces": [], "claim_mappings": []},
+    )
 
     html = render_static_audit_html(tmp_path, "case-merged")
 
@@ -286,7 +329,11 @@ def test_static_audit_html_report_merges_source_and_pair_priority_findings(tmp_p
 def test_static_audit_html_report_uses_pass_verdict_without_findings(tmp_path) -> None:
     write_json(
         _path(tmp_path, "audit_run_manifest.json"),
-        {"steps": [{"key": "evidence_ledger", "title": "Evidence ledger", "status": "ran"}]},
+        {
+            "steps": [
+                {"key": "evidence_ledger", "title": "Evidence ledger", "status": "ran"}
+            ]
+        },
     )
     write_json(
         _path(tmp_path, "static_audit_bundle.json"),
@@ -306,7 +353,9 @@ def test_static_audit_html_report_uses_pass_verdict_without_findings(tmp_path) -
     assert "未见高优先级复核项" in html
 
 
-def test_static_audit_html_report_renders_canonical_non_source_data_finding(tmp_path) -> None:
+def test_static_audit_html_report_renders_canonical_non_source_data_finding(
+    tmp_path,
+) -> None:
     write_json(
         _path(tmp_path, "static_audit_bundle.json"),
         {
@@ -356,11 +405,19 @@ def test_static_audit_html_report_renders_canonical_non_source_data_finding(tmp_
     assert "证据引用" in html
 
 
-def test_static_audit_html_report_keeps_rule_fallback_out_of_top_patterns(tmp_path) -> None:
+def test_static_audit_html_report_keeps_rule_fallback_out_of_top_patterns(
+    tmp_path,
+) -> None:
     write_json(
         _path(tmp_path, "static_audit_bundle.json"),
         {
-            "evidence_items": [{"evidence_id": "EV-RUN-001", "kind": "execution", "source_path": "run.log"}],
+            "evidence_items": [
+                {
+                    "evidence_id": "EV-RUN-001",
+                    "kind": "execution",
+                    "source_path": "run.log",
+                }
+            ],
             "claims": [],
             "findings": [
                 {
@@ -388,7 +445,9 @@ def test_static_audit_html_report_keeps_rule_fallback_out_of_top_patterns(tmp_pa
     assert "execution_status：1 条原始记录" in html
 
 
-def test_static_audit_html_report_keeps_duplicate_row_vector_out_of_top_patterns(tmp_path) -> None:
+def test_static_audit_html_report_keeps_duplicate_row_vector_out_of_top_patterns(
+    tmp_path,
+) -> None:
     write_json(
         _path(tmp_path, "source_data_pair_forensics.json"),
         {
@@ -424,8 +483,14 @@ def test_static_audit_html_report_keeps_duplicate_row_vector_out_of_top_patterns
             ],
         },
     )
-    write_json(_path(tmp_path, "source_data_profile.json"), {"summary": {"workbook_count": 1, "sheet_count": 1}})
-    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": []})
+    write_json(
+        _path(tmp_path, "source_data_profile.json"),
+        {"summary": {"workbook_count": 1, "sheet_count": 1}},
+    )
+    write_json(
+        _path(tmp_path, "static_audit_bundle.json"),
+        {"agent_traces": [], "claim_mappings": []},
+    )
 
     html = render_static_audit_html(tmp_path, "case-row-vector-context")
     top_patterns = html.split('<section class="panel section" id="noise-ledger">', 1)[0]
@@ -439,7 +504,9 @@ def test_static_audit_html_report_keeps_duplicate_row_vector_out_of_top_patterns
     assert "高优先级</span></td><td>duplicate_row_vector" not in html
 
 
-def test_static_audit_html_report_moves_verdict_false_positive_to_excluded_section_and_escapes_text(tmp_path) -> None:
+def test_static_audit_html_report_moves_verdict_false_positive_to_excluded_section_and_escapes_text(
+    tmp_path,
+) -> None:
     write_json(
         _path(tmp_path, "source_data_findings.json"),
         {
@@ -508,8 +575,14 @@ def test_static_audit_html_report_moves_verdict_false_positive_to_excluded_secti
             },
         },
     )
-    write_json(_path(tmp_path, "source_data_profile.json"), {"summary": {"workbook_count": 1, "sheet_count": 2}})
-    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": []})
+    write_json(
+        _path(tmp_path, "source_data_profile.json"),
+        {"summary": {"workbook_count": 1, "sheet_count": 2}},
+    )
+    write_json(
+        _path(tmp_path, "static_audit_bundle.json"),
+        {"agent_traces": [], "claim_mappings": []},
+    )
 
     html = render_static_audit_html(tmp_path, "case-verdict-filter")
     before_excluded = html.split("LLM 语义裁决排除项", 1)[0]
@@ -519,7 +592,10 @@ def test_static_audit_html_report_moves_verdict_false_positive_to_excluded_secti
     assert "DC-UN-001" in before_excluded
     assert "DC-FP-001" in excluded
     assert "<script>alert('x')</script>" not in html
-    assert "&lt;script&gt;alert(&#x27;x&#x27;)&lt;/script&gt; Mean/Sum/N derivation." in html
+    assert (
+        "&lt;script&gt;alert(&#x27;x&#x27;)&lt;/script&gt; Mean/Sum/N derivation."
+        in html
+    )
 
 
 def test_static_audit_html_report_renders_paperfraud_rule_matches(tmp_path) -> None:
@@ -554,7 +630,10 @@ def test_static_audit_html_report_renders_paperfraud_rule_matches(tmp_path) -> N
             ],
         },
     )
-    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": []})
+    write_json(
+        _path(tmp_path, "static_audit_bundle.json"),
+        {"agent_traces": [], "claim_mappings": []},
+    )
 
     html = render_static_audit_html(tmp_path, "case-paperfraud")
 
@@ -564,7 +643,9 @@ def test_static_audit_html_report_renders_paperfraud_rule_matches(tmp_path) -> N
     assert "Check whether the manuscript reports effect size" in html
 
 
-def test_static_audit_html_report_removes_emoji_badges_and_corrects_stale_judge_summary(tmp_path) -> None:
+def test_static_audit_html_report_removes_emoji_badges_and_corrects_stale_judge_summary(
+    tmp_path,
+) -> None:
     write_json(
         _path(tmp_path, "static_audit_bundle.json"),
         {

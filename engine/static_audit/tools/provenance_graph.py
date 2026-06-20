@@ -75,7 +75,9 @@ def build_provenance_graph(
             "status": "failed",
             "failure_category": "dependency",
             "error": "Not enough figures with valid image paths.",
-            "nodes": [], "edges": [], "statistics": {},
+            "nodes": [],
+            "edges": [],
+            "statistics": {},
         }
 
     # If no query figures specified, treat all as queries (all-pairs matching)
@@ -103,7 +105,9 @@ def build_provenance_graph(
             "failure_category": "runtime",
             "error": f"Provenance-adapter failed: {exc}",
             "limitations": [f"Provenance-adapter failed unexpectedly: {exc}"],
-            "nodes": [], "edges": [], "statistics": {},
+            "nodes": [],
+            "edges": [],
+            "statistics": {},
         }
 
     # Add max_depth and descriptor_type metadata for downstream consumers

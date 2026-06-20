@@ -16,15 +16,6 @@ SCORE_THRESHOLD_CRITICAL = 0.7
 SCORE_THRESHOLD_HIGH = 0.4
 SCORE_THRESHOLD_MEDIUM = 0.25
 
-# Default parameters for panel extraction
-PANEL_EXTRACTION_DEFAULTS = {
-    "min_area_ratio": 0.05,  # Minimum panel area as fraction of image area
-    "max_area_ratio": 0.95,  # Maximum panel area as fraction of image area
-    "min_extent": 0.6,  # Minimum extent (contour area / bounding rect area)
-    "min_panel_count": 1,
-    "max_panel_count": 30,
-}
-
 # Default parameters for copy-move detection
 COPY_MOVE_DEFAULTS = {
     "method": "orb",  # "orb" (faster, free) or "sift" (better accuracy)
@@ -33,13 +24,6 @@ COPY_MOVE_DEFAULTS = {
     "ransac_threshold": 3.0,  # RANSAC reprojection threshold
     "min_score": 0.15,  # Minimum score to emit a relationship
     "max_relationships": 500,  # Maximum number of relationships to emit
-    "generate_overlays": True,  # Whether to generate overlay images
-}
-
-# Default parameters for visual finding pipeline
-FINDING_PIPELINE_DEFAULTS = {
-    "high_score_threshold": SCORE_THRESHOLD_HIGH,
-    "critical_score_threshold": SCORE_THRESHOLD_CRITICAL,
 }
 
 

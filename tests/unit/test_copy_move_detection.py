@@ -122,7 +122,9 @@ class TestFlipDetectedPropagation:
             }
         ]
 
-        rels = build_relationships(copy_move_result=copy_move_result, panel_evidence=panel_evidence)
+        rels = build_relationships(
+            copy_move_result=copy_move_result, panel_evidence=panel_evidence
+        )
         assert len(rels) == 1
         assert rels[0]["flip_detected"] is True
         assert rels[0]["source_type"] == "copy_move_single"
@@ -134,7 +136,9 @@ class TestFlipDetectedPropagation:
         )
         assert len(findings) >= 1
         # Check flip_detected propagated to finding metadata
-        flip_findings = [f for f in findings if f.get("metadata", {}).get("flip_detected")]
+        flip_findings = [
+            f for f in findings if f.get("metadata", {}).get("flip_detected")
+        ]
         assert len(flip_findings) >= 1
         # Check flip review question was added
         for f in flip_findings:
@@ -254,8 +258,16 @@ class TestGoldenNegative:
         _make_distinct_panel_b(tmp_path / "panel_b.png")
 
         panels = [
-            {"panel_id": "PE-A", "parent_figure_id": "FE-001", "crop_path": "panel_a.png"},
-            {"panel_id": "PE-B", "parent_figure_id": "FE-002", "crop_path": "panel_b.png"},
+            {
+                "panel_id": "PE-A",
+                "parent_figure_id": "FE-001",
+                "crop_path": "panel_a.png",
+            },
+            {
+                "panel_id": "PE-B",
+                "parent_figure_id": "FE-002",
+                "crop_path": "panel_b.png",
+            },
         ]
         figures = [
             {"figure_id": "FE-001", "source_image_path": "panel_a.png"},
@@ -280,7 +292,11 @@ class TestGoldenPositiveSingleImage:
         _make_single_image_copymoved_panel(tmp_path / "manipulated.png")
 
         panels = [
-            {"panel_id": "PE-001", "parent_figure_id": "FE-001", "crop_path": "manipulated.png"},
+            {
+                "panel_id": "PE-001",
+                "parent_figure_id": "FE-001",
+                "crop_path": "manipulated.png",
+            },
         ]
 
         result = detect_copy_move(
@@ -293,7 +309,9 @@ class TestGoldenPositiveSingleImage:
 
         assert result["status"] == "ran"
         assert result["relationship_count"] >= 1
-        single_rels = [r for r in result["relationships"] if r["source_type"] == "copy_move_single"]
+        single_rels = [
+            r for r in result["relationships"] if r["source_type"] == "copy_move_single"
+        ]
         assert len(single_rels) >= 1
         rel = single_rels[0]
         assert rel["source_panel_id"] == "PE-001"
@@ -311,8 +329,16 @@ class TestGoldenPositiveCrossFigure:
         _make_rich_panel(tmp_path / "panel_b.png")
 
         panels = [
-            {"panel_id": "PE-A", "parent_figure_id": "FE-001", "crop_path": "panel_a.png"},
-            {"panel_id": "PE-B", "parent_figure_id": "FE-002", "crop_path": "panel_b.png"},
+            {
+                "panel_id": "PE-A",
+                "parent_figure_id": "FE-001",
+                "crop_path": "panel_a.png",
+            },
+            {
+                "panel_id": "PE-B",
+                "parent_figure_id": "FE-002",
+                "crop_path": "panel_b.png",
+            },
         ]
         figures = [
             {"figure_id": "FE-001", "source_image_path": "panel_a.png"},
@@ -328,7 +354,9 @@ class TestGoldenPositiveCrossFigure:
         )
 
         assert result["status"] == "ran"
-        cross_rels = [r for r in result["relationships"] if r["source_type"] == "copy_move_cross"]
+        cross_rels = [
+            r for r in result["relationships"] if r["source_type"] == "copy_move_cross"
+        ]
         assert len(cross_rels) >= 1
         rel = cross_rels[0]
         assert rel["source_panel_id"] == "FE-001"

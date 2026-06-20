@@ -5,7 +5,9 @@ from pathlib import Path
 from engine.static_audit.tools.sila_dense import detect_sila_dense
 
 
-def test_sila_dense_mask_coverage_failure_does_not_create_relationship(tmp_path: Path, monkeypatch) -> None:
+def test_sila_dense_mask_coverage_failure_does_not_create_relationship(
+    tmp_path: Path, monkeypatch
+) -> None:
     crop_path = tmp_path / "visual" / "panels" / "P1.png"
     crop_path.parent.mkdir(parents=True)
     crop_path.write_bytes(b"not actually used by the monkeypatched runner")
@@ -31,7 +33,13 @@ def test_sila_dense_mask_coverage_failure_does_not_create_relationship(tmp_path:
     )
 
     result = detect_sila_dense(
-        [{"panel_id": "P1", "parent_figure_id": "F1", "crop_path": "visual/panels/P1.png"}],
+        [
+            {
+                "panel_id": "P1",
+                "parent_figure_id": "F1",
+                "crop_path": "visual/panels/P1.png",
+            }
+        ],
         [],
         workdir=tmp_path,
         output_base=tmp_path / "sila",

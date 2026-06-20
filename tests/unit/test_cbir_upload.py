@@ -3,18 +3,16 @@
 from __future__ import annotations
 
 import io
-from pathlib import Path
 
-import pytest
 
 from tests.helpers.asgi_client import LocalASGITestClient as TestClient
 from web.backend.veritas_web.app import create_app
-from web.backend.veritas_web.database import Base, create_db_engine, create_session_factory
 
 
 def _make_test_image(color: str = "red") -> io.BytesIO:
     """Create a simple test image."""
     from PIL import Image
+
     img = Image.new("RGB", (100, 100), color=color)
     img_bytes = io.BytesIO()
     img.save(img_bytes, format="PNG")

@@ -80,9 +80,7 @@ def _analyze_image(image_path: Path) -> list[dict[str, Any]]:
     mean_pixel = sum(pixels) / len(pixels)
 
     # Build 2-D gray array as plain lists for the helper functions.
-    gray_2d: list[list[int]] = [
-        pixels[y * w:(y + 1) * w] for y in range(h)
-    ]
+    gray_2d: list[list[int]] = [pixels[y * w : (y + 1) * w] for y in range(h)]
 
     details: dict[str, Any] = {"mean_pixel": round(mean_pixel, 2)}
 
@@ -90,30 +88,36 @@ def _analyze_image(image_path: Path) -> list[dict[str, Any]]:
     border_ratio = _border_uniformity(gray_2d, w, h)
     details["border_uniformity"] = round(border_ratio, 4)
     if border_ratio > 0.95:
-        anomalies.append({
-            "anomaly_type": "uniform_border",
-            "severity": "high",
-            "details": dict(details),
-        })
+        anomalies.append(
+            {
+                "anomaly_type": "uniform_border",
+                "severity": "high",
+                "details": dict(details),
+            }
+        )
 
     # 2. Global uniformity
     global_ratio, mode_val = _global_uniformity(gray_2d, w, h)
     details["global_uniformity"] = round(global_ratio, 4)
     details["dominant_gray_value"] = mode_val
     if global_ratio > 0.80:
-        anomalies.append({
-            "anomaly_type": "globally_uniform",
-            "severity": "medium",
-            "details": dict(details),
-        })
+        anomalies.append(
+            {
+                "anomaly_type": "globally_uniform",
+                "severity": "medium",
+                "details": dict(details),
+            }
+        )
 
     # 3. Near-solid-color (all-white / all-black)
     if mean_pixel > 250 or mean_pixel < 5:
-        anomalies.append({
-            "anomaly_type": "near_solid_color",
-            "severity": "high",
-            "details": dict(details),
-        })
+        anomalies.append(
+            {
+                "anomaly_type": "near_solid_color",
+                "severity": "high",
+                "details": dict(details),
+            }
+        )
 
     return anomalies
 
@@ -164,13 +168,15 @@ def run_image_quality(
             if "_error" in a:
                 errors.append(f"{figure_id}: {a['_error']}")
                 continue
-            anomalies.append({
-                "figure_id": figure_id,
-                "image_path": source,
-                "anomaly_type": a["anomaly_type"],
-                "severity": a["severity"],
-                "details": a["details"],
-            })
+            anomalies.append(
+                {
+                    "figure_id": figure_id,
+                    "image_path": source,
+                    "anomaly_type": a["anomaly_type"],
+                    "severity": a["severity"],
+                    "details": a["details"],
+                }
+            )
 
     status = "ran" if figure_count > 0 else "skipped"
 

@@ -6,6 +6,7 @@ Validates that emit_progress / enforce_event_contract enforce:
 - stdout/stderr/traceback/full_output stripped
 - backward-compat ``detail`` key alongside ``summary``
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -23,6 +24,7 @@ from engine.static_audit.orchestrator import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _long_text(length: int = 500) -> str:
     return "x" * length
 
@@ -30,14 +32,17 @@ def _long_text(length: int = 500) -> str:
 def _collect_events():
     """Return (callback, events_list) — callback appends to events_list."""
     events: list[dict] = []
+
     def callback(event: dict) -> None:
         events.append(event)
+
     return callback, events
 
 
 # ---------------------------------------------------------------------------
 # Tests — enforce_event_contract
 # ---------------------------------------------------------------------------
+
 
 def test_summary_truncated_to_200_chars():
     """Long detail is truncated to PROGRESS_EVENT_SUMMARY_MAX_CHARS."""
@@ -148,6 +153,7 @@ def test_enforce_event_contract_without_workdir():
 # Tests — _write_long_text_to_log
 # ---------------------------------------------------------------------------
 
+
 def test_write_long_text_returns_none_for_empty(tmp_path: Path):
     """Empty text returns None, no file created."""
     assert _write_long_text_to_log(tmp_path, "step", "") is None
@@ -165,6 +171,7 @@ def test_write_long_text_creates_log(tmp_path: Path):
 # ---------------------------------------------------------------------------
 # Tests — emit_step_result integration
 # ---------------------------------------------------------------------------
+
 
 def test_emit_step_result_truncates_long_detail():
     """emit_step_result truncates long detail via enforce_event_contract."""

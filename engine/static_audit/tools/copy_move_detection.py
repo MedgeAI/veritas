@@ -98,7 +98,11 @@ def _remap_overlay_to_unique(
             # Source still at original location — rename it.
             try:
                 src.rename(dst)
-                rel["overlay_path"] = str(dst.relative_to(workdir)) if dst.is_relative_to(workdir) else str(dst)
+                rel["overlay_path"] = (
+                    str(dst.relative_to(workdir))
+                    if dst.is_relative_to(workdir)
+                    else str(dst)
+                )
                 moved_srcs[raw] = dst
             except OSError:
                 continue
@@ -108,7 +112,11 @@ def _remap_overlay_to_unique(
             if prev.exists():
                 try:
                     shutil.copy2(prev, dst)
-                    rel["overlay_path"] = str(dst.relative_to(workdir)) if dst.is_relative_to(workdir) else str(dst)
+                    rel["overlay_path"] = (
+                        str(dst.relative_to(workdir))
+                        if dst.is_relative_to(workdir)
+                        else str(dst)
+                    )
                 except OSError:
                     continue
 
@@ -134,7 +142,9 @@ def _empty_result(
     }
 
 
-def _run_elis_runner(input_data: dict[str, Any], timeout: int = 3600) -> dict[str, Any] | None:
+def _run_elis_runner(
+    input_data: dict[str, Any], timeout: int = 3600
+) -> dict[str, Any] | None:
     """Call the ELIS copy-move runner subprocess and parse its JSON output."""
     try:
         proc = subprocess.run(
@@ -165,10 +175,12 @@ def _run_single_image_detection(
         crop_path = _resolve_panel_image_path(panel, workdir)
         if crop_path is None:
             continue
-        panel_items.append({
-            "panel_id": str(panel.get("panel_id") or ""),
-            "path": str(crop_path),
-        })
+        panel_items.append(
+            {
+                "panel_id": str(panel.get("panel_id") or ""),
+                "path": str(crop_path),
+            }
+        )
 
     if not panel_items:
         return []
@@ -176,13 +188,15 @@ def _run_single_image_detection(
     output_dir = workdir / "copy_move_elis" / "single"
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    result = _run_elis_runner({
-        "mode": "single",
-        "panels": panel_items,
-        "output_dir": str(output_dir),
-        "min_keypoints": min_keypoints,
-        "min_area": min_area,
-    })
+    result = _run_elis_runner(
+        {
+            "mode": "single",
+            "panels": panel_items,
+            "output_dir": str(output_dir),
+            "min_keypoints": min_keypoints,
+            "min_area": min_area,
+        }
+    )
 
     if result is None:
         return []
@@ -207,10 +221,12 @@ def _run_cross_figure_detection(
             continue
         fig_path = workdir / source
         if fig_path.exists():
-            figures_with_paths.append({
-                "figure_id": str(fig.get("figure_id") or ""),
-                "path": fig_path,
-            })
+            figures_with_paths.append(
+                {
+                    "figure_id": str(fig.get("figure_id") or ""),
+                    "path": fig_path,
+                }
+            )
 
     if len(figures_with_paths) < 2:
         return []
@@ -232,14 +248,16 @@ def _run_cross_figure_detection(
     for (fid_a, path_a, hash_a), (fid_b, path_b, hash_b) in combinations(hashes, 2):
         dist = _hamming_distance(hash_a, hash_b)
         if dist <= dhash_threshold:
-            candidate_pairs.append({
-                "pair_id": f"{fid_a}__{fid_b}",
-                "source": str(path_a),
-                "target": str(path_b),
-                "source_figure_id": fid_a,
-                "target_figure_id": fid_b,
-                "dhash_distance": dist,
-            })
+            candidate_pairs.append(
+                {
+                    "pair_id": f"{fid_a}__{fid_b}",
+                    "source": str(path_a),
+                    "target": str(path_b),
+                    "source_figure_id": fid_a,
+                    "target_figure_id": fid_b,
+                    "dhash_distance": dist,
+                }
+            )
 
     if not candidate_pairs:
         return []
@@ -278,16 +296,19 @@ def detect_copy_move(
     min_matches: int = COPY_MOVE_DEFAULTS["min_matches"],
     min_score: float = COPY_MOVE_DEFAULTS["min_score"],
     max_relationships: int = COPY_MOVE_DEFAULTS["max_relationships"],
-    generate_overlays: bool = COPY_MOVE_DEFAULTS["generate_overlays"],
 ) -> dict[str, Any]:
     """Detect copy-move manipulation within and across panels.
 
     Phase 2a: single-image copy-move per panel (within-panel forgery).
     Phase 2b: cross-figure with dhash pre-filter (cross-figure reuse).
     """
-    panels_with_crops = [p for p in panel_evidence if _resolve_panel_image_path(p, workdir)]
+    panels_with_crops = [
+        p for p in panel_evidence if _resolve_panel_image_path(p, workdir)
+    ]
     if not panels_with_crops and not figure_evidence:
-        return _empty_result("skipped", method, limitations=["No panels or figures available."])
+        return _empty_result(
+            "skipped", method, limitations=["No panels or figures available."]
+        )
 
     relationships: list[dict[str, Any]] = []
     errors: list[str] = []
@@ -295,7 +316,8 @@ def detect_copy_move(
 
     # --- Phase 2a: Single-image copy-move per panel ---
     single_results = _run_single_image_detection(
-        panels_with_crops, workdir,
+        panels_with_crops,
+        workdir,
         min_keypoints=min_matches,
         min_area=0.01,
     )
@@ -325,26 +347,29 @@ def detect_copy_move(
             except ValueError:
                 pass
 
-        relationships.append({
-            "relationship_id": f"IR-{len(relationships) + 1:04d}",
-            "source_type": "copy_move_single",
-            "source_panel_id": panel_id,
-            "target_panel_id": panel_id,
-            "score": round(score, 4),
-            "match_method": "rootsift_magsac_single",
-            "inlier_count": kp_count,
-            "homography": None,
-            "overlay_path": overlay or None,
-            "flip_detected": False,
-            "metadata": {
-                "num_clusters": r.get("num_clusters", 0),
-                "detection_mode": "single_image",
-            },
-        })
+        relationships.append(
+            {
+                "relationship_id": f"IR-{len(relationships) + 1:04d}",
+                "source_type": "copy_move_single",
+                "source_panel_id": panel_id,
+                "target_panel_id": panel_id,
+                "score": round(score, 4),
+                "match_method": "rootsift_magsac_single",
+                "inlier_count": kp_count,
+                "homography": None,
+                "overlay_path": overlay or None,
+                "flip_detected": False,
+                "metadata": {
+                    "num_clusters": r.get("num_clusters", 0),
+                    "detection_mode": "single_image",
+                },
+            }
+        )
 
     # --- Phase 2b: Cross-figure with dhash pre-filter ---
     cross_results = _run_cross_figure_detection(
-        figure_evidence, workdir,
+        figure_evidence,
+        workdir,
         min_keypoints=min_matches,
         min_area=0.01,
     )
@@ -372,25 +397,27 @@ def detect_copy_move(
             except ValueError:
                 pass
 
-        relationships.append({
-            "relationship_id": f"IR-{len(relationships) + 1:04d}",
-            "source_type": "copy_move_cross",
-            "source_panel_id": r.get("source_figure_id", ""),
-            "target_panel_id": r.get("target_figure_id", ""),
-            "score": round(score, 4),
-            "match_method": "rootsift_magsac_cross",
-            "inlier_count": kp_count,
-            "homography": None,
-            "overlay_path": overlay or None,
-            "flip_detected": r.get("is_flipped", False),
-            "metadata": {
-                "shared_area_source": round(shared_src, 4),
-                "shared_area_target": round(shared_tgt, 4),
-                "num_clusters_source": r.get("num_clusters_source", 0),
-                "num_clusters_target": r.get("num_clusters_target", 0),
-                "detection_mode": "cross_image",
-            },
-        })
+        relationships.append(
+            {
+                "relationship_id": f"IR-{len(relationships) + 1:04d}",
+                "source_type": "copy_move_cross",
+                "source_panel_id": r.get("source_figure_id", ""),
+                "target_panel_id": r.get("target_figure_id", ""),
+                "score": round(score, 4),
+                "match_method": "rootsift_magsac_cross",
+                "inlier_count": kp_count,
+                "homography": None,
+                "overlay_path": overlay or None,
+                "flip_detected": r.get("is_flipped", False),
+                "metadata": {
+                    "shared_area_source": round(shared_src, 4),
+                    "shared_area_target": round(shared_tgt, 4),
+                    "num_clusters_source": r.get("num_clusters_source", 0),
+                    "num_clusters_target": r.get("num_clusters_target", 0),
+                    "detection_mode": "cross_image",
+                },
+            }
+        )
 
     # Sort by score descending, cap at max_relationships
     relationships.sort(key=lambda r: r["score"], reverse=True)
@@ -428,15 +455,29 @@ def detect_copy_move(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Copy-move detection using RootSIFT+MAGSAC++.")
+    parser = argparse.ArgumentParser(
+        description="Copy-move detection using RootSIFT+MAGSAC++."
+    )
     parser.add_argument("panel_json", help="Path to panel_evidence.json")
-    parser.add_argument("--figure-json", default=None, help="Path to visual_evidence.json")
+    parser.add_argument(
+        "--figure-json", default=None, help="Path to visual_evidence.json"
+    )
     parser.add_argument("--output", required=True, help="Output JSON path")
-    parser.add_argument("--workdir", required=True, help="Working directory for image resolution")
-    parser.add_argument("--method", default="rootsift_magsac", choices=["rootsift_magsac"])
-    parser.add_argument("--min-matches", type=int, default=COPY_MOVE_DEFAULTS["min_matches"])
-    parser.add_argument("--min-score", type=float, default=COPY_MOVE_DEFAULTS["min_score"])
-    parser.add_argument("--max-relationships", type=int, default=COPY_MOVE_DEFAULTS["max_relationships"])
+    parser.add_argument(
+        "--workdir", required=True, help="Working directory for image resolution"
+    )
+    parser.add_argument(
+        "--method", default="rootsift_magsac", choices=["rootsift_magsac"]
+    )
+    parser.add_argument(
+        "--min-matches", type=int, default=COPY_MOVE_DEFAULTS["min_matches"]
+    )
+    parser.add_argument(
+        "--min-score", type=float, default=COPY_MOVE_DEFAULTS["min_score"]
+    )
+    parser.add_argument(
+        "--max-relationships", type=int, default=COPY_MOVE_DEFAULTS["max_relationships"]
+    )
     return parser.parse_args()
 
 
@@ -445,7 +486,11 @@ def main() -> int:
     workdir = Path(args.workdir).expanduser().resolve()
 
     panel_json_path = Path(args.panel_json).expanduser().resolve()
-    panel_data = json.loads(panel_json_path.read_text(encoding="utf-8")) if panel_json_path.exists() else {}
+    panel_data = (
+        json.loads(panel_json_path.read_text(encoding="utf-8"))
+        if panel_json_path.exists()
+        else {}
+    )
     panels = panel_data.get("panels", []) if isinstance(panel_data, dict) else []
 
     figures = []
@@ -453,7 +498,9 @@ def main() -> int:
         figure_json_path = Path(args.figure_json).expanduser().resolve()
         if figure_json_path.exists():
             figure_data = json.loads(figure_json_path.read_text(encoding="utf-8"))
-            figures = figure_data.get("figures", []) if isinstance(figure_data, dict) else []
+            figures = (
+                figure_data.get("figures", []) if isinstance(figure_data, dict) else []
+            )
 
     result = detect_copy_move(
         panels,
@@ -467,13 +514,20 @@ def main() -> int:
 
     output = Path(args.output).expanduser().resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    output.write_text(
+        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
-    print(json.dumps({
-        "output": str(output),
-        "status": result["status"],
-        "relationship_count": result["relationship_count"],
-    }, ensure_ascii=False))
+    print(
+        json.dumps(
+            {
+                "output": str(output),
+                "status": result["status"],
+                "relationship_count": result["relationship_count"],
+            },
+            ensure_ascii=False,
+        )
+    )
     return 0
 
 

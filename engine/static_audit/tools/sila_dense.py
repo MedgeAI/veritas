@@ -27,7 +27,10 @@ def _docker_available() -> bool:
     try:
         result = subprocess.run(
             ["docker", "images", "-q", DOCKER_IMAGE],
-            capture_output=True, text=True, timeout=10, check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
         )
         return bool(result.stdout.strip())
     except (OSError, subprocess.TimeoutExpired):
@@ -47,17 +50,26 @@ def _run_single_image_docker(
     abs_output_dir = output_dir.resolve()
 
     cmd = [
-        "docker", "run", "--rm",
-        "-v", f"{abs_image_path.parent}:/input:ro",
-        "-v", f"{abs_output_dir}:/output",
+        "docker",
+        "run",
+        "--rm",
+        "-v",
+        f"{abs_image_path.parent}:/input:ro",
+        "-v",
+        f"{abs_output_dir}:/output",
         DOCKER_IMAGE,
-        "--input", f"/input/{abs_image_path.name}",
-        "--output", "/output",
-        "--method", str(method),
+        "--input",
+        f"/input/{abs_image_path.name}",
+        "--output",
+        "/output",
+        "--method",
+        str(method),
     ]
 
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, check=False)
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=timeout, check=False
+        )
         success = proc.returncode == 0
         # Check for output files
         stem = image_path.stem
@@ -92,18 +104,29 @@ def _run_cross_image_docker(
     abs_output = output_dir.resolve()
 
     cmd = [
-        "docker", "run", "--rm",
-        "-v", f"{abs_source.parent}:/input1:ro",
-        "-v", f"{abs_target.parent}:/input2:ro",
-        "-v", f"{abs_output}:/output",
+        "docker",
+        "run",
+        "--rm",
+        "-v",
+        f"{abs_source.parent}:/input1:ro",
+        "-v",
+        f"{abs_target.parent}:/input2:ro",
+        "-v",
+        f"{abs_output}:/output",
         DOCKER_IMAGE,
-        "--input", f"/input1/{abs_source.name}", f"/input2/{abs_target.name}",
-        "--output", "/output",
-        "--method", str(method),
+        "--input",
+        f"/input1/{abs_source.name}",
+        f"/input2/{abs_target.name}",
+        "--output",
+        "/output",
+        "--method",
+        str(method),
     ]
 
     try:
-        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout, check=False)
+        proc = subprocess.run(
+            cmd, capture_output=True, text=True, timeout=timeout, check=False
+        )
         success = proc.returncode == 0
         base = f"{source_path.stem}_vs_{target_path.stem}"
         mask_path = output_dir / f"{base}_mask.png"
@@ -141,8 +164,10 @@ def detect_sila_dense(
     if not _docker_available():
         return _sila_failed(
             "environment",
-            [f"Docker image '{DOCKER_IMAGE}' not found. "
-             f"Build with: docker build -t {DOCKER_IMAGE} third_party/elis/system_modules/copy-move-detection/"],
+            [
+                f"Docker image '{DOCKER_IMAGE}' not found. "
+                f"Build with: docker build -t {DOCKER_IMAGE} third_party/elis/system_modules/copy-move-detection/"
+            ],
             method=method,
         )
 
@@ -173,7 +198,9 @@ def detect_sila_dense(
         result = _run_single_image_docker(crop_path, panel_output)
 
         if not result["success"]:
-            errors.append(f"SILA dense failed for {panel_id}: {result.get('stderr', 'unknown')}")
+            errors.append(
+                f"SILA dense failed for {panel_id}: {result.get('stderr', 'unknown')}"
+            )
             continue
 
         # For single-image SILA, we detected clusters of copy-move regions
@@ -191,12 +218,15 @@ def detect_sila_dense(
             try:
                 from PIL import Image
                 import numpy as np
+
                 mask_img = np.array(Image.open(mask_path).convert("L"))
                 coverage = float(np.count_nonzero(mask_img)) / max(mask_img.size, 1)
                 score = min(1.0, coverage * 5)  # Scale up for visibility
             except Exception as exc:
                 # Failure isolation: mask coverage is best-effort; skip on any error.
-                logger.warning("SILA dense mask coverage failed for %s: %s", panel_id, exc)
+                logger.warning(
+                    "SILA dense mask coverage failed for %s: %s", panel_id, exc
+                )
                 errors.append(f"SILA dense mask coverage failed for {panel_id}: {exc}")
                 continue
 
@@ -211,22 +241,24 @@ def detect_sila_dense(
                 else:
                     rel_matches = None
 
-                relationships.append({
-                    "relationship_id": f"IR-SILA-{counter:04d}",
-                    "source_type": "copy_move_single",
-                    "source_panel_id": panel_id,
-                    "target_panel_id": panel_id,
-                    "score": round(score, 4),
-                    "match_method": "sila_dense_single",
-                    "inlier_count": 0,  # SILA doesn't provide keypoint counts
-                    "homography": None,
-                    "overlay_path": rel_matches,
-                    "flip_detected": False,
-                    "metadata": {
-                        "detection_mode": "sila_dense_single",
-                        "mask_path": rel_mask,
-                    },
-                })
+                relationships.append(
+                    {
+                        "relationship_id": f"IR-SILA-{counter:04d}",
+                        "source_type": "copy_move_single",
+                        "source_panel_id": panel_id,
+                        "target_panel_id": panel_id,
+                        "score": round(score, 4),
+                        "match_method": "sila_dense_single",
+                        "inlier_count": 0,  # SILA doesn't provide keypoint counts
+                        "homography": None,
+                        "overlay_path": rel_matches,
+                        "flip_detected": False,
+                        "metadata": {
+                            "detection_mode": "sila_dense_single",
+                            "mask_path": rel_mask,
+                        },
+                    }
+                )
 
     # Sort by score, cap
     relationships.sort(key=lambda r: r["score"], reverse=True)
@@ -235,9 +267,11 @@ def detect_sila_dense(
         rel["relationship_id"] = f"IR-SILA-{i:04d}"
 
     # Tool ran successfully; 0 relationships is a valid negative result.
-    limitations = [] if relationships else [
-        "SILA dense did not detect copy-move in any panel above threshold."
-    ]
+    limitations = (
+        []
+        if relationships
+        else ["SILA dense did not detect copy-move in any panel above threshold."]
+    )
     return {
         "schema_version": VISUAL_SCHEMA_VERSION,
         "created_by": "engine/static_audit/tools/sila_dense.py",

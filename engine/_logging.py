@@ -11,6 +11,7 @@ Usage::
     logger = get_logger(__name__)
     logger.info("progress message")
 """
+
 from __future__ import annotations
 
 import logging

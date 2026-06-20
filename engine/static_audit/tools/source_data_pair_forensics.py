@@ -60,14 +60,18 @@ def common_offset_pairs(rows: list[int], offset: int) -> list[tuple[int, int]]:
     return [(row, row + offset) for row in rows if row + offset in row_set]
 
 
-def numeric_value_diversity(values_by_row: dict[int, Decimal]) -> tuple[int, int, float]:
+def numeric_value_diversity(
+    values_by_row: dict[int, Decimal],
+) -> tuple[int, int, float]:
     values = [normalized_number(value) for value in values_by_row.values()]
     total = len(values)
     distinct = len(set(values))
     return distinct, total, (distinct / total if total else 0.0)
 
 
-def is_low_information_numeric_column(values_by_row: dict[int, Decimal], params: PairForensicsParams) -> bool:
+def is_low_information_numeric_column(
+    values_by_row: dict[int, Decimal], params: PairForensicsParams
+) -> bool:
     """Treat low-cardinality numeric columns as annotation columns, not measurements."""
     distinct, total, diversity = numeric_value_diversity(values_by_row)
     if total < params.min_pairs:
@@ -87,7 +91,9 @@ def candidate_offsets(rows: list[int], params: PairForensicsParams) -> list[int]
     return offsets
 
 
-def row_offset_scalar_findings(sheet: SheetVectors, params: PairForensicsParams) -> list[dict[str, Any]]:
+def row_offset_scalar_findings(
+    sheet: SheetVectors, params: PairForensicsParams
+) -> list[dict[str, Any]]:
     grouped: dict[tuple[int, str, str], dict[str, Any]] = {}
     for col, values_by_row in sorted(sheet.numeric_columns.items()):
         if is_low_information_numeric_column(values_by_row, params):
@@ -98,7 +104,11 @@ def row_offset_scalar_findings(sheet: SheetVectors, params: PairForensicsParams)
             ratios: Counter[str] = Counter()
             ratio_rows: dict[str, list[tuple[int, int]]] = defaultdict(list)
             for left_row, right_row in pairs:
-                key = ratio_key(values_by_row[right_row], values_by_row[left_row], params.ratio_places)
+                key = ratio_key(
+                    values_by_row[right_row],
+                    values_by_row[left_row],
+                    params.ratio_places,
+                )
                 if key is None:
                     continue
                 ratios[key] += 1
@@ -109,7 +119,11 @@ def row_offset_scalar_findings(sheet: SheetVectors, params: PairForensicsParams)
             support_rate = count / len(pairs)
             if count < params.min_pairs or support_rate < params.min_support:
                 continue
-            category = "row_offset_exact_reuse" if value == "1" else "row_offset_scalar_multiple"
+            category = (
+                "row_offset_exact_reuse"
+                if value == "1"
+                else "row_offset_scalar_multiple"
+            )
             formula_involved = col in sheet.formulas_by_column
             risk = "high" if count >= 10 and value != "1" else "medium"
             if formula_involved:
@@ -146,14 +160,22 @@ def row_offset_scalar_findings(sheet: SheetVectors, params: PairForensicsParams)
                 },
             )
             group["risk_level"] = max(group["risk_level"], risk, key=risk_rank)
-            group["confidence"] = "high" if group["confidence"] == "high" or support_rate >= 0.98 else "medium"
+            group["confidence"] = (
+                "high"
+                if group["confidence"] == "high" or support_rate >= 0.98
+                else "medium"
+            )
             group["support_rows"] += count
             group["overlap_rows"] += len(pairs)
-            group["support_rate"] = round(group["support_rows"] / group["overlap_rows"], 4)
+            group["support_rate"] = round(
+                group["support_rows"] / group["overlap_rows"], 4
+            )
             group["columns"].append(col_to_name(col))
             label = column_label(sheet, col)
             group["column_labels"].append(label)
-            group["formula_column_involved"] = group["formula_column_involved"] or formula_involved
+            group["formula_column_involved"] = (
+                group["formula_column_involved"] or formula_involved
+            )
             for left_row, right_row in ratio_rows[value][:5]:
                 if len(group["sample_pairs"]) >= 20:
                     break
@@ -168,21 +190,30 @@ def row_offset_scalar_findings(sheet: SheetVectors, params: PairForensicsParams)
                     }
                 )
     findings = list(grouped.values())
-    return sorted(findings, key=lambda item: (-risk_rank(item["risk_level"]), -item["support_rows"]))[
-        : params.max_findings_per_category
-    ]
+    return sorted(
+        findings,
+        key=lambda item: (-risk_rank(item["risk_level"]), -item["support_rows"]),
+    )[: params.max_findings_per_category]
 
 
-def paired_ratio_reuse_findings(sheet: SheetVectors, params: PairForensicsParams) -> list[dict[str, Any]]:
+def paired_ratio_reuse_findings(
+    sheet: SheetVectors, params: PairForensicsParams
+) -> list[dict[str, Any]]:
     columns = sorted(sheet.numeric_columns)
     findings = []
     for left_index, left_col in enumerate(columns):
         if is_low_information_numeric_column(sheet.numeric_columns[left_col], params):
             continue
         for right_col in columns[left_index + 1 :]:
-            if is_low_information_numeric_column(sheet.numeric_columns[right_col], params):
+            if is_low_information_numeric_column(
+                sheet.numeric_columns[right_col], params
+            ):
                 continue
-            common = sorted(set(sheet.numeric_columns[left_col]).intersection(sheet.numeric_columns[right_col]))
+            common = sorted(
+                set(sheet.numeric_columns[left_col]).intersection(
+                    sheet.numeric_columns[right_col]
+                )
+            )
             if len(common) < params.min_pairs * 2:
                 continue
             ratios_by_row = {}
@@ -197,13 +228,21 @@ def paired_ratio_reuse_findings(sheet: SheetVectors, params: PairForensicsParams
             rows = sorted(ratios_by_row)
             for offset in candidate_offsets(rows, params):
                 pairs = common_offset_pairs(rows, offset)
-                matched = [(left_row, right_row) for left_row, right_row in pairs if ratios_by_row[left_row] == ratios_by_row[right_row]]
+                matched = [
+                    (left_row, right_row)
+                    for left_row, right_row in pairs
+                    if ratios_by_row[left_row] == ratios_by_row[right_row]
+                ]
                 support_rate = len(matched) / len(pairs) if pairs else 0
                 if len(matched) < params.min_pairs or support_rate < params.min_support:
                     continue
-                risk = "high" if len(matched) >= 10 and support_rate >= 0.95 else "medium"
+                risk = (
+                    "high" if len(matched) >= 10 and support_rate >= 0.95 else "medium"
+                )
                 matched_rows = sorted({row for pair in matched for row in pair})
-                summary_pair = is_summary_statistic_pair(sheet, left_col, right_col, matched_rows)
+                summary_pair = is_summary_statistic_pair(
+                    sheet, left_col, right_col, matched_rows
+                )
                 if summary_pair:
                     risk = "low"
                 findings.append(
@@ -216,7 +255,10 @@ def paired_ratio_reuse_findings(sheet: SheetVectors, params: PairForensicsParams
                         "sheet": sheet.sheet,
                         "row_offset": offset,
                         "column_pair": [col_to_name(left_col), col_to_name(right_col)],
-                        "column_labels": [column_label(sheet, left_col), column_label(sheet, right_col)],
+                        "column_labels": [
+                            column_label(sheet, left_col),
+                            column_label(sheet, right_col),
+                        ],
                         "matched_pairs": len(matched),
                         "overlap_pairs": len(pairs),
                         "support_rate": round(support_rate, 4),
@@ -257,25 +299,32 @@ def paired_ratio_reuse_findings(sheet: SheetVectors, params: PairForensicsParams
                         ],
                     }
                 )
-    return sorted(findings, key=lambda item: (-risk_rank(item["risk_level"]), -item["matched_pairs"]))[
-        : params.max_findings_per_category
-    ]
+    return sorted(
+        findings,
+        key=lambda item: (-risk_rank(item["risk_level"]), -item["matched_pairs"]),
+    )[: params.max_findings_per_category]
 
 
-def duplicate_row_vector_findings(sheet: SheetVectors, params: PairForensicsParams) -> list[dict[str, Any]]:
+def duplicate_row_vector_findings(
+    sheet: SheetVectors, params: PairForensicsParams
+) -> list[dict[str, Any]]:
     row_vectors: dict[tuple[tuple[int, str], ...], list[int]] = defaultdict(list)
     high_information_columns = {
         col
         for col, values_by_row in sheet.numeric_columns.items()
         if not is_low_information_numeric_column(values_by_row, params)
     }
-    for row in sorted({row for values in sheet.numeric_columns.values() for row in values}):
+    for row in sorted(
+        {row for values in sheet.numeric_columns.values() for row in values}
+    ):
         vector = []
         for col in sorted(sheet.numeric_columns):
             value = sheet.numeric_columns[col].get(row)
             if value is not None:
                 vector.append((col, normalized_number(value)))
-        if len(vector) >= params.min_duplicate_row_width and any(col in high_information_columns for col, _value in vector):
+        if len(vector) >= params.min_duplicate_row_width and any(
+            col in high_information_columns for col, _value in vector
+        ):
             row_vectors[tuple(vector)].append(row)
 
     findings = []
@@ -289,7 +338,9 @@ def duplicate_row_vector_findings(sheet: SheetVectors, params: PairForensicsPara
         if len(cols) >= 2:
             for left_index, left_col in enumerate(cols):
                 for right_col in cols[left_index + 1 :]:
-                    current_zero_artifact, zero_reason = zero_inflated_pair_artifact(sheet, left_col, right_col, rows)
+                    current_zero_artifact, zero_reason = zero_inflated_pair_artifact(
+                        sheet, left_col, right_col, rows
+                    )
                     if current_zero_artifact:
                         zero_artifact = True
                         if zero_reason:
@@ -306,7 +357,9 @@ def duplicate_row_vector_findings(sheet: SheetVectors, params: PairForensicsPara
         elif zero_artifact:
             risk = "medium"
             artifact_likelihood = "high"
-            artifact_reason = "; ".join(zero_reasons[:2]) or "zero-inflated matrix duplicate vector"
+            artifact_reason = (
+                "; ".join(zero_reasons[:2]) or "zero-inflated matrix duplicate vector"
+            )
             pressure_test = "likely_zero_inflated_matrix_artifact"
         findings.append(
             {
@@ -335,9 +388,14 @@ def duplicate_row_vector_findings(sheet: SheetVectors, params: PairForensicsPara
                 ],
             }
         )
-    return sorted(findings, key=lambda item: (-risk_rank(item["risk_level"]), -item["duplicate_row_count"], -item["width"]))[
-        : params.max_findings_per_category
-    ]
+    return sorted(
+        findings,
+        key=lambda item: (
+            -risk_rank(item["risk_level"]),
+            -item["duplicate_row_count"],
+            -item["width"],
+        ),
+    )[: params.max_findings_per_category]
 
 
 def long_format_pair_groups(
@@ -357,7 +415,11 @@ def long_format_pair_groups(
         groups[int(pair_id)].append(row)
     if len(groups) < params.min_pairs:
         return {}
-    paired = {pair_id: tuple(sorted(rows)) for pair_id, rows in groups.items() if len(rows) == 2}
+    paired = {
+        pair_id: tuple(sorted(rows))
+        for pair_id, rows in groups.items()
+        if len(rows) == 2
+    }
     if len(paired) < params.min_pairs:
         return {}
     if len(paired) / len(groups) < 0.75:
@@ -373,13 +435,17 @@ def long_format_pair_ratios(
     ratios = {}
     for pair_id, rows in pair_groups.items():
         first_row, second_row = rows
-        key = ratio_key(value_values[second_row], value_values[first_row], params.ratio_places)
+        key = ratio_key(
+            value_values[second_row], value_values[first_row], params.ratio_places
+        )
         if key is not None:
             ratios[pair_id] = key
     return ratios
 
 
-def long_format_paired_ratio_reuse_findings(sheet: SheetVectors, params: PairForensicsParams) -> list[dict[str, Any]]:
+def long_format_paired_ratio_reuse_findings(
+    sheet: SheetVectors, params: PairForensicsParams
+) -> list[dict[str, Any]]:
     findings = []
     columns = sorted(sheet.numeric_columns)
     for id_col in columns:
@@ -420,7 +486,10 @@ def long_format_paired_ratio_reuse_findings(sheet: SheetVectors, params: PairFor
                         "columns": [col_to_name(id_col), col_to_name(value_col)],
                         "id_column": col_to_name(id_col),
                         "value_column": col_to_name(value_col),
-                        "column_labels": [column_label(sheet, id_col), column_label(sheet, value_col)],
+                        "column_labels": [
+                            column_label(sheet, id_col),
+                            column_label(sheet, value_col),
+                        ],
                         "matched_pair_groups": len(matched),
                         "overlap_pair_groups": len(pairs),
                         "support_rate": round(support_rate, 4),
@@ -454,12 +523,15 @@ def long_format_paired_ratio_reuse_findings(sheet: SheetVectors, params: PairFor
                         ],
                     }
                 )
-    return sorted(findings, key=lambda item: (-risk_rank(item["risk_level"]), -item["matched_pair_groups"]))[
-        : params.max_findings_per_category
-    ]
+    return sorted(
+        findings,
+        key=lambda item: (-risk_rank(item["risk_level"]), -item["matched_pair_groups"]),
+    )[: params.max_findings_per_category]
 
 
-def long_format_within_pair_ratio_enrichment_findings(sheet: SheetVectors, params: PairForensicsParams) -> list[dict[str, Any]]:
+def long_format_within_pair_ratio_enrichment_findings(
+    sheet: SheetVectors, params: PairForensicsParams
+) -> list[dict[str, Any]]:
     findings = []
     columns = sorted(sheet.numeric_columns)
     for id_col in columns:
@@ -480,7 +552,9 @@ def long_format_within_pair_ratio_enrichment_findings(sheet: SheetVectors, param
             if len(ratios_by_pair) < params.min_pairs:
                 continue
             ratio_counts = Counter(ratios_by_pair.values())
-            for ratio, count in ratio_counts.most_common(params.max_findings_per_category):
+            for ratio, count in ratio_counts.most_common(
+                params.max_findings_per_category
+            ):
                 if ratio == "1":
                     continue
                 support_rate = count / len(ratios_by_pair)
@@ -488,7 +562,11 @@ def long_format_within_pair_ratio_enrichment_findings(sheet: SheetVectors, param
                 # reuse; require a minimum absolute count and meaningful prevalence.
                 if count < params.min_pairs or support_rate < 0.2:
                     continue
-                matched_pair_ids = [pair_id for pair_id, value in ratios_by_pair.items() if value == ratio]
+                matched_pair_ids = [
+                    pair_id
+                    for pair_id, value in ratios_by_pair.items()
+                    if value == ratio
+                ]
                 findings.append(
                     {
                         "finding_id": None,
@@ -500,7 +578,10 @@ def long_format_within_pair_ratio_enrichment_findings(sheet: SheetVectors, param
                         "columns": [col_to_name(id_col), col_to_name(value_col)],
                         "id_column": col_to_name(id_col),
                         "value_column": col_to_name(value_col),
-                        "column_labels": [column_label(sheet, id_col), column_label(sheet, value_col)],
+                        "column_labels": [
+                            column_label(sheet, id_col),
+                            column_label(sheet, value_col),
+                        ],
                         "relationship_value": ratio,
                         "matched_pair_groups": count,
                         "overlap_pair_groups": len(ratios_by_pair),
@@ -526,12 +607,15 @@ def long_format_within_pair_ratio_enrichment_findings(sheet: SheetVectors, param
                         ],
                     }
                 )
-    return sorted(findings, key=lambda item: (-risk_rank(item["risk_level"]), -item["matched_pair_groups"]))[
-        : params.max_findings_per_category
-    ]
+    return sorted(
+        findings,
+        key=lambda item: (-risk_rank(item["risk_level"]), -item["matched_pair_groups"]),
+    )[: params.max_findings_per_category]
 
 
-def row_offset_rounding_bias_findings(sheet: SheetVectors, params: PairForensicsParams) -> list[dict[str, Any]]:
+def row_offset_rounding_bias_findings(
+    sheet: SheetVectors, params: PairForensicsParams
+) -> list[dict[str, Any]]:
     findings = []
     for col, values_by_row in sorted(sheet.numeric_columns.items()):
         if is_low_information_numeric_column(values_by_row, params):
@@ -557,7 +641,16 @@ def row_offset_rounding_bias_findings(sheet: SheetVectors, params: PairForensics
                 continue
             exact_rate = len(exact) / len(comparable)
             rounded_rate = len(rounded_second) / len(comparable)
-            upward_rate = len(upward_changes) / max(1, len([pair for pair in comparable if values_by_row[pair[0]] != values_by_row[pair[1]]]))
+            upward_rate = len(upward_changes) / max(
+                1,
+                len(
+                    [
+                        pair
+                        for pair in comparable
+                        if values_by_row[pair[0]] != values_by_row[pair[1]]
+                    ]
+                ),
+            )
             # This is intentionally stricter than scalar/ratio reuse. Precision
             # shifts are noisy in spreadsheets; only emit when exact reuse,
             # coarse second-block values, and directional changes co-occur.
@@ -580,8 +673,14 @@ def row_offset_rounding_bias_findings(sheet: SheetVectors, params: PairForensics
                     "upward_change_rate": round(upward_rate, 4),
                     "exact_reuse_rate": round(exact_rate, 4),
                     "rounded_second_block_rate": round(rounded_rate, 4),
-                    "sample_exact_pairs": [{"left_row": left, "right_row": right} for left, right in exact[:10]],
-                    "sample_rounded_pairs": [{"left_row": left, "right_row": right} for left, right in rounded_second[:10]],
+                    "sample_exact_pairs": [
+                        {"left_row": left, "right_row": right}
+                        for left, right in exact[:10]
+                    ],
+                    "sample_rounded_pairs": [
+                        {"left_row": left, "right_row": right}
+                        for left, right in rounded_second[:10]
+                    ],
                     "benign_explanations": [
                         "可能是人工四舍五入、单位换算后展示值或不同精度导出的合法结果。",
                         "若后半区代表新增独立样本，精度骤降和单向修改需要人工复核。",
@@ -593,12 +692,15 @@ def row_offset_rounding_bias_findings(sheet: SheetVectors, params: PairForensics
                     ],
                 }
             )
-    return sorted(findings, key=lambda item: (-risk_rank(item["risk_level"]), -item["exact_reuse_pairs"]))[
-        : params.max_findings_per_category
-    ]
+    return sorted(
+        findings,
+        key=lambda item: (-risk_rank(item["risk_level"]), -item["exact_reuse_pairs"]),
+    )[: params.max_findings_per_category]
 
 
-def paired_difference_spread_findings(sheet: SheetVectors, params: PairForensicsParams) -> list[dict[str, Any]]:
+def paired_difference_spread_findings(
+    sheet: SheetVectors, params: PairForensicsParams
+) -> list[dict[str, Any]]:
     """Detect column pairs whose paired differences are anomalously narrow.
 
     For every pair of numeric columns (A, B) sharing >= min_pairs rows,
@@ -631,13 +733,17 @@ def paired_difference_spread_findings(sheet: SheetVectors, params: PairForensics
                 abs_b_list.append(abs(b_val))
                 all_values.extend([abs(a_val), abs(b_val)])
             abs_diffs = [abs(d) for d in diffs]
-            mean_magnitude = sum(abs_a_list[i] + abs_b_list[i] for i in range(len(abs_a_list))) / (2 * len(abs_a_list))
+            mean_magnitude = sum(
+                abs_a_list[i] + abs_b_list[i] for i in range(len(abs_a_list))
+            ) / (2 * len(abs_a_list))
             max_abs_diff = max(abs_diffs)
             min_abs_diff = min(abs_diffs)
             data_range = max(all_values) - min(all_values) if all_values else 0.0
             diff_spread = max_abs_diff - min_abs_diff
             # Condition 1: max |d_i| < 5% of mean magnitude of the data.
-            narrow_vs_magnitude = mean_magnitude > 0 and max_abs_diff < 0.05 * mean_magnitude
+            narrow_vs_magnitude = (
+                mean_magnitude > 0 and max_abs_diff < 0.05 * mean_magnitude
+            )
             # Condition 2: spread of |d_i| is narrow relative to combined data range
             # AND the absolute differences are themselves small relative to that range.
             # Both sub-conditions are required so that a constant-offset column pair
@@ -669,7 +775,10 @@ def paired_difference_spread_findings(sheet: SheetVectors, params: PairForensics
                     "sheet": sheet.sheet,
                     "column_a": col_to_name(left_col),
                     "column_b": col_to_name(right_col),
-                    "column_labels": [column_label(sheet, left_col), column_label(sheet, right_col)],
+                    "column_labels": [
+                        column_label(sheet, left_col),
+                        column_label(sheet, right_col),
+                    ],
                     "pair_count": len(common_rows),
                     "max_abs_diff": round(max_abs_diff, 8),
                     "min_abs_diff": round(min_abs_diff, 8),
@@ -686,12 +795,13 @@ def paired_difference_spread_findings(sheet: SheetVectors, params: PairForensics
                     ],
                 }
             )
-    return sorted(findings, key=lambda item: (-risk_rank(item["risk_level"]), -item["pair_count"]))[
-        : params.max_findings_per_category
-    ]
+    return sorted(
+        findings, key=lambda item: (-risk_rank(item["risk_level"]), -item["pair_count"])
+    )[: params.max_findings_per_category]
 
 
 # ── Cross-block paired difference detector ───────────────────────────
+
 
 def _find_block_separator_rows(sheet: SheetVectors) -> list[int]:
     """Find rows that act as separators between numeric blocks.
@@ -828,14 +938,18 @@ def cross_block_paired_diff_findings(
                 all_values = [abs(v) for v in vals_a + vals_b]
 
                 n = len(diffs)
-                mean_magnitude = sum(abs(a) + abs(b) for a, b in zip(vals_a, vals_b)) / (2 * n)
+                mean_magnitude = sum(
+                    abs(a) + abs(b) for a, b in zip(vals_a, vals_b)
+                ) / (2 * n)
                 max_abs_diff = max(abs_diffs)
                 min_abs_diff = min(abs_diffs)
                 data_range = max(all_values) - min(all_values) if all_values else 0.0
                 diff_spread = max_abs_diff - min_abs_diff
 
                 # Same thresholds as within-row paired_difference_spread
-                narrow_vs_magnitude = mean_magnitude > 0 and max_abs_diff < 0.05 * mean_magnitude
+                narrow_vs_magnitude = (
+                    mean_magnitude > 0 and max_abs_diff < 0.05 * mean_magnitude
+                )
                 narrow_vs_range = (
                     data_range > 0
                     and diff_spread < 0.01 * data_range
@@ -849,47 +963,51 @@ def cross_block_paired_diff_findings(
                 col_label = column_label(sheet, col)
                 sample_pairs = []
                 for k in range(min(5, n)):
-                    sample_pairs.append({
-                        "position": k + 1,
-                        "block_a_row": block_a[k],
-                        "block_b_row": block_b[k],
-                        "value_a": vals_a[k],
-                        "value_b": vals_b[k],
-                        "difference": round(diffs[k], 10),
-                    })
+                    sample_pairs.append(
+                        {
+                            "position": k + 1,
+                            "block_a_row": block_a[k],
+                            "block_b_row": block_b[k],
+                            "value_a": vals_a[k],
+                            "value_b": vals_b[k],
+                            "difference": round(diffs[k], 10),
+                        }
+                    )
 
-                findings.append({
-                    "category": "cross_block_paired_diff_too_narrow",
-                    "risk_level": risk,
-                    "confidence": "high",
-                    "workbook": sheet.workbook,
-                    "sheet": sheet.sheet,
-                    "column": col,
-                    "column_label": col_label,
-                    "block_a_rows": block_a,
-                    "block_b_rows": block_b,
-                    "pair_count": n,
-                    "max_abs_diff": round(max_abs_diff, 10),
-                    "min_abs_diff": round(min_abs_diff, 10),
-                    "data_range": round(data_range, 10),
-                    "mean_magnitude": round(mean_magnitude, 10),
-                    "sample_pairs": sample_pairs,
-                    "benign_explanations": [
-                        "两个 block 可能是同一实验的重复孔/技术重复，并非独立生物学样本",
-                        "如果两个 block 的数据来自同一块板的连续孔，小的跨块差异可能是仪器精度限制",
-                        "检查 sheet 中是否有文本分隔行表明两个 block 代表不同实验条件/细胞系/处理组",
-                    ],
-                    "pressure_test_result": "needs_block_semantics_review",
-                    "next_steps": [
-                        "确认两个 block 分别代表什么实验条件（细胞系、处理组、时间点等）",
-                        "如果来自不同条件，跨 block 的配对差异应反映生物学差异而非技术噪声",
-                        "核对论文 Methods 中是否描述了跨 block 的数据处理方式",
-                    ],
-                })
+                findings.append(
+                    {
+                        "category": "cross_block_paired_diff_too_narrow",
+                        "risk_level": risk,
+                        "confidence": "high",
+                        "workbook": sheet.workbook,
+                        "sheet": sheet.sheet,
+                        "column": col,
+                        "column_label": col_label,
+                        "block_a_rows": block_a,
+                        "block_b_rows": block_b,
+                        "pair_count": n,
+                        "max_abs_diff": round(max_abs_diff, 10),
+                        "min_abs_diff": round(min_abs_diff, 10),
+                        "data_range": round(data_range, 10),
+                        "mean_magnitude": round(mean_magnitude, 10),
+                        "sample_pairs": sample_pairs,
+                        "benign_explanations": [
+                            "两个 block 可能是同一实验的重复孔/技术重复，并非独立生物学样本",
+                            "如果两个 block 的数据来自同一块板的连续孔，小的跨块差异可能是仪器精度限制",
+                            "检查 sheet 中是否有文本分隔行表明两个 block 代表不同实验条件/细胞系/处理组",
+                        ],
+                        "pressure_test_result": "needs_block_semantics_review",
+                        "next_steps": [
+                            "确认两个 block 分别代表什么实验条件（细胞系、处理组、时间点等）",
+                            "如果来自不同条件，跨 block 的配对差异应反映生物学差异而非技术噪声",
+                            "核对论文 Methods 中是否描述了跨 block 的数据处理方式",
+                        ],
+                    }
+                )
 
-    return sorted(findings, key=lambda item: (-risk_rank(item["risk_level"]), -item["pair_count"]))[
-        : params.max_findings_per_category
-    ]
+    return sorted(
+        findings, key=lambda item: (-risk_rank(item["risk_level"]), -item["pair_count"])
+    )[: params.max_findings_per_category]
 
 
 def assign_ids(findings: list[dict[str, Any]]) -> None:
@@ -908,7 +1026,9 @@ def assign_ids(findings: list[dict[str, Any]]) -> None:
     for finding in findings:
         category = finding["category"]
         counters[category] += 1
-        finding["finding_id"] = f"{prefixes.get(category, 'PF')}-{counters[category]:04d}"
+        finding["finding_id"] = (
+            f"{prefixes.get(category, 'PF')}-{counters[category]:04d}"
+        )
 
 
 def _finding_offset(finding: dict[str, Any]) -> Any:
@@ -920,7 +1040,12 @@ def _finding_relationship(finding: dict[str, Any]) -> Any:
 
 
 def _finding_columns_text(finding: dict[str, Any]) -> str:
-    columns = finding.get("columns") or finding.get("column_pair") or finding.get("column") or []
+    columns = (
+        finding.get("columns")
+        or finding.get("column_pair")
+        or finding.get("column")
+        or []
+    )
     if isinstance(columns, list):
         return ", ".join(str(item) for item in columns)
     return str(columns)
@@ -985,7 +1110,9 @@ def _category_review_question(category: str) -> str:
         "paired_difference_too_narrow": "配对列之间的差异分布异常狭窄，需确认配对测量是否来自独立生物学重复或高精度技术重复。",
         "cross_block_paired_diff_too_narrow": "被文本分隔行分开的两个数据块中，对应位置的列值差异异常狭窄，需确认两个块是否代表独立实验条件。",
     }
-    return questions.get(category, "该 Source Data pattern 需要结合样本语义和原始记录人工复核。")
+    return questions.get(
+        category, "该 Source Data pattern 需要结合样本语义和原始记录人工复核。"
+    )
 
 
 def cluster_pair_forensics_findings(
@@ -993,7 +1120,9 @@ def cluster_pair_forensics_findings(
     *,
     max_representatives: int = 8,
 ) -> list[dict[str, Any]]:
-    grouped: dict[tuple[str, str, str, str, str], list[dict[str, Any]]] = defaultdict(list)
+    grouped: dict[tuple[str, str, str, str, str], list[dict[str, Any]]] = defaultdict(
+        list
+    )
     for finding in findings:
         if isinstance(finding, dict):
             grouped[_cluster_key(finding)].append(finding)
@@ -1003,7 +1132,9 @@ def cluster_pair_forensics_findings(
         sorted(
             grouped.items(),
             key=lambda item: (
-                -max(risk_rank(str(finding.get("risk_level", ""))) for finding in item[1]),
+                -max(
+                    risk_rank(str(finding.get("risk_level", ""))) for finding in item[1]
+                ),
                 -len(item[1]),
                 item[0],
             ),
@@ -1028,14 +1159,20 @@ def cluster_pair_forensics_findings(
             support_total += support
             overlap_total += overlap
             try:
-                max_support_rate = max(max_support_rate, float(finding.get("support_rate") or 0.0))
+                max_support_rate = max(
+                    max_support_rate, float(finding.get("support_rate") or 0.0)
+                )
             except (TypeError, ValueError):
                 pass
             columns_text = _finding_columns_text(finding)
             if columns_text and columns_text not in columns_sample:
                 columns_sample.append(columns_text)
 
-        risk_level = max((str(finding.get("risk_level", "medium")) for finding in group), key=risk_rank, default="medium")
+        risk_level = max(
+            (str(finding.get("risk_level", "medium")) for finding in group),
+            key=risk_rank,
+            default="medium",
+        )
         cluster_id = f"PFC-{index:04d}"
         representative_ids = [
             str(finding.get("finding_id"))
@@ -1048,7 +1185,9 @@ def cluster_pair_forensics_findings(
                 "cluster_id": cluster_id,
                 "category": category,
                 "risk_level": risk_level,
-                "confidence": "high" if any(finding.get("confidence") == "high" for finding in group) else "medium",
+                "confidence": "high"
+                if any(finding.get("confidence") == "high" for finding in group)
+                else "medium",
                 "workbook": workbook,
                 "sheet": sheet,
                 "pattern_signature": signature,
@@ -1059,7 +1198,10 @@ def cluster_pair_forensics_findings(
                 "max_support_rate": round(max_support_rate, 4),
                 "columns_sample": columns_sample[:12],
                 "representative_finding_ids": representative_ids,
-                "evidence_refs": [f"source_data_pair_forensics.json:{finding_id}" for finding_id in representative_ids],
+                "evidence_refs": [
+                    f"source_data_pair_forensics.json:{finding_id}"
+                    for finding_id in representative_ids
+                ],
                 "review_question": _category_review_question(category),
                 "benign_explanations": (first.get("benign_explanations") or [])[:3],
                 "next_steps": (first.get("next_steps") or [])[:4],
@@ -1068,7 +1210,9 @@ def cluster_pair_forensics_findings(
     return clusters
 
 
-def pair_forensics_review_tasks(clusters: list[dict[str, Any]], *, max_tasks: int = 20) -> list[dict[str, Any]]:
+def pair_forensics_review_tasks(
+    clusters: list[dict[str, Any]], *, max_tasks: int = 20
+) -> list[dict[str, Any]]:
     grouped: dict[tuple[str, str, str], list[dict[str, Any]]] = defaultdict(list)
     for cluster in clusters:
         if isinstance(cluster, dict):
@@ -1099,9 +1243,17 @@ def pair_forensics_review_tasks(clusters: list[dict[str, Any]], *, max_tasks: in
                 str(cluster.get("cluster_id", "")),
             ),
         )
-        risk_level = max((str(cluster.get("risk_level", "medium")) for cluster in group), key=risk_rank, default="medium")
+        risk_level = max(
+            (str(cluster.get("risk_level", "medium")) for cluster in group),
+            key=risk_rank,
+            default="medium",
+        )
         finding_count = sum(int(cluster.get("finding_count") or 0) for cluster in group)
-        cluster_ids = [str(cluster.get("cluster_id")) for cluster in group if cluster.get("cluster_id")]
+        cluster_ids = [
+            str(cluster.get("cluster_id"))
+            for cluster in group
+            if cluster.get("cluster_id")
+        ]
         representative_ids: list[str] = []
         evidence_refs: list[str] = []
         signatures: list[str] = []
@@ -1156,15 +1308,24 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
         try:
             sheets = parse_workbook_vectors(workbook_path)
         except Exception as exc:
-            errors.append({"workbook": workbook_path.name, "error": f"{type(exc).__name__}: {exc}"})
+            errors.append(
+                {
+                    "workbook": workbook_path.name,
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
+            )
             continue
         sheet_count += len(sheets)
         for sheet in sheets:
             scalar_findings.extend(row_offset_scalar_findings(sheet, params))
             ratio_findings.extend(paired_ratio_reuse_findings(sheet, params))
             duplicate_rows.extend(duplicate_row_vector_findings(sheet, params))
-            long_ratio_reuse.extend(long_format_paired_ratio_reuse_findings(sheet, params))
-            long_ratio_enrichment.extend(long_format_within_pair_ratio_enrichment_findings(sheet, params))
+            long_ratio_reuse.extend(
+                long_format_paired_ratio_reuse_findings(sheet, params)
+            )
+            long_ratio_enrichment.extend(
+                long_format_within_pair_ratio_enrichment_findings(sheet, params)
+            )
             rounding_bias.extend(row_offset_rounding_bias_findings(sheet, params))
             narrow_diff_spread.extend(paired_difference_spread_findings(sheet, params))
             cross_block_narrow.extend(cross_block_paired_diff_findings(sheet, params))
@@ -1179,7 +1340,14 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
         *narrow_diff_spread,
         *cross_block_narrow,
     ]
-    findings = sorted(findings, key=lambda item: (-risk_rank(item["risk_level"]), str(item.get("workbook")), str(item.get("sheet"))))
+    findings = sorted(
+        findings,
+        key=lambda item: (
+            -risk_rank(item["risk_level"]),
+            str(item.get("workbook")),
+            str(item.get("sheet")),
+        ),
+    )
     assign_ids(findings)
     priority_findings = [
         finding
@@ -1213,7 +1381,9 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
             "paired_ratio_reuse_findings": len(ratio_findings),
             "duplicate_row_vector_findings": len(duplicate_rows),
             "long_format_paired_ratio_reuse_findings": len(long_ratio_reuse),
-            "long_format_within_pair_ratio_enrichment_findings": len(long_ratio_enrichment),
+            "long_format_within_pair_ratio_enrichment_findings": len(
+                long_ratio_enrichment
+            ),
             "rounding_bias_findings": len(rounding_bias),
             "paired_difference_too_narrow_findings": len(narrow_diff_spread),
             "cross_block_paired_diff_too_narrow_findings": len(cross_block_narrow),
@@ -1243,9 +1413,15 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Detect generic paired-cohort and row-offset patterns in XLSX Source Data.")
-    parser.add_argument("xlsx_root", help="Directory containing .xlsx source data files.")
-    parser.add_argument("--output", required=True, help="Output source_data_pair_forensics.json path.")
+    parser = argparse.ArgumentParser(
+        description="Detect generic paired-cohort and row-offset patterns in XLSX Source Data."
+    )
+    parser.add_argument(
+        "xlsx_root", help="Directory containing .xlsx source data files."
+    )
+    parser.add_argument(
+        "--output", required=True, help="Output source_data_pair_forensics.json path."
+    )
     parser.add_argument("--min-pairs", type=int, default=8)
     parser.add_argument("--min-support", type=float, default=0.95)
     parser.add_argument("--ratio-places", type=int, default=4)
@@ -1269,7 +1445,9 @@ def main() -> int:
     )
     result = analyze_xlsx_root(xlsx_root, params)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    output.write_text(
+        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     print(json.dumps({"output": str(output), **result["summary"]}, ensure_ascii=False))
     return 0
 

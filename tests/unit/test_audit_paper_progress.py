@@ -30,7 +30,11 @@ def test_jsonl_progress_reporter_writes_one_event_per_line() -> None:
     assert reporter is not None
     reporter({"event": "step_result", "key": "report", "status": "ran"})
 
-    assert json.loads(stream.getvalue()) == {"event": "step_result", "key": "report", "status": "ran"}
+    assert json.loads(stream.getvalue()) == {
+        "event": "step_result",
+        "key": "report",
+        "status": "ran",
+    }
 
 
 def test_plain_progress_formats_command_output() -> None:

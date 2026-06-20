@@ -1,6 +1,9 @@
 from __future__ import annotations
 
-from engine.static_audit.materials import build_material_inventory, fallback_optional_lanes
+from engine.static_audit.materials import (
+    build_material_inventory,
+    fallback_optional_lanes,
+)
 
 
 def test_material_inventory_selects_xlsx_source_data_lane(tmp_path) -> None:
@@ -20,7 +23,9 @@ def test_material_inventory_selects_xlsx_source_data_lane(tmp_path) -> None:
     assert lanes[0]["root"] == str(source_dir)
 
 
-def test_material_inventory_records_unsupported_csv_without_executable_lane(tmp_path) -> None:
+def test_material_inventory_records_unsupported_csv_without_executable_lane(
+    tmp_path,
+) -> None:
     paper_pdf = tmp_path / "paper.pdf"
     paper_pdf.write_bytes(b"%PDF-1.4\n")
     data_dir = tmp_path / "data"

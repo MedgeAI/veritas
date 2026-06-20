@@ -1,4 +1,5 @@
 """Tests for AgentStepRunner — Stream B of Agent Function Runtime P0."""
+
 from __future__ import annotations
 
 import subprocess
@@ -29,6 +30,7 @@ def _identity_validator(data: dict) -> dict:
 # 1. success_returns_validated_output
 # -----------------------------------------------------------------------
 
+
 @patch("engine.investigation.agent_step_runner.subprocess.run")
 def test_success_returns_validated_output(mock_run: MagicMock, tmp_path: Path) -> None:
     valid_json = '{"schema_version": "1.0", "claim": "test"}'
@@ -51,6 +53,7 @@ def test_success_returns_validated_output(mock_run: MagicMock, tmp_path: Path) -
 # 2. timeout_error_category
 # -----------------------------------------------------------------------
 
+
 @patch("engine.investigation.agent_step_runner.subprocess.run")
 def test_timeout_error_category(mock_run: MagicMock, tmp_path: Path) -> None:
     mock_run.side_effect = subprocess.TimeoutExpired(cmd="opencode", timeout=10)
@@ -71,6 +74,7 @@ def test_timeout_error_category(mock_run: MagicMock, tmp_path: Path) -> None:
 # -----------------------------------------------------------------------
 # 3. schema_validation_error_category (invalid JSON)
 # -----------------------------------------------------------------------
+
 
 @patch("engine.investigation.agent_step_runner.extract_json")
 @patch("engine.investigation.agent_step_runner.subprocess.run")
@@ -98,8 +102,11 @@ def test_schema_validation_error_category(
 # 4. permission_rejected_error_category
 # -----------------------------------------------------------------------
 
+
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_permission_rejected_error_category(mock_run: MagicMock, tmp_path: Path) -> None:
+def test_permission_rejected_error_category(
+    mock_run: MagicMock, tmp_path: Path
+) -> None:
     mock_run.return_value = _make_completed(
         returncode=1,
         stderr="Error: permission auto-reject for tool bash",
@@ -120,6 +127,7 @@ def test_permission_rejected_error_category(mock_run: MagicMock, tmp_path: Path)
 # -----------------------------------------------------------------------
 # 5. model_failure_error_category
 # -----------------------------------------------------------------------
+
 
 @patch("engine.investigation.agent_step_runner.subprocess.run")
 def test_model_failure_error_category(mock_run: MagicMock, tmp_path: Path) -> None:
@@ -173,6 +181,7 @@ def test_opencode_error_event_is_model_failure(
 # 6. non_zero_exit_error_category
 # -----------------------------------------------------------------------
 
+
 @patch("engine.investigation.agent_step_runner.subprocess.run")
 def test_non_zero_exit_error_category(mock_run: MagicMock, tmp_path: Path) -> None:
     mock_run.return_value = _make_completed(
@@ -195,6 +204,7 @@ def test_non_zero_exit_error_category(mock_run: MagicMock, tmp_path: Path) -> No
 # -----------------------------------------------------------------------
 # 7. retry_on_validation_failure
 # -----------------------------------------------------------------------
+
 
 @patch("engine.investigation.agent_step_runner.extract_json")
 @patch("engine.investigation.agent_step_runner.subprocess.run")
@@ -233,6 +243,7 @@ def test_retry_on_validation_failure(
 # 8. log_artifact_written_on_failure
 # -----------------------------------------------------------------------
 
+
 @patch("engine.investigation.agent_step_runner.subprocess.run")
 def test_log_artifact_written_on_failure(mock_run: MagicMock, tmp_path: Path) -> None:
     mock_run.return_value = _make_completed(
@@ -264,6 +275,7 @@ def test_log_artifact_written_on_failure(mock_run: MagicMock, tmp_path: Path) ->
 # 9. log_ref_in_failed_result
 # -----------------------------------------------------------------------
 
+
 @patch("engine.investigation.agent_step_runner.subprocess.run")
 def test_log_ref_in_failed_result(mock_run: MagicMock, tmp_path: Path) -> None:
     mock_run.return_value = _make_completed(
@@ -291,8 +303,11 @@ def test_log_ref_in_failed_result(mock_run: MagicMock, tmp_path: Path) -> None:
 # 10. metadata_includes_model_and_runtime
 # -----------------------------------------------------------------------
 
+
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_metadata_includes_model_and_runtime(mock_run: MagicMock, tmp_path: Path) -> None:
+def test_metadata_includes_model_and_runtime(
+    mock_run: MagicMock, tmp_path: Path
+) -> None:
     valid_json = '{"schema_version": "1.0"}'
     mock_run.return_value = _make_completed(stdout=valid_json)
 
@@ -317,6 +332,7 @@ def test_metadata_includes_model_and_runtime(mock_run: MagicMock, tmp_path: Path
 # -----------------------------------------------------------------------
 # 11. extract_json_reused
 # -----------------------------------------------------------------------
+
 
 @patch("engine.investigation.agent_step_runner.extract_json")
 @patch("engine.investigation.agent_step_runner.subprocess.run")
@@ -371,7 +387,9 @@ def test_runner_loads_project_dotenv_for_subprocess(
     mock_extract: MagicMock,
     tmp_path: Path,
 ) -> None:
-    (tmp_path / ".env").write_text("DASHSCOPE_API_KEY=dotenv-secret\n", encoding="utf-8")
+    (tmp_path / ".env").write_text(
+        "DASHSCOPE_API_KEY=dotenv-secret\n", encoding="utf-8"
+    )
     mock_run.return_value = _make_completed(stdout='{"schema_version": "1.0"}')
     mock_extract.return_value = {"schema_version": "1.0"}
 

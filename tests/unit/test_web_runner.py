@@ -14,13 +14,29 @@ def fake_audit_func(paper_dir: Path, **kwargs: Any) -> dict[str, Any]:
     workdir = output_root / case_id / "research-integrity-audit"
     workdir.mkdir(parents=True, exist_ok=True)
     (workdir / "audit_run_manifest.json").write_text('{"steps":[]}\n', encoding="utf-8")
-    (workdir / "static_audit_bundle.json").write_text('{"protocol_version":"test"}\n', encoding="utf-8")
+    (workdir / "static_audit_bundle.json").write_text(
+        '{"protocol_version":"test"}\n', encoding="utf-8"
+    )
     (workdir / "investigation_rounds.jsonl").write_text("", encoding="utf-8")
-    (workdir / "final_audit_report.html").write_text("<html>Veritas 静态审查 Demo</html>", encoding="utf-8")
+    (workdir / "final_audit_report.html").write_text(
+        "<html>Veritas 静态审查 Demo</html>", encoding="utf-8"
+    )
     progress = kwargs.get("progress")
     if progress:
-        progress({"timestamp": "2026-05-29T00:00:00Z", "event": "audit_start", "case_id": case_id})
-        progress({"timestamp": "2026-05-29T00:00:01Z", "event": "audit_end", "status": "completed"})
+        progress(
+            {
+                "timestamp": "2026-05-29T00:00:00Z",
+                "event": "audit_start",
+                "case_id": case_id,
+            }
+        )
+        progress(
+            {
+                "timestamp": "2026-05-29T00:00:01Z",
+                "event": "audit_end",
+                "status": "completed",
+            }
+        )
     return {
         "exit_code": 0,
         "case_id": case_id,
@@ -37,7 +53,9 @@ def test_runner_calls_audit_function_and_indexes_report(tmp_path) -> None:
     case = store.create_case(case_id="demo-case")
     store.write_input(case.case_id, "paper.pdf", b"%PDF-1.4\n")
     run = store.create_run(case.case_id)
-    runner = AuditRunner(store, audit_func=fake_audit_func, output_root=tmp_path / "outputs")
+    runner = AuditRunner(
+        store, audit_func=fake_audit_func, output_root=tmp_path / "outputs"
+    )
 
     completed = runner.run_sync(case.case_id, run.run_id, {"agent_mode": "review"})
     artifacts = ArtifactService(store).list_artifacts(case.case_id)
@@ -45,9 +63,13 @@ def test_runner_calls_audit_function_and_indexes_report(tmp_path) -> None:
 
     assert completed.status == "completed"
     assert store.get_case(case.case_id).status == "Report Ready"
-    assert [event["event"] for event in store.list_events(case.case_id, run.run_id)] == ["audit_start", "audit_end"]
+    assert [
+        event["event"] for event in store.list_events(case.case_id, run.run_id)
+    ] == ["audit_start", "audit_end"]
     assert html_ref.exists is True
-    assert html_ref.size_bytes == len("<html>Veritas 静态审查 Demo</html>".encode("utf-8"))
+    assert html_ref.size_bytes == len(
+        "<html>Veritas 静态审查 Demo</html>".encode("utf-8")
+    )
     assert html_ref.updated_at
 
 
@@ -61,7 +83,9 @@ def test_runner_recovers_interrupted_thread_runs_on_backend_startup(tmp_path) ->
     workdir = tmp_path / "outputs" / case.case_id / "research-integrity-audit"
     workdir.mkdir(parents=True)
 
-    recovered_count = AuditRunner(store, audit_func=fake_audit_func, output_root=tmp_path / "outputs").recover_interrupted_runs()
+    recovered_count = AuditRunner(
+        store, audit_func=fake_audit_func, output_root=tmp_path / "outputs"
+    ).recover_interrupted_runs()
     recovered_run = store.get_run(case.case_id, run.run_id)
     recovered_case = store.get_case(case.case_id)
     events = store.list_events(case.case_id, run.run_id)

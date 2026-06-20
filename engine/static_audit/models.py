@@ -17,8 +17,8 @@ EvidenceKind = Literal[
     "cell",
     "command",
     "output_artifact",
-    "figure",    # Visual forensics: canonical figure-level image evidence
-    "panel",     # Visual forensics: detected panel crop
+    "figure",  # Visual forensics: canonical figure-level image evidence
+    "panel",  # Visual forensics: detected panel crop
 ]
 
 RiskLevel = Literal["info", "low", "medium", "high", "critical"]
@@ -68,7 +68,9 @@ class Finding:
     risk_level: RiskLevel
     summary: str
     issue_category: IssueCategory = "consistency"
-    evidence_source: Literal["file", "figure", "execution", "claim_match", "text_match"] = "file"
+    evidence_source: Literal[
+        "file", "figure", "execution", "claim_match", "text_match"
+    ] = "file"
     evidence_refs: list[str] = field(default_factory=list)
     claim_refs: list[str] = field(default_factory=list)
     benign_explanations: list[str] = field(default_factory=list)
@@ -155,4 +157,3 @@ class StaticAuditBundle:
 
 def load_static_audit_bundle(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
-

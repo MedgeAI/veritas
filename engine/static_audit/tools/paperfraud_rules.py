@@ -26,7 +26,11 @@ SEVERITY_TO_RISK = {
 
 def run_paperfraud_rule_match(full_md_path: Path, output_path: Path) -> dict[str, Any]:
     """Match PaperFraud rules against parsed paper text and write JSON artifact."""
-    paper_text = full_md_path.read_text(encoding="utf-8", errors="ignore") if full_md_path.exists() else ""
+    paper_text = (
+        full_md_path.read_text(encoding="utf-8", errors="ignore")
+        if full_md_path.exists()
+        else ""
+    )
     rules = load_knowledge_base()
     matches = match_rules(rules, paper_full_text=paper_text, paper_methods=paper_text)
     artifact = {
@@ -35,7 +39,9 @@ def run_paperfraud_rule_match(full_md_path: Path, output_path: Path) -> dict[str
         "source": "engine/static_audit/adapters/paperfraud_knowledge",
         "input_artifacts": [str(full_md_path)],
         "summary": summarize_matches(matches),
-        "triggered_rules": [_match_to_dict(match) for match in matches if match.triggered],
+        "triggered_rules": [
+            _match_to_dict(match) for match in matches if match.triggered
+        ],
         "reviewer_form": generate_reviewer_form(rules),
         "limitations": [
             "Keyword/regex rule matches are review prompts, not final misconduct findings.",
@@ -43,7 +49,9 @@ def run_paperfraud_rule_match(full_md_path: Path, output_path: Path) -> dict[str
         ],
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(artifact, ensure_ascii=False, indent=2), encoding="utf-8")
+    output_path.write_text(
+        json.dumps(artifact, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     return artifact
 
 
@@ -68,14 +76,16 @@ def paperfraud_findings_from_matches(artifact: dict[str, Any]) -> list[Finding]:
 
         if not excerpts:
             # No textual evidence → checklist item, not a Finding.
-            methodology_checklist.append({
-                "rule_id": rule_id,
-                "rule_type": item.get("rule_type") or "methodology_review",
-                "category": item.get("category") or "",
-                "severity": severity,
-                "title": str(item.get("title") or rule_id),
-                "human_review": str(item.get("human_review") or ""),
-            })
+            methodology_checklist.append(
+                {
+                    "rule_id": rule_id,
+                    "rule_type": item.get("rule_type") or "methodology_review",
+                    "category": item.get("category") or "",
+                    "severity": severity,
+                    "title": str(item.get("title") or rule_id),
+                    "human_review": str(item.get("human_review") or ""),
+                }
+            )
             continue
 
         evidence_refs = [f"full.md#rule:{rule_id}"]

@@ -31,7 +31,11 @@ from typing import Any
 
 from PIL import Image
 
-from engine.static_audit.visual_schemas import FigureEvidence, PanelEvidence, VISUAL_SCHEMA_VERSION
+from engine.static_audit.visual_schemas import (
+    FigureEvidence,
+    PanelEvidence,
+    VISUAL_SCHEMA_VERSION,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,11 +44,10 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-ELIS_PANEL_EXTRACTOR = _REPO_ROOT / "third_party" / "elis" / "system_modules" / "panel-extractor"
+ELIS_PANEL_EXTRACTOR = (
+    _REPO_ROOT / "third_party" / "elis" / "system_modules" / "panel-extractor"
+)
 DEFAULT_WEIGHTS = _REPO_ROOT / "models" / "panel_extraction" / "model_5_class.pt"
-
-# 5-class YOLOv5 panel classification labels
-YOLOV5_CLASS_LABELS = ["Blots", "Graphs", "Microscopy", "Body Imaging", "Flow Cytometry"]
 
 EXTRACTION_METHOD_YOLOV5 = "yolov5_panel_extractor"
 EXTRACTION_METHOD_FALLBACK = "whole_figure_fallback"
@@ -135,7 +138,8 @@ def extract_panels_batch(
         str(iou_thres),
         "--imgsz",
         str(imgsz),
-        "--save_img", "True",
+        "--save_img",
+        "True",
     ]
 
     try:
@@ -152,7 +156,11 @@ def extract_panels_batch(
     # Parse PANELS.csv and distribute to figures
     csv_path = batch_output / "PANELS.csv"
     return _distribute_panels_from_csv(
-        csv_path, figure_paths, batch_output, output_dir, figure_labels=figure_labels,
+        csv_path,
+        figure_paths,
+        batch_output,
+        output_dir,
+        figure_labels=figure_labels,
     )
 
 
@@ -209,7 +217,9 @@ def _distribute_panels_from_csv(
         if fid is None:
             continue
         paper_label = (figure_labels or {}).get(fid)
-        panels = _convert_csv_rows_to_panels(fid, fig_rows, batch_output, output_dir, paper_figure_label=paper_label)
+        panels = _convert_csv_rows_to_panels(
+            fid, fig_rows, batch_output, output_dir, paper_figure_label=paper_label
+        )
         result[fid] = panels
 
     return result
@@ -228,7 +238,9 @@ def _convert_csv_rows_to_panels(
             "Figure %s: YOLOv5 produced %d panels (max=%d). "
             "Likely over-segmentation of a grid/montage image. "
             "Falling back to whole-figure panel.",
-            figure_id, len(rows), MAX_PANELS_PER_FIGURE,
+            figure_id,
+            len(rows),
+            MAX_PANELS_PER_FIGURE,
         )
         return []
 
@@ -256,8 +268,12 @@ def _convert_csv_rows_to_panels(
         label = _index_to_label(idx)
 
         # Move crop from batch output to canonical location
-        crop_src = _find_crop_file(batch_output, row.get("FIGNAME", ""), idx, panel_type_raw)
-        crop_filename = _build_crop_filename(paper_figure_label, figure_id, idx + 1, panel_type_raw)
+        crop_src = _find_crop_file(
+            batch_output, row.get("FIGNAME", ""), idx, panel_type_raw
+        )
+        crop_filename = _build_crop_filename(
+            paper_figure_label, figure_id, idx + 1, panel_type_raw
+        )
         crop_dst = panels_dir / crop_filename
         if crop_src and crop_src.is_file():
             shutil.move(str(crop_src), str(crop_dst))
@@ -371,7 +387,11 @@ def _build_crop_filename(
     Example: Fig3b_panel01_Blots.png (with label)
     Example: figure-0003_panel01_Graphs.png (fallback)
     """
-    label_part = _sanitize_for_filename(paper_figure_label) if paper_figure_label else _sanitize_for_filename(figure_id)
+    label_part = (
+        _sanitize_for_filename(paper_figure_label)
+        if paper_figure_label
+        else _sanitize_for_filename(figure_id)
+    )
     modality_part = _sanitize_for_filename(modality) if modality else "unknown"
     return f"{label_part}_panel{panel_index:02d}_{modality_part}.png"
 
@@ -381,7 +401,9 @@ def _build_crop_filename(
 # ---------------------------------------------------------------------------
 
 
-def _deduplicate_ledger_figures(raw_figures: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def _deduplicate_ledger_figures(
+    raw_figures: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     """Merge figure entries pointing to the same image file.
 
     The upstream evidence ledger builder concatenates figure entries from
@@ -442,7 +464,9 @@ def build_figure_evidence_from_ledger(
         if not isinstance(item, dict):
             continue
         if item.get("type") == "figure":
-            figure_id = str(item.get("id") or item.get("figure_id") or f"FE-{index:04d}")
+            figure_id = str(
+                item.get("id") or item.get("figure_id") or f"FE-{index:04d}"
+            )
             image_ref = _image_ref_to_relative_path(item.get("image_ref"))
             if not image_ref:
                 image_ref = str(item.get("source_image_path") or "")
@@ -479,19 +503,28 @@ def build_figure_evidence_from_ledger(
 
 def _image_ref_to_relative_path(image_ref: Any) -> str:
     if isinstance(image_ref, dict):
-        return str(image_ref.get("relative_path") or image_ref.get("path") or image_ref.get("raw") or "")
+        return str(
+            image_ref.get("relative_path")
+            or image_ref.get("path")
+            or image_ref.get("raw")
+            or ""
+        )
     if isinstance(image_ref, str):
         return image_ref
     return ""
 
 
-def build_figure_evidence_from_images(workdir: Path, images_dir: Path) -> list[dict[str, Any]]:
+def build_figure_evidence_from_images(
+    workdir: Path, images_dir: Path
+) -> list[dict[str, Any]]:
     """Build canonical figure evidence directly from extracted image files."""
     figures: list[dict[str, Any]] = []
     image_paths = [
         path
         for path in sorted(images_dir.rglob("*"))
-        if path.is_file() and path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"}
+        if path.is_file()
+        and path.suffix.lower()
+        in {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"}
     ]
     for index, image_path in enumerate(image_paths, start=1):
         try:
@@ -520,7 +553,9 @@ def build_figure_evidence_from_images(workdir: Path, images_dir: Path) -> list[d
     return figures
 
 
-def whole_figure_panel(figure: dict[str, Any], *, workdir: Path, output_dir: Path) -> dict[str, Any] | None:
+def whole_figure_panel(
+    figure: dict[str, Any], *, workdir: Path, output_dir: Path
+) -> dict[str, Any] | None:
     """Create one panel covering the full figure when panel detection fails."""
     source_rel = str(figure.get("source_image_path") or "")
     if not source_rel:
@@ -532,7 +567,9 @@ def whole_figure_panel(figure: dict[str, Any], *, workdir: Path, output_dir: Pat
     paper_figure_label = figure.get("label") or None
     panel_dir = output_dir / "panels" / figure_id
     panel_dir.mkdir(parents=True, exist_ok=True)
-    crop_filename = _build_crop_filename(paper_figure_label, figure_id, 1, "whole_figure")
+    crop_filename = _build_crop_filename(
+        paper_figure_label, figure_id, 1, "whole_figure"
+    )
     crop_path = panel_dir / crop_filename
     if not crop_path.exists():
         shutil.copyfile(source_path, crop_path)
@@ -554,7 +591,10 @@ def whole_figure_panel(figure: dict[str, Any], *, workdir: Path, output_dir: Pat
         extraction_confidence=0.5,
         extraction_method=EXTRACTION_METHOD_FALLBACK,
         paper_figure_label=paper_figure_label,
-        metadata={"source_image_path": source_rel, "fallback_reason": "yolov5_detected_no_panels"},
+        metadata={
+            "source_image_path": source_rel,
+            "fallback_reason": "yolov5_detected_no_panels",
+        },
     ).to_dict()
 
 
@@ -564,11 +604,17 @@ def whole_figure_panel(figure: dict[str, Any], *, workdir: Path, output_dir: Pat
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Extract panels from figure images using YOLOv5.")
+    parser = argparse.ArgumentParser(
+        description="Extract panels from figure images using YOLOv5."
+    )
     parser.add_argument("figure_paths", nargs="+", help="Path(s) to figure image(s)")
     parser.add_argument("--output", required=True, help="Output JSON path")
-    parser.add_argument("--output-dir", required=True, help="Output directory for panels")
-    parser.add_argument("--weights", default=str(DEFAULT_WEIGHTS), help="Path to YOLOv5 weights")
+    parser.add_argument(
+        "--output-dir", required=True, help="Output directory for panels"
+    )
+    parser.add_argument(
+        "--weights", default=str(DEFAULT_WEIGHTS), help="Path to YOLOv5 weights"
+    )
     parser.add_argument("--device", default="0", help="CUDA device or 'cpu'")
     parser.add_argument("--conf-thres", type=float, default=0.4)
     parser.add_argument("--iou-thres", type=float, default=0.4)
@@ -579,7 +625,9 @@ def main() -> int:
     args = parse_args()
     output_dir = Path(args.output_dir).expanduser().resolve()
 
-    figure_paths = [(Path(p).stem, Path(p).expanduser().resolve()) for p in args.figure_paths]
+    figure_paths = [
+        (Path(p).stem, Path(p).expanduser().resolve()) for p in args.figure_paths
+    ]
     batch_result = extract_panels_batch(
         [(stem, path) for stem, path in figure_paths],
         output_dir=output_dir,
@@ -600,9 +648,19 @@ def main() -> int:
 
     output = Path(args.output).expanduser().resolve()
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    output.write_text(
+        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
-    print(json.dumps({"output": str(output), "status": result["status"], "panel_count": total_panels}))
+    print(
+        json.dumps(
+            {
+                "output": str(output),
+                "status": result["status"],
+                "panel_count": total_panels,
+            }
+        )
+    )
     return 0
 
 

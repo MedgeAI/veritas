@@ -37,8 +37,16 @@ def test_run_visual_panel_extraction_writes_canonical_artifacts(tmp_path) -> Non
         force=True,
     )
 
-    visual_evidence = json.loads(resolve_artifact_path(workdir, "visual_evidence.json").read_text(encoding="utf-8"))
-    panel_evidence = json.loads(resolve_artifact_path(workdir, "panel_evidence.json").read_text(encoding="utf-8"))
+    visual_evidence = json.loads(
+        resolve_artifact_path(workdir, "visual_evidence.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    panel_evidence = json.loads(
+        resolve_artifact_path(workdir, "panel_evidence.json").read_text(
+            encoding="utf-8"
+        )
+    )
     assert steps[0].key == "visual_panel_extraction"
     assert steps[0].status == "ran"
     assert manifest["panel_extraction"]["figure_count"] == 1
@@ -101,7 +109,10 @@ def test_visual_finding_pipeline_and_bundle_include_visual_findings(tmp_path) ->
         },
     )
     write_json(
-        resolve_artifact_path(workdir, "investigation") / "round_01" / "action_01" / "visual_copy_move.json",
+        resolve_artifact_path(workdir, "investigation")
+        / "round_01"
+        / "action_01"
+        / "visual_copy_move.json",
         {
             "schema_version": "1.0",
             "status": "ran",
@@ -120,7 +131,10 @@ def test_visual_finding_pipeline_and_bundle_include_visual_findings(tmp_path) ->
             "limitations": [],
         },
     )
-    write_json(resolve_artifact_path(workdir, "agent_material_plan.json"), {"status": "ok", "selected_optional_lanes": []})
+    write_json(
+        resolve_artifact_path(workdir, "agent_material_plan.json"),
+        {"status": "ok", "selected_optional_lanes": []},
+    )
 
     steps, manifest = run_visual_finding_pipeline(workdir=workdir, force=True)
     bundle = build_static_audit_bundle(
@@ -129,19 +143,30 @@ def test_visual_finding_pipeline_and_bundle_include_visual_findings(tmp_path) ->
         source_data_dir=None,
         workdir=workdir,
         case_id="visual-case",
-        steps=[StepResult("visual_finding_pipeline", "视觉证据聚合管线", "ran", "test")] + steps,
+        steps=[StepResult("visual_finding_pipeline", "视觉证据聚合管线", "ran", "test")]
+        + steps,
         agent_manifest={"visual_forensics": manifest},
     )
 
-    relationships = json.loads(resolve_artifact_path(workdir, "image_relationships.json").read_text(encoding="utf-8"))
-    findings = json.loads(resolve_artifact_path(workdir, "visual_findings.json").read_text(encoding="utf-8"))
+    relationships = json.loads(
+        resolve_artifact_path(workdir, "image_relationships.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    findings = json.loads(
+        resolve_artifact_path(workdir, "visual_findings.json").read_text(
+            encoding="utf-8"
+        )
+    )
     assert relationships["relationship_count"] == 1
     assert findings["finding_count"] == 1
     assert findings["finding_cluster_count"] == 1
     assert findings["review_queue_count"] == 1
     assert findings["finding_clusters"][0]["cluster_id"] == "VFC-0001"
     assert findings["review_queue"][0]["task_id"] == "VRT-001"
-    visual_bundle_findings = [finding for finding in bundle.findings if finding.finding_id == "VF-0001"]
+    visual_bundle_findings = [
+        finding for finding in bundle.findings if finding.finding_id == "VF-0001"
+    ]
     assert visual_bundle_findings
     assert visual_bundle_findings[0].issue_category == "consistency"
     assert visual_bundle_findings[0].evidence_refs
@@ -155,12 +180,23 @@ def test_investigation_tool_action_runs_visual_copy_move(tmp_path) -> None:
         {
             "schema_version": "1.0",
             "panels": [
-                {"panel_id": "P1", "crop_path": "missing-a.png", "parent_figure_id": "F1"},
-                {"panel_id": "P2", "crop_path": "missing-b.png", "parent_figure_id": "F1"},
+                {
+                    "panel_id": "P1",
+                    "crop_path": "missing-a.png",
+                    "parent_figure_id": "F1",
+                },
+                {
+                    "panel_id": "P2",
+                    "crop_path": "missing-b.png",
+                    "parent_figure_id": "F1",
+                },
             ],
         },
     )
-    write_json(resolve_artifact_path(workdir, "visual_evidence.json"), {"schema_version": "1.0", "figures": []})
+    write_json(
+        resolve_artifact_path(workdir, "visual_evidence.json"),
+        {"schema_version": "1.0", "figures": []},
+    )
     action = InvestigationAction(
         round_id=1,
         action_id="IR-01-A001",
@@ -184,4 +220,8 @@ def test_investigation_tool_action_runs_visual_copy_move(tmp_path) -> None:
     assert artifacts
     output = Path(artifacts[0])
     assert output.name == "visual_copy_move.json"
-    assert json.loads(output.read_text(encoding="utf-8"))["status"] in {"skipped", "not_available", "ran"}
+    assert json.loads(output.read_text(encoding="utf-8"))["status"] in {
+        "skipped",
+        "not_available",
+        "ran",
+    }

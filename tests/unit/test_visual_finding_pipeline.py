@@ -284,7 +284,8 @@ class TestBuildVisualFindings:
         for score, expected_risk in cases:
             rel = self._make_relationship(score=score)
             findings = build_visual_findings(
-                [rel], high_score_threshold=0.0,
+                [rel],
+                high_score_threshold=0.0,
             )
             assert len(findings) == 1
             assert findings[0]["risk_level"] == expected_risk, (
@@ -322,9 +323,7 @@ class TestBuildVisualFindings:
         findings = build_visual_findings([rel])
         assert len(findings) == 1
         assert len(findings[0]["manual_review_questions"]) > 0
-        assert all(
-            isinstance(q, str) for q in findings[0]["manual_review_questions"]
-        )
+        assert all(isinstance(q, str) for q in findings[0]["manual_review_questions"])
 
     def test_language_compliance(self):
         """All text fields pass FORBIDDEN_PHRASES check."""
@@ -336,13 +335,19 @@ class TestBuildVisualFindings:
                 tgt=f"PE-{i}-02",
             )
             for i, st in enumerate(
-                ["copy_move_single", "copy_move_cross",
-                 "exact_duplicate", "dhash_similar"],
+                [
+                    "copy_move_single",
+                    "copy_move_cross",
+                    "exact_duplicate",
+                    "dhash_similar",
+                ],
             )
         ]
         findings = build_visual_findings(rels, high_score_threshold=0.0)
         for f in findings:
-            for text in [f["summary"]] + f["benign_explanations"] + f["manual_review_questions"]:
+            for text in (
+                [f["summary"]] + f["benign_explanations"] + f["manual_review_questions"]
+            ):
                 violations = check_language_compliance(text)
                 assert violations == [], (
                     f"Forbidden phrases in {f['finding_id']}: {violations}"
@@ -411,7 +416,10 @@ class TestBuildVisualFindings:
         assert findings[0]["risk_level"] == "medium"
         assert findings[0]["score"] == 0.39
         assert findings[0]["metadata"]["raw_score"] == 0.92
-        assert findings[0]["metadata"]["panel_extraction_quality"] == "whole_figure_fallback"
+        assert (
+            findings[0]["metadata"]["panel_extraction_quality"]
+            == "whole_figure_fallback"
+        )
 
     def test_graph_parent_id_relationship_is_resolved_and_not_critical(self):
         rel = self._make_relationship(

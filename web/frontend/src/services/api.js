@@ -187,15 +187,6 @@ export async function saveReviewDecision(caseId, sourceRef, payload) {
   });
 }
 
-// Tool Catalog API
-export async function fetchToolCatalog() {
-  return request('/api/tools/catalog');
-}
-
-export async function fetchToolsHealth() {
-  return request('/api/tools/health');
-}
-
 // Embeddings / Similarity API
 export async function triggerEmbeddingIndex(caseId, options = {}) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/embeddings/index`, {
@@ -206,13 +197,6 @@ export async function triggerEmbeddingIndex(caseId, options = {}) {
 
 export async function getEmbeddingStatus(caseId, options = {}) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/embeddings/status`, options);
-}
-
-export async function fetchSimilarPanels(caseId, panelId, { topK = 20, threshold = 0.85, signal } = {}) {
-  return request(
-    `/api/cases/${encodeURIComponent(caseId)}/similarity?panel_id=${encodeURIComponent(panelId)}&top_k=${topK}&threshold=${threshold}`,
-    { signal },
-  );
 }
 
 export async function fetchAllSimilarPairs(caseId, { threshold = 0.85, signal } = {}) {

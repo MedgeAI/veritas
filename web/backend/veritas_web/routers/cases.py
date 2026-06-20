@@ -7,7 +7,12 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from ..dependencies import AppDependencies, get_app_dependencies, get_auth_context, require_case_access
+from ..dependencies import (
+    AppDependencies,
+    get_app_dependencies,
+    get_auth_context,
+    require_case_access,
+)
 from ..auth import AuthContext
 from ..models import CaseCreate, CaseRecord, InputUpload, RunCreate
 
@@ -55,7 +60,9 @@ async def upload_input(
         form = await request.form()
         upload = form.get("file")
         if upload is None or not hasattr(upload, "read"):
-            raise HTTPException(status_code=400, detail="multipart upload requires a 'file' field")
+            raise HTTPException(
+                status_code=400, detail="multipart upload requires a 'file' field"
+            )
         content = await upload.read()
         filename = getattr(upload, "filename", None) or "upload"
         relative_path = form.get("relative_path")
@@ -76,11 +83,18 @@ async def upload_input(
         except Exception as exc:
             raise HTTPException(status_code=422, detail=str(exc))
         if payload.content_base64 is not None:
-            path = deps.store.write_input_base64(case_id, payload.filename, payload.content_base64)
+            path = deps.store.write_input_base64(
+                case_id, payload.filename, payload.content_base64
+            )
         elif payload.content is not None:
-            path = deps.store.write_input(case_id, payload.filename, payload.content.encode("utf-8"))
+            path = deps.store.write_input(
+                case_id, payload.filename, payload.content.encode("utf-8")
+            )
         else:
-            raise HTTPException(status_code=400, detail="input upload requires content_base64 or content")
+            raise HTTPException(
+                status_code=400,
+                detail="input upload requires content_base64 or content",
+            )
 
     updated_case = deps.store.get_case(case_id, user_id=case.owner)
 

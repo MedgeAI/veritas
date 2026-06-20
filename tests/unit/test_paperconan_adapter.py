@@ -1,4 +1,5 @@
 """Tests for paperconan adapter."""
+
 from __future__ import annotations
 
 import json
@@ -67,7 +68,10 @@ def test_paperconan_adapter_empty_source_data_dir(tmp_path: Path) -> None:
 
     # Should return "no_data" status, not raise an error
     assert result["status"] == "no_data"
-    assert "no .xlsx" in result["error"].lower() or "no supported files" in result["error"].lower()
+    assert (
+        "no .xlsx" in result["error"].lower()
+        or "no supported files" in result["error"].lower()
+    )
     assert result["findings_summary"]["total"] == 0
     assert result["artifact_path"] is not None
 
@@ -105,7 +109,7 @@ def test_paperconan_adapter_with_synthetic_data(tmp_path: Path) -> None:
 
     # Write data: Control and Duplicate_of_Control are identical (fabrication pattern)
     for i in range(2, 12):
-        ws[f"A{i}"] = f"Sample_{i-1}"
+        ws[f"A{i}"] = f"Sample_{i - 1}"
         ws[f"B{i}"] = 10.0 + i  # Control: 11, 12, 13, ...
         ws[f"C{i}"] = 15.0 + i  # Treatment: 16, 17, 18, ...
         ws[f"D{i}"] = 10.0 + i  # Duplicate of Control (identical)
@@ -124,9 +128,10 @@ def test_paperconan_adapter_with_synthetic_data(tmp_path: Path) -> None:
     # Verify findings summary
     summary = result["findings_summary"]
     assert summary["total"] > 0, "Expected at least one finding (identical columns)"
-    assert "identical_column" in summary["by_kind"] or "constant_offset" in summary["by_kind"], (
-        f"Expected identical_column or constant_offset finding, got {summary['by_kind']}"
-    )
+    assert (
+        "identical_column" in summary["by_kind"]
+        or "constant_offset" in summary["by_kind"]
+    ), f"Expected identical_column or constant_offset finding, got {summary['by_kind']}"
 
     # Verify artifact was written
     artifact_path = Path(result["artifact_path"])

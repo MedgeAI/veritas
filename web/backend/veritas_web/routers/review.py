@@ -23,7 +23,10 @@ async def list_review_items(
     if not workdir:
         raise HTTPException(
             status_code=404,
-            detail={"error": "audit_workdir_missing", "detail": "case has no completed audit workdir"},
+            detail={
+                "error": "audit_workdir_missing",
+                "detail": "case has no completed audit workdir",
+            },
         )
 
     from ..review_queue import list_review_items as _list
@@ -31,7 +34,10 @@ async def list_review_items(
     if deps._session_factory is None:
         raise HTTPException(
             status_code=503,
-            detail={"error": "database_unavailable", "detail": "database not configured for review queue"},
+            detail={
+                "error": "database_unavailable",
+                "detail": "database not configured for review queue",
+            },
         )
 
     session = deps._session_factory()
@@ -51,7 +57,9 @@ async def save_decision(
 ) -> dict[str, Any]:
     """Write or update a human review decision."""
     if deps._session_factory is None:
-        raise HTTPException(status_code=501, detail="database not configured for review decisions")
+        raise HTTPException(
+            status_code=501, detail="database not configured for review decisions"
+        )
 
     from ..review_queue import save_decision as _save
 

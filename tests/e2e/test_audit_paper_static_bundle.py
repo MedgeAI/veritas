@@ -5,7 +5,9 @@ import json
 from engine.static_audit.orchestrator import run_static_audit, resolve_artifact_path
 
 
-def test_audit_paper_writes_static_bundle_with_fake_agent(tmp_path, monkeypatch) -> None:
+def test_audit_paper_writes_static_bundle_with_fake_agent(
+    tmp_path, monkeypatch
+) -> None:
     monkeypatch.setenv("VERITAS_FAKE_OPENCODE", "1")
     paper_dir = tmp_path / "paper"
     paper_dir.mkdir()

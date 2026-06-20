@@ -3,6 +3,7 @@
 Loads auth settings from environment variables with sensible defaults
 for development.
 """
+
 from __future__ import annotations
 
 import os
@@ -26,6 +27,7 @@ class AuthConfig:
         jwt_issuer: Expected JWT issuer claim.
         sqlite_db_path: Path to SQLite database for user storage.
     """
+
     mode: AuthMode = "none"
     jwt_shared_secret: str = ""
     jwt_issuer: str = "veritas"

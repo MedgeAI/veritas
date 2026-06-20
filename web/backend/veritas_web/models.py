@@ -62,7 +62,12 @@ SAFE_NAME_RE = re.compile(r"[^A-Za-z0-9_.-]+")
 
 def utc_now() -> str:
     """Return the current UTC time as an ISO-8601 string with ``Z`` suffix."""
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return (
+        datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
 
 
 def normalize_case_status(status: str) -> str:
@@ -106,7 +111,13 @@ class CaseRecord:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "CaseRecord":
-        return cls(**{field_name: data[field_name] for field_name in cls.__dataclass_fields__ if field_name in data})
+        return cls(
+            **{
+                field_name: data[field_name]
+                for field_name in cls.__dataclass_fields__
+                if field_name in data
+            }
+        )
 
     @classmethod
     def from_model(cls, model: CaseModel) -> "CaseRecord":  # type: ignore[name-defined]  # forward ref
@@ -143,7 +154,13 @@ class AuditRunRecord:
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> "AuditRunRecord":
-        return cls(**{field_name: data[field_name] for field_name in cls.__dataclass_fields__ if field_name in data})
+        return cls(
+            **{
+                field_name: data[field_name]
+                for field_name in cls.__dataclass_fields__
+                if field_name in data
+            }
+        )
 
     @classmethod
     def from_model(cls, model: RunModel) -> "AuditRunRecord":  # type: ignore[name-defined]
@@ -207,10 +224,18 @@ class CaseModel(Base):
     input_count = Column(Integer, default=0)
 
     runs = relationship("RunModel", back_populates="case", lazy="selectin")
-    review_decisions = relationship("ReviewDecisionModel", back_populates="case", lazy="selectin")
-    investigation_records = relationship("InvestigationRecordModel", back_populates="case", lazy="selectin")
-    image_embeddings = relationship("ImageEmbeddingModel", back_populates="case", lazy="selectin")
-    embedding_index_jobs = relationship("EmbeddingIndexJobModel", back_populates="case", lazy="selectin")
+    review_decisions = relationship(
+        "ReviewDecisionModel", back_populates="case", lazy="selectin"
+    )
+    investigation_records = relationship(
+        "InvestigationRecordModel", back_populates="case", lazy="selectin"
+    )
+    image_embeddings = relationship(
+        "ImageEmbeddingModel", back_populates="case", lazy="selectin"
+    )
+    embedding_index_jobs = relationship(
+        "EmbeddingIndexJobModel", back_populates="case", lazy="selectin"
+    )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -231,7 +256,9 @@ class RunModel(Base):
     __tablename__ = "runs"
 
     run_id = Column(String(128), primary_key=True)
-    case_id = Column(String(128), ForeignKey("cases.case_id"), nullable=False, index=True)
+    case_id = Column(
+        String(128), ForeignKey("cases.case_id"), nullable=False, index=True
+    )
     status = Column(String(32), default="queued")
     agent_mode = Column(String(32), default="review")
     started_at = Column(String(32), nullable=True)
@@ -287,7 +314,9 @@ class InvestigationRecordModel(Base):
     __tablename__ = "investigation_records"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    case_id = Column(String(128), ForeignKey("cases.case_id"), nullable=False, index=True)
+    case_id = Column(
+        String(128), ForeignKey("cases.case_id"), nullable=False, index=True
+    )
     round_id = Column(Integer, nullable=True)
     action_id = Column(String(128), nullable=True)
     tool_id = Column(String(128), nullable=False)
@@ -330,7 +359,9 @@ class ReviewDecisionModel(Base):
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    case_id = Column(String(128), ForeignKey("cases.case_id"), nullable=False, index=True)
+    case_id = Column(
+        String(128), ForeignKey("cases.case_id"), nullable=False, index=True
+    )
     source_ref = Column(String(256), nullable=False)
     status = Column(String(32), default="open")
     note = Column(Text, default="")
@@ -354,7 +385,12 @@ class ImageEmbeddingModel(Base):
     __table_args__ = (
         Index("idx_image_embeddings_case", "case_id"),
         Index("idx_image_embeddings_level", "case_id", "embedding_level"),
-        UniqueConstraint("case_id", "panel_id", "embedding_level", name="uq_image_embedding_case_panel_level"),
+        UniqueConstraint(
+            "case_id",
+            "panel_id",
+            "embedding_level",
+            name="uq_image_embedding_case_panel_level",
+        ),
     )
 
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -362,8 +398,12 @@ class ImageEmbeddingModel(Base):
     panel_id = Column(String(128), nullable=False)
     figure_id = Column(String(128), nullable=True)
     image_path = Column(Text, nullable=False)
-    embedding = Column(JSON, nullable=True)  # 512-dim float list; pgvector Vector in production
-    embedding_level = Column(String(16), default="panel", nullable=False)  # "panel" or "figure"
+    embedding = Column(
+        JSON, nullable=True
+    )  # 512-dim float list; pgvector Vector in production
+    embedding_level = Column(
+        String(16), default="panel", nullable=False
+    )  # "panel" or "figure"
     embedding_model = Column(String(64), default="sscd_disc_mixup", nullable=False)
     embedding_dim = Column(Integer, default=512, nullable=False)
     indexed_at = Column(String(32), default=utc_now)
@@ -456,6 +496,7 @@ class UserModel(Base):
 
 # --- Cases ---
 
+
 class CaseCreate(BaseModel):
     paper_title: str = "Unknown until parsed"
     case_id: str | None = None
@@ -487,6 +528,7 @@ class InputUpload(BaseModel):
 
 # --- Runs ---
 
+
 class RunCreate(BaseModel):
     agent_mode: str = "review"
 
@@ -504,6 +546,7 @@ class RunRead(BaseModel):
 
 
 # --- Investigation Records ---
+
 
 class InvestigationRecordRead(BaseModel):
     round_id: int | None = None
@@ -530,6 +573,7 @@ class InvestigationRunRequest(BaseModel):
 
 
 # --- Review ---
+
 
 class ReviewDecisionCreate(BaseModel):
     status: Literal["open", "resolved", "dismissed", "needs_author_response"] = "open"
@@ -558,6 +602,7 @@ class ReviewItemRead(BaseModel):
 
 # --- Embeddings ---
 
+
 class EmbeddingStatusRead(BaseModel):
     case_id: str
     indexed_count: int = 0
@@ -580,6 +625,7 @@ class SimilarityResult(BaseModel):
 
 # --- Tool Catalog ---
 
+
 class ToolCatalogRead(BaseModel):
     tool_id: str
     title: str = ""
@@ -594,6 +640,7 @@ class ToolCatalogRead(BaseModel):
 
 
 # --- Artifact Ref ---
+
 
 class ArtifactRefRead(BaseModel):
     artifact_id: str

@@ -6,6 +6,7 @@ unified interface that returns ``AgentRunResult`` from ``agent_models``.
 
 See PRD: prd/opencode-agent-function-runtime.md
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -294,10 +295,14 @@ class AgentStepRunner:
         safe_args: list[str] = []
         for index, arg in enumerate(command):
             if index == 2 and len(command) > 2 and command[1] == "run":
-                digest = hashlib.sha256(arg.encode("utf-8", errors="replace")).hexdigest()[:12]
+                digest = hashlib.sha256(
+                    arg.encode("utf-8", errors="replace")
+                ).hexdigest()[:12]
                 safe_args.append(f"<prompt chars={len(arg)} sha256={digest}>")
             elif len(arg) > 500:
-                digest = hashlib.sha256(arg.encode("utf-8", errors="replace")).hexdigest()[:12]
+                digest = hashlib.sha256(
+                    arg.encode("utf-8", errors="replace")
+                ).hexdigest()[:12]
                 safe_args.append(f"<arg chars={len(arg)} sha256={digest}>")
             else:
                 safe_args.append(arg)

@@ -6,7 +6,10 @@ from engine.static_audit.tools.paperfraud_rules import (
     paperfraud_findings_from_matches,
     run_paperfraud_rule_match,
 )
-from engine.static_audit.orchestrator import collect_claims_and_findings, resolve_artifact_path
+from engine.static_audit.orchestrator import (
+    collect_claims_and_findings,
+    resolve_artifact_path,
+)
 from engine.tools.registry import (
     STATIC_AUDIT_V1_TOOL_IDS,
     tool_catalog_for_agent,
@@ -48,7 +51,9 @@ def test_paperfraud_matches_convert_to_canonical_findings(tmp_path) -> None:
         "All patients gave informed consent and ethics approval was obtained.",
         encoding="utf-8",
     )
-    artifact = run_paperfraud_rule_match(full_md, resolve_artifact_path(tmp_path, "paperfraud_rule_matches.json"))
+    artifact = run_paperfraud_rule_match(
+        full_md, resolve_artifact_path(tmp_path, "paperfraud_rule_matches.json")
+    )
 
     findings = paperfraud_findings_from_matches(artifact)
 
@@ -76,7 +81,9 @@ def test_paperfraud_rule_matches_merge_into_canonical_findings(tmp_path) -> None
         "All patients gave informed consent.",
         encoding="utf-8",
     )
-    run_paperfraud_rule_match(full_md, resolve_artifact_path(tmp_path, "paperfraud_rule_matches.json"))
+    run_paperfraud_rule_match(
+        full_md, resolve_artifact_path(tmp_path, "paperfraud_rule_matches.json")
+    )
 
     _claims, _mappings, findings = collect_claims_and_findings(tmp_path, [])
 

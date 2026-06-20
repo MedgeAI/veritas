@@ -7,7 +7,6 @@ import * as cbirApi from '../services/cbir.js';
 // Mock the CBIR API module
 vi.mock('../services/cbir.js', () => ({
   searchSimilarPanels: vi.fn(),
-  searchByLabel: vi.fn(),
   searchByImageUpload: vi.fn(),
 }));
 

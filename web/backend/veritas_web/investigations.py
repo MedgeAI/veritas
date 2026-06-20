@@ -47,7 +47,9 @@ class WebInvestigationService:
                         "detail": f"artifact file missing: {artifact}",
                     }
                     record.setdefault("artifact_errors", []).append(error)
-                    artifact_errors.append({"action_id": record.get("action_id"), **error})
+                    artifact_errors.append(
+                        {"action_id": record.get("action_id"), **error}
+                    )
                     continue
                 try:
                     payload = json.loads(artifact_path.read_text(encoding="utf-8"))
@@ -58,7 +60,9 @@ class WebInvestigationService:
                         "detail": str(exc),
                     }
                     record.setdefault("artifact_errors", []).append(error)
-                    artifact_errors.append({"action_id": record.get("action_id"), **error})
+                    artifact_errors.append(
+                        {"action_id": record.get("action_id"), **error}
+                    )
                     continue
                 except json.JSONDecodeError as exc:
                     error = {
@@ -67,7 +71,9 @@ class WebInvestigationService:
                         "detail": str(exc),
                     }
                     record.setdefault("artifact_errors", []).append(error)
-                    artifact_errors.append({"action_id": record.get("action_id"), **error})
+                    artifact_errors.append(
+                        {"action_id": record.get("action_id"), **error}
+                    )
                     continue
                 results.append(
                     {
@@ -76,7 +82,11 @@ class WebInvestigationService:
                         "result": payload,
                     }
                 )
-        return {"records": records, "results": results, "artifact_errors": artifact_errors}
+        return {
+            "records": records,
+            "results": results,
+            "artifact_errors": artifact_errors,
+        }
 
     def _read_records(self, case_id: str, workdir: Path) -> list[dict[str, Any]]:
         """Read investigation records from DB, merged with JSONL."""
@@ -114,11 +124,16 @@ class WebInvestigationService:
                 merged.append(r)
         return merged
 
-    def run_investigation(self, case_id: str, payload: dict[str, Any]) -> dict[str, Any]:
+    def run_investigation(
+        self, case_id: str, payload: dict[str, Any]
+    ) -> dict[str, Any]:
         workdir = self._require_workdir(case_id)
         tool_id = str(payload.get("tool_id") or TOOL_ID_SILA_DENSE)
         self._validate_tool(tool_id)
-        params = coerce_tool_params(tool_id, payload.get("params") if isinstance(payload.get("params"), dict) else {})
+        params = coerce_tool_params(
+            tool_id,
+            payload.get("params") if isinstance(payload.get("params"), dict) else {},
+        )
         selected_panel_ids = self._selected_panel_ids(payload)
         max_panels = int(params.get("max_panels", 20))
         if len(selected_panel_ids) > max_panels:
@@ -139,7 +154,9 @@ class WebInvestigationService:
             min_score=float(params["min_score"]),
             max_relationships=int(params["max_relationships"]),
         )
-        metadata = result.get("metadata") if isinstance(result.get("metadata"), dict) else {}
+        metadata = (
+            result.get("metadata") if isinstance(result.get("metadata"), dict) else {}
+        )
         result["metadata"] = {
             **metadata,
             "trigger": "web_manual",
@@ -148,7 +165,9 @@ class WebInvestigationService:
             "max_panels": max_panels,
         }
         output_path = action_dir / "copy_move_dense.json"
-        output_path.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+        output_path.write_text(
+            json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
 
         relative_output = str(output_path.relative_to(workdir))
         record = InvestigationRecord(
@@ -157,7 +176,9 @@ class WebInvestigationService:
             tool_id=tool_id,
             status=str(result.get("status") or "failed"),
             validation_status="validated",
-            hypothesis=str(payload.get("hypothesis") or "Web-selected SILA dense copy-move review.")[:1000],
+            hypothesis=str(
+                payload.get("hypothesis") or "Web-selected SILA dense copy-move review."
+            )[:1000],
             expected_evidence_type="image_similarity",
             params=params,
             depends_on_artifacts=["visual/panel_evidence.json", "visual/evidence.json"],
@@ -190,29 +211,38 @@ class WebInvestigationService:
         if not getattr(self.store, "_session_factory", None):
             return
         from .models import InvestigationRecordModel
+
         session = self.store._session()
         try:
             d = record.to_dict()
-            session.add(InvestigationRecordModel(
-                case_id=case_id,
-                round_id=d.get("round_id"),
-                action_id=d.get("action_id"),
-                tool_id=d["tool_id"],
-                status=d.get("status"),
-                validation_status=d.get("validation_status", "not_validated"),
-                hypothesis=d.get("hypothesis", ""),
-                expected_evidence_type=d.get("expected_evidence_type", ""),
-                params=d.get("params", {}),
-                depends_on_artifacts=d.get("depends_on_artifacts", []),
-                output_artifacts=d.get("output_artifacts", []),
-                detail=d.get("detail", ""),
-                metadata_=d.get("metadata", {}),
-            ))
+            session.add(
+                InvestigationRecordModel(
+                    case_id=case_id,
+                    round_id=d.get("round_id"),
+                    action_id=d.get("action_id"),
+                    tool_id=d["tool_id"],
+                    status=d.get("status"),
+                    validation_status=d.get("validation_status", "not_validated"),
+                    hypothesis=d.get("hypothesis", ""),
+                    expected_evidence_type=d.get("expected_evidence_type", ""),
+                    params=d.get("params", {}),
+                    depends_on_artifacts=d.get("depends_on_artifacts", []),
+                    output_artifacts=d.get("output_artifacts", []),
+                    detail=d.get("detail", ""),
+                    metadata_=d.get("metadata", {}),
+                )
+            )
             session.commit()
         except Exception as exc:
             session.rollback()
-            logger.exception("failed to persist investigation record for case %s action %s", case_id, record.action_id)
-            raise RuntimeError(f"failed to persist investigation record: {exc}") from exc
+            logger.exception(
+                "failed to persist investigation record for case %s action %s",
+                case_id,
+                record.action_id,
+            )
+            raise RuntimeError(
+                f"failed to persist investigation record: {exc}"
+            ) from exc
         finally:
             session.close()
 
@@ -228,7 +258,9 @@ class WebInvestigationService:
         if not tool or not tool.agent_selectable or not tool.deterministic:
             raise ValueError(f"unsupported investigation tool_id: {tool_id}")
         if tool_id != TOOL_ID_SILA_DENSE:
-            raise ValueError(f"web visual investigations currently support only {TOOL_ID_SILA_DENSE}")
+            raise ValueError(
+                f"web visual investigations currently support only {TOOL_ID_SILA_DENSE}"
+            )
 
     @staticmethod
     def _selected_panel_ids(payload: dict[str, Any]) -> list[str]:
@@ -268,7 +300,11 @@ class WebInvestigationService:
     @staticmethod
     def _next_round_id(workdir: Path) -> int:
         records = read_investigation_records(workdir)
-        round_ids = [int(record.get("round_id") or 0) for record in records if isinstance(record, dict)]
+        round_ids = [
+            int(record.get("round_id") or 0)
+            for record in records
+            if isinstance(record, dict)
+        ]
         return max(round_ids, default=0) + 1
 
     @staticmethod
@@ -303,7 +339,9 @@ class WebInvestigationService:
         return candidate if candidate.exists() and candidate.is_file() else None
 
 
-def _artifact_path_with_legacy_fallback(workdir: Path, artifact_name: str) -> Path | None:
+def _artifact_path_with_legacy_fallback(
+    workdir: Path, artifact_name: str
+) -> Path | None:
     mapped = resolve_artifact_path(workdir, artifact_name)
     if mapped.exists():
         return mapped

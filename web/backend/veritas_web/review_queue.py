@@ -132,16 +132,18 @@ def _from_visual_findings(workdir: Path) -> list[dict[str, Any]]:
         finding_id = finding.get("finding_id") or finding.get("id") or "unknown"
         risk = finding.get("risk_level", "medium")
         category = finding.get("issue_category", "consistency")
-        items.append({
-            "source_ref": f"visual_findings:{finding_id}",
-            "title": finding.get("title", f"Visual finding {finding_id}"),
-            "risk_level": risk,
-            "issue_category": category,
-            "source": "visual_findings",
-            "evidence_refs": finding.get("evidence_refs", []),
-            "recommended_action": finding.get("recommended_action", ""),
-            "benign_explanation": finding.get("benign_explanation", ""),
-        })
+        items.append(
+            {
+                "source_ref": f"visual_findings:{finding_id}",
+                "title": finding.get("title", f"Visual finding {finding_id}"),
+                "risk_level": risk,
+                "issue_category": category,
+                "source": "visual_findings",
+                "evidence_refs": finding.get("evidence_refs", []),
+                "recommended_action": finding.get("recommended_action", ""),
+                "benign_explanation": finding.get("benign_explanation", ""),
+            }
+        )
     return items
 
 
@@ -159,16 +161,18 @@ def _from_pair_forensics(workdir: Path) -> list[dict[str, Any]]:
         if not isinstance(task, dict):
             continue
         task_id = task.get("task_id") or task.get("id") or "unknown"
-        items.append({
-            "source_ref": f"pair_forensics:{task_id}",
-            "title": task.get("title", f"Pair forensics review: {task_id}"),
-            "risk_level": task.get("risk_level", "medium"),
-            "issue_category": task.get("issue_category", "consistency"),
-            "source": "pair_forensics",
-            "evidence_refs": task.get("evidence_refs", []),
-            "recommended_action": task.get("recommended_action", ""),
-            "benign_explanation": task.get("benign_explanation", ""),
-        })
+        items.append(
+            {
+                "source_ref": f"pair_forensics:{task_id}",
+                "title": task.get("title", f"Pair forensics review: {task_id}"),
+                "risk_level": task.get("risk_level", "medium"),
+                "issue_category": task.get("issue_category", "consistency"),
+                "source": "pair_forensics",
+                "evidence_refs": task.get("evidence_refs", []),
+                "recommended_action": task.get("recommended_action", ""),
+                "benign_explanation": task.get("benign_explanation", ""),
+            }
+        )
     return items
 
 
@@ -186,14 +190,16 @@ def _from_agent_review(workdir: Path) -> list[dict[str, Any]]:
         if not isinstance(task, dict):
             continue
         task_id = task.get("task_id") or task.get("id") or "unknown"
-        items.append({
-            "source_ref": f"agent_review:{task_id}",
-            "title": task.get("title", f"Agent review task: {task_id}"),
-            "risk_level": task.get("risk_level", "medium"),
-            "issue_category": task.get("issue_category", "matching"),
-            "source": "agent_review",
-            "evidence_refs": task.get("evidence_refs", []),
-            "recommended_action": task.get("recommended_action", ""),
-            "benign_explanation": task.get("benign_explanation", ""),
-        })
+        items.append(
+            {
+                "source_ref": f"agent_review:{task_id}",
+                "title": task.get("title", f"Agent review task: {task_id}"),
+                "risk_level": task.get("risk_level", "medium"),
+                "issue_category": task.get("issue_category", "matching"),
+                "source": "agent_review",
+                "evidence_refs": task.get("evidence_refs", []),
+                "recommended_action": task.get("recommended_action", ""),
+                "benign_explanation": task.get("benign_explanation", ""),
+            }
+        )
     return items

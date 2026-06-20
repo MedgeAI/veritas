@@ -37,7 +37,11 @@ class TestOverlapReuseRegistry:
         assert tool.output_artifacts == ("visual/overlap_reuse.json",)
 
     def test_tool_not_in_mandatory_baseline(self):
-        from engine.tools.registry import PAPER_STATIC_AUDIT_TOOL_IDS, STATIC_AUDIT_V1_TOOL_IDS
+        from engine.tools.registry import (
+            PAPER_STATIC_AUDIT_TOOL_IDS,
+            STATIC_AUDIT_V1_TOOL_IDS,
+        )
+
         assert TOOL_ID_OVERLAP_REUSE not in PAPER_STATIC_AUDIT_TOOL_IDS
         assert TOOL_ID_OVERLAP_REUSE not in STATIC_AUDIT_V1_TOOL_IDS
 
@@ -51,12 +55,19 @@ class TestHelpers:
     def test_is_valid_panel_skips_whole_figure_fallback(self):
         assert _is_valid_panel({"panel_id": "p1"}) is True
         assert _is_valid_panel({"panel_id": "p1", "metadata": {}}) is True
-        assert _is_valid_panel(
-            {"panel_id": "p1", "metadata": {"extraction_method": "whole_figure_fallback"}}
-        ) is False
+        assert (
+            _is_valid_panel(
+                {
+                    "panel_id": "p1",
+                    "metadata": {"extraction_method": "whole_figure_fallback"},
+                }
+            )
+            is False
+        )
 
     def test_dhash_image_deterministic(self):
         from PIL import Image
+
         img = Image.new("RGB", (64, 64), (100, 150, 200))
         h1 = _dhash_image(img)
         h2 = _dhash_image(img)
@@ -93,9 +104,24 @@ class TestHelpers:
             assert len(tiles) == 0
 
     def test_merge_to_panel_pairs(self):
-        tile_a1 = {"tile_id": "a_t1", "panel_id": "a", "dhash": 100, "bbox": [0, 0, 64, 64]}
-        tile_a2 = {"tile_id": "a_t2", "panel_id": "a", "dhash": 200, "bbox": [64, 0, 128, 64]}
-        tile_b1 = {"tile_id": "b_t1", "panel_id": "b", "dhash": 101, "bbox": [0, 0, 64, 64]}
+        tile_a1 = {
+            "tile_id": "a_t1",
+            "panel_id": "a",
+            "dhash": 100,
+            "bbox": [0, 0, 64, 64],
+        }
+        tile_a2 = {
+            "tile_id": "a_t2",
+            "panel_id": "a",
+            "dhash": 200,
+            "bbox": [64, 0, 128, 64],
+        }
+        tile_b1 = {
+            "tile_id": "b_t1",
+            "panel_id": "b",
+            "dhash": 101,
+            "bbox": [0, 0, 64, 64],
+        }
         cands = [
             {"tile_a": tile_a1, "tile_b": tile_b1, "distance": 2},
             {"tile_a": tile_a2, "tile_b": tile_b1, "distance": 5},
@@ -118,7 +144,9 @@ class TestOverlapPolygon:
         assert _polygon_area(square) == pytest.approx(100.0)
 
     def test_overlap_identical_panels(self):
-        result = _compute_overlap_polygon(100, 100, 100, 100, [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        result = _compute_overlap_polygon(
+            100, 100, 100, 100, [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+        )
         assert result is not None
         src_ratio, tgt_ratio = result
         assert src_ratio == pytest.approx(1.0, abs=0.01)
@@ -155,7 +183,9 @@ class TestDetectOverlapReuse:
             {"panel_id": "panel_a", "crop_path": "images/panel_a.png"},
             {"panel_id": "panel_b", "crop_path": "images/panel_b.png"},
         ]
-        result = detect_overlap_reuse(panels, [], workdir=fixture, tile_size=64, tile_stride=32, min_inliers=4)
+        result = detect_overlap_reuse(
+            panels, [], workdir=fixture, tile_size=64, tile_stride=32, min_inliers=4
+        )
         assert result["status"] == "ran"
         assert result["panel_count"] == 2
         assert result["tile_count"] > 0
@@ -168,9 +198,13 @@ class TestDetectOverlapReuse:
             {"panel_id": "panel_a", "crop_path": "images/panel_a.png"},
             {"panel_id": "panel_b", "crop_path": "images/panel_b.png"},
         ]
-        result = detect_overlap_reuse(panels, [], workdir=fixture, tile_size=64, tile_stride=32, min_inliers=4)
+        result = detect_overlap_reuse(
+            panels, [], workdir=fixture, tile_size=64, tile_stride=32, min_inliers=4
+        )
         for rel in result.get("relationships", []):
-            assert rel["score"] < 0.4, "Negative fixture should not produce high-score relationships"
+            assert rel["score"] < 0.4, (
+                "Negative fixture should not produce high-score relationships"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -181,7 +215,9 @@ class TestDetectOverlapReuse:
 class TestPipelineIntegration:
     def test_overlap_relationship_loaded_by_finding_pipeline(self):
         """build_relationships should consume overlap_reuse output."""
-        from engine.static_audit.tools.visual_finding_pipeline import build_relationships
+        from engine.static_audit.tools.visual_finding_pipeline import (
+            build_relationships,
+        )
 
         overlap_result = {
             "relationships": [
@@ -197,14 +233,18 @@ class TestPipelineIntegration:
             ]
         }
         rels = build_relationships(overlap_reuse_result=overlap_result)
-        overlap_rels = [r for r in rels if r["source_type"] == "overlap_reuse_cross_panel"]
+        overlap_rels = [
+            r for r in rels if r["source_type"] == "overlap_reuse_cross_panel"
+        ]
         assert len(overlap_rels) == 1
         assert overlap_rels[0]["score"] == 0.6
         assert overlap_rels[0]["inlier_count"] == 50
 
     def test_overlap_dedup_with_copy_move(self):
         """If copy_move and overlap_reuse both find the same pair, copy_move wins."""
-        from engine.static_audit.tools.visual_finding_pipeline import build_relationships
+        from engine.static_audit.tools.visual_finding_pipeline import (
+            build_relationships,
+        )
 
         cm_result = {
             "relationships": [
@@ -229,14 +269,23 @@ class TestPipelineIntegration:
                 }
             ]
         }
-        rels = build_relationships(copy_move_result=cm_result, overlap_reuse_result=overlap_result)
-        pair_rels = [r for r in rels if frozenset({r["source_panel_id"], r["target_panel_id"]}) == frozenset({"p1", "p2"})]
+        rels = build_relationships(
+            copy_move_result=cm_result, overlap_reuse_result=overlap_result
+        )
+        pair_rels = [
+            r
+            for r in rels
+            if frozenset({r["source_panel_id"], r["target_panel_id"]})
+            == frozenset({"p1", "p2"})
+        ]
         assert len(pair_rels) == 1
         assert pair_rels[0]["source_type"] == "copy_move_cross"
 
     def test_overlap_findings_risk_capped_at_high(self):
         """Overlap findings should never have risk_level=critical."""
-        from engine.static_audit.tools.visual_finding_pipeline import build_visual_findings
+        from engine.static_audit.tools.visual_finding_pipeline import (
+            build_visual_findings,
+        )
 
         rels = [
             {

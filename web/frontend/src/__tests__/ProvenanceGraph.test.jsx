@@ -185,7 +185,7 @@ describe('ProvenanceGraph', () => {
 
   it('filters nodes by depth when depth is reduced', () => {
     const graph = makeGraph();
-    const { container } = render(<ProvenanceGraph graph={graph} caseId="test-case" />);
+    render(<ProvenanceGraph graph={graph} caseId="test-case" />);
 
     // All 4 nodes visible initially
     expect(screen.getByTestId('node-fig1')).toBeInTheDocument();

@@ -26,15 +26,23 @@ class AuditRunner:
         self.store = store
         self.audit_func = audit_func
         self.output_root = str(output_root)
-        self._executor = ThreadPoolExecutor(max_workers=max_workers, thread_name_prefix="audit")
+        self._executor = ThreadPoolExecutor(
+            max_workers=max_workers, thread_name_prefix="audit"
+        )
 
-    def start(self, case_id: str, params: dict[str, Any] | None = None) -> AuditRunRecord:
+    def start(
+        self, case_id: str, params: dict[str, Any] | None = None
+    ) -> AuditRunRecord:
         params = params or {}
-        run = self.store.create_run(case_id, agent_mode=str(params.get("agent_mode", "review")))
+        run = self.store.create_run(
+            case_id, agent_mode=str(params.get("agent_mode", "review"))
+        )
         self._executor.submit(self.run_sync, case_id, run.run_id, params)
         return run
 
-    def run_sync(self, case_id: str, run_id: str, params: dict[str, Any] | None = None) -> AuditRunRecord:
+    def run_sync(
+        self, case_id: str, run_id: str, params: dict[str, Any] | None = None
+    ) -> AuditRunRecord:
         params = params or {}
         run = self.store.get_run(case_id, run_id)
         run.status = "running"
@@ -60,7 +68,10 @@ class AuditRunner:
                 no_env_file=bool(params.get("no_env_file", False)),
                 agent_mode=str(params.get("agent_mode", "review")),
                 agent_model=str(params.get("agent_model", "dashscope/qwen3.7-plus")),
-                opencode_bin=str(params.get("opencode_bin") or os.environ.get("OPENCODE_BIN", "opencode")),
+                opencode_bin=str(
+                    params.get("opencode_bin")
+                    or os.environ.get("OPENCODE_BIN", "opencode")
+                ),
                 agent_timeout_seconds=int(params.get("agent_timeout_seconds", 300)),
                 agent_max_retries=int(params.get("agent_max_retries", 1)),
                 progress=progress,
@@ -69,7 +80,9 @@ class AuditRunner:
             run.workdir = summary.get("workdir")
             run.final_html_report_url = f"/api/cases/{case_id}/report/html"
             run.completed_at = utc_now()
-            run.status = "completed" if int(summary.get("exit_code", 1)) == 0 else "failed"
+            run.status = (
+                "completed" if int(summary.get("exit_code", 1)) == 0 else "failed"
+            )
             # Safety net: if reports were generated despite exit_code!=0,
             # treat as completed (partial failure) rather than failed.
             if run.status == "failed":
@@ -77,6 +90,7 @@ class AuditRunner:
                 html_path = summary.get("final_html_report", "")
                 if report_path and html_path:
                     from pathlib import Path
+
                     if Path(report_path).exists() and Path(html_path).exists():
                         run.status = "completed"
             if run.status == "failed":
@@ -135,7 +149,9 @@ class AuditRunner:
                 detail = "Recovered a queued/running Web run after backend startup; thread runner cannot survive backend exit."
             else:
                 # Check heartbeat freshness
-                last_event_dt = datetime.fromisoformat(run.last_event_at.replace("Z", "+00:00"))
+                last_event_dt = datetime.fromisoformat(
+                    run.last_event_at.replace("Z", "+00:00")
+                )
                 elapsed_seconds = (now_dt - last_event_dt).total_seconds()
                 if elapsed_seconds < STALE_RUN_THRESHOLD_SECONDS:
                     # Still fresh — might be running in another process, skip
@@ -152,11 +168,17 @@ class AuditRunner:
             run.error = error
             run.summary = {
                 "exit_code": 1,
-                "failed_steps": ["backend_restart"] if reason == "backend_restart" else ["stale_detection"],
+                "failed_steps": ["backend_restart"]
+                if reason == "backend_restart"
+                else ["stale_detection"],
                 "interrupted": True,
-                "detail": "Web backend exited before this run wrote a terminal state." if reason == "backend_restart" else detail,
+                "detail": "Web backend exited before this run wrote a terminal state."
+                if reason == "backend_restart"
+                else detail,
             }
-            default_workdir = Path(self.output_root) / run.case_id / "research-integrity-audit"
+            default_workdir = (
+                Path(self.output_root) / run.case_id / "research-integrity-audit"
+            )
             if not run.workdir and default_workdir.exists():
                 run.workdir = str(default_workdir)
             self.store.save_run(run)

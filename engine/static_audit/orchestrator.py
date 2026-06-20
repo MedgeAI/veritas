@@ -102,9 +102,13 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Run Veritas paper audit from a local paper directory."
     )
-    parser.add_argument("paper_dir", help="Directory containing paper PDF and optional Source Data.")
+    parser.add_argument(
+        "paper_dir", help="Directory containing paper PDF and optional Source Data."
+    )
     parser.add_argument("--case-id", help="Case id used under outputs/<case-id>.")
-    parser.add_argument("--output-root", default="outputs", help="Output root directory.")
+    parser.add_argument(
+        "--output-root", default="outputs", help="Output root directory."
+    )
     parser.add_argument(
         "--fresh",
         action="store_true",
@@ -152,7 +156,7 @@ def parse_args() -> argparse.Namespace:
         "--skip-unavailable-tools",
         action="store_true",
         help="Allow pipeline to continue when tools fail due to missing environment prerequisites (GPU, Docker). "
-             "Without this flag, environment failures abort the pipeline.",
+        "Without this flag, environment failures abort the pipeline.",
     )
     return parser.parse_args()
 
@@ -167,7 +171,9 @@ def safe_remove_workdir(workdir: Path, output_root: Path) -> None:
     if resolved_workdir.name != "research-integrity-audit":
         raise ValueError(f"Refusing to remove unexpected workdir: {resolved_workdir}")
     if not resolved_workdir.is_relative_to(resolved_output_root):
-        raise ValueError(f"Refusing to remove path outside output root: {resolved_workdir}")
+        raise ValueError(
+            f"Refusing to remove path outside output root: {resolved_workdir}"
+        )
     shutil.rmtree(resolved_workdir)
 
 
@@ -213,7 +219,11 @@ def source_finding_params_from_lane(lane: dict[str, Any] | None) -> dict[str, An
 
 def selected_xlsx_source_lane(lanes: list[dict[str, Any]]) -> dict[str, Any] | None:
     for lane in lanes:
-        if lane.get("lane_id") == "source_data_xlsx" and lane.get("status") == "selected" and lane.get("root"):
+        if (
+            lane.get("lane_id") == "source_data_xlsx"
+            and lane.get("status") == "selected"
+            and lane.get("root")
+        ):
             return lane
     return None
 
@@ -233,7 +243,9 @@ def material_plan_from_inventory(
         "status": status,
         "detail": detail,
         "selected_optional_lanes": lanes,
-        "missing_materials": [] if any(item.get("status") == "selected" for item in lanes) else ["source_data_xlsx"],
+        "missing_materials": []
+        if any(item.get("status") == "selected" for item in lanes)
+        else ["source_data_xlsx"],
         "unsupported_materials": [
             {
                 "path": item.get("relative_path") or item.get("path"),
@@ -255,11 +267,17 @@ def optional_lanes_from_material_plan(
     inventory: dict[str, Any],
 ) -> list[dict[str, Any]]:
     if material_plan and isinstance(material_plan.get("selected_optional_lanes"), list):
-        return [item for item in material_plan["selected_optional_lanes"] if isinstance(item, dict)]
+        return [
+            item
+            for item in material_plan["selected_optional_lanes"]
+            if isinstance(item, dict)
+        ]
     return fallback_optional_lanes(inventory)
 
 
-def resolve_selected_source_root(lane: dict[str, Any] | None, paper_dir: Path) -> Path | None:
+def resolve_selected_source_root(
+    lane: dict[str, Any] | None, paper_dir: Path
+) -> Path | None:
     if not lane or not lane.get("root"):
         return None
     root = Path(str(lane["root"])).expanduser()
@@ -320,13 +338,13 @@ _LAZY_REEXPORTS: dict[str, str] = {
 def __getattr__(name: str) -> Any:
     if name in _LAZY_REEXPORTS:
         import importlib
+
         module = importlib.import_module(_LAZY_REEXPORTS[name])
         value = getattr(module, name)
         # Cache in module globals so subsequent lookups are fast
         globals()[name] = value
         return value
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
 
 
 def _run_static_audit_from_args(
@@ -355,7 +373,11 @@ def _run_static_audit_from_args(
         raise NotADirectoryError(paper_dir)
 
     case_id = args.case_id or paper_dir.name
-    output_root = (PROJECT_ROOT / args.output_root).resolve() if not Path(args.output_root).is_absolute() else Path(args.output_root)
+    output_root = (
+        (PROJECT_ROOT / args.output_root).resolve()
+        if not Path(args.output_root).is_absolute()
+        else Path(args.output_root)
+    )
     workdir = output_root / case_id / "research-integrity-audit"
     if args.fresh:
         safe_remove_workdir(workdir, output_root)
@@ -390,13 +412,27 @@ def _run_static_audit_from_args(
         material_inventory = read_json(material_inventory_path) or {}
         record_step(
             steps,
-            StepResult("material_inventory", "材料清单扫描", "reused", "Existing material_inventory.json found."),
+            StepResult(
+                "material_inventory",
+                "材料清单扫描",
+                "reused",
+                "Existing material_inventory.json found.",
+            ),
             progress,
         )
     else:
         material_inventory = build_material_inventory(paper_dir, paper_pdf)
         write_material_inventory(material_inventory_path, material_inventory)
-        record_step(steps, StepResult("material_inventory", "材料清单扫描", "ran", str(material_inventory_path)), progress)
+        record_step(
+            steps,
+            StepResult(
+                "material_inventory",
+                "材料清单扫描",
+                "ran",
+                str(material_inventory_path),
+            ),
+            progress,
+        )
 
     agent_manifest: dict[str, Any] = {
         "mode": args.agent_mode,
@@ -408,9 +444,13 @@ def _run_static_audit_from_args(
         "material_inventory": str(material_inventory_path),
     }
 
-    agent_material_plan_path = resolve_artifact_path(workdir, "agent_material_plan.json")
+    agent_material_plan_path = resolve_artifact_path(
+        workdir, "agent_material_plan.json"
+    )
     if agent_material_plan_path.exists() and not args.force:
-        material_plan = read_json(agent_material_plan_path) or material_plan_from_inventory(
+        material_plan = read_json(
+            agent_material_plan_path
+        ) or material_plan_from_inventory(
             case_id=case_id,
             inventory=material_inventory,
             status="fallback",
@@ -441,7 +481,9 @@ def _run_static_audit_from_args(
             status="deterministic_fallback",
             detail="agent_mode=off; optional lanes were selected from deterministic material inventory only.",
         )
-        agent_material_plan_path.write_text(json.dumps(material_plan, ensure_ascii=False, indent=2), encoding="utf-8")
+        agent_material_plan_path.write_text(
+            json.dumps(material_plan, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
         agent_manifest["material_plan"] = {
             "status": "not_run",
             "detail": material_plan["detail"],
@@ -452,7 +494,12 @@ def _run_static_audit_from_args(
         }
         record_step(
             steps,
-            StepResult("agent_material_plan", "opencode Agent 材料计划", "skipped", material_plan["detail"]),
+            StepResult(
+                "agent_material_plan",
+                "opencode Agent 材料计划",
+                "skipped",
+                material_plan["detail"],
+            ),
             progress,
         )
     else:
@@ -474,7 +521,9 @@ def _run_static_audit_from_args(
         )
         if agent_material_plan_result.data:
             material_plan = agent_material_plan_result.data
-            write_agent_result(agent_material_plan_path, agent_material_plan_result, "material_plan")
+            write_agent_result(
+                agent_material_plan_path, agent_material_plan_result, "material_plan"
+            )
         else:
             material_plan = material_plan_from_inventory(
                 case_id=case_id,
@@ -482,8 +531,13 @@ def _run_static_audit_from_args(
                 status="fallback",
                 detail=f"Agent material plan failed; deterministic fallback used. {agent_material_plan_result.detail}",
             )
-            agent_material_plan_path.write_text(json.dumps(material_plan, ensure_ascii=False, indent=2), encoding="utf-8")
-        agent_manifest["material_plan"] = result_metadata(agent_material_plan_result, agent_material_plan_path)
+            agent_material_plan_path.write_text(
+                json.dumps(material_plan, ensure_ascii=False, indent=2),
+                encoding="utf-8",
+            )
+        agent_manifest["material_plan"] = result_metadata(
+            agent_material_plan_result, agent_material_plan_path
+        )
         record_step(
             steps,
             StepResult(
@@ -496,11 +550,15 @@ def _run_static_audit_from_args(
             progress,
         )
 
-    optional_lanes = optional_lanes_from_material_plan(material_plan, material_inventory)
+    optional_lanes = optional_lanes_from_material_plan(
+        material_plan, material_inventory
+    )
     source_lane = selected_xlsx_source_lane(optional_lanes)
     source_data_dir = resolve_selected_source_root(source_lane, paper_dir)
     agent_manifest["optional_lanes"] = optional_lanes
-    agent_manifest["selected_source_data_dir"] = str(source_data_dir) if source_data_dir else None
+    agent_manifest["selected_source_data_dir"] = (
+        str(source_data_dir) if source_data_dir else None
+    )
 
     source_finding_params = dict(DEFAULT_SOURCE_FINDING_PARAMS)
     source_finding_params.update(source_finding_params_from_lane(source_lane))
@@ -526,7 +584,9 @@ def _run_static_audit_from_args(
         )
         write_agent_result(agent_plan_path, agent_plan_result, "audit_plan")
         agent_manifest["plan"] = result_metadata(agent_plan_result, agent_plan_path)
-        agent_manifest["selected_tool_ids"] = selected_tool_ids_from_plan(agent_plan_result.data)
+        agent_manifest["selected_tool_ids"] = selected_tool_ids_from_plan(
+            agent_plan_result.data
+        )
         record_step(
             steps,
             StepResult(
@@ -539,29 +599,56 @@ def _run_static_audit_from_args(
             progress,
         )
         if agent_plan_result.data:
-            source_finding_params = source_finding_params_from_plan(agent_plan_result.data)
+            source_finding_params = source_finding_params_from_plan(
+                agent_plan_result.data
+            )
     else:
         agent_manifest["plan"] = None
         agent_manifest["selected_tool_ids"] = list(PAPER_STATIC_AUDIT_TOOL_IDS)
 
-    mineru_outputs = [resolve_artifact_path(workdir, "full.md"), resolve_artifact_path(workdir, "mineru_manifest.json"), resolve_artifact_path(workdir, "images")]
+    mineru_outputs = [
+        resolve_artifact_path(workdir, "full.md"),
+        resolve_artifact_path(workdir, "mineru_manifest.json"),
+        resolve_artifact_path(workdir, "images"),
+    ]
     if exists_all(mineru_outputs) and not args.force:
-        record_step(steps, StepResult("mineru", "MinerU PDF 解析", "reused", "Existing MinerU outputs found."), progress)
+        record_step(
+            steps,
+            StepResult(
+                "mineru", "MinerU PDF 解析", "reused", "Existing MinerU outputs found."
+            ),
+            progress,
+        )
     elif not env.get("MINERU_API_TOKEN"):
         record_step(
             steps,
-            StepResult("mineru", "MinerU PDF 解析", "skipped", "MINERU_API_TOKEN is missing; cannot run MinerU from scratch."),
+            StepResult(
+                "mineru",
+                "MinerU PDF 解析",
+                "skipped",
+                "MINERU_API_TOKEN is missing; cannot run MinerU from scratch.",
+            ),
             progress,
         )
     else:
         # MinerU outputs to root directory, not subdirectories
         # We check root paths here, and relocate to subdirectories after evidence_ledger
-        mineru_root_outputs = [workdir / "full.md", workdir / "mineru_manifest.json", workdir / "images"]
+        mineru_root_outputs = [
+            workdir / "full.md",
+            workdir / "mineru_manifest.json",
+            workdir / "images",
+        ]
         steps.append(
             run_command(
                 "mineru",
                 "MinerU PDF 解析",
-                [sys.executable, "scripts/mineru_convert.py", str(paper_pdf), "--output", str(workdir)],
+                [
+                    sys.executable,
+                    "scripts/mineru_convert.py",
+                    str(paper_pdf),
+                    "--output",
+                    str(workdir),
+                ],
                 mineru_root_outputs,
                 cwd=AUDITOR_ROOT,
                 env=env,
@@ -616,7 +703,9 @@ def _run_static_audit_from_args(
             )
         )
         # ── PaperFraud rule matching ──────────────────────────────────
-        paperfraud_output = resolve_artifact_path(workdir, "paperfraud_rule_matches.json")
+        paperfraud_output = resolve_artifact_path(
+            workdir, "paperfraud_rule_matches.json"
+        )
         if paperfraud_output.exists() and not args.force:
             record_step(
                 steps,
@@ -635,16 +724,44 @@ def _run_static_audit_from_args(
                 "PaperFraud 规则库匹配",
                 "Matching structured PaperFraud rules against parsed paper text.",
             )
-            run_paperfraud_rule_match(resolve_artifact_path(workdir, "full.md"), paperfraud_output)
+            run_paperfraud_rule_match(
+                resolve_artifact_path(workdir, "full.md"), paperfraud_output
+            )
             record_step(
                 steps,
-                StepResult("paperfraud_rule_match", "PaperFraud 规则库匹配", "ran", str(paperfraud_output)),
+                StepResult(
+                    "paperfraud_rule_match",
+                    "PaperFraud 规则库匹配",
+                    "ran",
+                    str(paperfraud_output),
+                ),
                 progress,
             )
     else:
-        record_step(steps, StepResult("evidence_ledger", "构建 evidence ledger", "skipped", "full.md missing."), progress)
-        record_step(steps, StepResult("numeric_forensics", "PDF 数字取证", "skipped", "full.md missing."), progress)
-        record_step(steps, StepResult("paperfraud_rule_match", "PaperFraud 规则库匹配", "skipped", "full.md missing."), progress)
+        record_step(
+            steps,
+            StepResult(
+                "evidence_ledger", "构建 evidence ledger", "skipped", "full.md missing."
+            ),
+            progress,
+        )
+        record_step(
+            steps,
+            StepResult(
+                "numeric_forensics", "PDF 数字取证", "skipped", "full.md missing."
+            ),
+            progress,
+        )
+        record_step(
+            steps,
+            StepResult(
+                "paperfraud_rule_match",
+                "PaperFraud 规则库匹配",
+                "skipped",
+                "full.md missing.",
+            ),
+            progress,
+        )
 
     if source_lane and source_data_dir and source_data_dir.is_dir():
         steps.append(
@@ -684,7 +801,9 @@ def _run_static_audit_from_args(
                 str(source_finding_params["max_findings_per_category"]),
             ]
             if (resolve_artifact_path(workdir, "full.md")).exists():
-                command.extend(["--full-md", str(resolve_artifact_path(workdir, "full.md"))])
+                command.extend(
+                    ["--full-md", str(resolve_artifact_path(workdir, "full.md"))]
+                )
             steps.append(
                 run_command(
                     "source_data_findings",
@@ -707,7 +826,11 @@ def _run_static_audit_from_args(
                         "engine.static_audit.tools.source_data_pair_forensics",
                         str(source_data_dir),
                         "--output",
-                        str(resolve_artifact_path(workdir, "source_data_pair_forensics.json")),
+                        str(
+                            resolve_artifact_path(
+                                workdir, "source_data_pair_forensics.json"
+                            )
+                        ),
                     ],
                     [resolve_artifact_path(workdir, "source_data_pair_forensics.json")],
                     cwd=PROJECT_ROOT,
@@ -726,7 +849,11 @@ def _run_static_audit_from_args(
                         "engine.static_audit.tools.source_data_cross_sheet",
                         str(source_data_dir),
                         "--output",
-                        str(resolve_artifact_path(workdir, "source_data_cross_sheet.json")),
+                        str(
+                            resolve_artifact_path(
+                                workdir, "source_data_cross_sheet.json"
+                            )
+                        ),
                     ],
                     [resolve_artifact_path(workdir, "source_data_cross_sheet.json")],
                     cwd=PROJECT_ROOT,
@@ -751,7 +878,7 @@ from engine.static_audit.adapters.paperconan_adapter import run_paperconan_scan
 
 result = run_paperconan_scan(
     source_data_dir=Path("{source_data_dir}"),
-    output_dir=Path("{resolve_artifact_path(workdir, 'numeric')}"),
+    output_dir=Path("{resolve_artifact_path(workdir, "numeric")}"),
     profile="review",
 )
 print(json.dumps({{"status": result["status"], "findings": result["findings_summary"]}}))
@@ -773,6 +900,7 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
                 from engine.static_audit.tools.source_data_verdict import (
                     run_source_data_verdict,
                 )
+
                 verdict_result = run_source_data_verdict(
                     workdir,
                     source_data_dir=source_data_dir,
@@ -806,34 +934,101 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
         else:
             record_step(
                 steps,
-                StepResult("source_data_findings", "Source Data findings", "skipped", "source_data_profile.json missing."),
+                StepResult(
+                    "source_data_findings",
+                    "Source Data findings",
+                    "skipped",
+                    "source_data_profile.json missing.",
+                ),
                 progress,
             )
             record_step(
                 steps,
-                StepResult("source_data_pair_forensics", "Source Data pair forensics", "skipped", "source_data_profile.json missing."),
+                StepResult(
+                    "source_data_pair_forensics",
+                    "Source Data pair forensics",
+                    "skipped",
+                    "source_data_profile.json missing.",
+                ),
                 progress,
             )
             record_step(
                 steps,
-                StepResult("source_data_cross_sheet", "Source Data cross-sheet duplicates", "skipped", "source_data_profile.json missing."),
+                StepResult(
+                    "source_data_cross_sheet",
+                    "Source Data cross-sheet duplicates",
+                    "skipped",
+                    "source_data_profile.json missing.",
+                ),
                 progress,
             )
             record_step(
                 steps,
-                StepResult("source_data_verdict", "Source Data LLM 语义裁决", "skipped", "source_data_profile.json missing."),
+                StepResult(
+                    "source_data_verdict",
+                    "Source Data LLM 语义裁决",
+                    "skipped",
+                    "source_data_profile.json missing.",
+                ),
                 progress,
             )
     else:
         if source_lane and source_lane.get("root"):
             source_skip_detail = f"Selected Source Data root is invalid or outside paper_dir: {source_lane.get('root')}"
         else:
-            source_skip_detail = (source_lane or {}).get("reason") or "No executable XLSX/XLSM Source Data optional lane was selected."
-        record_step(steps, StepResult("source_data_profile", "Source Data profile", "skipped", source_skip_detail), progress)
-        record_step(steps, StepResult("source_data_findings", "Source Data findings", "skipped", source_skip_detail), progress)
-        record_step(steps, StepResult("source_data_pair_forensics", "Source Data pair forensics", "skipped", source_skip_detail), progress)
-        record_step(steps, StepResult("source_data_cross_sheet", "Source Data cross-sheet duplicates", "skipped", source_skip_detail), progress)
-        record_step(steps, StepResult("source_data_verdict", "Source Data LLM 语义裁决", "skipped", source_skip_detail), progress)
+            source_skip_detail = (source_lane or {}).get(
+                "reason"
+            ) or "No executable XLSX/XLSM Source Data optional lane was selected."
+        record_step(
+            steps,
+            StepResult(
+                "source_data_profile",
+                "Source Data profile",
+                "skipped",
+                source_skip_detail,
+            ),
+            progress,
+        )
+        record_step(
+            steps,
+            StepResult(
+                "source_data_findings",
+                "Source Data findings",
+                "skipped",
+                source_skip_detail,
+            ),
+            progress,
+        )
+        record_step(
+            steps,
+            StepResult(
+                "source_data_pair_forensics",
+                "Source Data pair forensics",
+                "skipped",
+                source_skip_detail,
+            ),
+            progress,
+        )
+        record_step(
+            steps,
+            StepResult(
+                "source_data_cross_sheet",
+                "Source Data cross-sheet duplicates",
+                "skipped",
+                source_skip_detail,
+            ),
+            progress,
+        )
+        record_step(
+            steps,
+            StepResult(
+                "source_data_verdict",
+                "Source Data LLM 语义裁决",
+                "skipped",
+                source_skip_detail,
+            ),
+            progress,
+        )
 
     images_dir = resolve_artifact_path(workdir, "images")
     if images_dir.is_dir():
@@ -858,10 +1053,24 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
         # image_similarity_candidates is deferred to post-investigation phase.
         # It runs as Agent-selectable or deterministic fallback after investigation rounds.
     else:
-        record_step(steps, StepResult("exact_image_duplicates", "图片字节级重复检查", "skipped", "images directory missing."), progress)
         record_step(
             steps,
-            StepResult("image_similarity_candidates", "图片近似相似候选检查", "skipped", "images directory missing."),
+            StepResult(
+                "exact_image_duplicates",
+                "图片字节级重复检查",
+                "skipped",
+                "images directory missing.",
+            ),
+            progress,
+        )
+        record_step(
+            steps,
+            StepResult(
+                "image_similarity_candidates",
+                "图片近似相似候选检查",
+                "skipped",
+                "images directory missing.",
+            ),
             progress,
         )
 
@@ -878,24 +1087,36 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
     # SILA dense remains an Agent investigation tool (AGENT_SELECTABLE) because it
     # is resource-heavy and must run with a bounded panel selection.
     allow_env_skip = getattr(args, "skip_unavailable_tools", False)
-    panel_extraction_status = agent_manifest.get("visual_forensics", {}).get("panel_extraction", {}).get("status")
+    panel_extraction_status = (
+        agent_manifest.get("visual_forensics", {})
+        .get("panel_extraction", {})
+        .get("status")
+    )
     tru_for_steps, tru_for_manifest = run_tru_for_detection(
-        workdir=workdir, force=args.force, allow_env_skip=allow_env_skip,
-        panel_extraction_status=panel_extraction_status, progress=progress,
+        workdir=workdir,
+        force=args.force,
+        allow_env_skip=allow_env_skip,
+        panel_extraction_status=panel_extraction_status,
+        progress=progress,
     )
     steps.extend(tru_for_steps)
     agent_manifest.setdefault("visual_forensics", {}).update(tru_for_manifest)
 
     iq_steps, iq_manifest = run_image_quality_detection(
-        workdir=workdir, force=args.force,
-        panel_extraction_status=panel_extraction_status, progress=progress,
+        workdir=workdir,
+        force=args.force,
+        panel_extraction_status=panel_extraction_status,
+        progress=progress,
     )
     steps.extend(iq_steps)
     agent_manifest.setdefault("visual_forensics", {}).update(iq_manifest)
 
     provenance_steps, provenance_manifest = run_provenance_graph(
-        workdir=workdir, force=args.force, allow_env_skip=allow_env_skip,
-        panel_extraction_status=panel_extraction_status, progress=progress,
+        workdir=workdir,
+        force=args.force,
+        allow_env_skip=allow_env_skip,
+        panel_extraction_status=panel_extraction_status,
+        progress=progress,
     )
     steps.extend(provenance_steps)
     agent_manifest.setdefault("visual_forensics", {}).update(provenance_manifest)
@@ -927,11 +1148,13 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
     investigation_dir = resolve_artifact_path(workdir, "investigation")
     agent_similarity_outputs = (
         sorted(investigation_dir.rglob("image_similarity_candidates.json"))
-        if investigation_dir.exists() else []
+        if investigation_dir.exists()
+        else []
     )
     agent_copy_move_outputs = (
         sorted(investigation_dir.rglob("visual_copy_move.json"))
-        if investigation_dir.exists() else []
+        if investigation_dir.exists()
+        else []
     )
     agent_planner_failed = (
         not investigation_manifest.get("enabled", True)
@@ -942,8 +1165,12 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
     if agent_similarity_outputs:
         record_step(
             steps,
-            StepResult("image_similarity_candidates", "图片近似相似候选检查", "ran",
-                       "image.similarity_candidates output was produced by AgentInvestigationPlanner."),
+            StepResult(
+                "image_similarity_candidates",
+                "图片近似相似候选检查",
+                "ran",
+                "image.similarity_candidates output was produced by AgentInvestigationPlanner.",
+            ),
             progress,
         )
     elif agent_planner_failed and images_dir.is_dir():
@@ -951,36 +1178,58 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
         fallback_dir.mkdir(parents=True, exist_ok=True)
         fallback_output = fallback_dir / "image_similarity_candidates.json"
         similarity_cmd = [
-            sys.executable, "-m", "engine.static_audit.tools.image_similarity",
+            sys.executable,
+            "-m",
+            "engine.static_audit.tools.image_similarity",
             str(images_dir),
-            "--output", str(fallback_output),
-            "--max-distance", "8",
-            "--max-candidates", "200",
+            "--output",
+            str(fallback_output),
+            "--max-distance",
+            "8",
+            "--max-candidates",
+            "200",
         ]
         panel_evidence_json = resolve_artifact_path(workdir, "panel_evidence.json")
         if panel_evidence_json.exists():
             similarity_cmd.extend(["--panel-evidence", str(panel_evidence_json)])
-        steps.append(run_command(
-            "image_similarity_candidates",
-            "图片近似相似候选检查（确定性回退）",
-            similarity_cmd,
-            [fallback_output],
-            cwd=PROJECT_ROOT, env=env, force=args.force, progress=progress,
-        ))
+        steps.append(
+            run_command(
+                "image_similarity_candidates",
+                "图片近似相似候选检查（确定性回退）",
+                similarity_cmd,
+                [fallback_output],
+                cwd=PROJECT_ROOT,
+                env=env,
+                force=args.force,
+                progress=progress,
+            )
+        )
         if steps[-1].status == "ran":
-            steps[-1].detail = "Ran as deterministic fallback: Agent investigation planner failed."
+            steps[
+                -1
+            ].detail = (
+                "Ran as deterministic fallback: Agent investigation planner failed."
+            )
     elif not images_dir.is_dir():
         record_step(
             steps,
-            StepResult("image_similarity_candidates", "图片近似相似候选检查", "skipped",
-                       "images directory missing."),
+            StepResult(
+                "image_similarity_candidates",
+                "图片近似相似候选检查",
+                "skipped",
+                "images directory missing.",
+            ),
             progress,
         )
     else:
         record_step(
             steps,
-            StepResult("image_similarity_candidates", "图片近似相似候选检查", "skipped",
-                       "AgentInvestigationPlanner did not select image.similarity_candidates for this run."),
+            StepResult(
+                "image_similarity_candidates",
+                "图片近似相似候选检查",
+                "skipped",
+                "AgentInvestigationPlanner did not select image.similarity_candidates for this run.",
+            ),
             progress,
         )
 
@@ -988,46 +1237,79 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
     if agent_copy_move_outputs:
         record_step(
             steps,
-            StepResult("visual_copy_move", "图片 Copy-Move 检测", "ran",
-                       "visual.copy_move output was produced by AgentInvestigationPlanner."),
+            StepResult(
+                "visual_copy_move",
+                "图片 Copy-Move 检测",
+                "ran",
+                "visual.copy_move output was produced by AgentInvestigationPlanner.",
+            ),
             progress,
         )
-    elif agent_planner_failed and resolve_artifact_path(workdir, "panel_evidence.json").exists():
+    elif (
+        agent_planner_failed
+        and resolve_artifact_path(workdir, "panel_evidence.json").exists()
+    ):
         fallback_dir = investigation_dir / "fallback"
         fallback_dir.mkdir(parents=True, exist_ok=True)
         fallback_output = fallback_dir / "visual_copy_move.json"
         panel_json = resolve_artifact_path(workdir, "panel_evidence.json")
-        steps.append(run_command(
-            "visual_copy_move",
-            "图片 Copy-Move 检测（确定性回退）",
-            [
-                sys.executable, "-m", "engine.static_audit.tools.copy_move_detection",
-                str(panel_json),
-                "--figure-json", str(resolve_artifact_path(workdir, "visual_evidence.json")),
-                "--output", str(fallback_output),
-                "--workdir", str(workdir),
-                "--method", "rootsift_magsac",
-                "--min-matches", "20",
-                "--min-score", "0.05",
-                "--max-relationships", "500",
-            ],
-            [fallback_output],
-            cwd=PROJECT_ROOT, env=env, force=args.force, progress=progress,
-        ))
+        steps.append(
+            run_command(
+                "visual_copy_move",
+                "图片 Copy-Move 检测（确定性回退）",
+                [
+                    sys.executable,
+                    "-m",
+                    "engine.static_audit.tools.copy_move_detection",
+                    str(panel_json),
+                    "--figure-json",
+                    str(resolve_artifact_path(workdir, "visual_evidence.json")),
+                    "--output",
+                    str(fallback_output),
+                    "--workdir",
+                    str(workdir),
+                    "--method",
+                    "rootsift_magsac",
+                    "--min-matches",
+                    "20",
+                    "--min-score",
+                    "0.05",
+                    "--max-relationships",
+                    "500",
+                ],
+                [fallback_output],
+                cwd=PROJECT_ROOT,
+                env=env,
+                force=args.force,
+                progress=progress,
+            )
+        )
         if steps[-1].status == "ran":
-            steps[-1].detail = "Ran as deterministic fallback: Agent investigation planner failed."
+            steps[
+                -1
+            ].detail = (
+                "Ran as deterministic fallback: Agent investigation planner failed."
+            )
     elif not resolve_artifact_path(workdir, "panel_evidence.json").exists():
         record_step(
             steps,
-            StepResult("visual_copy_move", "图片 Copy-Move 检测", "skipped",
-                       "panel_evidence.json missing."),
+            StepResult(
+                "visual_copy_move",
+                "图片 Copy-Move 检测",
+                "skipped",
+                "panel_evidence.json missing.",
+            ),
             progress,
         )
     else:
         record_step(
             steps,
-            StepResult("visual_copy_move", "图片 Copy-Move 检测", "skipped",
-                       "AgentInvestigationPlanner did not select visual.copy_move for this run."),
+            StepResult(
+                "visual_copy_move",
+                "图片 Copy-Move 检测",
+                "skipped",
+                "AgentInvestigationPlanner did not select visual.copy_move for this run.",
+            ),
             progress,
         )
 
@@ -1041,11 +1323,25 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
     agent_manifest.setdefault("visual_forensics", {}).update(visual_finding_manifest)
 
     if (resolve_artifact_path(workdir, "vlm_triage_selected.json")).exists():
-        record_step(steps, StepResult("vlm_triage", "VLM 抽样初筛", "reused", "Existing VLM triage artifact found."), progress)
+        record_step(
+            steps,
+            StepResult(
+                "vlm_triage",
+                "VLM 抽样初筛",
+                "reused",
+                "Existing VLM triage artifact found.",
+            ),
+            progress,
+        )
     else:
         record_step(
             steps,
-            StepResult("vlm_triage", "VLM 抽样初筛", "skipped", "Batch VLM triage is not implemented in this orchestrator."),
+            StepResult(
+                "vlm_triage",
+                "VLM 抽样初筛",
+                "skipped",
+                "Batch VLM triage is not implemented in this orchestrator.",
+            ),
             progress,
         )
 
@@ -1088,7 +1384,9 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
                 max_retries=args.agent_max_retries,
             )
             write_agent_result(agent_review_path, agent_review_result, "agent_review")
-            agent_manifest["review"] = result_metadata(agent_review_result, agent_review_path)
+            agent_manifest["review"] = result_metadata(
+                agent_review_result, agent_review_path
+            )
             record_step(
                 steps,
                 StepResult(
@@ -1131,7 +1429,13 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
     )
     bundle_path = resolve_artifact_path(workdir, "static_audit_bundle.json")
     bundle.write_json(bundle_path)
-    record_step(steps, StepResult("static_audit_bundle", "生成 Static Audit Bundle", "ran", str(bundle_path)), progress)
+    record_step(
+        steps,
+        StepResult(
+            "static_audit_bundle", "生成 Static Audit Bundle", "ran", str(bundle_path)
+        ),
+        progress,
+    )
 
     report_path = generate_report(
         paper_dir=paper_dir,
@@ -1142,7 +1446,11 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
         agent_mode=args.agent_mode,
         steps=steps,
     )
-    record_step(steps, StepResult("report", "生成最终 Markdown 报告", "ran", str(report_path)), progress)
+    record_step(
+        steps,
+        StepResult("report", "生成最终 Markdown 报告", "ran", str(report_path)),
+        progress,
+    )
 
     manifest = {
         "schema_version": "1.0",
@@ -1162,13 +1470,21 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
         "final_report": str(report_path),
     }
     manifest_path = resolve_artifact_path(workdir, "audit_run_manifest.json")
-    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
     html_report_path = write_static_audit_html(workdir, case_id)
-    record_step(steps, StepResult("html_report", "生成最终 HTML 报告", "ran", str(html_report_path)), progress)
+    record_step(
+        steps,
+        StepResult("html_report", "生成最终 HTML 报告", "ran", str(html_report_path)),
+        progress,
+    )
     manifest["steps"] = [asdict(step) for step in steps]
     manifest["final_html_report"] = str(html_report_path)
-    manifest_path.write_text(json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
     summary = {
         "case_id": case_id,
@@ -1184,8 +1500,10 @@ print(json.dumps({{"status": result["status"], "findings": result["findings_summ
     # case status reflects "Review Needed" (partial failure) rather than "failed"
     # (crash).  failed_steps is still populated for downstream review.
     report_exists = report_path.exists() and html_report_path.exists()
-    summary["exit_code"] = 0 if report_exists else (
-        1 if any(step.status == "failed" for step in steps) else 0
+    summary["exit_code"] = (
+        0
+        if report_exists
+        else (1 if any(step.status == "failed" for step in steps) else 0)
     )
     emit_progress(
         progress,
@@ -1210,7 +1528,13 @@ def _relocate_mineru_outputs(workdir: Path) -> None:
     mineru_dir.mkdir(parents=True, exist_ok=True)
 
     # Move MinerU intermediate artifacts to mineru/
-    mineru_files = ["full.md", "layout.json", "mineru_manifest.json", "mineru_submission.json", "mineru_result.zip"]
+    mineru_files = [
+        "full.md",
+        "layout.json",
+        "mineru_manifest.json",
+        "mineru_submission.json",
+        "mineru_result.zip",
+    ]
     for filename in mineru_files:
         src = workdir / filename
         dst = mineru_dir / filename
@@ -1227,7 +1551,12 @@ def _relocate_mineru_outputs(workdir: Path) -> None:
         middle_json.rename(dst)
 
     # Move MinerU hash-prefixed files (content_list, model, origin.pdf)
-    for pattern in ("*_content_list.json", "*_content_list_v2.json", "*_model.json", "*_origin.pdf"):
+    for pattern in (
+        "*_content_list.json",
+        "*_content_list_v2.json",
+        "*_model.json",
+        "*_origin.pdf",
+    ):
         for src in workdir.glob(pattern):
             dst = mineru_dir / src.name
             if dst.exists():
@@ -1249,9 +1578,12 @@ def _relocate_mineru_outputs(workdir: Path) -> None:
     if ledger_path.exists():
         try:
             import json
+
             ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
             _update_ledger_image_paths(ledger, "images/", "visual/images/")
-            ledger_path.write_text(json.dumps(ledger, ensure_ascii=False, indent=2), encoding="utf-8")
+            ledger_path.write_text(
+                json.dumps(ledger, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
         except Exception:
             pass  # If update fails, continue without updating
 
@@ -1260,9 +1592,11 @@ def _update_ledger_image_paths(obj: Any, old_prefix: str, new_prefix: str) -> No
     """Recursively update image paths in evidence ledger."""
     if isinstance(obj, dict):
         for key, value in obj.items():
-            if key in ("source_image_path", "relative_path", "path") and isinstance(value, str):
+            if key in ("source_image_path", "relative_path", "path") and isinstance(
+                value, str
+            ):
                 if value.startswith(old_prefix):
-                    obj[key] = new_prefix + value[len(old_prefix):]
+                    obj[key] = new_prefix + value[len(old_prefix) :]
             elif isinstance(value, (dict, list)):
                 _update_ledger_image_paths(value, old_prefix, new_prefix)
     elif isinstance(obj, list):

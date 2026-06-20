@@ -36,6 +36,7 @@ from engine.static_audit.tools._elis_provenance_runner import (
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture()
 def sample_elis_output() -> dict:
     """A realistic ContainerOutput from the ELIS provenance container."""
@@ -52,37 +53,74 @@ def sample_elis_output() -> dict:
             "processing_time_seconds": 12.34,
             "graph": {
                 "nodes": [
-                    {"id": "FE-001", "label": "FE-001", "image_path": "/data/img0/fig1.png", "is_query": True, "metadata": None},
-                    {"id": "FE-002", "label": "FE-002", "image_path": "/data/img1/fig2.png", "is_query": False, "metadata": None},
-                    {"id": "FE-003", "label": "FE-003", "image_path": "/data/img0/fig3.png", "is_query": False, "metadata": None},
+                    {
+                        "id": "FE-001",
+                        "label": "FE-001",
+                        "image_path": "/data/img0/fig1.png",
+                        "is_query": True,
+                        "metadata": None,
+                    },
+                    {
+                        "id": "FE-002",
+                        "label": "FE-002",
+                        "image_path": "/data/img1/fig2.png",
+                        "is_query": False,
+                        "metadata": None,
+                    },
+                    {
+                        "id": "FE-003",
+                        "label": "FE-003",
+                        "image_path": "/data/img0/fig3.png",
+                        "is_query": False,
+                        "metadata": None,
+                    },
                 ],
                 "edges": [
                     {
-                        "source": "FE-001", "target": "FE-002",
-                        "weight": 0.35, "shared_area_source": 0.40,
-                        "shared_area_target": 0.35, "matched_keypoints": 45,
+                        "source": "FE-001",
+                        "target": "FE-002",
+                        "weight": 0.35,
+                        "shared_area_source": 0.40,
+                        "shared_area_target": 0.35,
+                        "matched_keypoints": 45,
                         "is_flipped": False,
                     },
                     {
-                        "source": "FE-002", "target": "FE-003",
-                        "weight": 0.20, "shared_area_source": 0.22,
-                        "shared_area_target": 0.20, "matched_keypoints": 30,
+                        "source": "FE-002",
+                        "target": "FE-003",
+                        "weight": 0.20,
+                        "shared_area_source": 0.22,
+                        "shared_area_target": 0.20,
+                        "matched_keypoints": 30,
                         "is_flipped": True,
                     },
                 ],
                 "spanning_tree_edges": [
                     {
-                        "source": "FE-001", "target": "FE-002",
-                        "weight": 0.35, "shared_area_source": 0.40,
-                        "shared_area_target": 0.35, "matched_keypoints": 45,
+                        "source": "FE-001",
+                        "target": "FE-002",
+                        "weight": 0.35,
+                        "shared_area_source": 0.40,
+                        "shared_area_target": 0.35,
+                        "matched_keypoints": 45,
                         "is_flipped": False,
                     },
                 ],
                 "connected_components": [["FE-001", "FE-002", "FE-003"]],
-                "adjacency_matrix": {"FE-001": {"FE-002": 0.35}, "FE-002": {"FE-001": 0.35, "FE-003": 0.20}},
+                "adjacency_matrix": {
+                    "FE-001": {"FE-002": 0.35},
+                    "FE-002": {"FE-001": 0.35, "FE-003": 0.20},
+                },
             },
             "matched_pairs": [
-                {"image1_id": "FE-001", "image2_id": "FE-002", "shared_area_img1": 0.40, "shared_area_img2": 0.35, "matched_keypoints": 45, "is_flipped": False},
+                {
+                    "image1_id": "FE-001",
+                    "image2_id": "FE-002",
+                    "shared_area_img1": 0.40,
+                    "shared_area_img2": 0.35,
+                    "matched_keypoints": 45,
+                    "is_flipped": False,
+                },
             ],
             "visualization_data": {"nodes": [], "edges": []},
             "output_files": {"graph_json": "/output/provenance_graph.json"},
@@ -112,6 +150,7 @@ def figure_evidence_list(tmp_path: Path) -> list[dict]:
 # _docker_available
 # ---------------------------------------------------------------------------
 
+
 class TestDockerAvailable:
     def test_returns_true_when_image_present(self):
         mock_result = MagicMock()
@@ -133,7 +172,9 @@ class TestDockerAvailable:
             assert _docker_available() is False
 
     def test_returns_false_on_timeout(self):
-        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("docker", 10)):
+        with patch(
+            "subprocess.run", side_effect=subprocess.TimeoutExpired("docker", 10)
+        ):
             assert _docker_available() is False
 
 
@@ -141,9 +182,12 @@ class TestDockerAvailable:
 # _build_container_input
 # ---------------------------------------------------------------------------
 
+
 class TestBuildContainerInput:
     def test_structure(self):
-        images = [{"id": "FE-001", "path": "/a.png", "label": "FE-001", "is_query": True}]
+        images = [
+            {"id": "FE-001", "path": "/a.png", "label": "FE-001", "is_query": True}
+        ]
         result = _build_container_input(
             images=images,
             query_image_ids=["FE-001"],
@@ -160,7 +204,9 @@ class TestBuildContainerInput:
 
     def test_custom_parameters(self):
         result = _build_container_input(
-            images=[], query_image_ids=[], output_dir="/out",
+            images=[],
+            query_image_ids=[],
+            output_dir="/out",
             descriptor_type="vlfeat_sift_heq",
             min_keypoints=50,
             min_area=0.05,
@@ -178,6 +224,7 @@ class TestBuildContainerInput:
 # ---------------------------------------------------------------------------
 # _parse_container_output
 # ---------------------------------------------------------------------------
+
 
 class TestParseContainerOutput:
     def test_success(self, sample_elis_output):
@@ -215,25 +262,45 @@ class TestParseContainerOutput:
 # _convert_graph
 # ---------------------------------------------------------------------------
 
+
 class TestConvertGraph:
     def test_basic_conversion(self, tmp_path):
         elis_graph = {
             "nodes": [
-                {"id": "A", "label": "A", "image_path": "/data/img0/a.png", "is_query": True},
-                {"id": "B", "label": "B", "image_path": "/data/img1/b.png", "is_query": False},
+                {
+                    "id": "A",
+                    "label": "A",
+                    "image_path": "/data/img0/a.png",
+                    "is_query": True,
+                },
+                {
+                    "id": "B",
+                    "label": "B",
+                    "image_path": "/data/img1/b.png",
+                    "is_query": False,
+                },
             ],
             "edges": [
                 {
-                    "source": "A", "target": "B",
-                    "weight": 0.35, "shared_area_source": 0.40,
-                    "shared_area_target": 0.35, "matched_keypoints": 45,
+                    "source": "A",
+                    "target": "B",
+                    "weight": 0.35,
+                    "shared_area_source": 0.40,
+                    "shared_area_target": 0.35,
+                    "matched_keypoints": 45,
                     "is_flipped": False,
                 },
             ],
             "spanning_tree_edges": [
-                {"source": "A", "target": "B", "weight": 0.35,
-                 "shared_area_source": 0.40, "shared_area_target": 0.35,
-                 "matched_keypoints": 45, "is_flipped": False},
+                {
+                    "source": "A",
+                    "target": "B",
+                    "weight": 0.35,
+                    "shared_area_source": 0.40,
+                    "shared_area_target": 0.35,
+                    "matched_keypoints": 45,
+                    "is_flipped": False,
+                },
             ],
             "connected_components": [["A", "B"]],
         }
@@ -242,20 +309,36 @@ class TestConvertGraph:
         assert len(result["nodes"]) == 2
         assert result["nodes"][0]["is_query"] is True
         assert len(result["edges"]) == 1
-        assert result["edges"][0]["cosine_similarity"] == 0.0  # ELIS does not compute SSCD
+        assert (
+            result["edges"][0]["cosine_similarity"] == 0.0
+        )  # ELIS does not compute SSCD
         assert len(result["spanning_tree_edges"]) == 1
         assert result["connected_components"] == [["A", "B"]]
 
     def test_statistics(self, tmp_path):
         elis_graph = {
-            "nodes": [{"id": "X", "label": "X", "image_path": "x.png", "is_query": False}],
+            "nodes": [
+                {"id": "X", "label": "X", "image_path": "x.png", "is_query": False}
+            ],
             "edges": [
-                {"source": "X", "target": "Y", "weight": 0.5,
-                 "shared_area_source": 0.6, "shared_area_target": 0.5,
-                 "matched_keypoints": 100, "is_flipped": False},
-                {"source": "X", "target": "Z", "weight": 0.3,
-                 "shared_area_source": 0.3, "shared_area_target": 0.3,
-                 "matched_keypoints": 50, "is_flipped": False},
+                {
+                    "source": "X",
+                    "target": "Y",
+                    "weight": 0.5,
+                    "shared_area_source": 0.6,
+                    "shared_area_target": 0.5,
+                    "matched_keypoints": 100,
+                    "is_flipped": False,
+                },
+                {
+                    "source": "X",
+                    "target": "Z",
+                    "weight": 0.3,
+                    "shared_area_source": 0.3,
+                    "shared_area_target": 0.3,
+                    "matched_keypoints": 50,
+                    "is_flipped": False,
+                },
             ],
             "spanning_tree_edges": [],
             "connected_components": [["X", "Y", "Z"]],
@@ -268,7 +351,12 @@ class TestConvertGraph:
         assert stats["mean_weight"] == 0.4
 
     def test_empty_graph(self, tmp_path):
-        elis_graph = {"nodes": [], "edges": [], "spanning_tree_edges": [], "connected_components": []}
+        elis_graph = {
+            "nodes": [],
+            "edges": [],
+            "spanning_tree_edges": [],
+            "connected_components": [],
+        }
         result = _convert_graph(elis_graph, workdir=tmp_path)
         assert result["statistics"]["node_count"] == 0
         assert result["statistics"]["edge_count"] == 0
@@ -278,6 +366,7 @@ class TestConvertGraph:
 # ---------------------------------------------------------------------------
 # _failed_result
 # ---------------------------------------------------------------------------
+
 
 class TestFailedResult:
     def test_structure(self):
@@ -303,6 +392,7 @@ class TestFailedResult:
 # _run_docker
 # ---------------------------------------------------------------------------
 
+
 class TestRunDocker:
     def test_success(self, tmp_path, sample_elis_output):
         output_dir = tmp_path / "output"
@@ -315,7 +405,10 @@ class TestRunDocker:
         mock_proc.stderr = ""
 
         container_input = _build_container_input(
-            images=[{"id": "A", "path": str(image_dir / "a.png")}, {"id": "B", "path": str(image_dir / "b.png")}],
+            images=[
+                {"id": "A", "path": str(image_dir / "a.png")},
+                {"id": "B", "path": str(image_dir / "b.png")},
+            ],
             query_image_ids=["A"],
             output_dir=str(output_dir),
         )
@@ -363,7 +456,9 @@ class TestRunDocker:
             output_dir=str(output_dir),
         )
 
-        with patch("subprocess.run", side_effect=subprocess.TimeoutExpired("docker", 600)):
+        with patch(
+            "subprocess.run", side_effect=subprocess.TimeoutExpired("docker", 600)
+        ):
             result = _run_docker(container_input, [image_dir], output_dir, timeout=600)
             assert result["success"] is False
             assert "timed out" in result["error"]
@@ -389,16 +484,23 @@ class TestRunDocker:
 # run_provenance_analysis (integration-level)
 # ---------------------------------------------------------------------------
 
+
 class TestRunProvenanceAnalysis:
     def test_docker_unavailable(self, figure_evidence_list, tmp_path):
-        with patch("engine.static_audit.tools._elis_provenance_runner._docker_available", return_value=False):
+        with patch(
+            "engine.static_audit.tools._elis_provenance_runner._docker_available",
+            return_value=False,
+        ):
             result = run_provenance_analysis(figure_evidence_list, workdir=tmp_path)
             assert result["status"] == "failed"
             assert result["failure_category"] == "environment"
             assert DOCKER_IMAGE in result["limitations"][0]
 
     def test_insufficient_figures(self, tmp_path):
-        with patch("engine.static_audit.tools._elis_provenance_runner._docker_available", return_value=True):
+        with patch(
+            "engine.static_audit.tools._elis_provenance_runner._docker_available",
+            return_value=True,
+        ):
             result = run_provenance_analysis(
                 [{"figure_id": "FE-001", "source_image_path": "missing.png"}],
                 workdir=tmp_path,
@@ -413,7 +515,10 @@ class TestRunProvenanceAnalysis:
         mock_proc.stderr = ""
 
         with (
-            patch("engine.static_audit.tools._elis_provenance_runner._docker_available", return_value=True),
+            patch(
+                "engine.static_audit.tools._elis_provenance_runner._docker_available",
+                return_value=True,
+            ),
             patch("subprocess.run", return_value=mock_proc),
         ):
             result = run_provenance_analysis(
@@ -437,7 +542,10 @@ class TestRunProvenanceAnalysis:
         mock_proc.stdout = ""
 
         with (
-            patch("engine.static_audit.tools._elis_provenance_runner._docker_available", return_value=True),
+            patch(
+                "engine.static_audit.tools._elis_provenance_runner._docker_available",
+                return_value=True,
+            ),
             patch("subprocess.run", return_value=mock_proc),
         ):
             result = run_provenance_analysis(figure_evidence_list, workdir=tmp_path)
@@ -448,15 +556,30 @@ class TestRunProvenanceAnalysis:
     def test_no_edges_limitation(self, figure_evidence_list, tmp_path):
         """Container success but no edges should produce a limitation, not a failure."""
         no_edges_output = {
-            "success": True, "command": "provenance", "message": "ok",
+            "success": True,
+            "command": "provenance",
+            "message": "ok",
             "provenance_response": {
-                "success": True, "message": "ok",
-                "total_images": 3, "total_pairs_checked": 3,
-                "matched_pairs_count": 0, "processing_time_seconds": 5.0,
+                "success": True,
+                "message": "ok",
+                "total_images": 3,
+                "total_pairs_checked": 3,
+                "matched_pairs_count": 0,
+                "processing_time_seconds": 5.0,
                 "graph": {
                     "nodes": [
-                        {"id": "FE-001", "label": "FE-001", "image_path": "/a.png", "is_query": True},
-                        {"id": "FE-002", "label": "FE-002", "image_path": "/b.png", "is_query": False},
+                        {
+                            "id": "FE-001",
+                            "label": "FE-001",
+                            "image_path": "/a.png",
+                            "is_query": True,
+                        },
+                        {
+                            "id": "FE-002",
+                            "label": "FE-002",
+                            "image_path": "/b.png",
+                            "is_query": False,
+                        },
                     ],
                     "edges": [],
                     "spanning_tree_edges": [],
@@ -472,7 +595,10 @@ class TestRunProvenanceAnalysis:
         mock_proc.stdout = json.dumps(no_edges_output)
 
         with (
-            patch("engine.static_audit.tools._elis_provenance_runner._docker_available", return_value=True),
+            patch(
+                "engine.static_audit.tools._elis_provenance_runner._docker_available",
+                return_value=True,
+            ),
             patch("subprocess.run", return_value=mock_proc),
         ):
             result = run_provenance_analysis(figure_evidence_list, workdir=tmp_path)
@@ -483,32 +609,46 @@ class TestRunProvenanceAnalysis:
     def test_missing_images_skipped(self, tmp_path):
         """Figures without valid image paths should be silently skipped."""
         from PIL import Image
+
         images_dir = tmp_path / "images"
         images_dir.mkdir()
         Image.new("RGB", (32, 32)).save(images_dir / "fig1.png")
 
         evidence = [
             {"figure_id": "FE-001", "source_image_path": "images/fig1.png"},
-            {"figure_id": "FE-002", "source_image_path": "images/missing.png"},  # does not exist
+            {
+                "figure_id": "FE-002",
+                "source_image_path": "images/missing.png",
+            },  # does not exist
         ]
-        with patch("engine.static_audit.tools._elis_provenance_runner._docker_available", return_value=True):
+        with patch(
+            "engine.static_audit.tools._elis_provenance_runner._docker_available",
+            return_value=True,
+        ):
             result = run_provenance_analysis(evidence, workdir=tmp_path)
             # Only 1 valid figure -> should fail with dependency error
             assert result["status"] == "failed"
             assert result["failure_category"] == "dependency"
 
-    def test_volume_mount_paths(self, figure_evidence_list, tmp_path, sample_elis_output):
+    def test_volume_mount_paths(
+        self, figure_evidence_list, tmp_path, sample_elis_output
+    ):
         """Verify Docker command includes correct volume mounts."""
         mock_proc = MagicMock()
         mock_proc.returncode = 0
         mock_proc.stdout = json.dumps(sample_elis_output)
 
         with (
-            patch("engine.static_audit.tools._elis_provenance_runner._docker_available", return_value=True),
+            patch(
+                "engine.static_audit.tools._elis_provenance_runner._docker_available",
+                return_value=True,
+            ),
             patch("subprocess.run", return_value=mock_proc) as mock_run,
         ):
             run_provenance_analysis(figure_evidence_list, workdir=tmp_path)
             cmd = mock_run.call_args[0][0]
             # Check volume mounts exist
             volume_flags = [i for i, x in enumerate(cmd) if x == "-v"]
-            assert len(volume_flags) >= 2  # At least image dir + output dir + input json
+            assert (
+                len(volume_flags) >= 2
+            )  # At least image dir + output dir + input json

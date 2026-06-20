@@ -10,12 +10,17 @@ import pytest
 from tests.helpers.asgi_client import LocalASGITestClient as TestClient
 from web.backend.veritas_web.app import create_app
 from web.backend.veritas_web.cbir_service import search_similar_panels
-from web.backend.veritas_web.database import Base, create_db_engine, create_session_factory
+from web.backend.veritas_web.database import (
+    Base,
+    create_db_engine,
+    create_session_factory,
+)
 
 
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
+
 
 @pytest.fixture
 def db_session():
@@ -32,20 +37,23 @@ def _insert_embedding(db, case_id, panel_id, figure_id, embedding, image_path=""
     from web.backend.veritas_web.embeddings import _utc_now
     from web.backend.veritas_web.models import ImageEmbeddingModel
 
-    db.add(ImageEmbeddingModel(
-        case_id=case_id,
-        panel_id=panel_id,
-        figure_id=figure_id,
-        image_path=image_path or f"panels/{panel_id}.png",
-        embedding=embedding,
-        indexed_at=_utc_now(),
-    ))
+    db.add(
+        ImageEmbeddingModel(
+            case_id=case_id,
+            panel_id=panel_id,
+            figure_id=figure_id,
+            image_path=image_path or f"panels/{panel_id}.png",
+            embedding=embedding,
+            indexed_at=_utc_now(),
+        )
+    )
     db.commit()
 
 
 # ---------------------------------------------------------------------------
 # Service-level tests
 # ---------------------------------------------------------------------------
+
 
 class TestSearchSimilarPanels:
     def test_no_query_panel_returns_empty(self, db_session):
@@ -55,12 +63,21 @@ class TestSearchSimilarPanels:
 
     def test_single_case_search(self, db_session):
         # P1 and P2 similar, P3 different
-        _insert_embedding(db_session, "case1", "P1", "F1", [1.0, 0.0, 0.0] + [0.0] * 509)
-        _insert_embedding(db_session, "case1", "P2", "F1", [0.99, 0.01, 0.0] + [0.0] * 509)
-        _insert_embedding(db_session, "case1", "P3", "F2", [0.0, 0.0, 1.0] + [0.0] * 509)
+        _insert_embedding(
+            db_session, "case1", "P1", "F1", [1.0, 0.0, 0.0] + [0.0] * 509
+        )
+        _insert_embedding(
+            db_session, "case1", "P2", "F1", [0.99, 0.01, 0.0] + [0.0] * 509
+        )
+        _insert_embedding(
+            db_session, "case1", "P3", "F2", [0.0, 0.0, 1.0] + [0.0] * 509
+        )
 
         result = search_similar_panels(
-            db_session, "P1", case_id="case1", threshold=0.9,
+            db_session,
+            "P1",
+            case_id="case1",
+            threshold=0.9,
         )
         assert len(result["similar_panels"]) == 1
         assert result["similar_panels"][0]["panel_id"] == "P2"
@@ -69,9 +86,15 @@ class TestSearchSimilarPanels:
         assert result["query_case_id"] == "case1"
 
     def test_cross_case_search(self, db_session):
-        _insert_embedding(db_session, "case1", "P1", "F1", [1.0, 0.0, 0.0] + [0.0] * 509)
-        _insert_embedding(db_session, "case2", "P2", "F1", [0.99, 0.01, 0.0] + [0.0] * 509)
-        _insert_embedding(db_session, "case3", "P3", "F2", [0.0, 0.0, 1.0] + [0.0] * 509)
+        _insert_embedding(
+            db_session, "case1", "P1", "F1", [1.0, 0.0, 0.0] + [0.0] * 509
+        )
+        _insert_embedding(
+            db_session, "case2", "P2", "F1", [0.99, 0.01, 0.0] + [0.0] * 509
+        )
+        _insert_embedding(
+            db_session, "case3", "P3", "F2", [0.0, 0.0, 1.0] + [0.0] * 509
+        )
 
         # Search across all cases
         result = search_similar_panels(db_session, "P1", threshold=0.9)
@@ -88,7 +111,11 @@ class TestSearchSimilarPanels:
             _insert_embedding(db_session, "case1", f"P{i}", "F1", v)
 
         result = search_similar_panels(
-            db_session, "P0", case_id="case1", top_k=3, threshold=0.5,
+            db_session,
+            "P0",
+            case_id="case1",
+            top_k=3,
+            threshold=0.5,
         )
         assert len(result["similar_panels"]) == 3
         # Results should be sorted by similarity descending
@@ -96,18 +123,31 @@ class TestSearchSimilarPanels:
         assert sims == sorted(sims, reverse=True)
 
     def test_threshold_filters_low_similarity(self, db_session):
-        _insert_embedding(db_session, "case1", "P1", "F1", [1.0, 0.0, 0.0] + [0.0] * 509)
-        _insert_embedding(db_session, "case1", "P2", "F1", [0.5, 0.5, 0.0] + [0.0] * 509)
+        _insert_embedding(
+            db_session, "case1", "P1", "F1", [1.0, 0.0, 0.0] + [0.0] * 509
+        )
+        _insert_embedding(
+            db_session, "case1", "P2", "F1", [0.5, 0.5, 0.0] + [0.0] * 509
+        )
 
         result = search_similar_panels(
-            db_session, "P1", case_id="case1", threshold=0.9,
+            db_session,
+            "P1",
+            case_id="case1",
+            threshold=0.9,
         )
         assert len(result["similar_panels"]) == 0
 
     def test_label_filtering(self, db_session, tmp_path):
-        _insert_embedding(db_session, "case1", "P1", "F1", [1.0, 0.0, 0.0] + [0.0] * 509)
-        _insert_embedding(db_session, "case1", "P2", "F1", [0.99, 0.01, 0.0] + [0.0] * 509)
-        _insert_embedding(db_session, "case1", "P3", "F2", [0.99, 0.01, 0.0] + [0.0] * 509)
+        _insert_embedding(
+            db_session, "case1", "P1", "F1", [1.0, 0.0, 0.0] + [0.0] * 509
+        )
+        _insert_embedding(
+            db_session, "case1", "P2", "F1", [0.99, 0.01, 0.0] + [0.0] * 509
+        )
+        _insert_embedding(
+            db_session, "case1", "P3", "F2", [0.99, 0.01, 0.0] + [0.0] * 509
+        )
 
         workdir = tmp_path / "workdir"
         workdir.mkdir()
@@ -139,6 +179,7 @@ class TestSearchSimilarPanels:
 # ---------------------------------------------------------------------------
 # Endpoint-level tests
 # ---------------------------------------------------------------------------
+
 
 def _setup_app_with_embeddings(tmp_path: Path) -> TestClient:
     """Create a test app with an in-memory DB and some embeddings."""
@@ -177,11 +218,14 @@ def test_cbir_search_endpoint_basic(tmp_path: Path) -> None:
     finally:
         session.close()
 
-    resp = client.post("/api/cbir/search", json={
-        "panel_id": "P1",
-        "case_id": "case1",
-        "threshold": 0.9,
-    })
+    resp = client.post(
+        "/api/cbir/search",
+        json={
+            "panel_id": "P1",
+            "case_id": "case1",
+            "threshold": 0.9,
+        },
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["query_panel_id"] == "P1"
@@ -209,10 +253,13 @@ def test_cbir_search_cross_case(tmp_path: Path) -> None:
         session.close()
 
     # Cross-case: no case_id specified
-    resp = client.post("/api/cbir/search", json={
-        "panel_id": "P1",
-        "threshold": 0.9,
-    })
+    resp = client.post(
+        "/api/cbir/search",
+        json={
+            "panel_id": "P1",
+            "threshold": 0.9,
+        },
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert len(data["similar_panels"]) == 1
@@ -236,11 +283,14 @@ def test_cbir_search_no_results(tmp_path: Path) -> None:
     finally:
         session.close()
 
-    resp = client.post("/api/cbir/search", json={
-        "panel_id": "P1",
-        "case_id": "case1",
-        "threshold": 0.99,
-    })
+    resp = client.post(
+        "/api/cbir/search",
+        json={
+            "panel_id": "P1",
+            "case_id": "case1",
+            "threshold": 0.99,
+        },
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["similar_panels"] == []
@@ -255,10 +305,13 @@ def test_cbir_search_nonexistent_panel(tmp_path: Path) -> None:
     Base.metadata.create_all(bind=app.state.dependencies._engine)
     client = TestClient(app, raise_server_exceptions=False)
 
-    resp = client.post("/api/cbir/search", json={
-        "panel_id": "nonexistent",
-        "case_id": "case1",
-    })
+    resp = client.post(
+        "/api/cbir/search",
+        json={
+            "panel_id": "nonexistent",
+            "case_id": "case1",
+        },
+    )
     assert resp.status_code == 200
     data = resp.json()
     assert data["similar_panels"] == []
@@ -274,10 +327,13 @@ def test_cbir_search_validation_top_k(tmp_path: Path) -> None:
     Base.metadata.create_all(bind=app.state.dependencies._engine)
     client = TestClient(app, raise_server_exceptions=False)
 
-    resp = client.post("/api/cbir/search", json={
-        "panel_id": "P1",
-        "top_k": 0,  # Invalid: must be >= 1
-    })
+    resp = client.post(
+        "/api/cbir/search",
+        json={
+            "panel_id": "P1",
+            "top_k": 0,  # Invalid: must be >= 1
+        },
+    )
     assert resp.status_code == 422
 
 
@@ -290,10 +346,13 @@ def test_cbir_search_validation_threshold(tmp_path: Path) -> None:
     Base.metadata.create_all(bind=app.state.dependencies._engine)
     client = TestClient(app, raise_server_exceptions=False)
 
-    resp = client.post("/api/cbir/search", json={
-        "panel_id": "P1",
-        "threshold": 1.5,  # Invalid: must be <= 1.0
-    })
+    resp = client.post(
+        "/api/cbir/search",
+        json={
+            "panel_id": "P1",
+            "threshold": 1.5,  # Invalid: must be <= 1.0
+        },
+    )
     assert resp.status_code == 422
 
 

@@ -112,7 +112,11 @@ def test_find_cross_sheet_duplicates_identifies_duplicates(tmp_path: Path) -> No
     assert len(findings) >= 1
 
     # Check that Value columns are detected as duplicates (15/20 = 0.75 support)
-    value_findings = [f for f in findings if "Value" in f.column_1_label or "Value" in f.column_2_label]
+    value_findings = [
+        f
+        for f in findings
+        if "Value" in f.column_1_label or "Value" in f.column_2_label
+    ]
     if value_findings:
         # Support rate should be around 0.75 (15 matching out of 20 overlapping)
         assert 0.7 <= value_findings[0].support_rate <= 0.8

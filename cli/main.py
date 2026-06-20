@@ -18,7 +18,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     subparsers = parser.add_subparsers(dest="command", required=True)
 
-    run_parser = subparsers.add_parser("run", help="Run verification from a manifest file.")
+    run_parser = subparsers.add_parser(
+        "run", help="Run verification from a manifest file."
+    )
     run_parser.add_argument("manifest", help="Path to veritas manifest JSON.")
     run_parser.add_argument(
         "--output-dir",
@@ -32,7 +34,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="Role view to encode in the generated report.",
     )
 
-    precheck_parser = subparsers.add_parser("precheck", help="Run non-executing readiness checks.")
+    precheck_parser = subparsers.add_parser(
+        "precheck", help="Run non-executing readiness checks."
+    )
     precheck_parser.add_argument("manifest", help="Path to veritas manifest JSON.")
     precheck_parser.add_argument(
         "--output-dir",
@@ -40,7 +44,9 @@ def build_parser() -> argparse.ArgumentParser:
         help="Optional directory for generated precheck artifacts.",
     )
 
-    report_parser = subparsers.add_parser("report", help="Render markdown/html from an existing report.json.")
+    report_parser = subparsers.add_parser(
+        "report", help="Render markdown/html from an existing report.json."
+    )
     report_parser.add_argument("report_json", help="Path to report.json.")
     report_parser.add_argument(
         "--output-dir",
@@ -52,9 +58,13 @@ def build_parser() -> argparse.ArgumentParser:
         "audit-paper",
         help="Run first-stage paper audit from a local paper directory.",
     )
-    audit_parser.add_argument("paper_dir", help="Directory containing paper PDF and optional Source Data.")
+    audit_parser.add_argument(
+        "paper_dir", help="Directory containing paper PDF and optional Source Data."
+    )
     audit_parser.add_argument("--case-id", help="Case id used under outputs/<case-id>.")
-    audit_parser.add_argument("--output-root", default="outputs", help="Output root directory.")
+    audit_parser.add_argument(
+        "--output-root", default="outputs", help="Output root directory."
+    )
     audit_parser.add_argument(
         "--fresh",
         action="store_true",
@@ -102,7 +112,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--skip-unavailable-tools",
         action="store_true",
         help="Allow pipeline to continue when tools fail due to missing environment prerequisites (GPU, Docker). "
-             "Without this flag, environment failures abort the pipeline.",
+        "Without this flag, environment failures abort the pipeline.",
     )
     audit_parser.add_argument(
         "--progress",

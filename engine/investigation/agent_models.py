@@ -7,6 +7,7 @@ source of truth.
 
 See PRD: prd/opencode-agent-function-runtime.md
 """
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass, field
@@ -15,7 +16,12 @@ from typing import Any, Literal
 
 
 def _utc_now() -> str:
-    return datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    return (
+        datetime.now(timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -41,6 +47,7 @@ class AgentRunResult:
     migration. The new shape adds structured error classification,
     log artifact references, and metadata for observability.
     """
+
     status: AgentRunStatus
     role: str
     output: dict[str, Any] | None = None
@@ -68,6 +75,7 @@ class TruncationConfig:
     head_tail strategy keeps first 30% + last 30% of text,
     inserting [...truncated...] in the middle.
     """
+
     max_tokens_per_pack: int = 200_000
     max_tokens_per_excerpt: int = 50_000
     strategy: TruncationStrategy = "head_tail"
@@ -89,6 +97,7 @@ class AgentContextPack:
     Must NOT contain: raw PDF, images, full evidence ledger,
     large investigation output.
     """
+
     artifact_manifest: list[dict[str, Any]] = field(default_factory=list)
     evidence_refs: list[dict[str, Any]] = field(default_factory=list)
     top_n_findings: list[dict[str, Any]] = field(default_factory=list)
@@ -108,6 +117,7 @@ class AgentContextPack:
 
     def to_json_bytes(self) -> bytes:
         import json
+
         return json.dumps(self.to_dict(), indent=2, ensure_ascii=False).encode("utf-8")
 
 
@@ -131,6 +141,7 @@ class ProgressEvent:
 
     Long output goes to log artifact, referenced via log_ref.
     """
+
     step: str
     status: ProgressEventStatus
     summary: str = ""

@@ -68,7 +68,9 @@ class IndexStatus:
     """Snapshot of the current indexing state for a case."""
 
     case_id: str
-    status: str  # "not_indexed" | "queued" | "running" | "completed" | "failed" | "indexed"
+    status: (
+        str  # "not_indexed" | "queued" | "running" | "completed" | "failed" | "indexed"
+    )
     indexed_count: int = 0
     expected_count: int | None = None
     detail: str = ""
@@ -160,12 +162,14 @@ def collect_panel_evidence(workdir: Path) -> tuple[list[PanelRecord], str | None
         if not full_path.exists():
             logger.debug("panel image missing: %s", full_path)
             continue
-        records.append(PanelRecord(
-            panel_id=panel_id,
-            figure_id=figure_id,
-            image_path=full_path,
-            relative_path=crop_path,
-        ))
+        records.append(
+            PanelRecord(
+                panel_id=panel_id,
+                figure_id=figure_id,
+                image_path=full_path,
+                relative_path=crop_path,
+            )
+        )
 
     return records, None
 
@@ -264,7 +268,8 @@ class EmbeddingIndexer:
         # Mark as running
         if self._job_store:
             self._job_store.upsert(
-                self._case_id, "running",
+                self._case_id,
+                "running",
                 expected_count=expected_count,
                 detail="SSCD embedding extraction running",
             )
@@ -282,13 +287,15 @@ class EmbeddingIndexer:
         for record, embedding in zip(records, batch_result.embeddings):
             if embedding is None:
                 continue
-            upsert_records.append({
-                "panel_id": record.panel_id,
-                "figure_id": record.figure_id,
-                "image_path": record.relative_path,
-                "embedding": embedding,
-                "indexed_at": _utc_now(),
-            })
+            upsert_records.append(
+                {
+                    "panel_id": record.panel_id,
+                    "figure_id": record.figure_id,
+                    "image_path": record.relative_path,
+                    "embedding": embedding,
+                    "indexed_at": _utc_now(),
+                }
+            )
 
         # Stage 4: bulk upsert
         indexed_count = 0
@@ -435,6 +442,7 @@ def _read_panel_evidence(workdir: Path) -> dict[str, Any] | None:
     """Read panel_evidence.json, trying the canonical mapped path then legacy."""
     try:
         from engine.static_audit.paths import resolve_artifact_path
+
         mapped = resolve_artifact_path(workdir, "panel_evidence.json")
         if mapped.exists():
             return json.loads(mapped.read_text(encoding="utf-8"))

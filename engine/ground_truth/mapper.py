@@ -59,13 +59,15 @@ def map_claims_to_capabilities(
     for claim in claims:
         cap_id, cap_cat = _resolve_capability(claim, catalog)
         finding_id = _find_matching_finding(claim, finding_index)
-        mapped.append(MappedClaim(
-            claim=claim,
-            capability_id=cap_id,
-            capability_category=cap_cat,
-            detected=bool(finding_id),
-            existing_finding_id=finding_id,
-        ))
+        mapped.append(
+            MappedClaim(
+                claim=claim,
+                capability_id=cap_id,
+                capability_category=cap_cat,
+                detected=bool(finding_id),
+                existing_finding_id=finding_id,
+            )
+        )
     return mapped
 
 
@@ -76,7 +78,11 @@ def _load_catalog(catalog_path: Path) -> dict[str, dict]:
     data = yaml.safe_load(catalog_path.read_text()) or {}
     capabilities = data.get("capabilities", data)
     if isinstance(capabilities, list):
-        return {str(c.get("capability_id", "")): c for c in capabilities if isinstance(c, dict)}
+        return {
+            str(c.get("capability_id", "")): c
+            for c in capabilities
+            if isinstance(c, dict)
+        }
     if isinstance(capabilities, dict):
         return capabilities
     return {}
@@ -94,10 +100,22 @@ def _resolve_capability(claim: StructuredClaim, catalog: dict) -> tuple[str, str
         "visual.image_quality": ("visual.image_quality", "visual"),
         "source_data.fixed_difference": ("source_data.fixed_difference", "source_data"),
         "source_data.fixed_ratio": ("source_data.fixed_ratio", "source_data"),
-        "source_data.duplicate_columns": ("source_data.duplicate_columns", "source_data"),
-        "source_data.row_offset_exact_reuse": ("source_data.row_offset_exact_reuse", "source_data"),
-        "source_data.paired_difference_spread": ("source_data.paired_difference_spread", "source_data"),
-        "completeness.missing_source_data": ("completeness.missing_source_data", "completeness"),
+        "source_data.duplicate_columns": (
+            "source_data.duplicate_columns",
+            "source_data",
+        ),
+        "source_data.row_offset_exact_reuse": (
+            "source_data.row_offset_exact_reuse",
+            "source_data",
+        ),
+        "source_data.paired_difference_spread": (
+            "source_data.paired_difference_spread",
+            "source_data",
+        ),
+        "completeness.missing_source_data": (
+            "completeness.missing_source_data",
+            "completeness",
+        ),
     }
 
     if direct in category_map:
@@ -145,8 +163,26 @@ def _category_compatible(claim_type: str, finding_category: str) -> bool:
     """Check if claim_type and finding_category are semantically compatible."""
     type_prefix = claim_type.split(".")[0] if "." in claim_type else claim_type
     aliases = {
-        "visual": {"copy_move", "visual", "panel", "exact_duplicate", "dhash", "overlap", "forged", "tru_for", "image_quality"},
-        "source_data": {"fixed_difference", "fixed_ratio", "duplicate", "row_offset", "paired", "formula", "source_data"},
+        "visual": {
+            "copy_move",
+            "visual",
+            "panel",
+            "exact_duplicate",
+            "dhash",
+            "overlap",
+            "forged",
+            "tru_for",
+            "image_quality",
+        },
+        "source_data": {
+            "fixed_difference",
+            "fixed_ratio",
+            "duplicate",
+            "row_offset",
+            "paired",
+            "formula",
+            "source_data",
+        },
         "completeness": {"missing", "completeness", "source_data_missing"},
         "numeric": {"numeric", "benford", "variance", "digit", "rounding"},
     }

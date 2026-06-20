@@ -29,13 +29,20 @@ from engine.embeddings.sscd import SSCDEncoder
 logger = logging.getLogger(__name__)
 
 # Re-export for backward compatibility
-__all__ = ["SSCDEncoder", "index_panels", "get_index_status", "update_index_job",
-           "query_similar", "query_all_similar_pairs"]
+__all__ = [
+    "SSCDEncoder",
+    "index_panels",
+    "get_index_status",
+    "update_index_job",
+    "query_similar",
+    "query_all_similar_pairs",
+]
 
 
 # ---------------------------------------------------------------------------
 # Indexing
 # ---------------------------------------------------------------------------
+
 
 def index_panels(
     db: Session,
@@ -129,17 +136,19 @@ def index_panels(
             existing.embedding_dim = len(embedding)
             existing.indexed_at = _utc_now()
         else:
-            db.add(ImageEmbeddingModel(
-                case_id=case_id,
-                panel_id=panel_id,
-                figure_id=figure_id,
-                image_path=str(_path.relative_to(workdir)),
-                embedding=embedding,
-                embedding_level="panel",
-                embedding_model="sscd_disc_mixup",
-                embedding_dim=len(embedding),
-                indexed_at=_utc_now(),
-            ))
+            db.add(
+                ImageEmbeddingModel(
+                    case_id=case_id,
+                    panel_id=panel_id,
+                    figure_id=figure_id,
+                    image_path=str(_path.relative_to(workdir)),
+                    embedding=embedding,
+                    embedding_level="panel",
+                    embedding_model="sscd_disc_mixup",
+                    embedding_dim=len(embedding),
+                    indexed_at=_utc_now(),
+                )
+            )
         indexed += 1
 
     db.commit()
@@ -195,15 +204,17 @@ def get_index_status(db: Session, case_id: str) -> dict[str, Any]:
     }
     job = db.get(EmbeddingIndexJobModel, case_id)
     if job:
-        status.update({
-            "status": job.status,
-            "job_status": job.status,
-            "expected_count": job.expected_count,
-            "detail": job.detail or "",
-            "started_at": job.started_at,
-            "completed_at": job.completed_at,
-            "updated_at": job.updated_at,
-        })
+        status.update(
+            {
+                "status": job.status,
+                "job_status": job.status,
+                "expected_count": job.expected_count,
+                "detail": job.detail or "",
+                "started_at": job.started_at,
+                "completed_at": job.completed_at,
+                "updated_at": job.updated_at,
+            }
+        )
         if count > 0 and job.status in {"completed", "indexed"}:
             status["status"] = "indexed"
     return status
@@ -243,6 +254,7 @@ def update_index_job(
 # ---------------------------------------------------------------------------
 # Similarity Search
 # ---------------------------------------------------------------------------
+
 
 def query_similar(
     db: Session,
@@ -297,12 +309,14 @@ def query_similar(
             continue
         similarity = _cosine_similarity(query_embedding, row.embedding)
         if similarity >= threshold:
-            results.append({
-                "panel_id": row.panel_id,
-                "figure_id": row.figure_id,
-                "image_path": row.image_path,
-                "similarity": round(similarity, 4),
-            })
+            results.append(
+                {
+                    "panel_id": row.panel_id,
+                    "figure_id": row.figure_id,
+                    "image_path": row.image_path,
+                    "similarity": round(similarity, 4),
+                }
+            )
 
     # Sort by similarity descending
     results.sort(key=lambda x: x["similarity"], reverse=True)
@@ -345,7 +359,7 @@ def query_all_similar_pairs(
     for i, row_a in enumerate(all_embeddings):
         if not row_a.embedding:
             continue
-        for row_b in all_embeddings[i + 1:]:
+        for row_b in all_embeddings[i + 1 :]:
             if not row_b.embedding:
                 continue
             # Ensure consistent ordering
@@ -361,13 +375,15 @@ def query_all_similar_pairs(
                     source, target = row_a, row_b
                 else:
                     source, target = row_b, row_a
-                pairs.append({
-                    "source_panel_id": source.panel_id,
-                    "target_panel_id": target.panel_id,
-                    "source_figure_id": source.figure_id,
-                    "target_figure_id": target.figure_id,
-                    "similarity": round(similarity, 4),
-                })
+                pairs.append(
+                    {
+                        "source_panel_id": source.panel_id,
+                        "target_panel_id": target.panel_id,
+                        "source_figure_id": source.figure_id,
+                        "target_figure_id": target.figure_id,
+                        "similarity": round(similarity, 4),
+                    }
+                )
 
     pairs.sort(key=lambda x: x["similarity"], reverse=True)
     return pairs
@@ -376,6 +392,7 @@ def query_all_similar_pairs(
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _cosine_similarity(a: list[float], b: list[float]) -> float:
     """Compute cosine similarity between two vectors.
@@ -403,4 +420,5 @@ def _read_panel_evidence(workdir: Path) -> dict[str, Any] | None:
 
 def _utc_now() -> str:
     from datetime import datetime, timezone
+
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")

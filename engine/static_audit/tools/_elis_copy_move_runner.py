@@ -59,7 +59,14 @@ logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(mes
 logger = logging.getLogger(__name__)
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-ELIS_KEYPOINT_SRC = _REPO_ROOT / "third_party" / "elis" / "system_modules" / "copy-move-detection-keypoint" / "src"
+ELIS_KEYPOINT_SRC = (
+    _REPO_ROOT
+    / "third_party"
+    / "elis"
+    / "system_modules"
+    / "copy-move-detection-keypoint"
+    / "src"
+)
 
 
 def _setup_elis_path() -> None:
@@ -84,7 +91,9 @@ def _native_int(value: Any) -> int:
     return int(value)
 
 
-def _run_single(panels: list[dict[str, str]], output_dir: str, min_keypoints: int, min_area: float) -> list[dict[str, Any]]:
+def _run_single(
+    panels: list[dict[str, str]], output_dir: str, min_keypoints: int, min_area: float
+) -> list[dict[str, Any]]:
     """Run single-image copy-move detection on each panel."""
     _setup_elis_path()
     from detector import KeypointCopyMoveDetector
@@ -107,31 +116,45 @@ def _run_single(panels: list[dict[str, str]], output_dir: str, min_keypoints: in
         path = panel["path"]
         try:
             result = detector.detect_single_image(path)
-            results.append({
-                "panel_id": panel_id,
-                "success": _native_bool(result.get("success", False)),
-                "found_forgery": _native_bool(result.get("found_forgery", False)),
-                "matched_keypoints": _native_int(result.get("matched_keypoints", 0)),
-                "num_clusters": _native_int(result.get("num_clusters", 0)),
-                "mask_path": str(result.get("mask_path", "")),
-                "matches_path": str(result.get("matches_path", "")),
-                "clusters_path": str(result.get("clusters_path", "")),
-                "error": str(result.get("error", "")),
-            })
+            results.append(
+                {
+                    "panel_id": panel_id,
+                    "success": _native_bool(result.get("success", False)),
+                    "found_forgery": _native_bool(result.get("found_forgery", False)),
+                    "matched_keypoints": _native_int(
+                        result.get("matched_keypoints", 0)
+                    ),
+                    "num_clusters": _native_int(result.get("num_clusters", 0)),
+                    "mask_path": str(result.get("mask_path", "")),
+                    "matches_path": str(result.get("matches_path", "")),
+                    "clusters_path": str(result.get("clusters_path", "")),
+                    "error": str(result.get("error", "")),
+                }
+            )
         except Exception as e:
             # Failure isolation: per-panel detector errors must not abort the batch.
-            logger.warning("Single-image copy-move failed for panel %s: %s", panel_id, e)
-            results.append({
-                "panel_id": panel_id,
-                "success": False,
-                "found_forgery": False,
-                "matched_keypoints": 0,
-                "error": str(e),
-            })
+            logger.warning(
+                "Single-image copy-move failed for panel %s: %s", panel_id, e
+            )
+            results.append(
+                {
+                    "panel_id": panel_id,
+                    "success": False,
+                    "found_forgery": False,
+                    "matched_keypoints": 0,
+                    "error": str(e),
+                }
+            )
     return results
 
 
-def _run_cross(pairs: list[dict[str, str]], output_dir: str, min_keypoints: int, min_area: float, check_flip: bool) -> list[dict[str, Any]]:
+def _run_cross(
+    pairs: list[dict[str, str]],
+    output_dir: str,
+    min_keypoints: int,
+    min_area: float,
+    check_flip: bool,
+) -> list[dict[str, Any]]:
     """Run cross-image copy detection on each pair."""
     _setup_elis_path()
     from detector import KeypointCopyMoveDetector
@@ -156,48 +179,60 @@ def _run_cross(pairs: list[dict[str, str]], output_dir: str, min_keypoints: int,
         try:
             result = detector.detect_cross_image(source, target)
             matched_kp = _native_int(result.get("matched_keypoints", 0))
-            results.append({
-                "pair_id": pair_id,
-                "source_panel_id": pair.get("source_panel_id", ""),
-                "target_panel_id": pair.get("target_panel_id", ""),
-                "source_figure_id": pair.get("source_figure_id", ""),
-                "target_figure_id": pair.get("target_figure_id", ""),
-                "success": _native_bool(result.get("success", False)),
-                "found_forgery": _native_bool(result.get("found_forgery", False)),
-                "matched_keypoints": matched_kp,
-                "inlier_count": matched_kp,
-                "keypoint_count": matched_kp,
-                "shared_area_source": _native_float(result.get("shared_area_source", 0.0)),
-                "shared_area_target": _native_float(result.get("shared_area_target", 0.0)),
-                "is_flipped": _native_bool(result.get("is_flipped", False)),
-                "flip_detected": _native_bool(result.get("is_flipped", False)),
-                "num_clusters_source": _native_int(result.get("num_clusters_source", 0)),
-                "num_clusters_target": _native_int(result.get("num_clusters_target", 0)),
-                "mask_path": str(result.get("mask_path", "")),
-                "matches_path": str(result.get("matches_path", "")),
-                "clusters_path": str(result.get("clusters_path", "")),
-                "error": str(result.get("error", "")),
-            })
+            results.append(
+                {
+                    "pair_id": pair_id,
+                    "source_panel_id": pair.get("source_panel_id", ""),
+                    "target_panel_id": pair.get("target_panel_id", ""),
+                    "source_figure_id": pair.get("source_figure_id", ""),
+                    "target_figure_id": pair.get("target_figure_id", ""),
+                    "success": _native_bool(result.get("success", False)),
+                    "found_forgery": _native_bool(result.get("found_forgery", False)),
+                    "matched_keypoints": matched_kp,
+                    "inlier_count": matched_kp,
+                    "keypoint_count": matched_kp,
+                    "shared_area_source": _native_float(
+                        result.get("shared_area_source", 0.0)
+                    ),
+                    "shared_area_target": _native_float(
+                        result.get("shared_area_target", 0.0)
+                    ),
+                    "is_flipped": _native_bool(result.get("is_flipped", False)),
+                    "flip_detected": _native_bool(result.get("is_flipped", False)),
+                    "num_clusters_source": _native_int(
+                        result.get("num_clusters_source", 0)
+                    ),
+                    "num_clusters_target": _native_int(
+                        result.get("num_clusters_target", 0)
+                    ),
+                    "mask_path": str(result.get("mask_path", "")),
+                    "matches_path": str(result.get("matches_path", "")),
+                    "clusters_path": str(result.get("clusters_path", "")),
+                    "error": str(result.get("error", "")),
+                }
+            )
         except Exception as e:
             # Failure isolation: per-pair detector errors must not abort the batch.
             logger.warning("Cross-image copy-move failed for pair %s: %s", pair_id, e)
-            results.append({
-                "pair_id": pair_id,
-                "source_panel_id": pair.get("source_panel_id", ""),
-                "target_panel_id": pair.get("target_panel_id", ""),
-                "source_figure_id": pair.get("source_figure_id", ""),
-                "target_figure_id": pair.get("target_figure_id", ""),
-                "success": False,
-                "found_forgery": False,
-                "matched_keypoints": 0,
-                "inlier_count": 0,
-                "keypoint_count": 0,
-                "shared_area_source": 0.0,
-                "shared_area_target": 0.0,
-                "is_flipped": False,
-                "flip_detected": False,
-                "error": str(e),
-            })
+            results.append(
+                {
+                    "pair_id": pair_id,
+                    "source_panel_id": pair.get("source_panel_id", ""),
+                    "target_panel_id": pair.get("target_panel_id", ""),
+                    "source_figure_id": pair.get("source_figure_id", ""),
+                    "target_figure_id": pair.get("target_figure_id", ""),
+                    "success": False,
+                    "found_forgery": False,
+                    "matched_keypoints": 0,
+                    "inlier_count": 0,
+                    "keypoint_count": 0,
+                    "shared_area_source": 0.0,
+                    "shared_area_target": 0.0,
+                    "is_flipped": False,
+                    "flip_detected": False,
+                    "error": str(e),
+                }
+            )
     return results
 
 

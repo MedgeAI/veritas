@@ -41,12 +41,16 @@ DOCKER_IMAGE = "veritas-elis-provenance:latest"
 # Docker availability
 # ---------------------------------------------------------------------------
 
+
 def _docker_available() -> bool:
     """Return True if Docker daemon is running and the image is present."""
     try:
         result = subprocess.run(
             ["docker", "images", "-q", DOCKER_IMAGE],
-            capture_output=True, text=True, timeout=10, check=False,
+            capture_output=True,
+            text=True,
+            timeout=10,
+            check=False,
         )
         return bool(result.stdout.strip())
     except (OSError, subprocess.TimeoutExpired):
@@ -56,6 +60,7 @@ def _docker_available() -> bool:
 # ---------------------------------------------------------------------------
 # Container IO
 # ---------------------------------------------------------------------------
+
 
 def _build_container_input(
     images: list[dict[str, str]],
@@ -104,7 +109,10 @@ def _parse_container_output(stdout: str) -> dict[str, Any]:
         return {"success": False, "error": f"Invalid JSON from container: {exc}"}
 
     if not data.get("success"):
-        return {"success": False, "error": data.get("message", "Unknown container error")}
+        return {
+            "success": False,
+            "error": data.get("message", "Unknown container error"),
+        }
 
     prov = data.get("provenance_response")
     if prov is None:
@@ -128,6 +136,7 @@ def _parse_container_output(stdout: str) -> dict[str, Any]:
 # ELIS -> Veritas graph conversion
 # ---------------------------------------------------------------------------
 
+
 def _convert_graph(
     elis_graph: dict[str, Any],
     *,
@@ -148,33 +157,39 @@ def _convert_graph(
             image_path = str(Path(image_path).relative_to(workdir))
         except (ValueError, TypeError):
             pass
-        nodes.append({
-            "id": n.get("id", ""),
-            "label": n.get("label", ""),
-            "image_path": image_path,
-            "is_query": n.get("is_query", False),
-        })
+        nodes.append(
+            {
+                "id": n.get("id", ""),
+                "label": n.get("label", ""),
+                "image_path": image_path,
+                "is_query": n.get("is_query", False),
+            }
+        )
 
     edges = []
     for e in elis_graph.get("edges", []):
-        edges.append({
-            "source": e.get("source", ""),
-            "target": e.get("target", ""),
-            "weight": round(e.get("weight", 0.0), 4),
-            "shared_area_source": round(e.get("shared_area_source", 0.0), 4),
-            "shared_area_target": round(e.get("shared_area_target", 0.0), 4),
-            "matched_keypoints": e.get("matched_keypoints", 0),
-            "is_flipped": e.get("is_flipped", False),
-            "cosine_similarity": 0.0,  # ELIS uses RootSIFT, not SSCD
-        })
+        edges.append(
+            {
+                "source": e.get("source", ""),
+                "target": e.get("target", ""),
+                "weight": round(e.get("weight", 0.0), 4),
+                "shared_area_source": round(e.get("shared_area_source", 0.0), 4),
+                "shared_area_target": round(e.get("shared_area_target", 0.0), 4),
+                "matched_keypoints": e.get("matched_keypoints", 0),
+                "is_flipped": e.get("is_flipped", False),
+                "cosine_similarity": 0.0,  # ELIS uses RootSIFT, not SSCD
+            }
+        )
 
     spanning_tree = []
     for e in elis_graph.get("spanning_tree_edges") or []:
-        spanning_tree.append({
-            "source": e.get("source", ""),
-            "target": e.get("target", ""),
-            "weight": round(e.get("weight", 0.0), 4),
-        })
+        spanning_tree.append(
+            {
+                "source": e.get("source", ""),
+                "target": e.get("target", ""),
+                "weight": round(e.get("weight", 0.0), 4),
+            }
+        )
 
     connected_components = elis_graph.get("connected_components") or []
 
@@ -200,6 +215,7 @@ def _convert_graph(
 # ---------------------------------------------------------------------------
 # Docker invocation
 # ---------------------------------------------------------------------------
+
 
 def _run_docker(
     container_input: dict[str, Any],
@@ -239,29 +255,47 @@ def _run_docker(
 
     # Write input JSON to a temp file
     with tempfile.NamedTemporaryFile(
-        mode="w", suffix=".json", delete=False, dir=host_output_dir,
+        mode="w",
+        suffix=".json",
+        delete=False,
+        dir=host_output_dir,
     ) as tmp:
         json.dump(container_input_copy, tmp)
         input_json_path = tmp.name
 
     cmd = [
-        "docker", "run", "--rm",
+        "docker",
+        "run",
+        "--rm",
         *volume_args,
-        "-v", f"{input_json_path}:/input.json:ro",
+        "-v",
+        f"{input_json_path}:/input.json:ro",
         DOCKER_IMAGE,
-        "run", "--input", "/input.json",
+        "run",
+        "--input",
+        "/input.json",
     ]
 
     try:
         proc = subprocess.run(
-            cmd, capture_output=True, text=True, timeout=timeout, check=False,
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+            check=False,
         )
         if proc.returncode != 0:
             stderr_snippet = (proc.stderr or "").strip()[-500:]
-            return {"success": False, "error": f"Container exit {proc.returncode}: {stderr_snippet}"}
+            return {
+                "success": False,
+                "error": f"Container exit {proc.returncode}: {stderr_snippet}",
+            }
         return _parse_container_output(proc.stdout)
     except subprocess.TimeoutExpired:
-        return {"success": False, "error": f"Docker container timed out after {timeout}s"}
+        return {
+            "success": False,
+            "error": f"Docker container timed out after {timeout}s",
+        }
     except OSError as exc:
         return {"success": False, "error": str(exc)}
     finally:
@@ -275,6 +309,7 @@ def _run_docker(
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def run_provenance_analysis(
     figure_evidence: list[dict[str, Any]],
@@ -347,12 +382,14 @@ def run_provenance_analysis(
         if not fig_path.exists():
             continue
         abs_path = fig_path.resolve()
-        images_info.append({
-            "id": fid,
-            "path": str(abs_path),
-            "label": fid,
-            "is_query": fid in (query_figure_ids or []),
-        })
+        images_info.append(
+            {
+                "id": fid,
+                "path": str(abs_path),
+                "label": fid,
+                "is_query": fid in (query_figure_ids or []),
+            }
+        )
         image_dirs.add(abs_path.parent)
 
     if len(images_info) < 2:

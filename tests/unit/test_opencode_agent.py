@@ -117,7 +117,11 @@ def test_validate_material_plan_accepts_selected_xlsx_lane(tmp_path) -> None:
                 {
                     "lane_id": "source_data_xlsx",
                     "status": "selected",
-                    "tool_ids": ["source_data.profile", "source_data.findings", "source_data.pair_forensics"],
+                    "tool_ids": [
+                        "source_data.profile",
+                        "source_data.findings",
+                        "source_data.pair_forensics",
+                    ],
                     "root": str(source_root),
                     "reason": "xlsx source data detected",
                     "params": {
@@ -187,7 +191,9 @@ def test_validate_investigation_plan_rejects_wrong_round_id() -> None:
         raise AssertionError("expected wrong round_id to be rejected")
 
 
-def test_fake_investigation_plan_selects_image_similarity_when_images_exist(tmp_path) -> None:
+def test_fake_investigation_plan_selects_image_similarity_when_images_exist(
+    tmp_path,
+) -> None:
     (tmp_path / "images").mkdir()
 
     plan = fake_investigation_plan(case_id="case-a", workdir=Path(tmp_path), round_id=1)
@@ -195,7 +201,9 @@ def test_fake_investigation_plan_selects_image_similarity_when_images_exist(tmp_
     assert plan["actions"][0]["tool_id"] == "image.similarity_candidates"
 
 
-def test_fake_material_plan_reports_missing_source_data_without_inventory(tmp_path) -> None:
+def test_fake_material_plan_reports_missing_source_data_without_inventory(
+    tmp_path,
+) -> None:
     plan = fake_material_plan(case_id="case-a", workdir=Path(tmp_path))
 
     assert plan["selected_optional_lanes"] == []
@@ -204,7 +212,9 @@ def test_fake_material_plan_reports_missing_source_data_without_inventory(tmp_pa
 
 def test_validate_role_output_accepts_three_real_roles(tmp_path) -> None:
     for role_id in ["claim_extractor", "source_data_auditor", "judge"]:
-        data = fake_role_output(role_id=role_id, case_id="case-a", workdir=Path(tmp_path))
+        data = fake_role_output(
+            role_id=role_id, case_id="case-a", workdir=Path(tmp_path)
+        )
 
         validated = validate_role_output(role_id, data)
 

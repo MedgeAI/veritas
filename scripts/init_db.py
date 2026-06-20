@@ -19,11 +19,18 @@ if str(_PROJECT_ROOT) not in sys.path:
 
 
 def main() -> int:
-    from web.backend.veritas_web.database import check_connection, create_db_engine, init_db
+    from web.backend.veritas_web.database import (
+        check_connection,
+        create_db_engine,
+        init_db,
+    )
 
     engine = create_db_engine()
     if not check_connection(engine):
-        print("ERROR: cannot connect to PostgreSQL. Run `make db-up` first.", file=sys.stderr)
+        print(
+            "ERROR: cannot connect to PostgreSQL. Run `make db-up` first.",
+            file=sys.stderr,
+        )
         return 1
 
     init_db(engine)

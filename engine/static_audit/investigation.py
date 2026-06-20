@@ -129,4 +129,3 @@ def normalize_expected_evidence_type(value: str) -> str:
     if value in EXPECTED_EVIDENCE_TYPES:
         return value
     return "source_data_pattern"
-

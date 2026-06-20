@@ -44,16 +44,35 @@ def mock_provenance_result() -> dict:
         "status": "ran",
         "source": "elis_provenance_docker",
         "nodes": [
-            {"id": "FE-001", "label": "FE-001", "image_path": "images/fig1.png", "is_query": True},
-            {"id": "FE-002", "label": "FE-002", "image_path": "images/fig2.png", "is_query": False},
-            {"id": "FE-003", "label": "FE-003", "image_path": "images/fig3.png", "is_query": False},
+            {
+                "id": "FE-001",
+                "label": "FE-001",
+                "image_path": "images/fig1.png",
+                "is_query": True,
+            },
+            {
+                "id": "FE-002",
+                "label": "FE-002",
+                "image_path": "images/fig2.png",
+                "is_query": False,
+            },
+            {
+                "id": "FE-003",
+                "label": "FE-003",
+                "image_path": "images/fig3.png",
+                "is_query": False,
+            },
         ],
         "edges": [
             {
-                "source": "FE-001", "target": "FE-002",
-                "weight": 0.35, "shared_area_source": 0.40,
-                "shared_area_target": 0.35, "matched_keypoints": 45,
-                "is_flipped": False, "cosine_similarity": 0.0,
+                "source": "FE-001",
+                "target": "FE-002",
+                "weight": 0.35,
+                "shared_area_source": 0.40,
+                "shared_area_target": 0.35,
+                "matched_keypoints": 45,
+                "is_flipped": False,
+                "cosine_similarity": 0.0,
             },
         ],
         "spanning_tree_edges": [
@@ -77,7 +96,9 @@ def mock_provenance_result() -> dict:
 class TestBuildProvenanceGraphIntegration:
     """Integration tests for build_provenance_graph."""
 
-    def test_delegates_to_provenance_adapter(self, figure_evidence_list, tmp_path, mock_provenance_result):
+    def test_delegates_to_provenance_adapter(
+        self, figure_evidence_list, tmp_path, mock_provenance_result
+    ):
         """Verify build_provenance_graph calls run_provenance_analysis with correct params."""
         with patch(
             "engine.static_audit.tools.provenance_graph.run_provenance_analysis",
@@ -116,7 +137,9 @@ class TestBuildProvenanceGraphIntegration:
             assert len(result["nodes"]) == 3
             assert len(result["edges"]) == 1
 
-    def test_all_figures_as_queries_when_none_specified(self, figure_evidence_list, tmp_path, mock_provenance_result):
+    def test_all_figures_as_queries_when_none_specified(
+        self, figure_evidence_list, tmp_path, mock_provenance_result
+    ):
         """When query_figure_ids is None, all figures should be treated as queries."""
         with patch(
             "engine.static_audit.tools.provenance_graph.run_provenance_analysis",
@@ -126,7 +149,11 @@ class TestBuildProvenanceGraphIntegration:
 
             call_kwargs = mock_run.call_args.kwargs
             # All figure IDs should be in query_figure_ids
-            assert set(call_kwargs["query_figure_ids"]) == {"FE-001", "FE-002", "FE-003"}
+            assert set(call_kwargs["query_figure_ids"]) == {
+                "FE-001",
+                "FE-002",
+                "FE-003",
+            }
 
     def test_insufficient_figures(self, tmp_path):
         """Should return failed status when fewer than 2 figures have valid paths."""
@@ -151,7 +178,9 @@ class TestBuildProvenanceGraphIntegration:
             assert "Docker daemon crashed" in result["error"]
             assert any("Docker daemon crashed" in lim for lim in result["limitations"])
 
-    def test_custom_descriptor_type(self, figure_evidence_list, tmp_path, mock_provenance_result):
+    def test_custom_descriptor_type(
+        self, figure_evidence_list, tmp_path, mock_provenance_result
+    ):
         """Verify custom descriptor_type is forwarded to adapter."""
         with patch(
             "engine.static_audit.tools.provenance_graph.run_provenance_analysis",
@@ -167,7 +196,9 @@ class TestBuildProvenanceGraphIntegration:
             assert call_kwargs["descriptor_type"] == "vlfeat_sift_heq"
             assert result["descriptor_type"] == "vlfeat_sift_heq"
 
-    def test_custom_max_depth(self, figure_evidence_list, tmp_path, mock_provenance_result):
+    def test_custom_max_depth(
+        self, figure_evidence_list, tmp_path, mock_provenance_result
+    ):
         """Verify custom max_depth is added to result metadata."""
         with patch(
             "engine.static_audit.tools.provenance_graph.run_provenance_analysis",
@@ -215,7 +246,10 @@ class TestBuildProvenanceGraphIntegration:
 
         evidence = [
             {"figure_id": "FE-001", "source_image_path": "images/fig1.png"},
-            {"figure_id": "FE-002", "source_image_path": "images/missing.png"},  # does not exist
+            {
+                "figure_id": "FE-002",
+                "source_image_path": "images/missing.png",
+            },  # does not exist
         ]
 
         # Only 1 valid figure -> should fail with dependency error

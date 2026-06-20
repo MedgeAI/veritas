@@ -4,6 +4,7 @@ Tests the full HTTP request path through the auth layer for all three
 auth modes (none, bearer, basic) and verifies that ownership enforcement
 works correctly across different users.
 """
+
 from __future__ import annotations
 
 import base64
@@ -27,6 +28,7 @@ from web.backend.veritas_web.config import AuthConfig, create_auth_provider
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _basic_auth(username: str, password: str) -> tuple[str, str]:
     """Return (username, password) for TestClient's built-in basic auth."""
@@ -57,15 +59,19 @@ def _make_jwt(secret: str, user_id: str, issuer: str = "veritas") -> str:
 def _seed_completed_case(tmp_path: Path, db_url: str) -> tuple[str, str]:
     """Create an Alice-owned completed case.  Returns (case_id, run_id)."""
     store = CaseStore(tmp_path / "web_data", database_url=db_url)
-    case = store.create_case(user_id="alice", paper_title="Alice Paper", case_id="alice-private")
+    case = store.create_case(
+        user_id="alice", paper_title="Alice Paper", case_id="alice-private"
+    )
     run = store.create_run(case.case_id)
     workdir = tmp_path / "outputs" / case.case_id / "research-integrity-audit"
     workdir.mkdir(parents=True)
     (workdir / "static_audit_bundle.json").write_text(
-        json.dumps({"secret": "alice-data"}), encoding="utf-8",
+        json.dumps({"secret": "alice-data"}),
+        encoding="utf-8",
     )
     (workdir / "final_audit_report.html").write_text(
-        "<html>Alice private report</html>", encoding="utf-8",
+        "<html>Alice private report</html>",
+        encoding="utf-8",
     )
     run.status = "completed"
     run.workdir = str(workdir)
@@ -78,6 +84,7 @@ def _seed_completed_case(tmp_path: Path, db_url: str) -> tuple[str, str]:
 # ---------------------------------------------------------------------------
 # NoAuth mode tests
 # ---------------------------------------------------------------------------
+
 
 class TestNoAuthMode:
     def test_list_cases_without_auth(self, tmp_path: Path) -> None:
@@ -118,6 +125,7 @@ class TestNoAuthMode:
 # ---------------------------------------------------------------------------
 # Bearer (JWT) mode tests
 # ---------------------------------------------------------------------------
+
 
 class TestBearerMode:
     def test_missing_token_returns_401(self, tmp_path: Path) -> None:
@@ -162,7 +170,11 @@ class TestBearerMode:
         )
         client = TestClient(app)
         token = _make_jwt(secret, "alice")
-        resp = client.post("/api/cases", json={"paper_title": "Alice Paper"}, headers=_bearer_header(token))
+        resp = client.post(
+            "/api/cases",
+            json={"paper_title": "Alice Paper"},
+            headers=_bearer_header(token),
+        )
         assert resp.status_code == 201
         assert resp.json()["owner"] == "alice"
 
@@ -183,11 +195,14 @@ class TestBearerMode:
 # Basic mode tests
 # ---------------------------------------------------------------------------
 
+
 class TestBasicMode:
     def _setup_provider(self, tmp_path: Path) -> BasicAuthProvider:
         db_path = str(tmp_path / "test_users.db")
         provider = BasicAuthProvider(db_path)
-        provider.add_user("alice", "alice-pass", email="alice@lab.org", roles="admin,operator")
+        provider.add_user(
+            "alice", "alice-pass", email="alice@lab.org", roles="admin,operator"
+        )
         provider.add_user("bob", "bob-pass", email="bob@lab.org", roles="operator")
         return provider
 
@@ -246,6 +261,7 @@ class TestBasicMode:
 # Cross-user isolation tests
 # ---------------------------------------------------------------------------
 
+
 class TestCrossUserIsolation:
     def test_basic_mode_user_isolation(self, tmp_path: Path) -> None:
         db_path = str(tmp_path / "test_users.db")
@@ -280,7 +296,9 @@ class TestCrossUserIsolation:
         assert resp.json()["cases"] == []
 
         # Bob cannot access Alice's case directly
-        resp = client.get(f"/api/cases/{case_id}", headers=_basic_header("bob", "bob-pass"))
+        resp = client.get(
+            f"/api/cases/{case_id}", headers=_basic_header("bob", "bob-pass")
+        )
         assert resp.status_code == 403
 
     def test_basic_mode_case_subresources_enforce_owner(self, tmp_path: Path) -> None:
@@ -308,7 +326,9 @@ class TestCrossUserIsolation:
         ]
         for path in protected_reads:
             resp = client.get(path, headers=bob)
-            assert resp.status_code == 403, f"expected 403 for {path}, got {resp.status_code}"
+            assert resp.status_code == 403, (
+                f"expected 403 for {path}, got {resp.status_code}"
+            )
 
         resp = client.post(
             f"/api/cases/{case_id}/inputs",
@@ -317,7 +337,9 @@ class TestCrossUserIsolation:
         )
         assert resp.status_code == 403
 
-    def test_basic_mode_run_events_must_belong_to_requested_case(self, tmp_path: Path) -> None:
+    def test_basic_mode_run_events_must_belong_to_requested_case(
+        self, tmp_path: Path
+    ) -> None:
         db_url = f"sqlite:///{tmp_path / 'test.db'}"
         db_path = str(tmp_path / "test_users.db")
         provider = BasicAuthProvider(db_path)
@@ -385,6 +407,7 @@ class TestCrossUserIsolation:
 # ---------------------------------------------------------------------------
 # create_auth_provider factory tests
 # ---------------------------------------------------------------------------
+
 
 class TestCreateAuthProvider:
     def test_none_mode(self) -> None:

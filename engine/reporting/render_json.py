@@ -8,7 +8,9 @@ from engine.reporting.models import VerificationReport, report_from_dict
 
 def save_report_json(report: VerificationReport, output_path: str | Path) -> None:
     path = Path(output_path)
-    path.write_text(json.dumps(report.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+    path.write_text(
+        json.dumps(report.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def load_report_json(path: str | Path) -> VerificationReport:

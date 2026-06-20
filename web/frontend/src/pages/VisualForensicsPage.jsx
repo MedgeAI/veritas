@@ -69,18 +69,6 @@ function VisualForensicsPage({ selectedCase }) {
 
   const selectedPanelList = useMemo(() => Array.from(selectedPanelIds), [selectedPanelIds]);
 
-  const togglePanelSelection = useCallback((panelId) => {
-    setSelectedPanelIds((current) => {
-      const next = new Set(current);
-      if (next.has(panelId)) {
-        next.delete(panelId);
-      } else {
-        next.add(panelId);
-      }
-      return next;
-    });
-  }, []);
-
   const clearPanelSelection = useCallback(() => {
     setSelectedPanelIds(new Set());
   }, []);

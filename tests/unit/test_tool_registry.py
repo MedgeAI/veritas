@@ -41,7 +41,9 @@ def test_tool_catalog_exposes_static_audit_tools() -> None:
     assert "report.render_static_html" in STATIC_AUDIT_V1_TOOL_IDS
 
 
-def test_tool_catalog_for_investigation_only_exposes_deterministic_selectable_tools() -> None:
+def test_tool_catalog_for_investigation_only_exposes_deterministic_selectable_tools() -> (
+    None
+):
     catalog = tool_catalog_for_investigation()
     exposed = {item["tool_id"] for item in catalog}
 
@@ -117,4 +119,6 @@ def test_source_data_findings_params_are_bounded() -> None:
 
 def test_validate_plan_tools_rejects_unknown_tool_id() -> None:
     with pytest.raises(ValueError, match="unsupported tool_id"):
-        validate_plan_tools({"selected_tools": [{"tool_id": "unknown.tool", "params": {}}]})
+        validate_plan_tools(
+            {"selected_tools": [{"tool_id": "unknown.tool", "params": {}}]}
+        )

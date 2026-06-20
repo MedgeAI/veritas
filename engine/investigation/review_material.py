@@ -75,11 +75,14 @@ def fake_material_plan(*, case_id: str, workdir: Path) -> dict[str, Any]:
         "schema_version": "1.0",
         "case_id": case_id,
         "selected_optional_lanes": lanes,
-        "missing_materials": [] if any(item.get("status") == "selected" for item in lanes) else ["source_data_xlsx"],
+        "missing_materials": []
+        if any(item.get("status") == "selected" for item in lanes)
+        else ["source_data_xlsx"],
         "unsupported_materials": [
             item
             for item in (inventory.get("files") or [])[:50]
-            if item.get("material_type") in {"structured_table_text", "raw_data", "archive"}
+            if item.get("material_type")
+            in {"structured_table_text", "raw_data", "archive"}
         ],
         "agent_rationale": [
             "Use material_inventory.json to decide optional evidence lanes.",
@@ -325,13 +328,23 @@ def validate_material_plan(data: dict[str, Any]) -> dict[str, Any]:
             raise ValueError(f"unsupported optional lane status: {status}")
         tool_ids = lane.get("tool_ids") or []
         if status == "selected":
-            required_tool_ids = ["source_data.profile", "source_data.findings", "source_data.pair_forensics"]
+            required_tool_ids = [
+                "source_data.profile",
+                "source_data.findings",
+                "source_data.pair_forensics",
+            ]
             if tool_ids != required_tool_ids:
-                raise ValueError("source_data_xlsx selected lane must use source_data.profile, source_data.findings, and source_data.pair_forensics")
+                raise ValueError(
+                    "source_data_xlsx selected lane must use source_data.profile, source_data.findings, and source_data.pair_forensics"
+                )
             if not lane.get("root"):
                 raise ValueError("source_data_xlsx selected lane requires root")
         params = lane.get("params") if isinstance(lane.get("params"), dict) else {}
-        source_params = params.get("source_data_findings") if isinstance(params.get("source_data_findings"), dict) else {}
+        source_params = (
+            params.get("source_data_findings")
+            if isinstance(params.get("source_data_findings"), dict)
+            else {}
+        )
         normalized.append(
             {
                 "lane_id": lane_id,
@@ -340,7 +353,9 @@ def validate_material_plan(data: dict[str, Any]) -> dict[str, Any]:
                 "root": lane.get("root") if status == "selected" else None,
                 "reason": str(lane.get("reason", ""))[:500],
                 "params": {
-                    "source_data_findings": _coerce_material_source_params(source_params),
+                    "source_data_findings": _coerce_material_source_params(
+                        source_params
+                    ),
                 },
             }
         )

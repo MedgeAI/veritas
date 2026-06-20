@@ -22,6 +22,7 @@ TOOL_ID_OVERLAP_REUSE = "visual.overlap_reuse"
 TOOL_ID_CBIR_SEARCH = "visual.cbir_search"
 SOURCE_DATA_VERDICT_TOOL_ID = "source_data.verdict"
 
+
 class ExecutionPhase(str, Enum):
     """Tool execution phase — controls when and how a tool runs in the audit pipeline.
 
@@ -30,10 +31,12 @@ class ExecutionPhase(str, Enum):
     AGENT_SELECTABLE:     only runs via Agent investigation rounds.
     REPORT_ONLY:          consumes existing artifacts for report generation.
     """
-    MANDATORY_BASELINE   = "mandatory_baseline"
+
+    MANDATORY_BASELINE = "mandatory_baseline"
     CONDITIONAL_BASELINE = "conditional_baseline"
-    AGENT_SELECTABLE     = "agent_selectable"
-    REPORT_ONLY          = "report_only"
+    AGENT_SELECTABLE = "agent_selectable"
+    REPORT_ONLY = "report_only"
+
 
 SOURCE_DATA_FINDINGS_DEFAULT_PARAMS = {
     "min_overlap": 12,
@@ -83,10 +86,18 @@ TOOLS: dict[str, ToolDefinition] = {
         title="MinerU PDF 解析",
         source="third_party/research-integrity-auditor",
         description="Convert the paper PDF into Markdown, images, and MinerU manifest artifacts.",
-        expected_outputs=("mineru/full.md", "mineru/mineru_manifest.json", "visual/images/"),
+        expected_outputs=(
+            "mineru/full.md",
+            "mineru/mineru_manifest.json",
+            "visual/images/",
+        ),
         execution_phase=ExecutionPhase.MANDATORY_BASELINE,
         input_artifacts=("paper.pdf",),
-        output_artifacts=("mineru/full.md", "mineru/mineru_manifest.json", "visual/images/"),
+        output_artifacts=(
+            "mineru/full.md",
+            "mineru/mineru_manifest.json",
+            "visual/images/",
+        ),
     ),
     "paper.evidence_ledger": ToolDefinition(
         tool_id="paper.evidence_ledger",
@@ -168,7 +179,11 @@ TOOLS: dict[str, ToolDefinition] = {
         param_schema={
             "min_overlap": {"type": "integer", "minimum": 8, "maximum": 50},
             "min_support": {"type": "number", "minimum": 0.90, "maximum": 1.0},
-            "max_findings_per_category": {"type": "integer", "minimum": 20, "maximum": 500},
+            "max_findings_per_category": {
+                "type": "integer",
+                "minimum": 20,
+                "maximum": 500,
+            },
         },
     ),
     SOURCE_DATA_PAIR_FORENSICS_TOOL_ID: ToolDefinition(
@@ -194,7 +209,11 @@ TOOLS: dict[str, ToolDefinition] = {
             "min_support": {"type": "number", "minimum": 0.50, "maximum": 1.0},
             "ratio_places": {"type": "integer", "minimum": 1, "maximum": 8},
             "max_offset": {"type": "integer", "minimum": 1, "maximum": 500},
-            "max_findings_per_category": {"type": "integer", "minimum": 1, "maximum": 500},
+            "max_findings_per_category": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 500,
+            },
             "min_duplicate_row_width": {"type": "integer", "minimum": 2, "maximum": 20},
         },
     ),
@@ -228,7 +247,11 @@ TOOLS: dict[str, ToolDefinition] = {
         deterministic=False,
         expected_outputs=("source_data/findings_verdict.json",),
         execution_phase=ExecutionPhase.CONDITIONAL_BASELINE,
-        input_artifacts=("source_data/findings.json", "source_data/pair_forensics.json", "source_data/profile.json"),
+        input_artifacts=(
+            "source_data/findings.json",
+            "source_data/pair_forensics.json",
+            "source_data/profile.json",
+        ),
         output_artifacts=("source_data/findings_verdict.json",),
     ),
     PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID: ToolDefinition(
@@ -314,7 +337,11 @@ TOOLS: dict[str, ToolDefinition] = {
         description="Aggregate visual evidence into canonical visual_finding records for report generation.",
         expected_outputs=("visual/relationships.json", "visual/findings.json"),
         execution_phase=ExecutionPhase.REPORT_ONLY,
-        input_artifacts=("visual/panel_evidence.json", "visual/copy_move.json", "visual/exact_duplicates.json"),
+        input_artifacts=(
+            "visual/panel_evidence.json",
+            "visual/copy_move.json",
+            "visual/exact_duplicates.json",
+        ),
         output_artifacts=("visual/relationships.json", "visual/findings.json"),
     ),
     TOOL_ID_TRU_FOR: ToolDefinition(
@@ -328,7 +355,9 @@ TOOLS: dict[str, ToolDefinition] = {
         execution_phase=ExecutionPhase.MANDATORY_BASELINE,
         input_artifacts=("visual/evidence.json",),
         output_artifacts=("visual/forged_region_evidence.json",),
-        param_schema={"score_threshold": {"type": "number", "minimum": 0.0, "maximum": 1.0}},
+        param_schema={
+            "score_threshold": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+        },
     ),
     TOOL_ID_PROVENANCE_GRAPH: ToolDefinition(
         tool_id=TOOL_ID_PROVENANCE_GRAPH,
@@ -349,7 +378,10 @@ TOOLS: dict[str, ToolDefinition] = {
         input_artifacts=("visual/evidence.json",),
         output_artifacts=("visual/provenance_graph.json",),
         param_schema={
-            "descriptor_type": {"type": "string", "enum": ["cv_rsift", "cv_sift", "vlfeat_sift_heq"]},
+            "descriptor_type": {
+                "type": "string",
+                "enum": ["cv_rsift", "cv_sift", "vlfeat_sift_heq"],
+            },
             "min_keypoints": {"type": "integer", "minimum": 4, "maximum": 200},
             "min_area": {"type": "number", "minimum": 0.0, "maximum": 1.0},
             "max_depth": {"type": "integer", "minimum": 1, "maximum": 10},
@@ -364,7 +396,11 @@ TOOLS: dict[str, ToolDefinition] = {
         source="engine/static_audit/tools",
         description="Detect copy-move forgery using SILA dense features (Zernike/PCT/FMT). Requires Docker.",
         expected_outputs=("visual/copy_move_dense.json",),
-        parameter_defaults={"min_score": 0.05, "max_relationships": 500, "max_panels": 20},
+        parameter_defaults={
+            "min_score": 0.05,
+            "max_relationships": 500,
+            "max_panels": 20,
+        },
         input_artifacts=("visual/panel_evidence.json", "visual/evidence.json"),
         output_artifacts=("visual/copy_move_dense.json",),
         param_schema={
@@ -406,7 +442,10 @@ TOOLS: dict[str, ToolDefinition] = {
         param_schema={
             "tile_size": {"type": "integer", "minimum": 64, "maximum": 512},
             "tile_stride": {"type": "integer", "minimum": 32, "maximum": 512},
-            "candidate_method": {"type": "string", "enum": ["dhash_tile", "sscd_tile", "hybrid"]},
+            "candidate_method": {
+                "type": "string",
+                "enum": ["dhash_tile", "sscd_tile", "hybrid"],
+            },
             "max_candidate_pairs": {"type": "integer", "minimum": 10, "maximum": 10000},
             "min_inliers": {"type": "integer", "minimum": 4, "maximum": 200},
             "min_overlap_area": {"type": "number", "minimum": 0.0, "maximum": 1.0},
@@ -462,9 +501,15 @@ TOOLS: dict[str, ToolDefinition] = {
         source="opencode",
         description="Extract structured technical claims from parsed paper artifacts.",
         deterministic=False,
-        expected_outputs=("agents/claim_extractor.json", "agent_traces/claim_extractor.json"),
+        expected_outputs=(
+            "agents/claim_extractor.json",
+            "agent_traces/claim_extractor.json",
+        ),
         execution_phase=ExecutionPhase.AGENT_SELECTABLE,
-        output_artifacts=("agents/claim_extractor.json", "agent_traces/claim_extractor.json"),
+        output_artifacts=(
+            "agents/claim_extractor.json",
+            "agent_traces/claim_extractor.json",
+        ),
     ),
     "agent.role.source_data_auditor": ToolDefinition(
         tool_id="agent.role.source_data_auditor",
@@ -473,9 +518,15 @@ TOOLS: dict[str, ToolDefinition] = {
         source="opencode",
         description="Review Source Data findings and claim-to-source-data mappings.",
         deterministic=False,
-        expected_outputs=("agents/source_data_auditor.json", "agent_traces/source_data_auditor.json"),
+        expected_outputs=(
+            "agents/source_data_auditor.json",
+            "agent_traces/source_data_auditor.json",
+        ),
         execution_phase=ExecutionPhase.AGENT_SELECTABLE,
-        output_artifacts=("agents/source_data_auditor.json", "agent_traces/source_data_auditor.json"),
+        output_artifacts=(
+            "agents/source_data_auditor.json",
+            "agent_traces/source_data_auditor.json",
+        ),
     ),
     "agent.role.judge": ToolDefinition(
         tool_id="agent.role.judge",
@@ -494,10 +545,16 @@ TOOLS: dict[str, ToolDefinition] = {
         title="生成最终 Markdown 报告",
         source="veritas/scripts",
         description="Render the final Markdown report and run manifest.",
-        expected_outputs=("reports/final_audit_report.md", "reports/audit_run_manifest.json"),
+        expected_outputs=(
+            "reports/final_audit_report.md",
+            "reports/audit_run_manifest.json",
+        ),
         execution_phase=ExecutionPhase.REPORT_ONLY,
         input_artifacts=("reports/static_audit_bundle.json",),
-        output_artifacts=("reports/final_audit_report.md", "reports/audit_run_manifest.json"),
+        output_artifacts=(
+            "reports/final_audit_report.md",
+            "reports/audit_run_manifest.json",
+        ),
     ),
     "report.render_static_html": ToolDefinition(
         tool_id="report.render_static_html",
@@ -507,7 +564,10 @@ TOOLS: dict[str, ToolDefinition] = {
         description="Render a single-file static-audit HTML demo report from structured artifacts.",
         expected_outputs=("reports/final_audit_report.html",),
         execution_phase=ExecutionPhase.REPORT_ONLY,
-        input_artifacts=("reports/audit_run_manifest.json", "reports/static_audit_bundle.json"),
+        input_artifacts=(
+            "reports/audit_run_manifest.json",
+            "reports/static_audit_bundle.json",
+        ),
         output_artifacts=("reports/final_audit_report.html",),
     ),
 }
@@ -619,7 +679,9 @@ def validate_investigation_tool_action(action: dict[str, Any]) -> dict[str, Any]
         raise ValueError(f"unsupported investigation tool_id: {tool_id}")
     tool = TOOLS[tool_id]
     if not tool.agent_selectable or not tool.deterministic:
-        raise ValueError(f"tool_id is not agent-selectable deterministic tool: {tool_id}")
+        raise ValueError(
+            f"tool_id is not agent-selectable deterministic tool: {tool_id}"
+        )
     params = action.get("params") or {}
     if not isinstance(params, dict):
         raise ValueError(f"investigation action params must be an object: {tool_id}")
@@ -651,18 +713,36 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
     if tool_id == SOURCE_DATA_PAIR_FORENSICS_TOOL_ID:
         defaults = TOOLS[tool_id].parameter_defaults
         return {
-            "min_pairs": _bounded_int(params.get("min_pairs", defaults["min_pairs"]), "min_pairs", 2, 100),
-            "min_support": _bounded_float(params.get("min_support", defaults["min_support"]), "min_support", 0.50, 1.0),
-            "ratio_places": _bounded_int(params.get("ratio_places", defaults["ratio_places"]), "ratio_places", 1, 8),
-            "max_offset": _bounded_int(params.get("max_offset", defaults["max_offset"]), "max_offset", 1, 500),
+            "min_pairs": _bounded_int(
+                params.get("min_pairs", defaults["min_pairs"]), "min_pairs", 2, 100
+            ),
+            "min_support": _bounded_float(
+                params.get("min_support", defaults["min_support"]),
+                "min_support",
+                0.50,
+                1.0,
+            ),
+            "ratio_places": _bounded_int(
+                params.get("ratio_places", defaults["ratio_places"]),
+                "ratio_places",
+                1,
+                8,
+            ),
+            "max_offset": _bounded_int(
+                params.get("max_offset", defaults["max_offset"]), "max_offset", 1, 500
+            ),
             "max_findings_per_category": _bounded_int(
-                params.get("max_findings_per_category", defaults["max_findings_per_category"]),
+                params.get(
+                    "max_findings_per_category", defaults["max_findings_per_category"]
+                ),
                 "max_findings_per_category",
                 1,
                 500,
             ),
             "min_duplicate_row_width": _bounded_int(
-                params.get("min_duplicate_row_width", defaults["min_duplicate_row_width"]),
+                params.get(
+                    "min_duplicate_row_width", defaults["min_duplicate_row_width"]
+                ),
                 "min_duplicate_row_width",
                 2,
                 20,
@@ -670,21 +750,39 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
         }
     if tool_id == IMAGE_SIMILARITY_TOOL_ID:
         return {
-            "max_distance": _bounded_int(params.get("max_distance", 8), "max_distance", 0, 32),
-            "max_candidates": _bounded_int(params.get("max_candidates", 200), "max_candidates", 1, 1000),
+            "max_distance": _bounded_int(
+                params.get("max_distance", 8), "max_distance", 0, 32
+            ),
+            "max_candidates": _bounded_int(
+                params.get("max_candidates", 200), "max_candidates", 1, 1000
+            ),
         }
     if tool_id == SOURCE_DATA_CROSS_SHEET_TOOL_ID:
         defaults = TOOLS[tool_id].parameter_defaults
         return {
-            "min_overlap": _bounded_int(params.get("min_overlap", defaults["min_overlap"]), "min_overlap", 5, 50),
-            "min_support_rate": _bounded_float(params.get("min_support_rate", defaults["min_support_rate"]), "min_support_rate", 0.5, 1.0),
-            "max_findings": _bounded_int(params.get("max_findings", defaults["max_findings"]), "max_findings", 10, 200),
+            "min_overlap": _bounded_int(
+                params.get("min_overlap", defaults["min_overlap"]), "min_overlap", 5, 50
+            ),
+            "min_support_rate": _bounded_float(
+                params.get("min_support_rate", defaults["min_support_rate"]),
+                "min_support_rate",
+                0.5,
+                1.0,
+            ),
+            "max_findings": _bounded_int(
+                params.get("max_findings", defaults["max_findings"]),
+                "max_findings",
+                10,
+                200,
+            ),
         }
     if tool_id == PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID:
         defaults = TOOLS[tool_id].parameter_defaults
         profile = str(params.get("profile", defaults.get("profile", "review"))).lower()
         if profile not in {"review", "forensic", "triage"}:
-            raise ValueError(f"profile must be one of ['review', 'forensic', 'triage'], got {profile!r}")
+            raise ValueError(
+                f"profile must be one of ['review', 'forensic', 'triage'], got {profile!r}"
+            )
         return {"profile": profile}
     if tool_id == "source_data.profile":
         return {}
@@ -692,13 +790,18 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
         return {}
     if tool_id == TOOL_ID_COPY_MOVE:
         defaults = TOOLS[tool_id].parameter_defaults
-        method = str(params.get("method", defaults.get("method", "rootsift_magsac"))).lower()
+        method = str(
+            params.get("method", defaults.get("method", "rootsift_magsac"))
+        ).lower()
         if method not in {"rootsift_magsac"}:
             raise ValueError(f"method must be 'rootsift_magsac', got {method!r}")
         return {
             "method": method,
             "min_matches": _bounded_int(
-                params.get("min_matches", params.get("min_keypoints", defaults.get("min_matches", 20))),
+                params.get(
+                    "min_matches",
+                    params.get("min_keypoints", defaults.get("min_matches", 20)),
+                ),
                 "min_matches",
                 4,
                 200,
@@ -725,7 +828,9 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
         return {
             "score_threshold": _bounded_float(
                 params.get("score_threshold", defaults.get("score_threshold", 0.5)),
-                "score_threshold", 0.0, 1.0,
+                "score_threshold",
+                0.0,
+                1.0,
             ),
         }
     if tool_id == TOOL_ID_PROVENANCE_GRAPH:
@@ -742,20 +847,30 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
             "descriptor_type": descriptor_type,
             "min_keypoints": _bounded_int(
                 params.get("min_keypoints", defaults.get("min_keypoints", 20)),
-                "min_keypoints", 4, 200,
+                "min_keypoints",
+                4,
+                200,
             ),
             "min_area": _bounded_float(
                 params.get("min_area", defaults.get("min_area", 0.01)),
-                "min_area", 0.0, 1.0,
+                "min_area",
+                0.0,
+                1.0,
             ),
             "max_depth": _bounded_int(
                 params.get("max_depth", defaults.get("max_depth", 3)),
-                "max_depth", 1, 10,
+                "max_depth",
+                1,
+                10,
             ),
-            "check_flip": bool(params.get("check_flip", defaults.get("check_flip", True))),
+            "check_flip": bool(
+                params.get("check_flip", defaults.get("check_flip", True))
+            ),
             "max_workers": _bounded_int(
                 params.get("max_workers", defaults.get("max_workers", 4)),
-                "max_workers", 1, 16,
+                "max_workers",
+                1,
+                16,
             ),
         }
     if tool_id == TOOL_ID_SILA_DENSE:
@@ -763,15 +878,21 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
         return {
             "min_score": _bounded_float(
                 params.get("min_score", defaults.get("min_score", 0.05)),
-                "min_score", 0.0, 1.0,
+                "min_score",
+                0.0,
+                1.0,
             ),
             "max_relationships": _bounded_int(
                 params.get("max_relationships", defaults.get("max_relationships", 500)),
-                "max_relationships", 1, 5000,
+                "max_relationships",
+                1,
+                5000,
             ),
             "max_panels": _bounded_int(
                 params.get("max_panels", defaults.get("max_panels", 20)),
-                "max_panels", 1, 50,
+                "max_panels",
+                1,
+                50,
             ),
         }
     if tool_id == TOOL_ID_OVERLAP_REUSE:
@@ -779,30 +900,46 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
         return {
             "tile_size": _bounded_int(
                 params.get("tile_size", defaults.get("tile_size", 128)),
-                "tile_size", 64, 512,
+                "tile_size",
+                64,
+                512,
             ),
             "tile_stride": _bounded_int(
                 params.get("tile_stride", defaults.get("tile_stride", 64)),
-                "tile_stride", 32, 512,
+                "tile_stride",
+                32,
+                512,
             ),
             "candidate_method": str(
-                params.get("candidate_method", defaults.get("candidate_method", "dhash_tile"))
+                params.get(
+                    "candidate_method", defaults.get("candidate_method", "dhash_tile")
+                )
             ),
             "max_candidate_pairs": _bounded_int(
-                params.get("max_candidate_pairs", defaults.get("max_candidate_pairs", 500)),
-                "max_candidate_pairs", 10, 10000,
+                params.get(
+                    "max_candidate_pairs", defaults.get("max_candidate_pairs", 500)
+                ),
+                "max_candidate_pairs",
+                10,
+                10000,
             ),
             "min_inliers": _bounded_int(
                 params.get("min_inliers", defaults.get("min_inliers", 10)),
-                "min_inliers", 4, 200,
+                "min_inliers",
+                4,
+                200,
             ),
             "min_overlap_area": _bounded_float(
                 params.get("min_overlap_area", defaults.get("min_overlap_area", 0.01)),
-                "min_overlap_area", 0.0, 1.0,
+                "min_overlap_area",
+                0.0,
+                1.0,
             ),
             "max_relationships": _bounded_int(
                 params.get("max_relationships", defaults.get("max_relationships", 500)),
-                "max_relationships", 1, 5000,
+                "max_relationships",
+                1,
+                5000,
             ),
         }
     return dict(params)
@@ -833,14 +970,19 @@ def selected_tool_ids_from_plan(plan: dict[str, Any] | None) -> list[str]:
     return list(PAPER_STATIC_AUDIT_TOOL_IDS)
 
 
-def source_data_findings_params_from_plan(plan: dict[str, Any] | None) -> dict[str, Any]:
+def source_data_findings_params_from_plan(
+    plan: dict[str, Any] | None,
+) -> dict[str, Any]:
     params = dict(SOURCE_DATA_FINDINGS_DEFAULT_PARAMS)
     if not plan:
         return params
     selected_tools = plan.get("selected_tools")
     if isinstance(selected_tools, list):
         for item in selected_tools:
-            if not isinstance(item, dict) or item.get("tool_id") != SOURCE_DATA_FINDINGS_TOOL_ID:
+            if (
+                not isinstance(item, dict)
+                or item.get("tool_id") != SOURCE_DATA_FINDINGS_TOOL_ID
+            ):
                 continue
             tool_params = item.get("params")
             if isinstance(tool_params, dict):
@@ -880,7 +1022,14 @@ def validate_plan_tools(data: dict[str, Any]) -> dict[str, Any]:
                 if step in reverse
             ]
         else:
-            selected_tools = [{"tool_id": tool_id, "params": {}, "reason": "default static audit flow"} for tool_id in PAPER_STATIC_AUDIT_TOOL_IDS]
+            selected_tools = [
+                {
+                    "tool_id": tool_id,
+                    "params": {},
+                    "reason": "default static audit flow",
+                }
+                for tool_id in PAPER_STATIC_AUDIT_TOOL_IDS
+            ]
     if not isinstance(selected_tools, list):
         raise ValueError("selected_tools must be a list")
 
@@ -904,21 +1053,29 @@ def validate_plan_tools(data: dict[str, Any]) -> dict[str, Any]:
             }
         )
     data["selected_tools"] = normalized
-    data["selected_steps"] = tool_ids_to_step_keys([item["tool_id"] for item in normalized])
-    data.setdefault("script_parameters", {})["source_data_findings"] = source_data_findings_params_from_plan(data)
+    data["selected_steps"] = tool_ids_to_step_keys(
+        [item["tool_id"] for item in normalized]
+    )
+    data.setdefault("script_parameters", {})["source_data_findings"] = (
+        source_data_findings_params_from_plan(data)
+    )
     return data
 
 
 def _coerce_source_data_findings_params(params: dict[str, Any]) -> dict[str, Any]:
     return {
         "min_overlap": _bounded_int(
-            params.get("min_overlap", SOURCE_DATA_FINDINGS_DEFAULT_PARAMS["min_overlap"]),
+            params.get(
+                "min_overlap", SOURCE_DATA_FINDINGS_DEFAULT_PARAMS["min_overlap"]
+            ),
             "min_overlap",
             8,
             50,
         ),
         "min_support": _bounded_float(
-            params.get("min_support", SOURCE_DATA_FINDINGS_DEFAULT_PARAMS["min_support"]),
+            params.get(
+                "min_support", SOURCE_DATA_FINDINGS_DEFAULT_PARAMS["min_support"]
+            ),
             "min_support",
             0.90,
             1.0,

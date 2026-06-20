@@ -20,13 +20,29 @@ def fake_audit_func(paper_dir: Path, **kwargs: Any) -> dict[str, Any]:
     workdir = output_root / case_id / "research-integrity-audit"
     workdir.mkdir(parents=True, exist_ok=True)
     (workdir / "audit_run_manifest.json").write_text('{"steps":[]}\n', encoding="utf-8")
-    (workdir / "static_audit_bundle.json").write_text('{"protocol_version":"test"}\n', encoding="utf-8")
+    (workdir / "static_audit_bundle.json").write_text(
+        '{"protocol_version":"test"}\n', encoding="utf-8"
+    )
     (workdir / "investigation_rounds.jsonl").write_text("", encoding="utf-8")
-    (workdir / "final_audit_report.html").write_text("<html>Veritas</html>", encoding="utf-8")
+    (workdir / "final_audit_report.html").write_text(
+        "<html>Veritas</html>", encoding="utf-8"
+    )
     progress = kwargs.get("progress")
     if progress:
-        progress({"timestamp": "2026-05-29T00:00:00Z", "event": "audit_start", "case_id": case_id})
-        progress({"timestamp": "2026-05-29T00:00:01Z", "event": "audit_end", "status": "completed"})
+        progress(
+            {
+                "timestamp": "2026-05-29T00:00:00Z",
+                "event": "audit_start",
+                "case_id": case_id,
+            }
+        )
+        progress(
+            {
+                "timestamp": "2026-05-29T00:00:01Z",
+                "event": "audit_end",
+                "status": "completed",
+            }
+        )
     return {
         "exit_code": 0,
         "case_id": case_id,
@@ -51,7 +67,9 @@ def test_runner_sets_last_event_at_on_start(tmp_path: Path) -> None:
     case = store.create_case(case_id="demo-case")
     store.write_input(case.case_id, "paper.pdf", b"%PDF-1.4\n")
     run = store.create_run(case.case_id)
-    runner = AuditRunner(store, audit_func=fake_audit_func, output_root=tmp_path / "outputs")
+    runner = AuditRunner(
+        store, audit_func=fake_audit_func, output_root=tmp_path / "outputs"
+    )
 
     completed = runner.run_sync(case.case_id, run.run_id, {"agent_mode": "review"})
 
@@ -66,7 +84,9 @@ def test_runner_updates_last_event_at_on_progress(tmp_path: Path) -> None:
     case = store.create_case(case_id="demo-case")
     store.write_input(case.case_id, "paper.pdf", b"%PDF-1.4\n")
     run = store.create_run(case.case_id)
-    runner = AuditRunner(store, audit_func=fake_audit_func, output_root=tmp_path / "outputs")
+    runner = AuditRunner(
+        store, audit_func=fake_audit_func, output_root=tmp_path / "outputs"
+    )
 
     completed = runner.run_sync(case.case_id, run.run_id, {"agent_mode": "review"})
 
@@ -84,11 +104,17 @@ def test_stale_run_detected_with_old_heartbeat(tmp_path: Path) -> None:
     run.status = "running"
     run.started_at = "2026-05-29T08:00:00Z"
     # Set heartbeat to 10 minutes ago (stale)
-    stale_time = datetime.now(timezone.utc) - timedelta(seconds=STALE_RUN_THRESHOLD_SECONDS + 300)
-    run.last_event_at = stale_time.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    stale_time = datetime.now(timezone.utc) - timedelta(
+        seconds=STALE_RUN_THRESHOLD_SECONDS + 300
+    )
+    run.last_event_at = (
+        stale_time.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    )
     store.save_run(run)
 
-    runner = AuditRunner(store, audit_func=fake_audit_func, output_root=tmp_path / "outputs")
+    runner = AuditRunner(
+        store, audit_func=fake_audit_func, output_root=tmp_path / "outputs"
+    )
     recovered_count = runner.recover_interrupted_runs()
     recovered_run = store.get_run(case.case_id, run.run_id)
 
@@ -108,10 +134,14 @@ def test_fresh_run_not_recovered(tmp_path: Path) -> None:
     run.started_at = utc_now()
     # Set heartbeat to 2 minutes ago (fresh)
     fresh_time = datetime.now(timezone.utc) - timedelta(seconds=120)
-    run.last_event_at = fresh_time.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    run.last_event_at = (
+        fresh_time.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    )
     store.save_run(run)
 
-    runner = AuditRunner(store, audit_func=fake_audit_func, output_root=tmp_path / "outputs")
+    runner = AuditRunner(
+        store, audit_func=fake_audit_func, output_root=tmp_path / "outputs"
+    )
     recovered_count = runner.recover_interrupted_runs()
     recovered_run = store.get_run(case.case_id, run.run_id)
 
@@ -130,7 +160,9 @@ def test_legacy_run_without_heartbeat_marked_failed(tmp_path: Path) -> None:
     run.last_event_at = None  # legacy run without heartbeat
     store.save_run(run)
 
-    runner = AuditRunner(store, audit_func=fake_audit_func, output_root=tmp_path / "outputs")
+    runner = AuditRunner(
+        store, audit_func=fake_audit_func, output_root=tmp_path / "outputs"
+    )
     recovered_count = runner.recover_interrupted_runs()
     recovered_run = store.get_run(case.case_id, run.run_id)
 
@@ -154,11 +186,17 @@ def test_interrupted_run_appends_runner_interrupted_event(tmp_path: Path) -> Non
     run.status = "running"
     run.started_at = "2026-05-29T08:00:00Z"
     # Set heartbeat to 10 minutes ago (stale)
-    stale_time = datetime.now(timezone.utc) - timedelta(seconds=STALE_RUN_THRESHOLD_SECONDS + 300)
-    run.last_event_at = stale_time.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    stale_time = datetime.now(timezone.utc) - timedelta(
+        seconds=STALE_RUN_THRESHOLD_SECONDS + 300
+    )
+    run.last_event_at = (
+        stale_time.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    )
     store.save_run(run)
 
-    runner = AuditRunner(store, audit_func=fake_audit_func, output_root=tmp_path / "outputs")
+    runner = AuditRunner(
+        store, audit_func=fake_audit_func, output_root=tmp_path / "outputs"
+    )
     runner.recover_interrupted_runs()
     events = store.list_events(case.case_id, run.run_id)
 
@@ -178,11 +216,17 @@ def test_interrupted_run_updates_case_status(tmp_path: Path) -> None:
     run.status = "running"
     run.started_at = "2026-05-29T08:00:00Z"
     # Set heartbeat to 10 minutes ago (stale)
-    stale_time = datetime.now(timezone.utc) - timedelta(seconds=STALE_RUN_THRESHOLD_SECONDS + 300)
-    run.last_event_at = stale_time.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    stale_time = datetime.now(timezone.utc) - timedelta(
+        seconds=STALE_RUN_THRESHOLD_SECONDS + 300
+    )
+    run.last_event_at = (
+        stale_time.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    )
     store.save_run(run)
 
-    runner = AuditRunner(store, audit_func=fake_audit_func, output_root=tmp_path / "outputs")
+    runner = AuditRunner(
+        store, audit_func=fake_audit_func, output_root=tmp_path / "outputs"
+    )
     runner.recover_interrupted_runs()
     recovered_case = store.get_case(case.case_id)
 

@@ -45,7 +45,11 @@ ROLE_DEFINITIONS: tuple[RoleDefinition, ...] = (
         role_id="visual_triage",
         title="VisualTriageAgent",
         real_in_v1=False,
-        input_artifacts=("images/", "exact_image_duplicates.json", "image_similarity_candidates.json"),
+        input_artifacts=(
+            "images/",
+            "exact_image_duplicates.json",
+            "image_similarity_candidates.json",
+        ),
         output_artifact="agent_visual_triage.json",
     ),
     RoleDefinition(
@@ -109,7 +113,10 @@ def role_catalog() -> list[dict[str, object]]:
     ]
 
 
-def skipped_trace(role: RoleDefinition, detail: str = "Role schema reserved for static_audit_protocol.v1.") -> AgentTrace:
+def skipped_trace(
+    role: RoleDefinition,
+    detail: str = "Role schema reserved for static_audit_protocol.v1.",
+) -> AgentTrace:
     return AgentTrace(
         role_id=role.role_id,
         status="skipped",

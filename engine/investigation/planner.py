@@ -77,7 +77,9 @@ def fake_plan(
     }
 
 
-def fake_investigation_plan(*, case_id: str, workdir: Path, round_id: int) -> dict[str, Any]:
+def fake_investigation_plan(
+    *, case_id: str, workdir: Path, round_id: int
+) -> dict[str, Any]:
     images_dir = workdir / "images"
     similarity_output = workdir / "image_similarity_candidates.json"
     actions = []
@@ -170,7 +172,9 @@ def run_agent_investigation_plan(
     if env.get("VERITAS_FAKE_OPENCODE") == "1":
         return AgentRunResult(
             status="ok",
-            data=fake_investigation_plan(case_id=case_id, workdir=workdir, round_id=round_id),
+            data=fake_investigation_plan(
+                case_id=case_id, workdir=workdir, round_id=round_id
+            ),
             detail=f"fake opencode investigation plan round {round_id}",
             command=[],
             runtime_seconds=0.0,
@@ -339,7 +343,9 @@ def validate_plan(data: dict[str, Any]) -> dict[str, Any]:
     return data
 
 
-def validate_investigation_plan(data: dict[str, Any], *, round_id: int) -> dict[str, Any]:
+def validate_investigation_plan(
+    data: dict[str, Any], *, round_id: int
+) -> dict[str, Any]:
     _require(data, "schema_version", str)
     _require(data, "case_id", str)
     actual_round_id = _require(data, "round_id", int)

@@ -87,20 +87,22 @@ def load_knowledge_base() -> list[PaperFraudRule]:
             raw = yaml.safe_load(yaml_file.read_text(encoding="utf-8")) or {}
             file_type = raw.get("type", "methodology_review")
             for rd in raw.get("rules", []):
-                rules.append(PaperFraudRule(
-                    id=rd.get("id", f"{yaml_file.stem}.unknown"),
-                    category=rd.get("category", raw.get("category", "")),
-                    subcategory=rd.get("subcategory", ""),
-                    title=rd.get("title", ""),
-                    severity=rd.get("severity", "yellow"),
-                    rule_type=rd.get("type", file_type),
-                    description=rd.get("description", ""),
-                    detection=rd.get("detection", {}),
-                    evidence_template=rd.get("evidence_template", ""),
-                    human_review=rd.get("human_review", ""),
-                    references=rd.get("references", []),
-                    source=rd.get("source", f"paperfraud/{yaml_file.name}"),
-                ))
+                rules.append(
+                    PaperFraudRule(
+                        id=rd.get("id", f"{yaml_file.stem}.unknown"),
+                        category=rd.get("category", raw.get("category", "")),
+                        subcategory=rd.get("subcategory", ""),
+                        title=rd.get("title", ""),
+                        severity=rd.get("severity", "yellow"),
+                        rule_type=rd.get("type", file_type),
+                        description=rd.get("description", ""),
+                        detection=rd.get("detection", {}),
+                        evidence_template=rd.get("evidence_template", ""),
+                        human_review=rd.get("human_review", ""),
+                        references=rd.get("references", []),
+                        source=rd.get("source", f"paperfraud/{yaml_file.name}"),
+                    )
+                )
         except Exception as e:
             logger.warning("[PaperFraud KB] failed to load %s: %s", yaml_file.name, e)
 
@@ -156,13 +158,13 @@ def match_rules(
     return results
 
 
-def _match_single(
-    rule: PaperFraudRule, all_text: str, methods_text: str
-) -> RuleMatch:
+def _match_single(rule: PaperFraudRule, all_text: str, methods_text: str) -> RuleMatch:
     """Check a single rule against paper text."""
     triggers = rule.detection.get("triggers", {})
     # negative_triggers may be inside detection.triggers or directly under detection
-    negatives = triggers.get("negative_triggers", []) or rule.detection.get("negative_triggers", [])
+    negatives = triggers.get("negative_triggers", []) or rule.detection.get(
+        "negative_triggers", []
+    )
     keywords = triggers.get("keywords", [])
     study_types = triggers.get("study_types", [])
 
@@ -215,9 +217,7 @@ def _match_single(
     )
 
 
-def _search_pattern(
-    pattern: str, pattern_type: str, text: str
-) -> str | None:
+def _search_pattern(pattern: str, pattern_type: str, text: str) -> str | None:
     """Search for a keyword or regex pattern in text."""
     if not pattern or not text:
         return None
@@ -274,13 +274,15 @@ def summarize_matches(matches: list[RuleMatch]) -> dict:
     by_type: dict[str, int] = defaultdict(int)
 
     for m in triggered:
-        by_severity[m.rule.severity].append({
-            "rule_id": m.rule.id,
-            "title": m.rule.title,
-            "category": m.rule.category,
-            "evidence": m.evidence,
-            "human_review": m.rule.human_review,
-        })
+        by_severity[m.rule.severity].append(
+            {
+                "rule_id": m.rule.id,
+                "title": m.rule.title,
+                "category": m.rule.category,
+                "evidence": m.evidence,
+                "human_review": m.rule.human_review,
+            }
+        )
         by_type[m.rule.rule_type] = by_type.get(m.rule.rule_type, 0) + 1
 
     return {
@@ -304,15 +306,17 @@ def generate_reviewer_form(
     """
     form = []
     for rule in rules:
-        form.append({
-            "rule_id": rule.id,
-            "category": rule.category,
-            "title": rule.title,
-            "severity": rule.severity,
-            "rule_type": rule.rule_type,
-            "human_review_guide": rule.human_review,
-            "score": "",            # Y / N / Partial
-            "evidence_found": "",
-            "reviewer_comment": "",
-        })
+        form.append(
+            {
+                "rule_id": rule.id,
+                "category": rule.category,
+                "title": rule.title,
+                "severity": rule.severity,
+                "rule_type": rule.rule_type,
+                "human_review_guide": rule.human_review,
+                "score": "",  # Y / N / Partial
+                "evidence_found": "",
+                "reviewer_comment": "",
+            }
+        )
     return form

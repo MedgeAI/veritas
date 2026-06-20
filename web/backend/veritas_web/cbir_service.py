@@ -66,11 +66,7 @@ def search_similar_panels(
     if case_id is not None:
         query_filters.append(ImageEmbeddingModel.case_id == case_id)
 
-    query_row = (
-        db.query(ImageEmbeddingModel)
-        .filter(*query_filters)
-        .first()
-    )
+    query_row = db.query(ImageEmbeddingModel).filter(*query_filters).first()
     if query_row is None or not query_row.embedding:
         return {
             "query_panel_id": panel_id,
@@ -291,14 +287,16 @@ def search_similar_by_image_upload(
                 continue
             similarity = _cosine_similarity(query_embedding, row.embedding)
             if similarity >= threshold:
-                results.append({
-                    "case_id": row.case_id,
-                    "panel_id": row.panel_id,
-                    "figure_id": row.figure_id,
-                    "image_path": row.image_path,
-                    "similarity": round(similarity, 4),
-                    "label": "",
-                })
+                results.append(
+                    {
+                        "case_id": row.case_id,
+                        "panel_id": row.panel_id,
+                        "figure_id": row.figure_id,
+                        "image_path": row.image_path,
+                        "similarity": round(similarity, 4),
+                        "label": "",
+                    }
+                )
 
         # Sort by similarity descending
         results.sort(key=lambda x: x["similarity"], reverse=True)

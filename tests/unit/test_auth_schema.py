@@ -2,6 +2,7 @@
 
 Verifies AuthContext creation, NoAuthProvider behavior, and AuthConfig.from_env().
 """
+
 from __future__ import annotations
 
 import pytest

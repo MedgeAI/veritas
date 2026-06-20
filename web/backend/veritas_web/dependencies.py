@@ -63,7 +63,9 @@ def set_dependencies(deps: AppDependencies) -> None:
 
 def _require_deps() -> AppDependencies:
     if _deps is None:
-        raise RuntimeError("AppDependencies not initialised — call set_dependencies() first")
+        raise RuntimeError(
+            "AppDependencies not initialised — call set_dependencies() first"
+        )
     return _deps
 
 

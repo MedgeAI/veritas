@@ -81,7 +81,9 @@ def run_investigation_rounds(
     manifest: dict[str, Any] = {
         "enabled": agent_enabled,
         "max_rounds": MAX_INVESTIGATION_ROUNDS,
-        "rounds_artifact": str(resolve_artifact_path(workdir, "investigation_rounds.jsonl")),
+        "rounds_artifact": str(
+            resolve_artifact_path(workdir, "investigation_rounds.jsonl")
+        ),
         "plans": [],
     }
     if not agent_enabled:
@@ -165,7 +167,8 @@ def run_investigation_rounds(
                     detail=stop_reason,
                     metadata={
                         "plan_artifact": str(plan_path),
-                        "agent_rationale": plan_result.data.get("agent_rationale") or [],
+                        "agent_rationale": plan_result.data.get("agent_rationale")
+                        or [],
                     },
                 ),
             )
@@ -193,24 +196,36 @@ def run_investigation_rounds(
                 },
             }
             if signature in seen_signatures:
-                return record_base, InvestigationRecord(
-                    **record_base,
-                    status="skipped",
-                    validation_status="rejected",
-                    detail="Duplicate tool_id + params + depends_on_artifacts action.",
-                ), 0, 0
+                return (
+                    record_base,
+                    InvestigationRecord(
+                        **record_base,
+                        status="skipped",
+                        validation_status="rejected",
+                        detail="Duplicate tool_id + params + depends_on_artifacts action.",
+                    ),
+                    0,
+                    0,
+                )
 
             missing_artifacts = [
-                artifact for artifact in action.depends_on_artifacts if not artifact_exists(workdir, artifact)
+                artifact
+                for artifact in action.depends_on_artifacts
+                if not artifact_exists(workdir, artifact)
             ]
             if missing_artifacts:
                 seen_signatures.add(signature)
-                return record_base, InvestigationRecord(
-                    **record_base,
-                    status="skipped",
-                    validation_status="rejected",
-                    detail=f"Missing depends_on_artifacts: {missing_artifacts}",
-                ), 0, 0
+                return (
+                    record_base,
+                    InvestigationRecord(
+                        **record_base,
+                        status="skipped",
+                        validation_status="rejected",
+                        detail=f"Missing depends_on_artifacts: {missing_artifacts}",
+                    ),
+                    0,
+                    0,
+                )
 
             step, output_artifacts = run_investigation_tool_action(
                 action=action,
@@ -221,7 +236,9 @@ def run_investigation_rounds(
                 progress=progress,
             )
             seen_signatures.add(signature)
-            artifact_count = sum(1 for artifact in output_artifacts if Path(artifact).exists())
+            artifact_count = sum(
+                1 for artifact in output_artifacts if Path(artifact).exists()
+            )
 
             # Count new findings produced
             findings_count = 0
@@ -254,8 +271,10 @@ def run_investigation_rounds(
             # Check for dependencies between actions
             has_deps = False
             for i, a1 in enumerate(actions):
-                for a2 in actions[i+1:]:
-                    if any(out in a2.depends_on_artifacts for out in a1.output_artifacts):
+                for a2 in actions[i + 1 :]:
+                    if any(
+                        out in a2.depends_on_artifacts for out in a1.output_artifacts
+                    ):
                         has_deps = True
                         break
                 if has_deps:
@@ -267,7 +286,10 @@ def run_investigation_rounds(
             else:
                 # Parallel execution for independent actions (Strategy 6)
                 with ThreadPoolExecutor(max_workers=min(len(actions), 4)) as executor:
-                    futures = {executor.submit(_run_action, action): action for action in actions}
+                    futures = {
+                        executor.submit(_run_action, action): action
+                        for action in actions
+                    }
                     results = []
                     for future in as_completed(futures):
                         results.append(future.result())
@@ -303,13 +325,28 @@ def run_investigation_tool_action(
     force: bool,
     progress: ProgressCallback | None,
 ) -> tuple[StepResult, list[str]]:
-    action_dir = resolve_artifact_path(workdir, "investigation") / f"round_{action.round_id:02d}" / safe_action_dir_name(action.action_id)
+    action_dir = (
+        resolve_artifact_path(workdir, "investigation")
+        / f"round_{action.round_id:02d}"
+        / safe_action_dir_name(action.action_id)
+    )
     action_dir.mkdir(parents=True, exist_ok=True)
-    key = f"investigation_{action.round_id:02d}_{safe_action_dir_name(action.action_id)}"
+    key = (
+        f"investigation_{action.round_id:02d}_{safe_action_dir_name(action.action_id)}"
+    )
 
-    if action.tool_id in {"source_data.profile", SOURCE_DATA_FINDINGS_TOOL_ID, SOURCE_DATA_PAIR_FORENSICS_TOOL_ID}:
+    if action.tool_id in {
+        "source_data.profile",
+        SOURCE_DATA_FINDINGS_TOOL_ID,
+        SOURCE_DATA_PAIR_FORENSICS_TOOL_ID,
+    }:
         if not source_data_dir or not source_data_dir.is_dir():
-            step = StepResult(key, "Agent Investigation Tool", "skipped", "No selected Source Data directory.")
+            step = StepResult(
+                key,
+                "Agent Investigation Tool",
+                "skipped",
+                "No selected Source Data directory.",
+            )
             emit_step_result(progress, step)
             return step, []
 
@@ -326,7 +363,12 @@ def run_investigation_tool_action(
     elif action.tool_id == SOURCE_DATA_FINDINGS_TOOL_ID:
         profile = resolve_artifact_path(workdir, "source_data_profile.json")
         if not profile.exists():
-            step = StepResult(key, "Agent Investigation Tool", "skipped", "source_data_profile.json missing.")
+            step = StepResult(
+                key,
+                "Agent Investigation Tool",
+                "skipped",
+                "source_data_profile.json missing.",
+            )
             emit_step_result(progress, step)
             return step, []
         output = action_dir / "source_data_findings.json"
@@ -349,7 +391,9 @@ def run_investigation_tool_action(
             str(params["max_findings_per_category"]),
         ]
         if (resolve_artifact_path(workdir, "full.md")).exists():
-            command.extend(["--full-md", str(resolve_artifact_path(workdir, "full.md"))])
+            command.extend(
+                ["--full-md", str(resolve_artifact_path(workdir, "full.md"))]
+            )
     elif action.tool_id == SOURCE_DATA_PAIR_FORENSICS_TOOL_ID:
         output = action_dir / "source_data_pair_forensics.json"
         params = action.params
@@ -393,7 +437,9 @@ def run_investigation_tool_action(
     elif action.tool_id == IMAGE_SIMILARITY_TOOL_ID:
         images_dir = resolve_artifact_path(workdir, "images")
         if not images_dir.is_dir():
-            step = StepResult(key, "Agent Investigation Tool", "skipped", "images directory missing.")
+            step = StepResult(
+                key, "Agent Investigation Tool", "skipped", "images directory missing."
+            )
             emit_step_result(progress, step)
             return step, []
         output = action_dir / "image_similarity_candidates.json"
@@ -416,7 +462,12 @@ def run_investigation_tool_action(
     elif action.tool_id == TOOL_ID_COPY_MOVE:
         panel_json = resolve_artifact_path(workdir, "panel_evidence.json")
         if not panel_json.exists():
-            step = StepResult(key, "Agent Investigation Tool", "skipped", "panel_evidence.json missing.")
+            step = StepResult(
+                key,
+                "Agent Investigation Tool",
+                "skipped",
+                "panel_evidence.json missing.",
+            )
             emit_step_result(progress, step)
             return step, []
         output = action_dir / "visual_copy_move.json"
@@ -444,22 +495,38 @@ def run_investigation_tool_action(
     elif action.tool_id == TOOL_ID_OVERLAP_REUSE:
         panel_json = resolve_artifact_path(workdir, "panel_evidence.json")
         if not panel_json.exists():
-            step = StepResult(key, "Agent Investigation Tool", "skipped", "panel_evidence.json missing.")
+            step = StepResult(
+                key,
+                "Agent Investigation Tool",
+                "skipped",
+                "panel_evidence.json missing.",
+            )
             emit_step_result(progress, step)
             return step, []
         output = action_dir / "overlap_reuse.json"
         try:
             from engine.static_audit.tools.overlap_reuse import detect_overlap_reuse
+
             panels_data = json.loads(panel_json.read_text())
-            panels_list = panels_data.get("panels", panels_data) if isinstance(panels_data, dict) else panels_data
+            panels_list = (
+                panels_data.get("panels", panels_data)
+                if isinstance(panels_data, dict)
+                else panels_data
+            )
             figures = []
             visual_path = resolve_artifact_path(workdir, "visual_evidence.json")
             if visual_path.exists():
                 figures_data = json.loads(visual_path.read_text())
-                figures = figures_data.get("figures", figures_data) if isinstance(figures_data, dict) else figures_data
+                figures = (
+                    figures_data.get("figures", figures_data)
+                    if isinstance(figures_data, dict)
+                    else figures_data
+                )
             params = action.params
             result = detect_overlap_reuse(
-                panels_list, figures, workdir=workdir,
+                panels_list,
+                figures,
+                workdir=workdir,
                 tile_size=int(params.get("tile_size", 128)),
                 tile_stride=int(params.get("tile_stride", 64)),
                 max_candidate_pairs=int(params.get("max_candidate_pairs", 500)),
@@ -473,28 +540,49 @@ def run_investigation_tool_action(
             output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
         status = result.get("status", "failed")
         detail = f"panels={result.get('panel_count', 0)} rels={result.get('relationship_count', 0)}"
-        step = StepResult(key, "Agent Investigation Tool", "ran" if status == "ran" else "failed", detail)
+        step = StepResult(
+            key,
+            "Agent Investigation Tool",
+            "ran" if status == "ran" else "failed",
+            detail,
+        )
         emit_step_result(progress, step)
         return step, [str(output)]
     elif action.tool_id == TOOL_ID_SILA_DENSE:
         panel_json = resolve_artifact_path(workdir, "panel_evidence.json")
         if not panel_json.exists():
-            step = StepResult(key, "Agent Investigation Tool", "skipped", "panel_evidence.json missing.")
+            step = StepResult(
+                key,
+                "Agent Investigation Tool",
+                "skipped",
+                "panel_evidence.json missing.",
+            )
             emit_step_result(progress, step)
             return step, []
         output = action_dir / "visual_copy_move_dense.json"
         try:
             from engine.static_audit.tools.sila_dense import detect_sila_dense
+
             panels_data = json.loads(panel_json.read_text())
-            panels_list = panels_data.get("panels", panels_data) if isinstance(panels_data, dict) else panels_data
+            panels_list = (
+                panels_data.get("panels", panels_data)
+                if isinstance(panels_data, dict)
+                else panels_data
+            )
             figures = []
             visual_path = resolve_artifact_path(workdir, "visual_evidence.json")
             if visual_path.exists():
                 figures_data = json.loads(visual_path.read_text())
-                figures = figures_data.get("figures", figures_data) if isinstance(figures_data, dict) else figures_data
+                figures = (
+                    figures_data.get("figures", figures_data)
+                    if isinstance(figures_data, dict)
+                    else figures_data
+                )
             params = action.params
             result = detect_sila_dense(
-                panels_list, figures, workdir=workdir,
+                panels_list,
+                figures,
+                workdir=workdir,
                 min_score=float(params.get("min_score", 0.05)),
                 max_relationships=int(params.get("max_relationships", 500)),
             )
@@ -504,20 +592,35 @@ def run_investigation_tool_action(
             output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
         status = result.get("status", "failed")
         detail = f"panels={result.get('panel_count', 0)} rels={result.get('relationship_count', 0)}"
-        step = StepResult(key, "Agent Investigation Tool", "ran" if status == "ran" else "failed", detail)
+        step = StepResult(
+            key,
+            "Agent Investigation Tool",
+            "ran" if status == "ran" else "failed",
+            detail,
+        )
         emit_step_result(progress, step)
         return step, [str(output)]
     elif action.tool_id == TOOL_ID_CBIR_SEARCH:
         panel_json = resolve_artifact_path(workdir, "panel_evidence.json")
         if not panel_json.exists():
-            step = StepResult(key, "Agent Investigation Tool", "skipped", "panel_evidence.json missing.")
+            step = StepResult(
+                key,
+                "Agent Investigation Tool",
+                "skipped",
+                "panel_evidence.json missing.",
+            )
             emit_step_result(progress, step)
             return step, []
         output = action_dir / "cbir_search.json"
         try:
             from engine.static_audit.tools.cbir_search import run_cbir_search
+
             panels_data = json.loads(panel_json.read_text())
-            panels_list = panels_data.get("panels", panels_data) if isinstance(panels_data, dict) else panels_data
+            panels_list = (
+                panels_data.get("panels", panels_data)
+                if isinstance(panels_data, dict)
+                else panels_data
+            )
             params = action.params
             result = run_cbir_search(
                 panels_list,
@@ -528,17 +631,33 @@ def run_investigation_tool_action(
             )
             output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
         except Exception as e:
-            result = {"status": "failed", "pairs": [], "pair_count": 0, "errors": [str(e)]}
+            result = {
+                "status": "failed",
+                "pairs": [],
+                "pair_count": 0,
+                "errors": [str(e)],
+            }
             output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
         status = result.get("status", "failed")
-        detail = f"panels={result.get('panel_count', 0)} pairs={result.get('pair_count', 0)}"
-        step = StepResult(key, "Agent Investigation Tool", "ran" if status == "ran" else "failed", detail)
+        detail = (
+            f"panels={result.get('panel_count', 0)} pairs={result.get('pair_count', 0)}"
+        )
+        step = StepResult(
+            key,
+            "Agent Investigation Tool",
+            "ran" if status == "ran" else "failed",
+            detail,
+        )
         emit_step_result(progress, step)
         return step, [str(output)]
     else:
         # Tool is registered but implementation is not yet available
-        step = StepResult(key, "Agent Investigation Tool", "skipped",
-                         f"Tool '{action.tool_id}' is registered but not yet implemented.")
+        step = StepResult(
+            key,
+            "Agent Investigation Tool",
+            "skipped",
+            f"Tool '{action.tool_id}' is registered but not yet implemented.",
+        )
         emit_step_result(progress, step)
         return step, []
 
@@ -625,7 +744,9 @@ def run_agent_roles(
     roles_to_run = []
     for role in ROLE_DEFINITIONS:
         output_path = resolve_artifact_path(workdir, role.output_artifact)
-        trace_path = resolve_artifact_path(workdir, "agent_traces") / f"{role.role_id}.json"
+        trace_path = (
+            resolve_artifact_path(workdir, "agent_traces") / f"{role.role_id}.json"
+        )
         existing_trace = read_agent_trace(trace_path)
         if (
             not force
@@ -655,11 +776,19 @@ def run_agent_roles(
                 )
             continue
         if not role.real_in_v1:
-            trace = skipped_trace(role, "Role schema reserved; not executed in static_audit_protocol.v1.")
+            trace = skipped_trace(
+                role, "Role schema reserved; not executed in static_audit_protocol.v1."
+            )
             trace.output_path = str(output_path)
             write_reserved_role_output(workdir, role, trace)
             write_role_trace(workdir, trace)
-            role_manifest.append({"role_id": role.role_id, "status": trace.status, "output": str(output_path)})
+            role_manifest.append(
+                {
+                    "role_id": role.role_id,
+                    "status": trace.status,
+                    "output": str(output_path),
+                }
+            )
             continue
 
         step_key = f"agent_role_{role.role_id}"
@@ -675,14 +804,30 @@ def run_agent_roles(
             )
             write_reserved_role_output(workdir, role, trace)
             write_role_trace(workdir, trace)
-            record_step(steps, StepResult(step_key, f"opencode Agent role: {role.title}", "skipped", trace.detail), progress)
-            role_manifest.append({"role_id": role.role_id, "status": trace.status, "output": str(output_path)})
+            record_step(
+                steps,
+                StepResult(
+                    step_key,
+                    f"opencode Agent role: {role.title}",
+                    "skipped",
+                    trace.detail,
+                ),
+                progress,
+            )
+            role_manifest.append(
+                {
+                    "role_id": role.role_id,
+                    "status": trace.status,
+                    "output": str(output_path),
+                }
+            )
             continue
 
         roles_to_run.append((role, output_path, trace_path))
 
     # Phase 2: Run roles in dependency order (respecting input_artifacts)
     if roles_to_run:
+
         def _run_single_role(role_data):
             role, output_path, trace_path = role_data
             step_key = f"agent_role_{role.role_id}"
@@ -731,13 +876,19 @@ def run_agent_roles(
     return steps, role_manifest
 
 
-def collect_agent_traces(workdir: Path, agent_manifest: dict[str, Any]) -> list[AgentTrace]:
+def collect_agent_traces(
+    workdir: Path, agent_manifest: dict[str, Any]
+) -> list[AgentTrace]:
     traces: list[AgentTrace] = []
     for role in ROLE_DEFINITIONS:
-        trace_path = resolve_artifact_path(workdir, "agent_traces") / f"{role.role_id}.json"
+        trace_path = (
+            resolve_artifact_path(workdir, "agent_traces") / f"{role.role_id}.json"
+        )
         trace = read_agent_trace(trace_path)
         if trace is None:
-            trace = skipped_trace(role, "Role trace was missing and has been backfilled.")
+            trace = skipped_trace(
+                role, "Role trace was missing and has been backfilled."
+            )
             trace.output_path = str(workdir / role.output_artifact)
             write_reserved_role_output(workdir, role, trace)
             write_role_trace(workdir, trace)
@@ -762,7 +913,10 @@ def trace_from_role_result(
         model=model,
         detail=result.detail,
         error=None if status == "ran" else result.detail,
-        metadata={"retries": result.retries, "runtime_seconds": round(result.runtime_seconds, 3)},
+        metadata={
+            "retries": result.retries,
+            "runtime_seconds": round(result.runtime_seconds, 3),
+        },
     )
 
 
@@ -781,7 +935,9 @@ def write_role_agent_result(
         payload.setdefault("case_id", case_id)
         payload["status"] = "ran"
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    output_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     return payload
 
 
@@ -829,7 +985,9 @@ def role_output_summary(role_id: str, payload: dict[str, Any]) -> dict[str, Any]
             "manual_review_tasks": len(payload.get("manual_review_tasks") or []),
         }
     if role_id == "judge":
-        summary = payload.get("summary") if isinstance(payload.get("summary"), dict) else {}
+        summary = (
+            payload.get("summary") if isinstance(payload.get("summary"), dict) else {}
+        )
         return {
             **summary,
             "risk_suggestions": len(payload.get("risk_suggestions") or []),
@@ -838,7 +996,9 @@ def role_output_summary(role_id: str, payload: dict[str, Any]) -> dict[str, Any]
     return {}
 
 
-def write_reserved_role_output(workdir: Path, role: RoleDefinition, trace: AgentTrace) -> None:
+def write_reserved_role_output(
+    workdir: Path, role: RoleDefinition, trace: AgentTrace
+) -> None:
     output_path = resolve_artifact_path(workdir, role.output_artifact)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -849,14 +1009,18 @@ def write_reserved_role_output(workdir: Path, role: RoleDefinition, trace: Agent
         "input_artifacts": list(role.input_artifacts),
         "reserved_for": "static_audit_protocol.v1",
     }
-    output_path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    output_path.write_text(
+        json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def write_role_trace(workdir: Path, trace: AgentTrace) -> None:
     role_dir = resolve_artifact_path(workdir, "agent_traces")
     role_dir.mkdir(parents=True, exist_ok=True)
     path = role_dir / f"{trace.role_id}.json"
-    path.write_text(json.dumps(asdict(trace), ensure_ascii=False, indent=2), encoding="utf-8")
+    path.write_text(
+        json.dumps(asdict(trace), ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def read_agent_trace(path: Path) -> AgentTrace | None:
@@ -868,7 +1032,9 @@ def read_agent_trace(path: Path) -> AgentTrace | None:
         status=str(data.get("status", "failed")),  # type: ignore[arg-type]
         input_artifacts=[str(item) for item in (data.get("input_artifacts") or [])],
         output_path=data.get("output_path"),
-        output_summary=data.get("output_summary") if isinstance(data.get("output_summary"), dict) else {},
+        output_summary=data.get("output_summary")
+        if isinstance(data.get("output_summary"), dict)
+        else {},
         model=data.get("model"),
         detail=str(data.get("detail", "")),
         error=data.get("error"),

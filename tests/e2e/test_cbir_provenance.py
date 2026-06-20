@@ -36,7 +36,10 @@ from PIL import Image
 # Shared helpers
 # ---------------------------------------------------------------------------
 
-def _make_panel_images(tmp_path: Path, n: int, *, size: int = 64) -> list[dict[str, Any]]:
+
+def _make_panel_images(
+    tmp_path: Path, n: int, *, size: int = 64
+) -> list[dict[str, Any]]:
     """Create *n* synthetic panel images and return panel evidence entries.
 
     Images are deterministic: each panel gets a unique solid colour so HSV
@@ -57,16 +60,20 @@ def _make_panel_images(tmp_path: Path, n: int, *, size: int = 64) -> list[dict[s
         img = Image.new("RGB", (size, size), color=colour)
         fname = f"panel_{i:04d}.png"
         img.save(panels_dir / fname)
-        panels.append({
-            "panel_id": f"P{i:04d}",
-            "parent_figure_id": f"F{i // 3:03d}",
-            "crop_path": f"visual/panels/{fname}",
-            "source_image_path": f"visual/panels/{fname}",
-        })
+        panels.append(
+            {
+                "panel_id": f"P{i:04d}",
+                "parent_figure_id": f"F{i // 3:03d}",
+                "crop_path": f"visual/panels/{fname}",
+                "source_image_path": f"visual/panels/{fname}",
+            }
+        )
     return panels
 
 
-def _make_figure_images(tmp_path: Path, n: int, *, size: int = 128) -> list[dict[str, Any]]:
+def _make_figure_images(
+    tmp_path: Path, n: int, *, size: int = 128
+) -> list[dict[str, Any]]:
     """Create *n* synthetic figure images and return figure evidence entries."""
     images_dir = tmp_path / "images"
     images_dir.mkdir(exist_ok=True)
@@ -76,10 +83,12 @@ def _make_figure_images(tmp_path: Path, n: int, *, size: int = 128) -> list[dict
         img = Image.new("RGB", (size, size), color=(hue, 180, 200))
         fname = f"fig_{i:03d}.png"
         img.save(images_dir / fname)
-        figures.append({
-            "figure_id": f"FE-{i:03d}",
-            "source_image_path": f"images/{fname}",
-        })
+        figures.append(
+            {
+                "figure_id": f"FE-{i:03d}",
+                "source_image_path": f"images/{fname}",
+            }
+        )
     return figures
 
 
@@ -94,6 +103,7 @@ def _write_panel_evidence(tmp_path: Path, panels: list[dict]) -> Path:
 # ---------------------------------------------------------------------------
 # 1. E2E: CBIR search flow
 # ---------------------------------------------------------------------------
+
 
 class TestCbirSearchE2E:
     """End-to-end tests for ``run_cbir_search``."""
@@ -114,9 +124,21 @@ class TestCbirSearchE2E:
         img_c.save(panels_dir / "p3.png")
 
         panels = [
-            {"panel_id": "P1", "parent_figure_id": "F1", "crop_path": "visual/panels/p1.png"},
-            {"panel_id": "P2", "parent_figure_id": "F1", "crop_path": "visual/panels/p2.png"},
-            {"panel_id": "P3", "parent_figure_id": "F2", "crop_path": "visual/panels/p3.png"},
+            {
+                "panel_id": "P1",
+                "parent_figure_id": "F1",
+                "crop_path": "visual/panels/p1.png",
+            },
+            {
+                "panel_id": "P2",
+                "parent_figure_id": "F1",
+                "crop_path": "visual/panels/p2.png",
+            },
+            {
+                "panel_id": "P3",
+                "parent_figure_id": "F2",
+                "crop_path": "visual/panels/p3.png",
+            },
         ]
 
         from engine.static_audit.tools.cbir_search import run_cbir_search
@@ -128,12 +150,20 @@ class TestCbirSearchE2E:
         # P1 and P2 are identical -> should produce a pair with high score
         pairs = result["pairs"]
         assert len(pairs) >= 1
-        p1_p2 = [p for p in pairs if {p["source_panel_id"], p["target_panel_id"]} == {"P1", "P2"}]
+        p1_p2 = [
+            p
+            for p in pairs
+            if {p["source_panel_id"], p["target_panel_id"]} == {"P1", "P2"}
+        ]
         assert len(p1_p2) == 1
         assert p1_p2[0]["score"] > 0.99
         # P3 is very different from P1/P2
-        p1_p3 = [p for p in pairs if "P3" in (p["source_panel_id"], p["target_panel_id"])
-                 and "P1" in (p["source_panel_id"], p["target_panel_id"])]
+        p1_p3 = [
+            p
+            for p in pairs
+            if "P3" in (p["source_panel_id"], p["target_panel_id"])
+            and "P1" in (p["source_panel_id"], p["target_panel_id"])
+        ]
         # Either no pair or low score
         if p1_p3:
             assert p1_p3[0]["score"] < 0.90
@@ -172,15 +202,27 @@ class TestCbirSearchE2E:
         from engine.static_audit.tools.cbir_search import run_cbir_search
 
         result = run_cbir_search(
-            panels, workdir=tmp_path, top_k=10, min_score=0.0, max_pairs=5,
+            panels,
+            workdir=tmp_path,
+            top_k=10,
+            min_score=0.0,
+            max_pairs=5,
         )
         assert result["pair_count"] <= 5
 
     def test_cbir_skips_panels_with_missing_images(self, tmp_path: Path) -> None:
         """Panels with unresolvable paths are skipped, not errored."""
         panels = [
-            {"panel_id": "P1", "parent_figure_id": "F1", "crop_path": "visual/panels/nonexistent.png"},
-            {"panel_id": "P2", "parent_figure_id": "F1", "crop_path": "visual/panels/also_missing.png"},
+            {
+                "panel_id": "P1",
+                "parent_figure_id": "F1",
+                "crop_path": "visual/panels/nonexistent.png",
+            },
+            {
+                "panel_id": "P2",
+                "parent_figure_id": "F1",
+                "crop_path": "visual/panels/also_missing.png",
+            },
         ]
 
         from engine.static_audit.tools.cbir_search import run_cbir_search
@@ -202,6 +244,7 @@ class TestCbirSearchE2E:
 # 2. E2E: Provenance graph flow
 # ---------------------------------------------------------------------------
 
+
 class TestProvenanceGraphE2E:
     """End-to-end tests for ``build_provenance_graph``.
 
@@ -211,7 +254,8 @@ class TestProvenanceGraphE2E:
     """
 
     def test_provenance_full_flow_with_mock_adapter(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """Build provenance graph from figure evidence with mocked Docker."""
         figures = _make_figure_images(tmp_path, 5)
@@ -221,26 +265,51 @@ class TestProvenanceGraphE2E:
             "status": "ran",
             "source": "elis_provenance_docker",
             "nodes": [
-                {"id": f"FE-{i:03d}", "label": f"FE-{i:03d}",
-                 "image_path": f"images/fig_{i:03d}.png", "is_query": i < 2}
+                {
+                    "id": f"FE-{i:03d}",
+                    "label": f"FE-{i:03d}",
+                    "image_path": f"images/fig_{i:03d}.png",
+                    "is_query": i < 2,
+                }
                 for i in range(5)
             ],
             "edges": [
-                {"source": "FE-000", "target": "FE-001", "weight": 0.45,
-                 "shared_area_source": 0.50, "shared_area_target": 0.45,
-                 "matched_keypoints": 80, "is_flipped": False, "cosine_similarity": 0.0},
-                {"source": "FE-001", "target": "FE-002", "weight": 0.30,
-                 "shared_area_source": 0.35, "shared_area_target": 0.30,
-                 "matched_keypoints": 45, "is_flipped": False, "cosine_similarity": 0.0},
+                {
+                    "source": "FE-000",
+                    "target": "FE-001",
+                    "weight": 0.45,
+                    "shared_area_source": 0.50,
+                    "shared_area_target": 0.45,
+                    "matched_keypoints": 80,
+                    "is_flipped": False,
+                    "cosine_similarity": 0.0,
+                },
+                {
+                    "source": "FE-001",
+                    "target": "FE-002",
+                    "weight": 0.30,
+                    "shared_area_source": 0.35,
+                    "shared_area_target": 0.30,
+                    "matched_keypoints": 45,
+                    "is_flipped": False,
+                    "cosine_similarity": 0.0,
+                },
             ],
             "spanning_tree_edges": [
                 {"source": "FE-000", "target": "FE-001", "weight": 0.45},
                 {"source": "FE-001", "target": "FE-002", "weight": 0.30},
             ],
-            "connected_components": [["FE-000", "FE-001", "FE-002"], ["FE-003"], ["FE-004"]],
+            "connected_components": [
+                ["FE-000", "FE-001", "FE-002"],
+                ["FE-003"],
+                ["FE-004"],
+            ],
             "statistics": {
-                "node_count": 5, "edge_count": 2, "component_count": 3,
-                "max_weight": 0.45, "mean_weight": 0.375,
+                "node_count": 5,
+                "edge_count": 2,
+                "component_count": 3,
+                "max_weight": 0.45,
+                "mean_weight": 0.375,
             },
             "candidate_pairs_tested": 10,
             "edges_found": 2,
@@ -255,7 +324,8 @@ class TestProvenanceGraphE2E:
             return_value=mock_adapter_result,
         ):
             result = build_provenance_graph(
-                figures, workdir=tmp_path,
+                figures,
+                workdir=tmp_path,
                 query_figure_ids=["FE-000"],
                 max_depth=3,
             )
@@ -272,16 +342,32 @@ class TestProvenanceGraphE2E:
         """Verify provenance output can be serialized to disk."""
         figures = _make_figure_images(tmp_path, 3)
         mock_result = {
-            "schema_version": "1.0", "status": "ran",
+            "schema_version": "1.0",
+            "status": "ran",
             "source": "elis_provenance_docker",
-            "nodes": [{"id": f["figure_id"], "label": f["figure_id"],
-                        "image_path": f["source_image_path"], "is_query": True}
-                       for f in figures],
-            "edges": [], "spanning_tree_edges": [], "connected_components": [],
-            "statistics": {"node_count": 3, "edge_count": 0, "component_count": 0,
-                           "max_weight": 0.0, "mean_weight": 0.0},
-            "candidate_pairs_tested": 3, "edges_found": 0,
-            "processing_time_seconds": 1.0, "limitations": ["No edges found."],
+            "nodes": [
+                {
+                    "id": f["figure_id"],
+                    "label": f["figure_id"],
+                    "image_path": f["source_image_path"],
+                    "is_query": True,
+                }
+                for f in figures
+            ],
+            "edges": [],
+            "spanning_tree_edges": [],
+            "connected_components": [],
+            "statistics": {
+                "node_count": 3,
+                "edge_count": 0,
+                "component_count": 0,
+                "max_weight": 0.0,
+                "mean_weight": 0.0,
+            },
+            "candidate_pairs_tested": 3,
+            "edges_found": 0,
+            "processing_time_seconds": 1.0,
+            "limitations": ["No edges found."],
         }
 
         from engine.static_audit.tools.provenance_graph import build_provenance_graph
@@ -321,17 +407,29 @@ class TestProvenanceGraphE2E:
 
         elis_graph = {
             "nodes": [
-                {"id": "N1", "label": "N1",
-                 "image_path": str(tmp_path / "images" / "fig_000.png"),
-                 "is_query": True},
-                {"id": "N2", "label": "N2",
-                 "image_path": str(tmp_path / "images" / "fig_001.png"),
-                 "is_query": False},
+                {
+                    "id": "N1",
+                    "label": "N1",
+                    "image_path": str(tmp_path / "images" / "fig_000.png"),
+                    "is_query": True,
+                },
+                {
+                    "id": "N2",
+                    "label": "N2",
+                    "image_path": str(tmp_path / "images" / "fig_001.png"),
+                    "is_query": False,
+                },
             ],
             "edges": [
-                {"source": "N1", "target": "N2", "weight": 0.55,
-                 "shared_area_source": 0.60, "shared_area_target": 0.55,
-                 "matched_keypoints": 100, "is_flipped": True},
+                {
+                    "source": "N1",
+                    "target": "N2",
+                    "weight": 0.55,
+                    "shared_area_source": 0.60,
+                    "shared_area_target": 0.55,
+                    "matched_keypoints": 100,
+                    "is_flipped": True,
+                },
             ],
             "spanning_tree_edges": [
                 {"source": "N1", "target": "N2", "weight": 0.55},
@@ -353,12 +451,18 @@ class TestProvenanceGraphE2E:
 # 3. E2E: Web CBIR service (SSCD embedding -> cosine search)
 # ---------------------------------------------------------------------------
 
+
 class TestWebCbirServiceE2E:
     """End-to-end tests for the Web P1 CBIR service using in-memory DB."""
 
     @pytest.fixture()
     def db_session(self):
-        from web.backend.veritas_web.database import Base, create_db_engine, create_session_factory
+        from web.backend.veritas_web.database import (
+            Base,
+            create_db_engine,
+            create_session_factory,
+        )
+
         # Import models to ensure they are registered with Base before create_all
         from web.backend.veritas_web.models import ImageEmbeddingModel  # noqa: F401
 
@@ -369,15 +473,23 @@ class TestWebCbirServiceE2E:
         yield session
         session.close()
 
-    def _seed_embeddings(self, db, case_id: str, panels: list[tuple[str, list[float]]]) -> None:
+    def _seed_embeddings(
+        self, db, case_id: str, panels: list[tuple[str, list[float]]]
+    ) -> None:
         from web.backend.veritas_web.embeddings import _utc_now
         from web.backend.veritas_web.models import ImageEmbeddingModel
+
         for panel_id, embedding in panels:
-            db.add(ImageEmbeddingModel(
-                case_id=case_id, panel_id=panel_id,
-                figure_id=f"F_{panel_id}", image_path=f"panels/{panel_id}.png",
-                embedding=embedding, indexed_at=_utc_now(),
-            ))
+            db.add(
+                ImageEmbeddingModel(
+                    case_id=case_id,
+                    panel_id=panel_id,
+                    figure_id=f"F_{panel_id}",
+                    image_path=f"panels/{panel_id}.png",
+                    embedding=embedding,
+                    indexed_at=_utc_now(),
+                )
+            )
         db.commit()
 
     def test_embedding_index_then_search(self, db_session) -> None:
@@ -389,11 +501,19 @@ class TestWebCbirServiceE2E:
         v2 = [0.99, 0.01, 0.0] + [0.0] * 509
         v3 = [0.0, 0.0, 1.0] + [0.0] * 509
 
-        self._seed_embeddings(db_session, "case-e2e", [
-            ("P1", v1), ("P2", v2), ("P3", v3),
-        ])
+        self._seed_embeddings(
+            db_session,
+            "case-e2e",
+            [
+                ("P1", v1),
+                ("P2", v2),
+                ("P3", v3),
+            ],
+        )
 
-        result = search_similar_panels(db_session, "P1", case_id="case-e2e", threshold=0.9)
+        result = search_similar_panels(
+            db_session, "P1", case_id="case-e2e", threshold=0.9
+        )
 
         assert result["query_panel_id"] == "P1"
         assert result["query_case_id"] == "case-e2e"
@@ -427,7 +547,9 @@ class TestWebCbirServiceE2E:
 
         self._seed_embeddings(db_session, "case-T", [("T1", v1), ("T2", v2)])
 
-        result = search_similar_panels(db_session, "T1", case_id="case-T", threshold=0.95)
+        result = search_similar_panels(
+            db_session, "T1", case_id="case-T", threshold=0.95
+        )
         assert result["similar_panels"] == []
 
     def test_nonexistent_query_returns_empty(self, db_session) -> None:
@@ -442,13 +564,16 @@ class TestWebCbirServiceE2E:
 # 4. E2E: Agent investigation dispatch for CBIR
 # ---------------------------------------------------------------------------
 
+
 class TestAgentInvestigationCbirDispatch:
     """Verify that the Agent investigation dispatch runs CBIR correctly."""
 
     def test_dispatch_runs_cbir_search(self, tmp_path: Path) -> None:
         """When Agent selects visual.cbir_search, dispatch invokes run_cbir_search."""
         from engine.static_audit.investigation import InvestigationAction
-        from engine.static_audit.investigation_dispatch import run_investigation_tool_action
+        from engine.static_audit.investigation_dispatch import (
+            run_investigation_tool_action,
+        )
 
         # Set up panel evidence on disk
         panels = _make_panel_images(tmp_path, 5, size=32)
@@ -484,7 +609,9 @@ class TestAgentInvestigationCbirDispatch:
     def test_dispatch_skips_when_panel_evidence_missing(self, tmp_path: Path) -> None:
         """CBIR dispatch skips gracefully when panel_evidence.json is absent."""
         from engine.static_audit.investigation import InvestigationAction
-        from engine.static_audit.investigation_dispatch import run_investigation_tool_action
+        from engine.static_audit.investigation_dispatch import (
+            run_investigation_tool_action,
+        )
 
         action = InvestigationAction(
             round_id=1,
@@ -513,6 +640,7 @@ class TestAgentInvestigationCbirDispatch:
 # 5. Performance benchmarks
 # ---------------------------------------------------------------------------
 
+
 class TestCbirPerformance:
     """Performance benchmarks for CBIR search at different scales.
 
@@ -521,13 +649,16 @@ class TestCbirPerformance:
     """
 
     @staticmethod
-    def _bench_cbir(n_panels: int, tmp_path: Path, *, top_k: int = 5,
-                    min_score: float = 0.50) -> dict[str, float]:
+    def _bench_cbir(
+        n_panels: int, tmp_path: Path, *, top_k: int = 5, min_score: float = 0.50
+    ) -> dict[str, float]:
         from engine.static_audit.tools.cbir_search import run_cbir_search
 
         panels = _make_panel_images(tmp_path, n_panels, size=32)
         t0 = time.perf_counter()
-        result = run_cbir_search(panels, workdir=tmp_path, top_k=top_k, min_score=min_score)
+        result = run_cbir_search(
+            panels, workdir=tmp_path, top_k=top_k, min_score=min_score
+        )
         elapsed = time.perf_counter() - t0
         return {
             "n_panels": n_panels,
@@ -538,15 +669,19 @@ class TestCbirPerformance:
 
     def test_cbir_100_panels(self, tmp_path: Path) -> None:
         stats = self._bench_cbir(100, tmp_path)
-        print(f"\n[CBIR 100 panels] {stats['elapsed_seconds']:.3f}s, "
-              f"{stats['pair_count']} pairs")
+        print(
+            f"\n[CBIR 100 panels] {stats['elapsed_seconds']:.3f}s, "
+            f"{stats['pair_count']} pairs"
+        )
         # Soft upper bound: 100 panels should complete in < 10s
         assert stats["elapsed_seconds"] < 10.0
 
     def test_cbir_500_panels(self, tmp_path: Path) -> None:
         stats = self._bench_cbir(500, tmp_path)
-        print(f"\n[CBIR 500 panels] {stats['elapsed_seconds']:.3f}s, "
-              f"{stats['pair_count']} pairs")
+        print(
+            f"\n[CBIR 500 panels] {stats['elapsed_seconds']:.3f}s, "
+            f"{stats['pair_count']} pairs"
+        )
         # Soft upper bound: 500 panels should complete in < 60s
         assert stats["elapsed_seconds"] < 60.0
 
@@ -556,7 +691,12 @@ class TestWebCbirPerformance:
 
     @pytest.fixture()
     def db_session(self):
-        from web.backend.veritas_web.database import Base, create_db_engine, create_session_factory
+        from web.backend.veritas_web.database import (
+            Base,
+            create_db_engine,
+            create_session_factory,
+        )
+
         engine = create_db_engine("sqlite:///:memory:")
         Base.metadata.create_all(bind=engine)
         factory = create_session_factory(engine)
@@ -568,31 +708,42 @@ class TestWebCbirPerformance:
         from web.backend.veritas_web.embeddings import _utc_now
         from web.backend.veritas_web.models import ImageEmbeddingModel
         import random
+
         random.seed(42)
         for i in range(n):
             vec = [random.gauss(0, 1) for _ in range(dim)]
             norm = math.sqrt(sum(x * x for x in vec))
             vec = [x / norm for x in vec]
-            db.add(ImageEmbeddingModel(
-                case_id=case_id, panel_id=f"perf_P{i:05d}",
-                figure_id=f"perf_F{i:05d}",
-                image_path=f"panels/perf_P{i:05d}.png",
-                embedding=vec, indexed_at=_utc_now(),
-            ))
+            db.add(
+                ImageEmbeddingModel(
+                    case_id=case_id,
+                    panel_id=f"perf_P{i:05d}",
+                    figure_id=f"perf_F{i:05d}",
+                    image_path=f"panels/perf_P{i:05d}.png",
+                    embedding=vec,
+                    indexed_at=_utc_now(),
+                )
+            )
         db.commit()
 
     def test_search_latency_100_panels(self, db_session) -> None:
         from web.backend.veritas_web.cbir_service import search_similar_panels
+
         self._seed_random(db_session, "perf-100", 100)
 
         t0 = time.perf_counter()
         result = search_similar_panels(
-            db_session, "perf_P00000", case_id="perf-100",
-            top_k=10, threshold=0.5,
+            db_session,
+            "perf_P00000",
+            case_id="perf-100",
+            top_k=10,
+            threshold=0.5,
         )
         elapsed = time.perf_counter() - t0
-        print(f"\n[Web CBIR 100 embeddings] {elapsed:.3f}s, "
-              f"candidates={result['total_candidates']}")
+        print(
+            f"\n[Web CBIR 100 embeddings] {elapsed:.3f}s, "
+            f"candidates={result['total_candidates']}"
+        )
         # Soft bound: brute-force 100 vectors should be < 1s
         assert elapsed < 1.0
         assert result["total_candidates"] >= 0
@@ -608,33 +759,48 @@ class TestProvenancePerformance:
     def _mock_result(self, n: int) -> dict[str, Any]:
         """Generate a mock provenance result with *n* nodes and ~n edges."""
         nodes = [
-            {"id": f"FE-{i:03d}", "label": f"FE-{i:03d}",
-             "image_path": f"images/fig_{i:03d}.png", "is_query": i < 3}
+            {
+                "id": f"FE-{i:03d}",
+                "label": f"FE-{i:03d}",
+                "image_path": f"images/fig_{i:03d}.png",
+                "is_query": i < 3,
+            }
             for i in range(n)
         ]
         edges = []
         for i in range(1, min(n, n)):
-            edges.append({
-                "source": f"FE-{i-1:03d}", "target": f"FE-{i:03d}",
-                "weight": round(0.5 / i, 4),
-                "shared_area_source": round(0.5 / i, 4),
-                "shared_area_target": round(0.4 / i, 4),
-                "matched_keypoints": max(20, 100 - i * 5),
-                "is_flipped": False, "cosine_similarity": 0.0,
-            })
-        spanning = [{"source": e["source"], "target": e["target"], "weight": e["weight"]}
-                     for e in edges]
+            edges.append(
+                {
+                    "source": f"FE-{i - 1:03d}",
+                    "target": f"FE-{i:03d}",
+                    "weight": round(0.5 / i, 4),
+                    "shared_area_source": round(0.5 / i, 4),
+                    "shared_area_target": round(0.4 / i, 4),
+                    "matched_keypoints": max(20, 100 - i * 5),
+                    "is_flipped": False,
+                    "cosine_similarity": 0.0,
+                }
+            )
+        spanning = [
+            {"source": e["source"], "target": e["target"], "weight": e["weight"]}
+            for e in edges
+        ]
         return {
-            "schema_version": "1.0", "status": "ran",
+            "schema_version": "1.0",
+            "status": "ran",
             "source": "elis_provenance_docker",
-            "nodes": nodes, "edges": edges,
+            "nodes": nodes,
+            "edges": edges,
             "spanning_tree_edges": spanning,
             "connected_components": [[n["id"] for n in nodes]],
             "statistics": {
-                "node_count": n, "edge_count": len(edges),
+                "node_count": n,
+                "edge_count": len(edges),
                 "component_count": 1,
                 "max_weight": edges[0]["weight"] if edges else 0.0,
-                "mean_weight": round(sum(e["weight"] for e in edges) / max(len(edges), 1), 4),
+                "mean_weight": round(
+                    sum(e["weight"] for e in edges) / max(len(edges), 1), 4
+                ),
             },
             "candidate_pairs_tested": n * (n - 1) // 2,
             "edges_found": len(edges),
@@ -657,8 +823,10 @@ class TestProvenancePerformance:
 
         assert result["status"] == "ran"
         assert result["statistics"]["node_count"] == 100
-        print(f"\n[Provenance 100 figures] {elapsed:.3f}s, "
-              f"{result['statistics']['edge_count']} edges")
+        print(
+            f"\n[Provenance 100 figures] {elapsed:.3f}s, "
+            f"{result['statistics']['edge_count']} edges"
+        )
 
     def test_provenance_1000_figures(self, tmp_path: Path) -> None:
         from engine.static_audit.tools.provenance_graph import build_provenance_graph
@@ -675,13 +843,16 @@ class TestProvenancePerformance:
 
         assert result["status"] == "ran"
         assert result["statistics"]["node_count"] == 1000
-        print(f"\n[Provenance 1000 figures] {elapsed:.3f}s, "
-              f"{result['statistics']['edge_count']} edges")
+        print(
+            f"\n[Provenance 1000 figures] {elapsed:.3f}s, "
+            f"{result['statistics']['edge_count']} edges"
+        )
 
 
 # ---------------------------------------------------------------------------
 # 6. Report integration
 # ---------------------------------------------------------------------------
+
 
 class TestReportIntegration:
     """Verify CBIR and provenance outputs integrate with report generation."""
@@ -792,32 +963,46 @@ class TestReportIntegration:
     @staticmethod
     def _provenance_mock(n: int) -> dict[str, Any]:
         nodes = [
-            {"id": f"FE-{i:03d}", "label": f"FE-{i:03d}",
-             "image_path": f"images/fig_{i:03d}.png", "is_query": i == 0}
+            {
+                "id": f"FE-{i:03d}",
+                "label": f"FE-{i:03d}",
+                "image_path": f"images/fig_{i:03d}.png",
+                "is_query": i == 0,
+            }
             for i in range(n)
         ]
         edges = [
-            {"source": "FE-000", "target": f"FE-{i:03d}",
-             "weight": round(0.5 / i, 4),
-             "shared_area_source": round(0.5 / i, 4),
-             "shared_area_target": round(0.4 / i, 4),
-             "matched_keypoints": max(20, 100 - i * 10),
-             "is_flipped": False, "cosine_similarity": 0.0}
+            {
+                "source": "FE-000",
+                "target": f"FE-{i:03d}",
+                "weight": round(0.5 / i, 4),
+                "shared_area_source": round(0.5 / i, 4),
+                "shared_area_target": round(0.4 / i, 4),
+                "matched_keypoints": max(20, 100 - i * 10),
+                "is_flipped": False,
+                "cosine_similarity": 0.0,
+            }
             for i in range(1, n)
         ]
         return {
-            "schema_version": "1.0", "status": "ran",
+            "schema_version": "1.0",
+            "status": "ran",
             "source": "elis_provenance_docker",
-            "nodes": nodes, "edges": edges,
+            "nodes": nodes,
+            "edges": edges,
             "spanning_tree_edges": [
                 {"source": e["source"], "target": e["target"], "weight": e["weight"]}
                 for e in edges
             ],
             "connected_components": [[n["id"] for n in nodes]],
             "statistics": {
-                "node_count": n, "edge_count": len(edges), "component_count": 1,
+                "node_count": n,
+                "edge_count": len(edges),
+                "component_count": 1,
                 "max_weight": edges[0]["weight"] if edges else 0.0,
-                "mean_weight": round(sum(e["weight"] for e in edges) / max(len(edges), 1), 4),
+                "mean_weight": round(
+                    sum(e["weight"] for e in edges) / max(len(edges), 1), 4
+                ),
             },
             "candidate_pairs_tested": n * (n - 1) // 2,
             "edges_found": len(edges),
@@ -829,6 +1014,7 @@ class TestReportIntegration:
 # ---------------------------------------------------------------------------
 # 7. Tool registry verification
 # ---------------------------------------------------------------------------
+
 
 class TestToolRegistryIntegration:
     """Verify CBIR and provenance are correctly registered."""

@@ -132,8 +132,12 @@ def generate_similarity_candidates(
             "image_count": len(images),
             "candidate_count": 0,
             "candidates": [],
-            "errors": ["Pillow is not installed; near-duplicate image candidates were not computed."],
-            "limitations": ["Install Pillow to enable deterministic dHash image similarity candidates."],
+            "errors": [
+                "Pillow is not installed; near-duplicate image candidates were not computed."
+            ],
+            "limitations": [
+                "Install Pillow to enable deterministic dHash image similarity candidates."
+            ],
         }
 
     path_to_panels = _build_path_to_panel_map(panel_evidence)
@@ -145,10 +149,14 @@ def generate_similarity_candidates(
             distance = hamming_distance(left_hash, right_hash)
             if distance <= max_distance:
                 left_panels = _resolve_panels_for_image(
-                    left_path, path_to_panels, has_panel_evidence=has_panel_evidence,
+                    left_path,
+                    path_to_panels,
+                    has_panel_evidence=has_panel_evidence,
                 )
                 right_panels = _resolve_panels_for_image(
-                    right_path, path_to_panels, has_panel_evidence=has_panel_evidence,
+                    right_path,
+                    path_to_panels,
+                    has_panel_evidence=has_panel_evidence,
                 )
                 if left_panels is None or right_panels is None:
                     continue
@@ -192,11 +200,22 @@ def generate_similarity_candidates(
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Find near-duplicate image candidates with dHash.")
-    parser.add_argument("images_dir", help="Directory containing extracted paper images.")
+    parser = argparse.ArgumentParser(
+        description="Find near-duplicate image candidates with dHash."
+    )
+    parser.add_argument(
+        "images_dir", help="Directory containing extracted paper images."
+    )
     parser.add_argument("--output", required=True, help="Output JSON path.")
-    parser.add_argument("--max-distance", type=int, default=8, help="Maximum dHash Hamming distance.")
-    parser.add_argument("--max-candidates", type=int, default=200, help="Maximum candidate pairs to emit.")
+    parser.add_argument(
+        "--max-distance", type=int, default=8, help="Maximum dHash Hamming distance."
+    )
+    parser.add_argument(
+        "--max-candidates",
+        type=int,
+        default=200,
+        help="Maximum candidate pairs to emit.",
+    )
     parser.add_argument(
         "--panel-evidence",
         help="Path to panel evidence JSON (or a JSON array) for canonical ID resolution.",
@@ -220,7 +239,9 @@ def main() -> int:
     args = parse_args()
     images_dir = Path(args.images_dir).expanduser().resolve()
     output = Path(args.output).expanduser().resolve()
-    panel_evidence = _load_panel_evidence(args.panel_evidence) if args.panel_evidence else None
+    panel_evidence = (
+        _load_panel_evidence(args.panel_evidence) if args.panel_evidence else None
+    )
     result = generate_similarity_candidates(
         images_dir,
         max_distance=args.max_distance,
@@ -228,11 +249,21 @@ def main() -> int:
         panel_evidence=panel_evidence,
     )
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps({"output": str(output), "status": result["status"], "candidate_count": result["candidate_count"]}, ensure_ascii=False))
+    output.write_text(
+        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(
+        json.dumps(
+            {
+                "output": str(output),
+                "status": result["status"],
+                "candidate_count": result["candidate_count"],
+            },
+            ensure_ascii=False,
+        )
+    )
     return 0
 
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

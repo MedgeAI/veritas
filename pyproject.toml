@@ -69,6 +69,8 @@ dev = [
     "ruff>=0.15.17",
     "httpx>=0.27,<0.28",
     "anyio>=4.6,<4.7",
+    "vulture>=2.16",
+    "import-linter>=2.11",
 ]
 
 [[tool.uv.index]]

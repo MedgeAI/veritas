@@ -41,6 +41,7 @@ _FEATURE_DIM = _H_HIST_BINS * _S_HIST_BINS * _V_HIST_BINS
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _is_valid_panel(panel: dict[str, Any]) -> bool:
     """Check that a panel has required IDs and a resolvable image path."""
     return bool(panel.get("panel_id")) and bool(_panel_image_path(panel))
@@ -123,6 +124,7 @@ def _empty_result(
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
 
 def run_cbir_search(
     panels: list[dict[str, Any]],
@@ -212,17 +214,19 @@ def run_cbir_search(
             if pair_key in seen:
                 continue
             seen.add(pair_key)
-            pairs.append({
-                "source_panel_id": pid_i,
-                "source_figure_id": fid_i,
-                "target_panel_id": pid_j,
-                "target_figure_id": fid_j,
-                "score": round(sim, 6),
-                "method": "hsv_histogram_cosine",
-                "feature_dim": _FEATURE_DIM,
-                "source_type": "cbir_similar",
-                "manual_review_needed": True,
-            })
+            pairs.append(
+                {
+                    "source_panel_id": pid_i,
+                    "source_figure_id": fid_i,
+                    "target_panel_id": pid_j,
+                    "target_figure_id": fid_j,
+                    "score": round(sim, 6),
+                    "method": "hsv_histogram_cosine",
+                    "feature_dim": _FEATURE_DIM,
+                    "source_type": "cbir_similar",
+                    "manual_review_needed": True,
+                }
+            )
             if len(pairs) >= max_pairs:
                 break
         if len(pairs) >= max_pairs:
@@ -261,17 +265,29 @@ def run_cbir_search(
 # CLI entry point
 # ---------------------------------------------------------------------------
 
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="CBIR search: find similar panels via color histogram cosine similarity."
     )
     parser.add_argument("panel_json", help="Path to panel_evidence.json")
-    parser.add_argument("--figure-json", help="Path to visual evidence.json (unused, kept for interface consistency).")
+    parser.add_argument(
+        "--figure-json",
+        help="Path to visual evidence.json (unused, kept for interface consistency).",
+    )
     parser.add_argument("--output", required=True, help="Output JSON path.")
-    parser.add_argument("--workdir", required=True, help="Working directory for image path resolution.")
-    parser.add_argument("--top-k", type=int, default=5, help="Number of most similar panels per panel.")
-    parser.add_argument("--min-score", type=float, default=0.70, help="Minimum cosine similarity score.")
-    parser.add_argument("--max-pairs", type=int, default=500, help="Maximum number of pairs to emit.")
+    parser.add_argument(
+        "--workdir", required=True, help="Working directory for image path resolution."
+    )
+    parser.add_argument(
+        "--top-k", type=int, default=5, help="Number of most similar panels per panel."
+    )
+    parser.add_argument(
+        "--min-score", type=float, default=0.70, help="Minimum cosine similarity score."
+    )
+    parser.add_argument(
+        "--max-pairs", type=int, default=500, help="Maximum number of pairs to emit."
+    )
     return parser.parse_args()
 
 
@@ -284,7 +300,9 @@ def main() -> int:
     try:
         panels_data = json.loads(panel_json.read_text(encoding="utf-8"))
     except Exception as exc:
-        result = _empty_result(status="failed", errors=[f"Failed to read panel evidence: {exc}"])
+        result = _empty_result(
+            status="failed", errors=[f"Failed to read panel evidence: {exc}"]
+        )
         output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
         return 1
@@ -303,11 +321,19 @@ def main() -> int:
         max_pairs=args.max_pairs,
     )
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8")
-    print(json.dumps(
-        {"output": str(output), "status": result["status"], "pair_count": result["pair_count"]},
-        ensure_ascii=False,
-    ))
+    output.write_text(
+        json.dumps(result, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    print(
+        json.dumps(
+            {
+                "output": str(output),
+                "status": result["status"],
+                "pair_count": result["pair_count"],
+            },
+            ensure_ascii=False,
+        )
+    )
     return 0
 
 

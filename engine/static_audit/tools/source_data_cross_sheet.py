@@ -271,8 +271,12 @@ def run_cross_sheet_detection(
 
 
 def parse_args(argv: list[str] | None = None):
-    parser = ArgumentParser(description="Detect duplicate numeric columns across Source Data sheets.")
-    parser.add_argument("source_data_dir", help="Directory containing XLSX Source Data files.")
+    parser = ArgumentParser(
+        description="Detect duplicate numeric columns across Source Data sheets."
+    )
+    parser.add_argument(
+        "source_data_dir", help="Directory containing XLSX Source Data files."
+    )
     parser.add_argument(
         "legacy_output",
         nargs="?",
@@ -280,7 +284,13 @@ def parse_args(argv: list[str] | None = None):
     )
     parser.add_argument("--output", help="Path to write source_data_cross_sheet.json.")
     parser.add_argument("--min-overlap", type=int, default=10)
-    parser.add_argument("--min-support", "--min-support-rate", dest="min_support_rate", type=float, default=0.8)
+    parser.add_argument(
+        "--min-support",
+        "--min-support-rate",
+        dest="min_support_rate",
+        type=float,
+        default=0.8,
+    )
     parser.add_argument("--max-findings", type=int, default=50)
     return parser.parse_args(argv)
 
@@ -305,7 +315,9 @@ def main(argv: list[str] | None = None) -> int:
 
     if output_path:
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_path.write_text(json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8")
+        output_path.write_text(
+            json.dumps(results, indent=2, ensure_ascii=False), encoding="utf-8"
+        )
         logger.info("Results written to %s", output_path)
     else:
         print(json.dumps(results, indent=2, ensure_ascii=False))

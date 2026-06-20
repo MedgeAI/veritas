@@ -163,7 +163,9 @@ def test_visual_evidence_section_with_findings(tmp_path) -> None:
                     "score": 0.85,
                     "overlay_path": "overlays/match.png",
                     "benign_explanations": ["合法的实验对照"],
-                    "manual_review_questions": ["验证匹配的 panel 是否描绘同一实验主体"],
+                    "manual_review_questions": [
+                        "验证匹配的 panel 是否描绘同一实验主体"
+                    ],
                 }
             ],
         },
@@ -294,15 +296,33 @@ def test_visual_evidence_section_in_full_report(tmp_path) -> None:
 
     # Write minimal required artifacts
     write_json(_path(tmp_path, "audit_run_manifest.json"), {"steps": []})
-    write_json(_path(tmp_path, "static_audit_bundle.json"), {"agent_traces": [], "claim_mappings": []})
-    write_json(_path(tmp_path, "visual_evidence.json"), {
-        "version": "1.0",
-        "figures": [{"figure_id": "FE-0001", "source_image_path": "images/Figure1.png", "label": "Figure 1", "caption": "Test", "page_number": 1, "bbox": None, "width": 100, "height": 100, "panel_count": 0}],
-    })
+    write_json(
+        _path(tmp_path, "static_audit_bundle.json"),
+        {"agent_traces": [], "claim_mappings": []},
+    )
+    write_json(
+        _path(tmp_path, "visual_evidence.json"),
+        {
+            "version": "1.0",
+            "figures": [
+                {
+                    "figure_id": "FE-0001",
+                    "source_image_path": "images/Figure1.png",
+                    "label": "Figure 1",
+                    "caption": "Test",
+                    "page_number": 1,
+                    "bbox": None,
+                    "width": 100,
+                    "height": 100,
+                    "panel_count": 0,
+                }
+            ],
+        },
+    )
 
     html = render_static_audit_html(tmp_path, "test-case")
 
     # The visual evidence section should be present
     assert "图像证据" in html
-    assert "id=\"visual-evidence\"" in html
+    assert 'id="visual-evidence"' in html
     assert "FE-0001" in html

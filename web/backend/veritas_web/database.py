@@ -45,8 +45,11 @@ def create_db_engine(database_url: str | None = None, **kwargs: Any) -> Engine:
     engine = create_engine(url, **defaults)
 
     if not url.startswith("sqlite"):
+
         @event.listens_for(engine, "connect")
-        def _register_vector_extension(dbapi_connection: Any, _connection_record: Any) -> None:
+        def _register_vector_extension(
+            dbapi_connection: Any, _connection_record: Any
+        ) -> None:
             """Ensure pgvector types are available on each new PostgreSQL connection."""
             cursor = None
             try:

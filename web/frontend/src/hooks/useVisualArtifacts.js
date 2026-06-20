@@ -108,7 +108,6 @@ export function useVisualArtifacts(selectedCase) {
 
       if (errors.length > 0) {
         // 区分"没有数据"和"真正的错误"
-        const notFoundErrors = errors.filter((e) => e.includes('not_found') || e.includes('not found'));
         const realErrors = errors.filter((e) => !e.includes('not_found') && !e.includes('not found'));
 
         if (realErrors.length > 0) {

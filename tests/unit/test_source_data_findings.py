@@ -1,4 +1,5 @@
 """Tests for source_data_findings pattern_strength field."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -15,6 +16,7 @@ from engine.static_audit.tools.source_data_findings import (
 @dataclass
 class MockSheetVectors:
     """Mock SheetVectors for testing."""
+
     workbook: str
     sheet: str
     numeric_columns: dict[int, list[Decimal]]
@@ -52,7 +54,10 @@ def test_pattern_strength_complete_35_of_35():
     )
 
     assert result["pattern_strength"] == "complete"
-    assert result["pattern_strength_reason"] == "fixed_difference=0.3 covers 35/35 overlapping rows"
+    assert (
+        result["pattern_strength_reason"]
+        == "fixed_difference=0.3 covers 35/35 overlapping rows"
+    )
     assert result["support_rate"] == 1.0
     assert result["risk_level"] == "medium"  # 35 < 100, so medium
 
@@ -89,7 +94,10 @@ def test_pattern_strength_strong_80_percent():
     )
 
     assert result["pattern_strength"] == "strong"
-    assert result["pattern_strength_reason"] == "fixed_difference=0.5 covers 80/100 overlapping rows"
+    assert (
+        result["pattern_strength_reason"]
+        == "fixed_difference=0.5 covers 80/100 overlapping rows"
+    )
     assert result["support_rate"] == 0.8
     assert result["risk_level"] == "medium"  # 80 < 100, so medium
 

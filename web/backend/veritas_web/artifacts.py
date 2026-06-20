@@ -12,14 +12,34 @@ from .models import ArtifactRef
 KNOWN_ARTIFACTS = (
     ("run_manifest", "json", "Audit Run Manifest", "audit_run_manifest.json"),
     ("static_audit_bundle", "json", "Static Audit Bundle", "static_audit_bundle.json"),
-    ("investigation_rounds", "jsonl", "Investigation Rounds", "investigation_rounds.jsonl"),
-    ("final_markdown_report", "markdown", "Final Markdown Report", "final_audit_report.md"),
-    ("final_html_report", "html_report", "Final HTML Report", "final_audit_report.html"),
+    (
+        "investigation_rounds",
+        "jsonl",
+        "Investigation Rounds",
+        "investigation_rounds.jsonl",
+    ),
+    (
+        "final_markdown_report",
+        "markdown",
+        "Final Markdown Report",
+        "final_audit_report.md",
+    ),
+    (
+        "final_html_report",
+        "html_report",
+        "Final HTML Report",
+        "final_audit_report.html",
+    ),
     ("visual_evidence", "json", "Visual Evidence (Figures)", "visual_evidence.json"),
     ("panel_evidence", "json", "Panel Evidence", "panel_evidence.json"),
     ("image_relationships", "json", "Image Relationships", "image_relationships.json"),
     ("visual_findings", "json", "Visual Findings", "visual_findings.json"),
-    ("visual_copy_move_dense", "json", "SILA Dense Copy-Move", "visual_copy_move_dense.json"),
+    (
+        "visual_copy_move_dense",
+        "json",
+        "SILA Dense Copy-Move",
+        "visual_copy_move_dense.json",
+    ),
     ("visual_overlap_reuse", "json", "Visual Overlap/Reuse", "overlap_reuse.json"),
     ("provenance_graph", "json", "Provenance Graph (MST)", "provenance_graph.json"),
 )
@@ -34,7 +54,9 @@ class ArtifactService:
         refs = []
         for artifact_id, kind, label, filename in KNOWN_ARTIFACTS:
             path = artifact_file_path(workdir, filename) if workdir else Path(filename)
-            size_bytes, updated_at = file_metadata(path) if path and path.exists() else (None, None)
+            size_bytes, updated_at = (
+                file_metadata(path) if path and path.exists() else (None, None)
+            )
             refs.append(
                 ArtifactRef(
                     artifact_id=artifact_id,
@@ -96,7 +118,12 @@ class ArtifactService:
 
 def file_metadata(path: Path) -> tuple[int, str]:
     stat = path.stat()
-    updated_at = datetime.fromtimestamp(stat.st_mtime, timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+    updated_at = (
+        datetime.fromtimestamp(stat.st_mtime, timezone.utc)
+        .replace(microsecond=0)
+        .isoformat()
+        .replace("+00:00", "Z")
+    )
     return stat.st_size, updated_at
 
 

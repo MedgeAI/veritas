@@ -7,6 +7,7 @@ Verifies that:
 - update_case is restricted to the owner.
 - delete_case is restricted to the owner.
 """
+
 from __future__ import annotations
 
 import pytest
@@ -93,7 +94,9 @@ def test_get_case_no_user_bypasses_check(store):
 
 def test_update_case_owner_can_update(store):
     store.create_case(user_id="alice", case_id="updatable")
-    updated = store.update_case("updatable", {"paper_title": "New Title"}, user_id="alice")
+    updated = store.update_case(
+        "updatable", {"paper_title": "New Title"}, user_id="alice"
+    )
     assert updated.paper_title == "New Title"
 
 

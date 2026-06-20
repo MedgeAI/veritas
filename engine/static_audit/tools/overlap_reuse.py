@@ -45,6 +45,7 @@ _TILE_DHASH_THRESHOLD = 24
 # Internal helpers
 # ---------------------------------------------------------------------------
 
+
 def _dhash_image(img: Image.Image, hash_size: int = 8) -> int:
     """Compute perceptual dHash for a PIL image (grayscale)."""
     gray = img.convert("L").resize((hash_size + 1, hash_size))
@@ -87,6 +88,7 @@ def _is_valid_panel(panel: dict) -> bool:
 # Tile generation
 # ---------------------------------------------------------------------------
 
+
 def _generate_tiles(
     panel_id: str,
     image_path: Path,
@@ -115,13 +117,15 @@ def _generate_tiles(
             crop = img.crop(box)
             if crop.size[0] < 32 or crop.size[1] < 32:
                 continue
-            tiles.append({
-                "tile_id": f"{panel_id}_tile_{tile_idx}",
-                "panel_id": panel_id,
-                "bbox": list(box),
-                "dhash": _dhash_image(crop),
-                "image": crop,
-            })
+            tiles.append(
+                {
+                    "tile_id": f"{panel_id}_tile_{tile_idx}",
+                    "panel_id": panel_id,
+                    "bbox": list(box),
+                    "dhash": _dhash_image(crop),
+                    "image": crop,
+                }
+            )
             tile_idx += 1
 
     return tiles
@@ -130,6 +134,7 @@ def _generate_tiles(
 # ---------------------------------------------------------------------------
 # Candidate retrieval
 # ---------------------------------------------------------------------------
+
 
 def _retrieve_tile_candidates(
     all_tiles: list[dict[str, Any]],
@@ -152,11 +157,13 @@ def _retrieve_tile_candidates(
                 continue
             dist = _hamming_distance(tile_a["dhash"], tile_b["dhash"])
             if dist <= _TILE_DHASH_THRESHOLD:
-                candidates.append({
-                    "tile_a": tile_a,
-                    "tile_b": tile_b,
-                    "distance": dist,
-                })
+                candidates.append(
+                    {
+                        "tile_a": tile_a,
+                        "tile_b": tile_b,
+                        "distance": dist,
+                    }
+                )
 
     candidates.sort(key=lambda c: c["distance"])
     return candidates[:max_candidate_pairs]
@@ -178,18 +185,22 @@ def _merge_to_panel_pairs(
 
     result: list[dict[str, Any]] = []
     for _key, tile_cands in panel_pair_map.items():
-        panel_ids = sorted({c["tile_a"]["panel_id"] for c in tile_cands}
-                           | {c["tile_b"]["panel_id"] for c in tile_cands})
+        panel_ids = sorted(
+            {c["tile_a"]["panel_id"] for c in tile_cands}
+            | {c["tile_b"]["panel_id"] for c in tile_cands}
+        )
         if len(panel_ids) != 2:
             continue
         best_dist = min(c["distance"] for c in tile_cands)
-        result.append({
-            "source_panel_id": panel_ids[0],
-            "target_panel_id": panel_ids[1],
-            "tile_candidate_count": len(tile_cands),
-            "best_tile_distance": best_dist,
-            "tile_candidates": tile_cands,
-        })
+        result.append(
+            {
+                "source_panel_id": panel_ids[0],
+                "target_panel_id": panel_ids[1],
+                "tile_candidate_count": len(tile_cands),
+                "best_tile_distance": best_dist,
+                "tile_candidates": tile_cands,
+            }
+        )
 
     result.sort(key=lambda p: (p["best_tile_distance"], -p["tile_candidate_count"]))
     return result
@@ -198,6 +209,7 @@ def _merge_to_panel_pairs(
 # ---------------------------------------------------------------------------
 # Geometric verification via ELIS keypoint runner
 # ---------------------------------------------------------------------------
+
 
 def _run_elis_cross_verification(
     panel_pairs: list[dict[str, Any]],
@@ -212,13 +224,15 @@ def _run_elis_cross_verification(
         tgt_path = panel_path_map.get(pp["target_panel_id"])
         if src_path is None or tgt_path is None:
             continue
-        pairs_for_elis.append({
-            "pair_id": f"overlap_{idx:04d}",
-            "source": str(src_path),
-            "target": str(tgt_path),
-            "source_panel_id": pp["source_panel_id"],
-            "target_panel_id": pp["target_panel_id"],
-        })
+        pairs_for_elis.append(
+            {
+                "pair_id": f"overlap_{idx:04d}",
+                "source": str(src_path),
+                "target": str(tgt_path),
+                "source_panel_id": pp["source_panel_id"],
+                "target_panel_id": pp["target_panel_id"],
+            }
+        )
 
     if not pairs_for_elis:
         return []
@@ -229,14 +243,16 @@ def _run_elis_cross_verification(
     try:
         proc = subprocess.run(
             [sys.executable, "-m", "engine.static_audit.tools._elis_copy_move_runner"],
-            input=json.dumps({
-                "mode": "cross",
-                "pairs": pairs_for_elis,
-                "output_dir": str(output_dir),
-                "min_keypoints": min_inliers,
-                "min_area": 0.0,
-                "check_flip": True,
-            }),
+            input=json.dumps(
+                {
+                    "mode": "cross",
+                    "pairs": pairs_for_elis,
+                    "output_dir": str(output_dir),
+                    "min_keypoints": min_inliers,
+                    "min_area": 0.0,
+                    "check_flip": True,
+                }
+            ),
             capture_output=True,
             text=True,
             timeout=max(600, len(pairs_for_elis) * 10),
@@ -255,9 +271,12 @@ def _run_elis_cross_verification(
 # Overlap polygon computation
 # ---------------------------------------------------------------------------
 
+
 def _compute_overlap_polygon(
-    src_w: int, src_h: int,
-    tgt_w: int, tgt_h: int,
+    src_w: int,
+    src_h: int,
+    tgt_w: int,
+    tgt_h: int,
     homography: list[list[float]] | None,
 ) -> tuple[float, float] | None:
     """Compute overlap area ratios from homography.
@@ -338,10 +357,14 @@ def _clip_polygon_by_edge(
         return []
 
     def _inside(p: tuple[float, float]) -> bool:
-        return ((edge_end[0] - edge_start[0]) * (p[1] - edge_start[1])
-                - (edge_end[1] - edge_start[1]) * (p[0] - edge_start[0])) >= 0
+        return (
+            (edge_end[0] - edge_start[0]) * (p[1] - edge_start[1])
+            - (edge_end[1] - edge_start[1]) * (p[0] - edge_start[0])
+        ) >= 0
 
-    def _intersection(p1: tuple[float, float], p2: tuple[float, float]) -> tuple[float, float]:
+    def _intersection(
+        p1: tuple[float, float], p2: tuple[float, float]
+    ) -> tuple[float, float]:
         x1, y1 = p1
         x2, y2 = p2
         x3, y3 = edge_start
@@ -399,6 +422,7 @@ def _bbox_overlap_area(
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
+
 
 def _empty_result(
     status: str = "skipped",
@@ -476,7 +500,9 @@ def detect_overlap_reuse(
     if len(panel_path_map) < 2:
         return _empty_result(
             status="skipped",
-            limitations=["Fewer than 2 valid panels with crop images; overlap detection skipped."],
+            limitations=[
+                "Fewer than 2 valid panels with crop images; overlap detection skipped."
+            ],
         )
 
     # 2. Generate tiles
@@ -496,7 +522,9 @@ def detect_overlap_reuse(
             "relationship_count": 0,
             "relationships": [],
             "errors": errors,
-            "limitations": ["No tiles generated from any panel; overlap detection skipped."],
+            "limitations": [
+                "No tiles generated from any panel; overlap detection skipped."
+            ],
         }
 
     # 3. Retrieve tile candidates
@@ -513,7 +541,9 @@ def detect_overlap_reuse(
             "relationship_count": 0,
             "relationships": [],
             "errors": errors,
-            "limitations": ["No tile-level candidates found; possible lack of overlap."],
+            "limitations": [
+                "No tile-level candidates found; possible lack of overlap."
+            ],
         }
 
     # 4. Merge to panel pairs
@@ -521,7 +551,10 @@ def detect_overlap_reuse(
 
     # 5. Geometric verification via ELIS keypoint runner
     verified = _run_elis_cross_verification(
-        panel_pairs, panel_path_map, workdir, min_inliers,
+        panel_pairs,
+        panel_path_map,
+        workdir,
+        min_inliers,
     )
 
     if not verified:
@@ -566,8 +599,10 @@ def detect_overlap_reuse(
 
         if homography is not None:
             overlap_ratios = _compute_overlap_polygon(
-                src_size[0], src_size[1],
-                tgt_size[0], tgt_size[1],
+                src_size[0],
+                src_size[1],
+                tgt_size[0],
+                tgt_size[1],
                 homography,
             )
             if overlap_ratios is None:
@@ -579,7 +614,10 @@ def detect_overlap_reuse(
             overlap_src_ratio = float(v.get("shared_area_source") or 0.0)
             overlap_tgt_ratio = float(v.get("shared_area_target") or 0.0)
 
-        if overlap_src_ratio < min_overlap_area and overlap_tgt_ratio < min_overlap_area:
+        if (
+            overlap_src_ratio < min_overlap_area
+            and overlap_tgt_ratio < min_overlap_area
+        ):
             continue
 
         score = min(1.0, inlier_count / 200.0)
@@ -587,23 +625,28 @@ def detect_overlap_reuse(
         transform_type = "homography" if homography is not None else "shared_area"
 
         ovl_id = f"OVL-{rel_idx:04d}"
-        relationships.append({
-            "relationship_id": ovl_id,
-            "source_type": "overlap_reuse_cross_panel",
-            "source_panel_id": src_id,
-            "target_panel_id": tgt_id,
-            "candidate_method": candidate_method,
-            "verification_method": "rootsift_magsac",
-            "transform_type": transform_type,
-            "inlier_count": inlier_count,
-            "inlier_ratio": round(inlier_count / max(1, int(v.get("keypoint_count") or inlier_count)), 4),
-            "overlap_area_ratio_source": overlap_src_ratio,
-            "overlap_area_ratio_target": overlap_tgt_ratio,
-            "score": round(score, 4),
-            "overlay_path": overlay_path,
-            "flip_detected": bool(v.get("flip_detected", False)),
-            "homography": homography,
-        })
+        relationships.append(
+            {
+                "relationship_id": ovl_id,
+                "source_type": "overlap_reuse_cross_panel",
+                "source_panel_id": src_id,
+                "target_panel_id": tgt_id,
+                "candidate_method": candidate_method,
+                "verification_method": "rootsift_magsac",
+                "transform_type": transform_type,
+                "inlier_count": inlier_count,
+                "inlier_ratio": round(
+                    inlier_count / max(1, int(v.get("keypoint_count") or inlier_count)),
+                    4,
+                ),
+                "overlap_area_ratio_source": overlap_src_ratio,
+                "overlap_area_ratio_target": overlap_tgt_ratio,
+                "score": round(score, 4),
+                "overlay_path": overlay_path,
+                "flip_detected": bool(v.get("flip_detected", False)),
+                "homography": homography,
+            }
+        )
         rel_idx += 1
 
         if len(relationships) >= max_relationships:
@@ -627,6 +670,7 @@ def detect_overlap_reuse(
 # CLI entry point (for direct invocation)
 # ---------------------------------------------------------------------------
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Visual overlap/reuse detection")
     parser.add_argument("--workdir", required=True, help="Audit output root directory")
@@ -643,12 +687,15 @@ def main() -> None:
     figure_path = workdir / "visual" / "evidence.json"
 
     if not panel_path.exists():
-        result = _empty_result(status="skipped", limitations=["No panel_evidence.json found."])
+        result = _empty_result(
+            status="skipped", limitations=["No panel_evidence.json found."]
+        )
     else:
         panels = json.loads(panel_path.read_text()) if panel_path.exists() else []
         figures = json.loads(figure_path.read_text()) if figure_path.exists() else []
         result = detect_overlap_reuse(
-            panels, figures,
+            panels,
+            figures,
             workdir=workdir,
             tile_size=args.tile_size,
             tile_stride=args.tile_stride,
@@ -661,7 +708,11 @@ def main() -> None:
     output_path = workdir / "visual" / "overlap_reuse.json"
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(result, indent=2, ensure_ascii=False))
-    print(json.dumps({"status": result["status"], "relationships": result["relationship_count"]}))
+    print(
+        json.dumps(
+            {"status": result["status"], "relationships": result["relationship_count"]}
+        )
+    )
 
 
 if __name__ == "__main__":

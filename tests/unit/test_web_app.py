@@ -15,13 +15,29 @@ def fake_audit_func(paper_dir: Path, **kwargs: Any) -> dict[str, Any]:
     workdir = output_root / case_id / "research-integrity-audit"
     workdir.mkdir(parents=True, exist_ok=True)
     (workdir / "audit_run_manifest.json").write_text('{"steps":[]}\n', encoding="utf-8")
-    (workdir / "static_audit_bundle.json").write_text('{"protocol_version":"test"}\n', encoding="utf-8")
+    (workdir / "static_audit_bundle.json").write_text(
+        '{"protocol_version":"test"}\n', encoding="utf-8"
+    )
     (workdir / "investigation_rounds.jsonl").write_text("", encoding="utf-8")
-    (workdir / "final_audit_report.html").write_text("<html>Veritas 静态审查 Demo</html>", encoding="utf-8")
+    (workdir / "final_audit_report.html").write_text(
+        "<html>Veritas 静态审查 Demo</html>", encoding="utf-8"
+    )
     progress = kwargs.get("progress")
     if progress:
-        progress({"timestamp": "2026-05-29T00:00:00Z", "event": "audit_start", "case_id": case_id})
-        progress({"timestamp": "2026-05-29T00:00:01Z", "event": "audit_end", "status": "completed"})
+        progress(
+            {
+                "timestamp": "2026-05-29T00:00:00Z",
+                "event": "audit_start",
+                "case_id": case_id,
+            }
+        )
+        progress(
+            {
+                "timestamp": "2026-05-29T00:00:01Z",
+                "event": "audit_end",
+                "status": "completed",
+            }
+        )
     return {
         "exit_code": 0,
         "case_id": case_id,
@@ -39,19 +55,26 @@ def test_fastapi_app_runs_web_audit_flow(tmp_path: Path) -> None:
     client = TestClient(app, raise_server_exceptions=False)
 
     # Create case and upload input
-    resp = client.post("/api/cases", json={"case_id": "demo-case", "paper_title": "Test"})
+    resp = client.post(
+        "/api/cases", json={"case_id": "demo-case", "paper_title": "Test"}
+    )
     assert resp.status_code == 201
 
-    resp = client.post("/api/cases/demo-case/inputs", json={
-        "filename": "paper.pdf",
-        "content_base64": base64.b64encode(b"%PDF-1.4\n").decode("ascii"),
-    })
+    resp = client.post(
+        "/api/cases/demo-case/inputs",
+        json={
+            "filename": "paper.pdf",
+            "content_base64": base64.b64encode(b"%PDF-1.4\n").decode("ascii"),
+        },
+    )
     assert resp.status_code == 200
 
     # Start a run (uses the real runner with fake audit func — but we can't easily
     # inject the fake here without restructuring.  Instead, test the data flow.)
     deps = app.state.dependencies
-    deps.runner = AuditRunner(deps.store, audit_func=fake_audit_func, output_root=str(tmp_path / "outputs"))
+    deps.runner = AuditRunner(
+        deps.store, audit_func=fake_audit_func, output_root=str(tmp_path / "outputs")
+    )
 
     resp = client.post("/api/cases/demo-case/runs", json={"agent_mode": "review"})
     assert resp.status_code == 202
@@ -60,6 +83,7 @@ def test_fastapi_app_runs_web_audit_flow(tmp_path: Path) -> None:
 
     # Wait a moment for the background thread to finish
     import time
+
     for _ in range(50):
         time.sleep(0.1)
         resp = client.get(f"/api/cases/demo-case/runs/{run_id}")
@@ -105,7 +129,9 @@ def test_upload_input_accepts_multipart_form_data(tmp_path: Path) -> None:
     assert stored == b"%PDF-1.4\nmultipart\n"
 
 
-def test_upload_input_sanitizes_multipart_relative_path_traversal(tmp_path: Path) -> None:
+def test_upload_input_sanitizes_multipart_relative_path_traversal(
+    tmp_path: Path,
+) -> None:
     app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
     client = TestClient(app, raise_server_exceptions=False)
     client.post("/api/cases", json={"case_id": "path-case", "paper_title": "Path"})
@@ -125,7 +151,9 @@ def test_upload_input_sanitizes_multipart_relative_path_traversal(tmp_path: Path
     assert stored.read_bytes() == b"%PDF-1.4\nsafe\n"
 
 
-def test_upload_input_sanitizes_absolute_multipart_relative_path(tmp_path: Path) -> None:
+def test_upload_input_sanitizes_absolute_multipart_relative_path(
+    tmp_path: Path,
+) -> None:
     app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
     client = TestClient(app, raise_server_exceptions=False)
     client.post("/api/cases", json={"case_id": "abs-path-case", "paper_title": "Path"})
@@ -149,13 +177,18 @@ def test_upload_input_still_accepts_json_base64(tmp_path: Path) -> None:
     app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
     client = TestClient(app, raise_server_exceptions=False)
 
-    resp = client.post("/api/cases", json={"case_id": "legacy-case", "paper_title": "Legacy"})
+    resp = client.post(
+        "/api/cases", json={"case_id": "legacy-case", "paper_title": "Legacy"}
+    )
     assert resp.status_code == 201
 
-    resp = client.post("/api/cases/legacy-case/inputs", json={
-        "filename": "paper.pdf",
-        "content_base64": base64.b64encode(b"%PDF-1.4\nlegacy\n").decode("ascii"),
-    })
+    resp = client.post(
+        "/api/cases/legacy-case/inputs",
+        json={
+            "filename": "paper.pdf",
+            "content_base64": base64.b64encode(b"%PDF-1.4\nlegacy\n").decode("ascii"),
+        },
+    )
     assert resp.status_code == 200
     stored = Path(resp.json()["path"]).read_bytes()
     assert stored == b"%PDF-1.4\nlegacy\n"
@@ -175,9 +208,13 @@ def test_run_detail_route_returns_run_data(tmp_path: Path) -> None:
     app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
     client = TestClient(app, raise_server_exceptions=False)
     deps = app.state.dependencies
-    deps.runner = AuditRunner(deps.store, audit_func=fake_audit_func, output_root=str(tmp_path / "outputs"))
+    deps.runner = AuditRunner(
+        deps.store, audit_func=fake_audit_func, output_root=str(tmp_path / "outputs")
+    )
 
-    resp = client.post("/api/cases", json={"case_id": "paper2_zhanglab", "paper_title": "Test"})
+    resp = client.post(
+        "/api/cases", json={"case_id": "paper2_zhanglab", "paper_title": "Test"}
+    )
     assert resp.status_code == 201
 
     resp = client.post("/api/cases/paper2_zhanglab/runs", json={"agent_mode": "review"})
@@ -209,14 +246,22 @@ def test_tool_catalog_uses_app_database_session(tmp_path: Path) -> None:
 
 
 def test_app_dependencies_are_isolated_per_fastapi_app(tmp_path: Path) -> None:
-    app1 = create_app(data_root=tmp_path / "web_data_1", output_root=tmp_path / "outputs_1")
-    app2 = create_app(data_root=tmp_path / "web_data_2", output_root=tmp_path / "outputs_2")
+    app1 = create_app(
+        data_root=tmp_path / "web_data_1", output_root=tmp_path / "outputs_1"
+    )
+    app2 = create_app(
+        data_root=tmp_path / "web_data_2", output_root=tmp_path / "outputs_2"
+    )
     client1 = TestClient(app1, raise_server_exceptions=False)
     client2 = TestClient(app2, raise_server_exceptions=False)
 
-    resp = client1.post("/api/cases", json={"case_id": "case-one", "paper_title": "One"})
+    resp = client1.post(
+        "/api/cases", json={"case_id": "case-one", "paper_title": "One"}
+    )
     assert resp.status_code == 201
-    resp = client2.post("/api/cases", json={"case_id": "case-two", "paper_title": "Two"})
+    resp = client2.post(
+        "/api/cases", json={"case_id": "case-two", "paper_title": "Two"}
+    )
     assert resp.status_code == 201
 
     resp = client1.get("/api/cases")
@@ -251,7 +296,9 @@ def test_review_decision_rejects_invalid_status(tmp_path: Path) -> None:
     )
     client = TestClient(app, raise_server_exceptions=False)
 
-    resp = client.post("/api/cases", json={"case_id": "review-case", "paper_title": "Test"})
+    resp = client.post(
+        "/api/cases", json={"case_id": "review-case", "paper_title": "Test"}
+    )
     assert resp.status_code == 201
 
     resp = client.post(
@@ -262,11 +309,15 @@ def test_review_decision_rejects_invalid_status(tmp_path: Path) -> None:
     assert resp.status_code == 422
 
 
-def test_embedding_endpoints_return_503_without_database_session(tmp_path: Path) -> None:
+def test_embedding_endpoints_return_503_without_database_session(
+    tmp_path: Path,
+) -> None:
     app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
     client = TestClient(app, raise_server_exceptions=False)
 
-    resp = client.post("/api/cases", json={"case_id": "embedding-case", "paper_title": "Test"})
+    resp = client.post(
+        "/api/cases", json={"case_id": "embedding-case", "paper_title": "Test"}
+    )
     assert resp.status_code == 201
     app.state.dependencies._session_factory = None
 
@@ -284,7 +335,9 @@ def test_review_items_missing_workdir_returns_404(tmp_path: Path) -> None:
     app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
     client = TestClient(app, raise_server_exceptions=False)
 
-    resp = client.post("/api/cases", json={"case_id": "review-empty", "paper_title": "Test"})
+    resp = client.post(
+        "/api/cases", json={"case_id": "review-empty", "paper_title": "Test"}
+    )
     assert resp.status_code == 201
 
     resp = client.get("/api/cases/review-empty/review-items")
@@ -297,7 +350,9 @@ def test_review_items_return_503_without_database_session(tmp_path: Path) -> Non
     app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
     client = TestClient(app, raise_server_exceptions=False)
 
-    resp = client.post("/api/cases", json={"case_id": "review-db", "paper_title": "Test"})
+    resp = client.post(
+        "/api/cases", json={"case_id": "review-db", "paper_title": "Test"}
+    )
     assert resp.status_code == 201
     deps = app.state.dependencies
     run = deps.store.create_run("review-db")
@@ -320,10 +375,16 @@ def test_web_app_marks_stale_runs_failed_on_startup(tmp_path: Path) -> None:
     db_url = f"sqlite:///{db_path}"
 
     # First app: create a run and mark it as running
-    app1 = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs", database_url=db_url)
+    app1 = create_app(
+        data_root=tmp_path / "web_data",
+        output_root=tmp_path / "outputs",
+        database_url=db_url,
+    )
     client1 = TestClient(app1, raise_server_exceptions=False)
 
-    resp = client1.post("/api/cases", json={"case_id": "demo-case", "paper_title": "Test"})
+    resp = client1.post(
+        "/api/cases", json={"case_id": "demo-case", "paper_title": "Test"}
+    )
     assert resp.status_code == 201
 
     deps = app1.state.dependencies
@@ -332,7 +393,11 @@ def test_web_app_marks_stale_runs_failed_on_startup(tmp_path: Path) -> None:
     deps.store.save_run(run)
 
     # Second app: should recover the stale run (shares same DB file)
-    app2 = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs", database_url=db_url)
+    app2 = create_app(
+        data_root=tmp_path / "web_data",
+        output_root=tmp_path / "outputs",
+        database_url=db_url,
+    )
     client2 = TestClient(app2, raise_server_exceptions=False)
 
     resp = client2.get(f"/api/cases/demo-case/runs/{run.run_id}")

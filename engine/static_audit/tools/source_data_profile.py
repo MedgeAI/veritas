@@ -125,7 +125,9 @@ def parse_cell(cell: ET.Element, shared: list[str]) -> dict:
             value = raw
     elif cell_type == "inlineStr":
         value = text_of(inline)
-    numeric = None if cell_type in {"s", "str", "inlineStr", "b"} else parse_decimal(raw)
+    numeric = (
+        None if cell_type in {"s", "str", "inlineStr", "b"} else parse_decimal(raw)
+    )
     return {
         "ref": ref,
         "row": row,
@@ -178,7 +180,9 @@ def profile_sheet(zf: zipfile.ZipFile, sheet: dict, shared: list[str]) -> dict:
                 {
                     "count": count,
                     "values": list(values),
-                    "rows": [row for row_values_, row in row_values if row_values_ == values][:30],
+                    "rows": [
+                        row for row_values_, row in row_values if row_values_ == values
+                    ][:30],
                 }
             )
 
@@ -233,7 +237,9 @@ def summarize(workbooks: list[dict]) -> dict:
         "workbook_count": len(workbooks),
         "sheet_count": sum(len(workbook["sheets"]) for workbook in workbooks),
         "cell_count": sum(
-            sheet["cell_count"] for workbook in workbooks for sheet in workbook["sheets"]
+            sheet["cell_count"]
+            for workbook in workbooks
+            for sheet in workbook["sheets"]
         ),
         "numeric_cell_count": sum(
             sheet["numeric_cell_count"]
@@ -241,7 +247,9 @@ def summarize(workbooks: list[dict]) -> dict:
             for sheet in workbook["sheets"]
         ),
         "formula_count": sum(
-            sheet["formula_count"] for workbook in workbooks for sheet in workbook["sheets"]
+            sheet["formula_count"]
+            for workbook in workbooks
+            for sheet in workbook["sheets"]
         ),
         "terminal_digit_counts": dict(terminal_digits),
         "terminal_0_or_5_rate": (
@@ -271,7 +279,9 @@ def main() -> int:
     workbooks = [profile_workbook(path) for path in sorted(root.glob("*.xlsx"))]
     result = {"summary": summarize(workbooks), "workbooks": workbooks}
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    output.write_text(
+        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     print(json.dumps({"output": str(output), **result["summary"]}, ensure_ascii=False))
     return 0
 

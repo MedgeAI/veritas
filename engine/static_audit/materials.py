@@ -97,7 +97,9 @@ def build_material_inventory(paper_dir: Path, paper_pdf: Path) -> dict[str, Any]
 
 def write_material_inventory(path: Path, inventory: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(inventory, ensure_ascii=False, indent=2), encoding="utf-8")
+    path.write_text(
+        json.dumps(inventory, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
 
 
 def fallback_optional_lanes(inventory: dict[str, Any]) -> list[dict[str, Any]]:
@@ -151,18 +153,34 @@ def source_data_roots(
             continue
         hint_score = directory_hint_score(directory, paper_dir)
         executable = bool(xlsx_files)
-        confidence = "high" if executable and hint_score >= 2 else "medium" if executable else "low"
+        confidence = (
+            "high"
+            if executable and hint_score >= 2
+            else "medium"
+            if executable
+            else "low"
+        )
         roots.append(
             {
                 "root": str(directory),
-                "relative_root": str(directory.relative_to(paper_dir)) if directory.is_relative_to(paper_dir) else str(directory),
+                "relative_root": str(directory.relative_to(paper_dir))
+                if directory.is_relative_to(paper_dir)
+                else str(directory),
                 "file_count": len(table_files),
                 "xlsx_count": len(xlsx_files),
-                "csv_tsv_count": len([path for path in table_files if path.suffix.lower() in {".csv", ".tsv"}]),
+                "csv_tsv_count": len(
+                    [
+                        path
+                        for path in table_files
+                        if path.suffix.lower() in {".csv", ".tsv"}
+                    ]
+                ),
                 "confidence": confidence,
                 "executable_in_mvp": executable,
                 "reason": material_root_reason(directory, executable, hint_score),
-                "sample_files": [str(path.relative_to(paper_dir)) for path in table_files[:12]],
+                "sample_files": [
+                    str(path.relative_to(paper_dir)) for path in table_files[:12]
+                ],
             }
         )
     return sorted(
@@ -176,7 +194,9 @@ def source_data_roots(
     )
 
 
-def optional_lanes_from_inventory(candidate_roots: list[dict[str, Any]]) -> list[OptionalLanePlan]:
+def optional_lanes_from_inventory(
+    candidate_roots: list[dict[str, Any]],
+) -> list[OptionalLanePlan]:
     lanes: list[OptionalLanePlan] = []
     for root in candidate_roots:
         if not root.get("executable_in_mvp"):
@@ -185,7 +205,11 @@ def optional_lanes_from_inventory(candidate_roots: list[dict[str, Any]]) -> list
             OptionalLanePlan(
                 lane_id="source_data_xlsx",
                 status="selected",
-                tool_ids=["source_data.profile", "source_data.findings", "source_data.pair_forensics"],
+                tool_ids=[
+                    "source_data.profile",
+                    "source_data.findings",
+                    "source_data.pair_forensics",
+                ],
                 root=str(root["root"]),
                 reason=str(root.get("reason", "XLSX Source Data root detected.")),
                 params={},
@@ -207,7 +231,9 @@ def optional_lanes_from_inventory(candidate_roots: list[dict[str, Any]]) -> list
 
 def directory_hint_score(directory: Path, paper_dir: Path) -> int:
     try:
-        relative_parts = [part.lower() for part in directory.relative_to(paper_dir).parts]
+        relative_parts = [
+            part.lower() for part in directory.relative_to(paper_dir).parts
+        ]
     except ValueError:
         relative_parts = [part.lower() for part in directory.parts[-4:]]
     text = " ".join(relative_parts)

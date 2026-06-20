@@ -22,7 +22,9 @@ def parse_env_file(env_file: Path) -> dict[str, str]:
         value = value.strip()
         if not key:
             continue
-        if (value.startswith('"') and value.endswith('"')) or (value.startswith("'") and value.endswith("'")):
+        if (value.startswith('"') and value.endswith('"')) or (
+            value.startswith("'") and value.endswith("'")
+        ):
             value = value[1:-1]
         values[key] = value
     return values

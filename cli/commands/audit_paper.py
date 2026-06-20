@@ -10,7 +10,9 @@ from engine.static_audit.orchestrator import run_static_audit
 ProgressReporter = Callable[[dict[str, Any]], None]
 
 
-def make_progress_reporter(mode: str, stream: TextIO | None = None) -> ProgressReporter | None:
+def make_progress_reporter(
+    mode: str, stream: TextIO | None = None
+) -> ProgressReporter | None:
     stream = stream or sys.stderr
     resolved_mode = mode
     if mode == "auto":
@@ -18,7 +20,9 @@ def make_progress_reporter(mode: str, stream: TextIO | None = None) -> ProgressR
     if resolved_mode == "off":
         return None
     if resolved_mode == "jsonl":
-        return lambda event: print(json.dumps(event, ensure_ascii=False), file=stream, flush=True)
+        return lambda event: print(
+            json.dumps(event, ensure_ascii=False), file=stream, flush=True
+        )
     if resolved_mode != "plain":
         raise ValueError(f"Unsupported progress mode: {mode}")
 
@@ -42,12 +46,14 @@ def format_plain_progress(event: dict[str, Any]) -> str:
         return f"[{timestamp}] AUDIT {event.get('status')} | final_html={event.get('final_html_report')}{suffix}"
     if event_type == "step_start":
         detail = f" | {event.get('detail')}" if event.get("detail") else ""
-        command = f" | cmd={event.get('command_preview')}" if event.get("command_preview") else ""
+        command = (
+            f" | cmd={event.get('command_preview')}"
+            if event.get("command_preview")
+            else ""
+        )
         return f"[{timestamp}] START {event.get('key')} | {event.get('title')}{detail}{command}"
     if event_type == "step_attempt":
-        return (
-            f"[{timestamp}] TRY   {event.get('key')} | attempt={event.get('attempt')}/{event.get('attempts')}"
-        )
+        return f"[{timestamp}] TRY   {event.get('key')} | attempt={event.get('attempt')}/{event.get('attempts')}"
     if event_type == "command_output":
         line = str(event.get("line", ""))
         return f"[{timestamp}] OUT   {event.get('key')} | {line}"

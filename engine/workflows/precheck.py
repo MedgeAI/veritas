@@ -3,7 +3,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from engine.ingest.manifest_loader import exists_file, load_manifest, path_or_none, resolve_path, resolve_repo_path
+from engine.ingest.manifest_loader import (
+    exists_file,
+    load_manifest,
+    path_or_none,
+    resolve_path,
+    resolve_repo_path,
+)
 
 
 def run_precheck(manifest_path: str | Path) -> dict[str, object]:
@@ -15,15 +21,25 @@ def run_precheck(manifest_path: str | Path) -> dict[str, object]:
     paper_path = resolve_path(manifest_dir, artifacts.get("paper"))
     repo_root = resolve_path(manifest_dir, artifacts.get("repo_root"))
     results_path = resolve_path(manifest_dir, artifacts.get("results_file"))
-    env_files = [resolve_path(manifest_dir, value) for value in artifacts.get("environment_files", [])]
-    entrypoints = [resolve_repo_path(repo_root, value) for value in artifacts.get("entrypoints", [])]
+    env_files = [
+        resolve_path(manifest_dir, value)
+        for value in artifacts.get("environment_files", [])
+    ]
+    entrypoints = [
+        resolve_repo_path(repo_root, value)
+        for value in artifacts.get("entrypoints", [])
+    ]
 
     environment_ready = any(exists_file(path) for path in env_files)
-    entrypoint_ready = bool(entrypoints) and all(exists_file(path) for path in entrypoints)
+    entrypoint_ready = bool(entrypoints) and all(
+        exists_file(path) for path in entrypoints
+    )
     results_ready = exists_file(results_path)
     repo_ready = repo_root.is_dir()
     paper_ready = exists_file(paper_path)
-    verification_level_preview = _preview_level(paper_ready, repo_ready, environment_ready, entrypoint_ready, results_ready)
+    verification_level_preview = _preview_level(
+        paper_ready, repo_ready, environment_ready, entrypoint_ready, results_ready
+    )
 
     payload = {
         "project_name": project.get("name", "Unnamed Project"),
@@ -38,7 +54,15 @@ def run_precheck(manifest_path: str | Path) -> dict[str, object]:
         "repo_ready": repo_ready,
         "paper_ready": paper_ready,
         "verification_level_preview": verification_level_preview,
-        "checks_passed": sum([environment_ready, entrypoint_ready, results_ready, repo_ready, paper_ready]),
+        "checks_passed": sum(
+            [
+                environment_ready,
+                entrypoint_ready,
+                results_ready,
+                repo_ready,
+                paper_ready,
+            ]
+        ),
         "checks_total": 5,
     }
     payload["json"] = json.dumps(payload, ensure_ascii=False, indent=2)

@@ -4,6 +4,7 @@ This module provides helpers for mapping legacy flat artifact filenames to their
 new layered directory structure. It's separated from orchestrator.py to avoid
 circular imports with html_report and other modules.
 """
+
 from __future__ import annotations
 
 from pathlib import Path
@@ -12,13 +13,13 @@ from pathlib import Path
 # Output directory structure: layer artifacts by responsibility for Agent and human readability.
 # See outputs/<case_id>/research-integrity-audit/README.md for full documentation.
 OUTPUT_DIRS = {
-    "mineru": "mineru",           # MinerU PDF parsing intermediate artifacts
-    "materials": "materials",     # Material inventory and plans
-    "source_data": "source_data", # Source Data tool outputs
-    "visual": "visual",           # Visual forensics tool outputs (images, panels, findings)
-    "numeric": "numeric",         # Numeric forensics tool outputs
-    "agents": "agents",           # Agent outputs, traces, context packs, logs
-    "reports": "reports",         # Final deliverables (HTML/MD reports, bundle, manifest)
+    "mineru": "mineru",  # MinerU PDF parsing intermediate artifacts
+    "materials": "materials",  # Material inventory and plans
+    "source_data": "source_data",  # Source Data tool outputs
+    "visual": "visual",  # Visual forensics tool outputs (images, panels, findings)
+    "numeric": "numeric",  # Numeric forensics tool outputs
+    "agents": "agents",  # Agent outputs, traces, context packs, logs
+    "reports": "reports",  # Final deliverables (HTML/MD reports, bundle, manifest)
 }
 
 
@@ -33,7 +34,9 @@ def output_subdir(workdir: Path, category: str) -> Path:
         Path to the subdirectory (does not create it).
     """
     if category not in OUTPUT_DIRS:
-        raise ValueError(f"Unknown output category: {category}. Must be one of {list(OUTPUT_DIRS.keys())}")
+        raise ValueError(
+            f"Unknown output category: {category}. Must be one of {list(OUTPUT_DIRS.keys())}"
+        )
     return workdir / OUTPUT_DIRS[category]
 
 

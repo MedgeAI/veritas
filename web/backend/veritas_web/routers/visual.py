@@ -31,12 +31,17 @@ async def get_visual_artifact(
 ) -> dict[str, Any]:
     artifact_id = _ARTIFACT_MAP.get(artifact_type)
     if not artifact_id:
-        raise HTTPException(status_code=404, detail=f"unknown visual artifact type: {artifact_type}")
+        raise HTTPException(
+            status_code=404, detail=f"unknown visual artifact type: {artifact_type}"
+        )
     path = deps.artifacts.artifact_path(case_id, artifact_id)
     if not path:
         raise HTTPException(
             status_code=404,
-            detail={"error": "not_found", "detail": f"visual artifact not found: {artifact_type}"},
+            detail={
+                "error": "not_found",
+                "detail": f"visual artifact not found: {artifact_type}",
+            },
         )
     return json.loads(path.read_text(encoding="utf-8"))
 

@@ -30,7 +30,7 @@ def write_minimal_xlsx(path: Path, rows: list[list[float | int | None]]) -> None
     sheet_xml = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-        f'<sheetData>{"".join(sheet_rows)}</sheetData>'
+        f"<sheetData>{''.join(sheet_rows)}</sheetData>"
         "</worksheet>"
     )
     with zipfile.ZipFile(path, "w") as zf:
@@ -87,7 +87,7 @@ def write_mixed_xlsx(path: Path, rows: list[list[float | int | str | None]]) -> 
     sheet_xml = (
         '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-        f'<sheetData>{"".join(sheet_rows)}</sheetData>'
+        f"<sheetData>{''.join(sheet_rows)}</sheetData>"
         "</worksheet>"
     )
     with zipfile.ZipFile(path, "w") as zf:
@@ -243,16 +243,22 @@ def test_pair_forensics_detects_cross_block_paired_diff_too_narrow(tmp_path) -> 
         if item["category"] == "cross_block_paired_diff_too_narrow"
     ]
     assert findings
-    assert result["summary"]["cross_block_paired_diff_too_narrow_findings"] == len(findings)
+    assert result["summary"]["cross_block_paired_diff_too_narrow_findings"] == len(
+        findings
+    )
     assert any(item["finding_id"].startswith("CBD-") for item in findings)
-    assert "cross_block_paired_diff_too_narrow" in {item["category"] for item in result["priority_findings"]}
+    assert "cross_block_paired_diff_too_narrow" in {
+        item["category"] for item in result["priority_findings"]
+    }
     assert any(
         task["category"] == "cross_block_paired_diff_too_narrow"
         for task in result["review_tasks"]
     )
 
 
-def test_pair_forensics_cross_block_requires_real_separator_and_narrow_diffs(tmp_path) -> None:
+def test_pair_forensics_cross_block_requires_real_separator_and_narrow_diffs(
+    tmp_path,
+) -> None:
     write_mixed_xlsx(
         tmp_path / "single_cell_separator.xlsx",
         [
@@ -367,9 +373,9 @@ def test_pair_forensics_downgrades_mean_sum_ratio_reuse() -> None:
     assert findings
     assert {finding["risk_level"] for finding in findings} == {"low"}
     assert {finding["artifact_likelihood"] for finding in findings} == {"high"}
-    assert {
-        finding["pressure_test_result"] for finding in findings
-    } == {"likely_summary_statistic_derivation"}
+    assert {finding["pressure_test_result"] for finding in findings} == {
+        "likely_summary_statistic_derivation"
+    }
 
 
 def test_duplicate_row_vector_downgrades_zero_inflated_matrix() -> None:

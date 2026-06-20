@@ -68,9 +68,13 @@ class LocalASGITestClient:
         body: bytes = b"",
         headers: dict[str, str] | None = None,
     ) -> ASGIResponse:
-        return asyncio.run(self._request(method, path, body=body, headers=headers or {}))
+        return asyncio.run(
+            self._request(method, path, body=body, headers=headers or {})
+        )
 
-    async def _request(self, method: str, path: str, *, body: bytes, headers: dict[str, str]) -> ASGIResponse:
+    async def _request(
+        self, method: str, path: str, *, body: bytes, headers: dict[str, str]
+    ) -> ASGIResponse:
         parsed = urlsplit(path)
         sent_request = False
         messages: list[dict[str, Any]] = []
@@ -122,13 +126,20 @@ class LocalASGITestClient:
                 self._store_cookies(response_headers)
             elif message["type"] == "http.response.body":
                 chunks.append(message.get("body", b""))
-        return ASGIResponse(status_code=status, content=b"".join(chunks), headers=response_headers)
+        return ASGIResponse(
+            status_code=status, content=b"".join(chunks), headers=response_headers
+        )
 
     def _headers(self, headers: dict[str, str]) -> list[tuple[bytes, bytes]]:
         merged = {"host": "testserver", **headers}
         if self.cookies and "cookie" not in {key.lower() for key in merged}:
-            merged["cookie"] = "; ".join(f"{key}={value}" for key, value in self.cookies.items())
-        return [(key.lower().encode("latin1"), value.encode("latin1")) for key, value in merged.items()]
+            merged["cookie"] = "; ".join(
+                f"{key}={value}" for key, value in self.cookies.items()
+            )
+        return [
+            (key.lower().encode("latin1"), value.encode("latin1"))
+            for key, value in merged.items()
+        ]
 
     def _store_cookies(self, headers: dict[str, str]) -> None:
         set_cookie = headers.get("set-cookie")
@@ -154,7 +165,9 @@ class LocalASGITestClient:
             chunks.extend(
                 [
                     f"--{boundary}\r\n".encode("ascii"),
-                    f'Content-Disposition: form-data; name="{field_name}"\r\n\r\n'.encode("utf-8"),
+                    f'Content-Disposition: form-data; name="{field_name}"\r\n\r\n'.encode(
+                        "utf-8"
+                    ),
                     value.encode("utf-8"),
                     b"\r\n",
                 ]

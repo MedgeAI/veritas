@@ -47,7 +47,9 @@ class CaseStore:
         self.cases_root = self.root / "cases"
         self.cases_root.mkdir(parents=True, exist_ok=True)
 
-        self._db_url = database_url or os.environ.get("VERITAS_DATABASE_URL", "sqlite:///:memory:")
+        self._db_url = database_url or os.environ.get(
+            "VERITAS_DATABASE_URL", "sqlite:///:memory:"
+        )
         self._init_sql(self._db_url)
 
     # ------------------------------------------------------------------
@@ -63,6 +65,7 @@ class CaseStore:
             kwargs["connect_args"] = {"check_same_thread": False}
             if ":memory:" in database_url or database_url == "sqlite://":
                 from sqlalchemy.pool import StaticPool
+
                 kwargs["poolclass"] = StaticPool
         else:
             kwargs["pool_size"] = 5
@@ -73,6 +76,7 @@ class CaseStore:
         self._session_factory = sessionmaker(bind=self._engine, autoflush=False)
 
         from .database import Base
+
         Base.metadata.create_all(bind=self._engine)
 
     def _session(self):
@@ -88,7 +92,9 @@ class CaseStore:
 
     def _check_owner(self, record: CaseRecord, user_id: str | None) -> None:
         if user_id is not None and record.owner != user_id:
-            raise PermissionError(f"user '{user_id}' is not the owner of case '{record.case_id}'")
+            raise PermissionError(
+                f"user '{user_id}' is not the owner of case '{record.case_id}'"
+            )
 
     def _to_case_record(self, model: Any) -> CaseRecord:
         return CaseRecord.from_model(model)
@@ -102,17 +108,22 @@ class CaseStore:
 
     def list_cases(self, user_id: str | None = None) -> list[CaseRecord]:
         from .models import CaseModel
+
         session = self._session()
         try:
             query = session.query(CaseModel)
             if user_id is not None:
                 query = query.filter(CaseModel.owner == user_id)
-            return [self._to_case_record(m) for m in query.order_by(CaseModel.created_at).all()]
+            return [
+                self._to_case_record(m)
+                for m in query.order_by(CaseModel.created_at).all()
+            ]
         finally:
             session.close()
 
     def get_case(self, case_id: str, user_id: str | None = None) -> CaseRecord:
         from .models import CaseModel
+
         session = self._session()
         try:
             model = session.get(CaseModel, case_id)
@@ -133,9 +144,13 @@ class CaseStore:
         case_id: str | None = None,
     ) -> CaseRecord:
         from .models import CaseModel
+
         if case is None:
             case = CaseRecord(
-                case_id=safe_id(case_id or f"case-{utc_now().replace(':', '').replace('-', '')}-{uuid4().hex[:8]}"),
+                case_id=safe_id(
+                    case_id
+                    or f"case-{utc_now().replace(':', '').replace('-', '')}-{uuid4().hex[:8]}"
+                ),
                 paper_title=paper_title or "Unknown until parsed",
             )
         case.owner = user_id
@@ -183,19 +198,39 @@ class CaseStore:
             RunEventModel,
             RunModel,
         )
+
         self.get_case(case_id, user_id=user_id)  # ownership check
 
         session = self._session()
         try:
-            run_ids = [r.run_id for r in session.query(RunModel.run_id).filter(RunModel.case_id == case_id).all()]
+            run_ids = [
+                r.run_id
+                for r in session.query(RunModel.run_id)
+                .filter(RunModel.case_id == case_id)
+                .all()
+            ]
             if run_ids:
-                session.query(RunEventModel).filter(RunEventModel.run_id.in_(run_ids)).delete(synchronize_session=False)
-            session.query(RunModel).filter(RunModel.case_id == case_id).delete(synchronize_session=False)
-            session.query(InvestigationRecordModel).filter(InvestigationRecordModel.case_id == case_id).delete(synchronize_session=False)
-            session.query(ReviewDecisionModel).filter(ReviewDecisionModel.case_id == case_id).delete(synchronize_session=False)
-            session.query(ImageEmbeddingModel).filter(ImageEmbeddingModel.case_id == case_id).delete(synchronize_session=False)
-            session.query(EmbeddingIndexJobModel).filter(EmbeddingIndexJobModel.case_id == case_id).delete(synchronize_session=False)
-            session.query(CaseModel).filter(CaseModel.case_id == case_id).delete(synchronize_session=False)
+                session.query(RunEventModel).filter(
+                    RunEventModel.run_id.in_(run_ids)
+                ).delete(synchronize_session=False)
+            session.query(RunModel).filter(RunModel.case_id == case_id).delete(
+                synchronize_session=False
+            )
+            session.query(InvestigationRecordModel).filter(
+                InvestigationRecordModel.case_id == case_id
+            ).delete(synchronize_session=False)
+            session.query(ReviewDecisionModel).filter(
+                ReviewDecisionModel.case_id == case_id
+            ).delete(synchronize_session=False)
+            session.query(ImageEmbeddingModel).filter(
+                ImageEmbeddingModel.case_id == case_id
+            ).delete(synchronize_session=False)
+            session.query(EmbeddingIndexJobModel).filter(
+                EmbeddingIndexJobModel.case_id == case_id
+            ).delete(synchronize_session=False)
+            session.query(CaseModel).filter(CaseModel.case_id == case_id).delete(
+                synchronize_session=False
+            )
             session.commit()
         except Exception:
             session.rollback()
@@ -213,6 +248,7 @@ class CaseStore:
 
     def _save_case(self, record: CaseRecord) -> None:
         from .models import CaseModel
+
         record.updated_at = utc_now()
         session = self._session()
         try:
@@ -256,20 +292,32 @@ class CaseStore:
     # Input file operations (binary files on disk, metadata in DB)
     # ------------------------------------------------------------------
 
-    def write_input(self, case_id: str, filename: str, content: bytes, relative_path: str | None = None) -> Path:
+    def write_input(
+        self,
+        case_id: str,
+        filename: str,
+        content: bytes,
+        relative_path: str | None = None,
+    ) -> Path:
         case_record = self.get_case(case_id)
-        target = self.inputs_dir(case_id) / self._safe_input_relative_path(relative_path or filename, filename)
+        target = self.inputs_dir(case_id) / self._safe_input_relative_path(
+            relative_path or filename, filename
+        )
         if not target.name:
             raise ValueError("input filename is required")
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(content)
-        case_record.input_count = len([p for p in self.inputs_dir(case_id).rglob("*") if p.is_file()])
+        case_record.input_count = len(
+            [p for p in self.inputs_dir(case_id).rglob("*") if p.is_file()]
+        )
         if case_record.status == "Draft":
             case_record.status = "Uploaded"
         self._save_case(case_record)
         return target
 
-    def write_input_base64(self, case_id: str, filename: str, content_base64: str) -> Path:
+    def write_input_base64(
+        self, case_id: str, filename: str, content_base64: str
+    ) -> Path:
         return self.write_input(case_id, filename, base64.b64decode(content_base64))
 
     @staticmethod
@@ -307,6 +355,7 @@ class CaseStore:
 
     def create_run(self, case_id: str, agent_mode: str = "review") -> AuditRunRecord:
         from .models import CaseModel, RunModel
+
         self.get_case(case_id)  # ensures case exists
         run_id = f"run-{utc_now().replace(':', '').replace('-', '')}-{uuid4().hex[:8]}"
         record = AuditRunRecord(run_id=run_id, case_id=case_id, agent_mode=agent_mode)
@@ -327,6 +376,7 @@ class CaseStore:
 
     def get_run(self, case_id: str, run_id: str) -> AuditRunRecord:
         from .models import RunModel
+
         session = self._session()
         try:
             model = session.get(RunModel, run_id)
@@ -338,27 +388,43 @@ class CaseStore:
 
     def list_runs(self, case_id: str) -> list[AuditRunRecord]:
         from .models import RunModel
+
         session = self._session()
         try:
-            models = session.query(RunModel).filter(RunModel.case_id == case_id).order_by(RunModel.created_at).all()
+            models = (
+                session.query(RunModel)
+                .filter(RunModel.case_id == case_id)
+                .order_by(RunModel.created_at)
+                .all()
+            )
             return [self._to_run_record(m) for m in models]
         finally:
             session.close()
 
     def list_all_runs(self, user_id: str | None = None) -> list[AuditRunRecord]:
         from .models import CaseModel, RunModel
+
         session = self._session()
         try:
             query = session.query(RunModel)
             if user_id is not None:
-                case_ids = [c.case_id for c in session.query(CaseModel.case_id).filter(CaseModel.owner == user_id).all()]
+                case_ids = [
+                    c.case_id
+                    for c in session.query(CaseModel.case_id)
+                    .filter(CaseModel.owner == user_id)
+                    .all()
+                ]
                 query = query.filter(RunModel.case_id.in_(case_ids))
-            return [self._to_run_record(m) for m in query.order_by(RunModel.created_at).all()]
+            return [
+                self._to_run_record(m)
+                for m in query.order_by(RunModel.created_at).all()
+            ]
         finally:
             session.close()
 
     def save_run(self, record: AuditRunRecord) -> None:
         from .models import RunModel
+
         session = self._session()
         try:
             existing = session.get(RunModel, record.run_id)
@@ -381,13 +447,16 @@ class CaseStore:
 
     def append_event(self, case_id: str, run_id: str, event: dict[str, Any]) -> None:
         from .models import RunEventModel
+
         session = self._session()
         try:
-            session.add(RunEventModel(
-                run_id=run_id,
-                event_type=event.get("event", "progress"),
-                payload={k: v for k, v in event.items() if k != "event"},
-            ))
+            session.add(
+                RunEventModel(
+                    run_id=run_id,
+                    event_type=event.get("event", "progress"),
+                    payload={k: v for k, v in event.items() if k != "event"},
+                )
+            )
             session.commit()
         except Exception:
             session.rollback()
@@ -397,6 +466,7 @@ class CaseStore:
 
     def list_events(self, case_id: str, run_id: str) -> list[dict[str, Any]]:
         from .models import RunEventModel, RunModel
+
         session = self._session()
         try:
             run = session.get(RunModel, run_id)

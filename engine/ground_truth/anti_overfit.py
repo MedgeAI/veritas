@@ -42,7 +42,15 @@ _HARDCODED_PATTERNS = [
 class AntiOverfitChecker:
     """Five-rule anti-overfitting enforcement."""
 
-    def check_all(self, capability_id: str, code: str, impl_path: Path | None = None, test_path: Path | None = None, validation_papers: list[str] | None = None, distribution_path: Path | None = None) -> AntiOverfitReport:
+    def check_all(
+        self,
+        capability_id: str,
+        code: str,
+        impl_path: Path | None = None,
+        test_path: Path | None = None,
+        validation_papers: list[str] | None = None,
+        distribution_path: Path | None = None,
+    ) -> AntiOverfitReport:
         """Run all five checks and return a consolidated report."""
         violations: list[str] = []
         warnings: list[str] = []
@@ -106,7 +114,9 @@ class AntiOverfitChecker:
                     break
         return violations
 
-    def check_cross_paper_validation(self, validation_papers: list[str]) -> tuple[bool, str]:
+    def check_cross_paper_validation(
+        self, validation_papers: list[str]
+    ) -> tuple[bool, str]:
         """Rule 3: At least 3 papers validated (1 ground truth + 2 control)."""
         if len(validation_papers) < 3:
             return (
@@ -116,7 +126,9 @@ class AntiOverfitChecker:
             )
         return (True, "")
 
-    def check_threshold_distribution(self, distribution_path: Path | None) -> tuple[bool, str]:
+    def check_threshold_distribution(
+        self, distribution_path: Path | None
+    ) -> tuple[bool, str]:
         """Rule 4: Threshold derived from statistical distribution."""
         if distribution_path is None or not distribution_path.exists():
             return (
@@ -126,7 +138,9 @@ class AntiOverfitChecker:
             )
         return (True, "")
 
-    def check_test_first(self, test_path: Path | None, impl_path: Path | None) -> tuple[bool, str]:
+    def check_test_first(
+        self, test_path: Path | None, impl_path: Path | None
+    ) -> tuple[bool, str]:
         """Rule 5: Test file created before implementation file."""
         if test_path is None or impl_path is None:
             return (True, "")

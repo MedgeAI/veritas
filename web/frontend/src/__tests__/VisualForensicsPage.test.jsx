@@ -70,7 +70,7 @@ describe('VisualForensicsPage', () => {
     });
 
     // Check for empty state messages
-    expect(screen.getByText(/未提取到 figure 级图像证据/)).toBeInTheDocument();
+    expect(screen.getByText(/暂无视觉取证数据/)).toBeInTheDocument();
     expect(screen.getByText(/未发现 panel 间相似关系/)).toBeInTheDocument();
     expect(screen.getByText(/未生成 visual finding 或当前筛选无结果/)).toBeInTheDocument();
   });
@@ -135,7 +135,16 @@ describe('VisualForensicsPage', () => {
     vi.mocked(api.fetchVisualFindings).mockResolvedValue({ findings: [] });
     vi.mocked(api.fetchOverlapReuse).mockResolvedValue({ relationships: [] });
     vi.mocked(api.listInvestigations).mockResolvedValue({ records: [], results: [], artifact_errors: [] });
-    vi.mocked(api.getEmbeddingStatus).mockResolvedValue({ status: 'unavailable', indexed_count: 0 });
+    vi.mocked(api.getEmbeddingStatus).mockResolvedValue({ status: 'indexed', indexed_count: 2 });
+    vi.mocked(api.fetchAllSimilarPairs).mockResolvedValue({
+      pairs: [
+        {
+          source_panel_id: 'panel1',
+          target_panel_id: 'panel2',
+          similarity: 0.96,
+        },
+      ],
+    });
     vi.mocked(api.startVisualInvestigation).mockResolvedValue({
       record: { action_id: 'test-action', tool_id: 'visual.copy_move_dense', status: 'ran', created_at: '2026-01-01' },
       artifact: 'test-artifact',
@@ -149,26 +158,11 @@ describe('VisualForensicsPage', () => {
       expect(screen.getByText('Visual Evidence Summary')).toBeInTheDocument();
     });
 
-    // Wait for checkboxes to appear
-    await waitFor(() => {
-      const checkboxes = screen.getAllByRole('checkbox');
-      expect(checkboxes.length).toBeGreaterThan(0);
-    });
+    const loadPairsButton = await screen.findByRole('button', { name: /查找相似 Panel 对/i });
+    await user.click(loadPairsButton);
 
-    // Select panels by clicking checkboxes
-    const checkboxes = screen.getAllByRole('checkbox');
-    await user.click(checkboxes[0]);
-    await user.click(checkboxes[1]);
-
-    // Wait for button to become enabled
-    await waitFor(() => {
-      const runButton = screen.getByRole('button', { name: /Run SILA Dense/i });
-      expect(runButton).not.toBeDisabled();
-    });
-
-    // Click run button
-    const runButton = screen.getByRole('button', { name: /Run SILA Dense/i });
-    await user.click(runButton);
+    const runPairButton = await screen.findByRole('button', { name: /选中并跑 Dense/i });
+    await user.click(runPairButton);
 
     // Verify API was called with correct parameters
     await waitFor(() => {
@@ -198,7 +192,7 @@ describe('VisualForensicsPage', () => {
     render(<VisualForensicsPage selectedCase={mockCase} />);
 
     await waitFor(() => {
-      expect(screen.getByText(/Some data failed to load/)).toBeInTheDocument();
+      expect(screen.getByText(/部分数据加载失败：figures: Network error/)).toBeInTheDocument();
     });
   });
 });

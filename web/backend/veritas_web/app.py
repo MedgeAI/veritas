@@ -25,7 +25,16 @@ from .database import create_db_engine
 from .dependencies import AppDependencies, set_dependencies
 from .investigations import WebInvestigationService
 from .runner import AuditRunner
-from .routers import artifacts, cases, cbir, embeddings, investigations, review, tools, visual
+from .routers import (
+    artifacts,
+    cases,
+    cbir,
+    embeddings,
+    investigations,
+    review,
+    tools,
+    visual,
+)
 from .tool_catalog import seed_tool_registry
 
 
@@ -39,7 +48,9 @@ class VeritasWebApp:
         frontend_dist: str | Path | None = None,
         database_url: str | None = None,
     ) -> None:
-        self.store = CaseStore(data_root, database_url=_resolve_database_url(data_root, database_url))
+        self.store = CaseStore(
+            data_root, database_url=_resolve_database_url(data_root, database_url)
+        )
         self.runner = AuditRunner(self.store, output_root=output_root)
         self.recovered_interrupted_runs = self.runner.recover_interrupted_runs()
         self.artifacts = ArtifactService(self.store)
@@ -101,16 +112,24 @@ def create_app(
 
     # --- Exception handlers -------------------------------------------
     @app.exception_handler(FileNotFoundError)
-    async def handle_not_found(request: Request, exc: FileNotFoundError) -> JSONResponse:
-        return JSONResponse(status_code=404, content={"error": "NotFound", "detail": str(exc)})
+    async def handle_not_found(
+        request: Request, exc: FileNotFoundError
+    ) -> JSONResponse:
+        return JSONResponse(
+            status_code=404, content={"error": "NotFound", "detail": str(exc)}
+        )
 
     @app.exception_handler(PermissionError)
     async def handle_forbidden(request: Request, exc: PermissionError) -> JSONResponse:
-        return JSONResponse(status_code=403, content={"error": "Forbidden", "detail": str(exc)})
+        return JSONResponse(
+            status_code=403, content={"error": "Forbidden", "detail": str(exc)}
+        )
 
     @app.exception_handler(ValueError)
     async def handle_bad_request(request: Request, exc: ValueError) -> JSONResponse:
-        return JSONResponse(status_code=400, content={"error": "BadRequest", "detail": str(exc)})
+        return JSONResponse(
+            status_code=400, content={"error": "BadRequest", "detail": str(exc)}
+        )
 
     # --- Routers -------------------------------------------------------
     app.include_router(cases.router, prefix="/api")
@@ -148,7 +167,10 @@ def create_app(
             target = (dist / path).resolve()
             if target == dist_resolved or dist_resolved in target.parents:
                 if target.exists() and target.is_file():
-                    content_type = mimetypes.guess_type(str(target))[0] or "application/octet-stream"
+                    content_type = (
+                        mimetypes.guess_type(str(target))[0]
+                        or "application/octet-stream"
+                    )
                     return FileResponse(target, media_type=content_type)
             return FileResponse(dist / "index.html")
     else:
@@ -166,7 +188,9 @@ def create_app(
     return app
 
 
-def _resolve_database_url(data_root: str | Path, database_url: str | None = None) -> str:
+def _resolve_database_url(
+    data_root: str | Path, database_url: str | None = None
+) -> str:
     if database_url:
         return database_url
     env_url = os.environ.get("VERITAS_DATABASE_URL")
@@ -215,9 +239,11 @@ def serve(
 
     global app
     app = create_app(data_root=data_root, output_root=output_root)
-    auth_mode = "none" if isinstance(
-        create_auth_provider(AuthConfig.from_env()), NoAuthProvider
-    ) else type(create_auth_provider(AuthConfig.from_env())).__name__
+    auth_mode = (
+        "none"
+        if isinstance(create_auth_provider(AuthConfig.from_env()), NoAuthProvider)
+        else type(create_auth_provider(AuthConfig.from_env())).__name__
+    )
     print(f"Veritas Web backend listening on http://{host}:{port} (auth: {auth_mode})")
     uvicorn.run(app, host=host, port=port, log_level="info")
 

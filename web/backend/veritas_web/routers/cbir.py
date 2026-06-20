@@ -17,6 +17,7 @@ router = APIRouter(prefix="/cbir", tags=["cbir"])
 # Pydantic request / response models
 # ---------------------------------------------------------------------------
 
+
 class CbirSearchRequest(BaseModel):
     """Request body for CBIR similarity search."""
 
@@ -52,6 +53,7 @@ class CbirSearchResponse(BaseModel):
 # Endpoints
 # ---------------------------------------------------------------------------
 
+
 @router.post("/search", response_model=CbirSearchResponse)
 async def cbir_search(
     body: CbirSearchRequest,
@@ -65,7 +67,10 @@ async def cbir_search(
     if deps._session_factory is None:
         raise HTTPException(
             status_code=503,
-            detail={"error": "database_unavailable", "detail": "database not configured"},
+            detail={
+                "error": "database_unavailable",
+                "detail": "database not configured",
+            },
         )
 
     session = deps._session_factory()
@@ -73,8 +78,10 @@ async def cbir_search(
         # Build an artifact resolver that returns the latest workdir for a case.
         artifact_resolver = None
         if body.label is not None:
+
             def _resolve(case_id: str) -> Any:
                 return deps.artifacts.latest_workdir(case_id)
+
             artifact_resolver = _resolve
 
         result = search_similar_panels(
@@ -110,7 +117,10 @@ async def cbir_search_by_label(
     if deps._session_factory is None:
         raise HTTPException(
             status_code=503,
-            detail={"error": "database_unavailable", "detail": "database not configured"},
+            detail={
+                "error": "database_unavailable",
+                "detail": "database not configured",
+            },
         )
 
     session = deps._session_factory()
@@ -140,13 +150,15 @@ async def cbir_search_by_label(
         for row in embeddings:
             panel_label = panel_labels.get(row.panel_id, "")
             if label_lower in panel_label.lower():
-                matches.append({
-                    "panel_id": row.panel_id,
-                    "figure_id": row.figure_id,
-                    "image_path": row.image_path,
-                    "label": panel_label,
-                    "has_embedding": row.embedding is not None,
-                })
+                matches.append(
+                    {
+                        "panel_id": row.panel_id,
+                        "figure_id": row.figure_id,
+                        "image_path": row.image_path,
+                        "label": panel_label,
+                        "has_embedding": row.embedding is not None,
+                    }
+                )
 
         matches.sort(key=lambda m: m["panel_id"])
         return {
@@ -178,14 +190,20 @@ async def cbir_search_by_upload(
     if deps._session_factory is None:
         raise HTTPException(
             status_code=503,
-            detail={"error": "database_unavailable", "detail": "database not configured"},
+            detail={
+                "error": "database_unavailable",
+                "detail": "database not configured",
+            },
         )
 
     # Validate file type
     if file.content_type not in {"image/jpeg", "image/png", "image/jpg"}:
         raise HTTPException(
             status_code=400,
-            detail={"error": "invalid_file_type", "detail": f"unsupported image type: {file.content_type}"},
+            detail={
+                "error": "invalid_file_type",
+                "detail": f"unsupported image type: {file.content_type}",
+            },
         )
 
     # Read image bytes
@@ -202,8 +220,10 @@ async def cbir_search_by_upload(
         # Build an artifact resolver for label filtering
         artifact_resolver = None
         if label is not None:
+
             def _resolve(case_id: str) -> Any:
                 return deps.artifacts.latest_workdir(case_id)
+
             artifact_resolver = _resolve
 
         result = search_similar_by_image_upload(
@@ -220,7 +240,10 @@ async def cbir_search_by_upload(
         if "error" in result:
             raise HTTPException(
                 status_code=503,
-                detail={"error": "embedding_extraction_failed", "detail": result["error"]},
+                detail={
+                    "error": "embedding_extraction_failed",
+                    "detail": result["error"],
+                },
             )
 
         # Map result to response model

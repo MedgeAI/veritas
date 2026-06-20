@@ -4,6 +4,7 @@ This module provides authentication primitives and context management.
 It supports multiple auth modes (none, bearer, basic) through a pluggable
 provider architecture.
 """
+
 from __future__ import annotations
 
 import base64
@@ -26,6 +27,7 @@ class AuthContext:
         roles: Set of role names assigned to the user (e.g., 'admin', 'pi', 'reviewer').
         metadata: Additional user metadata (optional).
     """
+
     user_id: str
     email: str | None = None
     roles: frozenset[str] = field(default_factory=frozenset)
@@ -126,7 +128,7 @@ class BearerTokenProvider(AuthProvider):
         if not auth_header or not auth_header.startswith("Bearer "):
             return None
 
-        token = auth_header[len("Bearer "):]
+        token = auth_header[len("Bearer ") :]
         try:
             payload = jwt.decode(
                 token,
@@ -196,14 +198,12 @@ class BasicAuthProvider(AuthProvider):
         Returns:
             ``AuthContext`` on success, ``None`` on any failure.
         """
-        auth_header = (
-            headers.get("Authorization") or headers.get("authorization") or ""
-        )
+        auth_header = headers.get("Authorization") or headers.get("authorization") or ""
         if not auth_header.startswith("Basic "):
             return None
 
         try:
-            decoded = base64.b64decode(auth_header[len("Basic "):]).decode("utf-8")
+            decoded = base64.b64decode(auth_header[len("Basic ") :]).decode("utf-8")
         except Exception:
             return None
 

@@ -12,6 +12,7 @@ paperconan is a third-party capability source. This adapter:
 The adapter does NOT modify paperconan's source code. It treats paperconan as a
 read-only capability image under third_party/paperconan/.
 """
+
 from __future__ import annotations
 
 import json
@@ -84,7 +85,10 @@ def run_paperconan_scan(
     output_dir.mkdir(parents=True, exist_ok=True)
     artifact_path = output_dir / "paperconan_scan.json"
 
-    if not any(path.is_file() and path.suffix.lower() in _SUPPORTED_SOURCE_SUFFIXES for path in source_data_dir.rglob("*")):
+    if not any(
+        path.is_file() and path.suffix.lower() in _SUPPORTED_SOURCE_SUFFIXES
+        for path in source_data_dir.rglob("*")
+    ):
         error_result = {
             "tool": "paperconan",
             "tool_version": "unknown",
@@ -220,7 +224,9 @@ def _summarize_findings(scan_result: dict[str, Any]) -> dict[str, Any]:
         summary["total"] += 1
 
     # Count digit/decimal findings (these are per-sheet, not per-finding)
-    summary["digit_distribution_sheets"] = len(scan_result.get("digit_distribution", []))
+    summary["digit_distribution_sheets"] = len(
+        scan_result.get("digit_distribution", [])
+    )
     summary["decimal_endings_sheets"] = len(scan_result.get("decimal_endings", []))
 
     return summary

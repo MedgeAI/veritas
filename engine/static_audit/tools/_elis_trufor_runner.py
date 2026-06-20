@@ -58,7 +58,9 @@ logging.basicConfig(level=logging.WARNING, format="%(levelname)s %(name)s: %(mes
 logger = logging.getLogger(__name__)
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
-ELIS_TRUFOR_SRC = _REPO_ROOT / "third_party" / "elis" / "system_modules" / "TruFor" / "docker" / "src"
+ELIS_TRUFOR_SRC = (
+    _REPO_ROOT / "third_party" / "elis" / "system_modules" / "TruFor" / "docker" / "src"
+)
 DEFAULT_WEIGHTS = _REPO_ROOT / "models" / "trufor" / "weights" / "trufor.pth.tar"
 DEFAULT_CONFIG = ELIS_TRUFOR_SRC / "trufor.yaml"
 
@@ -97,16 +99,21 @@ def _load_model(weights_path: str, device: str) -> Any:
     cfg.TEST = CN({"MODEL_FILE": weights_path})
 
     from models.cmx.builder_np_conf import myEncoderDecoder as confcmx
+
     model = confcmx(cfg=cfg)
 
-    checkpoint = torch.load(weights_path, map_location=torch.device(device), weights_only=False)
+    checkpoint = torch.load(
+        weights_path, map_location=torch.device(device), weights_only=False
+    )
     model.load_state_dict(checkpoint["state_dict"])
     model = model.to(device)
     model.eval()
     return model
 
 
-def _preprocess_image(image_path: str, device: str) -> tuple[torch.Tensor, tuple[int, int]]:
+def _preprocess_image(
+    image_path: str, device: str
+) -> tuple[torch.Tensor, tuple[int, int]]:
     """Load and preprocess an image for TruFor inference."""
     _setup_trufor_path()
     from data_core import myDataset
@@ -120,9 +127,12 @@ def _preprocess_image(image_path: str, device: str) -> tuple[torch.Tensor, tuple
     raise RuntimeError(f"Failed to load image: {image_path}")
 
 
-def _save_heatmap(arr: np.ndarray, path: str, original_size: tuple[int, int], colormap: str = "RdBu_r") -> None:
+def _save_heatmap(
+    arr: np.ndarray, path: str, original_size: tuple[int, int], colormap: str = "RdBu_r"
+) -> None:
     """Save a 2D array as a heatmap PNG resized to original image dimensions."""
     import matplotlib
+
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
@@ -162,18 +172,20 @@ def run_batch(
         # record skip_reason for every figure and return gracefully.
         logger.warning("TruFor model load failed: %s", e)
         for fig in figures:
-            results.append({
-                "figure_id": fig["figure_id"],
-                "status": "failed",
-                "skip_reason": f"model_load_failed: {e}",
-                "integrity_score": None,
-                "is_suspicious": False,
-                "localization_map_path": None,
-                "confidence_map_path": None,
-                "image_width": 0,
-                "image_height": 0,
-                "inference_seconds": 0.0,
-            })
+            results.append(
+                {
+                    "figure_id": fig["figure_id"],
+                    "status": "failed",
+                    "skip_reason": f"model_load_failed: {e}",
+                    "integrity_score": None,
+                    "is_suspicious": False,
+                    "localization_map_path": None,
+                    "confidence_map_path": None,
+                    "image_width": 0,
+                    "image_height": 0,
+                    "inference_seconds": 0.0,
+                }
+            )
         return results
 
     # Process each figure
@@ -215,32 +227,38 @@ def run_batch(
             if conf_np is not None:
                 _save_grayscale(conf_np, conf_map_path, original_size)
 
-            results.append({
-                "figure_id": figure_id,
-                "status": "completed",
-                "integrity_score": round(det_score, 4),
-                "is_suspicious": det_score > score_threshold,
-                "localization_map_path": pred_map_path,
-                "confidence_map_path": conf_map_path if conf_np is not None else None,
-                "image_width": original_size[0],
-                "image_height": original_size[1],
-                "inference_seconds": round(elapsed, 2),
-            })
+            results.append(
+                {
+                    "figure_id": figure_id,
+                    "status": "completed",
+                    "integrity_score": round(det_score, 4),
+                    "is_suspicious": det_score > score_threshold,
+                    "localization_map_path": pred_map_path,
+                    "confidence_map_path": conf_map_path
+                    if conf_np is not None
+                    else None,
+                    "image_width": original_size[0],
+                    "image_height": original_size[1],
+                    "inference_seconds": round(elapsed, 2),
+                }
+            )
 
         except Exception as e:
             elapsed = time.time() - t0
-            results.append({
-                "figure_id": figure_id,
-                "status": "failed",
-                "skip_reason": str(e),
-                "integrity_score": None,
-                "is_suspicious": False,
-                "localization_map_path": None,
-                "confidence_map_path": None,
-                "image_width": 0,
-                "image_height": 0,
-                "inference_seconds": round(elapsed, 2),
-            })
+            results.append(
+                {
+                    "figure_id": figure_id,
+                    "status": "failed",
+                    "skip_reason": str(e),
+                    "integrity_score": None,
+                    "is_suspicious": False,
+                    "localization_map_path": None,
+                    "confidence_map_path": None,
+                    "image_width": 0,
+                    "image_height": 0,
+                    "inference_seconds": round(elapsed, 2),
+                }
+            )
 
     return results
 

@@ -41,6 +41,7 @@ FRONTEND_DIR := web/frontend
 	web-backend web-frontend web-install web-build web-preview \
 	test test-fast test-unit test-integration test-e2e test-visual test-model \
 	lint lint-python lint-web web-test \
+	deslop \
 	clean-demo clean-cache clean-web wipe-local \
 	build-elis-provenance check-elis-provenance
 
@@ -275,6 +276,61 @@ lint-python: ## Run ruff checks
 
 lint-web: ## Run frontend eslint
 	cd $(FRONTEND_DIR) && npm run lint
+
+deslop: ## Full entropy control: Ruff fix/format + Vulture + import-linter + Biome + Knip
+	@echo "╔══════════════════════════════════════════════════════╗"
+	@echo "║  Veritas Deslop — Deterministic Entropy Control     ║"
+	@echo "╚══════════════════════════════════════════════════════╝"
+	@echo ""
+	@echo "━━━ Layer 2: Python surface entropy ━━━"
+	@echo ""
+	@echo "▸ Ruff: auto-fix unused imports + lint"
+	-$(PY_ENV) $(RUFF) check --fix cli engine runtime protocols web/backend tests scripts
+	@echo ""
+	@echo "▸ Ruff: format"
+	-$(PY_ENV) $(RUFF) format cli engine runtime protocols web/backend tests scripts
+	@echo ""
+	@echo "▸ Vulture: dead code scan (80%+ confidence)"
+	-uv run vulture cli/ engine/ runtime/ protocols/ web/backend/ scripts/ \
+		--exclude engine/static_audit/upstream/ \
+		--min-confidence 80 --sort-by-size
+	@echo ""
+	@echo "━━━ Layer 2: JS/TS surface entropy ━━━"
+	@echo ""
+	@echo "▸ Biome: format + lint (if available)"
+	-@if [ -f $(FRONTEND_DIR)/node_modules/.bin/biome ]; then \
+		cd $(FRONTEND_DIR) && npx biome check --write . ; \
+	else \
+		echo "  [skip] biome not installed — run 'cd $(FRONTEND_DIR) && npm install' first" ; \
+	fi
+	@echo ""
+	@echo "▸ Knip: unused exports/deps (if available)"
+	-@if [ -f $(FRONTEND_DIR)/node_modules/.bin/knip ]; then \
+		cd $(FRONTEND_DIR) && npx knip ; \
+	else \
+		echo "  [skip] knip not installed — run 'cd $(FRONTEND_DIR) && npm install --save-dev knip' first" ; \
+	fi
+	@echo ""
+	@echo "━━━ Layer 3: Structural entropy (dependency direction) ━━━"
+	@echo ""
+	@echo "▸ import-linter: Python layered architecture"
+	-uv run lint-imports
+	@echo ""
+	@echo "▸ dependency-cruiser: JS/TS dependency direction (if available)"
+	-@if [ -f $(FRONTEND_DIR)/node_modules/.bin/depcruise ]; then \
+		cd $(FRONTEND_DIR) && npx depcruise --validate .dependency-cruiser.cjs src/ ; \
+	else \
+		echo "  [skip] dependency-cruiser not installed — run 'cd $(FRONTEND_DIR) && npm install --save-dev dependency-cruiser' first" ; \
+	fi
+	@echo ""
+	@echo "━━━ Verification ━━━"
+	@echo ""
+	@echo "▸ Pyright: type check (errors only)"
+	-uv run pyright cli/ engine/ runtime/ protocols/ web/backend/ 2>&1 | grep -E '(error|Error)' | head -20 || true
+	@echo ""
+	@echo "╔══════════════════════════════════════════════════════╗"
+	@echo "║  Deslop complete. Review [needs-human] items above. ║"
+	@echo "╚══════════════════════════════════════════════════════╝"
 
 web-test: ## Run frontend tests
 	cd $(FRONTEND_DIR) && npm run test

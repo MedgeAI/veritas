@@ -62,24 +62,6 @@ export async function searchSimilarPanels(panelId, { caseId, topK = 20, threshol
 }
 
 /**
- * Search panels by label within a case
- * @param {string} caseId - Case ID
- * @param {string} label - Label substring to search
- * @param {Object} options - Search options
- * @param {number} [options.topK=20] - Maximum results
- * @param {number} [options.threshold=0.85] - Minimum similarity threshold
- */
-export async function searchByLabel(caseId, label, { topK = 20, threshold = 0.85 } = {}) {
-  const params = new URLSearchParams({
-    case_id: caseId,
-    label: label,
-    top_k: String(topK),
-    threshold: String(threshold),
-  });
-  return request(`/api/cbir/search/by-panel?${params}`);
-}
-
-/**
  * Upload an image and search for similar panels (NOT YET IMPLEMENTED IN BACKEND)
  * This endpoint is planned but not yet available.
  * @param {File} imageFile - Image file to upload
@@ -87,7 +69,7 @@ export async function searchByLabel(caseId, label, { topK = 20, threshold = 0.85
  * @param {number} [options.topK=20] - Maximum results
  * @param {number} [options.threshold=0.85] - Minimum similarity threshold
  */
-export async function searchByImageUpload(imageFile, { topK = 20, threshold = 0.85 } = {}) {
+export async function searchByImageUpload(_imageFile, _options = {}) {
   // TODO: Backend endpoint not yet implemented
   // const formData = new FormData();
   // formData.append('file', imageFile);

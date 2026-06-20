@@ -11,6 +11,7 @@ Usage::
     python -m web.backend.veritas_web.cli delete-user alice
     python -m web.backend.veritas_web.cli change-password alice
 """
+
 from __future__ import annotations
 
 import argparse
@@ -35,7 +36,9 @@ def _get_provider(args: argparse.Namespace) -> BasicAuthProvider:
 
 def cmd_add_user(args: argparse.Namespace) -> int:
     provider = _get_provider(args)
-    password = args.password or getpass.getpass(prompt=f"Password for {args.username}: ")
+    password = args.password or getpass.getpass(
+        prompt=f"Password for {args.username}: "
+    )
     if not password:
         print("Error: password must not be empty.", file=sys.stderr)
         return 1
@@ -70,7 +73,9 @@ def cmd_delete_user(args: argparse.Namespace) -> int:
 
 def cmd_change_password(args: argparse.Namespace) -> int:
     provider = _get_provider(args)
-    password = args.password or getpass.getpass(prompt=f"New password for {args.username}: ")
+    password = args.password or getpass.getpass(
+        prompt=f"New password for {args.username}: "
+    )
     if not password:
         print("Error: password must not be empty.", file=sys.stderr)
         return 1
@@ -96,8 +101,14 @@ def build_parser() -> argparse.ArgumentParser:
     add = subparsers.add_parser("add-user", help="Add or update a user.")
     add.add_argument("username", help="Unique username.")
     add.add_argument("--email", default=None, help="User email address.")
-    add.add_argument("--roles", default="operator", help="Comma-separated roles (default: operator).")
-    add.add_argument("--password", default=None, help="Password (if omitted, prompted interactively).")
+    add.add_argument(
+        "--roles", default="operator", help="Comma-separated roles (default: operator)."
+    )
+    add.add_argument(
+        "--password",
+        default=None,
+        help="Password (if omitted, prompted interactively).",
+    )
 
     subparsers.add_parser("list-users", help="List all users.")
 
@@ -106,7 +117,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     change = subparsers.add_parser("change-password", help="Change a user's password.")
     change.add_argument("username", help="Username.")
-    change.add_argument("--password", default=None, help="New password (if omitted, prompted interactively).")
+    change.add_argument(
+        "--password",
+        default=None,
+        help="New password (if omitted, prompted interactively).",
+    )
 
     return parser
 

@@ -78,7 +78,9 @@ def generate_design_spec(gap: GapRecord) -> DesignSpec:
     The spec is populated from templates based on the capability category.
     Anti-overfit checklist is always included.
     """
-    category = gap.capability_id.split(".")[0] if "." in gap.capability_id else "unknown"
+    category = (
+        gap.capability_id.split(".")[0] if "." in gap.capability_id else "unknown"
+    )
     template = _TEMPLATES.get(category, _TEMPLATES["visual"])
 
     return DesignSpec(
@@ -93,9 +95,18 @@ def generate_design_spec(gap: GapRecord) -> DesignSpec:
         ],
         anti_overfit_checklist=[
             {"rule": "通用接口", "check": "函数签名中无 paper-specific 参数"},
-            {"rule": "无硬编码", "check": "代码中无特定 figure number / sheet name / row offset 字面量"},
-            {"rule": "跨论文验证", "check": "至少 3 篇论文验证（1 ground truth + 2 对照）"},
-            {"rule": "阈值分布", "check": "阈值从统计分布推导，distribution_analysis.md 作为 artifact"},
+            {
+                "rule": "无硬编码",
+                "check": "代码中无特定 figure number / sheet name / row offset 字面量",
+            },
+            {
+                "rule": "跨论文验证",
+                "check": "至少 3 篇论文验证（1 ground truth + 2 对照）",
+            },
+            {
+                "rule": "阈值分布",
+                "check": "阈值从统计分布推导，distribution_analysis.md 作为 artifact",
+            },
             {"rule": "测试先行", "check": "测试文件创建时间 ≤ 实现文件创建时间"},
         ],
     )

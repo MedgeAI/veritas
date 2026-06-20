@@ -33,11 +33,30 @@ class GapRecord:
 
 
 _GAP_TYPE_KEYWORDS: dict[GapType, list[str]] = {
-    "COVERAGE": ["missing", "not provided", "no source data", "not submitted", "未提供"],
-    "INTEGRATION": ["produced", "output", "artifact", "generated", "not consumed", "not merged"],
+    "COVERAGE": [
+        "missing",
+        "not provided",
+        "no source data",
+        "not submitted",
+        "未提供",
+    ],
+    "INTEGRATION": [
+        "produced",
+        "output",
+        "artifact",
+        "generated",
+        "not consumed",
+        "not merged",
+    ],
     "CALIBRATION": [
-        "threshold", "parameter", "sensitivity", "false positive",
-        "false negative", "missed", "calibration", "tuning",
+        "threshold",
+        "parameter",
+        "sensitivity",
+        "false positive",
+        "false negative",
+        "missed",
+        "calibration",
+        "tuning",
     ],
     "NEW_DETECTOR": [],
 }
@@ -73,14 +92,16 @@ def analyze_gaps(
         action = _recommended_action(gap_type, mc)
         severity = _estimate_severity(mc)
 
-        gaps.append(GapRecord(
-            gap_type=gap_type,
-            capability_id=mc.capability_id,
-            claim_description=mc.claim.description,
-            claim_target=mc.claim.target,
-            recommended_action=action,
-            severity=severity,
-        ))
+        gaps.append(
+            GapRecord(
+                gap_type=gap_type,
+                capability_id=mc.capability_id,
+                claim_description=mc.claim.description,
+                claim_target=mc.claim.target,
+                recommended_action=action,
+                severity=severity,
+            )
+        )
 
     return gaps
 
@@ -122,7 +143,9 @@ def _recommended_action(gap_type: GapType, mc: MappedClaim) -> str:
             f"'{mc.claim.target}'. Request from author or flag as completeness issue."
         ),
     }
-    return actions.get(gap_type, f"Investigate gap for capability '{mc.capability_id}'.")
+    return actions.get(
+        gap_type, f"Investigate gap for capability '{mc.capability_id}'."
+    )
 
 
 def _estimate_severity(mc: MappedClaim) -> str:

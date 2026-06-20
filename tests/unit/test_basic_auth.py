@@ -3,6 +3,7 @@
 All tests use a temporary SQLite database so they are fully isolated and
 leave no artefacts on disk.
 """
+
 from __future__ import annotations
 
 import base64
@@ -37,7 +38,9 @@ def provider(tmp_path):
 @pytest.fixture()
 def provider_with_user(provider):
     """Provider pre-populated with user *alice* (password ``secret``)."""
-    provider.add_user("alice", "secret", email="alice@example.com", roles="operator,reviewer")
+    provider.add_user(
+        "alice", "secret", email="alice@example.com", roles="operator,reviewer"
+    )
     return provider
 
 
@@ -75,14 +78,22 @@ class TestAuthenticateRejection:
         assert provider_with_user.authenticate({}) is None
 
     def test_malformed_base64(self, provider_with_user):
-        assert provider_with_user.authenticate({"Authorization": "Basic !!!not-base64!!!"}) is None
+        assert (
+            provider_with_user.authenticate({"Authorization": "Basic !!!not-base64!!!"})
+            is None
+        )
 
     def test_missing_colon_in_credentials(self, provider_with_user):
         token = base64.b64encode(b"no-colon-here").decode()
-        assert provider_with_user.authenticate({"Authorization": f"Basic {token}"}) is None
+        assert (
+            provider_with_user.authenticate({"Authorization": f"Basic {token}"}) is None
+        )
 
     def test_bearer_scheme_rejected(self, provider_with_user):
-        assert provider_with_user.authenticate({"Authorization": "Bearer token123"}) is None
+        assert (
+            provider_with_user.authenticate({"Authorization": "Bearer token123"})
+            is None
+        )
 
 
 class TestAddUserAndAuthenticate:

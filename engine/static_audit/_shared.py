@@ -49,13 +49,13 @@ MAX_INVESTIGATION_ROUNDS = 3
 # Output directory structure: layer artifacts by responsibility for Agent and human readability.
 # See outputs/<case_id>/research-integrity-audit/README.md for full documentation.
 OUTPUT_DIRS = {
-    "mineru": "mineru",           # MinerU PDF parsing intermediate artifacts
-    "materials": "materials",     # Material inventory and plans
-    "source_data": "source_data", # Source Data tool outputs
-    "visual": "visual",           # Visual forensics tool outputs (images, panels, findings)
-    "numeric": "numeric",         # Numeric forensics tool outputs
-    "agents": "agents",           # Agent outputs, traces, context packs, logs
-    "reports": "reports",         # Final deliverables (HTML/MD reports, bundle, manifest)
+    "mineru": "mineru",  # MinerU PDF parsing intermediate artifacts
+    "materials": "materials",  # Material inventory and plans
+    "source_data": "source_data",  # Source Data tool outputs
+    "visual": "visual",  # Visual forensics tool outputs (images, panels, findings)
+    "numeric": "numeric",  # Numeric forensics tool outputs
+    "agents": "agents",  # Agent outputs, traces, context packs, logs
+    "reports": "reports",  # Final deliverables (HTML/MD reports, bundle, manifest)
 }
 
 
@@ -219,7 +219,9 @@ def output_subdir(workdir: Path, category: str) -> Path:
         Path to the subdirectory (does not create it).
     """
     if category not in OUTPUT_DIRS:
-        raise ValueError(f"Unknown output category: {category}. Must be one of {list(OUTPUT_DIRS.keys())}")
+        raise ValueError(
+            f"Unknown output category: {category}. Must be one of {list(OUTPUT_DIRS.keys())}"
+        )
     return workdir / OUTPUT_DIRS[category]
 
 
@@ -279,7 +281,9 @@ def _write_long_text_to_log(workdir: Path, step_key: str, text: str) -> str | No
     return str(log_path.relative_to(workdir))
 
 
-def enforce_event_contract(event: dict[str, Any], workdir: Path | None = None) -> dict[str, Any]:
+def enforce_event_contract(
+    event: dict[str, Any], workdir: Path | None = None
+) -> dict[str, Any]:
     """Enforce the ProgressEvent contract on a raw event dict.
 
     - Truncates ``detail`` / ``summary`` to ``PROGRESS_EVENT_SUMMARY_MAX_CHARS``.
@@ -314,7 +318,12 @@ def enforce_event_contract(event: dict[str, Any], workdir: Path | None = None) -
         event["log_ref"] = log_ref
 
     # --- Failed events should always have a log_ref when possible ------------
-    if event.get("status") == "failed" and log_ref is None and workdir is not None and summary:
+    if (
+        event.get("status") == "failed"
+        and log_ref is None
+        and workdir is not None
+        and summary
+    ):
         log_ref = _write_long_text_to_log(workdir, step_key, summary)
         event["log_ref"] = log_ref
 
@@ -341,14 +350,21 @@ def emit_progress(
 def command_preview(command: list[str] | None) -> str | None:
     if not command:
         return None
-    if len(command) >= 2 and Path(command[0]).name == "opencode" and command[1] == "run":
+    if (
+        len(command) >= 2
+        and Path(command[0]).name == "opencode"
+        and command[1] == "run"
+    ):
         model = None
         if "--model" in command:
             index = command.index("--model")
             if index + 1 < len(command):
                 model = command[index + 1]
         return f"opencode run --format json --model {model or '<unknown>'} ..."
-    preview = [Path(part).name if index == 0 else part for index, part in enumerate(command[:6])]
+    preview = [
+        Path(part).name if index == 0 else part
+        for index, part in enumerate(command[:6])
+    ]
     suffix = " ..." if len(command) > 6 else ""
     return " ".join(preview) + suffix
 
@@ -473,7 +489,9 @@ def run_command(
                 check=False,
             )
         if completed.returncode != 0:
-            last_detail = f"attempt={attempt}/{attempts} exit_code={completed.returncode}"
+            last_detail = (
+                f"attempt={attempt}/{attempts} exit_code={completed.returncode}"
+            )
             if completed.stderr:
                 last_detail += f" stderr_tail={completed.stderr[-1000:]!r}"
             stdout_tail = text_tail(completed.stdout)
@@ -552,7 +570,9 @@ def run_command_streaming(
                 command_preview=command_preview(command),
             )
     return_code = process.wait()
-    return subprocess.CompletedProcess(command, return_code, "\n".join(output_lines), "")
+    return subprocess.CompletedProcess(
+        command, return_code, "\n".join(output_lines), ""
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -622,7 +642,9 @@ def priority_row(finding: dict[str, Any]) -> list[str]:
     ]
 
 
-def claim_mapping_rows(mappings: list[dict[str, Any]], limit: int = 12) -> list[list[str]]:
+def claim_mapping_rows(
+    mappings: list[dict[str, Any]], limit: int = 12
+) -> list[list[str]]:
     rows = []
     for mapping in mappings[:limit]:
         linked = mapping.get("linked_priority_findings") or []
@@ -644,7 +666,9 @@ def claim_mapping_rows(mappings: list[dict[str, Any]], limit: int = 12) -> list[
     return rows
 
 
-def pair_forensics_rows(findings: list[dict[str, Any]], limit: int = 12) -> list[list[str]]:
+def pair_forensics_rows(
+    findings: list[dict[str, Any]], limit: int = 12
+) -> list[list[str]]:
     rows = []
     for finding in findings[:limit]:
         support = (
@@ -655,8 +679,18 @@ def pair_forensics_rows(findings: list[dict[str, Any]], limit: int = 12) -> list
             or finding.get("exact_reuse_pairs")
             or "-"
         )
-        overlap = finding.get("overlap_rows") or finding.get("overlap_pairs") or finding.get("overlap_pair_groups") or "-"
-        columns = finding.get("columns") or finding.get("column_pair") or finding.get("column") or []
+        overlap = (
+            finding.get("overlap_rows")
+            or finding.get("overlap_pairs")
+            or finding.get("overlap_pair_groups")
+            or "-"
+        )
+        columns = (
+            finding.get("columns")
+            or finding.get("column_pair")
+            or finding.get("column")
+            or []
+        )
         if isinstance(columns, list):
             columns_text = ", ".join(str(item) for item in columns)
         else:
@@ -676,7 +710,9 @@ def pair_forensics_rows(findings: list[dict[str, Any]], limit: int = 12) -> list
     return rows
 
 
-def pair_forensics_cluster_rows(clusters: list[dict[str, Any]], limit: int = 12) -> list[list[str]]:
+def pair_forensics_cluster_rows(
+    clusters: list[dict[str, Any]], limit: int = 12
+) -> list[list[str]]:
     rows = []
     for cluster in clusters[:limit]:
         rows.append(
@@ -688,13 +724,19 @@ def pair_forensics_cluster_rows(clusters: list[dict[str, Any]], limit: int = 12)
                 cluster.get("sheet", "-"),
                 cluster.get("pattern_signature", "-"),
                 fmt_int(cluster.get("finding_count")),
-                ", ".join(str(item) for item in (cluster.get("representative_finding_ids") or [])[:5]) or "-",
+                ", ".join(
+                    str(item)
+                    for item in (cluster.get("representative_finding_ids") or [])[:5]
+                )
+                or "-",
             ]
         )
     return rows
 
 
-def pair_forensics_review_task_rows(tasks: list[dict[str, Any]], limit: int = 12) -> list[list[str]]:
+def pair_forensics_review_task_rows(
+    tasks: list[dict[str, Any]], limit: int = 12
+) -> list[list[str]]:
     rows = []
     for task in tasks[:limit]:
         rows.append(
@@ -718,12 +760,18 @@ def canonical_claim_mapping_rows(
     mappings: list[dict[str, Any]],
     limit: int = 12,
 ) -> list[list[str]]:
-    claim_by_id = {str(claim.get("claim_id")): claim for claim in claims if claim.get("claim_id")}
+    claim_by_id = {
+        str(claim.get("claim_id")): claim for claim in claims if claim.get("claim_id")
+    }
     rows = []
     for mapping in mappings[:limit]:
         claim = claim_by_id.get(str(mapping.get("claim_id"))) or {}
-        metadata = mapping.get("metadata") if isinstance(mapping.get("metadata"), dict) else {}
-        source_refs = metadata.get("source_data_refs") or mapping.get("evidence_refs") or []
+        metadata = (
+            mapping.get("metadata") if isinstance(mapping.get("metadata"), dict) else {}
+        )
+        source_refs = (
+            metadata.get("source_data_refs") or mapping.get("evidence_refs") or []
+        )
         rows.append(
             [
                 mapping.get("mapping_id", "-"),
@@ -745,22 +793,35 @@ def agent_step_status(status: str) -> str:
 
 
 def safe_action_dir_name(action_id: str) -> str:
-    return "".join(ch.lower() if ch.isalnum() else "_" for ch in action_id).strip("_") or "action"
+    return (
+        "".join(ch.lower() if ch.isalnum() else "_" for ch in action_id).strip("_")
+        or "action"
+    )
 
 
-def investigation_action_from_dict(round_id: int, action: dict[str, Any]) -> InvestigationAction:
+def investigation_action_from_dict(
+    round_id: int, action: dict[str, Any]
+) -> InvestigationAction:
     tool_id = str(action.get("tool_id"))
     # Get output_artifacts from tool registry if available
     tool_def = TOOLS.get(tool_id)
-    output_artifacts = list(tool_def.output_artifacts) if tool_def and tool_def.output_artifacts else []
+    output_artifacts = (
+        list(tool_def.output_artifacts)
+        if tool_def and tool_def.output_artifacts
+        else []
+    )
     return InvestigationAction(
         round_id=round_id,
         action_id=str(action.get("action_id") or f"IR-{round_id:02d}-A001"),
         tool_id=tool_id,
         params=action.get("params") if isinstance(action.get("params"), dict) else {},
         hypothesis=str(action.get("hypothesis") or ""),
-        depends_on_artifacts=[str(item) for item in (action.get("depends_on_artifacts") or [])],
-        expected_evidence_type=normalize_expected_evidence_type(str(action.get("expected_evidence_type") or "")),
+        depends_on_artifacts=[
+            str(item) for item in (action.get("depends_on_artifacts") or [])
+        ],
+        expected_evidence_type=normalize_expected_evidence_type(
+            str(action.get("expected_evidence_type") or "")
+        ),
         stop_if_no_new_evidence=bool(action.get("stop_if_no_new_evidence", True)),
         output_artifacts=output_artifacts,
     )

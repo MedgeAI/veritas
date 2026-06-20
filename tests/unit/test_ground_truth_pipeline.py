@@ -98,51 +98,61 @@ class TestManualAnnotations:
 
 class TestMapper:
     def test_map_visual_claim(self):
-        claims = [StructuredClaim(
-            claim_type="visual.copy_move_keypoint",
-            target="Extended Data Fig. 4h",
-            description="90° rotation",
-            evidence_type="image",
-        )]
+        claims = [
+            StructuredClaim(
+                claim_type="visual.copy_move_keypoint",
+                target="Extended Data Fig. 4h",
+                description="90° rotation",
+                evidence_type="image",
+            )
+        ]
         mapped = map_claims_to_capabilities(claims)
         assert len(mapped) == 1
         assert mapped[0].capability_id == "visual.copy_move_keypoint"
         assert mapped[0].capability_category == "visual"
 
     def test_map_source_data_claim(self):
-        claims = [StructuredClaim(
-            claim_type="source_data.fixed_ratio",
-            target="Fig. 7d",
-            description="Pairs 21-40 = Pairs 1-20 × 1.2",
-            evidence_type="source_data",
-        )]
+        claims = [
+            StructuredClaim(
+                claim_type="source_data.fixed_ratio",
+                target="Fig. 7d",
+                description="Pairs 21-40 = Pairs 1-20 × 1.2",
+                evidence_type="source_data",
+            )
+        ]
         mapped = map_claims_to_capabilities(claims)
         assert mapped[0].capability_category == "source_data"
 
     def test_detected_when_finding_matches(self):
-        claims = [StructuredClaim(
-            claim_type="source_data.fixed_ratio",
-            target="Fig. 7d",
-            description="fixed ratio 1.2",
-            evidence_type="source_data",
-        )]
-        findings = [{
-            "finding_id": "FR-0001",
-            "category": "fixed_ratio",
-            "summary": "Fig. 7d shows fixed ratio 1.2",
-            "target": "Fig. 7d",
-        }]
+        claims = [
+            StructuredClaim(
+                claim_type="source_data.fixed_ratio",
+                target="Fig. 7d",
+                description="fixed ratio 1.2",
+                evidence_type="source_data",
+            )
+        ]
+        findings = [
+            {
+                "finding_id": "FR-0001",
+                "category": "fixed_ratio",
+                "summary": "Fig. 7d shows fixed ratio 1.2",
+                "target": "Fig. 7d",
+            }
+        ]
         mapped = map_claims_to_capabilities(claims, existing_findings=findings)
         assert mapped[0].detected is True
         assert mapped[0].existing_finding_id == "FR-0001"
 
     def test_not_detected_when_no_match(self):
-        claims = [StructuredClaim(
-            claim_type="source_data.fixed_ratio",
-            target="Fig. 99z",
-            description="something unique",
-            evidence_type="source_data",
-        )]
+        claims = [
+            StructuredClaim(
+                claim_type="source_data.fixed_ratio",
+                target="Fig. 99z",
+                description="something unique",
+                evidence_type="source_data",
+            )
+        ]
         mapped = map_claims_to_capabilities(claims, existing_findings=[])
         assert mapped[0].detected is False
 
@@ -160,10 +170,14 @@ class TestGapAnalyzer:
             description="rotation detected",
             evidence_type="image",
         )
-        mapped = [MappedClaim(
-            claim=claim, capability_id="visual.copy_move_keypoint",
-            capability_category="visual", detected=False,
-        )]
+        mapped = [
+            MappedClaim(
+                claim=claim,
+                capability_id="visual.copy_move_keypoint",
+                capability_category="visual",
+                detected=False,
+            )
+        ]
         gaps = analyze_gaps(mapped)
         assert len(gaps) == 1
         assert gaps[0].gap_type in ("NEW_DETECTOR", "CALIBRATION")
@@ -176,10 +190,14 @@ class TestGapAnalyzer:
             description="ratio",
             evidence_type="source_data",
         )
-        mapped = [MappedClaim(
-            claim=claim, capability_id="source_data.fixed_ratio",
-            capability_category="source_data", detected=True,
-        )]
+        mapped = [
+            MappedClaim(
+                claim=claim,
+                capability_id="source_data.fixed_ratio",
+                capability_category="source_data",
+                detected=True,
+            )
+        ]
         gaps = analyze_gaps(mapped)
         assert len(gaps) == 0
 
@@ -190,10 +208,14 @@ class TestGapAnalyzer:
             description="no source data provided",
             evidence_type="completeness",
         )
-        mapped = [MappedClaim(
-            claim=claim, capability_id="completeness.missing_source_data",
-            capability_category="completeness", detected=False,
-        )]
+        mapped = [
+            MappedClaim(
+                claim=claim,
+                capability_id="completeness.missing_source_data",
+                capability_category="completeness",
+                detected=False,
+            )
+        ]
         gaps = analyze_gaps(mapped)
         assert len(gaps) == 1
         assert gaps[0].gap_type == "COVERAGE"
@@ -249,7 +271,8 @@ def detect_anomaly(columns, threshold=0.05):
         dist = tmp_path / "distribution_analysis.md"
         dist.write_text("# Threshold analysis\nDerived from 100-paper distribution.")
         report = checker.check_all(
-            "test.cap", code,
+            "test.cap",
+            code,
             validation_papers=["paper1", "paper2", "paper3"],
             distribution_path=dist,
         )
@@ -300,4 +323,9 @@ class TestCapabilityCatalog:
         for cap in data["capabilities"]:
             assert "capability_id" in cap
             assert "category" in cap
-            assert cap["category"] in ("visual", "source_data", "completeness", "numeric")
+            assert cap["category"] in (
+                "visual",
+                "source_data",
+                "completeness",
+                "numeric",
+            )

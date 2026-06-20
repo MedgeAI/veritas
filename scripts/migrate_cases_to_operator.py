@@ -7,6 +7,7 @@ Loads every case.json from web_data/cases/, ensures the owner field is set to
 Usage:
     python scripts/migrate_cases_to_operator.py [--data-root web_data] [--dry-run]
 """
+
 from __future__ import annotations
 
 import argparse
@@ -47,7 +48,9 @@ def migrate_cases(data_root: Path, dry_run: bool = False) -> int:
                 encoding="utf-8",
             )
         migrated += 1
-        print(f"{'[dry-run] ' if dry_run else ''}migrated {case_file}: owner {current_owner!r} -> {DEFAULT_OWNER!r}")
+        print(
+            f"{'[dry-run] ' if dry_run else ''}migrated {case_file}: owner {current_owner!r} -> {DEFAULT_OWNER!r}"
+        )
 
     return migrated
 

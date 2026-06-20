@@ -69,7 +69,9 @@ def dedupe(items: list[str]) -> list[str]:
     return out
 
 
-def agent_manual_review_rows(tasks: list[dict[str, Any]], limit: int = 12) -> list[list[str]]:
+def agent_manual_review_rows(
+    tasks: list[dict[str, Any]], limit: int = 12
+) -> list[list[str]]:
     rows = []
     for task in tasks[:limit]:
         refs = task.get("evidence_refs") or []
@@ -84,7 +86,9 @@ def agent_manual_review_rows(tasks: list[dict[str, Any]], limit: int = 12) -> li
     return rows
 
 
-def agent_finding_review_rows(reviews: list[dict[str, Any]], limit: int = 12) -> list[list[str]]:
+def agent_finding_review_rows(
+    reviews: list[dict[str, Any]], limit: int = 12
+) -> list[list[str]]:
     rows = []
     for review in reviews[:limit]:
         rows.append(
@@ -98,7 +102,9 @@ def agent_finding_review_rows(reviews: list[dict[str, Any]], limit: int = 12) ->
     return rows
 
 
-def investigation_record_rows(records: list[dict[str, Any]], limit: int = 20) -> list[list[str]]:
+def investigation_record_rows(
+    records: list[dict[str, Any]], limit: int = 20
+) -> list[list[str]]:
     rows = []
     for record in records[:limit]:
         artifacts = record.get("output_artifacts") or []
@@ -113,7 +119,6 @@ def investigation_record_rows(records: list[dict[str, Any]], limit: int = 20) ->
             ]
         )
     return rows
-
 
 
 @dataclass
@@ -157,11 +162,19 @@ def _header_section(data: _ReportData) -> list[str]:
     lines.append("")
     lines.append("- 本报告由本地 orchestrator 汇总确定性脚本产物生成。")
     if data.agent_mode != "off":
-        lines.append("- opencode Agent 作为编排与结构化审阅层参与：前置选择/参数填充，后置 claim/finding 复核。")
-    lines.append("- 当前不做最终科研诚信判定，只报告技术事实候选、材料缺口和人工复核入口。")
-    lines.append("- PDF 是发表呈现层；Source Data、代码、环境和结果文件才是更高价值证据层。")
+        lines.append(
+            "- opencode Agent 作为编排与结构化审阅层参与：前置选择/参数填充，后置 claim/finding 复核。"
+        )
+    lines.append(
+        "- 当前不做最终科研诚信判定，只报告技术事实候选、材料缺口和人工复核入口。"
+    )
+    lines.append(
+        "- PDF 是发表呈现层；Source Data、代码、环境和结果文件才是更高价值证据层。"
+    )
     if not data.source_data_dir:
-        lines.append("- 当前未选择可执行 XLSX/XLSM Source Data optional lane，Source Data 审查被标记为材料缺口或暂不支持。")
+        lines.append(
+            "- 当前未选择可执行 XLSX/XLSM Source Data optional lane，Source Data 审查被标记为材料缺口或暂不支持。"
+        )
     if not data.vlm:
         lines.append("- 当前未执行批量 VLM 视觉审查；视觉结论仅限已有抽样或未覆盖。")
     lines.append("")
@@ -172,20 +185,28 @@ def _scope_section(data: _ReportData) -> list[str]:
     lines: list[str] = []
     lines.append("## Scope")
     lines.append("")
-    lines.append(markdown_table(
-        ["Item", "Value"],
-        [
-            ["case_id", data.case_id],
-            ["paper_dir", data.paper_dir],
-            ["paper_pdf", data.paper_pdf],
-            ["selected_source_data_dir", data.source_data_dir or "not_selected"],
-            ["material_inventory", resolve_artifact_path(data.workdir, "material_inventory.json")],
-            ["agent_material_plan", resolve_artifact_path(data.workdir, "agent_material_plan.json")],
-            ["workdir", data.workdir],
-            ["agent_mode", data.agent_mode],
-            ["generated_at", datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")],
-        ],
-    ))
+    lines.append(
+        markdown_table(
+            ["Item", "Value"],
+            [
+                ["case_id", data.case_id],
+                ["paper_dir", data.paper_dir],
+                ["paper_pdf", data.paper_pdf],
+                ["selected_source_data_dir", data.source_data_dir or "not_selected"],
+                [
+                    "material_inventory",
+                    resolve_artifact_path(data.workdir, "material_inventory.json"),
+                ],
+                [
+                    "agent_material_plan",
+                    resolve_artifact_path(data.workdir, "agent_material_plan.json"),
+                ],
+                ["workdir", data.workdir],
+                ["agent_mode", data.agent_mode],
+                ["generated_at", datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")],
+            ],
+        )
+    )
     lines.append("")
     return lines
 
@@ -194,10 +215,15 @@ def _pipeline_section(data: _ReportData) -> list[str]:
     lines: list[str] = []
     lines.append("## Pipeline Execution")
     lines.append("")
-    lines.append(markdown_table(
-        ["Step", "Status", "Detail"],
-        [[step.title, step.status, step.detail.replace("\n", " ")[:240]] for step in data.steps],
-    ))
+    lines.append(
+        markdown_table(
+            ["Step", "Status", "Detail"],
+            [
+                [step.title, step.status, step.detail.replace("\n", " ")[:240]]
+                for step in data.steps
+            ],
+        )
+    )
     lines.append("")
     return lines
 
@@ -234,7 +260,13 @@ def _artifact_manifest_section(data: _ReportData) -> list[str]:
         "static_audit_bundle.json",
     ]:
         p = resolve_artifact_path(data.workdir, name)
-        artifact_rows.append([name, "present" if p.exists() else "missing", p.stat().st_size if p.exists() else "-"])
+        artifact_rows.append(
+            [
+                name,
+                "present" if p.exists() else "missing",
+                p.stat().st_size if p.exists() else "-",
+            ]
+        )
     artifact_rows.append(["final_audit_report.html", "generated_after_markdown", "-"])
     lines.append(markdown_table(["Artifact", "Status", "Bytes"], artifact_rows))
     lines.append("")
@@ -245,8 +277,16 @@ def _material_section(data: _ReportData) -> list[str]:
     if not (data.material_inventory or data.material_plan):
         return []
     inventory_summary = (data.material_inventory or {}).get("summary", {})
-    material_by_type = inventory_summary.get("by_material_type") if isinstance(inventory_summary.get("by_material_type"), dict) else {}
-    selected_lanes = (data.material_plan or {}).get("selected_optional_lanes") if isinstance((data.material_plan or {}).get("selected_optional_lanes"), list) else []
+    material_by_type = (
+        inventory_summary.get("by_material_type")
+        if isinstance(inventory_summary.get("by_material_type"), dict)
+        else {}
+    )
+    selected_lanes = (
+        (data.material_plan or {}).get("selected_optional_lanes")
+        if isinstance((data.material_plan or {}).get("selected_optional_lanes"), list)
+        else []
+    )
     selected_lane_text = brief_list(
         [
             f"{lane.get('lane_id')}:{lane.get('status')}:{lane.get('root') or '-'}"
@@ -258,25 +298,47 @@ def _material_section(data: _ReportData) -> list[str]:
     lines: list[str] = []
     lines.append("## Material Inventory and Optional Lanes")
     lines.append("")
-    lines.append(markdown_table(
-        ["Metric", "Value"],
-        [
-            ["material_files", fmt_int(inventory_summary.get("file_count"))],
-            ["material_types", ", ".join(f"{key}={value}" for key, value in material_by_type.items()) or "-"],
-            ["candidate_source_roots", fmt_int(inventory_summary.get("candidate_source_roots"))],
-            ["supported_optional_lanes", fmt_int(inventory_summary.get("supported_optional_lanes"))],
-            ["material_plan_status", (data.material_plan or {}).get("status", "ok")],
-            ["selected_optional_lanes", selected_lane_text],
-            ["missing_materials", brief_list((data.material_plan or {}).get("missing_materials"))],
-        ],
-    ))
+    lines.append(
+        markdown_table(
+            ["Metric", "Value"],
+            [
+                ["material_files", fmt_int(inventory_summary.get("file_count"))],
+                [
+                    "material_types",
+                    ", ".join(
+                        f"{key}={value}" for key, value in material_by_type.items()
+                    )
+                    or "-",
+                ],
+                [
+                    "candidate_source_roots",
+                    fmt_int(inventory_summary.get("candidate_source_roots")),
+                ],
+                [
+                    "supported_optional_lanes",
+                    fmt_int(inventory_summary.get("supported_optional_lanes")),
+                ],
+                [
+                    "material_plan_status",
+                    (data.material_plan or {}).get("status", "ok"),
+                ],
+                ["selected_optional_lanes", selected_lane_text],
+                [
+                    "missing_materials",
+                    brief_list((data.material_plan or {}).get("missing_materials")),
+                ],
+            ],
+        )
+    )
     unsupported = (data.material_plan or {}).get("unsupported_materials") or []
     if unsupported:
         lines.append("")
         lines.append("Unsupported optional materials detected:")
         for item in unsupported[:8]:
             if isinstance(item, dict):
-                lines.append(f"- `{item.get('path', '-')}` ({item.get('material_type', '-')})")
+                lines.append(
+                    f"- `{item.get('path', '-')}` ({item.get('material_type', '-')})"
+                )
     lines.append("")
     return lines
 
@@ -290,10 +352,12 @@ def _investigation_section(data: _ReportData) -> list[str]:
     lines.append(
         "- 本节展示 AgentInvestigationPlanner 的受控调查路径；Agent 只选择 Tool Registry 允许的确定性工具，实际执行由 orchestrator 完成。"
     )
-    lines.append(markdown_table(
-        ["Round", "Action", "Tool", "Status", "Hypothesis", "Artifacts"],
-        investigation_record_rows(data.investigation_records),
-    ))
+    lines.append(
+        markdown_table(
+            ["Round", "Action", "Tool", "Status", "Hypothesis", "Artifacts"],
+            investigation_record_rows(data.investigation_records),
+        )
+    )
     lines.append("")
     return lines
 
@@ -306,18 +370,32 @@ def _agent_plan_section(data: _ReportData) -> list[str]:
     lines: list[str] = []
     lines.append("## Agent Audit Plan Summary")
     lines.append("")
-    lines.append(markdown_table(
-        ["Metric", "Value"],
-        [
-            ["status", data.agent_plan.get("status", "ok")],
-            ["selected_tools", brief_list(selected_tool_ids)],
-            ["selected_steps", brief_list(data.agent_plan.get("selected_steps"))],
-            ["missing_materials", brief_list(data.agent_plan.get("missing_materials"))],
-            ["source_data_findings.min_overlap", fmt_int(params.get("min_overlap"))],
-            ["source_data_findings.min_support", fmt_float(params.get("min_support"), 3)],
-            ["source_data_findings.max_findings_per_category", fmt_int(params.get("max_findings_per_category"))],
-        ],
-    ))
+    lines.append(
+        markdown_table(
+            ["Metric", "Value"],
+            [
+                ["status", data.agent_plan.get("status", "ok")],
+                ["selected_tools", brief_list(selected_tool_ids)],
+                ["selected_steps", brief_list(data.agent_plan.get("selected_steps"))],
+                [
+                    "missing_materials",
+                    brief_list(data.agent_plan.get("missing_materials")),
+                ],
+                [
+                    "source_data_findings.min_overlap",
+                    fmt_int(params.get("min_overlap")),
+                ],
+                [
+                    "source_data_findings.min_support",
+                    fmt_float(params.get("min_support"), 3),
+                ],
+                [
+                    "source_data_findings.max_findings_per_category",
+                    fmt_int(params.get("max_findings_per_category")),
+                ],
+            ],
+        )
+    )
     rationale = data.agent_plan.get("agent_rationale") or []
     if rationale:
         lines.append("")
@@ -347,18 +425,20 @@ def _judge_section(data: _ReportData) -> list[str]:
     if risk_suggestions:
         lines.append("### 风险评估建议")
         lines.append("")
-        lines.append(markdown_table(
-            ["Risk Level", "Reason", "Evidence Refs", "Requires Human Review"],
-            [
+        lines.append(
+            markdown_table(
+                ["Risk Level", "Reason", "Evidence Refs", "Requires Human Review"],
                 [
-                    rs.get("risk_level", "unknown"),
-                    rs.get("reason", ""),
-                    ", ".join(rs.get("evidence_refs", [])[:3]),
-                    "Yes" if rs.get("requires_human_review") else "No",
-                ]
-                for rs in risk_suggestions[:8]
-            ],
-        ))
+                    [
+                        rs.get("risk_level", "unknown"),
+                        rs.get("reason", ""),
+                        ", ".join(rs.get("evidence_refs", [])[:3]),
+                        "Yes" if rs.get("requires_human_review") else "No",
+                    ]
+                    for rs in risk_suggestions[:8]
+                ],
+            )
+        )
 
     # 展示 report_notes
     notes = data.agent_judge.get("report_notes") or []
@@ -397,8 +477,16 @@ def _agent_review_section(data: _ReportData) -> list[str]:
 
     # 优先使用新版 source_data_auditor 的数据
     if source_auditor_data:
-        candidate_claims = source_auditor_data.get("claims") or source_auditor_data.get("candidate_claims") or []
-        mapping_reviews = source_auditor_data.get("claim_mappings") or source_auditor_data.get("claim_to_source_data") or []
+        candidate_claims = (
+            source_auditor_data.get("claims")
+            or source_auditor_data.get("candidate_claims")
+            or []
+        )
+        mapping_reviews = (
+            source_auditor_data.get("claim_mappings")
+            or source_auditor_data.get("claim_to_source_data")
+            or []
+        )
         finding_reviews = source_auditor_data.get("finding_reviews") or []
         manual_tasks = source_auditor_data.get("manual_review_tasks") or []
         status = source_auditor_data.get("status", "ok")
@@ -411,32 +499,38 @@ def _agent_review_section(data: _ReportData) -> list[str]:
     else:
         return []
 
-    lines.append(markdown_table(
-        ["Metric", "Value"],
-        [
-            ["status", status],
-            ["candidate_claims", fmt_int(len(candidate_claims))],
-            ["claim_to_source_data_reviews", fmt_int(len(mapping_reviews))],
-            ["finding_reviews", fmt_int(len(finding_reviews))],
-            ["manual_review_tasks", fmt_int(len(manual_tasks))],
-        ],
-    ))
+    lines.append(
+        markdown_table(
+            ["Metric", "Value"],
+            [
+                ["status", status],
+                ["candidate_claims", fmt_int(len(candidate_claims))],
+                ["claim_to_source_data_reviews", fmt_int(len(mapping_reviews))],
+                ["finding_reviews", fmt_int(len(finding_reviews))],
+                ["manual_review_tasks", fmt_int(len(manual_tasks))],
+            ],
+        )
+    )
     if manual_tasks:
         lines.append("")
         lines.append("### Agent Manual Review Tasks")
         lines.append("")
-        lines.append(markdown_table(
-            ["Task", "Priority", "Question", "Evidence Refs"],
-            agent_manual_review_rows(manual_tasks),
-        ))
+        lines.append(
+            markdown_table(
+                ["Task", "Priority", "Question", "Evidence Refs"],
+                agent_manual_review_rows(manual_tasks),
+            )
+        )
     if finding_reviews:
         lines.append("")
         lines.append("### Agent Finding Reviews")
         lines.append("")
-        lines.append(markdown_table(
-            ["Finding", "Assessment", "Residual Risk", "Benign Explanations"],
-            agent_finding_review_rows(finding_reviews),
-        ))
+        lines.append(
+            markdown_table(
+                ["Finding", "Assessment", "Residual Risk", "Benign Explanations"],
+                agent_finding_review_rows(finding_reviews),
+            )
+        )
 
     # 展示 report_notes（优先新版）
     notes = []
@@ -459,7 +553,9 @@ def _claim_mapping_section(data: _ReportData) -> list[str]:
         return []
     bundle_claims = data.static_bundle.get("claims") or []
     bundle_mappings = data.static_bundle.get("claim_mappings") or []
-    mapping_policy = ((data.static_bundle.get("metadata") or {}).get("claim_mapping_policy") or {})
+    mapping_policy = (data.static_bundle.get("metadata") or {}).get(
+        "claim_mapping_policy"
+    ) or {}
     lines: list[str] = []
     lines.append("## Canonical Claim-to-source-data Mapping")
     lines.append("")
@@ -471,10 +567,19 @@ def _claim_mapping_section(data: _ReportData) -> list[str]:
         f"fallback: `{mapping_policy.get('fallback', 'deterministic_scaffolding')}`。"
     )
     lines.append("")
-    lines.append(markdown_table(
-        ["Mapping", "Claim", "Claim Text", "Confidence", "Status", "Source Data Refs"],
-        canonical_claim_mapping_rows(bundle_claims, bundle_mappings),
-    ))
+    lines.append(
+        markdown_table(
+            [
+                "Mapping",
+                "Claim",
+                "Claim Text",
+                "Confidence",
+                "Status",
+                "Source Data Refs",
+            ],
+            canonical_claim_mapping_rows(bundle_claims, bundle_mappings),
+        )
+    )
     lines.append("")
     return lines
 
@@ -486,20 +591,22 @@ def _ledger_section(data: _ReportData) -> list[str]:
     lines: list[str] = []
     lines.append("## Evidence Ledger Summary")
     lines.append("")
-    lines.append(markdown_table(
-        ["Metric", "Value"],
-        [
-            ["pages", fmt_int(stats.get("pages"))],
-            ["markdown_lines", fmt_int(stats.get("markdown_lines"))],
-            ["content_blocks", fmt_int(stats.get("content_blocks"))],
-            ["tables", fmt_int(stats.get("tables"))],
-            ["figures", fmt_int(stats.get("figures"))],
-            ["images", fmt_int(stats.get("images"))],
-            ["captions", fmt_int(stats.get("captions"))],
-            ["cells", fmt_int(stats.get("cells"))],
-            ["ledger_items", fmt_int(stats.get("ledger_items"))],
-        ],
-    ))
+    lines.append(
+        markdown_table(
+            ["Metric", "Value"],
+            [
+                ["pages", fmt_int(stats.get("pages"))],
+                ["markdown_lines", fmt_int(stats.get("markdown_lines"))],
+                ["content_blocks", fmt_int(stats.get("content_blocks"))],
+                ["tables", fmt_int(stats.get("tables"))],
+                ["figures", fmt_int(stats.get("figures"))],
+                ["images", fmt_int(stats.get("images"))],
+                ["captions", fmt_int(stats.get("captions"))],
+                ["cells", fmt_int(stats.get("cells"))],
+                ["ledger_items", fmt_int(stats.get("ledger_items"))],
+            ],
+        )
+    )
     warnings = data.ledger.get("warnings") or []
     if warnings:
         lines.append("")
@@ -517,25 +624,29 @@ def _numeric_section(data: _ReportData) -> list[str]:
     lines: list[str] = []
     lines.append("## Numeric Forensics Summary")
     lines.append("")
-    lines.append(markdown_table(
-        ["Metric", "Value"],
-        [
-            ["all_number_count", fmt_int(data.numeric.get("all_number_count"))],
-            ["effective_number_count", fmt_int(data.numeric.get("number_count"))],
-            ["table_count", fmt_int(data.numeric.get("table_count"))],
-            ["effective_scope", data.numeric.get("effective_scope", "-")],
-            ["benford_applicability", benford.get("applicability", "-")],
+    lines.append(
+        markdown_table(
+            ["Metric", "Value"],
             [
-                "benford_mad",
-                fmt_float(
-                    benford.get("mad", benford.get("mean_absolute_deviation")),
-                    4,
-                ),
+                ["all_number_count", fmt_int(data.numeric.get("all_number_count"))],
+                ["effective_number_count", fmt_int(data.numeric.get("number_count"))],
+                ["table_count", fmt_int(data.numeric.get("table_count"))],
+                ["effective_scope", data.numeric.get("effective_scope", "-")],
+                ["benford_applicability", benford.get("applicability", "-")],
+                [
+                    "benford_mad",
+                    fmt_float(
+                        benford.get("mad", benford.get("mean_absolute_deviation")),
+                        4,
+                    ),
+                ],
             ],
-        ],
-    ))
+        )
+    )
     lines.append("")
-    lines.append("Interpretation: PDF numeric forensics is treated as audit leads, not as final evidence. OCR/table extraction artifacts must be excluded before escalation.")
+    lines.append(
+        "Interpretation: PDF numeric forensics is treated as audit leads, not as final evidence. OCR/table extraction artifacts must be excluded before escalation."
+    )
     lines.append("")
     return lines
 
@@ -547,18 +658,26 @@ def _profile_section(data: _ReportData) -> list[str]:
     lines: list[str] = []
     lines.append("## Source Data Profile")
     lines.append("")
-    lines.append(markdown_table(
-        ["Metric", "Value"],
-        [
-            ["workbook_count", fmt_int(summary.get("workbook_count"))],
-            ["sheet_count", fmt_int(summary.get("sheet_count"))],
-            ["cell_count", fmt_int(summary.get("cell_count"))],
-            ["numeric_cell_count", fmt_int(summary.get("numeric_cell_count"))],
-            ["formula_count", fmt_int(summary.get("formula_count"))],
-            ["terminal_0_or_5_rate", fmt_float(summary.get("terminal_0_or_5_rate"), 3)],
-            ["workbooks_with_errors", ", ".join(summary.get("workbooks_with_errors") or []) or "-"],
-        ],
-    ))
+    lines.append(
+        markdown_table(
+            ["Metric", "Value"],
+            [
+                ["workbook_count", fmt_int(summary.get("workbook_count"))],
+                ["sheet_count", fmt_int(summary.get("sheet_count"))],
+                ["cell_count", fmt_int(summary.get("cell_count"))],
+                ["numeric_cell_count", fmt_int(summary.get("numeric_cell_count"))],
+                ["formula_count", fmt_int(summary.get("formula_count"))],
+                [
+                    "terminal_0_or_5_rate",
+                    fmt_float(summary.get("terminal_0_or_5_rate"), 3),
+                ],
+                [
+                    "workbooks_with_errors",
+                    ", ".join(summary.get("workbooks_with_errors") or []) or "-",
+                ],
+            ],
+        )
+    )
     lines.append("")
     return lines
 
@@ -571,25 +690,41 @@ def _findings_section(data: _ReportData) -> list[str]:
     lines: list[str] = []
     lines.append("## Source Data Findings")
     lines.append("")
-    lines.append(markdown_table(
-        ["Metric", "Value"],
-        [
-            ["duplicate_column_findings", fmt_int(summary.get("duplicate_column_findings"))],
-            ["fixed_relationship_findings", fmt_int(summary.get("fixed_relationship_findings"))],
-            ["formula_derived_columns", fmt_int(summary.get("formula_derived_columns"))],
-            ["claim_to_source_data_mappings", fmt_int(summary.get("claim_to_source_data_mappings"))],
-            ["priority_findings", fmt_int(summary.get("priority_findings"))],
-            ["errors", fmt_int(summary.get("errors"))],
-        ],
-    ))
+    lines.append(
+        markdown_table(
+            ["Metric", "Value"],
+            [
+                [
+                    "duplicate_column_findings",
+                    fmt_int(summary.get("duplicate_column_findings")),
+                ],
+                [
+                    "fixed_relationship_findings",
+                    fmt_int(summary.get("fixed_relationship_findings")),
+                ],
+                [
+                    "formula_derived_columns",
+                    fmt_int(summary.get("formula_derived_columns")),
+                ],
+                [
+                    "claim_to_source_data_mappings",
+                    fmt_int(summary.get("claim_to_source_data_mappings")),
+                ],
+                ["priority_findings", fmt_int(summary.get("priority_findings"))],
+                ["errors", fmt_int(summary.get("errors"))],
+            ],
+        )
+    )
     lines.append("")
     if priority:
         lines.append("### Priority Findings")
         lines.append("")
-        lines.append(markdown_table(
-            ["ID", "Risk", "Workbook", "Sheet", "Columns", "Relation", "Support"],
-            [priority_row(item) for item in priority],
-        ))
+        lines.append(
+            markdown_table(
+                ["ID", "Risk", "Workbook", "Sheet", "Columns", "Relation", "Support"],
+                [priority_row(item) for item in priority],
+            )
+        )
         lines.append("")
         lines.append("These are manual-review candidates, not misconduct conclusions.")
         lines.append("")
@@ -597,12 +732,24 @@ def _findings_section(data: _ReportData) -> list[str]:
     if mappings:
         lines.append("### Deterministic Claim-to-source-data Scaffolding")
         lines.append("")
-        lines.append("该表由脚本按 Source Data sheet 名称和论文 figure 引用生成，用作 Agent 复核的候选脚手架，不作为最终主视图。")
+        lines.append(
+            "该表由脚本按 Source Data sheet 名称和论文 figure 引用生成，用作 Agent 复核的候选脚手架，不作为最终主视图。"
+        )
         lines.append("")
-        lines.append(markdown_table(
-            ["Mapping", "Figure", "Workbook", "Sheet", "Priority", "Linked Findings", "Candidate Claim"],
-            claim_mapping_rows(mappings),
-        ))
+        lines.append(
+            markdown_table(
+                [
+                    "Mapping",
+                    "Figure",
+                    "Workbook",
+                    "Sheet",
+                    "Priority",
+                    "Linked Findings",
+                    "Candidate Claim",
+                ],
+                claim_mapping_rows(mappings),
+            )
+        )
         lines.append("")
     return lines
 
@@ -617,48 +764,100 @@ def _pair_forensics_section(data: _ReportData) -> list[str]:
     lines: list[str] = []
     lines.append("## Source Data Pair / Row-Offset Forensics")
     lines.append("")
-    lines.append("该工具检查通用的 paired cohort、前后半区、固定行偏移、低宽度行重复和比例复用模式；它不依赖特定论文或 PubPeer 评论。")
+    lines.append(
+        "该工具检查通用的 paired cohort、前后半区、固定行偏移、低宽度行重复和比例复用模式；它不依赖特定论文或 PubPeer 评论。"
+    )
     lines.append("")
-    lines.append(markdown_table(
-        ["Metric", "Value"],
-        [
-            ["findings", fmt_int(summary.get("findings"))],
-            ["priority_findings", fmt_int(summary.get("priority_findings"))],
-            ["finding_clusters", fmt_int(summary.get("finding_clusters"))],
-            ["review_tasks", fmt_int(summary.get("review_tasks"))],
-            ["row_offset_scalar_findings", fmt_int(summary.get("row_offset_scalar_findings"))],
-            ["paired_ratio_reuse_findings", fmt_int(summary.get("paired_ratio_reuse_findings"))],
-            ["duplicate_row_vector_findings", fmt_int(summary.get("duplicate_row_vector_findings"))],
-            ["rounding_bias_findings", fmt_int(summary.get("rounding_bias_findings"))],
-            ["errors", fmt_int(summary.get("errors"))],
-        ],
-    ))
+    lines.append(
+        markdown_table(
+            ["Metric", "Value"],
+            [
+                ["findings", fmt_int(summary.get("findings"))],
+                ["priority_findings", fmt_int(summary.get("priority_findings"))],
+                ["finding_clusters", fmt_int(summary.get("finding_clusters"))],
+                ["review_tasks", fmt_int(summary.get("review_tasks"))],
+                [
+                    "row_offset_scalar_findings",
+                    fmt_int(summary.get("row_offset_scalar_findings")),
+                ],
+                [
+                    "paired_ratio_reuse_findings",
+                    fmt_int(summary.get("paired_ratio_reuse_findings")),
+                ],
+                [
+                    "duplicate_row_vector_findings",
+                    fmt_int(summary.get("duplicate_row_vector_findings")),
+                ],
+                [
+                    "rounding_bias_findings",
+                    fmt_int(summary.get("rounding_bias_findings")),
+                ],
+                ["errors", fmt_int(summary.get("errors"))],
+            ],
+        )
+    )
     lines.append("")
     if review_tasks:
         lines.append("### Pair Forensics Review Tasks")
         lines.append("")
-        lines.append(markdown_table(
-            ["Task", "Priority", "Primary Cluster", "Category", "Workbook", "Sheet", "Clusters", "Raw Count", "Question"],
-            pair_forensics_review_task_rows(review_tasks),
-        ))
+        lines.append(
+            markdown_table(
+                [
+                    "Task",
+                    "Priority",
+                    "Primary Cluster",
+                    "Category",
+                    "Workbook",
+                    "Sheet",
+                    "Clusters",
+                    "Raw Count",
+                    "Question",
+                ],
+                pair_forensics_review_task_rows(review_tasks),
+            )
+        )
         lines.append("")
     if clusters:
         lines.append("### Pair Forensics Finding Clusters")
         lines.append("")
-        lines.append(markdown_table(
-            ["Cluster", "Risk", "Category", "Workbook", "Sheet", "Signature", "Raw Count", "Representative Findings"],
-            pair_forensics_cluster_rows(clusters),
-        ))
+        lines.append(
+            markdown_table(
+                [
+                    "Cluster",
+                    "Risk",
+                    "Category",
+                    "Workbook",
+                    "Sheet",
+                    "Signature",
+                    "Raw Count",
+                    "Representative Findings",
+                ],
+                pair_forensics_cluster_rows(clusters),
+            )
+        )
         lines.append("")
     if priority:
         lines.append("### Representative Raw Pair Findings")
         lines.append("")
-        lines.append(markdown_table(
-            ["ID", "Risk", "Category", "Workbook", "Sheet", "Offset", "Columns", "Support"],
-            pair_forensics_rows(priority, limit=8),
-        ))
+        lines.append(
+            markdown_table(
+                [
+                    "ID",
+                    "Risk",
+                    "Category",
+                    "Workbook",
+                    "Sheet",
+                    "Offset",
+                    "Columns",
+                    "Support",
+                ],
+                pair_forensics_rows(priority, limit=8),
+            )
+        )
         lines.append("")
-        lines.append("上表仅展示代表性 raw findings；人工复核应优先从 review tasks 和 finding clusters 开始。")
+        lines.append(
+            "上表仅展示代表性 raw findings；人工复核应优先从 review tasks 和 finding clusters 开始。"
+        )
         lines.append("")
     return lines
 
@@ -669,16 +868,26 @@ def _duplicates_section(data: _ReportData) -> list[str]:
     lines: list[str] = []
     lines.append("## Image Duplicate Check")
     lines.append("")
-    lines.append(markdown_table(
-        ["Metric", "Value"],
-        [
-            ["image_count", fmt_int(data.duplicates.get("image_count"))],
-            ["duplicate_group_count", fmt_int(data.duplicates.get("duplicate_group_count"))],
-            ["duplicate_image_count", fmt_int(data.duplicates.get("duplicate_image_count"))],
-        ],
-    ))
+    lines.append(
+        markdown_table(
+            ["Metric", "Value"],
+            [
+                ["image_count", fmt_int(data.duplicates.get("image_count"))],
+                [
+                    "duplicate_group_count",
+                    fmt_int(data.duplicates.get("duplicate_group_count")),
+                ],
+                [
+                    "duplicate_image_count",
+                    fmt_int(data.duplicates.get("duplicate_image_count")),
+                ],
+            ],
+        )
+    )
     lines.append("")
-    lines.append("Byte-identical duplicate checking cannot detect crops, rescaling, rotations, contrast changes, or local reuse.")
+    lines.append(
+        "Byte-identical duplicate checking cannot detect crops, rescaling, rotations, contrast changes, or local reuse."
+    )
     lines.append("")
     return lines
 
@@ -689,18 +898,22 @@ def _similarity_section(data: _ReportData) -> list[str]:
     lines: list[str] = []
     lines.append("## Image Similarity Candidates")
     lines.append("")
-    lines.append(markdown_table(
-        ["Metric", "Value"],
-        [
-            ["status", data.similarity.get("status", "-")],
-            ["method", data.similarity.get("method", "-")],
-            ["image_count", fmt_int(data.similarity.get("image_count"))],
-            ["candidate_count", fmt_int(data.similarity.get("candidate_count"))],
-        ],
-    ))
+    lines.append(
+        markdown_table(
+            ["Metric", "Value"],
+            [
+                ["status", data.similarity.get("status", "-")],
+                ["method", data.similarity.get("method", "-")],
+                ["image_count", fmt_int(data.similarity.get("image_count"))],
+                ["candidate_count", fmt_int(data.similarity.get("candidate_count"))],
+            ],
+        )
+    )
     if data.similarity.get("status") == "not_available":
         lines.append("")
-        lines.append("Near-duplicate image triage was not available in this environment; deterministic exact duplicate checking still ran.")
+        lines.append(
+            "Near-duplicate image triage was not available in this environment; deterministic exact duplicate checking still ran."
+        )
     lines.append("")
     return lines
 
@@ -713,34 +926,46 @@ def _bundle_section(data: _ReportData) -> list[str]:
     lines: list[str] = []
     lines.append("## Static Audit Bundle")
     lines.append("")
-    lines.append(markdown_table(
-        ["Metric", "Value"],
-        [
-            ["protocol_version", data.static_bundle.get("protocol_version", "-")],
-            ["evidence_items", fmt_int(len(evidence_items))],
-            ["claims", fmt_int(len(data.static_bundle.get("claims") or []))],
-            ["findings", fmt_int(len(data.static_bundle.get("findings") or []))],
-            ["claim_mappings", fmt_int(len(data.static_bundle.get("claim_mappings") or []))],
-            ["agent_traces", fmt_int(len(traces))],
-            ["execution_status", (data.static_bundle.get("execution_status") or {}).get("status", "-")],
-        ],
-    ))
+    lines.append(
+        markdown_table(
+            ["Metric", "Value"],
+            [
+                ["protocol_version", data.static_bundle.get("protocol_version", "-")],
+                ["evidence_items", fmt_int(len(evidence_items))],
+                ["claims", fmt_int(len(data.static_bundle.get("claims") or []))],
+                ["findings", fmt_int(len(data.static_bundle.get("findings") or []))],
+                [
+                    "claim_mappings",
+                    fmt_int(len(data.static_bundle.get("claim_mappings") or [])),
+                ],
+                ["agent_traces", fmt_int(len(traces))],
+                [
+                    "execution_status",
+                    (data.static_bundle.get("execution_status") or {}).get(
+                        "status", "-"
+                    ),
+                ],
+            ],
+        )
+    )
     if traces:
         lines.append("")
         lines.append("### Role Trace Summary")
         lines.append("")
-        lines.append(markdown_table(
-            ["Role", "Status", "Output", "Detail"],
-            [
+        lines.append(
+            markdown_table(
+                ["Role", "Status", "Output", "Detail"],
                 [
-                    trace.get("role_id", "-"),
-                    trace.get("status", "-"),
-                    trace.get("output_path", "-"),
-                    str(trace.get("detail", "-"))[:160],
-                ]
-                for trace in traces
-            ],
-        ))
+                    [
+                        trace.get("role_id", "-"),
+                        trace.get("status", "-"),
+                        trace.get("output_path", "-"),
+                        str(trace.get("detail", "-"))[:160],
+                    ]
+                    for trace in traces
+                ],
+            )
+        )
     lines.append("")
     return lines
 
@@ -752,7 +977,9 @@ def _vlm_section(data: _ReportData) -> list[str]:
     lines.append("## VLM Triage")
     lines.append("")
     lines.append("- Existing VLM triage artifact detected: `vlm_triage_selected.json`.")
-    lines.append("- Current orchestrator does not run batch VLM review yet; existing VLM output is treated as non-primary triage evidence.")
+    lines.append(
+        "- Current orchestrator does not run batch VLM review yet; existing VLM output is treated as non-primary triage evidence."
+    )
     lines.append("")
     return lines
 
@@ -768,19 +995,36 @@ def _limitations_section(data: _ReportData) -> list[str]:
         "Code-execution verification is not connected for this paper directory unless a code repo and manifest are supplied.",
     ]
     if data.mineru_manifest and not any(data.workdir.glob("*_middle.json")):
-        limitations.append("MinerU middle JSON may be missing; layout/bbox confidence should be lowered.")
+        limitations.append(
+            "MinerU middle JSON may be missing; layout/bbox confidence should be lowered."
+        )
     if data.agent_mode in {"plan", "full"} and not data.agent_plan:
-        limitations.append("opencode Agent plan artifact is missing; deterministic defaults were used.")
-    if data.material_plan and data.material_plan.get("status") in {"fallback", "deterministic_fallback"}:
-        limitations.append(f"Material optional-lane planning used fallback mode: {data.material_plan.get('detail', '-')}")
+        limitations.append(
+            "opencode Agent plan artifact is missing; deterministic defaults were used."
+        )
+    if data.material_plan and data.material_plan.get("status") in {
+        "fallback",
+        "deterministic_fallback",
+    }:
+        limitations.append(
+            f"Material optional-lane planning used fallback mode: {data.material_plan.get('detail', '-')}"
+        )
     if data.material_plan and data.material_plan.get("unsupported_materials"):
-        limitations.append("Some submitted materials were inventoried but not executable in this MVP optional-lane set.")
+        limitations.append(
+            "Some submitted materials were inventoried but not executable in this MVP optional-lane set."
+        )
     if data.agent_mode in {"review", "full"} and not data.agent_review:
-        limitations.append("opencode Agent review artifact is missing; claim/finding interpretation is deterministic-only.")
+        limitations.append(
+            "opencode Agent review artifact is missing; claim/finding interpretation is deterministic-only."
+        )
     if data.agent_plan and data.agent_plan.get("status") == "failed":
-        limitations.append(f"opencode Agent plan failed: {data.agent_plan.get('detail', '-')}")
+        limitations.append(
+            f"opencode Agent plan failed: {data.agent_plan.get('detail', '-')}"
+        )
     if data.agent_review and data.agent_review.get("status") == "failed":
-        limitations.append(f"opencode Agent review failed: {data.agent_review.get('detail', '-')}")
+        limitations.append(
+            f"opencode Agent review failed: {data.agent_review.get('detail', '-')}"
+        )
     for item in (data.agent_review or {}).get("limitations", [])[:6]:
         limitations.append(f"Agent review limitation: {item}")
     for item in limitations:
@@ -807,23 +1051,47 @@ def generate_report(
         source_data_dir=source_data_dir,
         agent_mode=agent_mode,
         steps=steps,
-        mineru_manifest=read_json(resolve_artifact_path(workdir, "mineru_manifest.json")),
-        material_inventory=read_json(resolve_artifact_path(workdir, "material_inventory.json")),
-        material_plan=read_json(resolve_artifact_path(workdir, "agent_material_plan.json")),
+        mineru_manifest=read_json(
+            resolve_artifact_path(workdir, "mineru_manifest.json")
+        ),
+        material_inventory=read_json(
+            resolve_artifact_path(workdir, "material_inventory.json")
+        ),
+        material_plan=read_json(
+            resolve_artifact_path(workdir, "agent_material_plan.json")
+        ),
         ledger=read_json(resolve_artifact_path(workdir, "evidence_ledger.json")),
         numeric=read_json(resolve_artifact_path(workdir, "numeric_forensics.json")),
         profile=read_json(resolve_artifact_path(workdir, "source_data_profile.json")),
         findings=read_json(resolve_artifact_path(workdir, "source_data_findings.json")),
-        pair_forensics=read_json(resolve_artifact_path(workdir, "source_data_pair_forensics.json")),
-        duplicates=read_json(resolve_artifact_path(workdir, "exact_image_duplicates.json")),
-        similarity=read_json(resolve_artifact_path(workdir, "image_similarity_candidates.json")),
+        pair_forensics=read_json(
+            resolve_artifact_path(workdir, "source_data_pair_forensics.json")
+        ),
+        duplicates=read_json(
+            resolve_artifact_path(workdir, "exact_image_duplicates.json")
+        ),
+        similarity=read_json(
+            resolve_artifact_path(workdir, "image_similarity_candidates.json")
+        ),
         investigation_records=read_investigation_records(workdir),
-        static_bundle=read_json(resolve_artifact_path(workdir, "static_audit_bundle.json")),
+        static_bundle=read_json(
+            resolve_artifact_path(workdir, "static_audit_bundle.json")
+        ),
         vlm=read_json(resolve_artifact_path(workdir, "vlm_triage_selected.json")),
-        agent_plan=read_json(resolve_artifact_path(workdir, "agent_audit_plan.json")) if agent_mode in {"plan", "full"} else None,
-        agent_review=read_json(resolve_artifact_path(workdir, "agent_review.json")) if agent_mode in {"review", "full"} else None,
-        agent_judge=read_json(resolve_artifact_path(workdir, "agent_judge.json")) if agent_mode in {"review", "full"} else None,
-        agent_source_data_auditor=read_json(resolve_artifact_path(workdir, "agent_source_data_auditor.json")) if agent_mode in {"review", "full"} else None,
+        agent_plan=read_json(resolve_artifact_path(workdir, "agent_audit_plan.json"))
+        if agent_mode in {"plan", "full"}
+        else None,
+        agent_review=read_json(resolve_artifact_path(workdir, "agent_review.json"))
+        if agent_mode in {"review", "full"}
+        else None,
+        agent_judge=read_json(resolve_artifact_path(workdir, "agent_judge.json"))
+        if agent_mode in {"review", "full"}
+        else None,
+        agent_source_data_auditor=read_json(
+            resolve_artifact_path(workdir, "agent_source_data_auditor.json")
+        )
+        if agent_mode in {"review", "full"}
+        else None,
     )
     lines: list[str] = []
     for section_fn in [
@@ -877,7 +1145,7 @@ def _parse_sheet_figure_keys(sheet_name: str) -> list[tuple[str, str, str | None
         keys.append((kind, fig_num, first_panel))
     else:
         keys.append((kind, fig_num, None))
-    rest = text_lower[m.end():]
+    rest = text_lower[m.end() :]
     for pm in re.finditer(r"[,]\s*([a-z])", rest):
         keys.append((kind, fig_num, pm.group(1)))
     for pm in re.finditer(r"\band\s+([a-z])", rest):
@@ -945,9 +1213,7 @@ def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
             paper_panels.setdefault((kind, fig_num), set()).update(panels)
 
         # Body text reference: raw_label = "Fig. 7d" (with panel letter)
-        panel_ref_match = re.match(
-            r"(Extended Data )?Fig\.\s*(\d+)([a-z])$", raw
-        )
+        panel_ref_match = re.match(r"(Extended Data )?Fig\.\s*(\d+)([a-z])$", raw)
         if panel_ref_match:
             is_ext = bool(panel_ref_match.group(1))
             kind = "extended_data" if is_ext else "main_figure"
@@ -963,9 +1229,7 @@ def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
             full_text = full_md_path.read_text(encoding="utf-8", errors="replace")
         except OSError:
             full_text = ""
-        for m in re.finditer(
-            r"(?:Extended\s+Data\s+)?Fig\.\s*(\d+)([a-z])", full_text
-        ):
+        for m in re.finditer(r"(?:Extended\s+Data\s+)?Fig\.\s*(\d+)([a-z])", full_text):
             prefix = full_text[max(0, m.start() - 20) : m.start()]
             is_ext = "Extended Data" in prefix or "extended data" in prefix.lower()
             kind = "extended_data" if is_ext else "main_figure"
@@ -1018,11 +1282,16 @@ def build_static_audit_bundle(
     agent_manifest: dict[str, Any],
 ) -> StaticAuditBundle:
     evidence_items = collect_evidence_items(workdir)
-    claims, claim_mappings, findings = collect_claims_and_findings(workdir, evidence_items)
+    claims, claim_mappings, findings = collect_claims_and_findings(
+        workdir, evidence_items
+    )
     from engine.static_audit.investigation_dispatch import collect_agent_traces
+
     traces = collect_agent_traces(workdir, agent_manifest)
 
-    material_plan = read_json(resolve_artifact_path(workdir, "agent_material_plan.json")) or {}
+    material_plan = (
+        read_json(resolve_artifact_path(workdir, "agent_material_plan.json")) or {}
+    )
     if material_plan.get("missing_materials"):
         findings.append(
             Finding(
@@ -1062,8 +1331,12 @@ def build_static_audit_bundle(
             "paper_dir": str(paper_dir),
             "paper_pdf": str(paper_pdf),
             "source_data_dir": str(source_data_dir) if source_data_dir else None,
-            "material_inventory": str(resolve_artifact_path(workdir, "material_inventory.json")),
-            "agent_material_plan": str(resolve_artifact_path(workdir, "agent_material_plan.json")),
+            "material_inventory": str(
+                resolve_artifact_path(workdir, "material_inventory.json")
+            ),
+            "agent_material_plan": str(
+                resolve_artifact_path(workdir, "agent_material_plan.json")
+            ),
             "optional_lanes": agent_manifest.get("optional_lanes", []),
             "workdir": str(workdir),
         },
@@ -1092,16 +1365,30 @@ def build_static_audit_bundle(
         metadata={
             "agent": agent_manifest,
             "investigation_records": read_investigation_records(workdir),
-            "material_plan": read_json(resolve_artifact_path(workdir, "agent_material_plan.json")) or {},
+            "material_plan": read_json(
+                resolve_artifact_path(workdir, "agent_material_plan.json")
+            )
+            or {},
             "claim_mapping_policy": {
                 "canonical_preference": "agent_refined",
                 "fallback": "deterministic_scaffolding",
-                "deterministic_scaffolding_artifact": str(resolve_artifact_path(workdir, "source_data_findings.json")),
-                "agent_claim_artifact": str(resolve_artifact_path(workdir, "agent_claim_extractor.json")),
-                "agent_source_data_artifact": str(resolve_artifact_path(workdir, "agent_source_data_auditor.json")),
+                "deterministic_scaffolding_artifact": str(
+                    resolve_artifact_path(workdir, "source_data_findings.json")
+                ),
+                "agent_claim_artifact": str(
+                    resolve_artifact_path(workdir, "agent_claim_extractor.json")
+                ),
+                "agent_source_data_artifact": str(
+                    resolve_artifact_path(workdir, "agent_source_data_auditor.json")
+                ),
             },
             "deterministic_claim_mappings": (
-                (read_json(resolve_artifact_path(workdir, "source_data_findings.json")) or {}).get("claim_to_source_data")
+                (
+                    read_json(
+                        resolve_artifact_path(workdir, "source_data_findings.json")
+                    )
+                    or {}
+                ).get("claim_to_source_data")
                 or []
             ),
         },
@@ -1142,7 +1429,9 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
                 )
             )
 
-    visual_evidence = read_json(resolve_artifact_path(workdir, "visual_evidence.json")) or {}
+    visual_evidence = (
+        read_json(resolve_artifact_path(workdir, "visual_evidence.json")) or {}
+    )
     for figure in visual_evidence.get("figures") or []:
         if not isinstance(figure, dict):
             continue
@@ -1165,7 +1454,9 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
             )
         )
 
-    panel_evidence = read_json(resolve_artifact_path(workdir, "panel_evidence.json")) or {}
+    panel_evidence = (
+        read_json(resolve_artifact_path(workdir, "panel_evidence.json")) or {}
+    )
     for panel in panel_evidence.get("panels") or []:
         if not isinstance(panel, dict):
             continue
@@ -1192,7 +1483,9 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
             )
         )
 
-    source_findings = read_json(resolve_artifact_path(workdir, "source_data_findings.json")) or {}
+    source_findings = (
+        read_json(resolve_artifact_path(workdir, "source_data_findings.json")) or {}
+    )
     for finding in (source_findings.get("priority_findings") or [])[:100]:
         items.append(
             EvidenceItem(
@@ -1202,14 +1495,18 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
                 locator={
                     "sheet": finding.get("sheet"),
                     "columns": finding.get("column_pair"),
-                    "support_rows": finding.get("support_rows") or finding.get("equal_rows"),
+                    "support_rows": finding.get("support_rows")
+                    or finding.get("equal_rows"),
                     "overlap_rows": finding.get("overlap_rows"),
                 },
                 summary=f"Source Data priority finding {finding.get('finding_id')}",
                 metadata={"finding_id": finding.get("finding_id")},
             )
         )
-    pair_forensics = read_json(resolve_artifact_path(workdir, "source_data_pair_forensics.json")) or {}
+    pair_forensics = (
+        read_json(resolve_artifact_path(workdir, "source_data_pair_forensics.json"))
+        or {}
+    )
     for finding in (pair_forensics.get("priority_findings") or [])[:100]:
         items.append(
             EvidenceItem(
@@ -1219,12 +1516,20 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
                 locator={
                     "sheet": finding.get("sheet"),
                     "row_offset": finding.get("row_offset"),
-                    "columns": finding.get("columns") or finding.get("column_pair") or finding.get("column"),
-                    "support_rows": finding.get("support_rows") or finding.get("matched_pairs") or finding.get("duplicate_row_count"),
-                    "overlap_rows": finding.get("overlap_rows") or finding.get("overlap_pairs"),
+                    "columns": finding.get("columns")
+                    or finding.get("column_pair")
+                    or finding.get("column"),
+                    "support_rows": finding.get("support_rows")
+                    or finding.get("matched_pairs")
+                    or finding.get("duplicate_row_count"),
+                    "overlap_rows": finding.get("overlap_rows")
+                    or finding.get("overlap_pairs"),
                 },
                 summary=f"Source Data pair-forensics finding {finding.get('finding_id')}",
-                metadata={"finding_id": finding.get("finding_id"), "source": "source_data_pair_forensics"},
+                metadata={
+                    "finding_id": finding.get("finding_id"),
+                    "source": "source_data_pair_forensics",
+                },
             )
         )
     return items
@@ -1233,12 +1538,30 @@ def collect_evidence_items(workdir: Path) -> list[EvidenceItem]:
 def _load_claim_artifacts(workdir: Path) -> dict[str, Any]:
     """Read all JSON artifacts needed for claim and finding collection."""
     return {
-        "source_findings": read_json(resolve_artifact_path(workdir, "source_data_findings.json")) or {},
-        "pair_forensics": read_json(resolve_artifact_path(workdir, "source_data_pair_forensics.json")) or {},
-        "agent_claims": read_json(resolve_artifact_path(workdir, "agent_claim_extractor.json")) or {},
-        "agent_source": read_json(resolve_artifact_path(workdir, "agent_source_data_auditor.json")) or {},
-        "paperfraud_matches": read_json(resolve_artifact_path(workdir, "paperfraud_rule_matches.json")) or {},
-        "visual_findings": read_json(resolve_artifact_path(workdir, "visual_findings.json")) or {},
+        "source_findings": read_json(
+            resolve_artifact_path(workdir, "source_data_findings.json")
+        )
+        or {},
+        "pair_forensics": read_json(
+            resolve_artifact_path(workdir, "source_data_pair_forensics.json")
+        )
+        or {},
+        "agent_claims": read_json(
+            resolve_artifact_path(workdir, "agent_claim_extractor.json")
+        )
+        or {},
+        "agent_source": read_json(
+            resolve_artifact_path(workdir, "agent_source_data_auditor.json")
+        )
+        or {},
+        "paperfraud_matches": read_json(
+            resolve_artifact_path(workdir, "paperfraud_rule_matches.json")
+        )
+        or {},
+        "visual_findings": read_json(
+            resolve_artifact_path(workdir, "visual_findings.json")
+        )
+        or {},
     }
 
 
@@ -1321,8 +1644,12 @@ def _collect_source_data_findings(
                 category=str(item.get("category", "")),
                 risk_level=str(item.get("risk_level", "medium")),  # type: ignore[arg-type]
                 summary=f"{item.get('category')} in {item.get('workbook')} / {item.get('sheet')}",
-                evidence_refs=[evidence_by_finding[finding_id]] if finding_id in evidence_by_finding else [],
-                benign_explanations=[str(value) for value in (item.get("benign_explanations") or [])],
+                evidence_refs=[evidence_by_finding[finding_id]]
+                if finding_id in evidence_by_finding
+                else [],
+                benign_explanations=[
+                    str(value) for value in (item.get("benign_explanations") or [])
+                ],
                 pressure_test_result=str(item.get("pressure_test_result", "")),
                 manual_review_note=str(item.get("manual_review_note", "")),
                 metadata=item,
@@ -1351,7 +1678,9 @@ def _collect_pair_forensics_findings(
                     f"offset={item.get('row_offset', '-')}"
                 ),
                 evidence_refs=[evidence_id] if evidence_id else [],
-                benign_explanations=[str(value) for value in (item.get("benign_explanations") or [])],
+                benign_explanations=[
+                    str(value) for value in (item.get("benign_explanations") or [])
+                ],
                 pressure_test_result=str(item.get("pressure_test_result", "")),
                 manual_review_note="Pair/row-offset Source Data pattern requires sample-independence review.",
                 metadata={**item, "source_artifact": "source_data_pair_forensics.json"},
@@ -1391,7 +1720,11 @@ def _collect_visual_findings(
             relationship_artifact = evidence_by_artifact.get("image_relationships.json")
             if relationship_artifact:
                 evidence_refs.append(relationship_artifact)
-        questions = [str(value) for value in (item.get("manual_review_questions") or []) if not check_language_compliance(str(value))]
+        questions = [
+            str(value)
+            for value in (item.get("manual_review_questions") or [])
+            if not check_language_compliance(str(value))
+        ]
         findings.append(
             Finding(
                 finding_id=finding_id,
@@ -1405,7 +1738,9 @@ def _collect_visual_findings(
                     for value in (item.get("benign_explanations") or [])
                     if not check_language_compliance(str(value))
                 ],
-                manual_review_note=questions[0] if questions else "Visual finding requires manual review against the original figure and raw image.",
+                manual_review_note=questions[0]
+                if questions
+                else "Visual finding requires manual review against the original figure and raw image.",
                 metadata={**item, "source_artifact": "visual_findings.json"},
             )
         )
@@ -1434,14 +1769,18 @@ def collect_claims_and_findings(
     and visual findings.
     """
     artifacts = _load_claim_artifacts(workdir)
-    evidence_by_finding, evidence_by_panel, evidence_by_artifact = _build_evidence_indices(evidence_items)
+    evidence_by_finding, evidence_by_panel, evidence_by_artifact = (
+        _build_evidence_indices(evidence_items)
+    )
     claims, mappings = _collect_core_claims_and_mappings(artifacts, evidence_by_finding)
 
     findings: list[Finding] = []
     findings.extend(_collect_paperfraud_findings(artifacts, evidence_by_finding))
     findings.extend(_collect_source_data_findings(artifacts, evidence_by_finding))
     findings.extend(_collect_pair_forensics_findings(artifacts, evidence_by_finding))
-    findings.extend(_collect_visual_findings(artifacts, evidence_by_panel, evidence_by_artifact))
+    findings.extend(
+        _collect_visual_findings(artifacts, evidence_by_panel, evidence_by_artifact)
+    )
     findings = _deduplicate_findings(findings)
 
     return claims, mappings, findings
@@ -1453,8 +1792,14 @@ def collect_agent_refined_claim_mappings(
     agent_source: dict[str, Any],
     deterministic_mappings: list[dict[str, Any]],
 ) -> tuple[list[Claim], list[ClaimMapping]]:
-    claim_items = [item for item in (agent_claims.get("claims") or []) if isinstance(item, dict)]
-    source_items = [item for item in (agent_source.get("claim_to_source_data") or []) if isinstance(item, dict)]
+    claim_items = [
+        item for item in (agent_claims.get("claims") or []) if isinstance(item, dict)
+    ]
+    source_items = [
+        item
+        for item in (agent_source.get("claim_to_source_data") or [])
+        if isinstance(item, dict)
+    ]
     if not claim_items and not source_items:
         return [], []
 
@@ -1497,7 +1842,9 @@ def collect_agent_refined_claim_mappings(
                 text="Agent SourceDataAuditor 生成了映射，但 ClaimExtractor 未提供对应 claim 文本。",
                 claim_type="figure_trace",
                 source="agent_source_data_auditor",
-                evidence_refs=[str(ref) for ref in (item.get("source_data_refs") or [])],
+                evidence_refs=[
+                    str(ref) for ref in (item.get("source_data_refs") or [])
+                ],
                 status="warning",
                 metadata={
                     "source_role": "source_data_auditor",
@@ -1517,7 +1864,9 @@ def collect_agent_refined_claim_mappings(
             ClaimMapping(
                 mapping_id=str(item.get("mapping_id") or f"ACM-{index:03d}"),
                 claim_id=claim_id,
-                evidence_refs=[str(ref) for ref in (item.get("source_data_refs") or [])],
+                evidence_refs=[
+                    str(ref) for ref in (item.get("source_data_refs") or [])
+                ],
                 confidence=str(item.get("confidence", "medium")),
                 status="agent_refined_mapping",
                 rationale="SourceDataAuditor refined deterministic Source Data scaffolding into a review-oriented claim mapping.",
@@ -1525,7 +1874,9 @@ def collect_agent_refined_claim_mappings(
                     "source_role": "source_data_auditor",
                     "canonical_source": "agent_refined",
                     "needs_human_review": bool(item.get("needs_human_review", True)),
-                    "source_data_refs": [str(ref) for ref in (item.get("source_data_refs") or [])],
+                    "source_data_refs": [
+                        str(ref) for ref in (item.get("source_data_refs") or [])
+                    ],
                     "deterministic_mapping": deterministic_mapping,
                     "raw": item,
                 },
@@ -1557,9 +1908,15 @@ def collect_deterministic_claim_mappings(
 ) -> tuple[list[Claim], list[ClaimMapping]]:
     claims: list[Claim] = []
     mappings: list[ClaimMapping] = []
-    for index, mapping in enumerate((source_findings.get("claim_to_source_data") or [])[:200], start=1):
+    for index, mapping in enumerate(
+        (source_findings.get("claim_to_source_data") or [])[:200], start=1
+    ):
         claim_items = mapping.get("candidate_claims") or []
-        claim_text = claim_items[0].get("text") if claim_items and isinstance(claim_items[0], dict) else ""
+        claim_text = (
+            claim_items[0].get("text")
+            if claim_items and isinstance(claim_items[0], dict)
+            else ""
+        )
         if not claim_text:
             continue
         claim_id = f"CL-{index:04d}"
@@ -1568,7 +1925,9 @@ def collect_deterministic_claim_mappings(
             for item in (mapping.get("linked_priority_findings") or [])
             if isinstance(item, dict) and item.get("finding_id")
         ]
-        refs = [evidence_by_finding[item] for item in linked if item in evidence_by_finding]
+        refs = [
+            evidence_by_finding[item] for item in linked if item in evidence_by_finding
+        ]
         claims.append(
             Claim(
                 claim_id=claim_id,
@@ -1650,7 +2009,9 @@ def _merge_deterministic_mappings(
             for item in (mapping.get("linked_priority_findings") or [])
             if isinstance(item, dict) and item.get("finding_id")
         ]
-        refs = [evidence_by_finding[item] for item in linked if item in evidence_by_finding]
+        refs = [
+            evidence_by_finding[item] for item in linked if item in evidence_by_finding
+        ]
 
         extra_claims.append(
             Claim(

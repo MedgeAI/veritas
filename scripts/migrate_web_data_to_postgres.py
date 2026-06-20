@@ -90,11 +90,13 @@ def migrate_cases(web_data_root: Path, session: Any) -> int:
             # Migrate events
             events_path = run_dir / "events.jsonl"
             for event in read_jsonl(events_path):
-                session.add(RunEventModel(
-                    run_id=run_json["run_id"],
-                    event_type=event.get("event", "progress"),
-                    payload={k: v for k, v in event.items() if k != "event"},
-                ))
+                session.add(
+                    RunEventModel(
+                        run_id=run_json["run_id"],
+                        event_type=event.get("event", "progress"),
+                        payload={k: v for k, v in event.items() if k != "event"},
+                    )
+                )
 
     session.commit()
     return count
@@ -117,29 +119,38 @@ def migrate_investigation_records(outputs_root: Path, session: Any) -> int:
         if not session.get(CaseModel, case_id):
             continue
 
-        rounds_path = case_dir / "research-integrity-audit" / "investigation" / "investigation_rounds.jsonl"
+        rounds_path = (
+            case_dir
+            / "research-integrity-audit"
+            / "investigation"
+            / "investigation_rounds.jsonl"
+        )
         if not rounds_path.exists():
             # Try legacy flat path
-            rounds_path = case_dir / "research-integrity-audit" / "investigation_rounds.jsonl"
+            rounds_path = (
+                case_dir / "research-integrity-audit" / "investigation_rounds.jsonl"
+            )
         if not rounds_path.exists():
             continue
 
         for record in read_jsonl(rounds_path):
-            session.add(InvestigationRecordModel(
-                case_id=case_id,
-                round_id=record.get("round_id"),
-                action_id=record.get("action_id"),
-                tool_id=record.get("tool_id", ""),
-                status=record.get("status", "completed"),
-                validation_status=record.get("validation_status", "not_validated"),
-                hypothesis=record.get("hypothesis", ""),
-                expected_evidence_type=record.get("expected_evidence_type", ""),
-                params=record.get("params", {}),
-                depends_on_artifacts=record.get("depends_on_artifacts", []),
-                output_artifacts=record.get("output_artifacts", []),
-                detail=record.get("detail", ""),
-                metadata_=record.get("metadata", {}),
-            ))
+            session.add(
+                InvestigationRecordModel(
+                    case_id=case_id,
+                    round_id=record.get("round_id"),
+                    action_id=record.get("action_id"),
+                    tool_id=record.get("tool_id", ""),
+                    status=record.get("status", "completed"),
+                    validation_status=record.get("validation_status", "not_validated"),
+                    hypothesis=record.get("hypothesis", ""),
+                    expected_evidence_type=record.get("expected_evidence_type", ""),
+                    params=record.get("params", {}),
+                    depends_on_artifacts=record.get("depends_on_artifacts", []),
+                    output_artifacts=record.get("output_artifacts", []),
+                    detail=record.get("detail", ""),
+                    metadata_=record.get("metadata", {}),
+                )
+            )
             count += 1
 
     session.commit()
@@ -157,20 +168,24 @@ def migrate_users(users_db_path: Path, session: Any) -> int:
     conn.row_factory = sqlite3.Row
     count = 0
     try:
-        for row in conn.execute("SELECT username, password_hash, email, roles, created_at FROM users"):
+        for row in conn.execute(
+            "SELECT username, password_hash, email, roles, created_at FROM users"
+        ):
             existing = session.get(UserModel, row["username"])
             if existing:
                 existing.password_hash = row["password_hash"]
                 existing.email = row["email"] or ""
                 existing.roles = row["roles"] or "operator"
             else:
-                session.add(UserModel(
-                    username=row["username"],
-                    password_hash=row["password_hash"],
-                    email=row["email"] or "",
-                    roles=row["roles"] or "operator",
-                    created_at=row["created_at"] or "",
-                ))
+                session.add(
+                    UserModel(
+                        username=row["username"],
+                        password_hash=row["password_hash"],
+                        email=row["email"] or "",
+                        roles=row["roles"] or "operator",
+                        created_at=row["created_at"] or "",
+                    )
+                )
             count += 1
         session.commit()
     finally:
@@ -179,11 +194,18 @@ def migrate_users(users_db_path: Path, session: Any) -> int:
 
 
 def main() -> int:
-    from web.backend.veritas_web.database import create_db_engine, create_session_factory, check_connection
+    from web.backend.veritas_web.database import (
+        create_db_engine,
+        create_session_factory,
+        check_connection,
+    )
 
     engine = create_db_engine()
     if not check_connection(engine):
-        print("ERROR: cannot connect to PostgreSQL. Run `make db-up` first.", file=sys.stderr)
+        print(
+            "ERROR: cannot connect to PostgreSQL. Run `make db-up` first.",
+            file=sys.stderr,
+        )
         return 1
 
     factory = create_session_factory(engine)

@@ -21,6 +21,7 @@ VISUAL_SCHEMA_VERSION = "1.0"
 @dataclass
 class ForgedRegionEvidence:
     """TruFor deep-learning forgery detection result for a figure or panel."""
+
     forged_region_evidence_id: str
     figure_id: str
     status: Literal["completed", "skipped", "failed"]
@@ -48,7 +49,9 @@ class ForgedRegionEvidence:
         if not self.figure_id:
             errors.append("figure_id is required")
         if self.integrity_score is not None and not 0.0 <= self.integrity_score <= 1.0:
-            errors.append(f"integrity_score must be in [0, 1], got {self.integrity_score}")
+            errors.append(
+                f"integrity_score must be in [0, 1], got {self.integrity_score}"
+            )
         return errors
 
 
@@ -101,6 +104,7 @@ class FigureEvidence:
         panel_count: Number of detected panels in this figure
         metadata: Additional provenance or extraction metadata
     """
+
     figure_id: str
     source_image_path: str
     label: str
@@ -139,7 +143,9 @@ class FigureEvidence:
             errors.append(f"panel_count must be non-negative, got {self.panel_count}")
         if self.bbox is not None:
             if len(self.bbox) != 4:
-                errors.append(f"bbox must have 4 elements [x, y, w, h], got {len(self.bbox)}")
+                errors.append(
+                    f"bbox must have 4 elements [x, y, w, h], got {len(self.bbox)}"
+                )
             elif any(v < 0 for v in self.bbox):
                 errors.append("bbox coordinates must be non-negative")
         return errors
@@ -162,6 +168,7 @@ class PanelEvidence:
         panel_type: Semantic panel type from YOLOv5 classifier (e.g. "Blots", "Graphs")
         metadata: Additional provenance or extraction metadata
     """
+
     PANEL_TYPES = ("Blots", "Graphs", "Microscopy", "Body Imaging", "Flow Cytometry")
 
     panel_id: str
@@ -199,7 +206,9 @@ class PanelEvidence:
         if not self.label:
             errors.append("label is required")
         if len(self.bbox) != 4:
-            errors.append(f"bbox must have 4 elements [x, y, w, h], got {len(self.bbox)}")
+            errors.append(
+                f"bbox must have 4 elements [x, y, w, h], got {len(self.bbox)}"
+            )
         elif any(v < 0 for v in self.bbox):
             errors.append("bbox coordinates must be non-negative")
         if not self.crop_path:
@@ -241,6 +250,7 @@ class VisualFinding:
         overlay_path: Relative path to overlay visualization, or None
         metadata: Additional provenance or analysis metadata
     """
+
     finding_id: str
     category: Literal[
         "copy_move_single",
@@ -301,11 +311,15 @@ class VisualFinding:
         for explanation in self.benign_explanations:
             violations = check_language_compliance(explanation)
             if violations:
-                errors.append(f"benign_explanation contains forbidden phrases: {violations}")
+                errors.append(
+                    f"benign_explanation contains forbidden phrases: {violations}"
+                )
         for question in self.manual_review_questions:
             violations = check_language_compliance(question)
             if violations:
-                errors.append(f"manual_review_question contains forbidden phrases: {violations}")
+                errors.append(
+                    f"manual_review_question contains forbidden phrases: {violations}"
+                )
         return errors
 
 
@@ -326,6 +340,7 @@ class ImageRelationship:
         flip_detected: Whether horizontal flip was detected (cross-image only)
         metadata: Additional provenance or analysis metadata
     """
+
     relationship_id: str
     source_type: Literal[
         "copy_move_single",
@@ -368,8 +383,13 @@ class ImageRelationship:
             errors.append("source_panel_id is required")
         if not self.target_panel_id:
             errors.append("target_panel_id is required")
-        if self.source_panel_id == self.target_panel_id and self.source_type != "copy_move_single":
-            errors.append("source_panel_id and target_panel_id must be different (unless copy_move_single)")
+        if (
+            self.source_panel_id == self.target_panel_id
+            and self.source_type != "copy_move_single"
+        ):
+            errors.append(
+                "source_panel_id and target_panel_id must be different (unless copy_move_single)"
+            )
         if not 0.0 <= self.score <= 1.0:
             errors.append(f"score must be in [0.0, 1.0], got {self.score}")
         if not self.match_method:
@@ -377,6 +397,8 @@ class ImageRelationship:
         if self.inlier_count < 0:
             errors.append(f"inlier_count must be non-negative, got {self.inlier_count}")
         if self.homography is not None:
-            if len(self.homography) != 3 or any(len(row) != 3 for row in self.homography):
+            if len(self.homography) != 3 or any(
+                len(row) != 3 for row in self.homography
+            ):
                 errors.append("homography must be a 3x3 matrix")
         return errors

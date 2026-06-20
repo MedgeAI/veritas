@@ -21,7 +21,9 @@ def sha256(path: Path) -> str:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Find byte-identical image duplicates.")
+    parser = argparse.ArgumentParser(
+        description="Find byte-identical image duplicates."
+    )
     parser.add_argument("image_root", help="Directory containing extracted images.")
     parser.add_argument("--output", required=True, help="Output JSON path.")
     return parser.parse_args()
@@ -50,8 +52,18 @@ def main() -> int:
         "duplicate_groups": duplicate_groups,
     }
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps({"output": str(output), **{k: result[k] for k in result if k != "duplicate_groups"}}, ensure_ascii=False))
+    output.write_text(
+        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    print(
+        json.dumps(
+            {
+                "output": str(output),
+                **{k: result[k] for k in result if k != "duplicate_groups"},
+            },
+            ensure_ascii=False,
+        )
+    )
     return 0
 
 

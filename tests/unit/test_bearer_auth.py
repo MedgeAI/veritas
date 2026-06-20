@@ -1,4 +1,5 @@
 """Tests for BearerTokenProvider in veritas_web.auth."""
+
 from __future__ import annotations
 
 import time
@@ -38,7 +39,9 @@ def _valid_payload() -> dict:
 class TestBearerTokenProviderAuthenticate:
     """authenticate() should return AuthContext for valid tokens and None otherwise."""
 
-    def test_valid_jwt_returns_auth_context(self, provider: BearerTokenProvider) -> None:
+    def test_valid_jwt_returns_auth_context(
+        self, provider: BearerTokenProvider
+    ) -> None:
         token = _make_token(_valid_payload())
         headers = {"Authorization": f"Bearer {token}"}
 
@@ -52,7 +55,9 @@ class TestBearerTokenProviderAuthenticate:
         assert ctx.metadata["userName"] == "alice"
         assert ctx.metadata["source"] == "main_product"
 
-    def test_valid_jwt_with_missing_optional_userName(self, provider: BearerTokenProvider) -> None:
+    def test_valid_jwt_with_missing_optional_userName(
+        self, provider: BearerTokenProvider
+    ) -> None:
         payload = _valid_payload()
         del payload["userName"]
         token = _make_token(payload)
@@ -63,7 +68,9 @@ class TestBearerTokenProviderAuthenticate:
         assert ctx is not None
         assert ctx.metadata["userName"] == ""
 
-    def test_valid_signature_missing_required_user_id_returns_none(self, provider: BearerTokenProvider) -> None:
+    def test_valid_signature_missing_required_user_id_returns_none(
+        self, provider: BearerTokenProvider
+    ) -> None:
         payload = _valid_payload()
         del payload["userId"]
         token = _make_token(payload)
@@ -71,7 +78,9 @@ class TestBearerTokenProviderAuthenticate:
 
         assert provider.authenticate(headers) is None
 
-    def test_valid_signature_empty_required_user_id_returns_none(self, provider: BearerTokenProvider) -> None:
+    def test_valid_signature_empty_required_user_id_returns_none(
+        self, provider: BearerTokenProvider
+    ) -> None:
         payload = _valid_payload()
         payload["userId"] = ""
         token = _make_token(payload)
@@ -79,7 +88,9 @@ class TestBearerTokenProviderAuthenticate:
 
         assert provider.authenticate(headers) is None
 
-    def test_valid_signature_missing_required_exp_returns_none(self, provider: BearerTokenProvider) -> None:
+    def test_valid_signature_missing_required_exp_returns_none(
+        self, provider: BearerTokenProvider
+    ) -> None:
         payload = _valid_payload()
         del payload["exp"]
         token = _make_token(payload)
@@ -87,7 +98,9 @@ class TestBearerTokenProviderAuthenticate:
 
         assert provider.authenticate(headers) is None
 
-    def test_invalid_signature_returns_none(self, provider: BearerTokenProvider) -> None:
+    def test_invalid_signature_returns_none(
+        self, provider: BearerTokenProvider
+    ) -> None:
         token = _make_token(_valid_payload(), secret="wrong-secret")
         headers = {"Authorization": f"Bearer {token}"}
 
@@ -114,23 +127,33 @@ class TestBearerTokenProviderAuthenticate:
 
         assert provider.authenticate(headers) is None
 
-    def test_missing_authorization_header_returns_none(self, provider: BearerTokenProvider) -> None:
+    def test_missing_authorization_header_returns_none(
+        self, provider: BearerTokenProvider
+    ) -> None:
         assert provider.authenticate({}) is None
 
-    def test_empty_authorization_header_returns_none(self, provider: BearerTokenProvider) -> None:
+    def test_empty_authorization_header_returns_none(
+        self, provider: BearerTokenProvider
+    ) -> None:
         assert provider.authenticate({"Authorization": ""}) is None
 
-    def test_non_bearer_authorization_returns_none(self, provider: BearerTokenProvider) -> None:
+    def test_non_bearer_authorization_returns_none(
+        self, provider: BearerTokenProvider
+    ) -> None:
         headers = {"Authorization": "Basic dXNlcjpwYXNz"}
 
         assert provider.authenticate(headers) is None
 
-    def test_bearer_prefix_without_token_returns_none(self, provider: BearerTokenProvider) -> None:
+    def test_bearer_prefix_without_token_returns_none(
+        self, provider: BearerTokenProvider
+    ) -> None:
         headers = {"Authorization": "Bearer "}
 
         assert provider.authenticate(headers) is None
 
-    def test_case_insensitive_authorization_header(self, provider: BearerTokenProvider) -> None:
+    def test_case_insensitive_authorization_header(
+        self, provider: BearerTokenProvider
+    ) -> None:
         token = _make_token(_valid_payload())
         headers = {"authorization": f"Bearer {token}"}
 

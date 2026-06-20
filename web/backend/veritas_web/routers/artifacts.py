@@ -32,7 +32,9 @@ async def get_artifact(
 ) -> Response:
     path = deps.artifacts.artifact_path(case_id, artifact_id)
     if not path:
-        raise HTTPException(status_code=404, detail=f"artifact not found: {artifact_id}")
+        raise HTTPException(
+            status_code=404, detail=f"artifact not found: {artifact_id}"
+        )
     content_type = "application/json"
     if path.suffix == ".jsonl":
         content_type = "application/x-ndjson"

@@ -8,12 +8,6 @@ from engine.tools.registry import SOURCE_DATA_FINDINGS_DEFAULT_PARAMS
 
 DEFAULT_SOURCE_FINDING_PARAMS = SOURCE_DATA_FINDINGS_DEFAULT_PARAMS
 
-# DEPRECATED: ALLOWED_STEPS is no longer used by active code.
-# Agent tool准入 now comes from engine.tools.registry.TOOLS and
-# tool_catalog_for_investigation(), filtered by ExecutionPhase.AGENT_SELECTABLE.
-# This constant is retained only for backward compatibility and will be removed.
-ALLOWED_STEPS: set[str] = set()
-
 
 def extract_json(text: str) -> dict[str, Any]:
     if not text.strip():
@@ -125,7 +119,9 @@ def _coerce_material_source_params(params: dict[str, Any]) -> dict[str, Any]:
             coerced[key] = default
     coerced["min_overlap"] = max(8, min(50, int(coerced["min_overlap"])))
     coerced["min_support"] = max(0.90, min(1.0, float(coerced["min_support"])))
-    coerced["max_findings_per_category"] = max(20, min(500, int(coerced["max_findings_per_category"])))
+    coerced["max_findings_per_category"] = max(
+        20, min(500, int(coerced["max_findings_per_category"]))
+    )
     return coerced
 
 

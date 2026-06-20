@@ -25,10 +25,6 @@ from engine.static_audit.tools.source_data_profile import (
 getcontext().prec = 28
 
 
-FIGURE_RE = re.compile(
-    r"(Extended Data Fig\.?\s*\d+[a-z]?|Fig\.?\s*\d+[a-z]?)",
-    re.IGNORECASE,
-)
 FORMULA_REF_RE = re.compile(r"\$?([A-Z]+)\$?(\d+)")
 SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?。！？])\s+")
 SUMMARY_MEAN_TERMS = ("mean", "average")
@@ -171,7 +167,9 @@ def _is_n_label(label: str) -> bool:
     return _has_any(label, SUMMARY_N_TERMS)
 
 
-def _decimal_close(left: Decimal, right: Decimal, tolerance: Decimal = Decimal("0.0001")) -> bool:
+def _decimal_close(
+    left: Decimal, right: Decimal, tolerance: Decimal = Decimal("0.0001")
+) -> bool:
     return abs(left - right) <= tolerance
 
 
@@ -181,7 +179,9 @@ def _integer_like_ratio(value: Decimal) -> bool:
     return _decimal_close(value, value.to_integral_value(), Decimal("0.000001"))
 
 
-def is_summary_statistic_pair(sheet: SheetVectors, left_col: int, right_col: int, rows: list[int]) -> bool:
+def is_summary_statistic_pair(
+    sheet: SheetVectors, left_col: int, right_col: int, rows: list[int]
+) -> bool:
     """Return True when a pair looks like Mean/Sum with an N column.
 
     These are traceability facts, not suspicious fixed relationships: if Sum is
@@ -268,11 +268,16 @@ def zero_inflated_pair_artifact(
     zero_rate = both_zero / len(rows)
     non_zero_support = equal_non_zero / non_zero_rows if non_zero_rows else 0.0
     if zero_rate >= 0.7 and (non_zero_rows < 5 or non_zero_support < 0.98):
-        return True, f"zero-inflated matrix candidate: {both_zero}/{len(rows)} shared zero rows"
+        return (
+            True,
+            f"zero-inflated matrix candidate: {both_zero}/{len(rows)} shared zero rows",
+        )
     return False, None
 
 
-def is_time_event_design_pair(sheet: SheetVectors, columns: list[int], rows: list[int]) -> bool:
+def is_time_event_design_pair(
+    sheet: SheetVectors, columns: list[int], rows: list[int]
+) -> bool:
     labels = " / ".join(_label_lower(sheet, col) for col in columns)
     if not _has_any(labels, TIME_EVENT_TERMS):
         return False
@@ -345,7 +350,10 @@ def _adjacent_row_rate(col: int, formulas: list[dict]) -> float:
             continue
         target_row = int(ref_match.group(2))
         for match in FORMULA_REF_RE.finditer(formula_text):
-            if match.group(1) == col_name and abs(int(match.group(2)) - target_row) == 1:
+            if (
+                match.group(1) == col_name
+                and abs(int(match.group(2)) - target_row) == 1
+            ):
                 adjacent += 1
                 break
     return adjacent / len(formulas)
@@ -405,18 +413,23 @@ def duplicate_column_findings(
     limit: int,
 ) -> list[dict]:
     columns = sorted(
-        col for col, values in sheet.numeric_columns.items() if len(values) >= min_overlap
+        col
+        for col, values in sheet.numeric_columns.items()
+        if len(values) >= min_overlap
     )
     findings = []
     for idx, left_col in enumerate(columns):
         for right_col in columns[idx + 1 :]:
-            rows = common_rows(sheet.numeric_columns[left_col], sheet.numeric_columns[right_col])
+            rows = common_rows(
+                sheet.numeric_columns[left_col], sheet.numeric_columns[right_col]
+            )
             if len(rows) < min_overlap:
                 continue
             equal = [
                 row
                 for row in rows
-                if sheet.numeric_columns[left_col][row] == sheet.numeric_columns[right_col][row]
+                if sheet.numeric_columns[left_col][row]
+                == sheet.numeric_columns[right_col][row]
             ]
             support = len(equal) / len(rows)
             if support < min_support:
@@ -426,21 +439,33 @@ def duplicate_column_findings(
             index_like = is_index_like_column(
                 sheet.numeric_columns[left_col], equal
             ) and is_index_like_column(sheet.numeric_columns[right_col], equal)
-            zero_artifact, zero_reason = zero_inflated_pair_artifact(sheet, left_col, right_col, rows)
-            event_artifact = is_time_event_design_pair(sheet, [left_col, right_col], equal)
+            zero_artifact, zero_reason = zero_inflated_pair_artifact(
+                sheet, left_col, right_col, rows
+            )
+            event_artifact = is_time_event_design_pair(
+                sheet, [left_col, right_col], equal
+            )
             risk = (
                 "low"
                 if index_like or zero_artifact or event_artifact
-                else ("high" if len(equal) >= 100 and left_label != right_label else "medium")
+                else (
+                    "high"
+                    if len(equal) >= 100 and left_label != right_label
+                    else "medium"
+                )
             )
-            artifact_likelihood = "high" if index_like or zero_artifact or event_artifact else "unknown"
+            artifact_likelihood = (
+                "high" if index_like or zero_artifact or event_artifact else "unknown"
+            )
             artifact_reason = None
             if index_like:
                 artifact_reason = "both columns look like repeated sequential index/subject-id columns"
             elif zero_artifact:
                 artifact_reason = zero_reason
             elif event_artifact:
-                artifact_reason = "low-cardinality time/event or grouped endpoint columns"
+                artifact_reason = (
+                    "low-cardinality time/event or grouped endpoint columns"
+                )
             findings.append(
                 {
                     "finding_id": None,
@@ -460,8 +485,12 @@ def duplicate_column_findings(
                     "sample_pairs": [
                         {
                             "row": row,
-                            "left": normalized_number(sheet.numeric_columns[left_col][row]),
-                            "right": normalized_number(sheet.numeric_columns[right_col][row]),
+                            "left": normalized_number(
+                                sheet.numeric_columns[left_col][row]
+                            ),
+                            "right": normalized_number(
+                                sheet.numeric_columns[right_col][row]
+                            ),
                         }
                         for row in equal[:20]
                     ],
@@ -482,7 +511,9 @@ def duplicate_column_findings(
                     ],
                 }
             )
-    return sorted(findings, key=lambda item: (-item["equal_rows"], item["workbook"]))[:limit]
+    return sorted(findings, key=lambda item: (-item["equal_rows"], item["workbook"]))[
+        :limit
+    ]
 
 
 def fixed_relationship_findings(
@@ -492,13 +523,17 @@ def fixed_relationship_findings(
     limit: int,
 ) -> list[dict]:
     columns = sorted(
-        col for col, values in sheet.numeric_columns.items() if len(values) >= min_overlap
+        col
+        for col, values in sheet.numeric_columns.items()
+        if len(values) >= min_overlap
     )
     findings = []
     formula_cols = set(sheet.formulas_by_column)
     for idx, left_col in enumerate(columns):
         for right_col in columns[idx + 1 :]:
-            rows = common_rows(sheet.numeric_columns[left_col], sheet.numeric_columns[right_col])
+            rows = common_rows(
+                sheet.numeric_columns[left_col], sheet.numeric_columns[right_col]
+            )
             if len(rows) < min_overlap:
                 continue
             differences = Counter()
@@ -534,7 +569,10 @@ def fixed_relationship_findings(
 
             if ratios:
                 ratio_value, ratio_count = ratios.most_common(1)[0]
-                if ratio_value not in {"0", "1"} and ratio_count / len(rows) >= min_support:
+                if (
+                    ratio_value not in {"0", "1"}
+                    and ratio_count / len(rows) >= min_support
+                ):
                     findings.append(
                         relationship_record(
                             sheet,
@@ -548,7 +586,9 @@ def fixed_relationship_findings(
                             formula_cols,
                         )
                     )
-    return sorted(findings, key=lambda item: (-item["support_rows"], item["workbook"]))[:limit]
+    return sorted(findings, key=lambda item: (-item["support_rows"], item["workbook"]))[
+        :limit
+    ]
 
 
 def relationship_record(
@@ -568,7 +608,11 @@ def relationship_record(
     ) and is_index_like_column(sheet.numeric_columns[right_col], rows)
     summary_pair = is_summary_statistic_pair(sheet, left_col, right_col, rows)
     event_artifact = is_time_event_design_pair(sheet, [left_col, right_col], rows)
-    risk = "low" if formula_involved or summary_pair else ("high" if support_rows >= 100 else "medium")
+    risk = (
+        "low"
+        if formula_involved or summary_pair
+        else ("high" if support_rows >= 100 else "medium")
+    )
     if index_like or event_artifact:
         risk = "low"
 
@@ -595,7 +639,10 @@ def relationship_record(
         "workbook": sheet.workbook,
         "sheet": sheet.sheet,
         "column_pair": [col_to_name(left_col), col_to_name(right_col)],
-        "column_labels": [column_label(sheet, left_col), column_label(sheet, right_col)],
+        "column_labels": [
+            column_label(sheet, left_col),
+            column_label(sheet, right_col),
+        ],
         "relationship_value": value,
         "overlap_rows": overlap_rows,
         "support_rows": support_rows,
@@ -711,17 +758,31 @@ def markdown_blocks(full_md: Path) -> list[dict]:
     blocks = []
     current = []
     start = 1
-    for idx, line in enumerate(full_md.read_text(encoding="utf-8").splitlines(), start=1):
+    for idx, line in enumerate(
+        full_md.read_text(encoding="utf-8").splitlines(), start=1
+    ):
         if line.strip():
             if not current:
                 start = idx
             current.append(line.strip())
             continue
         if current:
-            blocks.append({"line_start": start, "line_end": idx - 1, "text": clean_text(" ".join(current))})
+            blocks.append(
+                {
+                    "line_start": start,
+                    "line_end": idx - 1,
+                    "text": clean_text(" ".join(current)),
+                }
+            )
             current = []
     if current:
-        blocks.append({"line_start": start, "line_end": start + len(current) - 1, "text": clean_text(" ".join(current))})
+        blocks.append(
+            {
+                "line_start": start,
+                "line_end": start + len(current) - 1,
+                "text": clean_text(" ".join(current)),
+            }
+        )
     return blocks
 
 
@@ -790,10 +851,16 @@ def claim_mappings(
             refs = []
             seen_refs = set()
             for key in keys:
-                compiled = [re.compile(pattern, re.IGNORECASE) for pattern in key["patterns"]]
+                compiled = [
+                    re.compile(pattern, re.IGNORECASE) for pattern in key["patterns"]
+                ]
                 for block in blocks:
                     if any(pattern.search(block["text"]) for pattern in compiled):
-                        ref_key = (block["line_start"], block["line_end"], block["text"][:200])
+                        ref_key = (
+                            block["line_start"],
+                            block["line_end"],
+                            block["text"][:200],
+                        )
                         if ref_key in seen_refs:
                             continue
                         seen_refs.add(ref_key)
@@ -814,15 +881,19 @@ def claim_mappings(
             priority_linked = [
                 item
                 for item in linked
-                if risk_rank(item["risk_level"]) >= 2 and item.get("artifact_likelihood") != "high"
+                if risk_rank(item["risk_level"]) >= 2
+                and item.get("artifact_likelihood") != "high"
             ]
-            mapping_confidence = "high" if refs and keys else ("medium" if refs else "low")
+            mapping_confidence = (
+                "high" if refs and keys else ("medium" if refs else "low")
+            )
             mappings.append(
                 {
                     "mapping_id": None,
                     "workbook": workbook.get("file_name"),
                     "sheet": sheet.get("name"),
-                    "source_figure_id": ", ".join(key["figure_id"] for key in keys) or None,
+                    "source_figure_id": ", ".join(key["figure_id"] for key in keys)
+                    or None,
                     "source_figure_kind": keys[0]["kind"] if keys else None,
                     "source_panels": [key["panel"] for key in keys if key.get("panel")],
                     "figure_keys": keys,
@@ -839,7 +910,9 @@ def claim_mappings(
                     "mapping_confidence": mapping_confidence,
                     "status": "candidate_mapping" if refs else "needs_manual_mapping",
                     "review_priority": (
-                        "high" if priority_linked else ("medium" if linked or refs else "low")
+                        "high"
+                        if priority_linked
+                        else ("medium" if linked or refs else "low")
                     ),
                     "audit_next_step": (
                         "优先人工确认该 sheet 的列语义，并将 linked_priority_findings 与论文 claim 对账。"
@@ -871,11 +944,19 @@ def assign_ids(findings: list[dict]) -> None:
 
 
 def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Generate findings from XLSX source data.")
-    parser.add_argument("xlsx_root", help="Directory containing .xlsx source data files.")
-    parser.add_argument("--profile", required=True, help="source_data_profile.json path.")
+    parser = argparse.ArgumentParser(
+        description="Generate findings from XLSX source data."
+    )
+    parser.add_argument(
+        "xlsx_root", help="Directory containing .xlsx source data files."
+    )
+    parser.add_argument(
+        "--profile", required=True, help="source_data_profile.json path."
+    )
     parser.add_argument("--full-md", help="MinerU full.md path for claim mapping.")
-    parser.add_argument("--output", required=True, help="Output source_data_findings.json path.")
+    parser.add_argument(
+        "--output", required=True, help="Output source_data_findings.json path."
+    )
     parser.add_argument("--min-overlap", type=int, default=12)
     parser.add_argument("--min-support", type=float, default=0.98)
     parser.add_argument("--max-findings-per-category", type=int, default=200)
@@ -899,17 +980,28 @@ def main() -> int:
         try:
             sheets = parse_workbook_vectors(workbook_path)
         except Exception as exc:
-            errors.append({"workbook": workbook_path.name, "error": f"{type(exc).__name__}: {exc}"})
+            errors.append(
+                {
+                    "workbook": workbook_path.name,
+                    "error": f"{type(exc).__name__}: {exc}",
+                }
+            )
             continue
         for sheet in sheets:
             duplicate_columns.extend(
                 duplicate_column_findings(
-                    sheet, args.min_overlap, args.min_support, args.max_findings_per_category
+                    sheet,
+                    args.min_overlap,
+                    args.min_support,
+                    args.max_findings_per_category,
                 )
             )
             fixed_relationships.extend(
                 fixed_relationship_findings(
-                    sheet, args.min_overlap, args.min_support, args.max_findings_per_category
+                    sheet,
+                    args.min_overlap,
+                    args.min_support,
+                    args.max_findings_per_category,
                 )
             )
             formulas.extend(formula_findings(sheet, args.max_findings_per_category))
@@ -920,9 +1012,9 @@ def main() -> int:
     fixed_relationships = sorted(
         fixed_relationships, key=lambda item: (-item["support_rows"], item["workbook"])
     )[: args.max_findings_per_category]
-    formulas = sorted(formulas, key=lambda item: (-item["formula_count"], item["workbook"]))[
-        : args.max_findings_per_category
-    ]
+    formulas = sorted(
+        formulas, key=lambda item: (-item["formula_count"], item["workbook"])
+    )[: args.max_findings_per_category]
     findings = [*duplicate_columns, *fixed_relationships, *formulas]
     assign_ids(findings)
     priority_findings = [
@@ -932,7 +1024,11 @@ def main() -> int:
         and finding.get("artifact_likelihood") != "high"
     ]
 
-    mappings = claim_mappings(profile, full_md, args.max_paper_refs, findings) if full_md else []
+    mappings = (
+        claim_mappings(profile, full_md, args.max_paper_refs, findings)
+        if full_md
+        else []
+    )
     result = {
         "schema_version": "1.1",
         "created_by": "engine/static_audit/tools/source_data_findings.py",
@@ -970,7 +1066,9 @@ def main() -> int:
         ],
     }
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
+    output.write_text(
+        json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
     print(json.dumps({"output": str(output), **result["summary"]}, ensure_ascii=False))
     return 0
 

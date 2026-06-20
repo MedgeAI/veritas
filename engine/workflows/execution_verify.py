@@ -5,7 +5,13 @@ from pathlib import Path
 import secrets
 
 from engine.claims.matchers import compare_claims, load_result_map
-from engine.ingest.manifest_loader import exists_file, load_manifest, path_or_none, resolve_path, resolve_repo_path
+from engine.ingest.manifest_loader import (
+    exists_file,
+    load_manifest,
+    path_or_none,
+    resolve_path,
+    resolve_repo_path,
+)
 from engine.reporting.models import CheckStep, Finding, VerificationReport
 from runtime.executors.base import ExecutionRequest
 from runtime.executors.subprocess_executor import execute_subprocess
@@ -14,7 +20,9 @@ from runtime.executors.subprocess_executor import execute_subprocess
 SEVERITY_ORDER = {"critical": 3, "warning": 2, "info": 1}
 
 
-def run_verification(manifest_path: str | Path, role: str = "author") -> VerificationReport:
+def run_verification(
+    manifest_path: str | Path, role: str = "author"
+) -> VerificationReport:
     manifest = load_manifest(manifest_path)
     manifest_dir = Path(manifest["_manifest_dir"])
     artifacts = manifest.get("artifacts", {})
@@ -24,8 +32,14 @@ def run_verification(manifest_path: str | Path, role: str = "author") -> Verific
     paper_path = resolve_path(manifest_dir, artifacts.get("paper"))
     repo_root = resolve_path(manifest_dir, artifacts.get("repo_root"))
     results_path = resolve_path(manifest_dir, artifacts.get("results_file"))
-    env_files = [resolve_path(manifest_dir, value) for value in artifacts.get("environment_files", [])]
-    entrypoints = [resolve_repo_path(repo_root, value) for value in artifacts.get("entrypoints", [])]
+    env_files = [
+        resolve_path(manifest_dir, value)
+        for value in artifacts.get("environment_files", [])
+    ]
+    entrypoints = [
+        resolve_repo_path(repo_root, value)
+        for value in artifacts.get("entrypoints", [])
+    ]
 
     checks: list[CheckStep] = []
     findings: list[Finding] = []
@@ -57,7 +71,12 @@ def run_verification(manifest_path: str | Path, role: str = "author") -> Verific
     execution_result = None
     runtime_mode = str(manifest.get("runtime", {}).get("mode", "subprocess"))
     timeout_seconds = int(manifest.get("runtime", {}).get("timeout_seconds", 30))
-    if entrypoint_ok and repo_ok and artifacts.get("dry_run_command") and runtime_mode == "subprocess":
+    if (
+        entrypoint_ok
+        and repo_ok
+        and artifacts.get("dry_run_command")
+        and runtime_mode == "subprocess"
+    ):
         execution_result = execute_subprocess(
             ExecutionRequest(
                 command=str(artifacts["dry_run_command"]),
@@ -97,23 +116,37 @@ def run_verification(manifest_path: str | Path, role: str = "author") -> Verific
                 detail=f"runtime.mode={runtime_mode} 尚未在 MVP 中实现，跳过真实执行。",
             )
         )
-        limitations.append(f"Runtime mode '{runtime_mode}' is not implemented in the current MVP.")
+        limitations.append(
+            f"Runtime mode '{runtime_mode}' is not implemented in the current MVP."
+        )
 
     claim_rows: list[dict[str, object]] = []
     if results_ok and claims:
         result_map = load_result_map(results_path)
         claim_rows, claim_findings = compare_claims(claims, result_map)
         findings.extend(claim_findings)
-        numerical_status = "fail" if any(item.severity == "critical" for item in claim_findings) else "pass"
-        numerical_detail = f"核对 {len(claims)} 项声明，发现 {len(claim_findings)} 个问题。"
+        numerical_status = (
+            "fail"
+            if any(item.severity == "critical" for item in claim_findings)
+            else "pass"
+        )
+        numerical_detail = (
+            f"核对 {len(claims)} 项声明，发现 {len(claim_findings)} 个问题。"
+        )
     elif claims and not results_ok:
         numerical_status = "warning"
-        numerical_detail = "存在待核对 claim，但缺少 results 文件，无法完成数字一致性检查。"
-        limitations.append("Results artifact missing: numerical consistency was not verified.")
+        numerical_detail = (
+            "存在待核对 claim，但缺少 results 文件，无法完成数字一致性检查。"
+        )
+        limitations.append(
+            "Results artifact missing: numerical consistency was not verified."
+        )
     else:
         numerical_status = "warning"
         numerical_detail = "未提供结构化 claim 或 results 文件，跳过数字一致性检查。"
-        limitations.append("Claim extraction is manifest-driven in this prototype; PDF parsing is not enabled yet.")
+        limitations.append(
+            "Claim extraction is manifest-driven in this prototype; PDF parsing is not enabled yet."
+        )
 
     checks.append(
         CheckStep(
@@ -168,7 +201,9 @@ def run_verification(manifest_path: str | Path, role: str = "author") -> Verific
                 source="artifacts.environment_files",
             )
         )
-        limitations.append("Environment rebuild was not executed because no environment file was provided.")
+        limitations.append(
+            "Environment rebuild was not executed because no environment file was provided."
+        )
 
     if not entrypoint_ok:
         findings.append(
@@ -184,9 +219,13 @@ def run_verification(manifest_path: str | Path, role: str = "author") -> Verific
                 source="artifacts.entrypoints",
             )
         )
-        limitations.append("Execution readiness is file-based only in this prototype; commands are not run yet.")
+        limitations.append(
+            "Execution readiness is file-based only in this prototype; commands are not run yet."
+        )
 
-    verification_level = _verification_level(paper_ok, repo_ok, env_ok, entrypoint_ok, results_ok, bool(claims))
+    verification_level = _verification_level(
+        paper_ok, repo_ok, env_ok, entrypoint_ok, results_ok, bool(claims)
+    )
     overall_status = _overall_status(findings)
     findings.sort(key=lambda item: (-SEVERITY_ORDER[item.severity], item.id))
 
@@ -209,7 +248,9 @@ def run_verification(manifest_path: str | Path, role: str = "author") -> Verific
         "Claim extraction still depends on manifest data; PDF-native extraction is not enabled yet.",
     ]
     if execution_result is not None:
-        notes.append(f"Runtime executor: subprocess · exit_code={execution_result.exit_code}")
+        notes.append(
+            f"Runtime executor: subprocess · exit_code={execution_result.exit_code}"
+        )
 
     return VerificationReport(
         report_id=_report_id(),

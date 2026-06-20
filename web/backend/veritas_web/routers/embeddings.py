@@ -45,29 +45,41 @@ async def trigger_indexing(
     """
     workdir = deps.artifacts.latest_workdir(case_id)
     if not workdir:
-        raise HTTPException(status_code=404, detail="case has no completed audit workdir")
+        raise HTTPException(
+            status_code=404, detail="case has no completed audit workdir"
+        )
 
     encoder = _get_encoder()
     if not encoder.available:
         raise HTTPException(
             status_code=503,
             detail=f"SSCD model not available at {encoder._model_path}. "
-                   "Download the model first (see README).",
+            "Download the model first (see README).",
         )
 
     if deps._session_factory is None:
-        raise HTTPException(status_code=503, detail={"error": "database_unavailable", "detail": "database not configured"})
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "database_unavailable",
+                "detail": "database not configured",
+            },
+        )
 
     session = deps._session_factory()
     try:
-        update_index_job(session, case_id, "queued", detail="SSCD embedding extraction queued")
+        update_index_job(
+            session, case_id, "queued", detail="SSCD embedding extraction queued"
+        )
     finally:
         session.close()
 
     def _run_index() -> None:
         session = deps._session_factory()
         try:
-            update_index_job(session, case_id, "running", detail="SSCD embedding extraction running")
+            update_index_job(
+                session, case_id, "running", detail="SSCD embedding extraction running"
+            )
             result = index_panels(session, case_id, workdir, encoder)
             update_index_job(
                 session,
@@ -82,7 +94,9 @@ async def trigger_indexing(
             try:
                 update_index_job(session, case_id, "failed", detail=str(exc))
             except Exception:
-                logger.exception("failed to persist SSCD indexing failure for case %s", case_id)
+                logger.exception(
+                    "failed to persist SSCD indexing failure for case %s", case_id
+                )
         finally:
             session.close()
 
@@ -103,7 +117,13 @@ async def embedding_status(
 ) -> dict[str, Any]:
     """Return the indexing status for a case."""
     if deps._session_factory is None:
-        raise HTTPException(status_code=503, detail={"error": "database_unavailable", "detail": "database not configured"})
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "database_unavailable",
+                "detail": "database not configured",
+            },
+        )
 
     session = deps._session_factory()
     try:
@@ -126,12 +146,24 @@ async def get_similar_panels(
 ) -> dict[str, Any]:
     """Find panels similar to the given panel."""
     if deps._session_factory is None:
-        raise HTTPException(status_code=503, detail={"error": "database_unavailable", "detail": "database not configured"})
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "database_unavailable",
+                "detail": "database not configured",
+            },
+        )
 
     session = deps._session_factory()
     try:
-        results = query_similar(session, case_id, panel_id, top_k=top_k, threshold=threshold)
-        return {"query_panel_id": panel_id, "threshold": threshold, "similar_panels": results}
+        results = query_similar(
+            session, case_id, panel_id, top_k=top_k, threshold=threshold
+        )
+        return {
+            "query_panel_id": panel_id,
+            "threshold": threshold,
+            "similar_panels": results,
+        }
     finally:
         session.close()
 
@@ -145,7 +177,13 @@ async def get_all_similar_pairs(
 ) -> dict[str, Any]:
     """Find all pairs of similar panels above the threshold."""
     if deps._session_factory is None:
-        raise HTTPException(status_code=503, detail={"error": "database_unavailable", "detail": "database not configured"})
+        raise HTTPException(
+            status_code=503,
+            detail={
+                "error": "database_unavailable",
+                "detail": "database not configured",
+            },
+        )
 
     session = deps._session_factory()
     try:

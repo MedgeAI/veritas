@@ -80,7 +80,9 @@ def _panel_image_index(panel_evidence: list[dict] | None) -> dict[str, str]:
             panel.get("crop_path"),
             panel.get("source_image_path"),
         ]
-        metadata = panel.get("metadata") if isinstance(panel.get("metadata"), dict) else {}
+        metadata = (
+            panel.get("metadata") if isinstance(panel.get("metadata"), dict) else {}
+        )
         candidates.append(metadata.get("source_image_path"))
         for candidate in candidates:
             key = _normalize_path_key(candidate)
@@ -101,17 +103,19 @@ def _load_copy_move_relationships(
     for item in raw:
         if not isinstance(item, dict):
             continue
-        out.append({
-            "source_panel_id": _panel_id(item.get("source_panel_id")),
-            "target_panel_id": _panel_id(item.get("target_panel_id")),
-            "source_type": str(item.get("source_type") or "copy_move_single"),
-            "score": _parse_score(item.get("score")),
-            "match_method": item.get("match_method", "unknown"),
-            "inlier_count": int(item.get("inlier_count", 0) or 0),
-            "homography": _optional_list(item.get("homography")),
-            "overlay_path": _optional_str(item.get("overlay_path")),
-            "flip_detected": bool(item.get("flip_detected", False)),
-        })
+        out.append(
+            {
+                "source_panel_id": _panel_id(item.get("source_panel_id")),
+                "target_panel_id": _panel_id(item.get("target_panel_id")),
+                "source_type": str(item.get("source_type") or "copy_move_single"),
+                "score": _parse_score(item.get("score")),
+                "match_method": item.get("match_method", "unknown"),
+                "inlier_count": int(item.get("inlier_count", 0) or 0),
+                "homography": _optional_list(item.get("homography")),
+                "overlay_path": _optional_str(item.get("overlay_path")),
+                "flip_detected": bool(item.get("flip_detected", False)),
+            }
+        )
     return out
 
 
@@ -140,15 +144,21 @@ def _load_exact_duplicate_relationships(
         for item in raw:
             if not isinstance(item, dict):
                 continue
-            out.append({
-                "source_panel_id": _direct_lookup(item.get("source_panel_id"), image_to_panel),
-                "target_panel_id": _direct_lookup(item.get("target_panel_id"), image_to_panel),
-                "score": 1.0,
-                "match_method": "byte_hash",
-                "inlier_count": 0,
-                "homography": None,
-                "overlay_path": _optional_str(item.get("overlay_path")),
-            })
+            out.append(
+                {
+                    "source_panel_id": _direct_lookup(
+                        item.get("source_panel_id"), image_to_panel
+                    ),
+                    "target_panel_id": _direct_lookup(
+                        item.get("target_panel_id"), image_to_panel
+                    ),
+                    "score": 1.0,
+                    "match_method": "byte_hash",
+                    "inlier_count": 0,
+                    "homography": None,
+                    "overlay_path": _optional_str(item.get("overlay_path")),
+                }
+            )
     duplicate_groups = exact_duplicates.get("duplicate_groups", [])
     if isinstance(duplicate_groups, list):
         for group in duplicate_groups:
@@ -157,15 +167,17 @@ def _load_exact_duplicate_relationships(
             panel_ids = [_direct_lookup(path, image_to_panel) for path in group]
             panel_ids = [pid for pid in panel_ids if pid]
             for src, tgt in combinations(panel_ids, 2):
-                out.append({
-                    "source_panel_id": src,
-                    "target_panel_id": tgt,
-                    "score": 1.0,
-                    "match_method": "byte_hash",
-                    "inlier_count": 0,
-                    "homography": None,
-                    "overlay_path": None,
-                })
+                out.append(
+                    {
+                        "source_panel_id": src,
+                        "target_panel_id": tgt,
+                        "score": 1.0,
+                        "match_method": "byte_hash",
+                        "inlier_count": 0,
+                        "homography": None,
+                        "overlay_path": None,
+                    }
+                )
     return out
 
 
@@ -190,15 +202,17 @@ def _load_dhash_relationships(
         score = item.get("score")
         if score is None and item.get("distance") is not None:
             score = max(0.0, 1.0 - (distance / max(max_distance, 1.0)))
-        out.append({
-            "source_panel_id": _panel_id(item.get("source_panel_id")),
-            "target_panel_id": _panel_id(item.get("target_panel_id")),
-            "score": _parse_score(score),
-            "match_method": "dhash",
-            "inlier_count": 0,
-            "homography": None,
-            "overlay_path": _optional_str(item.get("overlay_path")),
-        })
+        out.append(
+            {
+                "source_panel_id": _panel_id(item.get("source_panel_id")),
+                "target_panel_id": _panel_id(item.get("target_panel_id")),
+                "score": _parse_score(score),
+                "match_method": "dhash",
+                "inlier_count": 0,
+                "homography": None,
+                "overlay_path": _optional_str(item.get("overlay_path")),
+            }
+        )
     return out
 
 
@@ -213,23 +227,27 @@ def _load_overlap_reuse_relationships(
     for item in raw:
         if not isinstance(item, dict):
             continue
-        out.append({
-            "source_panel_id": str(item.get("source_panel_id") or ""),
-            "target_panel_id": str(item.get("target_panel_id") or ""),
-            "score": float(item.get("score") or 0.0),
-            "match_method": str(item.get("verification_method") or "rootsift_magsac"),
-            "inlier_count": int(item.get("inlier_count") or 0),
-            "homography": item.get("homography"),
-            "overlay_path": item.get("overlay_path"),
-            "flip_detected": bool(item.get("flip_detected", False)),
-            "metadata": {
-                "candidate_method": item.get("candidate_method"),
-                "transform_type": item.get("transform_type"),
-                "overlap_area_ratio_source": item.get("overlap_area_ratio_source"),
-                "overlap_area_ratio_target": item.get("overlap_area_ratio_target"),
-                "inlier_ratio": item.get("inlier_ratio"),
-            },
-        })
+        out.append(
+            {
+                "source_panel_id": str(item.get("source_panel_id") or ""),
+                "target_panel_id": str(item.get("target_panel_id") or ""),
+                "score": float(item.get("score") or 0.0),
+                "match_method": str(
+                    item.get("verification_method") or "rootsift_magsac"
+                ),
+                "inlier_count": int(item.get("inlier_count") or 0),
+                "homography": item.get("homography"),
+                "overlay_path": item.get("overlay_path"),
+                "flip_detected": bool(item.get("flip_detected", False)),
+                "metadata": {
+                    "candidate_method": item.get("candidate_method"),
+                    "transform_type": item.get("transform_type"),
+                    "overlap_area_ratio_source": item.get("overlap_area_ratio_source"),
+                    "overlap_area_ratio_target": item.get("overlap_area_ratio_target"),
+                    "inlier_ratio": item.get("inlier_ratio"),
+                },
+            }
+        )
     return out
 
 
@@ -278,15 +296,9 @@ def build_relationships(
         else []
     )
     cm_rels = (
-        _load_copy_move_relationships(copy_move_result)
-        if copy_move_result
-        else []
+        _load_copy_move_relationships(copy_move_result) if copy_move_result else []
     )
-    dh_rels = (
-        _load_dhash_relationships(dhash_candidates)
-        if dhash_candidates
-        else []
-    )
+    dh_rels = _load_dhash_relationships(dhash_candidates) if dhash_candidates else []
     ov_rels = (
         _load_overlap_reuse_relationships(overlap_reuse_result)
         if overlap_reuse_result
@@ -337,12 +349,16 @@ def build_relationships(
         if pk in seen_pairs:
             continue
         seen_pairs.add(pk)
-        result.append(_make_rel(
-            src=src, tgt=tgt, score=1.0,
-            source_type="exact_duplicate",
-            match_method="byte_hash",
-            overlay_path=rel.get("overlay_path"),
-        ))
+        result.append(
+            _make_rel(
+                src=src,
+                tgt=tgt,
+                score=1.0,
+                source_type="exact_duplicate",
+                match_method="byte_hash",
+                overlay_path=rel.get("overlay_path"),
+            )
+        )
 
     # Pass 2: copy-move relationships
     for rel in cm_rels:
@@ -359,15 +375,19 @@ def build_relationships(
         if pk in seen_pairs:
             continue
         seen_pairs.add(pk)
-        result.append(_make_rel(
-            src=src, tgt=tgt, score=rel["score"],
-            source_type=rel.get("source_type") or "copy_move_single",
-            match_method=rel["match_method"],
-            inlier_count=rel.get("inlier_count", 0),
-            homography=rel.get("homography"),
-            overlay_path=rel.get("overlay_path"),
-            flip_detected=rel.get("flip_detected", False),
-        ))
+        result.append(
+            _make_rel(
+                src=src,
+                tgt=tgt,
+                score=rel["score"],
+                source_type=rel.get("source_type") or "copy_move_single",
+                match_method=rel["match_method"],
+                inlier_count=rel.get("inlier_count", 0),
+                homography=rel.get("homography"),
+                overlay_path=rel.get("overlay_path"),
+                flip_detected=rel.get("flip_detected", False),
+            )
+        )
 
     # Pass 3: dHash candidates
     for rel in dh_rels:
@@ -378,12 +398,16 @@ def build_relationships(
         if pk in seen_pairs:
             continue
         seen_pairs.add(pk)
-        result.append(_make_rel(
-            src=src, tgt=tgt, score=rel["score"],
-            source_type="dhash_similar",
-            match_method="dhash",
-            overlay_path=rel.get("overlay_path"),
-        ))
+        result.append(
+            _make_rel(
+                src=src,
+                tgt=tgt,
+                score=rel["score"],
+                source_type="dhash_similar",
+                match_method="dhash",
+                overlay_path=rel.get("overlay_path"),
+            )
+        )
 
     # Pass 4: overlap_reuse relationships
     for rel in ov_rels:
@@ -394,15 +418,19 @@ def build_relationships(
         if pk in seen_pairs:
             continue
         seen_pairs.add(pk)
-        result.append(_make_rel(
-            src=src, tgt=tgt, score=rel["score"],
-            source_type="overlap_reuse_cross_panel",
-            match_method=rel["match_method"],
-            inlier_count=rel.get("inlier_count", 0),
-            homography=rel.get("homography"),
-            overlay_path=rel.get("overlay_path"),
-            flip_detected=rel.get("flip_detected", False),
-        ))
+        result.append(
+            _make_rel(
+                src=src,
+                tgt=tgt,
+                score=rel["score"],
+                source_type="overlap_reuse_cross_panel",
+                match_method=rel["match_method"],
+                inlier_count=rel.get("inlier_count", 0),
+                homography=rel.get("homography"),
+                overlay_path=rel.get("overlay_path"),
+                flip_detected=rel.get("flip_detected", False),
+            )
+        )
 
     return result
 
@@ -478,7 +506,9 @@ def _parent_figure_id(panel: dict, fallback_panel_id: str) -> str:
 
 
 def _risk_max(values: list[Any], default: str = "medium") -> str:
-    return max((str(value) for value in values if value), key=_risk_rank, default=default)
+    return max(
+        (str(value) for value in values if value), key=_risk_rank, default=default
+    )
 
 
 def _dedupe(values: list[Any], limit: int | None = None) -> list[str]:
@@ -503,12 +533,8 @@ def _generate_summary(category: str, src: str, tgt: str) -> str:
         "copy_move_cross": (
             "跨图 copy-move 检测发现 panel {src} 与 {tgt} 存在相似区域"
         ),
-        "exact_duplicate": (
-            "检测到 panel {src} 与 {tgt} 为字节级完全相同文件"
-        ),
-        "dhash_similar": (
-            "dHash 检测发现 panel {src} 与 {tgt} 感知哈希相似"
-        ),
+        "exact_duplicate": ("检测到 panel {src} 与 {tgt} 为字节级完全相同文件"),
+        "dhash_similar": ("dHash 检测发现 panel {src} 与 {tgt} 感知哈希相似"),
         "overlap_reuse_cross_panel": (
             "Overlap/reuse 检测发现 panel {src} 与 {tgt} 存在局部区域复用"
         ),
@@ -558,7 +584,6 @@ def build_visual_findings(
     relationships: list[dict],
     *,
     high_score_threshold: float = 0.4,
-    critical_score_threshold: float = 0.7,
     panel_evidence: list[dict] | None = None,
     forged_region_evidence: list[dict] | None = None,
 ) -> list[dict]:
@@ -580,8 +605,6 @@ def build_visual_findings(
     Args:
         relationships: List of relationship dicts from build_relationships.
         high_score_threshold: Minimum score to produce a finding.
-        critical_score_threshold: Not used directly; score_to_risk_level
-            handles the mapping. Kept in signature for API compatibility.
         panel_evidence: Optional list of panel evidence dicts for metadata.
         forged_region_evidence: Optional list of ForgedRegionEvidence dicts
             from TruFor detection. Only items with is_suspicious=True and
@@ -620,7 +643,9 @@ def build_visual_findings(
         # Flip detection: add review question if horizontal flip detected
         flip_detected = bool(rel.get("flip_detected", False))
         if flip_detected:
-            questions.append("检测到水平翻转复制 — 请核实是否为正常实验对称性或镜像操作。")
+            questions.append(
+                "检测到水平翻转复制 — 请核实是否为正常实验对称性或镜像操作。"
+            )
             summary += " [FLIP DETECTED]"
 
         # Language compliance: drop finding if any text violates
@@ -647,7 +672,9 @@ def build_visual_findings(
             risk_level = _cap_risk_level(
                 compute_risk_level(displayed_score, modality=panel_type), "medium"
             )
-            confidence_adjustments.append("risk capped because at least one panel is whole_figure_fallback")
+            confidence_adjustments.append(
+                "risk capped because at least one panel is whole_figure_fallback"
+            )
 
         if panel_type in {"Graphs", "Flow Cytometry"} and source_type in {
             "copy_move_single",
@@ -675,7 +702,9 @@ def build_visual_findings(
             "benign_explanations": benign,
             "manual_review_questions": questions,
             # 仅为 medium/high/critical 级别的 finding 保留 overlay_path，消除冗余
-            "overlay_path": rel.get("overlay_path") if _risk_rank(risk_level) >= RISK_RANK["medium"] else None,
+            "overlay_path": rel.get("overlay_path")
+            if _risk_rank(risk_level) >= RISK_RANK["medium"]
+            else None,
             "metadata": {
                 "match_method": rel.get("match_method", ""),
                 "inlier_count": rel.get("inlier_count", 0),
@@ -715,7 +744,11 @@ def build_visual_findings(
                 continue
             risk_level = trufor_integrity_risk_level(integrity_score)
             trufor_panel = _resolve_panel(figure_id, panel_map)
-            trufor_panel_type = trufor_panel.get("panel_type") if isinstance(trufor_panel, dict) else None
+            trufor_panel_type = (
+                trufor_panel.get("panel_type")
+                if isinstance(trufor_panel, dict)
+                else None
+            )
             confidence_adjustments: list[str] = []
             if trufor_panel_type not in {"Blots", "Microscopy"}:
                 risk_level = _cap_risk_level(risk_level, "medium")
@@ -749,7 +782,9 @@ def build_visual_findings(
                 "benign_explanations": benign,
                 "manual_review_questions": questions,
                 # 仅为 medium/high/critical 级别的 finding 保留 overlay_path
-                "overlay_path": _optional_str(fre.get("localization_map_path")) if _risk_rank(risk_level) >= RISK_RANK["medium"] else None,
+                "overlay_path": _optional_str(fre.get("localization_map_path"))
+                if _risk_rank(risk_level) >= RISK_RANK["medium"]
+                else None,
                 "metadata": {
                     "source": "tru_for",
                     "forged_region_evidence_id": str(
@@ -775,21 +810,35 @@ def build_visual_findings(
 
 
 def _finding_scope(finding: dict[str, Any]) -> str:
-    metadata = finding.get("metadata") if isinstance(finding.get("metadata"), dict) else {}
-    src_figure = str(metadata.get("source_parent_figure_id") or finding.get("source_panel_id") or "")
-    tgt_figure = str(metadata.get("target_parent_figure_id") or finding.get("target_panel_id") or "")
+    metadata = (
+        finding.get("metadata") if isinstance(finding.get("metadata"), dict) else {}
+    )
+    src_figure = str(
+        metadata.get("source_parent_figure_id") or finding.get("source_panel_id") or ""
+    )
+    tgt_figure = str(
+        metadata.get("target_parent_figure_id") or finding.get("target_panel_id") or ""
+    )
     return "same_figure" if src_figure == tgt_figure else "cross_figure"
 
 
 def _finding_parent_figures(finding: dict[str, Any]) -> tuple[str, str]:
-    metadata = finding.get("metadata") if isinstance(finding.get("metadata"), dict) else {}
-    src_figure = str(metadata.get("source_parent_figure_id") or finding.get("source_panel_id") or "-")
-    tgt_figure = str(metadata.get("target_parent_figure_id") or finding.get("target_panel_id") or "-")
+    metadata = (
+        finding.get("metadata") if isinstance(finding.get("metadata"), dict) else {}
+    )
+    src_figure = str(
+        metadata.get("source_parent_figure_id") or finding.get("source_panel_id") or "-"
+    )
+    tgt_figure = str(
+        metadata.get("target_parent_figure_id") or finding.get("target_panel_id") or "-"
+    )
     return src_figure, tgt_figure
 
 
 def _visual_cluster_key(finding: dict[str, Any]) -> tuple[str, str, str]:
-    metadata = finding.get("metadata") if isinstance(finding.get("metadata"), dict) else {}
+    metadata = (
+        finding.get("metadata") if isinstance(finding.get("metadata"), dict) else {}
+    )
     return (
         str(finding.get("category") or "-"),
         str(metadata.get("panel_extraction_quality") or "unknown"),
@@ -856,11 +905,16 @@ def _visual_review_question(category: str, extraction_quality: str) -> str:
         "forged_region_suspicious": "复核 TruFor 标记的可疑伪造区域，结合原始图像和 localization heatmap 判断是否为独立实验证据或合理图像操作。",
     }.get(category, "复核视觉相似候选的图注、panel 语义、原始图和导出流程。")
     if extraction_quality == "whole_figure_fallback":
-        return base + " 该任务包含 whole_figure_fallback panel，优先确认是否需要重新拆 panel 后再判断。"
+        return (
+            base
+            + " 该任务包含 whole_figure_fallback panel，优先确认是否需要重新拆 panel 后再判断。"
+        )
     return base
 
 
-def build_visual_finding_clusters(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+def build_visual_finding_clusters(
+    findings: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
     clusters: list[dict[str, Any]] = []
     for index, (base_key, component_figures, group) in enumerate(
         sorted(
@@ -885,12 +939,27 @@ def build_visual_finding_clusters(findings: list[dict[str, Any]]) -> list[dict[s
         )[:8]
         risk_level = _risk_max([finding.get("risk_level") for finding in group])
         scores = [float(finding.get("score") or 0.0) for finding in group]
-        finding_ids = _dedupe([finding.get("finding_id") for finding in representatives])
-        all_relationship_ids = _dedupe([finding.get("relationship_id") for finding in group])
+        finding_ids = _dedupe(
+            [finding.get("finding_id") for finding in representatives]
+        )
+        all_relationship_ids = _dedupe(
+            [finding.get("relationship_id") for finding in group]
+        )
         relationship_ids = all_relationship_ids[:12]
-        source_panels = _dedupe([finding.get("source_panel_id") for finding in group], limit=12)
-        target_panels = _dedupe([finding.get("target_panel_id") for finding in group], limit=12)
-        overlays = _dedupe([finding.get("overlay_path") for finding in group if finding.get("overlay_path")], limit=8)
+        source_panels = _dedupe(
+            [finding.get("source_panel_id") for finding in group], limit=12
+        )
+        target_panels = _dedupe(
+            [finding.get("target_panel_id") for finding in group], limit=12
+        )
+        overlays = _dedupe(
+            [
+                finding.get("overlay_path")
+                for finding in group
+                if finding.get("overlay_path")
+            ],
+            limit=8,
+        )
         metadata_items = [
             finding.get("metadata")
             for finding in group
@@ -899,8 +968,14 @@ def build_visual_finding_clusters(findings: list[dict[str, Any]]) -> list[dict[s
         figure_ids = _dedupe(
             component_figures
             + [
-                *(metadata.get("source_parent_figure_id") for metadata in metadata_items),
-                *(metadata.get("target_parent_figure_id") for metadata in metadata_items),
+                *(
+                    metadata.get("source_parent_figure_id")
+                    for metadata in metadata_items
+                ),
+                *(
+                    metadata.get("target_parent_figure_id")
+                    for metadata in metadata_items
+                ),
             ],
             limit=12,
         )
@@ -910,14 +985,20 @@ def build_visual_finding_clusters(findings: list[dict[str, Any]]) -> list[dict[s
         benign: list[str] = []
         questions: list[str] = []
         for finding in group:
-            benign.extend(str(item) for item in (finding.get("benign_explanations") or [])[:2])
-            questions.extend(str(item) for item in (finding.get("manual_review_questions") or [])[:2])
+            benign.extend(
+                str(item) for item in (finding.get("benign_explanations") or [])[:2]
+            )
+            questions.extend(
+                str(item) for item in (finding.get("manual_review_questions") or [])[:2]
+            )
         clusters.append(
             {
                 "cluster_id": f"VFC-{index:04d}",
                 "category": category,
                 "risk_level": risk_level,
-                "confidence": "low" if extraction_quality == "whole_figure_fallback" else "medium",
+                "confidence": "low"
+                if extraction_quality == "whole_figure_fallback"
+                else "medium",
                 "scope": _cluster_scope(group),
                 "figure_pair": figure_group,
                 "figure_ids": figure_ids,
@@ -933,8 +1014,12 @@ def build_visual_finding_clusters(findings: list[dict[str, Any]]) -> list[dict[s
                 "source_panel_ids": source_panels,
                 "target_panel_ids": target_panels,
                 "overlay_paths": overlays,
-                "evidence_refs": [f"visual_findings.json:{finding_id}" for finding_id in finding_ids],
-                "review_question": _visual_review_question(category, extraction_quality),
+                "evidence_refs": [
+                    f"visual_findings.json:{finding_id}" for finding_id in finding_ids
+                ],
+                "review_question": _visual_review_question(
+                    category, extraction_quality
+                ),
                 "benign_explanations": _dedupe(benign, limit=5),
                 "manual_review_questions": _dedupe(questions, limit=5),
             }
@@ -942,7 +1027,9 @@ def build_visual_finding_clusters(findings: list[dict[str, Any]]) -> list[dict[s
     return clusters
 
 
-def visual_review_queue(clusters: list[dict[str, Any]], *, max_items: int = 20) -> list[dict[str, Any]]:
+def visual_review_queue(
+    clusters: list[dict[str, Any]], *, max_items: int = 20
+) -> list[dict[str, Any]]:
     queue = []
     for index, cluster in enumerate(clusters[:max_items], start=1):
         quality = str(cluster.get("panel_extraction_quality") or "unknown")
@@ -966,7 +1053,8 @@ def visual_review_queue(clusters: list[dict[str, Any]], *, max_items: int = 20) 
                     f"{cluster.get('review_question')}"
                 ),
                 "evidence_refs": cluster.get("evidence_refs") or [],
-                "representative_finding_ids": cluster.get("representative_finding_ids") or [],
+                "representative_finding_ids": cluster.get("representative_finding_ids")
+                or [],
             }
         )
     return queue

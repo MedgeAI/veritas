@@ -6,7 +6,10 @@ from engine.reporting.models import VerificationReport
 
 
 def render_html(report: VerificationReport) -> str:
-    findings_html = "".join(_finding_block(item) for item in report.findings) or "<p>No findings.</p>"
+    findings_html = (
+        "".join(_finding_block(item) for item in report.findings)
+        or "<p>No findings.</p>"
+    )
     claims_html = "".join(_claim_row(row) for row in report.claim_table) or (
         "<tr><td colspan='7'>No structured claims were checked.</td></tr>"
     )
@@ -15,7 +18,10 @@ def render_html(report: VerificationReport) -> str:
         f"<div class='muted'>{escape(item.detail)}</div></li>"
         for item in report.checks
     )
-    limitations_html = "".join(f"<li>{escape(item)}</li>" for item in report.limitations) or "<li>None.</li>"
+    limitations_html = (
+        "".join(f"<li>{escape(item)}</li>" for item in report.limitations)
+        or "<li>None.</li>"
+    )
     notes_html = "".join(f"<li>{escape(item)}</li>" for item in report.notes)
 
     artifact_items = []
@@ -24,7 +30,9 @@ def render_html(report: VerificationReport) -> str:
             display = ", ".join(item for item in value if item) or "N/A"
         else:
             display = value or "N/A"
-        artifact_items.append(f"<li><strong>{escape(key)}</strong>: <code>{escape(display)}</code></li>")
+        artifact_items.append(
+            f"<li><strong>{escape(key)}</strong>: <code>{escape(display)}</code></li>"
+        )
 
     return f"""<!doctype html>
 <html lang="en">
@@ -81,13 +89,13 @@ def render_html(report: VerificationReport) -> str:
         <div><strong>Overall Status</strong><div>{escape(report.overall_status)}</div></div>
       </div>
       <div class="summary">
-        <div class="card"><div class="big">{report.summary['total_findings']}</div><div class="muted">Total Findings</div></div>
-        <div class="card"><div class="big">{report.summary['critical']}</div><div class="muted">Critical</div></div>
-        <div class="card"><div class="big">{report.summary['warning']}</div><div class="muted">Warning</div></div>
-        <div class="card"><div class="big">{report.summary['claims_checked']}</div><div class="muted">Claims Checked</div></div>
+        <div class="card"><div class="big">{report.summary["total_findings"]}</div><div class="muted">Total Findings</div></div>
+        <div class="card"><div class="big">{report.summary["critical"]}</div><div class="muted">Critical</div></div>
+        <div class="card"><div class="big">{report.summary["warning"]}</div><div class="muted">Warning</div></div>
+        <div class="card"><div class="big">{report.summary["claims_checked"]}</div><div class="muted">Claims Checked</div></div>
       </div>
       <h2>Verification Scope</h2>
-      <ul>{''.join(artifact_items)}</ul>
+      <ul>{"".join(artifact_items)}</ul>
       <h2>Checks</h2>
       <ul>{checks_html}</ul>
       <h2>Findings</h2>
