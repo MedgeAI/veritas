@@ -142,6 +142,8 @@ class _ReportData:
     vlm: dict | None
     agent_plan: dict | None
     agent_review: dict | None
+    agent_judge: dict | None = None
+    agent_source_data_auditor: dict | None = None
 
 
 # ---- Section builders -------------------------------------------------------
@@ -326,20 +328,93 @@ def _agent_plan_section(data: _ReportData) -> list[str]:
     return lines
 
 
-def _agent_review_section(data: _ReportData) -> list[str]:
-    if not data.agent_review:
+def _judge_section(data: _ReportData) -> list[str]:
+    """Judge 综合评估：展示 risk_suggestions 和综合判断。"""
+    if not data.agent_judge:
         return []
+    lines: list[str] = []
+    lines.append("## Judge 综合评估")
+    lines.append("")
+
+    # 展示 summary
+    summary = data.agent_judge.get("summary")
+    if summary:
+        lines.append(f"**综合判断**: {summary}")
+        lines.append("")
+
+    # 展示 risk_suggestions
+    risk_suggestions = data.agent_judge.get("risk_suggestions") or []
+    if risk_suggestions:
+        lines.append("### 风险评估建议")
+        lines.append("")
+        lines.append(markdown_table(
+            ["Risk Level", "Reason", "Evidence Refs", "Requires Human Review"],
+            [
+                [
+                    rs.get("risk_level", "unknown"),
+                    rs.get("reason", ""),
+                    ", ".join(rs.get("evidence_refs", [])[:3]),
+                    "Yes" if rs.get("requires_human_review") else "No",
+                ]
+                for rs in risk_suggestions[:8]
+            ],
+        ))
+
+    # 展示 report_notes
+    notes = data.agent_judge.get("report_notes") or []
+    if notes:
+        lines.append("")
+        lines.append("### Judge 报告备注")
+        lines.append("")
+        for item in notes[:8]:
+            lines.append(f"- {item}")
+
+    # 展示 limitations
+    limitations = data.agent_judge.get("limitations") or []
+    if limitations:
+        lines.append("")
+        lines.append("### Judge 局限性说明")
+        lines.append("")
+        for item in limitations[:6]:
+            lines.append(f"- {item}")
+
+    lines.append("")
+    return lines
+
+
+def _agent_review_section(data: _ReportData) -> list[str]:
+    # 优先从新版 agent_source_data_auditor 读取数据
+    source_auditor_data = data.agent_source_data_auditor
+    legacy_review_data = data.agent_review
+
+    # 如果两者都没有，返回空
+    if not source_auditor_data and not legacy_review_data:
+        return []
+
     lines: list[str] = []
     lines.append("## Agent Review")
     lines.append("")
-    candidate_claims = data.agent_review.get("candidate_claims") or []
-    mapping_reviews = data.agent_review.get("claim_to_source_data") or []
-    finding_reviews = data.agent_review.get("finding_reviews") or []
-    manual_tasks = data.agent_review.get("manual_review_tasks") or []
+
+    # 优先使用新版 source_data_auditor 的数据
+    if source_auditor_data:
+        candidate_claims = source_auditor_data.get("claims") or source_auditor_data.get("candidate_claims") or []
+        mapping_reviews = source_auditor_data.get("claim_mappings") or source_auditor_data.get("claim_to_source_data") or []
+        finding_reviews = source_auditor_data.get("finding_reviews") or []
+        manual_tasks = source_auditor_data.get("manual_review_tasks") or []
+        status = source_auditor_data.get("status", "ok")
+    elif legacy_review_data:
+        candidate_claims = legacy_review_data.get("candidate_claims") or []
+        mapping_reviews = legacy_review_data.get("claim_to_source_data") or []
+        finding_reviews = legacy_review_data.get("finding_reviews") or []
+        manual_tasks = legacy_review_data.get("manual_review_tasks") or []
+        status = legacy_review_data.get("status", "ok")
+    else:
+        return []
+
     lines.append(markdown_table(
         ["Metric", "Value"],
         [
-            ["status", data.agent_review.get("status", "ok")],
+            ["status", status],
             ["candidate_claims", fmt_int(len(candidate_claims))],
             ["claim_to_source_data_reviews", fmt_int(len(mapping_reviews))],
             ["finding_reviews", fmt_int(len(finding_reviews))],
@@ -362,7 +437,14 @@ def _agent_review_section(data: _ReportData) -> list[str]:
             ["Finding", "Assessment", "Residual Risk", "Benign Explanations"],
             agent_finding_review_rows(finding_reviews),
         ))
-    notes = data.agent_review.get("report_notes") or []
+
+    # 展示 report_notes（优先新版）
+    notes = []
+    if source_auditor_data:
+        notes = source_auditor_data.get("report_notes") or []
+    elif legacy_review_data:
+        notes = legacy_review_data.get("report_notes") or []
+
     if notes:
         lines.append("")
         lines.append("Agent report notes:")
@@ -740,6 +822,8 @@ def generate_report(
         vlm=read_json(resolve_artifact_path(workdir, "vlm_triage_selected.json")),
         agent_plan=read_json(resolve_artifact_path(workdir, "agent_audit_plan.json")) if agent_mode in {"plan", "full"} else None,
         agent_review=read_json(resolve_artifact_path(workdir, "agent_review.json")) if agent_mode in {"review", "full"} else None,
+        agent_judge=read_json(resolve_artifact_path(workdir, "agent_judge.json")) if agent_mode in {"review", "full"} else None,
+        agent_source_data_auditor=read_json(resolve_artifact_path(workdir, "agent_source_data_auditor.json")) if agent_mode in {"review", "full"} else None,
     )
     lines: list[str] = []
     for section_fn in [
@@ -750,6 +834,7 @@ def generate_report(
         _material_section,
         _investigation_section,
         _agent_plan_section,
+        _judge_section,
         _agent_review_section,
         _claim_mapping_section,
         _ledger_section,
