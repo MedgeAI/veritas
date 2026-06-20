@@ -76,6 +76,20 @@ init_db() {
     ok "数据库就绪"
 }
 
+reset_db() {
+    log "重置数据库（删除所有表并重建）..."
+    cd "$PROJECT_ROOT"
+    docker compose -f "$COMPOSE_FILE" exec -T backend \
+        uv run python -c "
+from web.backend.veritas_web.database import create_db_engine, Base
+engine = create_db_engine()
+Base.metadata.drop_all(bind=engine)
+Base.metadata.create_all(bind=engine)
+print('✓ 数据库已重置：所有表已删除并重建')
+" 2>&1
+    ok "数据库已重置"
+}
+
 # --- commands --------------------------------------------------------------
 
 cmd_up() {
@@ -222,22 +236,41 @@ cmd_logs() {
     fi
 }
 
+cmd_db_reset() {
+    log "重置数据库"
+    echo ""
+    echo "⚠️  WARNING: This will DELETE all data in the database!"
+    read -p "Continue? [y/N] " confirm
+    if [[ "$confirm" != "y" ]]; then
+        log "已取消"
+        return 0
+    fi
+
+    reset_db
+
+    echo ""
+    ok "数据库已重置完成"
+    echo ""
+}
+
 # --- main ------------------------------------------------------------------
 
 case "${1:-help}" in
-    up)     cmd_up     ;;
-    down)   cmd_down   ;;
-    build)  cmd_build  ;;
-    status) cmd_status ;;
-    logs)   cmd_logs   ;;
+    up)        cmd_up        ;;
+    down)      cmd_down      ;;
+    build)     cmd_build     ;;
+    status)    cmd_status    ;;
+    logs)      cmd_logs      ;;
+    db-reset)  cmd_db_reset  ;;
     *)
-        echo "用法: $0 {up|down|build|status|logs}"
+        echo "用法: $0 {up|down|build|status|logs|db-reset}"
         echo ""
-        echo "  up      启动 PostgreSQL + Backend 容器 + Vite 前端"
-        echo "  down    停止所有（PG 数据保留）"
-        echo "  build   重建 Backend 镜像并重启"
-        echo "  status  查看运行状态"
-        echo "  logs    查看 Backend 容器 + 前端日志"
+        echo "  up        启动 PostgreSQL + Backend 容器 + Vite 前端"
+        echo "  down      停止所有（PG 数据保留）"
+        echo "  build     重建 Backend 镜像并重启"
+        echo "  status    查看运行状态"
+        echo "  logs      查看 Backend 容器 + 前端日志"
+        echo "  db-reset  重置数据库（删除所有表并重建）"
         exit 1
         ;;
 esac

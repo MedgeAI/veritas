@@ -36,7 +36,7 @@ FRONTEND_DIR := web/frontend
 
 .PHONY: help show-config sync install setup \
 	up down rebuild restart logs ps shell health docker-health \
-	db-up db-down db-init db-migrate \
+	db-up db-down db-init db-migrate db-reset \
 	precheck run report demo audit audit-off audit-fresh report-path \
 	web-backend web-frontend web-install web-build web-preview \
 	test test-fast test-unit test-integration test-e2e test-visual test-model \
@@ -149,6 +149,15 @@ db-init: db-up ## Initialise database tables (development only)
 
 db-migrate: ## Migrate web_data/ JSON files to PostgreSQL
 	$(PY_ENV) $(PYTHON) scripts/migrate_web_data_to_postgres.py
+
+db-reset: ## Reset database: drop all tables and recreate (DEVELOPMENT ONLY)
+	@echo "⚠️  WARNING: This will DELETE all data in the database!"
+	@read -p "Continue? [y/N] " confirm && [ $$confirm = "y" ] || exit 1
+	$(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.database import create_db_engine, Base; \
+		engine = create_db_engine(); \
+		Base.metadata.drop_all(bind=engine); \
+		Base.metadata.create_all(bind=engine); \
+		print('✓ Database reset: all tables dropped and recreated')"
 
 # -- CLI audit flow ------------------------------------------------------
 
