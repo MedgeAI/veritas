@@ -107,7 +107,15 @@ export function useVisualArtifacts(selectedCase) {
       }
 
       if (errors.length > 0) {
-        setError(`Some data failed to load: ${errors.join('; ')}`);
+        // 区分"没有数据"和"真正的错误"
+        const notFoundErrors = errors.filter((e) => e.includes('not_found') || e.includes('not found'));
+        const realErrors = errors.filter((e) => !e.includes('not_found') && !e.includes('not found'));
+
+        if (realErrors.length > 0) {
+          // 真正的错误：显示技术性错误信息
+          setError(`部分数据加载失败：${realErrors.join('; ')}`);
+        }
+        // 如果只是 "not_found"，不设置 error，让页面显示空状态
       }
     } catch (err) {
       setError(err.message || String(err));

@@ -139,6 +139,20 @@ function VisualForensicsPage({ selectedCase }) {
           <MetricCard label="Relationships" value={relationships.length} />
           <MetricCard label="Visual Findings" value={findings.length} />
         </div>
+
+        {/* 空状态提示 */}
+        {!loading && !error && figures.length === 0 && panels.length === 0 && relationships.length === 0 && findings.length === 0 && (
+          <div className="mt-5 rounded-2xl border border-dashed border-ink-900/20 bg-white/40 p-6 text-center">
+            <p className="font-display text-lg font-semibold text-ink-700">暂无视觉取证数据</p>
+            <p className="mt-2 text-sm text-ink-500">
+              {selectedCase?.latest_run_status === 'running' || selectedCase?.latest_run_status === 'queued'
+                ? '审查正在进行中，请稍后刷新查看结果。'
+                : selectedCase?.latest_run_status === 'completed' || selectedCase?.latest_run_status === 'success'
+                ? '本次审查未发现视觉证据，或视觉取证工具未运行。'
+                : '请先在 Mission Control 中运行审查，或检查审查是否包含视觉取证步骤。'}
+            </p>
+          </div>
+        )}
       </section>
 
       {/* SSCD Pre-filter: Two-step flow */}
