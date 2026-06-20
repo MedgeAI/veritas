@@ -14,7 +14,7 @@ router = APIRouter(tags=["artifacts"])
 
 
 @router.get("/cases/{case_id}/artifacts")
-def list_artifacts(
+async def list_artifacts(
     case_id: str,
     case: CaseRecord = Depends(require_case_access),
     deps: AppDependencies = Depends(get_app_dependencies),
@@ -24,7 +24,7 @@ def list_artifacts(
 
 
 @router.get("/cases/{case_id}/artifacts/{artifact_id}")
-def get_artifact(
+async def get_artifact(
     case_id: str,
     artifact_id: str,
     case: CaseRecord = Depends(require_case_access),
@@ -42,7 +42,7 @@ def get_artifact(
 
 
 @router.get("/cases/{case_id}/report/html")
-def get_report_html(
+async def get_report_html(
     case_id: str,
     case: CaseRecord = Depends(require_case_access),
     deps: AppDependencies = Depends(get_app_dependencies),

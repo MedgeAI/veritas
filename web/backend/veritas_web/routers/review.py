@@ -13,7 +13,7 @@ router = APIRouter(tags=["review"])
 
 
 @router.get("/cases/{case_id}/review-items")
-def list_review_items(
+async def list_review_items(
     case_id: str,
     case: CaseRecord = Depends(require_case_access),
     deps: AppDependencies = Depends(get_app_dependencies),
@@ -42,7 +42,7 @@ def list_review_items(
 
 
 @router.post("/cases/{case_id}/review-items/{source_ref}/decision")
-def save_decision(
+async def save_decision(
     case_id: str,
     source_ref: str,
     payload: ReviewDecisionCreate,

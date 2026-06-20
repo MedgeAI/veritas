@@ -32,6 +32,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
   const [busy, setBusy] = useState(false);
   const [log, setLog] = useState([]);
   const [error, setError] = useState('');
+  const [uploadProgress, setUploadProgress] = useState({});
 
   const pdfCount = useMemo(() => files.filter((file) => file.name.toLowerCase().endsWith('.pdf')).length, [files]);
 
@@ -68,9 +69,16 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
     if (!pdfCount) {
       throw new Error('输入中必须包含论文 PDF');
     }
-    for (const file of files) {
-      await uploadInput(caseId, file);
-      appendLog(`uploaded ${file.webkitRelativePath || file.name}`);
+    setUploadProgress({});
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      const fileKey = file.webkitRelativePath || file.name;
+      setUploadProgress((prev) => ({ ...prev, [fileKey]: 0 }));
+      await uploadInput(caseId, file, {
+        onProgress: (percent) => setUploadProgress((prev) => ({ ...prev, [fileKey]: percent })),
+      });
+      setUploadProgress((prev) => ({ ...prev, [fileKey]: 100 }));
+      appendLog(`uploaded ${fileKey}`);
     }
   }
 
@@ -148,7 +156,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
                   </div>
                   <div>
                     <p className="font-semibold text-ink-900">上传论文 PDF、Source Data、结果文件或说明文件</p>
-                    <p className="mt-1 text-sm text-ink-500">浏览器端会转成 base64 JSON，backend 写入 case inputs。</p>
+                    <p className="mt-1 text-sm text-ink-500">文件直接上传到后端，无需 base64 编码。</p>
                   </div>
                 </div>
               </div>
@@ -170,12 +178,24 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
 
             {files.length ? (
               <div className="mt-4 max-h-44 overflow-auto rounded-2xl bg-paper-100/70 p-3">
-                {files.map((file) => (
-                  <div key={`${file.name}-${file.size}-${file.lastModified}`} className="flex justify-between gap-4 py-1 font-mono text-xs text-ink-500">
-                    <span className="min-w-0 truncate">{file.webkitRelativePath || file.name}</span>
-                    <span className="tabular-nums">{FILE_SIZE_FORMATTER.format(Math.ceil(file.size / 1024))} KB</span>
-                  </div>
-                ))}
+                {files.map((file) => {
+                  const fileKey = file.webkitRelativePath || file.name;
+                  const progress = uploadProgress[fileKey];
+                  const uploading = progress !== undefined && progress < 100;
+                  return (
+                    <div key={`${file.name}-${file.size}-${file.lastModified}`} className="flex justify-between gap-4 py-1 font-mono text-xs text-ink-500">
+                      <span className="min-w-0 truncate">{fileKey}</span>
+                      <span className="flex items-center gap-2 tabular-nums">
+                        {uploading ? (
+                          <span className="text-signal-600">{progress}%</span>
+                        ) : progress === 100 ? (
+                          <span className="text-green-600">done</span>
+                        ) : null}
+                        <span>{FILE_SIZE_FORMATTER.format(Math.ceil(file.size / 1024))} KB</span>
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             ) : null}
           </div>

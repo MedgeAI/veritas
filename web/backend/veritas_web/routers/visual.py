@@ -23,7 +23,7 @@ _ARTIFACT_MAP = {
 
 
 @router.get("/cases/{case_id}/visual/{artifact_type}")
-def get_visual_artifact(
+async def get_visual_artifact(
     case_id: str,
     artifact_type: str,
     case: CaseRecord = Depends(require_case_access),
@@ -42,7 +42,7 @@ def get_visual_artifact(
 
 
 @router.get("/cases/{case_id}/visual/images/{image_path:path}")
-def get_visual_image(
+async def get_visual_image(
     case_id: str,
     image_path: str,
     case: CaseRecord = Depends(require_case_access),

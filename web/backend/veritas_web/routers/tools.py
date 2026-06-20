@@ -18,7 +18,7 @@ router = APIRouter(tags=["tools"])
 
 
 @router.get("/tools/catalog")
-def tool_catalog(
+async def tool_catalog(
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> dict[str, Any]:
     """Return the list of agent-selectable deterministic tools."""
@@ -35,7 +35,7 @@ def tool_catalog(
 
 
 @router.get("/tools/health")
-def tools_health(
+async def tools_health(
     auth: AuthContext = Depends(get_auth_context),
 ) -> dict[str, Any]:
     """Health check for tool infrastructure (Docker, GPU, model weights)."""
@@ -55,7 +55,7 @@ def tools_health(
 
 
 @router.get("/diag")
-def diag(
+async def diag(
     auth: AuthContext = Depends(get_auth_context),
 ) -> dict[str, Any]:
     """Full diagnostic report — infrastructure, deps, models, env, filesystem."""

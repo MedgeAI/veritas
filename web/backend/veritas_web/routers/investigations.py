@@ -14,7 +14,7 @@ router = APIRouter(tags=["investigations"])
 
 
 @router.get("/cases/{case_id}/investigations")
-def list_investigations(
+async def list_investigations(
     case_id: str,
     case: CaseRecord = Depends(require_case_access),
     deps: AppDependencies = Depends(get_app_dependencies),
@@ -23,7 +23,7 @@ def list_investigations(
 
 
 @router.post("/cases/{case_id}/investigations", status_code=HTTPStatus.CREATED)
-def run_investigation(
+async def run_investigation(
     case_id: str,
     payload: InvestigationRunRequest,
     case: CaseRecord = Depends(require_case_access),

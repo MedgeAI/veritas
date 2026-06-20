@@ -33,7 +33,7 @@ def _get_encoder() -> SSCDEncoder:
 
 
 @router.post("/cases/{case_id}/embeddings/index")
-def trigger_indexing(
+async def trigger_indexing(
     case_id: str,
     background_tasks: BackgroundTasks,
     case: CaseRecord = Depends(require_case_access),
@@ -96,7 +96,7 @@ def trigger_indexing(
 
 
 @router.get("/cases/{case_id}/embeddings/status")
-def embedding_status(
+async def embedding_status(
     case_id: str,
     case: CaseRecord = Depends(require_case_access),
     deps: AppDependencies = Depends(get_app_dependencies),
@@ -116,7 +116,7 @@ def embedding_status(
 
 
 @router.get("/cases/{case_id}/similarity")
-def get_similar_panels(
+async def get_similar_panels(
     case_id: str,
     panel_id: str,
     top_k: int = 20,
@@ -137,7 +137,7 @@ def get_similar_panels(
 
 
 @router.get("/cases/{case_id}/similarity/pairs")
-def get_all_similar_pairs(
+async def get_all_similar_pairs(
     case_id: str,
     threshold: float = 0.85,
     case: CaseRecord = Depends(require_case_access),

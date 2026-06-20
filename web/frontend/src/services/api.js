@@ -30,13 +30,16 @@ function requestErrorMessage(payload) {
 }
 
 async function request(path, options = {}) {
+  const method = options.method || 'GET';
+  const headers = {
+    ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+    ...(options.headers || {}),
+  };
   const response = await fetch(buildUrl(path), {
-    method: options.method || 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(options.headers || {}),
-    },
+    method,
+    headers,
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    signal: options.signal,
   });
 
   const contentType = response.headers.get('content-type') || '';
@@ -64,14 +67,38 @@ export async function createCase(payload) {
   });
 }
 
-export async function uploadInput(caseId, file) {
-  const contentBase64 = await fileToBase64(file);
-  return request(`/api/cases/${encodeURIComponent(caseId)}/inputs`, {
-    method: 'POST',
-    body: {
-      filename: file.webkitRelativePath || file.name,
-      content_base64: contentBase64,
-    },
+export async function uploadInput(caseId, file, { onProgress } = {}) {
+  const formData = new FormData();
+  formData.append('file', file);
+  if (file.webkitRelativePath) {
+    formData.append('relative_path', file.webkitRelativePath);
+  }
+
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', buildUrl(`/api/cases/${encodeURIComponent(caseId)}/inputs`));
+
+    if (onProgress && xhr.upload) {
+      xhr.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
+      });
+    }
+    xhr.onload = () => {
+      const contentType = xhr.getResponseHeader('content-type') || '';
+      let parsed;
+      if (contentType.includes('application/json')) {
+        try { parsed = JSON.parse(xhr.responseText); } catch { parsed = xhr.responseText; }
+      } else {
+        parsed = xhr.responseText;
+      }
+      if (xhr.status >= 200 && xhr.status < 300) {
+        resolve(parsed);
+      } else {
+        reject(new Error(requestErrorMessage(parsed) || `Upload failed: ${xhr.status} ${xhr.statusText}`));
+      }
+    };
+    xhr.onerror = () => reject(new Error('Upload network error'));
+    xhr.send(formData);
   });
 }
 
@@ -166,32 +193,24 @@ export async function fetchToolsHealth() {
 }
 
 // Embeddings / Similarity API
-export async function triggerEmbeddingIndex(caseId) {
+export async function triggerEmbeddingIndex(caseId, options = {}) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/embeddings/index`, {
     method: 'POST',
+    signal: options.signal,
   });
 }
 
-export async function getEmbeddingStatus(caseId) {
-  return request(`/api/cases/${encodeURIComponent(caseId)}/embeddings/status`);
+export async function getEmbeddingStatus(caseId, options = {}) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/embeddings/status`, options);
 }
 
-export async function fetchSimilarPanels(caseId, panelId, { topK = 20, threshold = 0.85 } = {}) {
-  return request(`/api/cases/${encodeURIComponent(caseId)}/similarity?panel_id=${encodeURIComponent(panelId)}&top_k=${topK}&threshold=${threshold}`);
+export async function fetchSimilarPanels(caseId, panelId, { topK = 20, threshold = 0.85, signal } = {}) {
+  return request(
+    `/api/cases/${encodeURIComponent(caseId)}/similarity?panel_id=${encodeURIComponent(panelId)}&top_k=${topK}&threshold=${threshold}`,
+    { signal },
+  );
 }
 
-export async function fetchAllSimilarPairs(caseId, { threshold = 0.85 } = {}) {
-  return request(`/api/cases/${encodeURIComponent(caseId)}/similarity/pairs?threshold=${threshold}`);
-}
-
-export function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const value = String(reader.result || '');
-      resolve(value.includes(',') ? value.split(',').pop() : value);
-    };
-    reader.onerror = () => reject(reader.error || new Error(`failed to read file: ${file.name}`));
-    reader.readAsDataURL(file);
-  });
+export async function fetchAllSimilarPairs(caseId, { threshold = 0.85, signal } = {}) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/similarity/pairs?threshold=${threshold}`, { signal });
 }

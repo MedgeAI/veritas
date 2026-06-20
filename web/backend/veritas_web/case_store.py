@@ -256,13 +256,14 @@ class CaseStore:
     # Input file operations (binary files on disk, metadata in DB)
     # ------------------------------------------------------------------
 
-    def write_input(self, case_id: str, filename: str, content: bytes) -> Path:
+    def write_input(self, case_id: str, filename: str, content: bytes, relative_path: str | None = None) -> Path:
         case_record = self.get_case(case_id)
-        target = self.inputs_dir(case_id) / safe_id(Path(filename).name)
+        target = self.inputs_dir(case_id) / self._safe_input_relative_path(relative_path or filename, filename)
         if not target.name:
             raise ValueError("input filename is required")
+        target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(content)
-        case_record.input_count = len([p for p in self.inputs_dir(case_id).iterdir() if p.is_file()])
+        case_record.input_count = len([p for p in self.inputs_dir(case_id).rglob("*") if p.is_file()])
         if case_record.status == "Draft":
             case_record.status = "Uploaded"
         self._save_case(case_record)
@@ -270,6 +271,17 @@ class CaseStore:
 
     def write_input_base64(self, case_id: str, filename: str, content_base64: str) -> Path:
         return self.write_input(case_id, filename, base64.b64decode(content_base64))
+
+    @staticmethod
+    def _safe_input_relative_path(value: str, fallback_filename: str) -> Path:
+        raw_path = Path(value)
+        if raw_path.is_absolute() or any(part == ".." for part in raw_path.parts):
+            raw_path = Path(fallback_filename)
+        parts = [safe_id(part) for part in raw_path.parts if part not in {"", "."}]
+        parts = [part for part in parts if part]
+        if not parts:
+            parts = [safe_id(Path(fallback_filename).name)]
+        return Path(*parts)
 
     def copy_input_path(self, case_id: str, source_path: str | Path) -> Path:
         source = Path(source_path).expanduser().resolve()

@@ -1,0 +1,127 @@
+import { useCallback, useEffect, useState } from 'react';
+import {
+  fetchVisualFigures,
+  fetchVisualPanels,
+  fetchVisualRelationships,
+  fetchVisualFindings,
+  fetchOverlapReuse,
+  listInvestigations,
+} from '../services/api.js';
+
+/**
+ * Hook to fetch and manage visual artifacts for a case.
+ * Uses Promise.allSettled to make errors visible instead of silently swallowing them.
+ *
+ * @param {Object} selectedCase - The selected case object with case_id
+ * @returns {Object} figures, panels, relationships, findings, overlapRelationships,
+ *                   investigationRecords, investigationResults, investigationArtifactErrors,
+ *                   loading, error, loadData
+ */
+export function useVisualArtifacts(selectedCase) {
+  const [figures, setFigures] = useState([]);
+  const [panels, setPanels] = useState([]);
+  const [relationships, setRelationships] = useState([]);
+  const [findings, setFindings] = useState([]);
+  const [overlapRelationships, setOverlapRelationships] = useState([]);
+  const [investigationRecords, setInvestigationRecords] = useState([]);
+  const [investigationResults, setInvestigationResults] = useState([]);
+  const [investigationArtifactErrors, setInvestigationArtifactErrors] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const loadData = useCallback(async () => {
+    if (!selectedCase) return;
+    setLoading(true);
+    setError('');
+
+    try {
+      const [figuresResult, panelsResult, relationshipsResult, findingsResult, overlapResult, investigationsResult] =
+        await Promise.allSettled([
+          fetchVisualFigures(selectedCase.case_id),
+          fetchVisualPanels(selectedCase.case_id),
+          fetchVisualRelationships(selectedCase.case_id),
+          fetchVisualFindings(selectedCase.case_id),
+          fetchOverlapReuse(selectedCase.case_id),
+          listInvestigations(selectedCase.case_id),
+        ]);
+
+      // Extract values or collect errors
+      const errors = [];
+
+      if (figuresResult.status === 'fulfilled') {
+        setFigures(figuresResult.value.figures || []);
+      } else {
+        errors.push(`figures: ${figuresResult.reason?.message || 'failed'}`);
+        setFigures([]);
+      }
+
+      if (panelsResult.status === 'fulfilled') {
+        setPanels(panelsResult.value.panels || []);
+      } else {
+        errors.push(`panels: ${panelsResult.reason?.message || 'failed'}`);
+        setPanels([]);
+      }
+
+      if (relationshipsResult.status === 'fulfilled') {
+        setRelationships(relationshipsResult.value.relationships || []);
+      } else {
+        errors.push(`relationships: ${relationshipsResult.reason?.message || 'failed'}`);
+        setRelationships([]);
+      }
+
+      if (findingsResult.status === 'fulfilled') {
+        setFindings(findingsResult.value.findings || []);
+      } else {
+        errors.push(`findings: ${findingsResult.reason?.message || 'failed'}`);
+        setFindings([]);
+      }
+
+      if (overlapResult.status === 'fulfilled') {
+        setOverlapRelationships(overlapResult.value?.relationships || []);
+      } else {
+        errors.push(`overlap: ${overlapResult.reason?.message || 'failed'}`);
+        setOverlapRelationships([]);
+      }
+
+      if (investigationsResult.status === 'fulfilled') {
+        const data = investigationsResult.value;
+        setInvestigationRecords(data.records || []);
+        setInvestigationResults(data.results || []);
+        setInvestigationArtifactErrors(data.artifact_errors || []);
+      } else {
+        errors.push(`investigations: ${investigationsResult.reason?.message || 'failed'}`);
+        setInvestigationRecords([]);
+        setInvestigationResults([]);
+        setInvestigationArtifactErrors([]);
+      }
+
+      if (errors.length > 0) {
+        setError(`Some data failed to load: ${errors.join('; ')}`);
+      }
+    } catch (err) {
+      setError(err.message || String(err));
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedCase]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  return {
+    figures,
+    panels,
+    relationships,
+    findings,
+    overlapRelationships,
+    investigationRecords,
+    investigationResults,
+    investigationArtifactErrors,
+    loading,
+    error,
+    loadData,
+    setInvestigationRecords,
+    setInvestigationResults,
+  };
+}

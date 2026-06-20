@@ -123,7 +123,7 @@ def create_app(
 
     # --- Health endpoint -----------------------------------------------
     @app.get("/api/health")
-    def health() -> dict[str, Any]:
+    async def health() -> dict[str, Any]:
         return {
             "status": "ok",
             "runner_mode": "thread_pool",

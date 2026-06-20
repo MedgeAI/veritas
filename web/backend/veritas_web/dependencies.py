@@ -7,7 +7,7 @@ FastAPI's ``Depends()`` injection.  The underlying ``AuthProvider``,
 
 from __future__ import annotations
 
-from typing import Generator
+from typing import AsyncGenerator, Generator
 
 from fastapi import Depends, Header, HTTPException, Request
 from sqlalchemy.orm import Session
@@ -72,7 +72,7 @@ def _require_deps() -> AppDependencies:
 # ---------------------------------------------------------------------------
 
 
-def get_app_dependencies(request: Request) -> AppDependencies:
+async def get_app_dependencies(request: Request) -> AppDependencies:
     """Return dependencies attached to the current FastAPI app.
 
     The module-level fallback is kept for legacy tests/helpers that call
@@ -84,14 +84,20 @@ def get_app_dependencies(request: Request) -> AppDependencies:
     return _require_deps()
 
 
-def get_db(
+async def get_db(
     deps: AppDependencies = Depends(get_app_dependencies),
-) -> Generator[Session, None, None]:
+) -> AsyncGenerator[Session, None]:
     """Yield a SQLAlchemy session."""
-    yield from deps.get_session()
+    if deps._session_factory is None:
+        raise RuntimeError("database not configured")
+    session = deps._session_factory()
+    try:
+        yield session
+    finally:
+        session.close()
 
 
-def get_auth_context(
+async def get_auth_context(
     authorization: str | None = Header(None),
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> AuthContext:
@@ -122,7 +128,7 @@ def get_auth_context(
     return ctx
 
 
-def require_case_access(
+async def require_case_access(
     case_id: str,
     auth: AuthContext = Depends(get_auth_context),
     deps: AppDependencies = Depends(get_app_dependencies),

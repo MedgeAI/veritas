@@ -5,7 +5,7 @@ from __future__ import annotations
 from http import HTTPStatus
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 
 from ..dependencies import AppDependencies, get_app_dependencies, get_auth_context, require_case_access
 from ..auth import AuthContext
@@ -15,7 +15,7 @@ router = APIRouter(tags=["cases"])
 
 
 @router.get("/cases")
-def list_cases(
+async def list_cases(
     auth: AuthContext = Depends(get_auth_context),
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> dict[str, Any]:
@@ -24,7 +24,7 @@ def list_cases(
 
 
 @router.post("/cases", status_code=HTTPStatus.CREATED)
-def create_case(
+async def create_case(
     payload: CaseCreate,
     auth: AuthContext = Depends(get_auth_context),
     deps: AppDependencies = Depends(get_app_dependencies),
@@ -38,37 +38,56 @@ def create_case(
 
 
 @router.get("/cases/{case_id}")
-def get_case(case: CaseRecord = Depends(require_case_access)) -> dict[str, Any]:
+async def get_case(case: CaseRecord = Depends(require_case_access)) -> dict[str, Any]:
     return case.to_dict()
 
 
 @router.post("/cases/{case_id}/inputs")
-def upload_input(
+async def upload_input(
     case_id: str,
-    payload: InputUpload,
+    request: Request,
     case: CaseRecord = Depends(require_case_access),
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> dict[str, Any]:
-    if payload.content_base64 is not None:
-        path = deps.store.write_input_base64(
-            case_id,
-            payload.filename,
-            payload.content_base64,
-        )
-    elif payload.content is not None:
+    content_type = (request.headers.get("content-type") or "").lower()
+
+    if content_type.startswith("multipart/form-data"):
+        form = await request.form()
+        upload = form.get("file")
+        if upload is None or not hasattr(upload, "read"):
+            raise HTTPException(status_code=400, detail="multipart upload requires a 'file' field")
+        content = await upload.read()
+        filename = getattr(upload, "filename", None) or "upload"
+        relative_path = form.get("relative_path")
         path = deps.store.write_input(
             case_id,
-            payload.filename,
-            payload.content.encode("utf-8"),
+            filename,
+            content,
+            relative_path=str(relative_path) if relative_path else None,
         )
     else:
-        raise HTTPException(status_code=400, detail="input upload requires content_base64 or content")
+        # Legacy JSON path (backward compatible)
+        try:
+            body = await request.json()
+        except Exception:
+            raise HTTPException(status_code=400, detail="invalid JSON payload")
+        try:
+            payload = InputUpload.model_validate(body)
+        except Exception as exc:
+            raise HTTPException(status_code=422, detail=str(exc))
+        if payload.content_base64 is not None:
+            path = deps.store.write_input_base64(case_id, payload.filename, payload.content_base64)
+        elif payload.content is not None:
+            path = deps.store.write_input(case_id, payload.filename, payload.content.encode("utf-8"))
+        else:
+            raise HTTPException(status_code=400, detail="input upload requires content_base64 or content")
+
     updated_case = deps.store.get_case(case_id, user_id=case.owner)
     return {"path": str(path), "case": updated_case.to_dict()}
 
 
 @router.post("/cases/{case_id}/runs", status_code=HTTPStatus.ACCEPTED)
-def start_run(
+async def start_run(
     case_id: str,
     payload: RunCreate,
     case: CaseRecord = Depends(require_case_access),
@@ -79,7 +98,7 @@ def start_run(
 
 
 @router.get("/cases/{case_id}/runs/{run_id}")
-def get_run(
+async def get_run(
     case_id: str,
     run_id: str,
     case: CaseRecord = Depends(require_case_access),
@@ -90,7 +109,7 @@ def get_run(
 
 
 @router.get("/cases/{case_id}/runs/{run_id}/events")
-def list_events(
+async def list_events(
     case_id: str,
     run_id: str,
     case: CaseRecord = Depends(require_case_access),

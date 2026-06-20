@@ -70,8 +70,19 @@ class AuditRunner:
             run.final_html_report_url = f"/api/cases/{case_id}/report/html"
             run.completed_at = utc_now()
             run.status = "completed" if int(summary.get("exit_code", 1)) == 0 else "failed"
+            # Safety net: if reports were generated despite exit_code!=0,
+            # treat as completed (partial failure) rather than failed.
+            if run.status == "failed":
+                report_path = summary.get("final_report", "")
+                html_path = summary.get("final_html_report", "")
+                if report_path and html_path:
+                    from pathlib import Path
+                    if Path(report_path).exists() and Path(html_path).exists():
+                        run.status = "completed"
             if run.status == "failed":
                 run.error = f"failed_steps={summary.get('failed_steps', [])}"
+            elif run.status == "completed" and summary.get("failed_steps"):
+                run.error = f"partial: {summary['failed_steps']}"
         except Exception as exc:  # pragma: no cover - exercised by integration failures
             run.status = "failed"
             run.error = f"{type(exc).__name__}: {exc}"

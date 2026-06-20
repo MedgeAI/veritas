@@ -3,127 +3,67 @@ import { FiPlay, FiRefreshCw, FiCpu, FiLink } from 'react-icons/fi';
 import StatusPill from '../components/StatusPill.jsx';
 import OverlapGraph from '../components/OverlapGraph.jsx';
 import OverlapDetailDrawer from '../components/OverlapDetailDrawer.jsx';
-import {
-  fetchVisualFigures,
-  fetchVisualPanels,
-  fetchVisualRelationships,
-  fetchVisualFindings,
-  fetchOverlapReuse,
-  listInvestigations,
-  startVisualInvestigation,
-  visualImageUrl,
-  getEmbeddingStatus,
-  triggerEmbeddingIndex,
-  fetchAllSimilarPairs,
-} from '../services/api.js';
-
-const BLOCKING_EMBEDDING_STATUSES = new Set(['failed', 'model_unavailable', 'unavailable', 'no_database']);
-const TERMINAL_EMBEDDING_STATUSES = new Set([
-  'completed',
-  'failed',
-  'indexed',
-  'model_unavailable',
-  'no_panels',
-  'partial',
-  'unavailable',
-]);
-
-function isBlockingEmbeddingStatus(status) {
-  return Boolean(status?.status && BLOCKING_EMBEDDING_STATUSES.has(status.status));
-}
-
-function isTerminalEmbeddingStatus(status) {
-  return Boolean(
-    status?.status && (TERMINAL_EMBEDDING_STATUSES.has(status.status) || Number(status.indexed_count || 0) > 0),
-  );
-}
-
-function describeEmbeddingStatus(status, fallback) {
-  return status?.detail || status?.failure_category || fallback;
-}
+import { visualImageUrl } from '../services/api.js';
+import { useVisualArtifacts } from '../hooks/useVisualArtifacts.js';
+import { useEmbeddingIndex } from '../hooks/useEmbeddingIndex.js';
+import { useDenseInvestigation } from '../hooks/useDenseInvestigation.js';
 
 function VisualForensicsPage({ selectedCase }) {
-  const [figures, setFigures] = useState([]);
-  const [panels, setPanels] = useState([]);
-  const [relationships, setRelationships] = useState([]);
-  const [findings, setFindings] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [filterRisk, setFilterRisk] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
   const [selectedPanelIds, setSelectedPanelIds] = useState(() => new Set());
-  const [investigationRecords, setInvestigationRecords] = useState([]);
-  const [investigationResults, setInvestigationResults] = useState([]);
-  const [investigationArtifactErrors, setInvestigationArtifactErrors] = useState([]);
-  const [runningInvestigation, setRunningInvestigation] = useState(false);
-  const [investigationError, setInvestigationError] = useState('');
+  const [selectedOverlap, setSelectedOverlap] = useState(null);
   const [denseMaxPanels, setDenseMaxPanels] = useState(20);
 
-  // Overlap reuse state
-  const [overlapRelationships, setOverlapRelationships] = useState([]);
-  const [selectedOverlap, setSelectedOverlap] = useState(null);
+  // Data fetching hook
+  const {
+    figures,
+    panels,
+    relationships,
+    findings,
+    overlapRelationships,
+    investigationRecords,
+    investigationResults,
+    investigationArtifactErrors,
+    loading,
+    error,
+    loadData,
+    setInvestigationRecords,
+    setInvestigationResults,
+  } = useVisualArtifacts(selectedCase);
 
-  // SSCD embedding + similarity state
-  const [embeddingStatus, setEmbeddingStatus] = useState(null);
-  const [indexingInProgress, setIndexingInProgress] = useState(false);
-  const [similarPairs, setSimilarPairs] = useState([]);
-  const [similarityThreshold, setSimilarityThreshold] = useState(0.85);
-  const [similarityError, setSimilarityError] = useState('');
+  // Embedding index hook
+  const {
+    embeddingStatus,
+    similarPairs,
+    similarityThreshold,
+    setSimilarityThreshold,
+    isIndexing,
+    similarityError,
+    canFindSimilarPairs,
+    indexedPanelCount,
+    embeddingStatusBlocked,
+    handleIndexPanels,
+    handleLoadSimilarPairs,
+  } = useEmbeddingIndex(selectedCase);
 
-  const indexedPanelCount = Number(embeddingStatus?.indexed_count || 0);
-  const embeddingStatusBlocked = isBlockingEmbeddingStatus(embeddingStatus);
-  const canFindSimilarPairs = indexedPanelCount > 0 && !embeddingStatusBlocked;
+  // Dense investigation hook
+  const { runDense, isRunning: runningInvestigation, denseError, setDenseError } = useDenseInvestigation(
+    selectedCase,
+    setInvestigationRecords,
+    setInvestigationResults,
+  );
 
-  const loadData = useCallback(async () => {
-    if (!selectedCase) return;
-    setLoading(true);
-    setError('');
-    try {
-      const [figData, panelData, relData, findData, investigationData, overlapData] = await Promise.all([
-        fetchVisualFigures(selectedCase.case_id).catch(() => ({ figures: [] })),
-        fetchVisualPanels(selectedCase.case_id).catch(() => ({ panels: [] })),
-        fetchVisualRelationships(selectedCase.case_id).catch(() => ({ relationships: [] })),
-        fetchVisualFindings(selectedCase.case_id).catch(() => ({ findings: [] })),
-        listInvestigations(selectedCase.case_id).catch(() => ({ records: [], results: [] })),
-        fetchOverlapReuse(selectedCase.case_id).catch(() => ({ relationships: [] })),
-      ]);
-      setFigures(figData.figures || []);
-      setPanels(panelData.panels || []);
-      setRelationships(relData.relationships || []);
-      setFindings(findData.findings || []);
-      setInvestigationRecords(investigationData.records || []);
-      setInvestigationResults(investigationData.results || []);
-      setInvestigationArtifactErrors(investigationData.artifact_errors || []);
-      setOverlapRelationships(overlapData?.relationships || []);
-
-      // Also load embedding status
-      getEmbeddingStatus(selectedCase.case_id)
-        .then(setEmbeddingStatus)
-        .catch((err) => setEmbeddingStatus({
-          case_id: selectedCase.case_id,
-          status: 'unavailable',
-          indexed_count: 0,
-          detail: err.message || String(err),
-        }));
-    } catch (err) {
-      setError(err.message || String(err));
-    } finally {
-      setLoading(false);
-    }
-  }, [selectedCase]);
-
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
-  useEffect(() => {
+  // Reset panel selection when case changes
+  const handleCaseChange = useCallback(() => {
     setSelectedPanelIds(new Set());
-    setInvestigationError('');
-    setInvestigationArtifactErrors([]);
-    setEmbeddingStatus(null);
-    setSimilarPairs([]);
-    setSimilarityError('');
-  }, [selectedCase?.case_id]);
+    setDenseError('');
+  }, [setDenseError]);
+
+  // Reset case-scoped UI state after the selected case changes.
+  useEffect(() => {
+    handleCaseChange();
+  }, [handleCaseChange, selectedCase?.case_id]);
 
   const selectedPanelList = useMemo(() => Array.from(selectedPanelIds), [selectedPanelIds]);
 
@@ -143,84 +83,15 @@ function VisualForensicsPage({ selectedCase }) {
     setSelectedPanelIds(new Set());
   }, []);
 
-  const sleep = useCallback((ms) => new Promise((resolve) => {
-    window.setTimeout(resolve, ms);
-  }), []);
-
-  // SSCD: Trigger panel indexing
-  const handleIndexPanels = useCallback(async () => {
-    if (!selectedCase) return;
-    setIndexingInProgress(true);
-    setSimilarityError('');
-    try {
-      await triggerEmbeddingIndex(selectedCase.case_id);
-      for (let attempt = 0; attempt < 12; attempt += 1) {
-        await sleep(1500);
-        const status = await getEmbeddingStatus(selectedCase.case_id);
-        setEmbeddingStatus(status);
-        if (isBlockingEmbeddingStatus(status)) {
-          setSimilarityError(describeEmbeddingStatus(status, 'Indexing failed'));
-          break;
-        }
-        if (isTerminalEmbeddingStatus(status)) {
-          break;
-        }
-      }
-    } catch (err) {
-      setSimilarityError(err.message || 'Indexing failed');
-    } finally {
-      setIndexingInProgress(false);
-    }
-  }, [selectedCase, sleep]);
-
-  // SSCD: Load similar pairs
-  const handleLoadSimilarPairs = useCallback(async () => {
-    if (!selectedCase) return;
-    setSimilarityError('');
-    try {
-      const data = await fetchAllSimilarPairs(selectedCase.case_id, { threshold: similarityThreshold });
-      setSimilarPairs(data.pairs || []);
-    } catch (err) {
-      setSimilarityError(err.message || 'Failed to load similar pairs');
-    }
-  }, [selectedCase, similarityThreshold]);
-
-  const runDenseInvestigation = useCallback(async (panelIds = selectedPanelList) => {
-    if (!selectedCase || panelIds.length === 0) return;
-    setRunningInvestigation(true);
-    setInvestigationError('');
-    try {
-      const response = await startVisualInvestigation(selectedCase.case_id, {
-        tool_id: 'visual.copy_move_dense',
-        panel_ids: panelIds,
-        params: {
-          min_score: 0.05,
-          max_relationships: 100,
-          max_panels: Number(denseMaxPanels) || 20,
-        },
-        hypothesis: 'Manual Web review of selected panels for dense copy-move candidates.',
-      });
-      setInvestigationRecords((current) => [response.record, ...current]);
-      setInvestigationResults((current) => [
-        { record: response.record, artifact: response.artifact, result: response.result },
-        ...current,
-      ]);
-      if (response.db_sync_error) {
-        setInvestigationError(`DB 同步失败：${response.db_sync_error}`);
-      }
-    } catch (err) {
-      setInvestigationError(err.message || String(err));
-    } finally {
-      setRunningInvestigation(false);
-    }
-  }, [denseMaxPanels, selectedCase, selectedPanelList]);
-
-  // SSCD: Select panels from a similar pair and immediately run dense investigation.
-  const handleSelectPair = useCallback((pair) => {
-    const panelIds = [pair.source_panel_id, pair.target_panel_id].filter(Boolean);
-    setSelectedPanelIds(new Set(panelIds));
-    runDenseInvestigation(panelIds);
-  }, [runDenseInvestigation]);
+  // Select panels from a similar pair and immediately run dense investigation
+  const handleSelectPair = useCallback(
+    (pair) => {
+      const panelIds = [pair.source_panel_id, pair.target_panel_id].filter(Boolean);
+      setSelectedPanelIds(new Set(panelIds));
+      runDense(panelIds, denseMaxPanels);
+    },
+    [runDense, denseMaxPanels],
+  );
 
   const filteredFindings = useMemo(() => {
     return findings.filter((f) => {
@@ -319,11 +190,11 @@ function VisualForensicsPage({ selectedCase }) {
           <button
             type="button"
             onClick={handleIndexPanels}
-            disabled={indexingInProgress || !selectedCase}
+            disabled={isIndexing || !selectedCase}
             className="flex items-center gap-2 rounded-xl border border-ink-900/10 bg-white/60 px-4 py-2 text-sm text-ink-900/70 transition hover:bg-white disabled:opacity-50"
           >
-            <FiCpu className={indexingInProgress ? 'animate-spin' : ''} />
-            {indexingInProgress ? '索引中...' : indexedPanelCount > 0 ? '重新索引' : 'Index Panels'}
+            <FiCpu className={isIndexing ? 'animate-spin' : ''} />
+            {isIndexing ? '索引中...' : indexedPanelCount > 0 ? '重新索引' : 'Index Panels'}
           </button>
 
           {/* Threshold slider */}
@@ -401,10 +272,10 @@ function VisualForensicsPage({ selectedCase }) {
         selectedPanelList={selectedPanelList}
         maxPanels={denseMaxPanels}
         onMaxPanelsChange={setDenseMaxPanels}
-        onRunDense={runDenseInvestigation}
+        onRunDense={() => runDense(selectedPanelList, denseMaxPanels)}
         onClear={clearPanelSelection}
         running={runningInvestigation}
-        error={investigationError}
+        error={denseError}
         artifactErrors={investigationArtifactErrors}
         records={investigationRecords}
       />
@@ -855,6 +726,7 @@ function FilterBar({ filterRisk, filterCategory, categories, onRiskChange, onCat
           value={filterCategory}
           onChange={(e) => onCategoryChange(e.target.value)}
         >
+          <option value="all">All</option>
           {categories.map((cat) => (
             <option key={cat} value={cat}>{cat === 'all' ? 'All' : cat}</option>
           ))}
