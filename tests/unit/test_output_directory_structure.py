@@ -56,6 +56,9 @@ def test_resolve_artifact_path_mapped() -> None:
     # Source Data artifacts
     assert resolve_artifact_path(workdir, "source_data_profile.json") == Path("/tmp/test/source_data/profile.json")
     assert resolve_artifact_path(workdir, "source_data_findings.json") == Path("/tmp/test/source_data/findings.json")
+    assert resolve_artifact_path(workdir, "source_data_findings_verdict.json") == Path(
+        "/tmp/test/source_data/findings_verdict.json"
+    )
 
     # Visual artifacts
     assert resolve_artifact_path(workdir, "visual_evidence.json") == Path("/tmp/test/visual/evidence.json")
@@ -87,6 +90,7 @@ def test_artifact_path_map_consistency() -> None:
         "evidence_ledger.json",
         "source_data_profile.json",
         "source_data_findings.json",
+        "source_data_findings_verdict.json",
         "visual_evidence.json",
         "panel_evidence.json",
         "numeric_forensics.json",

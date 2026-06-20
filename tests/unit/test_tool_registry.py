@@ -7,7 +7,9 @@ from engine.tools.registry import (
     PAPER_STATIC_AUDIT_TOOL_IDS,
     SOURCE_DATA_FINDINGS_TOOL_ID,
     SOURCE_DATA_PAIR_FORENSICS_TOOL_ID,
+    SOURCE_DATA_VERDICT_TOOL_ID,
     STATIC_AUDIT_V1_TOOL_IDS,
+    ExecutionPhase,
     tool_catalog_for_investigation,
     source_data_findings_params_from_plan,
     tool_catalog_for_agent,
@@ -33,6 +35,7 @@ def test_tool_catalog_exposes_static_audit_tools() -> None:
     assert "report.render_static_html" in TOOLS
     assert "image.similarity_candidates" in STATIC_AUDIT_V1_TOOL_IDS
     assert SOURCE_DATA_PAIR_FORENSICS_TOOL_ID in STATIC_AUDIT_V1_TOOL_IDS
+    assert SOURCE_DATA_VERDICT_TOOL_ID in STATIC_AUDIT_V1_TOOL_IDS
     assert "agent.material_plan" in STATIC_AUDIT_V1_TOOL_IDS
     assert "agent.role.judge" in STATIC_AUDIT_V1_TOOL_IDS
     assert "report.render_static_html" in STATIC_AUDIT_V1_TOOL_IDS
@@ -47,6 +50,20 @@ def test_tool_catalog_for_investigation_only_exposes_deterministic_selectable_to
     assert "agent.review" not in exposed
     assert "mineru.parse_pdf" not in exposed
     assert all(item["param_schema"] is not None for item in catalog)
+
+
+def test_source_data_verdict_tool_contract() -> None:
+    tool = TOOLS[SOURCE_DATA_VERDICT_TOOL_ID]
+
+    assert tool.execution_phase == ExecutionPhase.CONDITIONAL_BASELINE
+    assert tool.agent_selectable is False
+    assert tool.deterministic is False
+    assert tool.input_artifacts == (
+        "source_data/findings.json",
+        "source_data/pair_forensics.json",
+        "source_data/profile.json",
+    )
+    assert tool.output_artifacts == ("source_data/findings_verdict.json",)
 
 
 def test_validate_investigation_tool_action_bounds_params() -> None:

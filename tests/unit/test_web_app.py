@@ -4,8 +4,7 @@ import base64
 from pathlib import Path
 from typing import Any
 
-from fastapi.testclient import TestClient
-
+from tests.helpers.asgi_client import LocalASGITestClient as TestClient
 from web.backend.veritas_web.app import create_app
 from web.backend.veritas_web.runner import AuditRunner
 
@@ -81,6 +80,94 @@ def test_fastapi_app_runs_web_audit_flow(tmp_path: Path) -> None:
     resp = client.get("/api/cases/demo-case/report/html")
     assert resp.status_code == 200
     assert "Veritas 静态审查 Demo" in resp.text
+
+
+def test_upload_input_accepts_multipart_form_data(tmp_path: Path) -> None:
+    """Verify the upload endpoint accepts multipart/form-data (new path)."""
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
+
+    resp = client.post("/api/cases", json={"case_id": "mp-case", "paper_title": "MP"})
+    assert resp.status_code == 201
+
+    resp = client.post(
+        "/api/cases/mp-case/inputs",
+        files={"file": ("paper.pdf", b"%PDF-1.4\nmultipart\n", "application/pdf")},
+        data={"relative_path": "source-data/batch-1/paper.pdf"},
+    )
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["path"].endswith("source-data/batch-1/paper.pdf")
+    assert data["case"]["input_count"] == 1
+
+    # The file on disk matches what we uploaded
+    stored = Path(data["path"]).read_bytes()
+    assert stored == b"%PDF-1.4\nmultipart\n"
+
+
+def test_upload_input_sanitizes_multipart_relative_path_traversal(tmp_path: Path) -> None:
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
+    client.post("/api/cases", json={"case_id": "path-case", "paper_title": "Path"})
+
+    resp = client.post(
+        "/api/cases/path-case/inputs",
+        files={"file": ("paper.pdf", b"%PDF-1.4\nsafe\n", "application/pdf")},
+        data={"relative_path": "../../outside/paper.pdf"},
+    )
+
+    assert resp.status_code == 200
+    stored = Path(resp.json()["path"]).resolve()
+    inputs_dir = app.state.dependencies.store.inputs_dir("path-case").resolve()
+    assert stored.is_relative_to(inputs_dir)
+    assert stored == inputs_dir / "paper.pdf"
+    assert not (tmp_path / "outside" / "paper.pdf").exists()
+    assert stored.read_bytes() == b"%PDF-1.4\nsafe\n"
+
+
+def test_upload_input_sanitizes_absolute_multipart_relative_path(tmp_path: Path) -> None:
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
+    client.post("/api/cases", json={"case_id": "abs-path-case", "paper_title": "Path"})
+
+    resp = client.post(
+        "/api/cases/abs-path-case/inputs",
+        files={"file": ("absolute.pdf", b"%PDF-1.4\nabsolute\n", "application/pdf")},
+        data={"relative_path": "/tmp/absolute.pdf"},
+    )
+
+    assert resp.status_code == 200
+    stored = Path(resp.json()["path"]).resolve()
+    inputs_dir = app.state.dependencies.store.inputs_dir("abs-path-case").resolve()
+    assert stored.is_relative_to(inputs_dir)
+    assert stored == inputs_dir / "absolute.pdf"
+    assert stored.read_bytes() == b"%PDF-1.4\nabsolute\n"
+
+
+def test_upload_input_still_accepts_json_base64(tmp_path: Path) -> None:
+    """Backward-compat: JSON {content_base64} still works."""
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
+
+    resp = client.post("/api/cases", json={"case_id": "legacy-case", "paper_title": "Legacy"})
+    assert resp.status_code == 201
+
+    resp = client.post("/api/cases/legacy-case/inputs", json={
+        "filename": "paper.pdf",
+        "content_base64": base64.b64encode(b"%PDF-1.4\nlegacy\n").decode("ascii"),
+    })
+    assert resp.status_code == 200
+    stored = Path(resp.json()["path"]).read_bytes()
+    assert stored == b"%PDF-1.4\nlegacy\n"
+
+
+def test_upload_input_rejects_empty_payload(tmp_path: Path) -> None:
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
+    client.post("/api/cases", json={"case_id": "empty-case", "paper_title": "E"})
+
+    resp = client.post("/api/cases/empty-case/inputs", json={"filename": "x.pdf"})
+    assert resp.status_code == 400
 
 
 def test_run_detail_route_returns_run_data(tmp_path: Path) -> None:

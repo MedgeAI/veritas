@@ -21,14 +21,14 @@ def _path(tmp_path, name: str):
 def test_visual_evidence_section_empty(tmp_path) -> None:
     """When no visual artifacts exist, section should render gracefully."""
     html = visual_evidence_section(tmp_path)
-    assert "Visual Evidence Package" in html
+    assert "图像证据" in html
     assert "figures" in html
     assert "panels" in html
     assert "relationships" in html
-    assert "visual findings" in html
+    assert "图像记录" in html
     assert "未提取到 figure 级图像证据" in html
     assert "未发现 panel 间相似关系" in html
-    assert "未生成 visual finding" in html
+    assert "未生成图像记录" in html
     assert "未生成视觉复核问题" in html
 
 
@@ -124,6 +124,30 @@ def test_visual_evidence_section_with_relationships(tmp_path) -> None:
 def test_visual_evidence_section_with_findings(tmp_path) -> None:
     """When visual_findings.json has findings, they should appear in cards."""
     write_json(
+        _path(tmp_path, "panel_evidence.json"),
+        {
+            "version": "1.0",
+            "panels": [
+                {
+                    "panel_id": "PE-0001-01",
+                    "parent_figure_id": "FE-0001",
+                    "crop_path": "panels/source.png",
+                    "width": 120,
+                    "height": 80,
+                    "extraction_method": "yolov5_panel_extractor",
+                },
+                {
+                    "panel_id": "PE-0001-02",
+                    "parent_figure_id": "FE-0001",
+                    "crop_path": "panels/target.png",
+                    "width": 120,
+                    "height": 80,
+                    "extraction_method": "yolov5_panel_extractor",
+                },
+            ],
+        },
+    )
+    write_json(
         _path(tmp_path, "visual_findings.json"),
         {
             "version": "1.0",
@@ -137,6 +161,7 @@ def test_visual_evidence_section_with_findings(tmp_path) -> None:
                     "target_panel_id": "PE-0001-02",
                     "relationship_id": "IR-0001",
                     "score": 0.85,
+                    "overlay_path": "overlays/match.png",
                     "benign_explanations": ["合法的实验对照"],
                     "manual_review_questions": ["验证匹配的 panel 是否描绘同一实验主体"],
                 }
@@ -146,10 +171,14 @@ def test_visual_evidence_section_with_findings(tmp_path) -> None:
 
     html = visual_evidence_section(tmp_path)
     assert "VF-0001" in html
-    assert "Test visual finding summary" in html
+    assert "Test visual 记录 summary" in html
     assert "合法的实验对照" in html
     assert "验证匹配的 panel 是否描绘同一实验主体" in html
-    assert "Manual Review Checklist" in html
+    assert "图像复核清单" in html
+    assert "panels/source.png" in html
+    assert "panels/target.png" in html
+    assert "overlays/match.png" in html
+    assert "overlay / heatmap" in html
 
 
 def test_visual_evidence_section_with_review_queue_and_clusters(tmp_path) -> None:
@@ -225,9 +254,9 @@ def test_visual_evidence_section_with_review_queue_and_clusters(tmp_path) -> Non
 
     html = visual_evidence_section(tmp_path)
 
-    assert "Visual Review Queue" in html
+    assert "图像复核入口" in html
     assert "VRT-001" in html
-    assert "Visual Finding Clusters" in html
+    assert "图像证据簇" in html
     assert "VFC-0001" in html
     assert "fallback 降级" in html
     assert "fallback panel evidence; risk display capped" in html
@@ -274,6 +303,6 @@ def test_visual_evidence_section_in_full_report(tmp_path) -> None:
     html = render_static_audit_html(tmp_path, "test-case")
 
     # The visual evidence section should be present
-    assert "Visual Evidence Package" in html
+    assert "图像证据" in html
     assert "id=\"visual-evidence\"" in html
     assert "FE-0001" in html

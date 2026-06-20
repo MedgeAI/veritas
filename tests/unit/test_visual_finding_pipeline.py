@@ -413,6 +413,75 @@ class TestBuildVisualFindings:
         assert findings[0]["metadata"]["raw_score"] == 0.92
         assert findings[0]["metadata"]["panel_extraction_quality"] == "whole_figure_fallback"
 
+    def test_graph_parent_id_relationship_is_resolved_and_not_critical(self):
+        rel = self._make_relationship(
+            score=0.9,
+            source_type="copy_move_cross",
+            src="figure-content-0042",
+            tgt="figure-content-0043",
+        )
+        rel["match_method"] = "rootsift_magsac"
+        panel_ev = [
+            {
+                "panel_id": "figure-content-0042-01",
+                "parent_figure_id": "figure-content-0042",
+                "panel_type": "Graphs",
+                "extraction_method": "yolov5_panel_extractor",
+                "metadata": {},
+            },
+            {
+                "panel_id": "figure-content-0043-01",
+                "parent_figure_id": "figure-content-0043",
+                "panel_type": "Graphs",
+                "extraction_method": "yolov5_panel_extractor",
+                "metadata": {},
+            },
+        ]
+
+        findings = build_visual_findings(
+            [rel],
+            high_score_threshold=0.4,
+            panel_evidence=panel_ev,
+        )
+
+        assert len(findings) == 1
+        assert findings[0]["risk_level"] in {"low", "medium"}
+        metadata = findings[0]["metadata"]
+        assert metadata["source_parent_figure_id"] == "figure-content-0042"
+        assert metadata["target_parent_figure_id"] == "figure-content-0043"
+        assert metadata["panel_type"] == "Graphs"
+        assert "axes, text, legends" in metadata["confidence_adjustment"]
+
+    def test_trufor_non_blot_microscopy_is_capped_at_medium(self):
+        panel_ev = [
+            {
+                "panel_id": "figure-content-0005-01",
+                "parent_figure_id": "figure-content-0005",
+                "panel_type": "Body Imaging",
+                "extraction_method": "yolov5_panel_extractor",
+                "metadata": {},
+            },
+        ]
+
+        findings = build_visual_findings(
+            [],
+            panel_evidence=panel_ev,
+            forged_region_evidence=[
+                {
+                    "figure_id": "figure-content-0005",
+                    "is_suspicious": True,
+                    "integrity_score": 0.97,
+                    "localization_map_path": "tru_for/pred.png",
+                }
+            ],
+        )
+
+        assert len(findings) == 1
+        assert findings[0]["risk_level"] == "medium"
+        assert findings[0]["overlay_path"] == "tru_for/pred.png"
+        assert findings[0]["metadata"]["panel_type"] == "Body Imaging"
+        assert findings[0]["metadata"]["risk_cap_reason"]
+
     def test_visual_finding_score_is_normalized_for_display(self):
         rel = self._make_relationship(score=13.0)
 

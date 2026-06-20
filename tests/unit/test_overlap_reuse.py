@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
@@ -15,7 +14,6 @@ from engine.static_audit.tools.overlap_reuse import (
     _is_valid_panel,
     _merge_to_panel_pairs,
     _polygon_area,
-    _retrieve_tile_candidates,
     detect_overlap_reuse,
 )
 from engine.tools.registry import TOOLS, TOOL_ID_OVERLAP_REUSE

@@ -1,4 +1,4 @@
-"""Tests for visual web endpoints using FastAPI TestClient."""
+"""Tests for visual web endpoints."""
 
 from __future__ import annotations
 
@@ -6,8 +6,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from fastapi.testclient import TestClient
-
+from tests.helpers.asgi_client import LocalASGITestClient as TestClient
 from web.backend.veritas_web.app import create_app
 
 

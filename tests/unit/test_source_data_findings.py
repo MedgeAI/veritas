@@ -4,7 +4,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from decimal import Decimal
 
-from engine.static_audit.tools.source_data_findings import relationship_record
+from engine.static_audit.tools.source_data_findings import (
+    SheetVectors,
+    duplicate_column_findings,
+    fixed_relationship_findings,
+    relationship_record,
+)
 
 
 @dataclass
@@ -198,3 +203,144 @@ def test_pattern_strength_moderate_and_weak():
 
     assert result["pattern_strength"] == "weak"
     assert result["support_rate"] == 0.3
+
+
+def test_mean_sum_n_relationship_is_artifact_not_priority_signal() -> None:
+    rows = list(range(10, 20))
+    sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Extended Data Fig. 3d",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            4: {row: Decimal("100") for row in rows},
+            5: {row: Decimal(row) for row in rows},
+            7: {row: Decimal(row * 100) for row in rows},
+        },
+        text_columns={
+            4: [(6, "N total")],
+            5: [(6, "Mean"), (9, "Output voltage (V)")],
+            7: [(6, "Sum"), (9, "Voltage (V)")],
+        },
+        formulas_by_column={},
+        cell_count=30,
+        numeric_cell_count=30,
+    )
+
+    findings = fixed_relationship_findings(
+        sheet,
+        min_overlap=8,
+        min_support=0.98,
+        limit=20,
+    )
+    finding = next(item for item in findings if item["category"] == "fixed_ratio")
+
+    assert finding["risk_level"] == "low"
+    assert finding["artifact_likelihood"] == "high"
+    assert finding["artifact_reason"] == "Mean/Sum/N summary-statistics relationship"
+    assert finding["pressure_test_result"] == "likely_summary_statistic_derivation"
+
+
+def test_zero_inflated_duplicate_columns_are_downgraded() -> None:
+    rows = list(range(1, 51))
+    sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Tumor free animals",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            2: {row: Decimal("0") for row in rows},
+            3: {row: Decimal("0") for row in rows},
+        },
+        text_columns={
+            2: [(1, "Group A response")],
+            3: [(1, "Group B response")],
+        },
+        formulas_by_column={},
+        cell_count=100,
+        numeric_cell_count=100,
+    )
+    sheet.numeric_columns[2][50] = Decimal("1")
+    sheet.numeric_columns[3][50] = Decimal("2")
+
+    findings = duplicate_column_findings(
+        sheet,
+        min_overlap=20,
+        min_support=0.98,
+        limit=20,
+    )
+
+    assert len(findings) == 1
+    assert findings[0]["risk_level"] == "low"
+    assert findings[0]["artifact_likelihood"] == "high"
+    assert findings[0]["pressure_test_result"] == "likely_zero_inflated_matrix_artifact"
+
+
+def test_mean_sum_labels_without_integer_n_relationship_are_not_downgraded() -> None:
+    rows = list(range(10, 20))
+    sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Independent endpoint summary",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            5: {row: Decimal(row) for row in rows},
+            7: {row: Decimal(row) * Decimal("2.5") for row in rows},
+        },
+        text_columns={
+            5: [(6, "Mean response")],
+            7: [(6, "Sum response")],
+        },
+        formulas_by_column={},
+        cell_count=20,
+        numeric_cell_count=20,
+    )
+
+    findings = fixed_relationship_findings(
+        sheet,
+        min_overlap=8,
+        min_support=0.98,
+        limit=20,
+    )
+    finding = next(item for item in findings if item["category"] == "fixed_ratio")
+
+    assert finding["risk_level"] == "medium"
+    assert finding["artifact_likelihood"] == "unknown"
+    assert finding["pressure_test_result"] == "needs_semantics_and_formula_review"
+
+
+def test_duplicate_columns_below_zero_inflation_threshold_are_not_downgraded() -> None:
+    rows = list(range(1, 21))
+    sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Endpoint matrix",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            2: {},
+            3: {},
+        },
+        text_columns={
+            2: [(1, "Endpoint A")],
+            3: [(1, "Endpoint B")],
+        },
+        formulas_by_column={},
+        cell_count=40,
+        numeric_cell_count=40,
+    )
+    for row in rows:
+        value = Decimal("0") if row <= 13 else Decimal(row)
+        sheet.numeric_columns[2][row] = value
+        sheet.numeric_columns[3][row] = value
+
+    findings = duplicate_column_findings(
+        sheet,
+        min_overlap=20,
+        min_support=0.98,
+        limit=20,
+    )
+
+    assert len(findings) == 1
+    assert findings[0]["risk_level"] == "medium"
+    assert findings[0]["artifact_likelihood"] == "unknown"
+    assert findings[0]["pressure_test_result"] == "needs_column_semantics_review"

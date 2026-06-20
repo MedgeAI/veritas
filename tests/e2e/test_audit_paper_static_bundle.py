@@ -44,7 +44,7 @@ def test_audit_paper_writes_static_bundle_with_fake_agent(tmp_path, monkeypatch)
     html = html_path.read_text(encoding="utf-8")
     markdown = markdown_path.read_text(encoding="utf-8")
     assert "Veritas 静态审查 Demo" in html
-    assert "Agent Investigation Path" in html
+    assert "调查路径" in html
     assert "| final_audit_report.html | generated_after_markdown | - |" in markdown
     assert "| final_audit_report.html | missing |" not in markdown
     assert bundle["protocol_version"] == "static_audit_protocol.v1"

@@ -12,8 +12,8 @@ import json
 from pathlib import Path
 
 import jwt
-from fastapi.testclient import TestClient
 
+from tests.helpers.asgi_client import LocalASGITestClient as TestClient
 from web.backend.veritas_web.app import create_app
 from web.backend.veritas_web.auth import (
     BasicAuthProvider,
