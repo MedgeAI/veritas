@@ -32,6 +32,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
   const [log, setLog] = useState([]);
   const [error, setError] = useState('');
   const [uploadProgress, setUploadProgress] = useState({});
+  const [extractingTitle, setExtractingTitle] = useState(false);
 
   const pdfCount = useMemo(() => files.filter((file) => file.name.toLowerCase().endsWith('.pdf')).length, [files]);
 
@@ -73,12 +74,28 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
         const file = files[i];
         const fileKey = file.webkitRelativePath || file.name;
         setUploadProgress((prev) => ({ ...prev, [fileKey]: 0 }));
-        await uploadInput(record.case_id, file, {
+
+        // 如果是 PDF 且还没有 paper_title，显示"自动提取中..."
+        const isPdf = file.name.toLowerCase().endsWith('.pdf');
+        if (isPdf && !form.paper_title) {
+          setExtractingTitle(true);
+        }
+
+        const result = await uploadInput(record.case_id, file, {
           onProgress: (percent) => setUploadProgress((prev) => ({ ...prev, [fileKey]: percent })),
         });
+
+        // 从上传响应中获取更新后的 paper_title
+        if (isPdf && result.case?.paper_title && !form.paper_title) {
+          setForm((prev) => ({ ...prev, paper_title: result.case.paper_title }));
+          setExtractingTitle(false);
+          appendLog(`extracted title: ${result.case.paper_title}`);
+        }
+
         setUploadProgress((prev) => ({ ...prev, [fileKey]: 100 }));
         appendLog(`uploaded ${fileKey}`);
       }
+      setExtractingTitle(false);
 
       // 启动审查
       const run = await startRun(record.case_id, {
@@ -120,8 +137,8 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
               autoComplete="off"
               value={form.paper_title}
               onChange={(event) => updateForm('paper_title', event.target.value)}
-              placeholder="留空从 PDF 提取"
-              disabled={busy}
+              placeholder={extractingTitle ? '自动提取中...' : '留空从 PDF 提取'}
+              disabled={busy || extractingTitle}
             />
           </label>
         </div>
