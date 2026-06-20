@@ -317,7 +317,8 @@ def detect_copy_move(
             continue
 
         # Make overlay path relative to workdir
-        overlay = r.get("mask_path", "")
+        # Use matches_path (with red lines) instead of mask_path (grayscale mask)
+        overlay = r.get("matches_path", "") or r.get("mask_path", "")
         if overlay:
             try:
                 overlay = str(Path(overlay).relative_to(workdir))
