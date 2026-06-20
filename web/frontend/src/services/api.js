@@ -155,6 +155,10 @@ export async function fetchOverlapReuse(caseId) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/artifacts/visual_overlap_reuse`);
 }
 
+export async function fetchProvenanceGraph(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/artifacts/provenance_graph`);
+}
+
 export async function listInvestigations(caseId) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/investigations`);
 }

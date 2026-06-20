@@ -5,6 +5,7 @@ import {
   fetchVisualRelationships,
   fetchVisualFindings,
   fetchOverlapReuse,
+  fetchProvenanceGraph,
   listInvestigations,
 } from '../services/api.js';
 
@@ -14,8 +15,8 @@ import {
  *
  * @param {Object} selectedCase - The selected case object with case_id
  * @returns {Object} figures, panels, relationships, findings, overlapRelationships,
- *                   investigationRecords, investigationResults, investigationArtifactErrors,
- *                   loading, error, loadData
+ *                   provenanceGraph, investigationRecords, investigationResults,
+ *                   investigationArtifactErrors, loading, error, loadData
  */
 export function useVisualArtifacts(selectedCase) {
   const [figures, setFigures] = useState([]);
@@ -23,6 +24,7 @@ export function useVisualArtifacts(selectedCase) {
   const [relationships, setRelationships] = useState([]);
   const [findings, setFindings] = useState([]);
   const [overlapRelationships, setOverlapRelationships] = useState([]);
+  const [provenanceGraph, setProvenanceGraph] = useState(null);
   const [investigationRecords, setInvestigationRecords] = useState([]);
   const [investigationResults, setInvestigationResults] = useState([]);
   const [investigationArtifactErrors, setInvestigationArtifactErrors] = useState([]);
@@ -35,13 +37,14 @@ export function useVisualArtifacts(selectedCase) {
     setError('');
 
     try {
-      const [figuresResult, panelsResult, relationshipsResult, findingsResult, overlapResult, investigationsResult] =
+      const [figuresResult, panelsResult, relationshipsResult, findingsResult, overlapResult, provenanceResult, investigationsResult] =
         await Promise.allSettled([
           fetchVisualFigures(selectedCase.case_id),
           fetchVisualPanels(selectedCase.case_id),
           fetchVisualRelationships(selectedCase.case_id),
           fetchVisualFindings(selectedCase.case_id),
           fetchOverlapReuse(selectedCase.case_id),
+          fetchProvenanceGraph(selectedCase.case_id),
           listInvestigations(selectedCase.case_id),
         ]);
 
@@ -83,6 +86,14 @@ export function useVisualArtifacts(selectedCase) {
         setOverlapRelationships([]);
       }
 
+      if (provenanceResult.status === 'fulfilled') {
+        const pg = provenanceResult.value;
+        setProvenanceGraph(pg?.status === 'failed' ? null : pg);
+      } else {
+        // provenance graph is optional; don't surface as error
+        setProvenanceGraph(null);
+      }
+
       if (investigationsResult.status === 'fulfilled') {
         const data = investigationsResult.value;
         setInvestigationRecords(data.records || []);
@@ -115,6 +126,7 @@ export function useVisualArtifacts(selectedCase) {
     relationships,
     findings,
     overlapRelationships,
+    provenanceGraph,
     investigationRecords,
     investigationResults,
     investigationArtifactErrors,

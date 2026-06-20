@@ -3,6 +3,7 @@ import { FiPlay, FiRefreshCw, FiCpu, FiLink } from 'react-icons/fi';
 import StatusPill from '../components/StatusPill.jsx';
 import OverlapGraph from '../components/OverlapGraph.jsx';
 import OverlapDetailDrawer from '../components/OverlapDetailDrawer.jsx';
+import ProvenanceGraph from '../components/ProvenanceGraph.jsx';
 import { visualImageUrl } from '../services/api.js';
 import { useVisualArtifacts } from '../hooks/useVisualArtifacts.js';
 import { useEmbeddingIndex } from '../hooks/useEmbeddingIndex.js';
@@ -22,6 +23,7 @@ function VisualForensicsPage({ selectedCase }) {
     relationships,
     findings,
     overlapRelationships,
+    provenanceGraph,
     investigationRecords,
     investigationResults,
     investigationArtifactErrors,
@@ -324,6 +326,36 @@ function VisualForensicsPage({ selectedCase }) {
           caseId={selectedCase?.case_id}
           onClose={() => setSelectedOverlap(null)}
         />
+      )}
+
+      {/* Provenance Graph (MST) */}
+      {provenanceGraph && provenanceGraph.nodes && provenanceGraph.nodes.length > 0 && (
+        <section className="dossier-panel rounded-[2rem] p-6">
+          <h3 className="section-title">Provenance Graph (MST 溯源图)</h3>
+          <p className="mt-2 text-sm text-ink-500">
+            基于 RootSIFT 描述子递归 BFS 匹配的 figure 级溯源图。MST 边表示最小生成树，
+            非 MST 边表示额外的匹配关系。点击节点查看连接详情。
+          </p>
+          <div className="mt-4">
+            <ProvenanceGraph
+              graph={provenanceGraph}
+              caseId={selectedCase.case_id}
+            />
+          </div>
+          {provenanceGraph.statistics && (
+            <div className="mt-3 flex flex-wrap gap-4 text-xs text-ink-400">
+              <span>Nodes: {provenanceGraph.statistics.node_count || 0}</span>
+              <span>Edges: {provenanceGraph.statistics.edge_count || 0}</span>
+              <span>Components: {provenanceGraph.statistics.component_count || 0}</span>
+              {provenanceGraph.statistics.max_weight && (
+                <span>Max Weight: {provenanceGraph.statistics.max_weight}</span>
+              )}
+              {provenanceGraph.processing_time_seconds && (
+                <span>Time: {provenanceGraph.processing_time_seconds}s</span>
+              )}
+            </div>
+          )}
+        </section>
       )}
 
       <InvestigationResults results={investigationResults} caseId={selectedCase.case_id} />

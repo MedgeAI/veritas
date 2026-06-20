@@ -13,6 +13,7 @@ const ReportCenterPage = lazy(() => import('./pages/ReportCenterPage.jsx'));
 const VisualForensicsPage = lazy(() => import('./pages/VisualForensicsPage.jsx'));
 const InvestigationBoardPage = lazy(() => import('./pages/InvestigationBoardPage.jsx'));
 const ReviewQueuePage = lazy(() => import('./pages/ReviewQueuePage.jsx'));
+const CBIRSearchPage = lazy(() => import('./pages/CBIRSearchPage.jsx'));
 const PlaceholderPage = lazy(() => import('./pages/PlaceholderPage.jsx'));
 
 const PAGE_META = {
@@ -23,6 +24,7 @@ const PAGE_META = {
   visual: ['Visual Forensics Gallery', '图像取证候选、VLM 初筛与人工复核入口。'],
   investigation: ['Investigation Board', 'Agent 选择确定性工具后的调查轨迹。'],
   review: ['Review Queue', '人工复核队列，不让模型直接给最终诚信判定。'],
+  cbir: ['CBIR Search', '通过 Panel ID 或图片上传搜索相似 panel。'],
   report: ['Report Center', '预览并打开最终 HTML 报告。'],
   advanced: ['Advanced Lab', '预留 pdf-extractor、panel-extractor、copy-move 与 CBIR 服务。'],
 };
@@ -297,6 +299,8 @@ function AppLayout() {
         return <InvestigationBoardPage {...shared} />;
       case 'review':
         return <ReviewQueuePage {...shared} />;
+      case 'cbir':
+        return <CBIRSearchPage {...shared} />;
       case 'advanced':
         return (
           <PlaceholderPage

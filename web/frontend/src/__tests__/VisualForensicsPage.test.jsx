@@ -11,6 +11,7 @@ vi.mock('../services/api.js', () => ({
   fetchVisualRelationships: vi.fn(),
   fetchVisualFindings: vi.fn(),
   fetchOverlapReuse: vi.fn(),
+  fetchProvenanceGraph: vi.fn(),
   listInvestigations: vi.fn(),
   startVisualInvestigation: vi.fn(),
   visualImageUrl: vi.fn((caseId, path) => `/images/${caseId}/${path}`),
@@ -24,6 +25,8 @@ describe('VisualForensicsPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: provenance graph returns a failed status (no graph shown)
+    vi.mocked(api.fetchProvenanceGraph).mockResolvedValue({ status: 'failed', nodes: [], edges: [] });
   });
 
   it('renders loading state initially', async () => {
@@ -33,6 +36,7 @@ describe('VisualForensicsPage', () => {
     vi.mocked(api.fetchVisualRelationships).mockReturnValue(new Promise(() => {}));
     vi.mocked(api.fetchVisualFindings).mockReturnValue(new Promise(() => {}));
     vi.mocked(api.fetchOverlapReuse).mockReturnValue(new Promise(() => {}));
+    vi.mocked(api.fetchProvenanceGraph).mockReturnValue(new Promise(() => {}));
     vi.mocked(api.listInvestigations).mockReturnValue(new Promise(() => {}));
     vi.mocked(api.getEmbeddingStatus).mockReturnValue(new Promise(() => {}));
 

@@ -26,6 +26,7 @@ const GROUPS = [
     items: [
       ['evidence', 'Evidence Workspace', FiLayers],
       ['visual', 'Visual Forensics', FiImage],
+      ['cbir', 'CBIR Search', FiSearch],
       ['investigation', 'Investigation Board', FiSearch],
       ['review', 'Review Queue', FiBookOpen],
       ['advanced', 'Advanced Lab', FiCpu],
