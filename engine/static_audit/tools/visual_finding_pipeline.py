@@ -674,7 +674,8 @@ def build_visual_findings(
             "score": displayed_score,
             "benign_explanations": benign,
             "manual_review_questions": questions,
-            "overlay_path": rel.get("overlay_path"),
+            # 仅为 medium/high/critical 级别的 finding 保留 overlay_path，消除冗余
+            "overlay_path": rel.get("overlay_path") if _risk_rank(risk_level) >= RISK_RANK["medium"] else None,
             "metadata": {
                 "match_method": rel.get("match_method", ""),
                 "inlier_count": rel.get("inlier_count", 0),
@@ -747,7 +748,8 @@ def build_visual_findings(
                 "score": _normalized_score(integrity_score),
                 "benign_explanations": benign,
                 "manual_review_questions": questions,
-                "overlay_path": _optional_str(fre.get("localization_map_path")),
+                # 仅为 medium/high/critical 级别的 finding 保留 overlay_path
+                "overlay_path": _optional_str(fre.get("localization_map_path")) if _risk_rank(risk_level) >= RISK_RANK["medium"] else None,
                 "metadata": {
                     "source": "tru_for",
                     "forged_region_evidence_id": str(
