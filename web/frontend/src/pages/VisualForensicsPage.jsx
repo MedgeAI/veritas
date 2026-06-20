@@ -576,6 +576,7 @@ function FindingCards({ findings, panels, caseId }) {
         const sourcePanel = panelsById[finding.source_panel_id] || {};
         const targetPanel = panelsById[finding.target_panel_id] || {};
         const riskTone = finding.risk_level === 'critical' ? 'critical' : finding.risk_level === 'high' ? 'warning' : 'neutral';
+        const isWithinPanel = finding.source_panel_id === finding.target_panel_id;
 
         return (
           <article key={finding.finding_id} className="rounded-2xl border border-ink-900/8 bg-gradient-to-br from-paper-100/80 to-paper-200/60 p-5">
@@ -583,44 +584,84 @@ function FindingCards({ findings, panels, caseId }) {
               <StatusPill tone={riskTone}>{finding.risk_level}</StatusPill>
               <span className="rounded-full border border-ink-900/10 bg-white/60 px-2 py-0.5 text-xs">{finding.category}</span>
               <h4 className="font-semibold text-ink-900">{finding.finding_id}</h4>
+              {isWithinPanel && (
+                <span className="rounded-full border border-signal-500/30 bg-signal-100/40 px-2 py-0.5 text-xs text-signal-700">
+                  单图内检测
+                </span>
+              )}
             </div>
 
-            <p className="mt-3 text-sm text-ink-700">{finding.summary}</p>
+            <p className="mt-3 text-sm text-ink-700">
+              {isWithinPanel
+                ? `Panel ${finding.source_panel_id} 内部存在复制区域`
+                : finding.summary}
+            </p>
             <p className="mt-2 font-mono text-xs text-ink-400">
               score: {(finding.score || 0).toFixed(3)} | source: {finding.source_panel_id} | target: {finding.target_panel_id}
             </p>
 
-            {/* Panel comparison (always visible for immediate evidence) */}
-            <div className="mt-4 rounded-xl border border-ink-900/8 bg-white/60 p-3">
-              <p className="mb-2 text-xs font-semibold text-ink-600">证据对比</p>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <p className="text-xs text-ink-400">Source: {finding.source_panel_id}</p>
+            {/* Evidence visualization */}
+            {isWithinPanel ? (
+              // Single-panel copy-move: show one image with overlay mask
+              <div className="mt-4 rounded-xl border border-ink-900/8 bg-white/60 p-3">
+                <p className="mb-2 text-xs font-semibold text-ink-600">
+                  证据：同一 panel 内的复制区域（白色 mask）
+                </p>
+                <div className="relative inline-block">
                   <img
                     src={visualImageUrl(caseId, sourcePanel.crop_path || '')}
-                    alt="source"
-                    className="mt-1 h-[140px] w-full rounded-lg border border-ink-900/8 bg-ink-50 object-cover"
+                    alt="panel with copy-move detection"
+                    className="h-[200px] rounded-lg border border-ink-900/8 bg-ink-50 object-contain"
                     loading="lazy"
                     onError={(e) => { e.target.style.display = 'none'; }}
                   />
+                  {finding.overlay_path && (
+                    <img
+                      src={visualImageUrl(caseId, finding.overlay_path)}
+                      alt="overlay mask"
+                      className="absolute inset-0 h-[200px] rounded-lg object-contain opacity-50 mix-blend-screen"
+                      loading="lazy"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  )}
                 </div>
-                <div>
-                  <p className="text-xs text-ink-400">Target: {finding.target_panel_id}</p>
-                  <img
-                    src={visualImageUrl(caseId, targetPanel.crop_path || '')}
-                    alt="target"
-                    className="mt-1 h-[140px] w-full rounded-lg border border-ink-900/8 bg-ink-50 object-cover"
-                    loading="lazy"
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                  />
-                </div>
+                <p className="mt-2 text-xs text-ink-500">
+                  白色区域表示检测到的复制区域。可能是复制粘贴的条带或图像内容。
+                </p>
               </div>
-              {finding.overlay_path && (
-                <div className="mt-2">
-                  <p className="text-xs text-ink-400">Overlay: <span className="font-mono">{finding.overlay_path}</span></p>
+            ) : (
+              // Cross-panel copy-move: show side-by-side comparison
+              <div className="mt-4 rounded-xl border border-ink-900/8 bg-white/60 p-3">
+                <p className="mb-2 text-xs font-semibold text-ink-600">证据对比</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-ink-400">Source: {finding.source_panel_id}</p>
+                    <img
+                      src={visualImageUrl(caseId, sourcePanel.crop_path || '')}
+                      alt="source"
+                      className="mt-1 h-[140px] w-full rounded-lg border border-ink-900/8 bg-ink-50 object-cover"
+                      loading="lazy"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  </div>
+                  <div>
+                    <p className="text-xs text-ink-400">Target: {finding.target_panel_id}</p>
+                    <img
+                      src={visualImageUrl(caseId, targetPanel.crop_path || '')}
+                      alt="target"
+                      className="mt-1 h-[140px] w-full rounded-lg border border-ink-900/8 bg-ink-50 object-cover"
+                      loading="lazy"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  </div>
                 </div>
-              )}
-            </div>
+                {finding.overlay_path && (
+                  <div className="mt-2">
+                    <p className="text-xs text-ink-400">Overlay: <span className="font-mono">{finding.overlay_path}</span></p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Benign explanations */}
             {finding.benign_explanations && finding.benign_explanations.length > 0 && (
