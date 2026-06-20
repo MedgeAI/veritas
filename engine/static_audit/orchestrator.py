@@ -735,6 +735,36 @@ def _run_static_audit_from_args(
                     progress=progress,
                 )
             )
+
+            # ── paperconan GRIM/GRIMMER 统计一致性检测 ──
+            steps.append(
+                run_command(
+                    "paperconan_scan",
+                    "Paperconan GRIM/GRIMMER scan",
+                    [
+                        sys.executable,
+                        "-c",
+                        f"""
+import json
+from pathlib import Path
+from engine.static_audit.adapters.paperconan_adapter import run_paperconan_scan
+
+result = run_paperconan_scan(
+    source_data_dir=Path("{source_data_dir}"),
+    output_dir=Path("{resolve_artifact_path(workdir, 'numeric')}"),
+    profile="review",
+)
+print(json.dumps({{"status": result["status"], "findings": result["findings_summary"]}}))
+""",
+                    ],
+                    [resolve_artifact_path(workdir, "numeric/paperconan_scan.json")],
+                    cwd=PROJECT_ROOT,
+                    env=env,
+                    force=args.force,
+                    progress=progress,
+                )
+            )
+
             # ── LLM verdict: adjudicate source data findings per sheet ──
             verdict_key = "source_data_verdict"
             verdict_title = "Source Data LLM 语义裁决"

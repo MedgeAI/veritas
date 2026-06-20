@@ -21,6 +21,7 @@ STATIC_AUDIT_STAGES: tuple[StaticAuditStage, ...] = (
     StaticAuditStage("numeric_forensics", "PDF numeric forensics", "deterministic"),
     StaticAuditStage("source_data_profile", "Source Data profile", "deterministic"),
     StaticAuditStage("source_data_findings", "Source Data findings", "deterministic"),
+    StaticAuditStage("paperconan_scan", "Paperconan GRIM/GRIMMER scan", "deterministic"),
     StaticAuditStage("image_exact_duplicates", "Exact image duplicate check", "deterministic"),
     StaticAuditStage("image_similarity_candidates", "Near-duplicate image candidates", "deterministic", required=False),
     StaticAuditStage("agent_source_data_audit", "SourceDataAuditor role", "agent"),
