@@ -13,6 +13,7 @@ description: >
 rules:
   # ── 纸厂模板句式 ──────────────────────────────────────────────────────
   - id: "text.paper_mill_template"
+    enabled: false
     category: "文本造假模式"
     subcategory: "论文工厂"
     title: "论文工厂模板化句式"

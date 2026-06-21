@@ -43,6 +43,7 @@ rules:
 
   # ── Benford ────────────────────────────────────────────────────────────
   - id: "numbers.benford_violation"
+    enabled: false
     category: "数值取证"
     subcategory: "数值分布"
     title: "Benford 定律——首位数分布异常"
@@ -98,6 +99,7 @@ rules:
 
   # ── 数字偏好 ─────────────────────────────────────────────────────────
   - id: "numbers.digit_preference"
+    enabled: false
     category: "数值取证"
     subcategory: "数值分布"
     title: "末位数字偏好——人为凑整信号"
@@ -148,6 +150,7 @@ rules:
 
   # ── statcheck ─────────────────────────────────────────────────────────
   - id: "numbers.statcheck_inconsistency"
+    enabled: false
     category: "数值取证"
     subcategory: "统计报告"
     title: "statcheck——报告统计量与 p 值不一致"

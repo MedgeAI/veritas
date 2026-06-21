@@ -63,6 +63,7 @@ rules:
     source: "paperfraud/checks/stats/sample_size.py"
 
   - id: "stats.pseudoreplication"
+    enabled: false
     category: "统计方法"
     subcategory: "样本量"
     title: "疑似伪重复 (Pseudoreplication)"
@@ -101,6 +102,7 @@ rules:
 
   # ── p-hacking ─────────────────────────────────────────────────────────
   - id: "stats.p_hacking_suspicious"
+    enabled: false
     category: "统计方法"
     subcategory: "p-hacking"
     title: "p 值可疑模式——疑似 p-hacking"
@@ -129,6 +131,7 @@ rules:
 
   # ── 正态性 ────────────────────────────────────────────────────────────
   - id: "stats.normality_claim_unverified"
+    enabled: false
     category: "统计方法"
     subcategory: "正态性"
     title: "正态性假设未经验证"
@@ -166,6 +169,7 @@ rules:
 
   # ── 逻辑谬误 ─────────────────────────────────────────────────────────
   - id: "stats.correlation_causation"
+    enabled: false
     category: "统计方法"
     subcategory: "逻辑谬误"
     title: "相关关系误作因果关系"
