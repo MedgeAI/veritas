@@ -6,6 +6,70 @@ used across visual forensics tools and pipeline.
 
 from __future__ import annotations
 
+
+# ---------------------------------------------------------------------------
+# dHash rotation helpers (Plan C: rotation-invariant pre-filter)
+# ---------------------------------------------------------------------------
+
+
+def _rotate_dhash(h: int, angle: int) -> int:
+    """Rotate an 8x8 dHash by 90/180/270 degrees.
+
+    The 64-bit hash is treated as an 8x8 bit matrix (row-major, bit 63 = top-left).
+    Rotation permutes bit positions accordingly.
+    """
+    # Extract bits into 8x8 matrix; bit (63 - k) = row r, col c where k = r*8 + c
+    matrix: list[list[int]] = []
+    for r in range(8):
+        row: list[int] = []
+        for c in range(8):
+            bit_pos = 63 - (r * 8 + c)
+            row.append((h >> bit_pos) & 1)
+        matrix.append(row)
+
+    if angle == 90:
+        # 90° CW: new[r][c] = old[7-c][r]
+        rotated = [[matrix[7 - c][r] for c in range(8)] for r in range(8)]
+    elif angle == 180:
+        rotated = [[matrix[7 - r][7 - c] for c in range(8)] for r in range(8)]
+    elif angle == 270:
+        # 270° CW (= 90° CCW): new[r][c] = old[c][7-r]
+        rotated = [[matrix[c][7 - r] for c in range(8)] for r in range(8)]
+    else:
+        rotated = matrix
+
+    # Flatten back to 64-bit int
+    value = 0
+    for r in range(8):
+        for c in range(8):
+            value = (value << 1) | rotated[r][c]
+    return value
+
+
+def dhash_rotations(h: int) -> tuple[int, int, int, int]:
+    """Return (h0, h90, h180, h270) — the 4 rotation hashes."""
+    return (h, _rotate_dhash(h, 90), _rotate_dhash(h, 180), _rotate_dhash(h, 270))
+
+
+def min_hamming_rotations(h1: int, h2: int) -> tuple[int, int]:
+    """Return (min_distance, best_angle) over 4 rotations of h2 against h1.
+
+    Since SIFT descriptors are rotation-invariant, the dHash pre-filter is the
+    only direction-sensitive component.  By rotating h2 through 0/90/180/270
+    and taking the minimum Hamming distance, the pre-filter becomes
+    rotation-invariant while the downstream SIFT+MAGSAC verification remains
+    unchanged.
+    """
+    rots = dhash_rotations(h2)
+    best_dist = 64
+    best_angle = 0
+    for rot, angle in zip(rots, (0, 90, 180, 270)):
+        dist = bin(h1 ^ rot).count("1")
+        if dist < best_dist:
+            best_dist = dist
+            best_angle = angle
+    return best_dist, best_angle
+
 # Tool IDs for visual forensics tools
 TOOL_ID_PANEL_EXTRACTION = "visual.panel_extraction"
 TOOL_ID_COPY_MOVE = "visual.copy_move"

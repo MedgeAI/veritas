@@ -28,7 +28,10 @@ from itertools import combinations
 from pathlib import Path
 from typing import Any
 
-from engine.static_audit.visual_constants import COPY_MOVE_DEFAULTS
+from engine.static_audit.visual_constants import (
+    COPY_MOVE_DEFAULTS,
+    min_hamming_rotations,
+)
 from engine.static_audit.visual_schemas import VISUAL_SCHEMA_VERSION
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"}
@@ -231,7 +234,7 @@ def _run_cross_figure_detection(
     if len(figures_with_paths) < 2:
         return []
 
-    # Compute dhash for all figures
+    # Compute dhash for all figures (rotation-invariant via 4-rotation pre-filter)
     hashes: list[tuple[str, Path, int]] = []
     for fig in figures_with_paths:
         try:
@@ -243,10 +246,10 @@ def _run_cross_figure_detection(
     if len(hashes) < 2:
         return []
 
-    # Pre-filter pairs by dhash distance
+    # Pre-filter pairs by rotation-invariant dhash distance (Plan C)
     candidate_pairs = []
     for (fid_a, path_a, hash_a), (fid_b, path_b, hash_b) in combinations(hashes, 2):
-        dist = _hamming_distance(hash_a, hash_b)
+        dist, best_angle = min_hamming_rotations(hash_a, hash_b)
         if dist <= dhash_threshold:
             candidate_pairs.append(
                 {
@@ -256,6 +259,7 @@ def _run_cross_figure_detection(
                     "source_figure_id": fid_a,
                     "target_figure_id": fid_b,
                     "dhash_distance": dist,
+                    "best_rotation_angle": best_angle,
                 }
             )
 
