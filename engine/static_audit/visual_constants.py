@@ -8,67 +8,104 @@ from __future__ import annotations
 
 
 # ---------------------------------------------------------------------------
-# dHash rotation helpers (Plan C: rotation-invariant pre-filter)
+# dHash rotation helpers (rotation-invariant pre-filter)
+#
+# dHash encodes horizontal column gradients (mean(col_i) > mean(col_{i+1})).
+# When an image is rotated 90°, horizontal gradients become vertical gradients,
+# so the original dHash carries NO information about what the rotated dHash
+# would be.  Therefore we CANNOT predict rotated hashes via bit permutation.
+#
+# Correct approach: actually rotate the image, then recompute dHash.
+# Callers must use `dhash_rotations_from_image(img)` or `dhash_rotations_from_path(path)`
+# to obtain a tuple of 4 hashes (0°, 90°, 180°, 270°), then pass both tuples
+# to `min_hamming_rotations(h1_tuple, h2_tuple)` for comparison.
 # ---------------------------------------------------------------------------
 
 
-def _rotate_dhash(h: int, angle: int) -> int:
-    """Rotate an 8x8 dHash by 90/180/270 degrees.
+def _dhash_single(img, hash_size: int = 8) -> int:
+    """Compute dHash for a single PIL Image (or path). Internal helper."""
+    from PIL import Image
 
-    The 64-bit hash is treated as an 8x8 bit matrix (row-major, bit 63 = top-left).
-    Rotation permutes bit positions accordingly.
-    """
-    # Extract bits into 8x8 matrix; bit (63 - k) = row r, col c where k = r*8 + c
-    matrix: list[list[int]] = []
-    for r in range(8):
-        row: list[int] = []
-        for c in range(8):
-            bit_pos = 63 - (r * 8 + c)
-            row.append((h >> bit_pos) & 1)
-        matrix.append(row)
+    if isinstance(img, (str,)):
+        img = Image.open(img)
+        close_after = True
+    elif not hasattr(img, "rotate"):
+        from pathlib import Path
 
-    if angle == 90:
-        # 90° CW: new[r][c] = old[7-c][r]
-        rotated = [[matrix[7 - c][r] for c in range(8)] for r in range(8)]
-    elif angle == 180:
-        rotated = [[matrix[7 - r][7 - c] for c in range(8)] for r in range(8)]
-    elif angle == 270:
-        # 270° CW (= 90° CCW): new[r][c] = old[c][7-r]
-        rotated = [[matrix[c][7 - r] for c in range(8)] for r in range(8)]
+        img = Image.open(Path(img))
+        close_after = True
     else:
-        rotated = matrix
+        close_after = False
 
-    # Flatten back to 64-bit int
+    try:
+        resized = img.convert("L").resize((hash_size + 1, hash_size))
+        pixels = list(resized.getdata())
+    finally:
+        if close_after:
+            img.close()
+
     value = 0
-    for r in range(8):
-        for c in range(8):
-            value = (value << 1) | rotated[r][c]
+    for row in range(hash_size):
+        for col in range(hash_size):
+            left = pixels[row * (hash_size + 1) + col]
+            right = pixels[row * (hash_size + 1) + col + 1]
+            value = (value << 1) | int(left > right)
     return value
 
 
-def dhash_rotations(h: int) -> tuple[int, int, int, int]:
-    """Return (h0, h90, h180, h270) — the 4 rotation hashes."""
-    return (h, _rotate_dhash(h, 90), _rotate_dhash(h, 180), _rotate_dhash(h, 270))
+def dhash_rotations_from_image(img, hash_size: int = 8) -> tuple[int, int, int, int]:
+    """Compute dHash for an image at 0°, 90°, 180°, 270° by actual rotation.
 
-
-def min_hamming_rotations(h1: int, h2: int) -> tuple[int, int]:
-    """Return (min_distance, best_angle) over 4 rotations of h2 against h1.
-
-    Since SIFT descriptors are rotation-invariant, the dHash pre-filter is the
-    only direction-sensitive component.  By rotating h2 through 0/90/180/270
-    and taking the minimum Hamming distance, the pre-filter becomes
-    rotation-invariant while the downstream SIFT+MAGSAC verification remains
-    unchanged.
+    Uses PIL.Image.rotate() for 90/180/270 (transpose-based, exact & fast).
+    Returns (h0, h90, h180, h270).
     """
-    rots = dhash_rotations(h2)
-    best_dist = 64
+    from PIL import Image
+
+    if isinstance(img, (str,)):
+        from pathlib import Path
+
+        img = Image.open(Path(img))
+    elif not hasattr(img, "rotate"):
+        from pathlib import Path
+
+        img = Image.open(Path(img))
+
+    h0 = _dhash_single(img, hash_size)
+    h90 = _dhash_single(img.rotate(90, expand=True), hash_size)
+    h180 = _dhash_single(img.rotate(180), hash_size)
+    h270 = _dhash_single(img.rotate(270, expand=True), hash_size)
+    return (h0, h90, h180, h270)
+
+
+dhash_rotations_from_path = dhash_rotations_from_image  # alias: accepts path or image
+
+
+def min_hamming_rotations(
+    h1_tuple: tuple[int, int, int, int],
+    h2_tuple: tuple[int, int, int, int],
+) -> tuple[int, int]:
+    """Return (min_distance, best_angle) over all 16 pairwise comparisons.
+
+    Each input is a tuple of 4 hashes (0°, 90°, 180°, 270°) computed by
+    actually rotating the image.  We try all 16 pairs (4 rotations of h1
+    × 4 rotations of h2) and report the minimum Hamming distance and the
+    relative rotation angle that produced it.
+
+    The angle semantics: if h1_tuple[i] and h2_tuple[j] give the best match,
+    then h1's i-th rotation view equals h2's j-th rotation view.  This means
+    h2 was obtained by rotating h1 by (A_i - A_j) mod 360 degrees.
+    """
+    angles = (0, 90, 180, 270)
+    best_dist = 65
     best_angle = 0
-    for rot, angle in zip(rots, (0, 90, 180, 270)):
-        dist = bin(h1 ^ rot).count("1")
-        if dist < best_dist:
-            best_dist = dist
-            best_angle = angle
+    for a1, rot1 in zip(angles, h1_tuple):
+        for a2, rot2 in zip(angles, h2_tuple):
+            dist = bin(rot1 ^ rot2).count("1")
+            if dist < best_dist:
+                best_dist = dist
+                best_angle = (a1 - a2) % 360
     return best_dist, best_angle
+
 
 # Tool IDs for visual forensics tools
 TOOL_ID_PANEL_EXTRACTION = "visual.panel_extraction"
@@ -91,8 +128,10 @@ COPY_MOVE_DEFAULTS = {
 }
 
 # Panel types that are code-generated and should skip copy_move/overlap_reuse/trufor detection
-# Only exact_duplicate (SHA-256) is retained for these modalities
-VISUAL_SKIP_PANEL_TYPES = {"Graphs", "Flow Cytometry"}
+# Only exact_duplicate (SHA-256) is retained for these modalities.
+# Flow Cytometry is NOT skipped — FACS plot reuse is a genuine image-level
+# forensics signal (BioFors dataset includes FACS as a dedicated category).
+VISUAL_SKIP_PANEL_TYPES = {"Graphs"}
 VISUAL_SKIP_CONFIDENCE_THRESHOLD = 0.5  # Only skip if YOLOv5 confidence >= this
 
 

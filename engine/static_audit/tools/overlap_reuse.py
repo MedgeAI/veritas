@@ -29,7 +29,10 @@ from typing import Any
 
 from PIL import Image
 
-from engine.static_audit.visual_constants import min_hamming_rotations
+from engine.static_audit.visual_constants import (
+    dhash_rotations_from_image,
+    min_hamming_rotations,
+)
 from engine.static_audit.visual_schemas import VISUAL_SCHEMA_VERSION
 
 logger = logging.getLogger(__name__)
@@ -47,17 +50,9 @@ _TILE_DHASH_THRESHOLD = 24
 # ---------------------------------------------------------------------------
 
 
-def _dhash_image(img: Image.Image, hash_size: int = 8) -> int:
-    """Compute perceptual dHash for a PIL image (grayscale)."""
-    gray = img.convert("L").resize((hash_size + 1, hash_size))
-    pixels = list(gray.getdata())
-    value = 0
-    for row in range(hash_size):
-        for col in range(hash_size):
-            left = pixels[row * (hash_size + 1) + col]
-            right = pixels[row * (hash_size + 1) + col + 1]
-            value = (value << 1) | int(left > right)
-    return value
+def _dhash_image(img: Image.Image, hash_size: int = 8) -> tuple[int, int, int, int]:
+    """Compute rotation-invariant dHash tuple for a PIL image (0°, 90°, 180°, 270°)."""
+    return dhash_rotations_from_image(img, hash_size)
 
 
 def _hamming_distance(a: int, b: int) -> int:
@@ -158,9 +153,7 @@ def _retrieve_tile_candidates(
             tile_b = all_tiles[j]
             if tile_a["panel_id"] == tile_b["panel_id"]:
                 continue
-            dist, best_angle = min_hamming_rotations(
-                tile_a["dhash"], tile_b["dhash"]
-            )
+            dist, best_angle = min_hamming_rotations(tile_a["dhash"], tile_b["dhash"])
             if dist <= _TILE_DHASH_THRESHOLD:
                 candidates.append(
                     {

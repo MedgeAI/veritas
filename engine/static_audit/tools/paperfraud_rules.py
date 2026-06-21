@@ -33,6 +33,7 @@ def run_paperfraud_rule_match(full_md_path: Path, output_path: Path) -> dict[str
     )
     rules = load_knowledge_base()
     matches = match_rules(rules, paper_full_text=paper_text, paper_methods=paper_text)
+    enabled_rules = [r for r in rules if r.enabled]
     artifact = {
         "schema_version": "1.0",
         "tool_id": "paperfraud.rule_match",
@@ -42,7 +43,7 @@ def run_paperfraud_rule_match(full_md_path: Path, output_path: Path) -> dict[str
         "triggered_rules": [
             _match_to_dict(match) for match in matches if match.triggered
         ],
-        "reviewer_form": generate_reviewer_form(rules),
+        "reviewer_form": generate_reviewer_form(enabled_rules),
         "limitations": [
             "Keyword/regex rule matches are review prompts, not final misconduct findings.",
             "Negative matches can miss method descriptions that use unusual wording.",
