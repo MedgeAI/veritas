@@ -733,7 +733,9 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
         judge_risks,
     )
     summarized_patterns = displayable_patterns(patterns)
-    pattern_cards = pattern_group_cards(summarized_patterns)
+    primary_patterns, secondary_patterns = tier_patterns(summarized_patterns)
+    pattern_cards_primary = pattern_group_cards(primary_patterns)
+    pattern_cards_secondary = pattern_group_cards(secondary_patterns)
     evidence_ledger_html = irreducible_evidence_ledger(patterns)
     hero_summary = executive_summary(
         summarized_patterns,
@@ -1339,12 +1341,20 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
     <section class="section" id="top-patterns">
       <div class="section-head">
         <div>
-          <h2>重点事实</h2>
-          <p class="muted">这里按相同规律合并展示。没有摘要的类别不进入本区，只在原始证据记录中保留。</p>
+          <h2>必须立即追问</h2>
+          <p class="muted">risk_level ∈ {{critical, high}} 且 issue_category == consistency 的 top 20 记录</p>
         </div>
-        <span class="badge high">{h(len(summarized_patterns))} 类</span>
+        <span class="badge high">{h(len(primary_patterns))} 类</span>
       </div>
-      {pattern_cards}
+      {pattern_cards_primary}
+    </section>
+
+    <section class="section" id="secondary-patterns">
+      <h2>提示性记录</h2>
+      <details>
+        <summary>展开 {h(len(secondary_patterns))} 条提示性记录</summary>
+        {pattern_cards_secondary}
+      </details>
     </section>
 
     <section class="panel section" id="noise-ledger">
@@ -2027,6 +2037,41 @@ def is_context_only_pattern(pattern: dict[str, Any]) -> bool:
         str(finding.get("category") or "") == "duplicate_row_vector"
         for finding in findings
     )
+
+
+def is_primary_pattern(pattern: dict[str, Any]) -> bool:
+    """A pattern is 'primary' (must-ask) when risk is critical/high AND at
+    least one finding is issue_category=='consistency'."""
+    risk = str(pattern.get("risk_level") or "low")
+    if risk not in ("critical", "high"):
+        return False
+    findings = [f for f in (pattern.get("findings") or []) if isinstance(f, dict)]
+    return any(
+        str(f.get("issue_category") or "") == "consistency"
+        for f in findings
+    )
+
+
+def tier_patterns(
+    patterns: list[dict[str, Any]], top_n: int = 20
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Split displayable patterns into (primary, secondary).
+
+    Primary = is_primary_pattern, capped at top_n.
+    Secondary = everything else.
+    """
+    primary = [p for p in patterns if is_primary_pattern(p)][:top_n]
+    primary_keys = {
+        p.get("pattern_id") if p.get("pattern_id") is not None else id(p)
+        for p in primary
+    }
+    secondary = [
+        p
+        for p in patterns
+        if (p.get("pattern_id") if p.get("pattern_id") is not None else id(p))
+        not in primary_keys
+    ]
+    return primary, secondary
 
 
 def pattern_display_text(
