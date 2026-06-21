@@ -29,6 +29,7 @@ from typing import Any
 
 from PIL import Image
 
+from engine.static_audit.visual_constants import min_hamming_rotations
 from engine.static_audit.visual_schemas import VISUAL_SCHEMA_VERSION
 
 logger = logging.getLogger(__name__)
@@ -140,9 +141,11 @@ def _retrieve_tile_candidates(
     all_tiles: list[dict[str, Any]],
     max_candidate_pairs: int,
 ) -> list[dict[str, Any]]:
-    """Find tile pairs from DIFFERENT panels with low Hamming distance.
+    """Find tile pairs from DIFFERENT panels with low rotation-invariant Hamming distance.
 
-    Returns list of {tile_a, tile_b, distance} sorted by distance ascending.
+    Uses 4-rotation dHash comparison (Plan C) so that 90° rotated reuse is not
+    missed by the pre-filter.  Returns list of {tile_a, tile_b, distance,
+    best_rotation_angle} sorted by distance ascending.
     """
     candidates: list[dict[str, Any]] = []
     n = len(all_tiles)
@@ -155,13 +158,16 @@ def _retrieve_tile_candidates(
             tile_b = all_tiles[j]
             if tile_a["panel_id"] == tile_b["panel_id"]:
                 continue
-            dist = _hamming_distance(tile_a["dhash"], tile_b["dhash"])
+            dist, best_angle = min_hamming_rotations(
+                tile_a["dhash"], tile_b["dhash"]
+            )
             if dist <= _TILE_DHASH_THRESHOLD:
                 candidates.append(
                     {
                         "tile_a": tile_a,
                         "tile_b": tile_b,
                         "distance": dist,
+                        "best_rotation_angle": best_angle,
                     }
                 )
 
@@ -192,12 +198,18 @@ def _merge_to_panel_pairs(
         if len(panel_ids) != 2:
             continue
         best_dist = min(c["distance"] for c in tile_cands)
+        # Pick the rotation angle of the best (lowest-distance) tile candidate
+        best_angle = next(
+            c.get("best_rotation_angle", 0)
+            for c in sorted(tile_cands, key=lambda c: c["distance"])
+        )
         result.append(
             {
                 "source_panel_id": panel_ids[0],
                 "target_panel_id": panel_ids[1],
                 "tile_candidate_count": len(tile_cands),
                 "best_tile_distance": best_dist,
+                "best_rotation_angle": best_angle,
                 "tile_candidates": tile_cands,
             }
         )
@@ -585,6 +597,12 @@ def detect_overlap_reuse(
         except OSError:
             continue
 
+    # Build a lookup from (src, tgt) panel pair -> best_rotation_angle
+    rotation_angle_map: dict[tuple[str, str], int] = {}
+    for pp in panel_pairs:
+        key = (pp["source_panel_id"], pp["target_panel_id"])
+        rotation_angle_map[key] = pp.get("best_rotation_angle", 0)
+
     rel_idx = 0
     for v in verified:
         src_id = str(v.get("source_panel_id") or "")
@@ -645,6 +663,7 @@ def detect_overlap_reuse(
                 "overlay_path": overlay_path,
                 "flip_detected": bool(v.get("flip_detected", False)),
                 "homography": homography,
+                "best_rotation_angle": rotation_angle_map.get((src_id, tgt_id), 0),
             }
         )
         rel_idx += 1
