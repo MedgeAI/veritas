@@ -114,25 +114,14 @@ export function useEmbeddingIndex(selectedCase) {
       await triggerEmbeddingIndex(selectedCase.case_id, { signal });
 
       for (let attempt = 0; attempt < 12; attempt += 1) {
-        if (signal.aborted) break;
-
         await sleep(1500);
-
-        if (signal.aborted) break;
-
         const status = await getEmbeddingStatus(selectedCase.case_id, { signal });
-
-        if (signal.aborted) break;
-
         setEmbeddingStatus(status);
-
         if (isBlockingEmbeddingStatus(status)) {
           setSimilarityError(describeEmbeddingStatus(status, 'Indexing failed'));
           break;
         }
-        if (isTerminalEmbeddingStatus(status)) {
-          break;
-        }
+        if (isTerminalEmbeddingStatus(status)) break;
       }
     } catch (err) {
       if (err.name !== 'AbortError') {

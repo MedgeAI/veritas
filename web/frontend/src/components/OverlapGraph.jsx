@@ -196,6 +196,9 @@ export default function OverlapGraph({
             <g
               key={key}
               onClick={() => onSelectRelationship?.(link._relationship || link)}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectRelationship?.(link._relationship || link); } }}
+              role="button"
+              tabIndex={0}
               className="cursor-pointer"
             >
               <line
@@ -231,6 +234,8 @@ export default function OverlapGraph({
               key={node.id}
               onMouseEnter={() => setHoveredNode(node)}
               onMouseLeave={() => setHoveredNode(null)}
+              aria-label={`Panel ${node.label || node.id}`}
+              role="img"
             >
               <circle
                 cx={node.x}

@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { FiPlay, FiUploadCloud } from 'react-icons/fi';
-import { createCase, startRun, uploadInput } from '../services/api.js';
+import MaterialChecklist from '../components/MaterialChecklist.jsx';
+import { checkMaterials, createCase, startRun, uploadInput } from '../services/api.js';
+import { translateAgentMode } from '../utils/piLabels.js';
 
 const DEFAULT_PARAMS = {
   agent_mode: 'full',
@@ -33,6 +35,8 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
   const [error, setError] = useState('');
   const [uploadProgress, setUploadProgress] = useState({});
   const [extractingTitle, setExtractingTitle] = useState(false);
+  const [materials, setMaterials] = useState(null);
+  const [createdCaseId, setCreatedCaseId] = useState('');
 
   const pdfCount = useMemo(() => files.filter((file) => file.name.toLowerCase().endsWith('.pdf')).length, [files]);
 
@@ -60,6 +64,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
       };
       const record = await createCase(payload);
       appendLog(`created case ${record.case_id}`);
+      setCreatedCaseId(record.case_id);
       onCaseCreated(record);
 
       // 上传文件
@@ -97,13 +102,22 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
       }
       setExtractingTitle(false);
 
+      // 上传完成后获取材料完整性检查结果
+      try {
+        const materialsResult = await checkMaterials(record.case_id);
+        setMaterials(materialsResult);
+        appendLog(`materials: score ${materialsResult.completeness_score}`);
+      } catch {
+        // 材料检查失败不阻塞审查启动
+      }
+
       // 启动审查
       const run = await startRun(record.case_id, {
         ...params,
         agent_timeout_seconds: Number(params.agent_timeout_seconds || 600),
         agent_max_retries: Number(params.agent_max_retries || 1),
       });
-      appendLog(`started run ${run.run_id}`);
+      appendLog('审查已启动');
       onRunStarted(run);
     } catch (nextError) {
       setError(nextError.message || String(nextError));
@@ -201,11 +215,11 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
 
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           <label>
-            <span className="metric-label">Agent Mode</span>
+            <span className="metric-label">审查模式</span>
             <select className="input-field mt-2" name="agent_mode" value={params.agent_mode} onChange={(event) => updateParam('agent_mode', event.target.value)}>
-              <option value="full">full</option>
-              <option value="review">review</option>
-              <option value="off">off</option>
+              <option value="full">完整审查</option>
+              <option value="review">复核模式</option>
+              <option value="off">关闭</option>
             </select>
           </label>
           <label>
@@ -254,26 +268,19 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
         </div>
       </section>
 
-      <aside className="dossier-panel rounded-[2rem] p-6">
-        <p className="metric-label">Run Contract</p>
-        <h3 className="mt-3 font-display text-2xl font-semibold">等价 CLI 默认参数</h3>
-        <pre className="mt-4 overflow-auto rounded-2xl bg-ink-900 p-4 font-mono text-xs leading-6 text-paper-100">
-{`PYTHONPATH=. python3 cli/main.py audit-paper <input_dir> \\
-  --case-id <case_id> \\
-  --fresh \\
-  --force \\
-  --agent-mode full \\
-  --agent-timeout-seconds 600 \\
-  --agent-max-retries 1 \\
-  --progress plain`}
-        </pre>
-        <div className="mt-5 space-y-2" aria-live="polite">
-          {log.map((item) => (
-            <p key={item} className="rounded-2xl bg-white/50 px-3 py-2 font-mono text-xs text-ink-500">
-              {item}
-            </p>
-          ))}
-        </div>
+      <aside className="space-y-6">
+        {materials ? (
+          <MaterialChecklist caseId={createdCaseId} materials={materials} />
+        ) : null}
+        <section className="dossier-panel rounded-[2rem] p-6">
+          <div className="mt-5 space-y-2" aria-live="polite">
+            {log.map((item) => (
+              <p key={item} className="rounded-2xl bg-white/50 px-3 py-2 font-mono text-xs text-ink-500">
+                {item}
+              </p>
+            ))}
+          </div>
+        </section>
       </aside>
     </div>
   );

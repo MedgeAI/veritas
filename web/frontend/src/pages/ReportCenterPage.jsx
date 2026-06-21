@@ -2,6 +2,7 @@ import { startTransition, useEffect, useMemo, useState } from 'react';
 import { FiExternalLink, FiRefreshCw } from 'react-icons/fi';
 import StatusPill from '../components/StatusPill.jsx';
 import { listArtifacts, reportHtmlUrl } from '../services/api.js';
+import { translateStatus, friendlyError } from '../utils/piLabels.js';
 
 function ReportCenterPage({ selectedCase }) {
   const [artifacts, setArtifacts] = useState([]);
@@ -96,8 +97,8 @@ function ReportCenterPage({ selectedCase }) {
 function ReportCaseRequired() {
   return (
     <section className="dossier-panel rounded-[2rem] p-8 text-center">
-      <p className="font-display text-2xl font-semibold">请先选择 Case</p>
-      <p className="mt-3 text-sm text-ink-500">报告预览依赖当前 case 的 `final_audit_report.html`。</p>
+      <p className="font-display text-2xl font-semibold">请先选择审查项目</p>
+      <p className="mt-3 text-sm text-ink-500">报告预览依赖当前审查项目的最终报告</p>
     </section>
   );
 }
@@ -110,7 +111,7 @@ function ReportHero({ artifact, isRefreshing, ready, reportUrl, onRefreshStatus,
           <p className="metric-label">Final HTML Report</p>
           <div className="mt-2 flex flex-wrap items-center gap-3">
             <h2 className="section-title">最终审查报告</h2>
-            <StatusPill tone={ready ? 'ok' : 'neutral'}>{ready ? 'ready' : 'waiting'}</StatusPill>
+            <StatusPill tone={ready ? 'ok' : 'neutral'}>{ready ? '已就绪' : '等待生成'}</StatusPill>
           </div>
           <ReportMetadata artifact={artifact} />
         </div>
@@ -126,7 +127,7 @@ function ReportHero({ artifact, isRefreshing, ready, reportUrl, onRefreshStatus,
 
       {error ? (
         <div className="mt-5 rounded-2xl border border-risk-300/45 bg-risk-100/70 p-4 text-sm text-risk-700" role="alert">
-          {error}
+          {friendlyError(error)}
         </div>
       ) : null}
     </section>
@@ -136,7 +137,7 @@ function ReportHero({ artifact, isRefreshing, ready, reportUrl, onRefreshStatus,
 function ReportMetadata({ artifact }) {
   return (
     <div className="mt-3 flex flex-wrap gap-2">
-      <span className="mono-chip">{artifact?.path || 'final_audit_report.html'}</span>
+      <span className="mono-chip">{artifact?.path || '最终审查报告'}</span>
       <span className="mono-chip">size: {formatBytes(artifact?.size_bytes)}</span>
       <span className="mono-chip">updated: {artifact?.updated_at || '-'}</span>
     </div>

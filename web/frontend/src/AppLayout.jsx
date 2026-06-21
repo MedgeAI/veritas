@@ -1,4 +1,4 @@
-import { Suspense, lazy, startTransition, useEffect, useMemo, useState } from 'react';
+import { Suspense, lazy, startTransition, useCallback, useEffect, useMemo, useState } from 'react';
 import Sidebar from './components/Sidebar.jsx';
 import Topbar from './components/Topbar.jsx';
 import LoadingFallback from './components/LoadingFallback.jsx';
@@ -8,25 +8,19 @@ import { checkHealth, listCases } from './services/api.js';
 const CasesPage = lazy(() => import('./pages/CasesPage.jsx'));
 const NewAuditPage = lazy(() => import('./pages/NewAuditPage.jsx'));
 const MissionControlPage = lazy(() => import('./pages/MissionControlPage.jsx'));
-const EvidenceWorkspacePage = lazy(() => import('./pages/EvidenceWorkspacePage.jsx'));
 const ReportCenterPage = lazy(() => import('./pages/ReportCenterPage.jsx'));
-const VisualForensicsPage = lazy(() => import('./pages/VisualForensicsPage.jsx'));
-const InvestigationBoardPage = lazy(() => import('./pages/InvestigationBoardPage.jsx'));
-const ReviewQueuePage = lazy(() => import('./pages/ReviewQueuePage.jsx'));
-const CBIRSearchPage = lazy(() => import('./pages/CBIRSearchPage.jsx'));
-const PlaceholderPage = lazy(() => import('./pages/PlaceholderPage.jsx'));
+const FindingsPage = lazy(() => import('./pages/FindingsPage.jsx'));
+const EvidenceReviewPage = lazy(() => import('./pages/EvidenceReviewPage.jsx'));
+const ActionsPage = lazy(() => import('./pages/ActionsPage.jsx'));
 
 const PAGE_META = {
-  cases: ['Cases', '管理审查档案、恢复最近一次任务上下文。'],
-  newAudit: ['New Audit', '创建 case、上传论文材料、启动真实 audit-paper 流程。'],
-  mission: ['Mission Control', '观察当前运行状态、进度事件和失败节点。'],
-  evidence: ['Evidence Workspace', '读取结构化产物，包括 manifest、bundle、investigation rounds。'],
-  visual: ['Visual Forensics Gallery', '图像取证候选、VLM 初筛与人工复核入口。'],
-  investigation: ['Investigation Board', 'Agent 选择确定性工具后的调查轨迹。'],
-  review: ['Review Queue', '人工复核队列，不让模型直接给最终诚信判定。'],
-  cbir: ['CBIR Search', '通过 Panel ID 或图片上传搜索相似 panel。'],
-  report: ['Report Center', '预览并打开最终 HTML 报告。'],
-  advanced: ['Advanced Lab', '预留 pdf-extractor、panel-extractor、copy-move 与 CBIR 服务。'],
+  cases: ['Dashboard', '按风险等级分组的审查看板，快速定位需要关注的 case。'],
+  newAudit: ['新建审查', '创建 case、上传论文材料、启动审查流程。'],
+  mission: ['运行监控', '观察当前运行状态、进度事件和失败节点。'],
+  report: ['审查报告', '预览并打开最终 HTML 报告。'],
+  findings: ['审查发现', '风险概览与高危发现，快速判断论文需要关注的重点。'],
+  evidence: ['证据审查', '图像取证、相似 Panel 搜索与可视化证据分析。'],
+  actions: ['行动项', '待复核发现、材料补交与追问清单。'],
 };
 
 function workspaceFromUrl() {
@@ -65,9 +59,9 @@ function writeWorkspaceUrl(value) {
 }
 
 function AppLayout() {
-  // 默认打开 New Audit 页面（ChatGPT 模式：聚焦"开始新任务"）
+  // 默认打开 Dashboard（待办看板）
   const urlWorkspace = workspaceFromUrl();
-  const [activePage, setActivePage] = useState(urlWorkspace?.activePage || 'newAudit');
+  const [activePage, setActivePage] = useState(urlWorkspace?.activePage || 'cases');
   const [cases, setCases] = useState([]);
   const [selectedCaseId, setSelectedCaseId] = useState(urlWorkspace?.caseId || '');
   const [selectedRunId, setSelectedRunId] = useState(urlWorkspace?.runId || '');
@@ -92,7 +86,7 @@ function AppLayout() {
     [cases, selectedCaseId],
   );
 
-  async function refreshCases() {
+  const refreshCases = useCallback(async () => {
     try {
       const payload = await listCases();
       setCases(payload.cases || []);
@@ -100,9 +94,9 @@ function AppLayout() {
     } catch (error) {
       setLoadError(error.message || String(error));
     }
-  }
+  }, []);
 
-  async function refreshBackendHealth() {
+  const refreshBackendHealth = useCallback(async () => {
     try {
       const payload = await checkHealth();
       setBackendHealth({
@@ -117,7 +111,7 @@ function AppLayout() {
         recoveredInterruptedRuns: 0,
       });
     }
-  }
+  }, []);
 
   useEffect(() => {
     refreshCases();
@@ -137,7 +131,7 @@ function AppLayout() {
       window.clearInterval(timer);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, []);
+  }, [refreshCases, refreshBackendHealth]);
 
   useEffect(() => {
     const workspace = {
@@ -228,26 +222,14 @@ function AppLayout() {
         return <NewAuditPage {...shared} onCaseCreated={handleCaseCreated} onRunStarted={handleRunStarted} />;
       case 'mission':
         return <MissionControlPage {...shared} />;
-      case 'evidence':
-        return <EvidenceWorkspacePage {...shared} />;
       case 'report':
         return <ReportCenterPage {...shared} />;
-      case 'visual':
-        return <VisualForensicsPage {...shared} />;
-      case 'investigation':
-        return <InvestigationBoardPage {...shared} />;
-      case 'review':
-        return <ReviewQueuePage {...shared} />;
-      case 'cbir':
-        return <CBIRSearchPage {...shared} />;
-      case 'advanced':
-        return (
-          <PlaceholderPage
-            title={PAGE_META.advanced[0]}
-            body={PAGE_META.advanced[1]}
-            lanes={['pdf-extractor', 'panel-extractor', 'copy-move-detection-keypoint', 'cbir-service + Milvus']}
-          />
-        );
+      case 'findings':
+        return <FindingsPage {...shared} />;
+      case 'evidence':
+        return <EvidenceReviewPage {...shared} />;
+      case 'actions':
+        return <ActionsPage {...shared} />;
       default:
         return <CasesPage {...shared} />;
     }
@@ -256,7 +238,7 @@ function AppLayout() {
   const [pageTitle, pageSubtitle] = PAGE_META[activePage] || PAGE_META.cases;
 
   return (
-    <div className="audit-shell min-h-screen lg:flex">
+    <div className="audit-shell h-screen overflow-hidden lg:flex">
       <a className="skip-link" href="#main-content">
         跳到主内容
       </a>
@@ -269,7 +251,7 @@ function AppLayout() {
         caseCount={cases.length}
       />
 
-      <main id="main-content" className="min-w-0 flex-1 px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
+      <main id="main-content" className="min-w-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
         <Topbar selectedCase={selectedCase} selectedRunId={selectedRunId} onRefresh={refreshCases} />
 
         <div className="mb-5 flex flex-col gap-3 lg:hidden">

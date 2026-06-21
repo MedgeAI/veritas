@@ -121,6 +121,10 @@ export async function listArtifacts(caseId) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/artifacts`);
 }
 
+export async function getRiskSummary(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/risk-summary`);
+}
+
 export async function getArtifactText(caseId, artifactId) {
   const response = await fetch(buildUrl(`/api/cases/${encodeURIComponent(caseId)}/artifacts/${encodeURIComponent(artifactId)}`));
   const text = await response.text();
@@ -201,4 +205,9 @@ export async function getEmbeddingStatus(caseId, options = {}) {
 
 export async function fetchAllSimilarPairs(caseId, { threshold = 0.85, signal } = {}) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/similarity/pairs?threshold=${threshold}`, { signal });
+}
+
+// Material Completeness Check API
+export async function checkMaterials(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/materials`);
 }

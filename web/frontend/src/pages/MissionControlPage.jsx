@@ -1,43 +1,39 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FiExternalLink, FiRefreshCw } from 'react-icons/fi';
+import FollowUpDisplay from '../components/FollowUpDisplay.jsx';
+import MaterialChecklist from '../components/MaterialChecklist.jsx';
+import ProgressTracker from '../components/ProgressTracker.jsx';
+import RiskTrafficLight from '../components/RiskTrafficLight.jsx';
+import EmptyState from '../components/EmptyState.jsx';
 import StatusPill from '../components/StatusPill.jsx';
-import { getEvents, getRun, listArtifacts, reportHtmlUrl } from '../services/api.js';
-
-function eventDetail(event) {
-  const copy = { ...event };
-  delete copy.timestamp;
-  delete copy.event;
-  return JSON.stringify(copy, null, 2);
-}
-
-function eventKey(event, index) {
-  return [
-    index,
-    event.timestamp || 'no-ts',
-    event.event || 'event',
-    event.key || '',
-    event.title || '',
-    event.attempt || '',
-  ].join('|');
-}
+import { translateStatus, translateArtifactLabel, translateRiskLevel, translateIssueCategory, friendlyError } from '../utils/piLabels.js';
+import { checkMaterials, getEvents, getRiskSummary, getRun, listArtifacts, reportHtmlUrl } from '../services/api.js';
 
 function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefreshCases }) {
+  const selectedCaseId = selectedCase?.case_id || '';
   const effectiveRunId = selectedRunId || selectedCase?.latest_run_id || '';
   const [run, setRun] = useState(null);
   const [events, setEvents] = useState([]);
   const [artifacts, setArtifacts] = useState([]);
   const [error, setError] = useState('');
   const [staleRun, setStaleRun] = useState(false);
+  const [riskSummary, setRiskSummary] = useState(null);
+  const [materials, setMaterials] = useState(null);
+
+  const selectedCaseRef = useRef(selectedCase);
+  useEffect(() => { selectedCaseRef.current = selectedCase; }, [selectedCase]);
 
   const isLive = useMemo(() => ['queued', 'running'].includes(run?.status), [run]);
+  const isFinished = run?.status === 'completed';
 
   const refresh = useCallback(async () => {
-    if (!selectedCase || !effectiveRunId) return;
+    const sc = selectedCaseRef.current;
+    if (!sc || !effectiveRunId) return;
     try {
       const [nextRun, nextEvents, nextArtifacts] = await Promise.all([
-        getRun(selectedCase.case_id, effectiveRunId),
-        getEvents(selectedCase.case_id, effectiveRunId),
-        listArtifacts(selectedCase.case_id),
+        getRun(sc.case_id, effectiveRunId),
+        getEvents(sc.case_id, effectiveRunId),
+        listArtifacts(sc.case_id),
       ]);
       setRun(nextRun);
       setEvents(nextEvents.events || []);
@@ -53,35 +49,121 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
       setError(message);
       setStaleRun(message.includes('run not found'));
     }
-  }, [effectiveRunId, onRefreshCases, onSelectRun, selectedCase]);
+  }, [effectiveRunId, onRefreshCases, onSelectRun]);
+
+  // Fetch risk summary when run completes (or when case/run changes)
+  useEffect(() => {
+    if (!selectedCaseId || !isFinished) {
+      setRiskSummary(null);
+      return;
+    }
+    let cancelled = false;
+    getRiskSummary(selectedCaseId)
+      .then((data) => { if (!cancelled) setRiskSummary(data); })
+      .catch(() => { /* non-critical: leave null */ });
+    return () => { cancelled = true; };
+  }, [selectedCase, isFinished]);
+
+  // Fetch materials completeness when case changes
+  useEffect(() => {
+    if (!selectedCaseId) {
+      setMaterials(null);
+      return;
+    }
+    let cancelled = false;
+    checkMaterials(selectedCaseId)
+      .then((data) => { if (!cancelled) setMaterials(data); })
+      .catch(() => { /* non-critical: leave null */ });
+    return () => { cancelled = true; };
+  }, [selectedCase]);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
   useEffect(() => {
-    if (!selectedCase || !effectiveRunId) return undefined;
+    if (!selectedCaseId || !effectiveRunId) return undefined;
     const timer = window.setInterval(refresh, isLive ? 2500 : 8000);
     return () => window.clearInterval(timer);
   }, [effectiveRunId, isLive, refresh, selectedCase]);
 
   if (!selectedCase) {
-    return <EmptyMission message="请先选择或创建一个 Case。" />;
+    return <EmptyState title="请先选择或创建一个 Case。" />;
   }
 
   if (!effectiveRunId) {
-    return <EmptyMission message="当前 Case 还没有运行记录，请在 New Audit 启动审查。" />;
+    return <EmptyState title="当前 Case 还没有运行记录，请在 New Audit 启动审查。" />;
   }
 
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+      {run ? (
+        <div className="xl:col-span-2">
+          <ProgressTracker events={events} runStatus={run.status} startedAt={run.started_at} caseId={selectedCaseId} />
+        </div>
+      ) : null}
+
+      {/* Risk Summary — only shown after run completes */}
+      {isFinished && riskSummary ? (
+        <section className="xl:col-span-2 dossier-panel rounded-[2rem] p-6">
+          <p className="metric-label">风险评估</p>
+          <div className="mt-4">
+            <RiskTrafficLight riskLevel={riskSummary.overall_risk} riskCounts={riskSummary.risk_counts} />
+          </div>
+          <p className="mt-4 font-mono text-[11px] text-ink-300">
+            {riskSummary.status === 'unavailable'
+              ? '风险概览数据尚未生成，当前证据不足以汇总风险。'
+              : `共 ${riskSummary.total_findings} 个发现，其中 ${riskSummary.high_quality_count} 个为中高风险`}
+          </p>
+          {riskSummary.status === 'unavailable' ? (
+            <p className="mt-4 rounded-2xl bg-white/45 p-4 text-sm text-ink-500">
+              请等待审查完成后重试，或查看下方产物准备情况和异常记录。
+            </p>
+          ) : riskSummary.top_findings.length > 0 ? (
+            <div className="mt-5 space-y-4">
+              <p className="text-sm font-semibold text-ink-900">Top {riskSummary.top_findings.length} 发现</p>
+              {riskSummary.top_findings.map((finding, idx) => {
+                const fId = finding.finding_id || '';
+                const questions = riskSummary.follow_ups?.[fId] || [];
+                return (
+                  <article key={fId || idx} className="rounded-2xl border border-ink-900/8 bg-white/50 p-4">
+                    <div className="flex flex-wrap items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono text-[11px] text-ink-300">{fId}</span>
+                          <StatusPill tone={finding.risk_level === 'critical' || finding.risk_level === 'high' ? 'risk' : 'warn'}>
+                            {translateRiskLevel(finding.risk_level)}
+                          </StatusPill>
+                          {finding.issue_category ? (
+                            <span className="font-mono text-[10px] text-ink-300">{translateIssueCategory(finding.issue_category)}</span>
+                          ) : null}
+                        </div>
+                        <p className="mt-1.5 text-sm leading-6 text-ink-700">{finding.summary}</p>
+                      </div>
+                    </div>
+                    <div className="mt-3 border-t border-ink-900/5 pt-3">
+                      <p className="mb-1.5 text-[11px] font-semibold text-ink-500">建议追问</p>
+                      <FollowUpDisplay followUps={questions} />
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="mt-4 rounded-2xl bg-white/45 p-4 text-sm text-ink-500">
+              未发现中高风险问题。
+            </p>
+          )}
+        </section>
+      ) : null}
+
       <section className="dossier-panel rounded-[2rem] p-6">
         <div className="flex flex-col gap-4 border-b border-ink-900/10 pb-5 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="metric-label">Run State</p>
+            <p className="metric-label">运行状态</p>
             <div className="mt-2 flex flex-wrap items-center gap-3">
               <h2 className="section-title">{effectiveRunId}</h2>
-              {run ? <StatusPill>{run.status}</StatusPill> : <StatusPill>loading</StatusPill>}
+              {run ? <StatusPill>{translateStatus(run.status)}</StatusPill> : <StatusPill>loading</StatusPill>}
             </div>
           </div>
           <div className="flex flex-wrap gap-3">
@@ -89,7 +171,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
               <FiRefreshCw aria-hidden="true" />
               刷新进度
             </button>
-            <a className="btn-primary" href={reportHtmlUrl(selectedCase.case_id)} target="_blank" rel="noreferrer">
+            <a className="btn-primary" href={reportHtmlUrl(selectedCaseId)} target="_blank" rel="noreferrer">
               <FiExternalLink aria-hidden="true" />
               报告
             </a>
@@ -101,92 +183,48 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
             {staleRun ? (
               <>
                 <strong>上次恢复的 run 不存在。</strong>
-                <span className="block">这通常说明 localStorage 记录的是旧工作区，或 backend 的 `web_data` 已被清理。请选择当前 case 的最新 run，或重新启动审查。</span>
+                <span className="block">这通常说明本地缓存记录的是旧工作区，或审查数据已被清理。请选择当前审查项目的最新运行，或重新启动审查。</span>
               </>
             ) : (
               error
             )}
           </div>
         ) : null}
-
-        <div className="mt-6 grid gap-4 md:grid-cols-4">
-          <Metric label="status" value={run?.status || '-'} />
-          <Metric label="started" value={run?.started_at || '-'} />
-          <Metric label="completed" value={run?.completed_at || '-'} />
-          <Metric label="events" value={events.length} />
-        </div>
-
-        <div className="mt-7">
-          <p className="metric-label">Progress Events</p>
-          <div className="mt-3 max-h-[580px] space-y-3 overflow-auto pr-2">
-            {events.length === 0 ? <p className="rounded-2xl bg-white/45 p-5 text-sm text-ink-500">等待 backend 写入进度事件。</p> : null}
-            {events.map((event, index) => (
-              <article key={eventKey(event, index)} className="flow-list-item rounded-3xl border border-ink-900/8 bg-white/50 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span className="grid h-8 w-8 place-items-center rounded-full bg-ink-900 font-mono text-xs text-paper-50">
-                      {index + 1}
-                    </span>
-                    <div>
-                      <p className="font-semibold text-ink-900">{event.event || 'event'}</p>
-                      <p className="font-mono text-xs text-ink-300">{event.timestamp || 'no timestamp'}</p>
-                    </div>
-                  </div>
-                </div>
-                <pre className="mt-3 overflow-auto rounded-2xl bg-paper-100/65 p-3 font-mono text-[11px] leading-5 text-ink-500">
-                  {eventDetail(event)}
-                </pre>
-              </article>
-            ))}
-          </div>
-        </div>
       </section>
 
       <aside className="space-y-6">
+        {materials ? (
+          <MaterialChecklist caseId={selectedCaseId} materials={materials} />
+        ) : null}
+
         <section className="dossier-panel rounded-[2rem] p-6">
-          <p className="metric-label">Artifact Readiness</p>
+          <p className="metric-label">产物准备情况</p>
           <div className="mt-4 space-y-3">
             {artifacts.map((artifact) => (
               <div key={artifact.artifact_id} className="flex items-center justify-between gap-3 rounded-2xl bg-white/50 px-4 py-3">
                 <div>
-                  <p className="text-sm font-semibold text-ink-900">{artifact.label}</p>
-                  <p className="font-mono text-[11px] text-ink-300">{artifact.artifact_id}</p>
+                  <p className="text-sm font-semibold text-ink-900">{translateArtifactLabel(artifact.label)}</p>
                 </div>
-                <StatusPill tone={artifact.exists ? 'ok' : 'neutral'}>{artifact.exists ? 'ready' : 'missing'}</StatusPill>
+                <StatusPill tone={artifact.exists ? 'ok' : 'neutral'}>{artifact.exists ? '已就绪' : '缺失'}</StatusPill>
               </div>
             ))}
           </div>
         </section>
 
         <section className="dossier-panel rounded-[2rem] p-6">
-          <p className="metric-label">Failure Surface</p>
+          <p className="metric-label">异常记录</p>
           <p className="mt-3 text-sm leading-6 text-ink-500">
-            MinerU 网络错误、LLM 结构化输出失败和 Tool Registry 调用失败都会在进度事件、run.error 或最终 bundle 中留下记录。
+            审查过程中遇到的错误会记录在此处。如果审查正常完成，此处为空。
           </p>
-          {run?.error ? <pre className="mt-4 overflow-auto rounded-2xl bg-risk-100 p-3 font-mono text-xs text-risk-700">{run.error}</pre> : null}
+          {run?.error ? (
+            <details className="mt-4">
+              <summary className="cursor-pointer text-sm font-semibold text-risk-700">查看错误详情</summary>
+              <pre className="mt-2 overflow-auto rounded-2xl bg-risk-100 p-3 font-mono text-xs text-risk-700">{run.error}</pre>
+            </details>
+          ) : null}
         </section>
       </aside>
     </div>
-  );
-}
-
-function Metric({ label, value }) {
-  return (
-    <div className="rounded-3xl border border-ink-900/8 bg-white/50 p-4">
-      <p className="metric-label">{label}</p>
-      <p className="mt-2 break-words font-mono text-xs text-ink-700">{String(value)}</p>
-    </div>
-  );
-}
-
-function EmptyMission({ message }) {
-  return (
-    <section className="dossier-panel rounded-[2rem] p-8 text-center">
-      <p className="font-display text-2xl font-semibold">{message}</p>
-      <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-ink-500">
-        当前 Web P1 的核心是把 CLI 审查闭环变成可观察任务，而不是替换底层审查逻辑。
-      </p>
-    </section>
   );
 }
 

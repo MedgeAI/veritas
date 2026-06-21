@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { FiCheck, FiCpu, FiLink, FiPlay, FiRefreshCw, FiShuffle } from 'react-icons/fi';
+import MetricCard from '../components/MetricCard.jsx';
+import EmptyState from '../components/EmptyState.jsx';
 import StatusPill from '../components/StatusPill.jsx';
 import OverlapGraph from '../components/OverlapGraph.jsx';
 import OverlapDetailDrawer from '../components/OverlapDetailDrawer.jsx';
@@ -8,11 +10,12 @@ import { visualImageUrl } from '../services/api.js';
 import { useVisualArtifacts } from '../hooks/useVisualArtifacts.js';
 import { useEmbeddingIndex } from '../hooks/useEmbeddingIndex.js';
 import { useDenseInvestigation } from '../hooks/useDenseInvestigation.js';
+import { translateStatus, translateRiskLevel } from '../utils/piLabels.js';
 
-function VisualForensicsPage({ selectedCase }) {
+function EvidenceReviewPage({ selectedCase }) {
   const [filterRisk, setFilterRisk] = useState('all');
   const [filterCategory, setFilterCategory] = useState('all');
-  const [selectedPanelIds, setSelectedPanelIds] = useState(() => new Set());
+  const [selectedPanelIds, setSelectedPanelIds] = useState([]);
   const [selectedOverlap, setSelectedOverlap] = useState(null);
   const [denseMaxPanels, setDenseMaxPanels] = useState(20);
 
@@ -58,26 +61,24 @@ function VisualForensicsPage({ selectedCase }) {
 
   // Reset panel selection when case changes
   const handleCaseChange = useCallback(() => {
-    setSelectedPanelIds(new Set());
-    setDenseError('');
-  }, [setDenseError]);
+    setSelectedPanelIds([]);
+  }, []);
 
   // Reset case-scoped UI state after the selected case changes.
   useEffect(() => {
     handleCaseChange();
+    setDenseError('');
   }, [handleCaseChange, selectedCase?.case_id]);
 
-  const selectedPanelList = useMemo(() => Array.from(selectedPanelIds), [selectedPanelIds]);
-
   const clearPanelSelection = useCallback(() => {
-    setSelectedPanelIds(new Set());
+    setSelectedPanelIds([]);
   }, []);
 
   // Select panels from a similar pair and immediately run dense investigation
   const handleSelectPair = useCallback(
     (pair) => {
       const panelIds = [pair.source_panel_id, pair.target_panel_id].filter(Boolean);
-      setSelectedPanelIds(new Set(panelIds));
+      setSelectedPanelIds(panelIds);
       runDense(panelIds, denseMaxPanels);
     },
     [runDense, denseMaxPanels],
@@ -97,7 +98,12 @@ function VisualForensicsPage({ selectedCase }) {
   }, [findings]);
 
   if (!selectedCase) {
-    return <EmptyVisual />;
+    return (
+      <EmptyState>
+        <p className="font-display text-2xl font-semibold">请先选择审查项目</p>
+        <p className="mt-3 text-sm text-ink-500">Visual Forensics Gallery 展示图像取证候选、panel 检测和相似关系。</p>
+      </EmptyState>
+    );
   }
 
   return (
@@ -106,8 +112,8 @@ function VisualForensicsPage({ selectedCase }) {
       <section className="dossier-panel rounded-[2rem] p-6">
         <div className="flex items-center justify-between">
           <div>
-            <p className="metric-label">Visual Evidence Summary</p>
-            <h2 className="mt-2 font-display text-2xl font-semibold">视觉取证概览</h2>
+            <p className="metric-label">Evidence Review</p>
+            <h2 className="mt-2 font-display text-2xl font-semibold">证据审查</h2>
           </div>
           <button type="button" className="btn-ghost" onClick={loadData} disabled={loading}>
             <FiRefreshCw aria-hidden="true" />
@@ -158,7 +164,7 @@ function VisualForensicsPage({ selectedCase }) {
       <section className="dossier-panel rounded-[2rem] p-6">
         <h3 className="section-title flex items-center gap-2">
           <FiCpu className="text-ink-500" />
-          Step 1: SSCD 相似 Panel 预筛
+          相似 Panel 预筛
         </h3>
         <p className="mt-2 text-sm text-ink-500">
           用 SSCD 神经网络提取 panel 向量，快速筛出可疑相似 panel 对（纯 CPU，不跑 Docker）。
@@ -183,7 +189,7 @@ function VisualForensicsPage({ selectedCase }) {
                 )}
               </span>
             ) : embeddingStatus?.status === 'queued' || embeddingStatus?.status === 'running' ? (
-              <span className="text-ink-500">索引任务 {embeddingStatus.status}</span>
+              <span className="text-ink-500">索引任务 {translateStatus(embeddingStatus.status)}</span>
             ) : embeddingStatus?.status === 'no_panels' ? (
               <span className="text-amber-700">没有可索引的 panel</span>
             ) : (
@@ -199,7 +205,7 @@ function VisualForensicsPage({ selectedCase }) {
             className="flex items-center gap-2 rounded-xl border border-ink-900/10 bg-white/60 px-4 py-2 text-sm text-ink-900/70 transition hover:bg-white disabled:opacity-50"
           >
             <FiCpu className={isIndexing ? 'animate-spin' : ''} />
-            {isIndexing ? '索引中...' : indexedPanelCount > 0 ? '重新索引' : 'Index Panels'}
+            {isIndexing ? '索引中...' : indexedPanelCount > 0 ? '重新索引' : '索引 Panels'}
           </button>
 
           {/* Threshold slider */}
@@ -274,10 +280,10 @@ function VisualForensicsPage({ selectedCase }) {
       )}
 
       <ManualInvestigationPanel
-        selectedPanelList={selectedPanelList}
+        selectedPanelList={selectedPanelIds}
         maxPanels={denseMaxPanels}
         onMaxPanelsChange={setDenseMaxPanels}
-        onRunDense={() => runDense(selectedPanelList, denseMaxPanels)}
+        onRunDense={() => runDense(selectedPanelIds, denseMaxPanels)}
         onClear={clearPanelSelection}
         running={runningInvestigation}
         error={denseError}
@@ -288,7 +294,7 @@ function VisualForensicsPage({ selectedCase }) {
       {/* Overlap Reuse Graph */}
       {overlapRelationships.length > 0 && (
         <section className="dossier-panel rounded-[2rem] p-6">
-          <h3 className="section-title">Overlap / Reuse Detection</h3>
+          <h3 className="section-title">图像区域复用检测</h3>
           <p className="mt-2 text-sm text-ink-500">
             跨 panel 局部图像区域复用检测 — 点击 edge 查看详情。
           </p>
@@ -317,7 +323,7 @@ function VisualForensicsPage({ selectedCase }) {
       {/* Provenance Graph (MST) */}
       {provenanceGraph && provenanceGraph.nodes && provenanceGraph.nodes.length > 0 && (
         <section className="dossier-panel rounded-[2rem] p-6">
-          <h3 className="section-title">Provenance Graph (MST 溯源图)</h3>
+          <h3 className="section-title">溯源图 (MST)</h3>
           <p className="mt-2 text-sm text-ink-500">
             基于 RootSIFT 描述子递归 BFS 匹配的 figure 级溯源图。MST 边表示最小生成树，
             非 MST 边表示额外的匹配关系。点击节点查看连接详情。
@@ -330,9 +336,9 @@ function VisualForensicsPage({ selectedCase }) {
           </div>
           {provenanceGraph.statistics && (
             <div className="mt-3 flex flex-wrap gap-4 text-xs text-ink-400">
-              <span>Nodes: {provenanceGraph.statistics.node_count || 0}</span>
-              <span>Edges: {provenanceGraph.statistics.edge_count || 0}</span>
-              <span>Components: {provenanceGraph.statistics.component_count || 0}</span>
+              <span>节点：{provenanceGraph.statistics.node_count || 0}</span>
+              <span>边：{provenanceGraph.statistics.edge_count || 0}</span>
+              <span>连通分量：{provenanceGraph.statistics.component_count || 0}</span>
               {provenanceGraph.statistics.max_weight && (
                 <span>Max Weight: {provenanceGraph.statistics.max_weight}</span>
               )}
@@ -348,7 +354,7 @@ function VisualForensicsPage({ selectedCase }) {
 
       {/* Relationships Table */}
       <section className="dossier-panel rounded-[2rem] p-6">
-        <h3 className="section-title">Relationships</h3>
+        <h3 className="section-title">图像关系</h3>
         <p className="mt-2 text-sm text-ink-500">Panel 之间的相似或复用关系，按 score 排序。</p>
         {relationships.length === 0 ? (
           <p className="mt-4 text-sm text-ink-500">未发现 panel 间相似关系。</p>
@@ -361,7 +367,7 @@ function VisualForensicsPage({ selectedCase }) {
       <section className="dossier-panel rounded-[2rem] p-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h3 className="section-title">Visual Findings</h3>
+            <h3 className="section-title">视觉发现</h3>
             <p className="mt-2 text-sm text-ink-500">基于 relationship 生成的 visual finding cards。</p>
           </div>
           <FilterBar
@@ -383,6 +389,14 @@ function VisualForensicsPage({ selectedCase }) {
   );
 }
 
+const TOOL_LABEL_MAP = {
+  'visual.copy_move_dense': '定向Copy-move',
+  'visual.overlap_reuse': '区域复用检测',
+};
+function toolLabel(toolId) {
+  return TOOL_LABEL_MAP[toolId] || toolId;
+}
+
 function ManualInvestigationPanel({
   selectedPanelList,
   maxPanels,
@@ -399,8 +413,8 @@ function ManualInvestigationPanel({
     <section className="dossier-panel rounded-[2rem] p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="metric-label">Manual Investigation</p>
-          <h3 className="mt-2 font-display text-2xl font-semibold">ELIS-style 选择式分析</h3>
+          <p className="metric-label">Targeted Analysis</p>
+          <h3 className="mt-2 font-display text-2xl font-semibold">定向图像分析</h3>
           <p className="mt-2 max-w-3xl text-sm text-ink-500">
             已选择 {selectedPanelList.length} 个 panel。Dense copy-move 只会处理选中 panel，并按预算截断。
           </p>
@@ -435,7 +449,7 @@ function ManualInvestigationPanel({
         <div className="mt-4 rounded-2xl border border-amber-300/60 bg-amber-50/80 p-4 text-sm text-amber-800">
           {artifactErrors.slice(0, 3).map((entry) => (
             <p key={`${entry.action_id || 'action'}-${entry.artifact}`}>
-              {entry.error}: {entry.artifact}
+              {entry.error}
             </p>
           ))}
         </div>
@@ -444,21 +458,12 @@ function ManualInvestigationPanel({
         <div className="mt-4 flex flex-wrap gap-2">
           {records.slice(0, 6).map((record) => (
             <span key={`${record.action_id}-${record.created_at}`} className="mono-chip">
-              {record.tool_id}: {record.status}
+              {toolLabel(record.tool_id)}: {translateStatus(record.status)}
             </span>
           ))}
         </div>
       ) : null}
     </section>
-  );
-}
-
-function MetricCard({ label, value }) {
-  return (
-    <div className="rounded-2xl border border-ink-900/8 bg-paper-100/60 p-4">
-      <p className="metric-label">{label}</p>
-      <p className="mt-2 font-display text-3xl font-bold text-ink-900">{value}</p>
-    </div>
   );
 }
 
@@ -468,7 +473,7 @@ function InvestigationResults({ results, caseId }) {
   }
   return (
     <section className="dossier-panel rounded-[2rem] p-6">
-      <h3 className="section-title">Manual Investigation Results</h3>
+      <h3 className="section-title">定向分析结果</h3>
       <div className="mt-5 space-y-4">
         {results.slice(0, 6).map((entry, index) => {
           const result = entry.result || {};
@@ -479,7 +484,6 @@ function InvestigationResults({ results, caseId }) {
             <article key={`${entry.artifact || index}`} className="rounded-2xl border border-ink-900/8 bg-paper-100/70 p-4">
               <div className="flex flex-wrap items-center gap-2">
                 <StatusPill tone={result.status === 'ran' ? 'neutral' : 'warning'}>{result.status || record.status}</StatusPill>
-                <span className="mono-chip">{record.action_id || 'manual-action'}</span>
                 <span className="mono-chip">panels: {result.panel_count || 0}</span>
                 <span className="mono-chip">relationships: {result.relationship_count || relationships.length}</span>
               </div>
@@ -496,7 +500,7 @@ function InvestigationResults({ results, caseId }) {
                     return (
                       <div key={rel.relationship_id} className="rounded-xl border border-ink-900/8 bg-white/55 p-3">
                         <div className="flex flex-wrap items-center gap-2 text-xs text-ink-500">
-                          <span className="font-mono">{rel.relationship_id}</span>
+                          <span className="font-mono text-[10px] text-ink-400">{rel.relationship_id}</span>
                           <span>score {(rel.score || 0).toFixed(3)}</span>
                           <span>{rel.match_method}</span>
                         </div>
@@ -508,7 +512,10 @@ function InvestigationResults({ results, caseId }) {
                             src={visualImageUrl(caseId, overlayPath)}
                             alt={rel.relationship_id}
                             className="mt-3 h-[180px] w-full rounded-lg border border-ink-900/8 bg-ink-50 object-contain"
+                            width="400"
+                            height="180"
                             loading="lazy"
+                            decoding="async"
                             onError={(event) => { event.target.style.display = 'none'; }}
                           />
                         ) : null}
@@ -584,9 +591,9 @@ function FindingCards({ findings, panels, caseId }) {
         return (
           <article key={finding.finding_id} className="rounded-2xl border border-ink-900/8 bg-gradient-to-br from-paper-100/80 to-paper-200/60 p-5">
             <div className="flex flex-wrap items-center gap-2">
-              <StatusPill tone={riskTone}>{finding.risk_level}</StatusPill>
+              <StatusPill tone={riskTone}>{translateRiskLevel(finding.risk_level)}</StatusPill>
+              <span className="font-mono text-[10px] text-ink-400">{finding.finding_id}</span>
               <span className="rounded-full border border-ink-900/10 bg-white/60 px-2 py-0.5 text-xs">{finding.category}</span>
-              <h4 className="font-semibold text-ink-900">{finding.finding_id}</h4>
               {isWithinPanel && (
                 <span className="rounded-full border border-signal-500/30 bg-signal-100/40 px-2 py-0.5 text-xs text-signal-700">
                   单图内检测
@@ -615,7 +622,10 @@ function FindingCards({ findings, panels, caseId }) {
                     src={visualImageUrl(caseId, sourcePanel.crop_path || '')}
                     alt="panel with copy-move detection"
                     className="h-[200px] rounded-lg border border-ink-900/8 bg-ink-50 object-contain"
+                    width="400"
+                    height="200"
                     loading="lazy"
+                    decoding="async"
                     onError={(e) => { e.target.style.display = 'none'; }}
                   />
                   {finding.overlay_path && (
@@ -623,7 +633,10 @@ function FindingCards({ findings, panels, caseId }) {
                       src={visualImageUrl(caseId, finding.overlay_path)}
                       alt="overlay mask"
                       className="absolute inset-0 h-[200px] rounded-lg object-contain opacity-50 mix-blend-screen"
+                      width="400"
+                      height="200"
                       loading="lazy"
+                      decoding="async"
                       onError={(e) => { e.target.style.display = 'none'; }}
                     />
                   )}
@@ -643,7 +656,10 @@ function FindingCards({ findings, panels, caseId }) {
                       src={visualImageUrl(caseId, sourcePanel.crop_path || '')}
                       alt="source"
                       className="mt-1 h-[140px] w-full rounded-lg border border-ink-900/8 bg-ink-50 object-cover"
+                      width="400"
+                      height="140"
                       loading="lazy"
+                      decoding="async"
                       onError={(e) => { e.target.style.display = 'none'; }}
                     />
                   </div>
@@ -653,7 +669,10 @@ function FindingCards({ findings, panels, caseId }) {
                       src={visualImageUrl(caseId, targetPanel.crop_path || '')}
                       alt="target"
                       className="mt-1 h-[140px] w-full rounded-lg border border-ink-900/8 bg-ink-50 object-cover"
+                      width="400"
+                      height="140"
                       loading="lazy"
+                      decoding="async"
                       onError={(e) => { e.target.style.display = 'none'; }}
                     />
                   </div>
@@ -700,29 +719,29 @@ function FilterBar({ filterRisk, filterCategory, categories, onRiskChange, onCat
   return (
     <div className="flex flex-wrap items-center gap-3">
       <label className="flex items-center gap-2 text-sm">
-        <span className="text-ink-500">Risk:</span>
+        <span className="text-ink-500">风险：</span>
         <select
           className="input-field text-sm"
           value={filterRisk}
           onChange={(e) => onRiskChange(e.target.value)}
         >
-          <option value="all">All</option>
-          <option value="critical">Critical</option>
-          <option value="high">High</option>
-          <option value="medium">Medium</option>
-          <option value="low">Low</option>
+          <option value="all">全部</option>
+          <option value="critical">极高</option>
+          <option value="high">高</option>
+          <option value="medium">中</option>
+          <option value="low">低</option>
         </select>
       </label>
       <label className="flex items-center gap-2 text-sm">
-        <span className="text-ink-500">Category:</span>
+        <span className="text-ink-500">类别：</span>
         <select
           className="input-field text-sm"
           value={filterCategory}
           onChange={(e) => onCategoryChange(e.target.value)}
         >
-          <option value="all">All</option>
+          <option value="all">全部</option>
           {categories.map((cat) => (
-            <option key={cat} value={cat}>{cat === 'all' ? 'All' : cat}</option>
+            <option key={cat} value={cat}>{cat === 'all' ? '全部' : cat}</option>
           ))}
         </select>
       </label>
@@ -730,13 +749,4 @@ function FilterBar({ filterRisk, filterCategory, categories, onRiskChange, onCat
   );
 }
 
-function EmptyVisual() {
-  return (
-    <section className="dossier-panel rounded-[2rem] p-8 text-center">
-      <p className="font-display text-2xl font-semibold">请先选择 Case</p>
-      <p className="mt-3 text-sm text-ink-500">Visual Forensics Gallery 展示图像取证候选、panel 检测和相似关系。</p>
-    </section>
-  );
-}
-
-export default VisualForensicsPage;
+export default EvidenceReviewPage;

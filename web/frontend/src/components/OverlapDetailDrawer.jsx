@@ -38,7 +38,10 @@ export default function OverlapDetailDrawer({ relationship, caseId, onClose }) {
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-semibold text-gray-900">{relationship_id || 'Overlap Detail'}</h3>
+          <h3 className="text-sm font-semibold text-gray-900">复用详情</h3>
+          {relationship_id && (
+            <span className="mt-0.5 block font-mono text-[10px] text-gray-400">{relationship_id}</span>
+          )}
           <span className={`inline-block mt-1 text-xs px-2 py-0.5 rounded ${riskBadge.color}`}>
             {riskBadge.label}
           </span>
@@ -84,6 +87,8 @@ export default function OverlapDetailDrawer({ relationship, caseId, onClose }) {
             <img
               src={visualImageUrl(caseId, overlay_path)}
               alt="Overlap overlay"
+              width="400"
+              height="300"
               className="w-full rounded border border-gray-200"
               loading="lazy"
             />
@@ -127,8 +132,10 @@ function MetricCard({ label, value }) {
 function ReviewItem({ text }) {
   return (
     <li className="flex items-start gap-1.5">
-      <input type="checkbox" className="mt-0.5 h-3 w-3 rounded border-gray-300" />
-      <span className="text-gray-700">{text}</span>
+      <label className="flex items-start gap-1.5 cursor-pointer">
+        <input type="checkbox" className="mt-0.5 h-3 w-3 rounded border-gray-300" />
+        <span className="text-gray-700">{text}</span>
+      </label>
     </li>
   );
 }

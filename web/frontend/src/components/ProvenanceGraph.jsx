@@ -391,6 +391,9 @@ export default function ProvenanceGraph({
                   transform={`translate(${node.x},${node.y})`}
                   className="cursor-pointer"
                   onClick={() => handleNodeClick(node)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNodeClick(node); } }}
+                  role="button"
+                  tabIndex={0}
                   onMouseEnter={() => setHoveredNode(node)}
                   onMouseLeave={() => setHoveredNode(null)}
                   data-testid={`node-${node.id}`}
@@ -401,7 +404,7 @@ export default function ProvenanceGraph({
                     fill={node.is_query ? '#10b981' : '#6366f1'}
                     stroke={isSelected ? '#059669' : node.is_query ? '#059669' : '#818cf8'}
                     strokeWidth={isSelected ? 3 : 2}
-                    className="transition-all duration-150"
+                    className="transition-[r,stroke-width,fill] duration-150"
                   />
                   {/* Query badge */}
                   {node.is_query && (
@@ -499,6 +502,8 @@ export default function ProvenanceGraph({
                 alt={selectedNode.label || selectedNode.id}
                 className="max-h-40 rounded-lg border border-gray-200"
                 loading="lazy"
+                width="320"
+                height="160"
               />
             </div>
           )}
