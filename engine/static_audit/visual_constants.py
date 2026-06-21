@@ -22,9 +22,14 @@ COPY_MOVE_DEFAULTS = {
     "min_matches": 10,  # Minimum number of good matches to consider
     "ratio_threshold": 0.75,  # Lowe's ratio test threshold
     "ransac_threshold": 3.0,  # RANSAC reprojection threshold
-    "min_score": 0.15,  # Minimum score to emit a relationship
+    "min_score": 0.50,  # Minimum score to emit a relationship
     "max_relationships": 500,  # Maximum number of relationships to emit
 }
+
+# Panel types that are code-generated and should skip copy_move/overlap_reuse/trufor detection
+# Only exact_duplicate (SHA-256) is retained for these modalities
+VISUAL_SKIP_PANEL_TYPES = {"Graphs", "Flow Cytometry"}
+VISUAL_SKIP_CONFIDENCE_THRESHOLD = 0.5  # Only skip if YOLOv5 confidence >= this
 
 
 # Modality weights for dual-dimension risk scoring.
