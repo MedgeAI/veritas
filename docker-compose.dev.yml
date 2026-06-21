@@ -38,6 +38,7 @@ services:
       dockerfile: Dockerfile.dev
     container_name: veritas-backend-dev
     restart: unless-stopped
+    # 以宿主机用户身份运行，bind mount 写入的文件属主与宿主机一致
     ports:
       - "8765:8765"
     volumes:

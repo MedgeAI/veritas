@@ -1,6 +1,6 @@
 # Veritas
 
-Updated: 2026-06-20
+Updated: 2026-06-21
 
 **Veritas 是一个实验室内部论文风控工具（当前聚焦干实验论文子集），帮助导师（通讯作者）在投稿前主动发现学生数据中的问题，填补监管真空，避免背锅。**
 
@@ -117,7 +117,7 @@ web/          Web P1：stdlib backend + Vite React frontend
 tests/        单测、集成测试和 e2e 测试
 third_party/  外部能力仓库，通过 git submodule 跟踪并锁定 commit hash
 outputs/      本地运行产物与报告，不进入提交
-web_data/     Web P1 本地 case store 与运行状态，不进入提交
+web_data/     Web P1 上传输入和运行文件，不进入提交
 ```
 
 `engine/tools/registry.py` 是当前静态审查工具集合的 source of truth。opencode 可以在 `agent_plan` 中选择 tool_id 和填写参数，但只有 Tool Registry 允许的 tool_id 会被 Python orchestrator 执行。
@@ -138,7 +138,7 @@ web_data/     Web P1 本地 case store 与运行状态，不进入提交
 
 - `input/`：真实论文与用户输入材料。
 - `outputs/`：本地运行产物与报告。
-- `web_data/`：Web 本地 case store 与运行状态。
+- `web_data/`：Web 本地上传输入和运行文件；结构化状态以数据库为准。
 - `web/frontend/dist/`：前端本地构建产物。
 - `web/frontend/node_modules/`：前端依赖。
 - `.env`：本地密钥。
@@ -498,7 +498,7 @@ The Agent role layer in `audit-paper` currently executes three roles in sequence
 
 ## Web P1 数据层
 
-Web P1 的结构化状态由 SQLAlchemy 管理。开发和测试可使用 SQLite，部署时应通过 `VERITAS_DATABASE_URL` 指向 PostgreSQL。`web_data/` 只保留用户上传输入和运行目录等大文件/目录型内容；case、run、event、investigation、review decision、tool catalog 和 embedding metadata 都存入数据库。它与 `outputs/`（审计引擎产物目录）是两个独立概念：
+Web P1 的结构化状态由 SQLAlchemy 管理。部署和 Docker 开发环境应通过 `VERITAS_DATABASE_URL` 指向 PostgreSQL / pgvector；非 Docker 本地开发由 `make web-backend` 显式启用 PGlite in-memory PostgreSQL-compatible server（`VERITAS_ENABLE_PGLITE=1`）。如果既没有 `VERITAS_DATABASE_URL`，也没有显式启用 PGlite，Web 数据层会启动失败；不再回退到 `web_data/veritas_web.sqlite3`。`web_data/` 只保留用户上传输入和运行目录等大文件/目录型内容；case、run、event、investigation、review decision、tool catalog 和 embedding metadata 都存入数据库。它与 `outputs/`（审计引擎产物目录）是两个独立概念：
 
 ```text
 web_data/
@@ -515,13 +515,24 @@ web_data/
 |---|---|---|
 | 创建 case | `POST /api/cases` | DB `cases` 表，并创建 `web_data/cases/<id>/` |
 | 上传输入 | `POST /api/cases/<id>/inputs` | `web_data/cases/<id>/inputs/` |
-| 启动审查 | `POST /api/cases/<id>/runs` | DB `audit_runs` / `run_events` 表 |
+| 启动审查 | `POST /api/cases/<id>/runs` | DB `runs` / `run_events` 表 |
 | 查看调查记录 | `GET /api/cases/<id>/investigations` | DB 优先，兼容读取 `outputs/.../investigation/` |
 | 保存人工复核决策 | `POST /api/cases/<id>/review-items/<ref>/decision` | DB `review_decisions` 表 |
 | 查看产物 | `GET /api/cases/<id>/artifacts` | 读取 `outputs/`（通过 `run.workdir` 桥接） |
 | 查看报告 | `GET /api/cases/<id>/report/html` | 读取 `outputs/<case_id>/.../final_audit_report.html` |
 
 数据库中的 `AuditRunRecord.workdir` 字段桥接 Web 状态和审计产物：DB 记录"哪个 case 触发了哪次 run"，`outputs/` 存放"这次 run 产出了什么"。
+
+存储职责边界：
+
+| 存储位置 | 当前用途 | 备注 |
+|---|---|---|
+| PostgreSQL / pgvector | Web 结构化状态、人工复核决策、调查记录、工具目录、embedding metadata | Docker dev 使用 `veritas-pg-dev`；生产使用 `veritas-postgres` |
+| `web_data/cases/<case_id>/inputs/` | 用户上传的论文 PDF、Source Data、补充材料等原始输入 | 由 `CaseStore.write_input()` 写入，不作为结构化状态源 |
+| `web_data/cases/<case_id>/runs/` | 预留给 Web 运行相关文件 | run/event 状态仍以数据库为准 |
+| `outputs/<case_id>/research-integrity-audit/` | `audit-paper` 生成的证据、manifest、报告和视觉产物 | 通过 DB 中的 `runs.workdir` 与 Web case/run 关联 |
+
+开发和测试的目标策略是尽量保持 PostgreSQL 语义一致。优先级为：真实 PostgreSQL/pgvector（Docker dev、集成测试）> PGlite in-memory PostgreSQL-compatible backend（轻量单测和快速开发）。不要依赖 SQLite 特有行为作为 Web 数据层契约；新增 schema、约束、JSON 字段、embedding metadata 或事务行为时，应按 PostgreSQL 语义设计和验证。SQLite 只允许作为独立认证用户库或历史迁移源使用，不再作为 Web case/run/event 状态存储。
 
 启用 `bearer` 或 `basic` 鉴权后，所有 case-scoped API 都必须先通过 `CaseRecord.owner == auth_context.user_id` 校验。该校验不只保护 `GET /api/cases/<id>`，也保护输入上传、启动 run、读取 run/events、artifact 列表、单个 artifact 和 HTML 报告，避免知道 `case_id` 后直接读取子资源。
 

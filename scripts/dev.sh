@@ -194,6 +194,7 @@ reset_db() {
     cd "$PROJECT_ROOT"
     docker compose -f "$COMPOSE_FILE" exec -T backend \
         uv run python -c "
+import web.backend.veritas_web.models  # noqa: F401 — populate Base.metadata
 from web.backend.veritas_web.database import create_db_engine, Base
 engine = create_db_engine()
 Base.metadata.drop_all(bind=engine)

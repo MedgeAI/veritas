@@ -33,6 +33,7 @@ HOST ?= 127.0.0.1
 PORT ?= 8765
 WEB_DATA_DIR ?= web_data
 FRONTEND_DIR := web/frontend
+LOCAL_DATABASE_URL ?= postgresql://veritas:veritas@127.0.0.1:5432/veritas
 
 .PHONY: help show-config sync install setup \
 	up down rebuild restart logs ps shell health docker-health \
@@ -71,6 +72,7 @@ show-config: ## Print effective Makefile variables
 	@echo "HOST=$(HOST)"
 	@echo "PORT=$(PORT)"
 	@echo "WEB_DATA_DIR=$(WEB_DATA_DIR)"
+	@echo "LOCAL_DATABASE_URL=$(LOCAL_DATABASE_URL)"
 
 # -- Setup ---------------------------------------------------------------
 
@@ -151,15 +153,15 @@ db-down: ## Stop PostgreSQL container
 	$(COMPOSE) stop postgres
 
 db-init: db-up ## Initialise database tables (development only)
-	$(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.database import init_db; init_db()"
+	VERITAS_DATABASE_URL="$(LOCAL_DATABASE_URL)" $(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.database import init_db; init_db()"
 
 db-migrate: ## Migrate web_data/ JSON files to PostgreSQL
-	$(PY_ENV) $(PYTHON) scripts/migrate_web_data_to_postgres.py
+	VERITAS_DATABASE_URL="$(LOCAL_DATABASE_URL)" $(PY_ENV) $(PYTHON) scripts/migrate_web_data_to_postgres.py
 
 db-reset: ## Reset database: drop all tables and recreate (DEVELOPMENT ONLY)
 	@echo "⚠️  WARNING: This will DELETE all data in the database!"
 	@read -p "Continue? [y/N] " confirm && [ $$confirm = "y" ] || exit 1
-	$(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.database import create_db_engine, Base; \
+	VERITAS_DATABASE_URL="$(LOCAL_DATABASE_URL)" $(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.database import create_db_engine, Base; \
 		engine = create_db_engine(); \
 		Base.metadata.drop_all(bind=engine); \
 		Base.metadata.create_all(bind=engine); \
@@ -229,7 +231,7 @@ report-path: ## Print the expected final audit-paper HTML report path
 # -- Web P1 --------------------------------------------------------------
 
 web-backend: ## Start local stdlib Python web backend
-	$(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.app import serve; serve(host='$(HOST)', port=$(PORT), data_root='$(WEB_DATA_DIR)', output_root='$(OUTPUT_ROOT)')"
+	VERITAS_ENABLE_PGLITE=1 VERITAS_DATABASE_BACKEND=pglite $(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.app import serve; serve(host='$(HOST)', port=$(PORT), data_root='$(WEB_DATA_DIR)', output_root='$(OUTPUT_ROOT)')"
 
 web-frontend: ## Start Vite frontend dev server
 	cd $(FRONTEND_DIR) && npm run dev

@@ -50,7 +50,19 @@ RUN pip install -q uv && \
     uv sync --frozen --no-dev --all-extras
 
 # ── Layer 3: 运行时配置 ────────────────────────────────────────────────
-RUN mkdir -p /app/models /app/outputs /app/web_data
+
+# 创建非 root 用户（与宿主机 UID 对齐，避免 bind mount 权限问题）
+ARG USERNAME=veritas
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID --shell /bin/bash --create-home $USERNAME
+
+RUN mkdir -p /app/models /app/outputs /app/web_data \
+    && chown -R $USERNAME:$USERNAME /app \
+    # uv 在 Layer 2 以 root 身份写入 /.cache/uv，构建期把所有权交给非 root 用户
+    && chown -R $USERNAME:$USERNAME /.cache
 
 ENV VERITAS_HOST=0.0.0.0 \
     VERITAS_PORT=8765 \
@@ -64,6 +76,9 @@ EXPOSE 8765
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:8765/api/health || exit 1
+
+# 以非 root 身份运行
+USER $USERNAME
 
 # uvicorn + watchfiles 热重载：监听 /workspace 下代码变更
 CMD ["uv", "run", "python", "-m", "uvicorn", \
