@@ -123,6 +123,22 @@ async def cbir_search_by_label(
             },
         )
 
+    # Resolve labels before opening the embedding DB session. This avoids
+    # nested sessions on the same engine, which is unnecessary here and can
+    # exhaust lightweight PGlite connection pools in tests.
+    workdir = deps.artifacts.latest_workdir(case_id)
+    panel_labels: dict[str, str] = {}
+    if workdir is not None:
+        from ..cbir_service import _read_panel_evidence
+
+        panel_doc = _read_panel_evidence(workdir)
+        if panel_doc:
+            for panel in panel_doc.get("panels") or []:
+                pid = str(panel.get("panel_id", ""))
+                lbl = str(panel.get("label", ""))
+                if pid:
+                    panel_labels[pid] = lbl
+
     session = deps._session_factory()
     try:
         embeddings = (
@@ -130,20 +146,6 @@ async def cbir_search_by_label(
             .filter(ImageEmbeddingModel.case_id == case_id)
             .all()
         )
-
-        # Resolve labels from panel_evidence.json
-        workdir = deps.artifacts.latest_workdir(case_id)
-        panel_labels: dict[str, str] = {}
-        if workdir is not None:
-            from ..cbir_service import _read_panel_evidence
-
-            panel_doc = _read_panel_evidence(workdir)
-            if panel_doc:
-                for panel in panel_doc.get("panels") or []:
-                    pid = str(panel.get("panel_id", ""))
-                    lbl = str(panel.get("label", ""))
-                    if pid:
-                        panel_labels[pid] = lbl
 
         label_lower = label.lower()
         matches: list[dict[str, Any]] = []

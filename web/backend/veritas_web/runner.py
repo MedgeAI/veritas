@@ -11,6 +11,7 @@ from engine.static_audit.orchestrator import run_static_audit
 
 from .case_store import CaseStore
 from .models import STALE_RUN_THRESHOLD_SECONDS, AuditRunRecord, utc_now
+from .risk import load_static_audit_bundle, risk_rank, summarize_findings
 
 AuditFunction = Callable[..., dict[str, Any]]
 
@@ -121,14 +122,35 @@ class AuditRunner:
             failed_steps = []
             if run.summary:
                 failed_steps = list(run.summary.get("failed_steps") or [])
-            case_record.status = "Review Needed" if failed_steps else "Report Ready"
-            case_record.review_needed_count = len(failed_steps)
+            bundle = load_static_audit_bundle(run.workdir)
+            finding_review_count = 0
+            if bundle is not None:
+                findings = bundle.get("findings", [])
+                summary = summarize_findings(
+                    findings if isinstance(findings, list) else []
+                )
+                case_record.technical_risk = summary["overall_risk"]
+                finding_review_count = int(summary["high_quality_count"])
+            else:
+                case_record.technical_risk = "unknown"
+            case_record.status = (
+                "Review Needed"
+                if failed_steps or finding_review_count > 0
+                else "Report Ready"
+            )
+            case_record.review_needed_count = max(
+                finding_review_count, len(failed_steps)
+            )
         elif run.status == "failed":
             case_record.status = "Review Needed"
             case_record.review_needed_count = max(case_record.review_needed_count, 1)
+            if risk_rank(case_record.technical_risk) < risk_rank("high"):
+                case_record.technical_risk = "high"
         elif run.status == "interrupted":
             case_record.status = "Review Needed"
             case_record.review_needed_count = max(case_record.review_needed_count, 1)
+            if risk_rank(case_record.technical_risk) < risk_rank("high"):
+                case_record.technical_risk = "high"
         case_record.latest_run_id = run.run_id
         self.store.save_case(case_record)
 

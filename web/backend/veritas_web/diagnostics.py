@@ -94,7 +94,7 @@ def run_full_diagnostics() -> DiagReport:
 
 
 def _check_infrastructure(report: DiagReport) -> None:
-    """PostgreSQL, Docker daemon, GPU."""
+    """PostgreSQL/PGlite, Docker daemon, GPU."""
     # PostgreSQL
     db_url = os.environ.get("VERITAS_DATABASE_URL", "")
     if db_url:
@@ -111,7 +111,10 @@ def _check_infrastructure(report: DiagReport) -> None:
                 False,
                 str(exc)[:200],
                 severity="critical",
-                fix_hint="检查 VERITAS_DATABASE_URL 和 PostgreSQL 容器是否运行",
+                fix_hint=(
+                    "检查 VERITAS_DATABASE_URL、PostgreSQL 容器，"
+                    "或开发模式下的 PGlite 服务"
+                ),
             )
     else:
         report.add(
@@ -119,7 +122,10 @@ def _check_infrastructure(report: DiagReport) -> None:
             False,
             "VERITAS_DATABASE_URL 未设置",
             severity="critical",
-            fix_hint="设置 VERITAS_DATABASE_URL 或使用 ./scripts/dev.sh up",
+            fix_hint=(
+                "设置 VERITAS_DATABASE_URL，或用 make web-backend "
+                "启用 VERITAS_ENABLE_PGLITE=1"
+            ),
         )
 
     # Docker — 容器内无 Docker CLI，跳过

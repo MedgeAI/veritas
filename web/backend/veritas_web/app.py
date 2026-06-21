@@ -21,7 +21,7 @@ from .artifacts import ArtifactService
 from .auth import AuthProvider, NoAuthProvider
 from .case_store import CaseStore
 from .config import AuthConfig, create_auth_provider
-from .database import create_db_engine
+from .database import create_db_engine, get_database_url
 from .dependencies import AppDependencies, set_dependencies
 from .investigations import WebInvestigationService
 from .runner import AuditRunner
@@ -31,6 +31,7 @@ from .routers import (
     cbir,
     embeddings,
     investigations,
+    materials,
     review,
     tools,
     visual,
@@ -81,7 +82,7 @@ def create_app(
     auth = auth_provider or create_auth_provider(AuthConfig.from_env())
 
     # --- Dependency injection -----------------------------------------
-    # Use CaseStore's engine if it has one (avoids duplicate in-memory SQLite DBs)
+    # Use CaseStore's engine if it has one (keeps PGlite-backed apps on one pool).
     engine = getattr(store, "_engine", None) or (
         create_db_engine() if (database_url or store.sql_mode) else None
     )
@@ -140,6 +141,7 @@ def create_app(
     app.include_router(tools.router, prefix="/api")
     app.include_router(embeddings.router, prefix="/api")
     app.include_router(cbir.router, prefix="/api")
+    app.include_router(materials.router, prefix="/api")
 
     # --- Health endpoint -----------------------------------------------
     @app.get("/api/health")
@@ -193,12 +195,7 @@ def _resolve_database_url(
 ) -> str:
     if database_url:
         return database_url
-    env_url = os.environ.get("VERITAS_DATABASE_URL")
-    if env_url:
-        return env_url
-    root = Path(data_root)
-    root.mkdir(parents=True, exist_ok=True)
-    return f"sqlite:///{root / 'veritas_web.sqlite3'}"
+    return get_database_url()
 
 
 # Module-level app — created lazily so that test imports don't trigger DB connections.

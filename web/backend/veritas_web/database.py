@@ -1,4 +1,4 @@
-"""PostgreSQL database engine, session factory, and FastAPI dependencies."""
+"""Database engine, session factory, and FastAPI dependencies."""
 
 from __future__ import annotations
 
@@ -15,21 +15,37 @@ class Base(DeclarativeBase):
     """SQLAlchemy declarative base for all Veritas models."""
 
 
-DEFAULT_DATABASE_URL = "postgresql://veritas:veritas@127.0.0.1:5432/veritas"
 logger = logging.getLogger(__name__)
 
 
 def get_database_url() -> str:
-    """Return the database URL from environment or default."""
-    return os.environ.get("VERITAS_DATABASE_URL", DEFAULT_DATABASE_URL)
+    """Return the configured database URL.
+
+    Web data must use PostgreSQL-compatible semantics.  Docker deployments set
+    ``VERITAS_DATABASE_URL``.  Local development can opt into an in-memory
+    PGlite socket server with ``VERITAS_ENABLE_PGLITE=1``.
+    """
+    env_url = os.environ.get("VERITAS_DATABASE_URL")
+    if env_url:
+        return env_url
+    if os.environ.get("VERITAS_ENABLE_PGLITE") == "1":
+        from .pglite import get_or_start_pglite_server
+
+        os.environ.setdefault("VERITAS_DATABASE_BACKEND", "pglite")
+        return get_or_start_pglite_server().database_url
+    raise RuntimeError(
+        "VERITAS_DATABASE_URL is required for the Web data layer. "
+        "For local development, set VERITAS_ENABLE_PGLITE=1 to use "
+        "an in-memory PGlite PostgreSQL-compatible server."
+    )
 
 
 def create_db_engine(database_url: str | None = None, **kwargs: Any) -> Engine:
     """Create a SQLAlchemy engine with connection pooling.
 
     Args:
-        database_url: PostgreSQL connection string.  Falls back to
-            ``VERITAS_DATABASE_URL`` env var or a local default.
+        database_url: PostgreSQL-compatible connection string. Falls back to
+            ``VERITAS_DATABASE_URL`` or opt-in PGlite, never SQLite files.
         **kwargs: Extra keyword arguments forwarded to
             :func:`sqlalchemy.create_engine`.
     """
@@ -37,14 +53,25 @@ def create_db_engine(database_url: str | None = None, **kwargs: Any) -> Engine:
     defaults: dict[str, Any] = {
         "pool_pre_ping": True,
     }
-    # SQLite doesn't support pool_size/max_overflow
-    if not url.startswith("sqlite"):
+    backend = os.environ.get("VERITAS_DATABASE_BACKEND", "").lower()
+    # SQLite is still supported when passed explicitly by legacy helpers, but
+    # it is no longer used as the implicit Web data fallback.
+    if url.startswith("sqlite"):
+        defaults["connect_args"] = {"check_same_thread": False}
+        if ":memory:" in url or url == "sqlite://":
+            from sqlalchemy.pool import StaticPool
+
+            defaults["poolclass"] = StaticPool
+    elif backend != "pglite":
         defaults["pool_size"] = 5
         defaults["max_overflow"] = 10
+    if backend == "pglite":
+        defaults["pool_size"] = 5
+        defaults["max_overflow"] = 5
     defaults.update(kwargs)
     engine = create_engine(url, **defaults)
 
-    if not url.startswith("sqlite"):
+    if not url.startswith("sqlite") and backend != "pglite":
 
         @event.listens_for(engine, "connect")
         def _register_vector_extension(
@@ -84,13 +111,14 @@ def get_db(engine: Engine | None = None) -> Generator[Session, None, None]:
 def init_db(engine: Engine | None = None) -> None:
     """Create all tables and enable pgvector extension.
 
-    This is intended for development bootstrapping.  Production deployments
+    This is intended for development bootstrapping. Production deployments
     should use Alembic migrations once the schema stabilises.
     """
     if engine is None:
         engine = create_db_engine()
 
-    if not str(engine.url).startswith("sqlite"):
+    backend = os.environ.get("VERITAS_DATABASE_BACKEND", "").lower()
+    if not str(engine.url).startswith("sqlite") and backend != "pglite":
         with engine.connect() as conn:
             conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
             conn.commit()

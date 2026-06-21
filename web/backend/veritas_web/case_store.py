@@ -1,4 +1,4 @@
-"""SQL-backed case store (PostgreSQL for production, SQLite for tests).
+"""SQL-backed case store for PostgreSQL-compatible Web state.
 
 There is no JSON file fallback.  All case/run/event CRUD goes through
 SQLAlchemy.  Directory creation and file I/O (input uploads) still
@@ -9,7 +9,6 @@ blobs (PDFs, images), the database stores structured metadata.
 from __future__ import annotations
 
 import base64
-import os
 import re
 import shutil
 from pathlib import Path
@@ -32,9 +31,10 @@ safe_id = _safe_id
 class CaseStore:
     """SQL-only case store.
 
-    *database_url* defaults to ``VERITAS_DATABASE_URL`` env var, then to
-    ``sqlite:///:memory:`` for test/dev convenience.  Production should
-    always set ``VERITAS_DATABASE_URL`` to a PostgreSQL DSN.
+    *database_url* defaults to ``VERITAS_DATABASE_URL``. Local development can
+    opt into an in-memory PGlite PostgreSQL-compatible server with
+    ``VERITAS_ENABLE_PGLITE=1``. There is no implicit SQLite file fallback for
+    Web case/run state.
     """
 
     def __init__(
@@ -47,9 +47,9 @@ class CaseStore:
         self.cases_root = self.root / "cases"
         self.cases_root.mkdir(parents=True, exist_ok=True)
 
-        self._db_url = database_url or os.environ.get(
-            "VERITAS_DATABASE_URL", "sqlite:///:memory:"
-        )
+        from .database import get_database_url
+
+        self._db_url = database_url or get_database_url()
         self._init_sql(self._db_url)
 
     # ------------------------------------------------------------------
@@ -57,22 +57,11 @@ class CaseStore:
     # ------------------------------------------------------------------
 
     def _init_sql(self, database_url: str) -> None:
-        from sqlalchemy import create_engine
         from sqlalchemy.orm import sessionmaker
 
-        kwargs: dict[str, Any] = {}
-        if database_url.startswith("sqlite"):
-            kwargs["connect_args"] = {"check_same_thread": False}
-            if ":memory:" in database_url or database_url == "sqlite://":
-                from sqlalchemy.pool import StaticPool
+        from .database import create_db_engine
 
-                kwargs["poolclass"] = StaticPool
-        else:
-            kwargs["pool_size"] = 5
-            kwargs["max_overflow"] = 10
-            kwargs["pool_pre_ping"] = True
-
-        self._engine = create_engine(database_url, **kwargs)
+        self._engine = create_db_engine(database_url)
         self._session_factory = sessionmaker(bind=self._engine, autoflush=False)
 
         from .database import Base

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from http import HTTPStatus
 from typing import Any
 
@@ -15,6 +16,7 @@ from ..dependencies import (
 )
 from ..auth import AuthContext
 from ..models import CaseCreate, CaseRecord, InputUpload, RunCreate
+from ..risk import summarize_findings
 
 router = APIRouter(tags=["cases"])
 
@@ -40,6 +42,22 @@ async def create_case(
         case_id=payload.case_id,
     )
     return case.to_dict()
+
+
+@router.get("/cases/stats")
+async def get_case_stats(
+    auth: AuthContext = Depends(get_auth_context),
+    deps: AppDependencies = Depends(get_app_dependencies),
+) -> dict[str, Any]:
+    cases = deps.store.list_cases(user_id=auth.user_id)
+    return {
+        "total_cases": len(cases),
+        "total_findings": sum(c.review_needed_count for c in cases),
+        "critical_count": sum(
+            1 for c in cases if c.technical_risk in ("critical", "high")
+        ),
+        "running_count": sum(1 for c in cases if c.status == "Running"),
+    }
 
 
 @router.get("/cases/{case_id}")
@@ -82,6 +100,7 @@ async def upload_input(
             payload = InputUpload.model_validate(body)
         except Exception as exc:
             raise HTTPException(status_code=422, detail=str(exc))
+        filename = payload.filename
         if payload.content_base64 is not None:
             path = deps.store.write_input_base64(
                 case_id, payload.filename, payload.content_base64
@@ -143,3 +162,58 @@ async def list_events(
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> dict[str, Any]:
     return {"events": deps.store.list_events(case_id, run_id)}
+
+
+@router.get("/cases/{case_id}/risk-summary")
+async def get_risk_summary(
+    case_id: str,
+    case: CaseRecord = Depends(require_case_access),
+    deps: AppDependencies = Depends(get_app_dependencies),
+) -> dict[str, Any]:
+    """Return risk summary with top findings and auto-generated follow-up questions.
+
+    Reads findings from static_audit_bundle.json, computes overall risk level,
+    selects top 5 findings (by risk_level, only medium+), and generates
+    follow-up questions for each.
+    """
+    bundle_path = deps.artifacts.artifact_path(case_id, "static_audit_bundle")
+    if bundle_path is None or not bundle_path.exists():
+        return {
+            "status": "unavailable",
+            "overall_risk": "unknown",
+            "risk_counts": {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0},
+            "top_findings": [],
+            "follow_ups": {},
+            "total_findings": 0,
+            "high_quality_count": 0,
+            "message": "static_audit_bundle.json is not available for this case",
+        }
+
+    bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
+    findings = bundle.get("findings", [])
+    summary = summarize_findings(findings if isinstance(findings, list) else [])
+    top_findings = summary["top_findings"]
+
+    # Auto-generate follow-up questions for each top finding
+    from engine.follow_up.generator import create_follow_up_generator
+
+    generator = create_follow_up_generator(deps)
+
+    follow_ups: dict[str, list[str]] = {}
+    for finding in top_findings:
+        finding_id = finding.get("finding_id", "")
+        try:
+            questions = await generator.generate(finding)
+            follow_ups[finding_id] = questions
+        except Exception:
+            follow_ups[finding_id] = []
+
+    return {
+        "status": summary["status"],
+        "overall_risk": summary["overall_risk"],
+        "risk_counts": summary["risk_counts"],
+        "top_findings": top_findings,
+        "follow_ups": follow_ups,
+        "total_findings": summary["total_findings"],
+        "high_quality_count": summary["high_quality_count"],
+    }
