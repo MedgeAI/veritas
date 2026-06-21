@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import statistics
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from decimal import Decimal, InvalidOperation
@@ -733,6 +734,32 @@ def row_offset_rounding_bias_findings(
     )[: params.max_findings_per_category]
 
 
+def _is_narrow_value_range(values: list[float]) -> bool:
+    """Return True when IQR < 0.01 × median, indicating a high-precision instrument range."""
+    if len(values) < 2:
+        return False
+    median = statistics.median(values)
+    if median <= 0:
+        return False
+    q1, _, q3 = statistics.quantiles(values, n=4)
+    iqr = q3 - q1
+    return iqr < 0.01 * median
+
+
+def _is_stable_high_correlation(
+    left: list[float], right: list[float]
+) -> bool:
+    """Return True when columns are highly correlated (r>0.99) with near-constant difference."""
+    if len(left) < 3:
+        return False
+    try:
+        corr = statistics.correlation(left, right)
+    except (ValueError, statistics.StatisticsError):
+        return False
+    diff_std = statistics.stdev([a - b for a, b in zip(left, right)])
+    return corr > 0.99 and diff_std < 0.001
+
+
 def paired_difference_spread_findings(
     sheet: SheetVectors, params: PairForensicsParams
 ) -> list[dict[str, Any]]:
@@ -790,7 +817,23 @@ def paired_difference_spread_findings(
             )
             if not (narrow_vs_magnitude or narrow_vs_range):
                 continue
-            risk = "high" if len(common_rows) >= 10 else "medium"
+            # High-precision instrument filter: downgrade when column pair
+            # exhibits characteristics of plate-reader / spectrophotometer
+            # output (narrow value range or stable high correlation).
+            left_raw = [float(left_values[row]) for row in common_rows]
+            right_raw = [float(right_values[row]) for row in common_rows]
+            instrument_artifact = (
+                _is_narrow_value_range(left_raw + right_raw)
+                or _is_stable_high_correlation(left_raw, right_raw)
+            )
+            if instrument_artifact:
+                risk = "low"
+                artifact_likelihood = "high"
+                artifact_reason = "high-precision instrument or numerical rounding artifact"
+            else:
+                risk = "high" if len(common_rows) >= 10 else "medium"
+                artifact_likelihood = None
+                artifact_reason = None
             sample_pairs = [
                 {
                     "row": row,
@@ -800,36 +843,38 @@ def paired_difference_spread_findings(
                 }
                 for i, row in enumerate(common_rows[:5])
             ]
-            findings.append(
-                {
-                    "finding_id": None,
-                    "category": "paired_difference_too_narrow",
-                    "risk_level": risk,
-                    "confidence": "high",
-                    "workbook": sheet.workbook,
-                    "sheet": sheet.sheet,
-                    "column_a": col_to_name(left_col),
-                    "column_b": col_to_name(right_col),
-                    "column_labels": [
-                        column_label(sheet, left_col),
-                        column_label(sheet, right_col),
-                    ],
-                    "pair_count": len(common_rows),
-                    "max_abs_diff": round(max_abs_diff, 8),
-                    "min_abs_diff": round(min_abs_diff, 8),
-                    "data_range": round(data_range, 8),
-                    "sample_pairs": sample_pairs,
-                    "benign_explanations": [
-                        "配对测量可能来自同一仪器的高精度重复读数",
-                        "配对差异过窄可能是技术重复而非生物学重复",
-                    ],
-                    "pressure_test_result": "needs_paired_difference_independence_review",
-                    "next_steps": [
-                        "确认配对数据是否为独立生物学重复",
-                        "要求提供原始仪器输出文件验证测量独立性",
-                    ],
-                }
-            )
+            finding: dict[str, Any] = {
+                "finding_id": None,
+                "category": "paired_difference_too_narrow",
+                "risk_level": risk,
+                "confidence": "high",
+                "workbook": sheet.workbook,
+                "sheet": sheet.sheet,
+                "column_a": col_to_name(left_col),
+                "column_b": col_to_name(right_col),
+                "column_labels": [
+                    column_label(sheet, left_col),
+                    column_label(sheet, right_col),
+                ],
+                "pair_count": len(common_rows),
+                "max_abs_diff": round(max_abs_diff, 8),
+                "min_abs_diff": round(min_abs_diff, 8),
+                "data_range": round(data_range, 8),
+                "sample_pairs": sample_pairs,
+                "benign_explanations": [
+                    "配对测量可能来自同一仪器的高精度重复读数",
+                    "配对差异过窄可能是技术重复而非生物学重复",
+                ],
+                "pressure_test_result": "needs_paired_difference_independence_review",
+                "next_steps": [
+                    "确认配对数据是否为独立生物学重复",
+                    "要求提供原始仪器输出文件验证测量独立性",
+                ],
+            }
+            if instrument_artifact:
+                finding["artifact_likelihood"] = artifact_likelihood
+                finding["artifact_reason"] = artifact_reason
+            findings.append(finding)
     return sorted(
         findings, key=lambda item: (-risk_rank(item["risk_level"]), -item["pair_count"])
     )[: params.max_findings_per_category]
