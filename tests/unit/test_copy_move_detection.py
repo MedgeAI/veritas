@@ -18,6 +18,7 @@ import json
 import pytest
 
 from engine.static_audit.tools.copy_move_detection import (
+    _build_figure_panel_type_map,
     _dhash,
     _empty_result,
     _hamming_distance,
@@ -363,3 +364,229 @@ class TestGoldenPositiveCrossFigure:
         assert rel["target_panel_id"] == "FE-002"
         assert rel["inlier_count"] > 0
         assert rel["score"] > 0.1
+
+
+# ---------------------------------------------------------------------------
+# panel_type consistency filtering
+# ---------------------------------------------------------------------------
+
+
+class TestBuildFigurePanelTypeMap:
+    """Tests for _build_figure_panel_type_map helper."""
+
+    def test_empty_input(self):
+        assert _build_figure_panel_type_map([]) == {}
+
+    def test_basic_mapping(self):
+        panels = [
+            {"parent_figure_id": "FE-001", "panel_type": "Blots"},
+            {"parent_figure_id": "FE-001", "panel_type": "Graphs"},
+            {"parent_figure_id": "FE-002", "panel_type": "Blots"},
+        ]
+        result = _build_figure_panel_type_map(panels)
+        assert result == {
+            "FE-001": {"Blots", "Graphs"},
+            "FE-002": {"Blots"},
+        }
+
+    def test_null_panel_type_excluded(self):
+        panels = [
+            {"parent_figure_id": "FE-001", "panel_type": None},
+            {"parent_figure_id": "FE-002", "panel_type": ""},
+            {"parent_figure_id": "FE-003", "panel_type": "Blots"},
+        ]
+        result = _build_figure_panel_type_map(panels)
+        assert "FE-001" not in result
+        assert "FE-002" not in result
+        assert result == {"FE-003": {"Blots"}}
+
+    def test_missing_panel_type_excluded(self):
+        panels = [
+            {"parent_figure_id": "FE-001"},
+            {"parent_figure_id": "FE-002", "panel_type": "Graphs"},
+        ]
+        result = _build_figure_panel_type_map(panels)
+        assert "FE-001" not in result
+        assert result == {"FE-002": {"Graphs"}}
+
+    def test_missing_parent_figure_id_excluded(self):
+        panels = [
+            {"panel_type": "Blots"},
+            {"parent_figure_id": "", "panel_type": "Blots"},
+        ]
+        assert _build_figure_panel_type_map(panels) == {}
+
+
+class TestPanelTypeFilteringCrossFigure:
+    """Cross-figure detection must filter by panel_type consistency."""
+
+    def test_matching_panel_type_passes(self, tmp_path):
+        """Two figures with the same panel_type should be compared."""
+        _make_rich_panel(tmp_path / "panel_a.png")
+        _make_rich_panel(tmp_path / "panel_b.png")
+
+        panels = [
+            {
+                "panel_id": "PE-A",
+                "parent_figure_id": "FE-001",
+                "crop_path": "panel_a.png",
+                "panel_type": "Blots",
+            },
+            {
+                "panel_id": "PE-B",
+                "parent_figure_id": "FE-002",
+                "crop_path": "panel_b.png",
+                "panel_type": "Blots",
+            },
+        ]
+        figures = [
+            {"figure_id": "FE-001", "source_image_path": "panel_a.png"},
+            {"figure_id": "FE-002", "source_image_path": "panel_b.png"},
+        ]
+
+        result = detect_copy_move(
+            panels, figures, workdir=tmp_path, min_matches=4, min_score=0.0
+        )
+        cross_rels = [
+            r for r in result["relationships"] if r["source_type"] == "copy_move_cross"
+        ]
+        assert len(cross_rels) >= 1
+        meta = cross_rels[0]["metadata"]
+        assert meta["source_panel_type"] == "Blots"
+        assert meta["target_panel_type"] == "Blots"
+        assert meta["matched_panel_types"] == "Blots"
+
+    def test_mismatched_panel_type_skipped(self, tmp_path):
+        """Figures with different panel_types must NOT be compared."""
+        _make_rich_panel(tmp_path / "panel_a.png")
+        _make_rich_panel(tmp_path / "panel_b.png")
+
+        panels = [
+            {
+                "panel_id": "PE-A",
+                "parent_figure_id": "FE-001",
+                "crop_path": "panel_a.png",
+                "panel_type": "Blots",
+            },
+            {
+                "panel_id": "PE-B",
+                "parent_figure_id": "FE-002",
+                "crop_path": "panel_b.png",
+                "panel_type": "Graphs",
+            },
+        ]
+        figures = [
+            {"figure_id": "FE-001", "source_image_path": "panel_a.png"},
+            {"figure_id": "FE-002", "source_image_path": "panel_b.png"},
+        ]
+
+        result = detect_copy_move(
+            panels, figures, workdir=tmp_path, min_matches=4, min_score=0.0
+        )
+        cross_rels = [
+            r for r in result["relationships"] if r["source_type"] == "copy_move_cross"
+        ]
+        assert cross_rels == []
+
+    def test_null_panel_type_skipped(self, tmp_path):
+        """When one figure has no panel_type, that pair must be skipped."""
+        _make_rich_panel(tmp_path / "panel_a.png")
+        _make_rich_panel(tmp_path / "panel_b.png")
+
+        panels = [
+            {
+                "panel_id": "PE-A",
+                "parent_figure_id": "FE-001",
+                "crop_path": "panel_a.png",
+                "panel_type": "Blots",
+            },
+            {
+                "panel_id": "PE-B",
+                "parent_figure_id": "FE-002",
+                "crop_path": "panel_b.png",
+                # No panel_type -> null/unknown
+            },
+        ]
+        figures = [
+            {"figure_id": "FE-001", "source_image_path": "panel_a.png"},
+            {"figure_id": "FE-002", "source_image_path": "panel_b.png"},
+        ]
+
+        result = detect_copy_move(
+            panels, figures, workdir=tmp_path, min_matches=4, min_score=0.0
+        )
+        cross_rels = [
+            r for r in result["relationships"] if r["source_type"] == "copy_move_cross"
+        ]
+        assert cross_rels == []
+
+    def test_backward_compat_no_panel_types_at_all(self, tmp_path):
+        """When NO panels have panel_type, filter is bypassed (backward compat)."""
+        _make_rich_panel(tmp_path / "panel_a.png")
+        _make_rich_panel(tmp_path / "panel_b.png")
+
+        panels = [
+            {
+                "panel_id": "PE-A",
+                "parent_figure_id": "FE-001",
+                "crop_path": "panel_a.png",
+                # No panel_type
+            },
+            {
+                "panel_id": "PE-B",
+                "parent_figure_id": "FE-002",
+                "crop_path": "panel_b.png",
+                # No panel_type
+            },
+        ]
+        figures = [
+            {"figure_id": "FE-001", "source_image_path": "panel_a.png"},
+            {"figure_id": "FE-002", "source_image_path": "panel_b.png"},
+        ]
+
+        result = detect_copy_move(
+            panels, figures, workdir=tmp_path, min_matches=4, min_score=0.0
+        )
+        # Without panel_type, filter is bypassed: identical images should match.
+        cross_rels = [
+            r for r in result["relationships"] if r["source_type"] == "copy_move_cross"
+        ]
+        assert len(cross_rels) >= 1
+
+    def test_metadata_records_panel_types(self, tmp_path):
+        """Relationship metadata must include source/target panel types."""
+        _make_rich_panel(tmp_path / "panel_a.png")
+        _make_rich_panel(tmp_path / "panel_b.png")
+
+        panels = [
+            {
+                "panel_id": "PE-A",
+                "parent_figure_id": "FE-001",
+                "crop_path": "panel_a.png",
+                "panel_type": "Microscopy",
+            },
+            {
+                "panel_id": "PE-B",
+                "parent_figure_id": "FE-002",
+                "crop_path": "panel_b.png",
+                "panel_type": "Microscopy",
+            },
+        ]
+        figures = [
+            {"figure_id": "FE-001", "source_image_path": "panel_a.png"},
+            {"figure_id": "FE-002", "source_image_path": "panel_b.png"},
+        ]
+
+        result = detect_copy_move(
+            panels, figures, workdir=tmp_path, min_matches=4, min_score=0.0
+        )
+        cross_rels = [
+            r for r in result["relationships"] if r["source_type"] == "copy_move_cross"
+        ]
+        assert len(cross_rels) >= 1
+        meta = cross_rels[0]["metadata"]
+        assert "source_panel_type" in meta
+        assert "target_panel_type" in meta
+        assert "matched_panel_types" in meta
+        assert meta["source_panel_type"] == "Microscopy"
+        assert meta["target_panel_type"] == "Microscopy"

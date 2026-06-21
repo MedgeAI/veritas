@@ -613,8 +613,16 @@ def _should_skip_for_modality(
     # Check classification confidence
     src_panel = _resolve_panel(src, panel_map)
     tgt_panel = _resolve_panel(tgt, panel_map)
-    src_conf = float(src_panel.get("extraction_confidence", 0) or 0) if isinstance(src_panel, dict) else 0
-    tgt_conf = float(tgt_panel.get("extraction_confidence", 0) or 0) if isinstance(tgt_panel, dict) else 0
+    src_conf = (
+        float(src_panel.get("extraction_confidence", 0) or 0)
+        if isinstance(src_panel, dict)
+        else 0
+    )
+    tgt_conf = (
+        float(tgt_panel.get("extraction_confidence", 0) or 0)
+        if isinstance(tgt_panel, dict)
+        else 0
+    )
 
     # Only skip if at least one panel has confidence >= threshold
     if max(src_conf, tgt_conf) < VISUAL_SKIP_CONFIDENCE_THRESHOLD:
@@ -797,23 +805,39 @@ def build_visual_findings(
             if not figure_id:
                 continue
             risk_level = trufor_integrity_risk_level(integrity_score)
-            trufor_panel = _resolve_panel(figure_id, panel_map)
+            # Collect ALL panel_types for this figure to decide filtering
+            figure_panel_types: set[str] = set()
+            for _pid, _pdata in panel_map.items():
+                if not isinstance(_pdata, dict):
+                    continue
+                if str(_pdata.get("parent_figure_id") or "") == figure_id:
+                    pt = _pdata.get("panel_type")
+                    if pt:
+                        figure_panel_types.add(str(pt))
+
             trufor_panel_type = (
-                trufor_panel.get("panel_type")
-                if isinstance(trufor_panel, dict)
-                else None
+                next(iter(figure_panel_types)) if figure_panel_types else None
             )
 
-            # Skip TruFor for code-generated panel types with high confidence
-            if trufor_panel_type in VISUAL_SKIP_PANEL_TYPES:
-                trufor_conf = float(trufor_panel.get("extraction_confidence", 0) or 0) if isinstance(trufor_panel, dict) else 0
-                if trufor_conf >= VISUAL_SKIP_CONFIDENCE_THRESHOLD:
-                    # Mark the forged_region_evidence as skipped
-                    fre["skipped"] = f"skipped due to code-generated modality: {trufor_panel_type}"
-                    continue
+            _CODE_GENERATED_TYPES = {"Graphs", "Flow Cytometry"}
+            if figure_panel_types and figure_panel_types <= _CODE_GENERATED_TYPES:
+                # All panels are code-generated → skip entirely
+                fre["skipped"] = (
+                    f"skipped: all panels are code-generated types: "
+                    f"{sorted(figure_panel_types)}"
+                )
+                continue
+
+            has_code_generated = bool(figure_panel_types & _CODE_GENERATED_TYPES)
 
             confidence_adjustments: list[str] = []
-            if trufor_panel_type not in {"Blots", "Microscopy"}:
+            if has_code_generated:
+                risk_level = _cap_risk_level(risk_level, "medium")
+                confidence_adjustments.append(
+                    "risk capped because figure contains code-generated panel types "
+                    f"({sorted(figure_panel_types & _CODE_GENERATED_TYPES)}) mixed with other types"
+                )
+            elif trufor_panel_type not in {"Blots", "Microscopy"}:
                 risk_level = _cap_risk_level(risk_level, "medium")
                 confidence_adjustments.append(
                     "risk capped because TruFor finding is figure-level and not a Blots/Microscopy panel"

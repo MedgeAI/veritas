@@ -52,6 +52,20 @@ DEFAULT_WEIGHTS = _REPO_ROOT / "models" / "panel_extraction" / "model_5_class.pt
 EXTRACTION_METHOD_YOLOV5 = "yolov5_panel_extractor"
 EXTRACTION_METHOD_FALLBACK = "whole_figure_fallback"
 
+# Panel types that require visual forensics analysis (copy-move, overlap, etc.).
+# Code-generated deterministic visualizations (Graphs, etc.) are excluded because
+# their geometric repetition is normal and visual forensic tools produce high
+# false-positive rates on these modalities. They are verified via code/data
+# forensics instead.
+#
+# Flow Cytometry is INCLUDED because:
+#   - FACS dot plots / contour plots can be image-level duplicated (same point
+#     cloud relabelled as different treatment/timepoint/cell line) — BioFors
+#     dataset includes FACS as a dedicated forensics category
+#   - Visual similarity across panels is a genuine reuse signal, not a normal
+#     geometric artifact as with Graphs
+VISUAL_FORENSICS_PANEL_TYPES = {"Blots", "Microscopy", "Body Imaging", "Flow Cytometry"}
+
 # Maximum panels per figure.  YOLOv5 over-segments grid images (spatial
 # transcriptomics, blot montages) — e.g. a 4×10 cell grid yields 40 detections.
 # Real multi-panel figures in biomedical papers rarely exceed 9 panels.
@@ -248,6 +262,7 @@ def _convert_csv_rows_to_panels(
     panels_dir = output_dir / "panels" / figure_id
     panels_dir.mkdir(parents=True, exist_ok=True)
 
+    skipped_count = 0
     for idx, row in enumerate(rows):
         try:
             x0 = int(float(row.get("X0", "0")))
@@ -265,6 +280,24 @@ def _convert_csv_rows_to_panels(
         panel_type_raw = row.get("LABEL", "")
         # Normalise panel type to schema-allowed values
         panel_type = _normalise_panel_type(panel_type_raw)
+
+        # Filter: only extract panels that require visual forensics.
+        # Code-generated panels (Graphs, etc.) are skipped because visual
+        # forensics tools produce high false-positive rates on these modalities.
+        # They are verified via code/data forensics instead.
+        # Flow Cytometry is kept — FACS plot reuse is a genuine image-level
+        # forensics signal (BioFors dataset includes FACS as a category).
+        if panel_type not in VISUAL_FORENSICS_PANEL_TYPES:
+            skipped_count += 1
+            logger.debug(
+                "Skipping panel %s-%02d (type=%s): code-generated visualization, "
+                "verified via code/data forensics",
+                figure_id,
+                idx + 1,
+                panel_type,
+            )
+            continue
+
         label = _index_to_label(idx)
 
         # Move crop from batch output to canonical location
@@ -302,6 +335,15 @@ def _convert_csv_rows_to_panels(
             },
         )
         panels.append(panel.to_dict())
+
+    if skipped_count > 0:
+        logger.info(
+            "Figure %s: extracted %d panels for visual forensics, "
+            "skipped %d code-generated panels (Graphs/etc.)",
+            figure_id,
+            len(panels),
+            skipped_count,
+        )
 
     return panels
 
@@ -596,6 +638,141 @@ def whole_figure_panel(
             "fallback_reason": "yolov5_detected_no_panels",
         },
     ).to_dict()
+
+
+# ---------------------------------------------------------------------------
+# Fallback panel classification (post-hoc heuristic typing)
+# ---------------------------------------------------------------------------
+
+
+def _classify_fallback_panels(panels: list[dict[str, Any]], *, workdir: Path) -> None:
+    """Classify fallback panels in-place using image-size and color heuristics.
+
+    Only panels whose ``extraction_method`` equals
+    :data:`EXTRACTION_METHOD_FALLBACK` **and** whose ``panel_type`` is unset or
+    falsy are touched. YOLOv5-classified panels are never modified.
+
+    The heuristics are intentionally weak because they run on the whole figure
+    after YOLOv5 has already failed to detect any sub-panels. They record a
+    best-effort guess so that downstream forensics routing
+    (see :data:`VISUAL_FORENSICS_PANEL_TYPES`) can make informed decisions, and
+    annotate each decision via ``_fallback_panel_type_source`` in metadata so
+    consumers can tell "observed by model" from "inferred by heuristic".
+
+    Heuristic rules (evaluated in order; first match wins):
+      1. aspect_ratio (h/w or w/h) > 3:1 → ``Graph`` (strip/ribbon layout).
+      2. Blue or purple pixel mass > 25 % → ``Microscopy`` (H&E / fluorescence).
+      3. ≥ 60 % gray pixels (40–200 luminance) **and** any RGB channel
+         variance in (500, 4000) → ``Blots`` (uniform PVDF background +
+         localized dark bands).
+      4. Otherwise → ``Body Imaging`` (catch-all for real photographic content
+         that is not microscopy).
+
+    Args:
+        panels: List of panel dicts. Modified in-place.
+        workdir: Working directory used to resolve relative ``crop_path`` values.
+    """
+    for panel in panels:
+        if not isinstance(panel, dict):
+            continue
+        if panel.get("extraction_method") != EXTRACTION_METHOD_FALLBACK:
+            continue
+        if panel.get("panel_type"):
+            continue  # already typed — don't override
+
+        crop_rel = str(panel.get("crop_path") or "")
+        if not crop_rel:
+            continue
+        try:
+            image_path = (workdir / crop_rel).resolve()
+            if not image_path.is_file():
+                continue
+            with Image.open(image_path) as img:
+                img = img.convert("RGB")
+                width, height = img.size
+                if width <= 0 or height <= 0:
+                    continue
+                panel_type = _heuristic_panel_type(img, width, height)
+        except OSError:
+            continue
+
+        if panel_type:
+            panel["panel_type"] = panel_type
+            metadata = (
+                panel.get("metadata") if isinstance(panel.get("metadata"), dict) else {}
+            )
+            metadata["_fallback_panel_type_source"] = (
+                "heuristic_aspect_ratio"
+                if panel_type == "Graph"
+                else "heuristic_dominant_color"
+                if panel_type == "Microscopy"
+                else "heuristic_gray_background_variance"
+                if panel_type == "Blots"
+                else "heuristic_default_photographic"
+            )
+            panel["metadata"] = metadata
+
+
+def _heuristic_panel_type(img: "Image.Image", width: int, height: int) -> str:
+    """Return a best-effort panel type for a whole-figure fallback image.
+
+    Pure function of image content. Returns one of the schema
+    :data:`PanelEvidence.PANEL_TYPES` values or ``""`` when no rule matches
+    confidently (caller falls through to no-op).
+    """
+    # Rule 1 — strip / ribbon aspect ratio.
+    # Use max(h/w, w/h) so both tall vertical strips and wide horizontal strips
+    # are caught with the same threshold.
+    aspect_ratio = max(height / width, width / height)
+    if aspect_ratio > 3.0:
+        return "Graph"
+
+    # Rule 2 — microscopy: dominant blue or purple stain (H&E, DAPI, ...).
+    # Use pixel access by coordinate (deprecated-free) and sample every 4th
+    # pixel to keep cost bounded on large images.
+    pixels = img.load()
+    cols, rows = img.size
+    sample_coords: list[tuple[int, int]] = [
+        (i % cols, i // cols)
+        for i in range(0, cols * rows, max(1, cols * rows // 5000))
+    ]
+    sampled = [pixels[x, y] for x, y in sample_coords]
+    n = len(sampled)
+    if n == 0:
+        return ""
+
+    blue_count = sum(
+        1 for r, g, b in sampled if b > 100 and b > r * 1.3 and b > g * 1.3
+    )
+    purple_count = sum(
+        1 for r, g, b in sampled if r > 80 and b > 80 and r > g * 1.2 and b > g * 1.2
+    )
+    if (blue_count + purple_count) / n > 0.25:
+        return "Microscopy"
+
+    # Rule 3 — blots: uniform gray PVDF background + localized dark bands.
+    # "Gray" = within ±25 of neutral; "small target" = ≥ 60 % of pixels are
+    # background-gray yet at least one color channel has measurable variance
+    # (bands contribute variance). Variance window (500, 4000) separates
+    # "flat blank membrane" from "membrane with bands" from "complex photo".
+    gray = img.convert("L")
+    gray_px = gray.load()
+    gray_samples = [gray_px[x, y] for x, y in sample_coords]
+    n_gray = len(gray_samples)
+    gray_bg_count = sum(1 for p in gray_samples if 40 <= p <= 200)
+    gray_ratio = gray_bg_count / n_gray if n_gray else 0
+    if gray_ratio < 0.6:
+        return ""
+    r_ch, g_ch, b_ch = img.split()
+    for channel in (r_ch, g_ch, b_ch):
+        ch_px = channel.load()
+        ch_samples = [ch_px[x, y] for x, y in sample_coords]
+        mean_val = sum(ch_samples) / len(ch_samples)
+        variance = sum((p - mean_val) ** 2 for p in ch_samples) / len(ch_samples)
+        if 500 < variance < 4000:
+            return "Blots"
+
+    return ""
 
 
 # ---------------------------------------------------------------------------

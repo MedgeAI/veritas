@@ -6,6 +6,7 @@ All public names are re-exported via orchestrator for backward compatibility.
 
 from __future__ import annotations
 
+import logging
 import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -1198,28 +1199,86 @@ def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
     # Map: (kind, fig_num) -> set of panel letters
     paper_panels: dict[tuple[str, str], set[str]] = {}
 
+    # Pre-pass: identify extended-data figure numbers from main captions.
+    # MinerU may produce raw_labels with NBSP (U+00A0) and omit the
+    # "Extended Data" prefix, so we also check the text field.
+    ext_data_fig_nums: set[str] = set()
     for cap in captions:
-        raw = cap.get("raw_label", "") or ""
+        raw = (cap.get("raw_label", "") or "").replace("\xa0", " ")
+        text = cap.get("text", "") or ""
+        main_fig_match = re.match(r"(?:Extended Data )?Fig\.\s*(\d+)$", raw)
+        if main_fig_match and "|" in text and "See next page" not in text:
+            is_ext = (
+                "Extended Data" in raw
+                or "Extended Data Fig" in text
+                or re.search(r"Extended\s+Data\s+Fig", text) is not None
+            )
+            if is_ext:
+                ext_data_fig_nums.add(main_fig_match.group(1))
+
+    _logger = logging.getLogger(__name__)
+    _logger.debug(
+        "source_data_missing: ext_data_fig_nums from main captions: %s",
+        sorted(ext_data_fig_nums),
+    )
+
+    for cap in captions:
+        raw = (cap.get("raw_label", "") or "").replace("\xa0", " ")
         text = cap.get("text", "") or ""
 
         # Main figure caption: raw_label = "Fig. N" (no panel letter), text has "|"
         main_fig_match = re.match(r"(?:Extended Data )?Fig\.\s*(\d+)$", raw)
         if main_fig_match and "|" in text and "See next page" not in text:
             fig_num = main_fig_match.group(1)
-            is_ext = "Extended Data" in raw
+            is_ext = (
+                "Extended Data" in raw
+                or "Extended Data Fig" in text
+                or re.search(r"Extended\s+Data\s+Fig", text) is not None
+            )
             kind = "extended_data" if is_ext else "main_figure"
             body = text.split("|", 1)[-1].strip()
             panels = _panels_from_caption_body(body)
             paper_panels.setdefault((kind, fig_num), set()).update(panels)
+            _logger.debug(
+                "source_data_missing: main_caption kind=%s fig=%s panels=%s",
+                kind,
+                fig_num,
+                sorted(panels),
+            )
 
         # Body text reference: raw_label = "Fig. 7d" (with panel letter)
         panel_ref_match = re.match(r"(Extended Data )?Fig\.\s*(\d+)([a-z])$", raw)
         if panel_ref_match:
-            is_ext = bool(panel_ref_match.group(1))
-            kind = "extended_data" if is_ext else "main_figure"
             fig_num = panel_ref_match.group(2)
             panel = panel_ref_match.group(3)
+            is_ext = (
+                bool(panel_ref_match.group(1))
+                or "Extended Data Fig" in text
+                or fig_num in ext_data_fig_nums
+            )
+            kind = "extended_data" if is_ext else "main_figure"
             paper_panels.setdefault((kind, fig_num), set()).add(panel)
+
+    _logger.debug(
+        "source_data_missing: paper_panels summary: %d main_figure, %d extended_data; "
+        "covered keys: %d",
+        sum(1 for k in paper_panels if k[0] == "main_figure"),
+        sum(1 for k in paper_panels if k[0] == "extended_data"),
+        len(covered),
+    )
+    # Log per-figure coverage for debug traceability.
+    for (kind, fig_num), panels in sorted(paper_panels.items()):
+        missing_in_fig = [
+            p for p in sorted(panels) if (kind, fig_num, p) not in covered
+        ]
+        if missing_in_fig:
+            _logger.debug(
+                "source_data_missing: %s fig=%s missing_panels=%s (of %d total)",
+                kind,
+                fig_num,
+                missing_in_fig,
+                len(panels),
+            )
 
     # Also scan the full paper markdown for "Fig. Xy" references.
     # This catches panels mentioned in body text that are not in ledger captions.
@@ -1269,6 +1328,11 @@ def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
                 )
                 counter += 1
 
+    _logger.debug(
+        "source_data_missing: raw_findings=%d before summary merge",
+        len(raw_findings),
+    )
+
     # Group by figure (kind + fig_num) and create summary findings.
     findings: list[Finding] = []
     grouped: dict[tuple[str, str], list[Finding]] = {}
@@ -1297,8 +1361,16 @@ def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
                     "figure_number": fig_num,
                     "missing_panels": panels,
                     "original_finding_ids": [f.finding_id for f in group],
+                    "merged_figure_panels": [f"{fig_label}{p}" for p in panels],
                 },
             )
+        )
+        _logger.debug(
+            "source_data_missing: summary %s = %s, merged %d panels: %s",
+            summary_id,
+            fig_label,
+            len(panels),
+            panels,
         )
         # Mark original findings as suppressed.
         for f in group:
@@ -1807,7 +1879,10 @@ def _group_similar_findings(findings: list[Finding]) -> list[Finding]:
     for finding in findings:
         if finding.category == "long_format_paired_ratio_reuse":
             metadata = finding.metadata or {}
-            key = (str(metadata.get("workbook") or ""), str(metadata.get("sheet") or ""))
+            key = (
+                str(metadata.get("workbook") or ""),
+                str(metadata.get("sheet") or ""),
+            )
             paired_groups.setdefault(key, []).append(finding)
 
     # Group copy_move by figure pair
@@ -1815,8 +1890,16 @@ def _group_similar_findings(findings: list[Finding]) -> list[Finding]:
     for finding in findings:
         if finding.category in ("copy_move_single", "copy_move_cross"):
             metadata = finding.metadata or {}
-            src = str(metadata.get("source_parent_figure_id") or metadata.get("source_panel_id") or "")
-            tgt = str(metadata.get("target_parent_figure_id") or metadata.get("target_panel_id") or "")
+            src = str(
+                metadata.get("source_parent_figure_id")
+                or metadata.get("source_panel_id")
+                or ""
+            )
+            tgt = str(
+                metadata.get("target_parent_figure_id")
+                or metadata.get("target_panel_id")
+                or ""
+            )
             key = (src, tgt)
             copy_move_groups.setdefault(key, []).append(finding)
 
@@ -1834,7 +1917,13 @@ def _group_similar_findings(findings: list[Finding]) -> list[Finding]:
             evidence_refs=dedupe([ref for f in group for ref in f.evidence_refs]),
             benign_explanations=group[0].benign_explanations,
             manual_review_note=f"{len(group)} paired ratio reuse patterns detected in workbook '{workbook}', sheet '{sheet}'. Review column semantics and data generation process.",
-            metadata={"group_type": "paired_ratio_reuse", "workbook": workbook, "sheet": sheet, "member_count": len(group), "member_ids": [f.finding_id for f in group]},
+            metadata={
+                "group_type": "paired_ratio_reuse",
+                "workbook": workbook,
+                "sheet": sheet,
+                "member_count": len(group),
+                "member_ids": [f.finding_id for f in group],
+            },
         )
         findings.append(summary)
         for f in group:
@@ -1854,7 +1943,13 @@ def _group_similar_findings(findings: list[Finding]) -> list[Finding]:
             evidence_refs=dedupe([ref for f in group for ref in f.evidence_refs]),
             benign_explanations=group[0].benign_explanations,
             manual_review_note=f"{len(group)} copy-move patterns detected between figures '{src}' and '{tgt}'. Review image processing pipeline and raw data.",
-            metadata={"group_type": "copy_move", "source_figure": src, "target_figure": tgt, "member_count": len(group), "member_ids": [f.finding_id for f in group]},
+            metadata={
+                "group_type": "copy_move",
+                "source_figure": src,
+                "target_figure": tgt,
+                "member_count": len(group),
+                "member_ids": [f.finding_id for f in group],
+            },
         )
         findings.append(summary)
         for f in group:

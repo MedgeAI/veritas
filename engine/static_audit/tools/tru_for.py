@@ -77,7 +77,7 @@ def run_tru_for(
     *,
     workdir: Path,
     weights_path: Path = DEFAULT_WEIGHTS,
-    score_threshold: float = 0.5,
+    score_threshold: float = 0.65,
 ) -> dict[str, Any]:
     """Run TruFor forgery detection on all figures.
 

@@ -6,6 +6,7 @@ All public names are re-exported via orchestrator for backward compatibility.
 
 from __future__ import annotations
 
+import logging
 import shutil
 from pathlib import Path
 from typing import Any
@@ -23,6 +24,7 @@ from engine.static_audit._shared import (
     write_json_artifact,
 )
 from engine.static_audit.tools.panel_extraction import (
+    _classify_fallback_panels,
     build_figure_evidence_from_images,
     build_figure_evidence_from_ledger,
     extract_panels_batch,
@@ -34,6 +36,8 @@ from engine.static_audit.tools.visual_finding_pipeline import (
     build_visual_findings,
     visual_review_queue,
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _visual_status(values: list[str]) -> str:
@@ -163,6 +167,10 @@ def run_visual_panel_extraction(
             )
             if fallback_panel:
                 result_panels = [fallback_panel]
+                # Post-hoc heuristic typing: infer panel_type from image
+                # shape/color so downstream forensics routing can make
+                # informed decisions even when YOLOv5 detected nothing.
+                _classify_fallback_panels(result_panels, workdir=workdir)
                 limitations.append(
                     f"{fid}: YOLOv5 panel extraction did not detect panels; whole-figure fallback panel was created."
                 )
@@ -316,6 +324,51 @@ def _read_image_similarity_outputs(workdir: Path) -> dict[str, Any]:
     return {"candidates": candidates, "source_paths": [str(path) for path in paths]}
 
 
+def _cleanup_unused_overlays(workdir: Path, finding_doc: dict[str, Any]) -> dict[str, Any]:
+    """Delete overlay PNGs not referenced by review_queue entries.
+
+    Scans ``copy_move_elis/single/`` and ``copy_move_elis/cross/`` for PNG
+    files and removes any that are not cited by an ``overlay_path`` in the
+    finding document's ``review_queue``.  Returns a stats dict.
+    """
+    referenced: set[Path] = set()
+    for item in finding_doc.get("review_queue") or []:
+        raw = item.get("overlay_path") if isinstance(item, dict) else None
+        if not raw:
+            continue
+        p = Path(str(raw))
+        if not p.is_absolute():
+            p = workdir / p
+        try:
+            referenced.add(p.resolve())
+        except OSError:
+            referenced.add(p)
+
+    deleted = 0
+    scanned = 0
+    for subdir_name in ("single", "cross"):
+        overlay_dir = workdir / "copy_move_elis" / subdir_name
+        if not overlay_dir.is_dir():
+            continue
+        for png in sorted(overlay_dir.glob("*.png")):
+            scanned += 1
+            try:
+                resolved = png.resolve()
+            except OSError:
+                continue
+            if resolved not in referenced:
+                try:
+                    png.unlink()
+                    deleted += 1
+                except OSError as exc:
+                    logger.warning("Failed to remove unreferenced overlay %s: %s", png, exc)
+
+    if deleted:
+        logger.info("Cleaned up %d unreferenced overlay(s) (scanned %d).", deleted, scanned)
+
+    return {"deleted_count": deleted, "scanned_count": scanned}
+
+
 def run_visual_finding_pipeline(
     *,
     workdir: Path,
@@ -421,7 +474,9 @@ def run_visual_finding_pipeline(
 
     # Count skipped relationships and TruFor findings due to code-generated modality
     skipped_relationships = [r for r in relationships if "skipped" in r]
-    skipped_trufor = [f for f in forged_region_items if isinstance(f, dict) and "skipped" in f]
+    skipped_trufor = [
+        f for f in forged_region_items if isinstance(f, dict) and "skipped" in f
+    ]
     skipped_panels = set()
     for rel in skipped_relationships:
         skipped_panels.add(rel.get("source_panel_id", ""))
@@ -493,6 +548,17 @@ def run_visual_finding_pipeline(
     }
     write_json_artifact(relationships_output, relationship_doc)
     write_json_artifact(findings_output, finding_doc)
+
+    cleanup_stats = _cleanup_unused_overlays(workdir, finding_doc)
+    if cleanup_stats["deleted_count"] > 0:
+        limitations.append(
+            f"Removed {cleanup_stats['deleted_count']} unreferenced overlay PNG(s) "
+            f"from copy_move_elis/ ({cleanup_stats['scanned_count']} scanned)."
+        )
+        # Re-write findings with updated limitations
+        finding_doc["limitations"] = limitations
+        write_json_artifact(findings_output, finding_doc)
+
     step = StepResult(
         "visual_finding_pipeline",
         "视觉证据聚合管线",
@@ -510,6 +576,7 @@ def run_visual_finding_pipeline(
             "finding_cluster_count": len(finding_clusters),
             "review_queue_count": len(review_queue),
             "copy_move_status": copy_move_result.get("status"),
+            "overlay_cleanup": cleanup_stats,
         }
     }
 
@@ -734,9 +801,42 @@ def run_image_quality_detection(
         }
 
     try:
-        from engine.static_audit.tools.image_quality import run_image_quality
+        from engine.static_audit.tools.image_quality import (
+            run_background_comparison,
+            run_image_quality,
+        )
 
         result = run_image_quality(figures, workdir=workdir)
+
+        # Background texture consistency comparison (panel-level)
+        panel_evidence_path = resolve_artifact_path(workdir, "panel_evidence.json")
+        if panel_evidence_path.exists():
+            panel_data = read_json(panel_evidence_path) or {}
+            panels = panel_data.get("panels", [])
+            if panels:
+                try:
+                    bg_result = run_background_comparison(
+                        figures, panels, workdir=workdir
+                    )
+                    # Merge background anomalies into main result
+                    bg_anomalies = bg_result.get("anomalies", [])
+                    if bg_anomalies:
+                        result["anomalies"].extend(bg_anomalies)
+                        result["anomaly_count"] = len(result["anomalies"])
+                    result["background_comparison"] = {
+                        "status": bg_result.get("status", "skipped"),
+                        "group_stats": bg_result.get("group_stats", {}),
+                        "anomaly_count": bg_result.get("anomaly_count", 0),
+                    }
+                    result.setdefault("errors", []).extend(bg_result.get("errors", []))
+                    result.setdefault("limitations", []).extend(
+                        bg_result.get("limitations", [])
+                    )
+                except Exception as e:
+                    logger.warning("Background comparison failed: %s", e)
+                    result.setdefault("errors", []).append(
+                        f"Background comparison failed: {e}"
+                    )
     except Exception as e:
         result = {
             "status": "failed",

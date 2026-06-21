@@ -30,6 +30,7 @@ from typing import Any
 
 from engine.static_audit.visual_constants import (
     COPY_MOVE_DEFAULTS,
+    dhash_rotations_from_path,
     min_hamming_rotations,
 )
 from engine.static_audit.visual_schemas import VISUAL_SCHEMA_VERSION
@@ -207,6 +208,26 @@ def _run_single_image_detection(
     return result.get("results", [])
 
 
+def _build_figure_panel_type_map(
+    panel_evidence: list[dict[str, Any]],
+) -> dict[str, set[str]]:
+    """Map each parent_figure_id to the set of known panel_types it contains.
+
+    Panels with ``panel_type`` of ``None`` or empty string are ignored.
+    Figures with no classified panels will be absent from the map.
+    """
+    mapping: dict[str, set[str]] = {}
+    for panel in panel_evidence:
+        if not isinstance(panel, dict):
+            continue
+        figure_id = str(panel.get("parent_figure_id") or "")
+        panel_type = panel.get("panel_type")
+        if not figure_id or not panel_type:
+            continue
+        mapping.setdefault(figure_id, set()).add(panel_type)
+    return mapping
+
+
 def _run_cross_figure_detection(
     figure_evidence: list[dict[str, Any]],
     workdir: Path,
@@ -214,8 +235,15 @@ def _run_cross_figure_detection(
     min_area: float,
     dhash_threshold: int = 20,
     max_pairs: int = 500,
+    figure_panel_types: dict[str, set[str]] | None = None,
 ) -> list[dict[str, Any]]:
-    """Phase 2b: Cross-figure detection with dhash pre-filter."""
+    """Phase 2b: Cross-figure detection with dhash pre-filter.
+
+    When *figure_panel_types* is provided, only figure pairs whose panel-type
+    sets intersect are compared.  Pairs where either side has no classified
+    panels (null/unknown panel_type) are skipped to avoid false matches between
+    unrelated panel categories (e.g. Blots vs Graphs).
+    """
     # Collect figure images
     figures_with_paths = []
     for fig in figure_evidence:
@@ -235,11 +263,11 @@ def _run_cross_figure_detection(
         return []
 
     # Compute dhash for all figures (rotation-invariant via 4-rotation pre-filter)
-    hashes: list[tuple[str, Path, int]] = []
+    hashes: list[tuple[str, Path, tuple[int, int, int, int]]] = []
     for fig in figures_with_paths:
         try:
-            h = _dhash(fig["path"])
-            hashes.append((fig["figure_id"], fig["path"], h))
+            h_tuple = dhash_rotations_from_path(fig["path"])
+            hashes.append((fig["figure_id"], fig["path"], h_tuple))
         except OSError:
             continue
 
@@ -247,21 +275,36 @@ def _run_cross_figure_detection(
         return []
 
     # Pre-filter pairs by rotation-invariant dhash distance (Plan C)
+    # Additionally filter by panel_type consistency when available.
     candidate_pairs = []
     for (fid_a, path_a, hash_a), (fid_b, path_b, hash_b) in combinations(hashes, 2):
         dist, best_angle = min_hamming_rotations(hash_a, hash_b)
-        if dist <= dhash_threshold:
-            candidate_pairs.append(
-                {
-                    "pair_id": f"{fid_a}__{fid_b}",
-                    "source": str(path_a),
-                    "target": str(path_b),
-                    "source_figure_id": fid_a,
-                    "target_figure_id": fid_b,
-                    "dhash_distance": dist,
-                    "best_rotation_angle": best_angle,
-                }
-            )
+        if dist > dhash_threshold:
+            continue
+
+        # panel_type consistency check: both sides must have at least one
+        # classified panel, and their type sets must intersect.
+        if figure_panel_types:
+            types_a = figure_panel_types.get(fid_a)
+            types_b = figure_panel_types.get(fid_b)
+            if not types_a or not types_b:
+                # One or both figures have no classified panels -- skip.
+                continue
+            if not (types_a & types_b):
+                # No overlapping panel type -- skip.
+                continue
+
+        candidate_pairs.append(
+            {
+                "pair_id": f"{fid_a}__{fid_b}",
+                "source": str(path_a),
+                "target": str(path_b),
+                "source_figure_id": fid_a,
+                "target_figure_id": fid_b,
+                "dhash_distance": dist,
+                "best_rotation_angle": best_angle,
+            }
+        )
 
     if not candidate_pairs:
         return []
@@ -371,11 +414,13 @@ def detect_copy_move(
         )
 
     # --- Phase 2b: Cross-figure with dhash pre-filter ---
+    figure_panel_types = _build_figure_panel_type_map(panel_evidence)
     cross_results = _run_cross_figure_detection(
         figure_evidence,
         workdir,
         min_keypoints=min_matches,
         min_area=0.01,
+        figure_panel_types=figure_panel_types,
     )
     for r in cross_results:
         if not r.get("success"):
@@ -401,12 +446,22 @@ def detect_copy_move(
             except ValueError:
                 pass
 
+        # Resolve panel types for the matched figure pair.
+        src_fid = r.get("source_figure_id", "")
+        tgt_fid = r.get("target_figure_id", "")
+        src_types = sorted(figure_panel_types.get(src_fid) or set())
+        tgt_types = sorted(figure_panel_types.get(tgt_fid) or set())
+        # The matched panel type(s): intersection of both sides.
+        matched_types = sorted(set(src_types) & set(tgt_types))
+        src_panel_type = ",".join(src_types) if src_types else "unknown"
+        tgt_panel_type = ",".join(tgt_types) if tgt_types else "unknown"
+
         relationships.append(
             {
                 "relationship_id": f"IR-{len(relationships) + 1:04d}",
                 "source_type": "copy_move_cross",
-                "source_panel_id": r.get("source_figure_id", ""),
-                "target_panel_id": r.get("target_figure_id", ""),
+                "source_panel_id": src_fid,
+                "target_panel_id": tgt_fid,
                 "score": round(score, 4),
                 "match_method": "rootsift_magsac_cross",
                 "inlier_count": kp_count,
@@ -419,6 +474,11 @@ def detect_copy_move(
                     "num_clusters_source": r.get("num_clusters_source", 0),
                     "num_clusters_target": r.get("num_clusters_target", 0),
                     "detection_mode": "cross_image",
+                    "source_panel_type": src_panel_type,
+                    "target_panel_type": tgt_panel_type,
+                    "matched_panel_types": ",".join(matched_types)
+                    if matched_types
+                    else "unknown",
                 },
             }
         )

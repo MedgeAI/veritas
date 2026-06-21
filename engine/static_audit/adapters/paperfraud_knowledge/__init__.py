@@ -52,7 +52,6 @@ class PaperFraudRule:
     human_review: str = ""
     references: list[str] = field(default_factory=list)
     source: str = ""
-    enabled: bool = True
 
 
 @dataclass
@@ -102,7 +101,6 @@ def load_knowledge_base() -> list[PaperFraudRule]:
                         human_review=rd.get("human_review", ""),
                         references=rd.get("references", []),
                         source=rd.get("source", f"paperfraud/{yaml_file.name}"),
-                        enabled=rd.get("enabled", True),
                     )
                 )
         except Exception as e:
@@ -152,17 +150,10 @@ def match_rules(
     """
     all_text = paper_full_text or paper_methods or paper_abstract
     results = []
-    skipped = 0
 
     for rule in rules:
-        if not rule.enabled:
-            skipped += 1
-            continue
         match = _match_single(rule, all_text, paper_methods)
         results.append(match)
-
-    if skipped:
-        logger.info("[PaperFraud KB] skipped %d disabled rules", skipped)
 
     return results
 
