@@ -25,6 +25,34 @@ from engine.static_audit.tools.source_data_profile import normalized_number
 
 RISK_ORDER = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
 
+# Semantic equivalence groups for summary-statistic pair detection.
+# Two columns whose labels both contain terms from the same group are likely
+# a legitimate mean±SD / median±IQR / N/total / pre-post / control-treatment
+# relationship, not a suspicious fixed-ratio artifact.
+_SEMANTIC_GROUPS: tuple[tuple[str, ...], ...] = (
+    ("mean", "avg", "average", "sd", "std", "stderr", "sem"),
+    ("median", "iqr", "q1", "q3", "25%", "75%"),
+    ("n", "count", "total", "proportion", "percentage", "%"),
+    ("pre", "post", "baseline", "followup", "t0", "t1"),
+    ("control", "treatment", "case", "case_control"),
+)
+
+
+def _is_semantic_equivalent_pair(left_label: str, right_label: str) -> bool:
+    """Return True when both labels belong to the same semantic equivalence group.
+
+    Matches are substring-based on the lowercased labels, consistent with how
+    ``column_label`` returns the joined header text.
+    """
+    left_lower = left_label.lower()
+    right_lower = right_label.lower()
+    for group in _SEMANTIC_GROUPS:
+        left_match = any(term in left_lower for term in group)
+        right_match = any(term in right_lower for term in group)
+        if left_match and right_match:
+            return True
+    return False
+
 
 @dataclass(frozen=True)
 class PairForensicsParams:
@@ -243,7 +271,11 @@ def paired_ratio_reuse_findings(
                 summary_pair = is_summary_statistic_pair(
                     sheet, left_col, right_col, matched_rows
                 )
-                if summary_pair:
+                left_lbl = column_label(sheet, left_col)
+                right_lbl = column_label(sheet, right_col)
+                semantic_pair = _is_semantic_equivalent_pair(left_lbl, right_lbl)
+                semantic_only = semantic_pair and not summary_pair
+                if summary_pair or semantic_pair:
                     risk = "low"
                 findings.append(
                     {
@@ -255,19 +287,22 @@ def paired_ratio_reuse_findings(
                         "sheet": sheet.sheet,
                         "row_offset": offset,
                         "column_pair": [col_to_name(left_col), col_to_name(right_col)],
-                        "column_labels": [
-                            column_label(sheet, left_col),
-                            column_label(sheet, right_col),
-                        ],
+                        "column_labels": [left_lbl, right_lbl],
                         "matched_pairs": len(matched),
                         "overlap_pairs": len(pairs),
                         "support_rate": round(support_rate, 4),
                         "ratio_places": params.ratio_places,
-                        "artifact_likelihood": "high" if summary_pair else "unknown",
+                        "artifact_likelihood": "high"
+                        if summary_pair or semantic_pair
+                        else "unknown",
                         "artifact_reason": (
-                            "Mean/Sum/N summary-statistics relationship"
-                            if summary_pair
-                            else None
+                            f"summary-statistic pair: {left_lbl} vs {right_lbl}"
+                            if semantic_only
+                            else (
+                                "Mean/Sum/N summary-statistics relationship"
+                                if summary_pair
+                                else None
+                            )
                         ),
                         "sample_pairs": [
                             {
@@ -289,7 +324,7 @@ def paired_ratio_reuse_findings(
                         ],
                         "pressure_test_result": (
                             "likely_summary_statistic_derivation"
-                            if summary_pair
+                            if summary_pair or semantic_pair
                             else "needs_pair_ratio_independence_review"
                         ),
                         "next_steps": [
