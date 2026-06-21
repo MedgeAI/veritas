@@ -100,6 +100,14 @@ def _write_panel_evidence(tmp_path: Path, panels: list[dict]) -> Path:
     return pe_path
 
 
+def _ensure_case(db, case_id: str) -> None:
+    from web.backend.veritas_web.models import CaseModel
+
+    if db.get(CaseModel, case_id) is None:
+        db.add(CaseModel(case_id=case_id, paper_title=case_id))
+        db.flush()
+
+
 # ---------------------------------------------------------------------------
 # 1. E2E: CBIR search flow
 # ---------------------------------------------------------------------------
@@ -453,7 +461,7 @@ class TestProvenanceGraphE2E:
 
 
 class TestWebCbirServiceE2E:
-    """End-to-end tests for the Web P1 CBIR service using in-memory DB."""
+    """End-to-end tests for the Web P1 CBIR service using PGlite-backed DB."""
 
     @pytest.fixture()
     def db_session(self):
@@ -466,12 +474,17 @@ class TestWebCbirServiceE2E:
         # Import models to ensure they are registered with Base before create_all
         from web.backend.veritas_web.models import ImageEmbeddingModel  # noqa: F401
 
-        engine = create_db_engine("sqlite:///:memory:")
+        engine = create_db_engine()
         Base.metadata.create_all(bind=engine)
         factory = create_session_factory(engine)
         session = factory()
-        yield session
-        session.close()
+        try:
+            yield session
+        finally:
+            try:
+                session.close()
+            finally:
+                engine.dispose()
 
     def _seed_embeddings(
         self, db, case_id: str, panels: list[tuple[str, list[float]]]
@@ -479,6 +492,7 @@ class TestWebCbirServiceE2E:
         from web.backend.veritas_web.embeddings import _utc_now
         from web.backend.veritas_web.models import ImageEmbeddingModel
 
+        _ensure_case(db, case_id)
         for panel_id, embedding in panels:
             db.add(
                 ImageEmbeddingModel(
@@ -697,18 +711,24 @@ class TestWebCbirPerformance:
             create_session_factory,
         )
 
-        engine = create_db_engine("sqlite:///:memory:")
+        engine = create_db_engine()
         Base.metadata.create_all(bind=engine)
         factory = create_session_factory(engine)
         session = factory()
-        yield session
-        session.close()
+        try:
+            yield session
+        finally:
+            try:
+                session.close()
+            finally:
+                engine.dispose()
 
     def _seed_random(self, db, case_id: str, n: int, dim: int = 512) -> None:
         from web.backend.veritas_web.embeddings import _utc_now
         from web.backend.veritas_web.models import ImageEmbeddingModel
         import random
 
+        _ensure_case(db, case_id)
         random.seed(42)
         for i in range(n):
             vec = [random.gauss(0, 1) for _ in range(dim)]

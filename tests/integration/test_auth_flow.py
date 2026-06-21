@@ -10,6 +10,7 @@ from __future__ import annotations
 import base64
 import datetime
 import json
+import os
 from pathlib import Path
 
 import jwt
@@ -302,7 +303,7 @@ class TestCrossUserIsolation:
         assert resp.status_code == 403
 
     def test_basic_mode_case_subresources_enforce_owner(self, tmp_path: Path) -> None:
-        db_url = f"sqlite:///{tmp_path / 'test.db'}"
+        db_url = os.environ["VERITAS_DATABASE_URL"]
         db_path = str(tmp_path / "test_users.db")
         provider = BasicAuthProvider(db_path)
         provider.add_user("alice", "alice-pass", roles="operator")
@@ -340,7 +341,7 @@ class TestCrossUserIsolation:
     def test_basic_mode_run_events_must_belong_to_requested_case(
         self, tmp_path: Path
     ) -> None:
-        db_url = f"sqlite:///{tmp_path / 'test.db'}"
+        db_url = os.environ["VERITAS_DATABASE_URL"]
         db_path = str(tmp_path / "test_users.db")
         provider = BasicAuthProvider(db_path)
         provider.add_user("alice", "alice-pass", roles="operator")

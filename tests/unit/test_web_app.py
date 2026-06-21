@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import base64
+import json
 from pathlib import Path
 from typing import Any
 
@@ -194,6 +195,112 @@ def test_upload_input_still_accepts_json_base64(tmp_path: Path) -> None:
     assert stored == b"%PDF-1.4\nlegacy\n"
 
 
+def test_materials_endpoint_detects_common_data_and_nested_env_files(
+    tmp_path: Path,
+) -> None:
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
+    client.post(
+        "/api/cases", json={"case_id": "materials-case", "paper_title": "Materials"}
+    )
+    deps = app.state.dependencies
+    deps.store.write_input("materials-case", "counts.RData", b"rdata")
+    deps.store.write_input(
+        "materials-case",
+        "renv.lock",
+        b"{}",
+        relative_path="analysis/env/renv.lock",
+    )
+
+    resp = client.get("/api/cases/materials-case/materials")
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["source_data"]["status"] == "ok"
+    assert data["source_data"]["count"] == 1
+    assert data["environment"]["status"] == "provided"
+    assert data["environment"]["files"] == ["inputs/analysis/env/renv.lock"]
+
+
+def test_risk_summary_missing_bundle_is_unavailable(tmp_path: Path) -> None:
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
+    client.post(
+        "/api/cases", json={"case_id": "empty-risk", "paper_title": "Empty Risk"}
+    )
+
+    resp = client.get("/api/cases/empty-risk/risk-summary")
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "unavailable"
+    assert data["overall_risk"] == "unknown"
+    assert data["total_findings"] == 0
+
+
+def test_risk_summary_uses_issue_category_priority_for_top_findings(
+    tmp_path: Path,
+) -> None:
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
+    client.post(
+        "/api/cases", json={"case_id": "risk-order", "paper_title": "Risk Order"}
+    )
+    deps = app.state.dependencies
+    run = deps.store.create_run("risk-order")
+    workdir = tmp_path / "outputs" / "risk-order" / "research-integrity-audit"
+    reports_dir = workdir / "reports"
+    reports_dir.mkdir(parents=True)
+    bundle = {
+        "findings": [
+            {
+                "finding_id": "COMP-CRIT",
+                "issue_category": "completeness",
+                "risk_level": "critical",
+                "category": "source_data_missing",
+                "summary": "Source Data missing",
+                "metadata": {"figure_id": "Fig. 2a"},
+            },
+            {
+                "finding_id": "CONS-HIGH",
+                "issue_category": "consistency",
+                "risk_level": "high",
+                "category": "duplicate_numeric_columns",
+                "summary": "Duplicate numeric columns",
+                "metadata": {
+                    "workbook": "source.xlsx",
+                    "sheet": "Fig2",
+                    "column_labels": ["E", "G"],
+                    "equal_rows": 18,
+                    "overlap_rows": 18,
+                },
+            },
+        ]
+    }
+    (reports_dir / "static_audit_bundle.json").write_text(
+        json.dumps(bundle), encoding="utf-8"
+    )
+    run.status = "completed"
+    run.workdir = str(workdir)
+    deps.store.save_run(run)
+    case = deps.store.get_case("risk-order")
+    case.latest_run_id = run.run_id
+    deps.store.save_case(case)
+
+    resp = client.get("/api/cases/risk-order/risk-summary")
+
+    assert resp.status_code == 200
+    data = resp.json()
+    assert data["status"] == "ok"
+    assert data["overall_risk"] == "critical"
+    assert data["high_quality_count"] == 2
+    assert [item["finding_id"] for item in data["top_findings"]] == [
+        "CONS-HIGH",
+        "COMP-CRIT",
+    ]
+    assert "source.xlsx / Fig2" in data["follow_ups"]["CONS-HIGH"][0]
+
+
 def test_upload_input_rejects_empty_payload(tmp_path: Path) -> None:
     app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
     client = TestClient(app, raise_server_exceptions=False)
@@ -229,11 +336,9 @@ def test_run_detail_route_returns_run_data(tmp_path: Path) -> None:
 
 
 def test_tool_catalog_uses_app_database_session(tmp_path: Path) -> None:
-    db_url = f"sqlite:///{tmp_path / 'test.db'}"
     app = create_app(
         data_root=tmp_path / "web_data",
         output_root=tmp_path / "outputs",
-        database_url=db_url,
     )
     client = TestClient(app, raise_server_exceptions=False)
 
@@ -246,28 +351,40 @@ def test_tool_catalog_uses_app_database_session(tmp_path: Path) -> None:
 
 
 def test_app_dependencies_are_isolated_per_fastapi_app(tmp_path: Path) -> None:
-    app1 = create_app(
-        data_root=tmp_path / "web_data_1", output_root=tmp_path / "outputs_1"
-    )
-    app2 = create_app(
-        data_root=tmp_path / "web_data_2", output_root=tmp_path / "outputs_2"
-    )
-    client1 = TestClient(app1, raise_server_exceptions=False)
-    client2 = TestClient(app2, raise_server_exceptions=False)
+    from web.backend.veritas_web.pglite import start_pglite_server
 
-    resp = client1.post(
-        "/api/cases", json={"case_id": "case-one", "paper_title": "One"}
-    )
-    assert resp.status_code == 201
-    resp = client2.post(
-        "/api/cases", json={"case_id": "case-two", "paper_title": "Two"}
-    )
-    assert resp.status_code == 201
+    server1 = start_pglite_server()
+    server2 = start_pglite_server()
+    try:
+        app1 = create_app(
+            data_root=tmp_path / "web_data_1",
+            output_root=tmp_path / "outputs_1",
+            database_url=server1.database_url,
+        )
+        app2 = create_app(
+            data_root=tmp_path / "web_data_2",
+            output_root=tmp_path / "outputs_2",
+            database_url=server2.database_url,
+        )
+        client1 = TestClient(app1, raise_server_exceptions=False)
+        client2 = TestClient(app2, raise_server_exceptions=False)
 
-    resp = client1.get("/api/cases")
+        resp = client1.post(
+            "/api/cases", json={"case_id": "case-one", "paper_title": "One"}
+        )
+        assert resp.status_code == 201
+        resp = client2.post(
+            "/api/cases", json={"case_id": "case-two", "paper_title": "Two"}
+        )
+        assert resp.status_code == 201
 
-    assert resp.status_code == 200
-    assert [case["case_id"] for case in resp.json()["cases"]] == ["case-one"]
+        resp = client1.get("/api/cases")
+
+        assert resp.status_code == 200
+        assert [case["case_id"] for case in resp.json()["cases"]] == ["case-one"]
+    finally:
+        server1.stop()
+        server2.stop()
 
 
 def test_tools_health_reports_probe_results(tmp_path: Path) -> None:
@@ -288,11 +405,9 @@ def test_tools_health_reports_probe_results(tmp_path: Path) -> None:
 
 
 def test_review_decision_rejects_invalid_status(tmp_path: Path) -> None:
-    db_url = f"sqlite:///{tmp_path / 'test.db'}"
     app = create_app(
         data_root=tmp_path / "web_data",
         output_root=tmp_path / "outputs",
-        database_url=db_url,
     )
     client = TestClient(app, raise_server_exceptions=False)
 
@@ -371,14 +486,10 @@ def test_review_items_return_503_without_database_session(tmp_path: Path) -> Non
 
 def test_web_app_marks_stale_runs_failed_on_startup(tmp_path: Path) -> None:
     """Verify stale runs are recovered on app startup."""
-    db_path = tmp_path / "test.db"
-    db_url = f"sqlite:///{db_path}"
-
-    # First app: create a run and mark it as running
+    # First app: create a run and mark it as running.
     app1 = create_app(
         data_root=tmp_path / "web_data",
         output_root=tmp_path / "outputs",
-        database_url=db_url,
     )
     client1 = TestClient(app1, raise_server_exceptions=False)
 
@@ -392,11 +503,10 @@ def test_web_app_marks_stale_runs_failed_on_startup(tmp_path: Path) -> None:
     run.status = "running"
     deps.store.save_run(run)
 
-    # Second app: should recover the stale run (shares same DB file)
+    # Second app: should recover the stale run (shares the same PGlite DB).
     app2 = create_app(
         data_root=tmp_path / "web_data",
         output_root=tmp_path / "outputs",
-        database_url=db_url,
     )
     client2 = TestClient(app2, raise_server_exceptions=False)
 

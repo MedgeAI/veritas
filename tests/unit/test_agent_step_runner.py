@@ -357,7 +357,15 @@ def test_extract_json_reused(
 
 
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_log_artifact_redacts_long_prompt(mock_run: MagicMock, tmp_path: Path) -> None:
+def test_log_artifact_includes_prompt_preview_and_trace(
+    mock_run: MagicMock, tmp_path: Path
+) -> None:
+    """P0/P1: log includes prompt preview (first 500 chars) and trace JSON.
+
+    Full prompt is NOT embedded — only a 500-char preview — so that
+    hallucination debugging is possible without bloating the log.
+    A structured trace JSON is written alongside the log.
+    """
     mock_run.return_value = _make_completed(
         returncode=1,
         stderr="fatal error occurred",
@@ -376,8 +384,20 @@ def test_log_artifact_redacts_long_prompt(mock_run: MagicMock, tmp_path: Path) -
 
     log_file = next(log_dir.glob("my_role_*.log"))
     content = log_file.read_text()
+    # Full prompt should NOT appear
     assert long_prompt not in content
-    assert "<prompt chars=5000 sha256=" in content
+    # Prompt preview (first 500 chars) should appear
+    assert "Prompt Summary" in content
+    assert "P" * 500 in content
+    # Structured trace JSON should exist alongside the log
+    trace_files = list(log_dir.glob("step_trace_my_role_*.json"))
+    assert len(trace_files) == 1
+    import json
+
+    trace = json.loads(trace_files[0].read_text())
+    assert trace["role"] == "my_role"
+    assert trace["input"]["prompt_chars"] == 5000
+    assert "prompt_sha256" in trace["input"]
 
 
 @patch("engine.investigation.agent_step_runner.extract_json")

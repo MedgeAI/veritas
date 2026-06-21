@@ -45,7 +45,8 @@ def test_paperfraud_matches_convert_to_canonical_findings(tmp_path) -> None:
     full_md.parent.mkdir(parents=True, exist_ok=True)
     full_md.write_text(
         "We conducted a randomized controlled trial. "
-        "Table 1 shows baseline characteristics of all participants. "
+        "Table 1 shows baseline characteristics of all participants "
+        "(mean age 45.2 ± 3.1 years, n=100 per group). "
         "We used t-test for comparison between groups. "
         "The results showed t = 2.45, p < 0.05 indicating statistical significance. "
         "All patients gave informed consent and ethics approval was obtained.",
@@ -75,7 +76,8 @@ def test_paperfraud_rule_matches_merge_into_canonical_findings(tmp_path) -> None
     full_md = resolve_artifact_path(tmp_path, "full.md")
     full_md.parent.mkdir(parents=True, exist_ok=True)
     full_md.write_text(
-        "A cohort study reports baseline characteristics in Table 1. "
+        "A cohort study reports baseline characteristics in Table 1 "
+        "(mean age 45.2 ± 3.1 years, n=100 per group). "
         "We used t-test for comparison between groups. "
         "The results showed t = 2.45, p < 0.05 indicating statistical significance. "
         "All patients gave informed consent.",

@@ -24,19 +24,33 @@ from web.backend.veritas_web.database import (
 
 @pytest.fixture
 def db_session():
-    """Create an in-memory SQLite session for testing."""
-    engine = create_db_engine("sqlite:///:memory:")
+    """Create a PGlite in-memory PostgreSQL-compatible session for testing."""
+    engine = create_db_engine()
     Base.metadata.create_all(bind=engine)
     factory = create_session_factory(engine)
     session = factory()
-    yield session
-    session.close()
+    try:
+        yield session
+    finally:
+        try:
+            session.close()
+        finally:
+            engine.dispose()
+
+
+def _ensure_case(db, case_id: str) -> None:
+    from web.backend.veritas_web.models import CaseModel
+
+    if db.get(CaseModel, case_id) is None:
+        db.add(CaseModel(case_id=case_id, paper_title=case_id))
+        db.flush()
 
 
 def _insert_embedding(db, case_id, panel_id, figure_id, embedding, image_path=""):
     from web.backend.veritas_web.embeddings import _utc_now
     from web.backend.veritas_web.models import ImageEmbeddingModel
 
+    _ensure_case(db, case_id)
     db.add(
         ImageEmbeddingModel(
             case_id=case_id,
@@ -182,19 +196,18 @@ class TestSearchSimilarPanels:
 
 
 def _setup_app_with_embeddings(tmp_path: Path) -> TestClient:
-    """Create a test app with an in-memory DB and some embeddings."""
+    """Create a test app with a PGlite-backed DB and some embeddings."""
     app = create_app(
         data_root=tmp_path / "web_data",
         output_root=tmp_path / "outputs",
-        database_url="sqlite:///:memory:",
     )
     return TestClient(app, raise_server_exceptions=False)
 
 
 def _seed_embeddings(client: TestClient, tmp_path: Path) -> None:
-    """Seed the in-memory DB with test embeddings via direct ORM access."""
-    # The app was created with an in-memory DB; we access it through deps.
-    # Since each create_app creates a new in-memory DB, we seed via the
+    """Seed the PGlite-backed DB with test embeddings via direct ORM access."""
+    # The app was created with a PGlite-backed DB; we access it through deps.
+    # Since each test resets the PGlite schema, we seed via the
     # app's engine directly.
     pass  # Seeding is done per-test below to avoid cross-test contamination.
 
@@ -203,7 +216,6 @@ def test_cbir_search_endpoint_basic(tmp_path: Path) -> None:
     app = create_app(
         data_root=tmp_path / "web_data",
         output_root=tmp_path / "outputs",
-        database_url="sqlite:///:memory:",
     )
     Base.metadata.create_all(bind=app.state.dependencies._engine)
     client = TestClient(app, raise_server_exceptions=False)
@@ -239,7 +251,6 @@ def test_cbir_search_cross_case(tmp_path: Path) -> None:
     app = create_app(
         data_root=tmp_path / "web_data",
         output_root=tmp_path / "outputs",
-        database_url="sqlite:///:memory:",
     )
     Base.metadata.create_all(bind=app.state.dependencies._engine)
     client = TestClient(app, raise_server_exceptions=False)
@@ -270,7 +281,6 @@ def test_cbir_search_no_results(tmp_path: Path) -> None:
     app = create_app(
         data_root=tmp_path / "web_data",
         output_root=tmp_path / "outputs",
-        database_url="sqlite:///:memory:",
     )
     Base.metadata.create_all(bind=app.state.dependencies._engine)
     client = TestClient(app, raise_server_exceptions=False)
@@ -300,7 +310,6 @@ def test_cbir_search_nonexistent_panel(tmp_path: Path) -> None:
     app = create_app(
         data_root=tmp_path / "web_data",
         output_root=tmp_path / "outputs",
-        database_url="sqlite:///:memory:",
     )
     Base.metadata.create_all(bind=app.state.dependencies._engine)
     client = TestClient(app, raise_server_exceptions=False)
@@ -322,7 +331,6 @@ def test_cbir_search_validation_top_k(tmp_path: Path) -> None:
     app = create_app(
         data_root=tmp_path / "web_data",
         output_root=tmp_path / "outputs",
-        database_url="sqlite:///:memory:",
     )
     Base.metadata.create_all(bind=app.state.dependencies._engine)
     client = TestClient(app, raise_server_exceptions=False)
@@ -341,7 +349,6 @@ def test_cbir_search_validation_threshold(tmp_path: Path) -> None:
     app = create_app(
         data_root=tmp_path / "web_data",
         output_root=tmp_path / "outputs",
-        database_url="sqlite:///:memory:",
     )
     Base.metadata.create_all(bind=app.state.dependencies._engine)
     client = TestClient(app, raise_server_exceptions=False)
@@ -360,7 +367,6 @@ def test_cbir_search_by_label(tmp_path: Path) -> None:
     app = create_app(
         data_root=tmp_path / "web_data",
         output_root=tmp_path / "outputs",
-        database_url="sqlite:///:memory:",
     )
     Base.metadata.create_all(bind=app.state.dependencies._engine)
     client = TestClient(app, raise_server_exceptions=False)
@@ -405,7 +411,6 @@ def test_cbir_search_by_label_no_match(tmp_path: Path) -> None:
     app = create_app(
         data_root=tmp_path / "web_data",
         output_root=tmp_path / "outputs",
-        database_url="sqlite:///:memory:",
     )
     Base.metadata.create_all(bind=app.state.dependencies._engine)
     client = TestClient(app, raise_server_exceptions=False)

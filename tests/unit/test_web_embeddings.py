@@ -38,13 +38,27 @@ def _make_test_image(
 
 @pytest.fixture
 def db_session():
-    """Create an in-memory SQLite session for testing."""
-    engine = create_db_engine("sqlite:///:memory:")
+    """Create a PGlite in-memory PostgreSQL-compatible session for testing."""
+    engine = create_db_engine()
     Base.metadata.create_all(bind=engine)
     factory = create_session_factory(engine)
     session = factory()
-    yield session
-    session.close()
+    from web.backend.veritas_web.models import CaseModel
+
+    session.add_all(
+        [
+            CaseModel(case_id="test-case", paper_title="Test Case"),
+            CaseModel(case_id="case1", paper_title="Case 1"),
+        ]
+    )
+    session.commit()
+    try:
+        yield session
+    finally:
+        try:
+            session.close()
+        finally:
+            engine.dispose()
 
 
 @pytest.fixture
