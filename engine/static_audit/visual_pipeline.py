@@ -418,11 +418,28 @@ def run_visual_finding_pipeline(
         panel_evidence=panels,
         forged_region_evidence=forged_region_items,
     )
+
+    # Count skipped relationships and TruFor findings due to code-generated modality
+    skipped_relationships = [r for r in relationships if "skipped" in r]
+    skipped_trufor = [f for f in forged_region_items if isinstance(f, dict) and "skipped" in f]
+    skipped_panels = set()
+    for rel in skipped_relationships:
+        skipped_panels.add(rel.get("source_panel_id", ""))
+        skipped_panels.add(rel.get("target_panel_id", ""))
+    for fre in skipped_trufor:
+        skipped_panels.add(str(fre.get("figure_id", "")))
+    skipped_panels.discard("")
+
     finding_clusters = build_visual_finding_clusters(findings)
     review_queue = visual_review_queue(finding_clusters)
     limitations = [
         "Visual relationships are screening signals and require manual review before escalation.",
     ]
+    if len(skipped_panels) > 0:
+        limitations.append(
+            f"{len(skipped_panels)} panels skipped due to code-generated modality (Graphs/Flow Cytometry); "
+            f"only exact_duplicate (SHA-256) retained for these modalities."
+        )
     limitations.extend(copy_move_result.get("limitations") or [])
     limitations.extend(overlap_reuse_result.get("limitations") or [])
     if forged_region_items:

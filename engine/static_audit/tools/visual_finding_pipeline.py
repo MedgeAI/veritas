@@ -20,6 +20,8 @@ from engine.static_audit.visual_constants import (
     BENIGN_EXPLANATIONS,
     MANUAL_REVIEW_QUESTIONS,
     MODALITY_WEIGHT,
+    VISUAL_SKIP_CONFIDENCE_THRESHOLD,
+    VISUAL_SKIP_PANEL_TYPES,
     compute_risk_level,
     trufor_integrity_risk_level,
 )
@@ -580,6 +582,47 @@ def _dominant_modality(
     return src_type if src_weight >= tgt_weight else tgt_type
 
 
+def _should_skip_for_modality(
+    src: str,
+    tgt: str,
+    source_type: str,
+    panel_map: dict[str, dict],
+) -> bool:
+    """Check if a relationship should be skipped due to code-generated modality.
+
+    Code-generated panels (Graphs, Flow Cytometry) skip copy_move/overlap_reuse/trufor
+    detection and only retain exact_duplicate (SHA-256). Skip only applies when the
+    panel_type classification confidence >= VISUAL_SKIP_CONFIDENCE_THRESHOLD.
+    """
+    # exact_duplicate and dhash_similar are never skipped
+    if source_type in ("exact_duplicate", "dhash_similar"):
+        return False
+    # Only skip these source types
+    if source_type not in (
+        "copy_move_single",
+        "copy_move_cross",
+        "overlap_reuse_cross_panel",
+    ):
+        return False
+
+    # Check if dominant modality is a code-generated type
+    panel_type = _dominant_modality(src, tgt, panel_map)
+    if panel_type not in VISUAL_SKIP_PANEL_TYPES:
+        return False
+
+    # Check classification confidence
+    src_panel = _resolve_panel(src, panel_map)
+    tgt_panel = _resolve_panel(tgt, panel_map)
+    src_conf = float(src_panel.get("extraction_confidence", 0) or 0) if isinstance(src_panel, dict) else 0
+    tgt_conf = float(tgt_panel.get("extraction_confidence", 0) or 0) if isinstance(tgt_panel, dict) else 0
+
+    # Only skip if at least one panel has confidence >= threshold
+    if max(src_conf, tgt_conf) < VISUAL_SKIP_CONFIDENCE_THRESHOLD:
+        return False
+
+    return True
+
+
 def build_visual_findings(
     relationships: list[dict],
     *,
@@ -601,6 +644,10 @@ def build_visual_findings(
 
     All text fields are verified against FORBIDDEN_PHRASES. Findings that
     fail language compliance are silently dropped.
+
+    Code-generated panel types (Graphs, Flow Cytometry) skip copy_move/overlap_reuse
+    detection and only retain exact_duplicate. Skipped relationships are marked with
+    a "skipped" field in the relationship dict.
 
     Args:
         relationships: List of relationship dicts from build_relationships.
@@ -630,6 +677,13 @@ def build_visual_findings(
 
         # Only emit findings for categories with template support
         if source_type not in BENIGN_EXPLANATIONS:
+            continue
+
+        # Check if this relationship should be skipped due to code-generated modality
+        if _should_skip_for_modality(src, tgt, source_type, panel_map):
+            panel_type = _dominant_modality(src, tgt, panel_map)
+            # Mark the relationship as skipped (mutation for pipeline to track)
+            rel["skipped"] = f"skipped due to code-generated modality: {panel_type}"
             continue
 
         counter += 1
@@ -749,6 +803,15 @@ def build_visual_findings(
                 if isinstance(trufor_panel, dict)
                 else None
             )
+
+            # Skip TruFor for code-generated panel types with high confidence
+            if trufor_panel_type in VISUAL_SKIP_PANEL_TYPES:
+                trufor_conf = float(trufor_panel.get("extraction_confidence", 0) or 0) if isinstance(trufor_panel, dict) else 0
+                if trufor_conf >= VISUAL_SKIP_CONFIDENCE_THRESHOLD:
+                    # Mark the forged_region_evidence as skipped
+                    fre["skipped"] = f"skipped due to code-generated modality: {trufor_panel_type}"
+                    continue
+
             confidence_adjustments: list[str] = []
             if trufor_panel_type not in {"Blots", "Microscopy"}:
                 risk_level = _cap_risk_level(risk_level, "medium")
