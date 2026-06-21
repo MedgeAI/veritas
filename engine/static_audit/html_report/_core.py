@@ -1788,8 +1788,11 @@ def executive_summary(
         )
 
     if has_only_completeness:
+        # Count only summary findings (SDM-SUMMARY-*) to avoid double-counting
         missing_count = sum(
-            1 for f in findings if str(f.get("category")) == "source_data_missing"
+            1 for f in findings
+            if str(f.get("category")) == "source_data_missing"
+            and str(f.get("finding_id", "")).startswith("SDM-SUMMARY-")
         )
         return (
             f"本次静态技术复核主要发现材料完整性问题：{missing_count} 个 figure 缺少对应 Source Data，"
@@ -3163,7 +3166,15 @@ def _benign_explanation_paperfraud(findings: list[dict[str, Any]]) -> list[str]:
 
 
 def _benign_explanation_other(findings: list[dict[str, Any]]) -> list[str]:
-    missing = [f for f in findings if str(f.get("category")) == "source_data_missing"]
+    # Prefer summary findings (SDM-SUMMARY-*) which have figure_label.
+    missing = [
+        f for f in findings
+        if str(f.get("category")) == "source_data_missing"
+        and str(f.get("finding_id", "")).startswith("SDM-SUMMARY-")
+    ]
+    if not missing:
+        # Fallback to individual findings if no summaries exist.
+        missing = [f for f in findings if str(f.get("category")) == "source_data_missing"]
     if missing:
         fig_labels = sorted(
             {str(f.get("figure_label") or f.get("figure") or "-") for f in missing}

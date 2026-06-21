@@ -1238,7 +1238,7 @@ def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
             paper_panels.setdefault((kind, fig_num), set()).add(panel)
 
     # Generate findings for paper panels not covered by source data.
-    findings: list[Finding] = []
+    raw_findings: list[Finding] = []
     counter = 1
     for (kind, fig_num), panels in sorted(paper_panels.items()):
         for panel in sorted(panels):
@@ -1247,7 +1247,7 @@ def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
                     fig_id = f"Extended Data Fig. {fig_num}{panel}"
                 else:
                     fig_id = f"Fig. {fig_num}{panel}"
-                findings.append(
+                raw_findings.append(
                     Finding(
                         finding_id=f"COMP-SRC-{counter:03d}",
                         category="source_data_missing",
@@ -1268,6 +1268,44 @@ def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
                     )
                 )
                 counter += 1
+
+    # Group by figure (kind + fig_num) and create summary findings.
+    findings: list[Finding] = []
+    grouped: dict[tuple[str, str], list[Finding]] = {}
+    for f in raw_findings:
+        key = (f.metadata["kind"], f.metadata["figure_number"])
+        grouped.setdefault(key, []).append(f)
+
+    summary_idx = 1
+    for (kind, fig_num), group in sorted(grouped.items()):
+        panels = [f.metadata["panel"] for f in group]
+        if kind == "extended_data":
+            fig_label = f"Extended Data Fig. {fig_num}"
+        else:
+            fig_label = f"Fig. {fig_num}"
+        summary_id = f"SDM-SUMMARY-{summary_idx:03d}"
+        findings.append(
+            Finding(
+                finding_id=summary_id,
+                category="source_data_missing",
+                risk_level="low",
+                summary=f"Figure {fig_label} 缺失 {len(panels)} 个 panel 的 source data: {', '.join(panels)}",
+                issue_category="completeness",
+                metadata={
+                    "figure_label": fig_label,
+                    "kind": kind,
+                    "figure_number": fig_num,
+                    "missing_panels": panels,
+                    "original_finding_ids": [f.finding_id for f in group],
+                },
+            )
+        )
+        # Mark original findings as suppressed.
+        for f in group:
+            f.metadata["suppressed_by"] = summary_id
+        findings.extend(group)
+        summary_idx += 1
+
     return findings
 
 
