@@ -50,11 +50,14 @@ row offset reuse) in the table below. Your task: decide whether EACH flagged pat
 
 ## Verdict Criteria
 
-**false_positive** — ONLY when the relationship is *mechanically guaranteed* by table structure:
-- Descriptive statistics: Sum = Mean × N, SD/SE derived from same data, Min/Mean/Max correlated by definition
-- Index/time columns: sequential row numbers, parallel timelines across experimental groups
-- Sparse count data: scRNA-seq columns with >60% zero expression — zeros are biological dropout
-- Constant columns: a column with all identical values will have "fixed difference" with ANY other column
+**false_positive** — when the relationship is *mechanically explainable* by any of:
+- Definitional / arithmetic relationship: Sum = Mean × N, SD/SE derived from same data, Min/Mean/Max correlated by definition
+- Unit conversion or normalization (e.g. fold-change, percentage, z-score derived from raw)
+- Summary statistic pair: one column is a per-group aggregate of another
+- Grouped experimental design: parallel timelines or parallel group columns that share a sampling frame
+- Index/ID column: sequential row numbers, identifiers replicated across groups
+- Zero-inflated technical artifact: scRNA-seq columns with >60% zero expression — zeros are biological dropout
+- Constant column: a column with all identical values will have "fixed difference" with ANY other column
 
 **uncertain** — when the pattern *might* be benign but you cannot rule out data manipulation:
 - Duplicate measurements that could be independent replicates OR copy-paste
@@ -66,9 +69,9 @@ row offset reuse) in the table below. Your task: decide whether EACH flagged pat
 - Ratio reuse in independently measured value columns (not descriptive stats)
 
 ## Critical Rules
-1. Default to **uncertain** when in doubt — this is fraud detection, false negatives are worse than false positives
+1. Default to **false_positive** when the relationship is mechanically explainable by table structure, column semantics, or standard scientific practice (normalization, unit conversion, summary statistics, grouped design). Only mark **uncertain** when the relationship lacks a clear mechanical explanation AND the columns represent independent experimental measurements
 2. If the column labels clearly indicate a definitional relationship (Mean/Sum/Median of same data), mark false_positive
-3. If columns represent independent experimental conditions or measurements, mark uncertain even if the pattern seems explainable
+3. If columns represent independent experimental conditions or measurements, mark uncertain ONLY when the columns are confirmed to represent independent biological replicates measured under different conditions. If this cannot be confirmed, default to false_positive
 4. Consider the WHOLE table structure — not just the flagged columns, but all columns together
 5. Provide a clear, one-sentence explanation for each verdict
 
@@ -97,7 +100,7 @@ Return JSON matching this schema exactly:
   ]
 }
 
-Be thorough. Do NOT mark findings as false_positive unless the explanation is crystal clear.
+Mark findings as false_positive unless there is positive evidence that the relationship represents a genuine independent measurement anomaly.
 """
 
 
@@ -423,7 +426,7 @@ def get_sheet_verdict(
                 "id": f.get("id"),
                 "verdict": "uncertain",
                 "confidence": 0.0,
-                "explanation": "LLM verdict unavailable",
+                "explanation": "LLM verdict unavailable (default fallback — not LLM-judged)",
             }
             for f in sheet_context.get("findings", [])
         ],
@@ -582,7 +585,7 @@ def run_source_data_verdict(
                             "id": f.get("id"),
                             "verdict": "uncertain",
                             "confidence": 0.0,
-                            "explanation": "LLM verdict unavailable",
+                            "explanation": "LLM verdict unavailable (default fallback — not LLM-judged)",
                         }
                         for f in ctx.get("findings", [])
                     ],

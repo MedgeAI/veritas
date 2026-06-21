@@ -393,7 +393,7 @@ def test_run_source_data_verdict_keeps_findings_uncertain_when_sheet_call_fails(
             "id": "F-FAIL",
             "verdict": "uncertain",
             "confidence": 0.0,
-            "explanation": "LLM verdict unavailable",
+            "explanation": "LLM verdict unavailable (default fallback — not LLM-judged)",
         }
     ]
 
