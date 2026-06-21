@@ -1796,6 +1796,73 @@ def _deduplicate_findings(findings: list[Finding]) -> list[Finding]:
     return unique
 
 
+def _group_similar_findings(findings: list[Finding]) -> list[Finding]:
+    """Group similar findings into summary findings to reduce noise.
+
+    Groups paired_ratio_reuse by workbook+sheet and copy_move by figure pair.
+    Creates summary findings and marks original findings as suppressed.
+    """
+    # Group paired_ratio_reuse by workbook+sheet
+    paired_groups: dict[tuple[str, str], list[Finding]] = {}
+    for finding in findings:
+        if finding.category == "long_format_paired_ratio_reuse":
+            metadata = finding.metadata or {}
+            key = (str(metadata.get("workbook") or ""), str(metadata.get("sheet") or ""))
+            paired_groups.setdefault(key, []).append(finding)
+
+    # Group copy_move by figure pair
+    copy_move_groups: dict[tuple[str, str], list[Finding]] = {}
+    for finding in findings:
+        if finding.category in ("copy_move_single", "copy_move_cross"):
+            metadata = finding.metadata or {}
+            src = str(metadata.get("source_parent_figure_id") or metadata.get("source_panel_id") or "")
+            tgt = str(metadata.get("target_parent_figure_id") or metadata.get("target_panel_id") or "")
+            key = (src, tgt)
+            copy_move_groups.setdefault(key, []).append(finding)
+
+    # Create summary findings for paired_ratio_reuse groups
+    for (workbook, sheet), group in paired_groups.items():
+        if len(group) < 2:
+            continue
+        summary_id = f"GRP-PRR-{workbook}-{sheet}".replace(".", "_").replace(" ", "_")
+        summary = Finding(
+            finding_id=summary_id,
+            category="long_format_paired_ratio_reuse",
+            risk_level=group[0].risk_level,
+            summary=f"Paired ratio reuse group: {len(group)} findings in {workbook}/{sheet}",
+            issue_category=group[0].issue_category,
+            evidence_refs=dedupe([ref for f in group for ref in f.evidence_refs]),
+            benign_explanations=group[0].benign_explanations,
+            manual_review_note=f"{len(group)} paired ratio reuse patterns detected in workbook '{workbook}', sheet '{sheet}'. Review column semantics and data generation process.",
+            metadata={"group_type": "paired_ratio_reuse", "workbook": workbook, "sheet": sheet, "member_count": len(group), "member_ids": [f.finding_id for f in group]},
+        )
+        findings.append(summary)
+        for f in group:
+            f.suppressed_by = summary_id
+
+    # Create summary findings for copy_move groups
+    for (src, tgt), group in copy_move_groups.items():
+        if len(group) < 2:
+            continue
+        summary_id = f"GRP-CM-{src}-{tgt}".replace(".", "_").replace(" ", "_")
+        summary = Finding(
+            finding_id=summary_id,
+            category=group[0].category,
+            risk_level=group[0].risk_level,
+            summary=f"Copy-move group: {len(group)} findings for figure pair {src} -> {tgt}",
+            issue_category=group[0].issue_category,
+            evidence_refs=dedupe([ref for f in group for ref in f.evidence_refs]),
+            benign_explanations=group[0].benign_explanations,
+            manual_review_note=f"{len(group)} copy-move patterns detected between figures '{src}' and '{tgt}'. Review image processing pipeline and raw data.",
+            metadata={"group_type": "copy_move", "source_figure": src, "target_figure": tgt, "member_count": len(group), "member_ids": [f.finding_id for f in group]},
+        )
+        findings.append(summary)
+        for f in group:
+            f.suppressed_by = summary_id
+
+    return findings
+
+
 def collect_claims_and_findings(
     workdir: Path,
     evidence_items: list[EvidenceItem],
@@ -1820,6 +1887,7 @@ def collect_claims_and_findings(
         _collect_visual_findings(artifacts, evidence_by_panel, evidence_by_artifact)
     )
     findings = _deduplicate_findings(findings)
+    findings = _group_similar_findings(findings)
 
     return claims, mappings, findings
 

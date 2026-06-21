@@ -77,6 +77,7 @@ class Finding:
     pressure_test_result: str = ""
     manual_review_note: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
+    suppressed_by: str = ""
 
 
 @dataclass

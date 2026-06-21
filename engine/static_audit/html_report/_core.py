@@ -1526,16 +1526,24 @@ def collect_report_findings(
     pair_forensics: dict[str, Any],
     bundle: dict[str, Any],
 ) -> list[dict[str, Any]]:
+    # Build set of suppressed finding_ids from bundle
+    suppressed_ids: set[str] = set()
+    for item in bundle.get("findings") or []:
+        if isinstance(item, dict) and item.get("suppressed_by"):
+            suppressed_ids.add(str(item.get("finding_id") or ""))
+
     findings = []
     findings.extend(
         annotate_findings(
-            source_findings.get("priority_findings") or [],
+            [f for f in (source_findings.get("priority_findings") or [])
+             if str(f.get("finding_id") or "") not in suppressed_ids],
             SOURCE_DATA_FINDINGS_ARTIFACT,
         )
     )
     findings.extend(
         annotate_findings(
-            pair_forensics.get("priority_findings") or [],
+            [f for f in (pair_forensics.get("priority_findings") or [])
+             if str(f.get("finding_id") or "") not in suppressed_ids],
             SOURCE_DATA_PAIR_FORENSICS_ARTIFACT,
         )
     )
@@ -1556,7 +1564,7 @@ def collect_report_findings(
             seen.add(finding_id)
         findings.append(normalized)
     return sorted(
-        dedupe_findings(findings),
+        dedupe_findings([f for f in findings if not f.get("suppressed_by")]),
         key=lambda finding: (
             -finding_display_score(finding),
             -finding_support_value(finding),
@@ -1596,6 +1604,7 @@ def normalize_bundle_finding(
         "pressure_test_result",
         "manual_review_note",
         "issue_category",
+        "suppressed_by",
     ):
         if item.get(key) not in (None, "", []):
             finding[key] = item.get(key)
