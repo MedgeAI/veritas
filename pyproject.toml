@@ -61,7 +61,7 @@ testpaths = ["tests"]
 exclude = ["engine/static_audit/upstream"]
 
 [tool.ruff.lint.per-file-ignores]
-"engine/static_audit/orchestrator.py" = ["E402"]
+"engine/static_audit/orchestrator.py" = ["E402", "F822"]
 
 [dependency-groups]
 dev = [
