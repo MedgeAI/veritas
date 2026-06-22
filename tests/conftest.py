@@ -24,7 +24,8 @@ def _uses_web_database(node_path: str) -> bool:
 def pglite_server():
     from web.backend.veritas_web.pglite import start_pglite_server
 
-    server = start_pglite_server()
+    # Increase max_connections to handle 140+ web tests
+    server = start_pglite_server(max_connections=64)
     try:
         yield server
     finally:
@@ -44,13 +45,15 @@ def web_database_env(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyP
     from web.backend.veritas_web import models as _models  # noqa: F401
     from web.backend.veritas_web.database import Base, create_db_engine
 
-    engine = create_db_engine(server.database_url)
+    # Use pool_size=0, max_overflow=0 to avoid connection accumulation across 140+ tests
+    # Connections are returned to PGlite immediately after each operation
+    engine = create_db_engine(server.database_url, pool_size=0, max_overflow=0)
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     engine.dispose()
     try:
         yield
     finally:
-        engine = create_db_engine(server.database_url)
+        engine = create_db_engine(server.database_url, pool_size=0, max_overflow=0)
         Base.metadata.drop_all(bind=engine)
         engine.dispose()
