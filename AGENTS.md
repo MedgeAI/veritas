@@ -176,7 +176,7 @@ PDF / MinerU images
 -> Web 工作台（Visual Forensics Gallery、Overlap Graph、Detail Drawer）
 ```
 
-**paper1 全量审计验证**：257 figures、811 panels、493 pair forensics findings、14 分钟完成。394 个测试全部通过（uv 环境 Python 3.12）。
+**paper1 全量审计验证**：257 figures、811 panels、493 pair forensics findings、14 分钟完成。1146 个测试全部通过（uv 环境 Python 3.12）。
 
 **演示注意事项**：
 - 报告呈现的是结构化证据和人工复核任务，不是最终科研诚信判定
@@ -390,10 +390,20 @@ tests/        单测、集成测试和 e2e 测试
 上文”当前范围”是产品边界，本节只补工程执行口径：
 
 - **P0 已完成**：`audit-paper` happy path 已稳定走通，能产出完整的结构化证据和报告。paper1 全量审计验证通过。
-- **P1 当前重点**：面向老板演示和内测。ELIS-style 视觉取证（overlap/reuse detection 已完成）、Web P1 工作台、可靠性和关键差异化。
+- **P1 已完成**：God File 拆分、ELIS adapter 接入、视觉取证增强、测试覆盖率提升。1146 个测试全部通过。
+- **P1 当前重点**：面向老板演示和内测。Web P1 工作台、可靠性和关键差异化。
 - **PubPeer Ground Truth Pipeline**：代码框架已就绪（`engine/ground_truth/`），演示后继续迭代。
 - `precheck` / `run` / `report` 已存在，但不要因此把当前产品表述成完整 SaaS 或完整 runtime 审查系统。
 - PI / 课题组是第一付费方和主要报告读者；报告要保持谨慎风险语言和人工复核入口。
+
+### 最近改进（2026-06-22）
+
+- ✅ **html_report 拆分**：`_core.py` 从 4332→381 行，拆分为 11 个子模块
+- ✅ **orchestrator 拆分**：从 1648→206 行，拆分为 pipeline/cli_driver/_pipeline_steps
+- ✅ **高复杂度重构**：`generate_fallback_questions` CC 26→3（策略模式）
+- ✅ **测试增强**：新增 10 个测试文件，测试覆盖率 0.38→0.50，测试数量 433→1146
+- ✅ **PGlite 修复**：解决 142 个 web 测试的连接泄漏问题
+- ✅ **CI 暂时禁用**：项目仍在大幅变动中，`.disabled` 后缀 mask
 
 ## 当前开发优先级
 
