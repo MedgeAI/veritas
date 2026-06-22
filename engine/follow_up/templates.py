@@ -82,126 +82,169 @@ def _score_ref(metadata: dict) -> str:
     return str(score) if score not in (None, "") else ""
 
 
+# ---------------------------------------------------------------------------
+# Per-category question generators
+# Signature: (finding, metadata, summary) -> list[str]
+# ---------------------------------------------------------------------------
+
+
+def _gen_duplicate_column(finding: dict, m: dict, summary: str) -> list[str]:
+    columns = _column_ref(m)
+    support = _support_ref(m)
+    location = _sheet_ref(m)
+    return [
+        f"{location} 中列 {columns} 在 {support}数据内完全相同，"
+        f"这是同一实验的重复测量，还是数据录入时的复制？"
+    ]
+
+
+def _gen_fixed_relation(finding: dict, m: dict, summary: str) -> list[str]:
+    category = str(finding.get("category", ""))
+    columns = _column_ref(m)
+    support = _support_ref(m)
+    if category == "formula_derived_column":
+        rel_type, relation = "公式派生", "公式派生关系"
+    elif "difference" in category:
+        rel_type, relation = "差值", "固定差值关系"
+    else:
+        rel_type, relation = "比例", "固定比例关系"
+    value = _first(m, "value", "fixed_value", "difference", "ratio")
+    value_str = f"（{rel_type} = {value}）" if value else ""
+    return [
+        f"{_sheet_ref(m)} 中列 {columns} 在 {support} 内存在{relation}{value_str}，"
+        f"请提供对应公式、单位换算或原始测量记录来核对。"
+    ]
+
+
+def _gen_paired_reuse(finding: dict, m: dict, summary: str) -> list[str]:
+    columns = _column_ref(m)
+    support = _support_ref(m)
+    offset = _first(m, "row_offset")
+    ratio_places = _first(m, "ratio_places")
+    details = []
+    if offset:
+        details.append(f"row_offset={offset}")
+    if ratio_places:
+        details.append(f"ratio_places={ratio_places}")
+    suffix = f"（{', '.join(details)}）" if details else ""
+    return [
+        f"{_sheet_ref(m)} 中列 {columns} 出现 {support} 的成对复用模式{suffix}，"
+        f"请核对这些行是否来自同一批原始记录或复制粘贴后的派生表。"
+    ]
+
+
+def _gen_copy_move(finding: dict, m: dict, summary: str) -> list[str]:
+    panels = _panel_ref(m)
+    method = _first(m, "match_method", "method")
+    score = _score_ref(m)
+    score_str = f"，score={score}" if score else ""
+    method_str = f"，method={method}" if method else ""
+    overlay = _first(m, "overlay_path")
+    overlay_str = f"，overlay={overlay}" if overlay else ""
+    return [
+        f"Panel {panels} 检测到 copy-move 候选{score_str}{method_str}{overlay_str}，"
+        f"请用原始图像或实验记录确认这些区域是否来自同一曝光/同一视野。"
+    ]
+
+
+def _gen_source_data_missing(finding: dict, m: dict, summary: str) -> list[str]:
+    fig_id = _first(m, "figure_id", "figure", "target")
+    if fig_id:
+        return [
+            f"论文引用了 {fig_id} 的数据，但 Source Data 文件中未找到对应数据，"
+            f"请补充完整的原始数据文件。"
+        ]
+    return ["论文引用了数据但 Source Data 未提供，请补充完整的原始数据文件。"]
+
+
+def _gen_exact_image_duplicate(finding: dict, m: dict, summary: str) -> list[str]:
+    images = _fmt_list(
+        m.get("images") or m.get("file_a") or m.get("figure_ids", [])
+    )
+    return [
+        f"图片 {images} 字节级完全相同，请确认是否为同一实验的不同命名或重复提交。"
+    ]
+
+
+def _gen_overlap_reuse(finding: dict, m: dict, summary: str) -> list[str]:
+    fig_a = _first(m, "figure_a", "panel_a", "source_panel_id")
+    fig_b = _first(m, "figure_b", "panel_b", "target_panel_id")
+    shared_area = _first(m, "shared_area", "overlap_area")
+    area_str = f"，shared_area={shared_area}" if shared_area else ""
+    return [
+        f"图片 {fig_a} 与 {fig_b} 存在局部重叠候选{area_str}，"
+        f"请说明这两张图的样本、条件和采集视野关系。"
+    ]
+
+
+def _gen_forged_region(finding: dict, m: dict, summary: str) -> list[str]:
+    panels = _panel_ref(m)
+    score = _score_ref(m)
+    heatmap = _first(m, "heatmap_path", "mask_path")
+    score_str = f" score={score}" if score else ""
+    heatmap_str = f"，heatmap={heatmap}" if heatmap else ""
+    return [
+        f"Panel {panels} 出现伪造区域模型候选{score_str}{heatmap_str}，"
+        f"请提供原始未压缩图片以便人工复核热区是否为压缩或处理伪影。"
+    ]
+
+
+def _gen_paperfraud(finding: dict, m: dict, summary: str) -> list[str]:
+    rule_id = _first(m, "rule_id", "rule", default=str(finding.get("category", "")))
+    return [
+        f"PaperFraud 规则 {rule_id} 命中：{summary}。"
+        f"请提供该方法声明对应的原始数据、统计过程或注册材料供复核。"
+    ]
+
+
+def _gen_default(finding: dict, m: dict, summary: str) -> list[str]:
+    finding_id = finding.get("finding_id", "")
+    prefix = f"{finding_id} " if finding_id else ""
+    return [f"{prefix}{summary}。请基于原始数据、图像或实验记录说明该技术事实的来源。"]
+
+
+# Strategy registry: category -> generator function.
+# Keys using startswith matching (e.g. "paperfraud.*") are handled in dispatch.
+_QUESTION_GENERATORS = {
+    "duplicate_column": _gen_duplicate_column,
+    "duplicate_numeric_columns": _gen_duplicate_column,
+    "fixed_difference": _gen_fixed_relation,
+    "fixed_ratio": _gen_fixed_relation,
+    "formula_derived_column": _gen_fixed_relation,
+    "paired_ratio_reuse": _gen_paired_reuse,
+    "paired_difference_too_narrow": _gen_paired_reuse,
+    "long_format_paired_ratio_reuse": _gen_paired_reuse,
+    "duplicate_row_vector": _gen_paired_reuse,
+    "row_offset_exact_reuse": _gen_paired_reuse,
+    "copy_move_detected": _gen_copy_move,
+    "copy_move_single": _gen_copy_move,
+    "copy_move_cross": _gen_copy_move,
+    "source_data_missing": _gen_source_data_missing,
+    "exact_image_duplicate": _gen_exact_image_duplicate,
+    "overlap_reuse_detected": _gen_overlap_reuse,
+    "overlap_reuse": _gen_overlap_reuse,
+    "forged_region_suspicious": _gen_forged_region,
+}
+
+
 def generate_fallback_questions(finding: dict) -> list[str]:
     """Generate follow-up questions from templates when LLM is unavailable.
 
     Questions reference concrete data from the finding (columns, rows, values)
     and use PI-friendly language without accusatory terms.
+
+    Dispatch strategy:
+      1. Exact match in _QUESTION_GENERATORS by category.
+      2. Prefix match for "paperfraud.*" categories.
+      3. Default generic fallback.
     """
     category = str(finding.get("category", ""))
     metadata = _metadata(finding)
     summary = finding.get("summary", "发现异常")
 
-    # Category-specific templates
-    if category in ("duplicate_column", "duplicate_numeric_columns"):
-        columns = _column_ref(metadata)
-        support = _support_ref(metadata)
-        location = _sheet_ref(metadata)
-        return [
-            f"{location} 中列 {columns} 在 {support}数据内完全相同，"
-            f"这是同一实验的重复测量，还是数据录入时的复制？"
-        ]
-
-    if category in ("fixed_difference", "fixed_ratio", "formula_derived_column"):
-        columns = _column_ref(metadata)
-        support = _support_ref(metadata)
-        rel_type = "差值" if "difference" in category else "比例"
-        relation = f"固定{rel_type}关系"
-        if category == "formula_derived_column":
-            rel_type = "公式派生"
-            relation = "公式派生关系"
-        value = _first(metadata, "value", "fixed_value", "difference", "ratio")
-        value_str = f"（{rel_type} = {value}）" if value else ""
-        return [
-            f"{_sheet_ref(metadata)} 中列 {columns} 在 {support} 内存在{relation}{value_str}，"
-            f"请提供对应公式、单位换算或原始测量记录来核对。"
-        ]
-
-    if category in (
-        "paired_ratio_reuse",
-        "paired_difference_too_narrow",
-        "long_format_paired_ratio_reuse",
-        "duplicate_row_vector",
-        "row_offset_exact_reuse",
-    ):
-        columns = _column_ref(metadata)
-        support = _support_ref(metadata)
-        offset = _first(metadata, "row_offset")
-        ratio_places = _first(metadata, "ratio_places")
-        details = []
-        if offset:
-            details.append(f"row_offset={offset}")
-        if ratio_places:
-            details.append(f"ratio_places={ratio_places}")
-        suffix = f"（{', '.join(details)}）" if details else ""
-        return [
-            f"{_sheet_ref(metadata)} 中列 {columns} 出现 {support} 的成对复用模式{suffix}，"
-            f"请核对这些行是否来自同一批原始记录或复制粘贴后的派生表。"
-        ]
-
-    if category in ("copy_move_detected", "copy_move_single", "copy_move_cross"):
-        panels = _panel_ref(metadata)
-        method = _first(metadata, "match_method", "method")
-        score = _score_ref(metadata)
-        score_str = f"，score={score}" if score else ""
-        method_str = f"，method={method}" if method else ""
-        overlay = _first(metadata, "overlay_path")
-        overlay_str = f"，overlay={overlay}" if overlay else ""
-        return [
-            f"Panel {panels} 检测到 copy-move 候选{score_str}{method_str}{overlay_str}，"
-            f"请用原始图像或实验记录确认这些区域是否来自同一曝光/同一视野。"
-        ]
-
-    if category == "source_data_missing":
-        fig_id = _first(metadata, "figure_id", "figure", "target")
-        return (
-            [
-                f"论文引用了 {fig_id} 的数据，但 Source Data 文件中未找到对应数据，"
-                f"请补充完整的原始数据文件。"
-            ]
-            if fig_id
-            else ["论文引用了数据但 Source Data 未提供，请补充完整的原始数据文件。"]
-        )
-
-    if category == "exact_image_duplicate":
-        images = _fmt_list(
-            metadata.get("images")
-            or metadata.get("file_a")
-            or metadata.get("figure_ids", [])
-        )
-        return [
-            f"图片 {images} 字节级完全相同，请确认是否为同一实验的不同命名或重复提交。"
-        ]
-
-    if category in ("overlap_reuse_detected", "overlap_reuse"):
-        fig_a = _first(metadata, "figure_a", "panel_a", "source_panel_id")
-        fig_b = _first(metadata, "figure_b", "panel_b", "target_panel_id")
-        shared_area = _first(metadata, "shared_area", "overlap_area")
-        area_str = f"，shared_area={shared_area}" if shared_area else ""
-        return [
-            f"图片 {fig_a} 与 {fig_b} 存在局部重叠候选{area_str}，"
-            f"请说明这两张图的样本、条件和采集视野关系。"
-        ]
-
-    if category == "forged_region_suspicious":
-        panels = _panel_ref(metadata)
-        score = _score_ref(metadata)
-        heatmap = _first(metadata, "heatmap_path", "mask_path")
-        score_str = f" score={score}" if score else ""
-        heatmap_str = f"，heatmap={heatmap}" if heatmap else ""
-        return [
-            f"Panel {panels} 出现伪造区域模型候选{score_str}{heatmap_str}，"
-            f"请提供原始未压缩图片以便人工复核热区是否为压缩或处理伪影。"
-        ]
-
+    generator = _QUESTION_GENERATORS.get(category)
+    if generator is not None:
+        return generator(finding, metadata, summary)
     if category.startswith("paperfraud."):
-        rule_id = _first(metadata, "rule_id", "rule", default=category)
-        return [
-            f"PaperFraud 规则 {rule_id} 命中：{summary}。"
-            f"请提供该方法声明对应的原始数据、统计过程或注册材料供复核。"
-        ]
-
-    # Generic fallback
-    finding_id = finding.get("finding_id", "")
-    prefix = f"{finding_id} " if finding_id else ""
-    return [f"{prefix}{summary}。请基于原始数据、图像或实验记录说明该技术事实的来源。"]
+        return _gen_paperfraud(finding, metadata, summary)
+    return _gen_default(finding, metadata, summary)
