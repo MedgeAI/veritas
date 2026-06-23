@@ -38,6 +38,8 @@ services:
       - VERITAS_DATA_ROOT=/app/web_data
       - VERITAS_OUTPUT_ROOT=/app/outputs
       - VERITAS_DATABASE_URL=postgresql://veritas:veritas@postgres:5432/veritas
+      - VERITAS_AUTH_MODE=basic
+      - VERITAS_USERS_DB=/app/web_data/users.db
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8765/api/health"]
       interval: 60s

@@ -24,7 +24,6 @@
     }
   },
   "instructions": [
-    "AGENTS.md",
     ".opencode/skills/research-integrity-auditor/SKILL.md",
     "configs/opencode/veritas-agent.md",
     "configs/opencode/biomed-research-audit-methodology.md",

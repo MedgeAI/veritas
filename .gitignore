@@ -59,4 +59,5 @@ docs/
 models/
 local_outputs/*
 tests/fixtures/*
+.playwright-cli/*
 .playwright/cli.config.json

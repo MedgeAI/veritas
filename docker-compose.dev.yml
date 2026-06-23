@@ -64,6 +64,8 @@ services:
         required: false
     environment:
       - VERITAS_DATABASE_URL=postgresql://veritas:veritas@postgres:5432/veritas
+      - VERITAS_AUTH_MODE=${VERITAS_AUTH_MODE:-none}
+      - VERITAS_USERS_DB=/app/web_data/users.db
       - DASHSCOPE_API_KEY=${DASHSCOPE_API_KEY:-}
       - MINERU_API_TOKEN=${MINERU_API_TOKEN:-}
       # uv venv lives in /app (build-time), but code runs from /workspace (mount-time).

@@ -43,6 +43,7 @@ LOCAL_DATABASE_URL ?= postgresql://veritas:veritas@127.0.0.1:5432/veritas
 	test test-fast test-unit test-integration test-e2e test-visual test-model \
 	lint lint-python lint-web web-test \
 	deslop \
+	check-prompts lock-prompts \
 	clean-demo clean-cache clean-web wipe-local \
 	build-elis-provenance check-elis-provenance
 
@@ -333,6 +334,12 @@ deslop: ## Full entropy control: Ruff fix/format + Vulture + import-linter + Bio
 	@echo "╔══════════════════════════════════════════════════════╗"
 	@echo "║  Deslop complete. Review [needs-human] items above. ║"
 	@echo "╚══════════════════════════════════════════════════════╝"
+
+check-prompts: ## Verify prompt files match locked hashes
+	$(PYTHON) scripts/lock_prompts.py --check
+
+lock-prompts: ## Regenerate prompts.lock from current prompt files
+	$(PYTHON) scripts/lock_prompts.py
 
 web-test: ## Run frontend tests
 	cd $(FRONTEND_DIR) && npm run test
