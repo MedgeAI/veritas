@@ -7,9 +7,14 @@ import pytest
 
 WEB_DB_TEST_PATHS = (
     "tests/unit/test_case_isolation.py",
+    "tests/unit/test_case_delete.py",
     "tests/unit/test_cbir_upload.py",
     "tests/unit/test_stale_recovery.py",
     "tests/unit/test_web_",
+    "tests/unit/test_upload_size_limit.py",
+    "tests/unit/test_concurrency_limit.py",
+    "tests/unit/test_metrics_endpoint.py",
+    "tests/unit/test_users_api.py",
     "tests/integration/test_auth_flow.py",
     "tests/e2e/test_cbir_provenance.py",
 )

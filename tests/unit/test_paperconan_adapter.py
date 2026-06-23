@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from engine.static_audit.adapters import paperconan_adapter
 from engine.static_audit.adapters.paperconan_adapter import (
     PaperconanAdapterError,
     run_paperconan_scan,
@@ -146,3 +147,69 @@ def test_paperconan_adapter_with_synthetic_data(tmp_path: Path) -> None:
     assert scan_result["tool"] == "paperconan"
     assert "relations_blocks" in scan_result
     assert len(scan_result["relations_blocks"]) > 0
+    assert not (output_dir / "scan.json").exists()
+    assert artifact["artifact_policy"]["upstream_scan_json"] == "disabled"
+    assert not _has_key(artifact, "evidence")
+
+
+def test_paperconan_adapter_strips_bulky_upstream_fields(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_data_dir = tmp_path / "source_data"
+    source_data_dir.mkdir()
+    (source_data_dir / "data.csv").write_text("a,b\n1,1\n2,2\n", encoding="utf-8")
+    output_dir = tmp_path / "output"
+    output_dir.mkdir()
+    (output_dir / "scan.json").write_text('{"legacy": true}', encoding="utf-8")
+
+    def fake_scan_dir(**_: object) -> dict:
+        return {
+            "tool": "paperconan",
+            "tool_version": "test",
+            "relations_blocks": [
+                {
+                    "file": "data.csv",
+                    "sheet": "data",
+                    "block": {"rows": "1-2", "cols": "1-2"},
+                    "relations": [
+                        {
+                            "kind": "identical_column",
+                            "severity": "high",
+                            "evidence": {"rows": [{"values": [1, 2, 3]}]},
+                            "raw_values": [1, 2, 3],
+                            "base64": "x" * 1000,
+                        }
+                    ],
+                    "progressions": [],
+                    "equal_pairs": [],
+                    "within_col": [],
+                    "identical_after_rounding": [],
+                    "grim": [],
+                }
+            ],
+            "cross_sheet_findings": [],
+            "digit_distribution": [],
+            "decimal_endings": [],
+        }
+
+    def fake_load_paperconan() -> tuple[object, type[Exception]]:
+        return fake_scan_dir, ValueError
+
+    monkeypatch.setattr(paperconan_adapter, "_load_paperconan", fake_load_paperconan)
+
+    result = run_paperconan_scan(source_data_dir, output_dir)
+    artifact = json.loads(Path(result["artifact_path"]).read_text())
+
+    assert result["findings_summary"]["total"] == 1
+    assert not (output_dir / "scan.json").exists()
+    assert not _has_key(artifact, "evidence")
+    assert not _has_key(artifact, "raw_values")
+    assert not _has_key(artifact, "base64")
+
+
+def _has_key(value: object, key: str) -> bool:
+    if isinstance(value, dict):
+        return key in value or any(_has_key(item, key) for item in value.values())
+    if isinstance(value, list):
+        return any(_has_key(item, key) for item in value)
+    return False

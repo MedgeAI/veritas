@@ -6,7 +6,7 @@ anomalies, cross-sheet duplicates, etc.).
 
 paperconan is a third-party capability source. This adapter:
 1. Calls paperconan's scan_dir() API
-2. Transforms scan.json into Veritas evidence schema
+2. Transforms paperconan's in-memory scan result into a bounded Veritas artifact
 3. Writes structured artifacts to outputs/<case_id>/
 
 The adapter does NOT modify paperconan's source code. It treats paperconan as a
@@ -29,6 +29,17 @@ if _PAPERCONAN_SRC.is_dir() and str(_PAPERCONAN_SRC) not in sys.path:
 __all__ = ["run_paperconan_scan", "PaperconanAdapterError"]
 
 _SUPPORTED_SOURCE_SUFFIXES = {".xlsx", ".csv", ".tsv", ".pdf", ".docx"}
+_LEGACY_UPSTREAM_SCAN_NAME = "scan.json"
+_BULKY_ARTIFACT_KEYS = {
+    "base64",
+    "evidence",
+    "image_base64",
+    "plot_base64",
+    "raw",
+    "raw_data",
+    "raw_distribution",
+    "raw_values",
+}
 
 
 class PaperconanAdapterError(RuntimeError):
@@ -69,7 +80,7 @@ def run_paperconan_scan(
             - tool: "paperconan"
             - tool_version: str
             - status: "success" | "error" | "no_data"
-            - scan_result: paperconan's scan.json content (if status == "success")
+            - scan_result: compact paperconan scan content (if status == "success")
             - error: error message (if status == "error")
             - findings_summary: dict with counts by severity and kind
             - artifact_path: path to the written paperconan_scan.json
@@ -84,6 +95,9 @@ def run_paperconan_scan(
 
     output_dir.mkdir(parents=True, exist_ok=True)
     artifact_path = output_dir / "paperconan_scan.json"
+    legacy_scan_path = output_dir / _LEGACY_UPSTREAM_SCAN_NAME
+    if legacy_scan_path.exists():
+        legacy_scan_path.unlink()
 
     if not any(
         path.is_file() and path.suffix.lower() in _SUPPORTED_SOURCE_SUFFIXES
@@ -115,8 +129,8 @@ def run_paperconan_scan(
             write_md=write_md,
             write_html=write_html,
             profile=profile,
-            write_json=True,
-            evidence=True,
+            write_json=False,
+            evidence=write_html,
         )
     except paperconan_input_error as e:
         # No supported files found — record as "no_data", not a hard failure
@@ -157,12 +171,18 @@ def run_paperconan_scan(
 
     # Transform scan_result into Veritas-shaped findings summary
     findings_summary = _summarize_findings(scan_result)
+    compact_scan_result = _compact_scan_result(scan_result)
 
     veritas_result = {
         "tool": "paperconan",
         "tool_version": scan_result.get("tool_version", "unknown"),
         "status": "success",
-        "scan_result": scan_result,
+        "artifact_policy": {
+            "upstream_scan_json": "disabled",
+            "omitted_fields": sorted(_BULKY_ARTIFACT_KEYS),
+            "reason": "Veritas stores bounded summaries and evidence references, not raw table snippets.",
+        },
+        "scan_result": compact_scan_result,
         "findings_summary": findings_summary,
         "artifact_path": str(artifact_path),
     }
@@ -172,6 +192,30 @@ def run_paperconan_scan(
         json.dump(veritas_result, f, indent=2, default=str)
 
     return veritas_result
+
+
+def _compact_scan_result(scan_result: dict[str, Any]) -> dict[str, Any]:
+    """Return a JSON-safe paperconan result without bulky embedded evidence.
+
+    paperconan's native ``scan.json`` is designed as a standalone inspection
+    artifact and may embed table snippets in every finding. Veritas keeps source
+    files as the evidence of record, so this adapter stores only finding
+    metadata, metrics, and source references.
+    """
+    compact = _drop_bulky_fields(scan_result)
+    return compact if isinstance(compact, dict) else {}
+
+
+def _drop_bulky_fields(value: Any) -> Any:
+    if isinstance(value, dict):
+        return {
+            key: _drop_bulky_fields(item)
+            for key, item in value.items()
+            if str(key).lower() not in _BULKY_ARTIFACT_KEYS
+        }
+    if isinstance(value, list):
+        return [_drop_bulky_fields(item) for item in value]
+    return value
 
 
 def _summarize_findings(scan_result: dict[str, Any]) -> dict[str, Any]:

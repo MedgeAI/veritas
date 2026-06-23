@@ -8,7 +8,6 @@ Agent investigation rounds, visual forensics baseline, report generation.
 from __future__ import annotations
 
 import argparse
-import json
 import logging
 import sys
 from pathlib import Path
@@ -27,6 +26,7 @@ from engine.static_audit._shared import (
     read_json,
     record_step,
     resolve_artifact_path,
+    run_command,
 )
 from engine.static_audit.cli_driver import (
     discover_pdf,
@@ -180,7 +180,7 @@ def _run_static_audit_from_args(
     env = load_env(not args.no_env_file)
     steps: list[StepResult] = []
     emit_progress(progress, "audit_start", case_id=case_id, paper_dir=str(paper_dir),
-                  workdir=str(workdir), agent_mode=args.agent_mode)
+                  workdir=workdir, agent_mode=args.agent_mode)
     record_step(steps, StepResult("discover", "发现输入材料", "ran",
                                   f"PDF={paper_pdf}; optional data lanes will be selected from material_inventory.json"), progress)
 
