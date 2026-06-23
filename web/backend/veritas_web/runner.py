@@ -7,6 +7,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Callable
 
+from fastapi import HTTPException
+
 from engine.static_audit.orchestrator import run_static_audit
 
 from .case_store import CaseStore
@@ -16,24 +18,50 @@ from .risk import load_static_audit_bundle, risk_rank, summarize_findings
 AuditFunction = Callable[..., dict[str, Any]]
 
 
+def _resolve_max_concurrent() -> int:
+    """Read VERITAS_MAX_CONCURRENT_AUDITS env var, default 5."""
+    raw = os.environ.get("VERITAS_MAX_CONCURRENT_AUDITS", "5")
+    try:
+        value = int(raw)
+    except (ValueError, TypeError):
+        return 5
+    return max(1, value)
+
+
 class AuditRunner:
     def __init__(
         self,
         store: CaseStore,
         audit_func: AuditFunction = run_static_audit,
         output_root: str | Path = "outputs",
-        max_workers: int = 3,
+        max_workers: int | None = None,
     ) -> None:
         self.store = store
         self.audit_func = audit_func
         self.output_root = str(output_root)
+        resolved_workers = max_workers if max_workers is not None else _resolve_max_concurrent()
+        self._max_concurrent = resolved_workers
         self._executor = ThreadPoolExecutor(
-            max_workers=max_workers, thread_name_prefix="audit"
+            max_workers=resolved_workers, thread_name_prefix="audit"
+        )
+
+    def _active_runs_count(self) -> int:
+        """Count runs with status='running' across all cases."""
+        return sum(
+            1 for run in self.store.list_all_runs() if run.status == "running"
         )
 
     def start(
         self, case_id: str, params: dict[str, Any] | None = None
     ) -> AuditRunRecord:
+        if self._active_runs_count() >= self._max_concurrent:
+            raise HTTPException(
+                status_code=429,
+                detail=(
+                    f"Too many concurrent audits "
+                    f"(max={self._max_concurrent})"
+                ),
+            )
         params = params or {}
         run = self.store.create_run(
             case_id, agent_mode=str(params.get("agent_mode", "review"))

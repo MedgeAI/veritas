@@ -6,7 +6,7 @@ import json
 from http import HTTPStatus
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
 from ..dependencies import (
     AppDependencies,
@@ -15,10 +15,14 @@ from ..dependencies import (
     require_case_access,
 )
 from ..auth import AuthContext
+from ..permissions import require_admin
 from ..models import CaseCreate, CaseRecord, InputUpload, RunCreate
 from ..risk import summarize_findings
 
 router = APIRouter(tags=["cases"])
+
+# Maximum allowed upload size for input files (200 MB).
+MAX_UPLOAD_SIZE_BYTES = 200 * 1024 * 1024
 
 
 @router.get("/cases")
@@ -65,6 +69,21 @@ async def get_case(case: CaseRecord = Depends(require_case_access)) -> dict[str,
     return case.to_dict()
 
 
+@router.delete(
+    "/cases/{case_id}",
+    status_code=HTTPStatus.NO_CONTENT,
+    response_class=Response,
+    response_model=None,
+)
+async def delete_case(
+    case_id: str,
+    auth: AuthContext = Depends(get_auth_context),
+    deps: AppDependencies = Depends(get_app_dependencies),
+) -> None:
+    require_admin(auth)
+    deps.store.delete_case(case_id)
+
+
 @router.post("/cases/{case_id}/inputs")
 async def upload_input(
     case_id: str,
@@ -82,6 +101,11 @@ async def upload_input(
                 status_code=400, detail="multipart upload requires a 'file' field"
             )
         content = await upload.read()
+        if len(content) > MAX_UPLOAD_SIZE_BYTES:
+            raise HTTPException(
+                status_code=413,
+                detail="File size exceeds 200MB limit",
+            )
         filename = getattr(upload, "filename", None) or "upload"
         relative_path = form.get("relative_path")
         path = deps.store.write_input(
@@ -102,12 +126,25 @@ async def upload_input(
             raise HTTPException(status_code=422, detail=str(exc))
         filename = payload.filename
         if payload.content_base64 is not None:
+            # Estimate decoded size: every 4 base64 chars → 3 bytes.
+            estimated_size = len(payload.content_base64) * 3 // 4
+            if estimated_size > MAX_UPLOAD_SIZE_BYTES:
+                raise HTTPException(
+                    status_code=413,
+                    detail="File size exceeds 200MB limit",
+                )
             path = deps.store.write_input_base64(
                 case_id, payload.filename, payload.content_base64
             )
         elif payload.content is not None:
+            content_bytes = payload.content.encode("utf-8")
+            if len(content_bytes) > MAX_UPLOAD_SIZE_BYTES:
+                raise HTTPException(
+                    status_code=413,
+                    detail="File size exceeds 200MB limit",
+                )
             path = deps.store.write_input(
-                case_id, payload.filename, payload.content.encode("utf-8")
+                case_id, payload.filename, content_bytes
             )
         else:
             raise HTTPException(
