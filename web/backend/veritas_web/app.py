@@ -8,6 +8,7 @@ the ``serve()`` entry point used by the Makefile.
 
 from __future__ import annotations
 
+import logging
 import mimetypes
 import os
 from pathlib import Path
@@ -17,6 +18,7 @@ from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
+from . import logging_config
 from .artifacts import ArtifactService
 from .auth import AuthProvider, NoAuthProvider
 from .case_store import CaseStore
@@ -32,11 +34,15 @@ from .routers import (
     embeddings,
     investigations,
     materials,
+    metrics,
     review,
     tools,
+    users,
     visual,
 )
 from .tool_catalog import seed_tool_registry
+
+logger = logging.getLogger(__name__)
 
 
 class VeritasWebApp:
@@ -71,6 +77,7 @@ def create_app(
     auth_provider: AuthProvider | None = None,
 ) -> FastAPI:
     """Build and return the configured FastAPI application."""
+    logging_config.configure_logging()
     app = FastAPI(title="Veritas Web P1", version="0.1.0")
 
     # --- Core services ------------------------------------------------
@@ -142,6 +149,8 @@ def create_app(
     app.include_router(embeddings.router, prefix="/api")
     app.include_router(cbir.router, prefix="/api")
     app.include_router(materials.router, prefix="/api")
+    app.include_router(metrics.router, prefix="/api")
+    app.include_router(users.router, prefix="/api")
 
     # --- Health endpoint -----------------------------------------------
     @app.get("/api/health")
@@ -241,7 +250,7 @@ def serve(
         if isinstance(create_auth_provider(AuthConfig.from_env()), NoAuthProvider)
         else type(create_auth_provider(AuthConfig.from_env())).__name__
     )
-    print(f"Veritas Web backend listening on http://{host}:{port} (auth: {auth_mode})")
+    logger.info("Veritas Web backend listening on http://%s:%s (auth: %s)", host, port, auth_mode)
     uvicorn.run(app, host=host, port=port, log_level="info")
 
 

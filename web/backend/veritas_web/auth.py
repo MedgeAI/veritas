@@ -259,7 +259,14 @@ class BasicAuthProvider(AuthProvider):
             rows = conn.execute(
                 "SELECT username, email, roles, created_at FROM users ORDER BY username"
             ).fetchall()
-        return [dict(row) for row in rows]
+        result = []
+        for row in rows:
+            user_dict = dict(row)
+            # Convert roles from comma-separated string to list
+            roles_str = user_dict.get("roles", "")
+            user_dict["roles"] = [r.strip() for r in roles_str.split(",") if r.strip()] if roles_str else []
+            result.append(user_dict)
+        return result
 
     def delete_user(self, username: str) -> bool:
         """Delete a user. Returns ``True`` if the row existed."""
@@ -276,6 +283,20 @@ class BasicAuthProvider(AuthProvider):
             cursor = conn.execute(
                 "UPDATE users SET password_hash = ? WHERE username = ?",
                 (password_hash, username),
+            )
+        return cursor.rowcount > 0
+
+    def update_user(
+        self,
+        username: str,
+        email: str | None = None,
+        roles: str | None = None,
+    ) -> bool:
+        """Update email and/or roles for *username*. Returns ``True`` if the user existed."""
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute(
+                "UPDATE users SET email = ?, roles = ? WHERE username = ?",
+                (email, roles, username),
             )
         return cursor.rowcount > 0
 
