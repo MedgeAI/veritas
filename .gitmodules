@@ -10,9 +10,6 @@
 [submodule "third_party/elis"]
 	path = third_party/elis
 	url = https://github.com/researchintegrity/elis
-[submodule "third_party/geng-academic-fraud-detector"]
-	path = third_party/geng-academic-fraud-detector
-	url = https://github.com/wooly99/geng-academic-fraud-detector
 [submodule "third_party/paperconan"]
 	path = third_party/paperconan
 	url = https://github.com/zixixr/paperconan
