@@ -1,5 +1,46 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
+// ---------------------------------------------------------------------------
+// Auth credential management
+// ---------------------------------------------------------------------------
+
+let authCredentials = null;
+
+export function setAuthCredentials(username, password) {
+  authCredentials = { username, password };
+  sessionStorage.setItem('veritas_auth', btoa(`${username}:${password}`));
+}
+
+export function clearAuthCredentials() {
+  authCredentials = null;
+  sessionStorage.removeItem('veritas_auth');
+}
+
+export function getAuthCredentials() {
+  if (authCredentials) return authCredentials;
+  const stored = sessionStorage.getItem('veritas_auth');
+  if (stored) {
+    try {
+      const [username, password] = atob(stored).split(':');
+      authCredentials = { username, password };
+      return authCredentials;
+    } catch {
+      sessionStorage.removeItem('veritas_auth');
+    }
+  }
+  return null;
+}
+
+function authHeaders() {
+  const creds = getAuthCredentials();
+  if (!creds) return {};
+  return { Authorization: `Basic ${btoa(`${creds.username}:${creds.password}`)}` };
+}
+
+// ---------------------------------------------------------------------------
+// HTTP helpers
+// ---------------------------------------------------------------------------
+
 function buildUrl(path) {
   if (!API_BASE_URL) {
     return path;
@@ -32,12 +73,14 @@ function requestErrorMessage(payload) {
 async function request(path, options = {}) {
   const method = options.method || 'GET';
   const headers = {
+    ...authHeaders(),
     ...(options.body === undefined ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers || {}),
   };
   const response = await fetch(buildUrl(path), {
     method,
     headers,
+    credentials: 'omit', // 禁用浏览器自动 HTTP 认证
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
     signal: options.signal,
   });
@@ -46,7 +89,10 @@ async function request(path, options = {}) {
   const payload = contentType.includes('application/json') ? await response.json() : await response.text();
 
   if (!response.ok) {
-    throw new Error(requestErrorMessage(payload));
+    const errorMsg = requestErrorMessage(payload);
+    const error = new Error(`${response.status}: ${errorMsg}`);
+    error.status = response.status;
+    throw error;
   }
 
   return payload;
@@ -77,6 +123,10 @@ export async function uploadInput(caseId, file, { onProgress } = {}) {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open('POST', buildUrl(`/api/cases/${encodeURIComponent(caseId)}/inputs`));
+    const creds = getAuthCredentials();
+    if (creds) {
+      xhr.setRequestHeader('Authorization', `Basic ${btoa(`${creds.username}:${creds.password}`)}`);
+    }
 
     if (onProgress && xhr.upload) {
       xhr.upload.addEventListener('progress', (e) => {
@@ -126,7 +176,9 @@ export async function getRiskSummary(caseId) {
 }
 
 export async function getArtifactText(caseId, artifactId) {
-  const response = await fetch(buildUrl(`/api/cases/${encodeURIComponent(caseId)}/artifacts/${encodeURIComponent(artifactId)}`));
+  const response = await fetch(buildUrl(`/api/cases/${encodeURIComponent(caseId)}/artifacts/${encodeURIComponent(artifactId)}`), {
+    headers: authHeaders(),
+  });
   const text = await response.text();
   if (!response.ok) {
     throw new Error(text || `artifact request failed: ${artifactId}`);
@@ -210,4 +262,64 @@ export async function fetchAllSimilarPairs(caseId, { threshold = 0.85, signal } 
 // Material Completeness Check API
 export async function checkMaterials(caseId) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/materials`);
+}
+
+// ---------------------------------------------------------------------------
+// User management APIs (admin only unless noted)
+// ---------------------------------------------------------------------------
+
+export async function listUsers() {
+  return request('/api/users');
+}
+
+export async function createUser(username, password, email, roles) {
+  return request('/api/users', {
+    method: 'POST',
+    body: { username, password, email, roles },
+  });
+}
+
+export async function updateUser(username, email, roles) {
+  return request(`/api/users/${encodeURIComponent(username)}`, {
+    method: 'PUT',
+    body: { email, roles },
+  });
+}
+
+export async function deleteUser(username) {
+  return request(`/api/users/${encodeURIComponent(username)}`, { method: 'DELETE' });
+}
+
+export async function changePassword(username, newPassword) {
+  return request(`/api/users/${encodeURIComponent(username)}/password`, {
+    method: 'POST',
+    body: { password: newPassword },
+  });
+}
+
+export async function deleteCase(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}`, { method: 'DELETE' });
+}
+
+// ---------------------------------------------------------------------------
+// Current user info
+// ---------------------------------------------------------------------------
+
+export async function getCurrentUser() {
+  const creds = getAuthCredentials();
+  try {
+    // Use an auth-required endpoint to validate credentials
+    await request('/api/cases');
+    // In no-auth mode (VERITAS_AUTH_MODE=none), return default operator
+    if (!creds) {
+      return { username: 'operator', isAdmin: true };
+    }
+    return { username: creds.username };
+  } catch (e) {
+    if (e.message.includes('401')) {
+      clearAuthCredentials();
+      return null;
+    }
+    throw e;
+  }
 }

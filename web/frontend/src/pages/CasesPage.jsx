@@ -1,6 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import { FaTrash } from 'react-icons/fa';
 import { FiActivity, FiAlertCircle, FiArrowRight, FiCheckCircle, FiFilePlus, FiTrendingUp } from 'react-icons/fi';
 import StatusPill from '../components/StatusPill.jsx';
+import { deleteCase } from '../services/api.js';
 import { translateStatus } from '../utils/piLabels.js';
 
 function classifyCase(item) {
@@ -18,12 +20,14 @@ const GROUPS = [
   { key: 'draft', label: '待上传', sub: '已创建但尚未提交材料', icon: FiFilePlus, border: 'border-ink-900/10', bg: 'bg-white/40', chipBg: 'bg-ink-900/8', chipText: 'text-ink-500' },
 ];
 
-function CaseCard({ item, onSelect, isSelected }) {
+function CaseCard({ item, onSelect, isSelected, isAdmin, onDeleteCase }) {
   const risk = item.technical_risk || 'pending';
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onSelect(item.case_id)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(item.case_id); }}
       aria-label={`进入 ${item.paper_title || '未命名项目'}`}
       className={`flow-list-item group grid w-full gap-3 px-4 py-4 text-left transition md:grid-cols-[minmax(0,1fr)_auto] ${
         isSelected ? 'bg-signal-100/50' : 'hover:bg-white/45'
@@ -47,14 +51,28 @@ function CaseCard({ item, onSelect, isSelected }) {
         </div>
       </div>
       <div className="flex items-center gap-2 text-sm font-semibold text-signal-700">
+        {isAdmin && (
+          <button
+            type="button"
+            className="rounded-lg p-1.5 text-ink-300 transition hover:bg-red-50 hover:text-red-600"
+            title="删除 case"
+            onClick={(e) => { e.stopPropagation(); onDeleteCase(item); }}
+          >
+            <FaTrash className="text-xs" />
+          </button>
+        )}
         进入
         <FiArrowRight className="transition group-hover:translate-x-1" aria-hidden="true" />
       </div>
-    </button>
+    </div>
   );
 }
 
-function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate }) {
+function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, onRefreshCases }) {
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
+
   const stats = useMemo(() => {
     const totalCases = cases.length;
     const totalFindings = cases.reduce((sum, c) => sum + (c.review_needed_count || 0), 0);
@@ -75,6 +93,21 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate }) {
     }
     return buckets;
   }, [cases]);
+
+  async function handleConfirmDelete() {
+    if (!deleteTarget) return;
+    setDeleteLoading(true);
+    setDeleteError('');
+    try {
+      await deleteCase(deleteTarget.case_id);
+      setDeleteTarget(null);
+      if (onRefreshCases) onRefreshCases();
+    } catch (err) {
+      setDeleteError(err.message || '删除失败');
+    } finally {
+      setDeleteLoading(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -182,6 +215,8 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate }) {
                           item={item}
                           onSelect={onSelectCase}
                           isSelected={selectedCaseId === item.case_id}
+                          isAdmin={isAdmin}
+                          onDeleteCase={setDeleteTarget}
                         />
                       ))}
                     </div>
@@ -192,6 +227,27 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate }) {
           </div>
         )}
       </div>
+
+      {/* Delete confirmation dialog */}
+      {deleteTarget ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => !deleteLoading && setDeleteTarget(null)}>
+          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
+            <h3 className="mb-3 font-display text-lg font-semibold text-ink-900">确认删除</h3>
+            <p className="mb-4 text-sm text-ink-600">
+              确定要删除 case <strong className="text-ink-900">{deleteTarget.case_id}</strong>（{deleteTarget.paper_title || '未命名项目'}）吗？此操作不可撤销。
+            </p>
+            {deleteError ? (
+              <div className="mb-4 rounded-xl border border-red-300/50 bg-red-50/70 px-3 py-2 text-sm text-red-700">{deleteError}</div>
+            ) : null}
+            <div className="flex justify-end gap-2">
+              <button type="button" className="btn-ghost" onClick={() => setDeleteTarget(null)} disabled={deleteLoading}>取消</button>
+              <button type="button" className="btn-danger" onClick={handleConfirmDelete} disabled={deleteLoading}>
+                {deleteLoading ? '删除中...' : '删除'}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

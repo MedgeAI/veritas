@@ -8,6 +8,7 @@ import {
   FiImage,
   FiPlusCircle,
 } from 'react-icons/fi';
+import { FaUsers } from 'react-icons/fa';
 
 const GROUPS = [
   {
@@ -43,7 +44,7 @@ function formatCaseDate(isoString) {
   }
 }
 
-function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, caseCount }) {
+function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, caseCount, isAdmin }) {
   const hasSelectedCase = Boolean(selectedCaseId);
 
   const recentCases = useMemo(
@@ -106,6 +107,29 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
             </div>
           </section>
         ))}
+
+        {/* Admin section */}
+        {isAdmin ? (
+          <section>
+            <p className="px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-paper-200/45">管理</p>
+            <div className="mt-2 space-y-1">
+              <button
+                type="button"
+                onClick={() => onNavigate('admin')}
+                aria-current={activePage === 'admin' ? 'page' : undefined}
+                aria-label="用户管理"
+                className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm transition ${
+                  activePage === 'admin'
+                    ? 'bg-paper-50 text-ink-900 shadow-insetline'
+                    : 'text-paper-100/72 hover:bg-paper-50/[0.08] hover:text-paper-50'
+                }`}
+              >
+                <FaUsers className="text-lg" aria-hidden="true" />
+                <span className="flex-1">用户管理</span>
+              </button>
+            </div>
+          </section>
+        ) : null}
       </nav>
 
       {/* Recent cases quick-switch */}

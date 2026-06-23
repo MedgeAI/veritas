@@ -79,6 +79,10 @@
     @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-ink-500 transition hover:bg-ink-900/5 hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-50;
   }
 
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+  }
+
   .input-field {
     @apply w-full rounded-2xl border border-ink-900/10 bg-paper-50/80 px-4 py-3 text-sm text-ink-900 shadow-insetline transition placeholder:text-ink-300 focus:border-signal-500 focus:bg-white;
   }

@@ -3,8 +3,9 @@ import Sidebar from './components/Sidebar.jsx';
 import Topbar from './components/Topbar.jsx';
 import LoadingFallback from './components/LoadingFallback.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
-import { checkHealth, listCases } from './services/api.js';
+import { checkHealth, clearAuthCredentials, getCurrentUser, listCases, listUsers } from './services/api.js';
 
+const LoginPage = lazy(() => import('./pages/LoginPage.jsx'));
 const CasesPage = lazy(() => import('./pages/CasesPage.jsx'));
 const NewAuditPage = lazy(() => import('./pages/NewAuditPage.jsx'));
 const MissionControlPage = lazy(() => import('./pages/MissionControlPage.jsx'));
@@ -12,6 +13,7 @@ const ReportCenterPage = lazy(() => import('./pages/ReportCenterPage.jsx'));
 const FindingsPage = lazy(() => import('./pages/FindingsPage.jsx'));
 const EvidenceReviewPage = lazy(() => import('./pages/EvidenceReviewPage.jsx'));
 const ActionsPage = lazy(() => import('./pages/ActionsPage.jsx'));
+const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
 
 const PAGE_META = {
   cases: ['Dashboard', '按风险等级分组的审查看板，快速定位需要关注的 case。'],
@@ -21,6 +23,7 @@ const PAGE_META = {
   findings: ['审查发现', '风险概览与高危发现，快速判断论文需要关注的重点。'],
   evidence: ['证据审查', '图像取证、相似 Panel 搜索与可视化证据分析。'],
   actions: ['行动项', '待复核发现、材料补交与追问清单。'],
+  admin: ['用户管理', '管理系统用户、角色和权限。'],
 };
 
 function workspaceFromUrl() {
@@ -59,6 +62,10 @@ function writeWorkspaceUrl(value) {
 }
 
 function AppLayout() {
+  // Auth state
+  const [authState, setAuthState] = useState({ checked: false, user: null, isAdmin: false });
+  const [authChecking, setAuthChecking] = useState(true);
+
   // 默认打开 Dashboard（待办看板）
   const urlWorkspace = workspaceFromUrl();
   const [activePage, setActivePage] = useState(urlWorkspace?.activePage || 'cases');
@@ -113,7 +120,39 @@ function AppLayout() {
     }
   }, []);
 
+  // Auth check on mount
   useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const user = await getCurrentUser();
+        if (cancelled || !user) {
+          if (!cancelled) {
+            setAuthState({ checked: true, user: null, isAdmin: false });
+            setAuthChecking(false);
+          }
+          return;
+        }
+        // Detect admin by attempting to list users
+        let isAdmin = false;
+        try {
+          await listUsers();
+          isAdmin = true;
+        } catch {
+          // 403 = non-admin, that's fine
+        }
+        setAuthState({ checked: true, user, isAdmin });
+      } catch {
+        if (!cancelled) setAuthState({ checked: true, user: null, isAdmin: false });
+      } finally {
+        if (!cancelled) setAuthChecking(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+  useEffect(() => {
+    if (!authState.user) return;
     refreshCases();
     refreshBackendHealth();
     const timer = window.setInterval(refreshBackendHealth, 5000);
@@ -131,7 +170,7 @@ function AppLayout() {
       window.clearInterval(timer);
       window.removeEventListener('popstate', handlePopState);
     };
-  }, [refreshCases, refreshBackendHealth]);
+  }, [refreshCases, refreshBackendHealth, authState.user]);
 
   useEffect(() => {
     const workspace = {
@@ -203,6 +242,28 @@ function AppLayout() {
     });
   }
 
+  function handleLogin(user) {
+    // Re-detect admin
+    (async () => {
+      let isAdmin = false;
+      try {
+        await listUsers();
+        isAdmin = true;
+      } catch {
+        // non-admin
+      }
+      setAuthState({ checked: true, user, isAdmin });
+    })();
+  }
+
+  function handleLogout() {
+    clearAuthCredentials();
+    setAuthState({ checked: true, user: null, isAdmin: false });
+    setCases([]);
+    setSelectedCaseId('');
+    setSelectedRunId('');
+  }
+
   function renderActivePage() {
     const shared = {
       cases,
@@ -217,7 +278,7 @@ function AppLayout() {
 
     switch (activePage) {
       case 'cases':
-        return <CasesPage {...shared} />;
+        return <CasesPage {...shared} isAdmin={authState.isAdmin} />;
       case 'newAudit':
         return <NewAuditPage {...shared} onCaseCreated={handleCaseCreated} onRunStarted={handleRunStarted} />;
       case 'mission':
@@ -230,12 +291,31 @@ function AppLayout() {
         return <EvidenceReviewPage {...shared} />;
       case 'actions':
         return <ActionsPage {...shared} />;
+      case 'admin':
+        return authState.isAdmin ? <AdminPage /> : <CasesPage {...shared} isAdmin={false} />;
       default:
-        return <CasesPage {...shared} />;
+        return <CasesPage {...shared} isAdmin={authState.isAdmin} />;
     }
   }
 
   const [pageTitle, pageSubtitle] = PAGE_META[activePage] || PAGE_META.cases;
+
+  // Auth gate: show login page when not authenticated
+  if (authChecking) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <LoadingFallback />
+      </div>
+    );
+  }
+
+  if (!authState.user) {
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <LoginPage onLogin={handleLogin} />
+      </Suspense>
+    );
+  }
 
   return (
     <div className="audit-shell h-screen overflow-hidden lg:flex">
@@ -249,14 +329,21 @@ function AppLayout() {
         selectedCaseId={selectedCaseId}
         onSelectCase={selectCase}
         caseCount={cases.length}
+        isAdmin={authState.isAdmin}
       />
 
       <main id="main-content" className="min-w-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
-        <Topbar selectedCase={selectedCase} selectedRunId={selectedRunId} onRefresh={refreshCases} />
+        <Topbar
+          selectedCase={selectedCase}
+          selectedRunId={selectedRunId}
+          onRefresh={refreshCases}
+          currentUser={authState.user}
+          onLogout={handleLogout}
+        />
 
         <div className="mb-5 flex flex-col gap-3 lg:hidden">
           <select className="input-field" name="mobile_page" aria-label="切换页面" value={activePage} onChange={(event) => navigate(event.target.value)}>
-            {Object.entries(PAGE_META).map(([key, [label]]) => (
+            {Object.entries(PAGE_META).filter(([key]) => key !== 'admin' || authState.isAdmin).map(([key, [label]]) => (
               <option key={key} value={key}>
                 {label}
               </option>

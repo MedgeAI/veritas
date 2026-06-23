@@ -1,9 +1,10 @@
+import { FaSignOutAlt, FaUser } from 'react-icons/fa';
 import { FiExternalLink, FiRefreshCw } from 'react-icons/fi';
 import StatusPill from './StatusPill.jsx';
 import { reportHtmlUrl } from '../services/api.js';
 import { translateStatus } from '../utils/piLabels.js';
 
-function Topbar({ selectedCase, selectedRunId, onRefresh }) {
+function Topbar({ selectedCase, selectedRunId, onRefresh, currentUser, onLogout }) {
   return (
     <header className="mb-6 flex flex-col gap-4 border-b border-ink-900/10 pb-5 md:flex-row md:items-center md:justify-between">
       <div>
@@ -21,6 +22,28 @@ function Topbar({ selectedCase, selectedRunId, onRefresh }) {
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
+        {currentUser ? (
+          <div className="flex items-center gap-2 rounded-full border border-ink-900/10 bg-paper-50/80 px-3 py-1.5 text-sm text-ink-600">
+            <FaUser className="text-xs text-ink-400" aria-hidden="true" />
+            <span className="font-medium">{currentUser.username}</span>
+          </div>
+        ) : null}
+        {onLogout ? (
+          <button
+            type="button"
+            className="btn-ghost focus-visible:ring-2 focus-visible:ring-ink-400 focus-visible:ring-offset-2"
+            onClick={() => {
+              if (window.confirm('确定要登出当前用户吗？')) {
+                onLogout();
+              }
+            }}
+            title="登出"
+            aria-label="登出当前用户"
+          >
+            <FaSignOutAlt aria-hidden="true" />
+            登出
+          </button>
+        ) : null}
         <button type="button" className="btn-secondary" onClick={onRefresh}>
           <FiRefreshCw aria-hidden="true" />
           刷新

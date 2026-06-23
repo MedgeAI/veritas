@@ -272,15 +272,18 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
         {materials ? (
           <MaterialChecklist caseId={createdCaseId} materials={materials} />
         ) : null}
-        <section className="dossier-panel rounded-[2rem] p-6">
-          <div className="mt-5 space-y-2" aria-live="polite">
-            {log.map((item) => (
-              <p key={item} className="rounded-2xl bg-white/50 px-3 py-2 font-mono text-xs text-ink-500">
-                {item}
-              </p>
-            ))}
-          </div>
-        </section>
+        {log.length > 0 ? (
+          <section className="dossier-panel rounded-[2rem] p-6">
+            <h3 className="font-display text-sm font-semibold uppercase tracking-wider text-ink-500">操作日志</h3>
+            <div className="mt-3 space-y-2" aria-live="polite">
+              {log.map((item, index) => (
+                <p key={index} className="rounded-2xl bg-white/50 px-3 py-2 font-mono text-xs text-ink-500">
+                  {item}
+                </p>
+              ))}
+            </div>
+          </section>
+        ) : null}
       </aside>
     </div>
   );
