@@ -110,10 +110,13 @@ def test_fastapi_app_runs_web_audit_flow(tmp_path: Path) -> None:
         deps.store, audit_func=fake_audit_func, output_root=str(tmp_path / "outputs")
     )
 
-    resp = client.post("/api/cases/demo-case/runs", json={"agent_mode": "review"})
+    resp = client.post(
+        "/api/audit",
+        json={"case_id": "demo-case", "options": {"agent_mode": "review"}},
+    )
     assert resp.status_code == 202
     run_data = resp.json()
-    run_id = run_data["run_id"]
+    run_id = run_data["job_id"]
 
     # Wait a moment for the background thread to finish
     import time
@@ -357,9 +360,21 @@ def test_run_detail_route_returns_run_data(tmp_path: Path) -> None:
     )
     assert resp.status_code == 201
 
-    resp = client.post("/api/cases/paper2_zhanglab/runs", json={"agent_mode": "review"})
+    resp = client.post(
+        "/api/cases/paper2_zhanglab/inputs",
+        json={
+            "filename": "paper.pdf",
+            "content_base64": base64.b64encode(b"%PDF-1.4\n").decode("ascii"),
+        },
+    )
+    assert resp.status_code == 200
+
+    resp = client.post(
+        "/api/audit",
+        json={"case_id": "paper2_zhanglab", "options": {"agent_mode": "review"}},
+    )
     assert resp.status_code == 202
-    run_id = resp.json()["run_id"]
+    run_id = resp.json()["job_id"]
 
     resp = client.get(f"/api/cases/paper2_zhanglab/runs/{run_id}")
     assert resp.status_code == 200

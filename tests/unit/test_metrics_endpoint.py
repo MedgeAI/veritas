@@ -50,7 +50,8 @@ def test_metrics_reflects_cases_and_runs(tmp_path: Path) -> None:
     client.post("/api/cases", json={"case_id": "m2", "paper_title": "Paper 2"})
 
     # Create one run for the first case
-    client.post("/api/cases/m1/runs", json={})
+    deps = app.state.dependencies
+    deps.store.create_run("m1")
 
     resp = client.get("/api/metrics")
     data = resp.json()
