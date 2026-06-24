@@ -21,6 +21,7 @@ TOOL_ID_IMAGE_QUALITY = "visual.image_quality"
 TOOL_ID_OVERLAP_REUSE = "visual.overlap_reuse"
 TOOL_ID_CBIR_SEARCH = "visual.cbir_search"
 SOURCE_DATA_VERDICT_TOOL_ID = "source_data.verdict"
+SOURCE_DATA_QUERY_TOOL_ID = "source_data.query"
 
 
 class ExecutionPhase(str, Enum):
@@ -253,6 +254,30 @@ TOOLS: dict[str, ToolDefinition] = {
             "source_data/profile.json",
         ),
         output_artifacts=("source_data/findings_verdict.json",),
+    ),
+    SOURCE_DATA_QUERY_TOOL_ID: ToolDefinition(
+        tool_id=SOURCE_DATA_QUERY_TOOL_ID,
+        step_key="source_data_query",
+        title="Source Data 语义查询",
+        source="engine/static_audit/tools",
+        description="Semantic-level deterministic queries over Source Data workbooks: compare_groups, extract_block, find_cross_group_reuse.",
+        expected_outputs=("source_data_query.json",),
+        execution_phase=ExecutionPhase.AGENT_SELECTABLE,
+        input_artifacts=("source_data/",),
+        output_artifacts=("source_data_query.json",),
+        param_schema={
+            "query_type": {
+                "type": "string",
+                "enum": ["compare_groups", "extract_block", "find_cross_group_reuse"],
+            },
+            "workbook": {"type": "string"},
+            "sheet": {"type": "string"},
+            "group_a": {"type": "string"},
+            "group_b": {"type": "string"},
+            "column_block": {"type": "string"},
+            "columns": {"type": "string"},
+            "group": {"type": "string"},
+        },
     ),
     PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID: ToolDefinition(
         tool_id=PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID,
@@ -775,6 +800,23 @@ def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
                 10,
                 200,
             ),
+        }
+    if tool_id == SOURCE_DATA_QUERY_TOOL_ID:
+        valid_types = {"compare_groups", "extract_block", "find_cross_group_reuse"}
+        query_type = str(params.get("query_type", "")).strip()
+        if query_type not in valid_types:
+            raise ValueError(
+                f"query_type must be one of {sorted(valid_types)}, got {query_type!r}"
+            )
+        return {
+            "query_type": query_type,
+            "workbook": str(params.get("workbook", "")).strip(),
+            "sheet": str(params.get("sheet", "")).strip(),
+            "group_a": str(params.get("group_a", "")).strip(),
+            "group_b": str(params.get("group_b", "")).strip(),
+            "column_block": str(params.get("column_block", "")).strip(),
+            "columns": str(params.get("columns", "")).strip(),
+            "group": str(params.get("group", "")).strip(),
         }
     if tool_id == PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID:
         defaults = TOOLS[tool_id].parameter_defaults
