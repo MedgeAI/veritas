@@ -113,15 +113,16 @@ export async function createCase(payload) {
   });
 }
 
-export async function uploadInput(caseId, file, { onProgress } = {}) {
+export function uploadInputWithAbort(caseId, file, { onProgress } = {}) {
   const formData = new FormData();
   formData.append('file', file);
   if (file.webkitRelativePath) {
     formData.append('relative_path', file.webkitRelativePath);
   }
 
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
+  let xhr;
+  const promise = new Promise((resolve, reject) => {
+    xhr = new XMLHttpRequest();
     xhr.open('POST', buildUrl(`/api/cases/${encodeURIComponent(caseId)}/inputs`));
     const creds = getAuthCredentials();
     if (creds) {
@@ -148,8 +149,97 @@ export async function uploadInput(caseId, file, { onProgress } = {}) {
       }
     };
     xhr.onerror = () => reject(new Error('Upload network error'));
+    xhr.onabort = () => reject(new DOMException('Upload aborted', 'AbortError'));
     xhr.send(formData);
   });
+
+  return { promise, abort: () => xhr && xhr.abort() };
+}
+
+export async function uploadInput(caseId, file, { onProgress } = {}) {
+  return uploadInputWithAbort(caseId, file, { onProgress }).promise;
+}
+
+export function uploadInputsParallel(caseId, files, {
+  onProgress,
+  onFileProgress,
+  onFileComplete,
+  onFileError,
+  concurrency = 3,
+} = {}) {
+  const totalSize = files.reduce((sum, f) => sum + (f.size || 0), 0);
+  const fileLoaded = new Map();
+  const activeAborts = new Set();
+  let aborted = false;
+
+  function overallPercent() {
+    if (totalSize === 0) return 0;
+    let loaded = 0;
+    for (const v of fileLoaded.values()) loaded += v;
+    return Math.round((loaded / totalSize) * 100);
+  }
+
+  function emitOverall() {
+    if (onProgress) onProgress(overallPercent());
+  }
+
+  function uploadOne(file) {
+    return new Promise((resolve) => {
+      const { promise, abort } = uploadInputWithAbort(caseId, file, {
+        onProgress: (pct) => {
+          if (aborted) return;
+          const loadedBytes = ((file.size || 0) * pct) / 100;
+          fileLoaded.set(file, loadedBytes);
+          emitOverall();
+          if (onFileProgress) onFileProgress(file, pct);
+        },
+      });
+      activeAborts.add(abort);
+      promise
+        .then((result) => {
+          activeAborts.delete(abort);
+          fileLoaded.set(file, file.size || 0);
+          emitOverall();
+          if (onFileComplete) onFileComplete(file, result);
+          resolve({ file, result, error: null });
+        })
+        .catch((error) => {
+          activeAborts.delete(abort);
+          if (onFileError) onFileError(file, error);
+          resolve({ file, result: null, error });
+        });
+    });
+  }
+
+  const results = [];
+  const errors = [];
+  let nextIndex = 0;
+
+  async function runNext() {
+    while (nextIndex < files.length) {
+      if (aborted) return;
+      const idx = nextIndex++;
+      const outcome = await uploadOne(files[idx]);
+      if (outcome.error) {
+        errors.push(outcome);
+      } else {
+        results.push(outcome);
+      }
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(concurrency, files.length) }, () => runNext());
+
+  const promise = Promise.all(workers).then(() => ({ results, errors }));
+
+  return {
+    promise,
+    abortAll: () => {
+      aborted = true;
+      for (const abort of activeAborts) abort();
+      activeAborts.clear();
+    },
+  };
 }
 
 export async function getRun(caseId, runId) {
