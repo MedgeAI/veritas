@@ -14,7 +14,13 @@ PROJECT_PYTHONPATH ?= .
 PY_ENV := PYTHONPATH=$(PROJECT_PYTHONPATH)
 VERITAS := $(PY_ENV) $(PYTHON) cli/main.py
 
-COMPOSE ?= docker compose -f docker-compose.yml
+HOST_UID := $(shell id -u)
+HOST_GID := $(shell id -g)
+export UID := $(HOST_UID)
+export GID := $(HOST_GID)
+
+COMPOSE ?= docker compose --env-file $(CURDIR)/.env -p vdeploy -f deploy/docker-compose.yml
+COMPOSE_DEPLOY ?= docker compose --env-file $(CURDIR)/.env -p vdeploy -f deploy/docker-compose.yml -f deploy/docker-compose.cloudflare.yml
 
 MANIFEST ?= examples/bioinfo_python_case/veritas.json
 OUTPUT_DIR ?= outputs/demo
@@ -37,6 +43,7 @@ LOCAL_DATABASE_URL ?= postgresql://veritas:veritas@127.0.0.1:5432/veritas
 
 .PHONY: help show-config sync install setup \
 	up down rebuild restart logs ps shell health docker-health \
+	deploy-up deploy-down deploy-rebuild deploy-logs \
 	db-up db-down db-init db-migrate db-reset \
 	precheck run report demo audit audit-off audit-fresh report-path \
 	web-backend web-frontend web-install web-build web-preview \
@@ -86,13 +93,13 @@ setup: sync web-install ## Sync Python and frontend dependencies
 
 # -- Docker lifecycle ----------------------------------------------------
 
-DOCKER_BUILD_ARGS := --build-arg USER_UID=$$(id -u) --build-arg USER_GID=$$(id -g) --build-arg USERNAME=veritas
+DOCKER_BUILD_ARGS := --build-arg USER_UID=$$(id -u) --build-arg USER_GID=$$(id -g) --build-arg USERNAME=veritas --build-arg BUILD_VERSION=$(shell git rev-parse --short HEAD 2>/dev/null || echo "dev")
 
 docker-build: ## Build Docker image with host user UID/GID (for bind mount compatibility)
 	docker build $(DOCKER_BUILD_ARGS) -t veritas:latest .
 
 docker-build-dev: ## Build development Docker image (runs as root)
-	docker build -f Dockerfile.dev -t veritas:dev .
+	docker build -f deploy/Dockerfile.dev -t veritas:dev .
 
 up: ## Start the Docker web service
 	$(COMPOSE) up -d
@@ -115,8 +122,22 @@ ps: ## Show Docker service status
 shell: ## Enter the Docker web service shell
 	$(COMPOSE) exec veritas sh
 
-docker-health: ## Check Docker web service health through port 80
-	@curl -sf http://127.0.0.1/api/health | $(PYTHON) -m json.tool || echo "Docker web service unavailable"
+docker-health: ## Check Docker web service health via container exec
+	@$(COMPOSE) exec -T veritas curl -sf http://localhost:8765/api/health | $(PYTHON) -m json.tool || echo "Docker web service unavailable"
+
+# -- Cloudflare Tunnel Deploy --------------------------------------------
+
+deploy-up: ## Start all services with Cloudflare Tunnel
+	$(COMPOSE_DEPLOY) up --build -d
+
+deploy-down: ## Stop all services including Cloudflare Tunnel
+	$(COMPOSE_DEPLOY) down
+
+deploy-rebuild: ## Rebuild and restart all services with Cloudflare Tunnel
+	$(COMPOSE_DEPLOY) up --build -d --force-recreate
+
+deploy-logs: ## Show cloudflared container logs
+	$(COMPOSE_DEPLOY) logs --tail=100 -f cloudflared
 
 # -- ELIS Provenance Container -------------------------------------------
 
@@ -233,6 +254,9 @@ report-path: ## Print the expected final audit-paper HTML report path
 
 web-backend: ## Start local stdlib Python web backend
 	VERITAS_ENABLE_PGLITE=1 VERITAS_DATABASE_BACKEND=pglite $(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.app import serve; serve(host='$(HOST)', port=$(PORT), data_root='$(WEB_DATA_DIR)', output_root='$(OUTPUT_ROOT)')"
+
+celery-worker: ## Start Celery worker for async audit tasks
+	$(PY_ENV) celery -A engine.tasks.celery_app worker --loglevel=info
 
 web-frontend: ## Start Vite frontend dev server
 	cd $(FRONTEND_DIR) && npm run dev
