@@ -535,10 +535,6 @@ class InputUpload(BaseModel):
 # --- Runs ---
 
 
-class RunCreate(BaseModel):
-    agent_mode: str = "review"
-
-
 class RunRead(BaseModel):
     run_id: str
     case_id: str

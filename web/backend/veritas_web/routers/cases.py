@@ -16,7 +16,7 @@ from ..dependencies import (
 )
 from ..auth import AuthContext
 from ..permissions import require_admin
-from ..models import CaseCreate, CaseRecord, InputUpload, RunCreate
+from ..models import CaseCreate, CaseRecord, InputUpload
 from ..risk import summarize_findings
 
 router = APIRouter(tags=["cases"])
@@ -167,17 +167,6 @@ async def upload_input(
             )
 
     return {"path": str(path), "case": updated_case.to_dict()}
-
-
-@router.post("/cases/{case_id}/runs", status_code=HTTPStatus.ACCEPTED)
-async def start_run(
-    case_id: str,
-    payload: RunCreate,
-    case: CaseRecord = Depends(require_case_access),
-    deps: AppDependencies = Depends(get_app_dependencies),
-) -> dict[str, Any]:
-    run = deps.runner.start(case_id, payload.model_dump())
-    return run.to_dict()
 
 
 @router.get("/cases/{case_id}/runs/{run_id}")
