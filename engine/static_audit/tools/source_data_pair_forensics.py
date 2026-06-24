@@ -14,6 +14,7 @@ from typing import Any
 
 from engine.static_audit.tools.source_data_findings import (
     SheetVectors,
+    _extract_raw_data_samples,
     col_to_name,
     column_label,
     is_summary_statistic_pair,
@@ -176,6 +177,7 @@ def row_offset_scalar_findings(
                     "column_labels": [],
                     "sample_pairs": [],
                     "formula_column_involved": False,
+                    "_matched_rows": set(),
                     "benign_explanations": [
                         "可能是合法批量归一化、单位换算、重复测量整理或设计矩阵编码。",
                         "若行代表独立样本或独立患者，固定行偏移倍数关系需要人工复核。",
@@ -218,7 +220,11 @@ def row_offset_scalar_findings(
                         "ratio": value,
                     }
                 )
+                group["_matched_rows"].update([left_row, right_row])
     findings = list(grouped.values())
+    for finding in findings:
+        matched_rows = sorted(finding.pop("_matched_rows"))
+        finding["raw_data_samples"] = _extract_raw_data_samples(sheet, matched_rows)
     return sorted(
         findings,
         key=lambda item: (-risk_rank(item["risk_level"]), -item["support_rows"]),
@@ -333,6 +339,9 @@ def paired_ratio_reuse_findings(
                             "复算第 N 行与第 N+offset 行的 ratio 是否来自独立原始测量。",
                             "要求原始仪器输出或上游分析日志验证样本独立性。",
                         ],
+                        "raw_data_samples": _extract_raw_data_samples(
+                            sheet, sorted(matched_rows)
+                        ),
                     }
                 )
     return sorted(
@@ -422,6 +431,7 @@ def duplicate_row_vector_findings(
                     "核对重复行的样本 ID、分组、图表 panel 和是否为独立测量。",
                     "确认重复行是否影响论文中的 n、统计检验或效应量。",
                 ],
+                "raw_data_samples": _extract_raw_data_samples(sheet, rows),
             }
         )
     return sorted(
@@ -1082,6 +1092,9 @@ def cross_block_paired_diff_findings(
                             "如果来自不同条件，跨 block 的配对差异应反映生物学差异而非技术噪声",
                             "核对论文 Methods 中是否描述了跨 block 的数据处理方式",
                         ],
+                        "raw_data_samples": _extract_raw_data_samples(
+                            sheet, block_a[:25] + block_b[:25]
+                        ),
                     }
                 )
 

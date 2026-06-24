@@ -147,6 +147,42 @@ def column_label(sheet: SheetVectors, col: int) -> str:
     return " / ".join(labels)
 
 
+def _extract_raw_data_samples(
+    sheet: SheetVectors, rows: list[int], max_samples: int = 50
+) -> list[dict]:
+    """Extract raw row data from a sheet for the given rows (up to max_samples).
+
+    Each entry contains the 1-based row number and all column values found in
+    that row.  Decimal values are converted to float for JSON serialization.
+    """
+    samples: list[dict] = []
+    text_by_row: dict[int, dict[str, str]] = {}
+    for col, entries in sheet.text_columns.items():
+        label = column_label(sheet, col) or col_to_name(col)
+        for row, value in entries:
+            text_by_row.setdefault(row, {})[label] = value
+
+    all_cols = sorted(
+        set(sheet.numeric_columns) | set(sheet.text_columns)
+    )
+    for row in rows[:max_samples]:
+        column_values: dict[str, object] = {}
+        for col in all_cols:
+            col_data = sheet.numeric_columns.get(col, {})
+            if isinstance(col_data, dict):
+                numeric = col_data.get(row)
+            else:
+                # list-based mock: index is the row
+                numeric = col_data[row] if 0 <= row < len(col_data) else None
+            if numeric is not None:
+                label = column_label(sheet, col) or col_to_name(col)
+                column_values[label] = float(numeric)
+        for label, value in text_by_row.get(row, {}).items():
+            column_values.setdefault(label, value)
+        samples.append({"row": row, "column_values": column_values})
+    return samples
+
+
 def _label_lower(sheet: SheetVectors, col: int) -> str:
     return column_label(sheet, col).lower()
 
@@ -466,6 +502,7 @@ def duplicate_column_findings(
                 artifact_reason = (
                     "low-cardinality time/event or grouped endpoint columns"
                 )
+            raw_samples = _extract_raw_data_samples(sheet, equal)
             findings.append(
                 {
                     "finding_id": None,
@@ -509,6 +546,7 @@ def duplicate_column_findings(
                         "核对列标题、sheet 注释和对应 figure panel。",
                         "确认是否为合法重复、派生列或数据复制。",
                     ],
+                    "raw_data_samples": raw_samples,
                 }
             )
     return sorted(findings, key=lambda item: (-item["equal_rows"], item["workbook"]))[
@@ -693,6 +731,7 @@ def relationship_record(
             "核对列标题和对应论文 figure panel。",
             "确认固定关系是否覆盖原始测量值而非派生列。",
         ],
+        "raw_data_samples": _extract_raw_data_samples(sheet, rows),
     }
 
 
