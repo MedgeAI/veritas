@@ -121,8 +121,8 @@ class TestFixtureStructure:
         fob1_count = sum(1 for g in groups if g["variant"] == "fob1")
         mutant_count = sum(1 for g in groups if g["variant"].startswith("mutant_"))
 
-        # Each compound class should have exactly 1 wt
-        assert wt_count == len(expected_classes) if 'expected_classes' in locals() else wt_count == 6
+        # Each compound class should have exactly 1 wt (6 groups total)
+        assert wt_count == 6
 
         # fob and fob1 variants
         assert fob_count >= 1, "Expected at least 1 fob variant"
