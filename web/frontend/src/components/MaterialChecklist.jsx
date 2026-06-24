@@ -133,7 +133,7 @@ function MaterialRow({ config, data, onCopy }) {
             )}
           </StatusPill>
         </div>
-        <p className="mt-1 font-mono text-xs text-ink-500">{data.detail}</p>
+        <p className="mt-1 font-mono text-xs text-ink-500 break-words">{data.detail}</p>
       </div>
       {!isOk && onCopy && (
         <button

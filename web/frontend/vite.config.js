@@ -10,6 +10,15 @@ export default defineConfig({
       '/api': 'http://127.0.0.1:8765',
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+        },
+      },
+    },
+  },
   test: {
     globals: true,
     environment: 'jsdom',

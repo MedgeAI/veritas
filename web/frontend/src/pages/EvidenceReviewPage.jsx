@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { FiCheck, FiCpu, FiLink, FiPlay, FiRefreshCw, FiShuffle } from 'react-icons/fi';
 import MetricCard from '../components/MetricCard.jsx';
 import EmptyState from '../components/EmptyState.jsx';
@@ -12,11 +12,50 @@ import { useEmbeddingIndex } from '../hooks/useEmbeddingIndex.js';
 import { useDenseInvestigation } from '../hooks/useDenseInvestigation.js';
 import { translateStatus, translateRiskLevel } from '../utils/piLabels.js';
 
+function readEvidenceWorkspaceFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return {
+      filterRisk: params.get('evidenceRisk') || 'all',
+      filterCategory: params.get('evidenceCategory') || 'all',
+      panelIds: (params.get('evidencePanels') || '').split(',').map((id) => id.trim()).filter(Boolean),
+      overlapId: params.get('evidenceOverlap') || '',
+    };
+  } catch {
+    return {
+      filterRisk: 'all',
+      filterCategory: 'all',
+      panelIds: [],
+      overlapId: '',
+    };
+  }
+}
+
+function writeEvidenceWorkspaceUrl({ filterRisk, filterCategory, panelIds, overlapId }) {
+  try {
+    const url = new URL(window.location.href);
+    if (filterRisk && filterRisk !== 'all') url.searchParams.set('evidenceRisk', filterRisk);
+    else url.searchParams.delete('evidenceRisk');
+    if (filterCategory && filterCategory !== 'all') url.searchParams.set('evidenceCategory', filterCategory);
+    else url.searchParams.delete('evidenceCategory');
+    if (panelIds.length) url.searchParams.set('evidencePanels', panelIds.join(','));
+    else url.searchParams.delete('evidencePanels');
+    if (overlapId) url.searchParams.set('evidenceOverlap', overlapId);
+    else url.searchParams.delete('evidenceOverlap');
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  } catch {
+    // URL state is progressive enhancement for deep-linking.
+  }
+}
+
 function EvidenceReviewPage({ selectedCase }) {
-  const [filterRisk, setFilterRisk] = useState('all');
-  const [filterCategory, setFilterCategory] = useState('all');
-  const [selectedPanelIds, setSelectedPanelIds] = useState([]);
-  const [selectedOverlap, setSelectedOverlap] = useState(null);
+  const initialWorkspace = useMemo(() => readEvidenceWorkspaceFromUrl(), []);
+  const similarityThresholdId = useId();
+  const previousCaseIdRef = useRef(selectedCase?.case_id || '');
+  const [filterRisk, setFilterRisk] = useState(initialWorkspace.filterRisk);
+  const [filterCategory, setFilterCategory] = useState(initialWorkspace.filterCategory);
+  const [selectedPanelIds, setSelectedPanelIds] = useState(initialWorkspace.panelIds);
+  const [selectedOverlapId, setSelectedOverlapId] = useState(initialWorkspace.overlapId);
   const [denseMaxPanels, setDenseMaxPanels] = useState(20);
 
   // Data fetching hook
@@ -59,16 +98,37 @@ function EvidenceReviewPage({ selectedCase }) {
     setInvestigationResults,
   );
 
-  // Reset panel selection when case changes
-  const handleCaseChange = useCallback(() => {
-    setSelectedPanelIds([]);
-  }, []);
-
   // Reset case-scoped UI state after the selected case changes.
   useEffect(() => {
-    handleCaseChange();
+    const nextCaseId = selectedCase?.case_id || '';
+    if (previousCaseIdRef.current && previousCaseIdRef.current !== nextCaseId) {
+      setSelectedPanelIds([]);
+      setSelectedOverlapId('');
+    }
+    previousCaseIdRef.current = nextCaseId;
     setDenseError('');
-  }, [handleCaseChange, selectedCase?.case_id]);
+  }, [selectedCase?.case_id, setDenseError]);
+
+  useEffect(() => {
+    writeEvidenceWorkspaceUrl({
+      filterRisk,
+      filterCategory,
+      panelIds: selectedPanelIds,
+      overlapId: selectedOverlapId,
+    });
+  }, [filterRisk, filterCategory, selectedPanelIds, selectedOverlapId]);
+
+  useEffect(() => {
+    function handlePopState() {
+      const nextWorkspace = readEvidenceWorkspaceFromUrl();
+      setFilterRisk(nextWorkspace.filterRisk);
+      setFilterCategory(nextWorkspace.filterCategory);
+      setSelectedPanelIds(nextWorkspace.panelIds);
+      setSelectedOverlapId(nextWorkspace.overlapId);
+    }
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const clearPanelSelection = useCallback(() => {
     setSelectedPanelIds([]);
@@ -97,6 +157,11 @@ function EvidenceReviewPage({ selectedCase }) {
     return ['all', ...Array.from(cats)];
   }, [findings]);
 
+  const selectedOverlap = useMemo(
+    () => overlapRelationships.find((rel) => rel.relationship_id === selectedOverlapId) || null,
+    [overlapRelationships, selectedOverlapId],
+  );
+
   if (!selectedCase) {
     return (
       <EmptyState>
@@ -117,7 +182,7 @@ function EvidenceReviewPage({ selectedCase }) {
           </div>
           <button type="button" className="btn-ghost" onClick={loadData} disabled={loading}>
             <FiRefreshCw aria-hidden="true" />
-            {loading ? '加载中...' : '刷新'}
+            {loading ? '加载中…' : '刷新'}
           </button>
         </div>
 
@@ -153,7 +218,7 @@ function EvidenceReviewPage({ selectedCase }) {
       {embeddingStatusBlocked ? (
         <section className="dossier-panel rounded-[2rem] p-6">
           <h3 className="section-title flex items-center gap-2">
-            <FiCpu className="text-ink-500" />
+            <FiCpu className="text-ink-500" aria-hidden="true" />
             SSCD 相似 Panel 预筛
           </h3>
           <p className="mt-3 text-sm text-ink-400">
@@ -163,7 +228,7 @@ function EvidenceReviewPage({ selectedCase }) {
       ) : (
       <section className="dossier-panel rounded-[2rem] p-6">
         <h3 className="section-title flex items-center gap-2">
-          <FiCpu className="text-ink-500" />
+          <FiCpu className="text-ink-500" aria-hidden="true" />
           相似 Panel 预筛
         </h3>
         <p className="mt-2 text-sm text-ink-500">
@@ -204,20 +269,23 @@ function EvidenceReviewPage({ selectedCase }) {
             disabled={isIndexing || !selectedCase}
             className="flex items-center gap-2 rounded-xl border border-ink-900/10 bg-white/60 px-4 py-2 text-sm text-ink-900/70 transition hover:bg-white disabled:opacity-50"
           >
-            <FiCpu className={isIndexing ? 'animate-spin' : ''} />
-            {isIndexing ? '索引中...' : indexedPanelCount > 0 ? '重新索引' : '索引 Panels'}
+            <FiCpu className={isIndexing ? 'animate-spin' : ''} aria-hidden="true" />
+            {isIndexing ? '索引中…' : indexedPanelCount > 0 ? '重新索引' : '索引 Panels'}
           </button>
 
           {/* Threshold slider */}
           <div className="flex items-center gap-2">
-            <label className="text-xs text-ink-500">相似度阈值:</label>
+            <label htmlFor={similarityThresholdId} className="text-xs text-ink-500">相似度阈值:</label>
             <input
+              id={similarityThresholdId}
+              name="similarity_threshold"
               type="range"
               min="0.5"
               max="0.99"
               step="0.01"
               value={similarityThreshold}
               onChange={(e) => setSimilarityThreshold(Number(e.target.value))}
+              aria-valuetext={similarityThreshold.toFixed(2)}
               className="w-24"
             />
             <span className="text-sm font-mono text-ink-700">{similarityThreshold.toFixed(2)}</span>
@@ -230,7 +298,7 @@ function EvidenceReviewPage({ selectedCase }) {
             disabled={!canFindSimilarPairs}
             className="flex items-center gap-2 rounded-xl bg-ink-900/5 px-4 py-2 text-sm text-ink-900/70 transition hover:bg-ink-900/10 disabled:opacity-50"
           >
-            <FiLink />
+            <FiLink aria-hidden="true" />
             查找相似 Panel 对
           </button>
         </div>
@@ -246,7 +314,7 @@ function EvidenceReviewPage({ selectedCase }) {
               发现 {similarPairs.length} 对相似 Panel
               <span className="ml-2 text-xs text-ink-400">(threshold ≥ {similarityThreshold})</span>
             </h4>
-            <div className="mt-2 max-h-48 overflow-y-auto space-y-1">
+            <div className="mt-2 max-h-48 overflow-y-auto space-y-1" style={{ overscrollBehavior: 'contain' }}>
               {similarPairs.map((pair, i) => (
                 <div key={i} className="flex items-center justify-between rounded-lg border border-ink-900/5 bg-white/40 px-3 py-2">
                   <div className="flex items-center gap-3 text-sm">
@@ -263,7 +331,7 @@ function EvidenceReviewPage({ selectedCase }) {
                     disabled={runningInvestigation}
                     className="rounded-lg bg-ink-900/5 px-3 py-1 text-xs text-ink-900/70 transition hover:bg-ink-900/10"
                   >
-                    {runningInvestigation ? '运行中...' : '选中并跑 Dense'}
+                    {runningInvestigation ? '运行中…' : '选中并跑 Dense'}
                   </button>
                 </div>
               ))}
@@ -302,7 +370,7 @@ function EvidenceReviewPage({ selectedCase }) {
             <OverlapGraph
               relationships={overlapRelationships}
               panels={panels}
-              onSelectRelationship={(rel) => setSelectedOverlap(rel)}
+              onSelectRelationship={(rel) => setSelectedOverlapId(rel.relationship_id || '')}
             />
           </div>
           <div className="mt-3 text-xs text-ink-500">
@@ -316,7 +384,7 @@ function EvidenceReviewPage({ selectedCase }) {
         <OverlapDetailDrawer
           relationship={selectedOverlap}
           caseId={selectedCase?.case_id}
-          onClose={() => setSelectedOverlap(null)}
+          onClose={() => setSelectedOverlapId('')}
         />
       )}
 
@@ -409,6 +477,7 @@ function ManualInvestigationPanel({
   records,
 }) {
   const disabled = selectedPanelList.length === 0 || running;
+  const maxPanelsId = useId();
   return (
     <section className="dossier-panel rounded-[2rem] p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -420,15 +489,19 @@ function ManualInvestigationPanel({
           </p>
         </div>
         <div className="flex flex-wrap items-end gap-3">
-          <label className="w-32 text-sm text-ink-500">
+          <label htmlFor={maxPanelsId} className="w-32 text-sm text-ink-500">
             Max panels
             <input
+              id={maxPanelsId}
+              name="dense_max_panels"
               type="number"
               min="1"
               max="50"
+              inputMode="numeric"
+              autoComplete="off"
               className="input-field mt-1 py-2"
               value={maxPanels}
-              onChange={(event) => onMaxPanelsChange(event.target.value)}
+              onChange={(event) => onMaxPanelsChange(event.target.value === '' ? '' : Number(event.target.value))}
             />
           </label>
           <button type="button" className="btn-secondary" onClick={onClear} disabled={selectedPanelList.length === 0 || running}>
@@ -436,7 +509,7 @@ function ManualInvestigationPanel({
           </button>
           <button type="button" className="btn-primary" onClick={onRunDense} disabled={disabled}>
             <FiPlay aria-hidden="true" />
-            {running ? '运行中...' : 'Run SILA Dense'}
+            {running ? '运行中…' : 'Run SILA Dense'}
           </button>
         </div>
       </div>
@@ -722,6 +795,7 @@ function FilterBar({ filterRisk, filterCategory, categories, onRiskChange, onCat
         <span className="text-ink-500">风险：</span>
         <select
           className="input-field text-sm"
+          name="visual_risk_filter"
           value={filterRisk}
           onChange={(e) => onRiskChange(e.target.value)}
         >
@@ -736,6 +810,7 @@ function FilterBar({ filterRisk, filterCategory, categories, onRiskChange, onCat
         <span className="text-ink-500">类别：</span>
         <select
           className="input-field text-sm"
+          name="visual_category_filter"
           value={filterCategory}
           onChange={(e) => onCategoryChange(e.target.value)}
         >

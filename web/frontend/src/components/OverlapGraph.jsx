@@ -177,6 +177,8 @@ export default function OverlapGraph({
         viewBox={`0 0 ${width} ${height}`}
         className="w-full bg-gray-50 rounded-lg border border-gray-200"
         style={{ height: Math.max(256, height * 0.6) }}
+        role="img"
+        aria-label="Overlap relationship graph"
       >
         {/* Edges */}
         {links.map((link) => {
@@ -199,7 +201,8 @@ export default function OverlapGraph({
               onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectRelationship?.(link._relationship || link); } }}
               role="button"
               tabIndex={0}
-              className="cursor-pointer"
+              aria-label={`查看 ${src.label || src.id} 与 ${tgt.label || tgt.id} 的 overlap 关系，score ${link.score.toFixed(2)}`}
+              className="cursor-pointer focus-visible:[filter:drop-shadow(0_0_0.35rem_rgba(34,120,99,0.72))]"
             >
               <line
                 x1={src.x}
@@ -234,6 +237,7 @@ export default function OverlapGraph({
               key={node.id}
               onMouseEnter={() => setHoveredNode(node)}
               onMouseLeave={() => setHoveredNode(null)}
+              tabIndex={0}
               aria-label={`Panel ${node.label || node.id}`}
               role="img"
             >
@@ -244,7 +248,7 @@ export default function OverlapGraph({
                 fill={nodeColor(degree)}
                 stroke="#1d4ed8"
                 strokeWidth={1.5}
-                className="transition-all duration-150"
+                className="transition-[r,stroke-width] duration-150"
               />
               <text
                 x={node.x}
@@ -261,7 +265,7 @@ export default function OverlapGraph({
 
       {/* Tooltip */}
       {hoveredNode && (
-        <div className="absolute top-2 left-2 text-xs bg-white/95 border border-gray-200 shadow-sm rounded px-2 py-1 pointer-events-none max-w-[200px]">
+        <div role="tooltip" className="absolute top-2 left-2 text-xs bg-white/95 border border-gray-200 shadow-sm rounded px-2 py-1 pointer-events-none max-w-[200px]">
           <div className="font-medium text-gray-800 truncate">{hoveredNode.label}</div>
           <div className="text-gray-500 text-[10px]">{hoveredNode.id}</div>
         </div>

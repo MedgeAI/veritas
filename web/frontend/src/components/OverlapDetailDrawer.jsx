@@ -34,7 +34,7 @@ export default function OverlapDetailDrawer({ relationship, caseId, onClose }) {
     : { label: 'LOW', color: 'bg-gray-100 text-gray-800' };
 
   return (
-    <div className="fixed inset-y-0 right-0 w-96 bg-white shadow-xl border-l border-gray-200 z-50 overflow-y-auto">
+    <div role="dialog" aria-modal="true" style={{ overscrollBehavior: 'contain' }} className="fixed inset-y-0 right-0 w-96 bg-white shadow-xl border-l border-gray-200 z-50 overflow-y-auto">
       {/* Header */}
       <div className="sticky top-0 bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
         <div>
@@ -47,6 +47,7 @@ export default function OverlapDetailDrawer({ relationship, caseId, onClose }) {
           </span>
         </div>
         <button
+          type="button"
           onClick={onClose}
           className="text-gray-400 hover:text-gray-600 text-xl leading-none"
           aria-label="Close"
@@ -99,10 +100,10 @@ export default function OverlapDetailDrawer({ relationship, caseId, onClose }) {
         <div>
           <h4 className="text-xs font-medium text-gray-700 mb-2">Manual Review Checklist</h4>
           <ul className="text-xs space-y-1.5">
-            <ReviewItem text="两个 panel 是否声称代表不同实验条件、样本或时间点？" />
-            <ReviewItem text="图注或方法是否声明 shared control / same field of view？" />
-            <ReviewItem text="作者能否提供原始显微图、仪器导出文件或未裁剪图？" />
-            <ReviewItem text="两个 panel 的 figure label 是否暗示它们来自不同的实验？" />
+            <ReviewItem text="两个 panel 是否声称代表不同实验条件、样本或时间点？" name="manual_review_item_0" />
+            <ReviewItem text="图注或方法是否声明 shared control / same field of view？" name="manual_review_item_1" />
+            <ReviewItem text="作者能否提供原始显微图、仪器导出文件或未裁剪图？" name="manual_review_item_2" />
+            <ReviewItem text="两个 panel 的 figure label 是否暗示它们来自不同的实验？" name="manual_review_item_3" />
           </ul>
         </div>
 
@@ -129,11 +130,11 @@ function MetricCard({ label, value }) {
   );
 }
 
-function ReviewItem({ text }) {
+function ReviewItem({ text, name }) {
   return (
     <li className="flex items-start gap-1.5">
       <label className="flex items-start gap-1.5 cursor-pointer">
-        <input type="checkbox" className="mt-0.5 h-3 w-3 rounded border-gray-300" />
+        <input type="checkbox" name={name} defaultChecked={false} onChange={() => {}} className="mt-0.5 h-3 w-3 rounded border-gray-300" />
         <span className="text-gray-700">{text}</span>
       </label>
     </li>

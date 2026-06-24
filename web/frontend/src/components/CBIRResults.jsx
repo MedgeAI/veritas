@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { visualImageUrl } from '../services/api.js';
 
 /**
@@ -34,6 +34,7 @@ function CBIRResults({ results, caseId, onSelectPanel }) {
 }
 
 const ResultCard = memo(function ResultCard({ result, caseId, onClick }) {
+  const [imgFailed, setImgFailed] = useState(false);
   const similarityPercent = (result.similarity * 100).toFixed(1);
   const riskTone = result.similarity >= 0.95 ? 'critical' : result.similarity >= 0.85 ? 'warning' : 'neutral';
 
@@ -43,16 +44,19 @@ const ResultCard = memo(function ResultCard({ result, caseId, onClick }) {
       onClick={onClick}
       className="group relative overflow-hidden rounded-2xl border border-ink-900/10 bg-paper-100/70 p-3 text-left transition hover:border-ink-900/20 hover:shadow-lg"
     >
-      <div className="relative aspect-square overflow-hidden rounded-xl bg-ink-50">
-        <img
-          src={visualImageUrl(caseId, result.image_path)}
-          alt={result.panel_id}
-          className="h-full w-full object-cover transition group-hover:scale-105"
-          loading="lazy"
-          onError={(e) => {
-            e.target.style.display = 'none';
-          }}
-        />
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-ink-50 transition group-hover:scale-105">
+        {!imgFailed && (
+          <img
+            src={visualImageUrl(caseId, result.image_path)}
+            alt=""
+            width="320"
+            height="320"
+            className="h-full w-full object-cover"
+            loading="lazy"
+            decoding="async"
+            onError={() => setImgFailed(true)}
+          />
+        )}
         <div className="absolute right-2 top-2">
           <span
             className={`rounded-full px-2 py-1 text-xs font-semibold shadow-sm ${

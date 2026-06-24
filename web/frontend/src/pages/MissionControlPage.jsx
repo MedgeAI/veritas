@@ -6,7 +6,7 @@ import ProgressTracker from '../components/ProgressTracker.jsx';
 import RiskTrafficLight from '../components/RiskTrafficLight.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import StatusPill from '../components/StatusPill.jsx';
-import { translateStatus, translateArtifactLabel, translateRiskLevel, translateIssueCategory, friendlyError } from '../utils/piLabels.js';
+import { translateStatus, translateArtifactLabel, translateRiskLevel, translateIssueCategory } from '../utils/piLabels.js';
 import { checkMaterials, getEvents, getRiskSummary, getRun, listArtifacts, reportHtmlUrl } from '../services/api.js';
 
 function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefreshCases }) {
@@ -62,7 +62,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
       .then((data) => { if (!cancelled) setRiskSummary(data); })
       .catch(() => { /* non-critical: leave null */ });
     return () => { cancelled = true; };
-  }, [selectedCase, isFinished]);
+  }, [selectedCaseId, isFinished]);
 
   // Fetch materials completeness when case changes
   useEffect(() => {
@@ -75,7 +75,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
       .then((data) => { if (!cancelled) setMaterials(data); })
       .catch(() => { /* non-critical: leave null */ });
     return () => { cancelled = true; };
-  }, [selectedCase]);
+  }, [selectedCaseId]);
 
   useEffect(() => {
     refresh();
@@ -85,7 +85,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
     if (!selectedCaseId || !effectiveRunId) return undefined;
     const timer = window.setInterval(refresh, isLive ? 2500 : 8000);
     return () => window.clearInterval(timer);
-  }, [effectiveRunId, isLive, refresh, selectedCase]);
+  }, [effectiveRunId, isLive, refresh, selectedCaseId]);
 
   if (!selectedCase) {
     return <EmptyState title="请先选择或创建一个 Case。" />;
@@ -179,7 +179,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
         </div>
 
         {error ? (
-          <div className="mt-5 rounded-2xl border border-risk-300/45 bg-risk-100/70 p-4 text-sm leading-6 text-risk-700">
+          <div className="mt-5 rounded-2xl border border-risk-300/45 bg-risk-100/70 p-4 text-sm leading-6 text-risk-700" role="alert" aria-live="polite">
             {staleRun ? (
               <>
                 <strong>上次恢复的 run 不存在。</strong>
@@ -199,7 +199,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
 
         <section className="dossier-panel rounded-[2rem] p-6">
           <p className="metric-label">产物准备情况</p>
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 space-y-3" aria-live="polite">
             {artifacts.map((artifact) => (
               <div key={artifact.artifact_id} className="flex items-center justify-between gap-3 rounded-2xl bg-white/50 px-4 py-3">
                 <div>

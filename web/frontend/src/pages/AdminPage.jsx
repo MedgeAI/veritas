@@ -1,21 +1,45 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useId, useState } from 'react';
 import { FaEdit, FaKey, FaPlus, FaTrash, FaUsers } from 'react-icons/fa';
-import { FiRefreshCw } from 'react-icons/fi';
 import { listUsers, createUser, updateUser, deleteUser, changePassword } from '../services/api.js';
+
+const USER_DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
 
 // ---------------------------------------------------------------------------
 // Modal wrapper
 // ---------------------------------------------------------------------------
 
 function Modal({ title, onClose, children }) {
+  const titleId = useId();
+
+  useEffect(() => {
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') onClose();
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/40"
+        aria-label="关闭弹窗"
+        onClick={onClose}
+        tabIndex={-1}
+      />
       <div
-        className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
+        className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-xl"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
       >
         <div className="mb-4 flex items-center justify-between">
-          <h3 className="font-display text-lg font-semibold text-ink-900">{title}</h3>
+          <h3 id={titleId} className="font-display text-lg font-semibold text-ink-900">{title}</h3>
           <button type="button" className="btn-ghost !px-2 !py-1 text-sm" onClick={onClose}>
             关闭
           </button>
@@ -31,6 +55,10 @@ function Modal({ title, onClose, children }) {
 // ---------------------------------------------------------------------------
 
 function CreateUserModal({ onClose, onCreated }) {
+  const usernameId = useId();
+  const passwordId = useId();
+  const emailId = useId();
+  const rolesId = useId();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [email, setEmail] = useState('');
@@ -61,25 +89,25 @@ function CreateUserModal({ onClose, onCreated }) {
     <Modal title="创建用户" onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-ink-700">用户名 *</label>
-          <input className="input-field" value={username} onChange={(e) => setUsername(e.target.value)} autoFocus />
+          <label htmlFor={usernameId} className="mb-1 block text-sm font-medium text-ink-700">用户名 *</label>
+          <input id={usernameId} name="username" className="input-field" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="username" spellCheck={false} autoFocus />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-ink-700">密码 *</label>
-          <input className="input-field" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <label htmlFor={passwordId} className="mb-1 block text-sm font-medium text-ink-700">密码 *</label>
+          <input id={passwordId} name="password" className="input-field" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-ink-700">邮箱</label>
-          <input className="input-field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <label htmlFor={emailId} className="mb-1 block text-sm font-medium text-ink-700">邮箱</label>
+          <input id={emailId} name="email" className="input-field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" spellCheck={false} />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-ink-700">角色（逗号分隔）</label>
-          <input className="input-field" value={roles} onChange={(e) => setRoles(e.target.value)} placeholder="user, admin" />
+          <label htmlFor={rolesId} className="mb-1 block text-sm font-medium text-ink-700">角色（逗号分隔）</label>
+          <input id={rolesId} name="roles" className="input-field" value={roles} onChange={(e) => setRoles(e.target.value)} autoComplete="off" spellCheck={false} placeholder="user, admin…" />
         </div>
         {error ? <div className="rounded-xl border border-red-300/50 bg-red-50/70 px-3 py-2 text-sm text-red-700" role="alert" aria-live="polite">{error}</div> : null}
         <div className="flex justify-end gap-2">
           <button type="button" className="btn-ghost" onClick={onClose}>取消</button>
-          <button type="submit" className="btn-primary" disabled={loading}>{loading ? '创建中...' : '创建'}</button>
+          <button type="submit" className="btn-primary" disabled={loading}>{loading ? '创建中…' : '创建'}</button>
         </div>
       </form>
     </Modal>
@@ -91,6 +119,8 @@ function CreateUserModal({ onClose, onCreated }) {
 // ---------------------------------------------------------------------------
 
 function EditUserModal({ user, onClose, onUpdated }) {
+  const emailId = useId();
+  const rolesId = useId();
   const [email, setEmail] = useState(user.email || '');
   const [roles, setRoles] = useState((user.roles || []).join(', '));
   const [error, setError] = useState('');
@@ -115,17 +145,17 @@ function EditUserModal({ user, onClose, onUpdated }) {
     <Modal title={`编辑用户: ${user.username}`} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-ink-700">邮箱</label>
-          <input className="input-field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          <label htmlFor={emailId} className="mb-1 block text-sm font-medium text-ink-700">邮箱</label>
+          <input id={emailId} name="email" className="input-field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" spellCheck={false} autoFocus />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-ink-700">角色（逗号分隔）</label>
-          <input className="input-field" value={roles} onChange={(e) => setRoles(e.target.value)} />
+          <label htmlFor={rolesId} className="mb-1 block text-sm font-medium text-ink-700">角色（逗号分隔）</label>
+          <input id={rolesId} name="roles" className="input-field" value={roles} onChange={(e) => setRoles(e.target.value)} autoComplete="off" spellCheck={false} />
         </div>
         {error ? <div className="rounded-xl border border-red-300/50 bg-red-50/70 px-3 py-2 text-sm text-red-700" role="alert" aria-live="polite">{error}</div> : null}
         <div className="flex justify-end gap-2">
           <button type="button" className="btn-ghost" onClick={onClose}>取消</button>
-          <button type="submit" className="btn-primary" disabled={loading}>{loading ? '保存中...' : '保存'}</button>
+          <button type="submit" className="btn-primary" disabled={loading}>{loading ? '保存中…' : '保存'}</button>
         </div>
       </form>
     </Modal>
@@ -137,6 +167,7 @@ function EditUserModal({ user, onClose, onUpdated }) {
 // ---------------------------------------------------------------------------
 
 function ChangePasswordModal({ user, onClose }) {
+  const passwordId = useId();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
@@ -165,14 +196,14 @@ function ChangePasswordModal({ user, onClose }) {
     <Modal title={`修改密码: ${user.username}`} onClose={onClose}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="mb-1 block text-sm font-medium text-ink-700">新密码</label>
-          <input className="input-field" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus />
+          <label htmlFor={passwordId} className="mb-1 block text-sm font-medium text-ink-700">新密码</label>
+          <input id={passwordId} name="new_password" className="input-field" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password" autoFocus />
         </div>
         {error ? <div className="rounded-xl border border-red-300/50 bg-red-50/70 px-3 py-2 text-sm text-red-700" role="alert" aria-live="polite">{error}</div> : null}
-        {success ? <div className="rounded-xl border border-green-300/50 bg-green-50/70 px-3 py-2 text-sm text-green-700">密码已修改</div> : null}
+        {success ? <div className="rounded-xl border border-green-300/50 bg-green-50/70 px-3 py-2 text-sm text-green-700" role="status" aria-live="polite">密码已修改</div> : null}
         <div className="flex justify-end gap-2">
           <button type="button" className="btn-ghost" onClick={onClose}>关闭</button>
-          <button type="submit" className="btn-primary" disabled={loading}>{loading ? '修改中...' : '修改密码'}</button>
+          <button type="submit" className="btn-primary" disabled={loading}>{loading ? '修改中…' : '修改密码'}</button>
         </div>
       </form>
     </Modal>
@@ -210,7 +241,7 @@ function DeleteConfirmModal({ user, onClose, onDeleted }) {
       <div className="flex justify-end gap-2">
         <button type="button" className="btn-ghost" onClick={onClose}>取消</button>
         <button type="button" className="btn-danger" onClick={handleDelete} disabled={loading}>
-          {loading ? '删除中...' : '删除'}
+          {loading ? '删除中…' : '删除'}
         </button>
       </div>
     </Modal>
@@ -246,7 +277,7 @@ function AdminPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <p className="text-sm text-ink-400">加载用户列表...</p>
+        <p className="text-sm text-ink-400">加载用户列表…</p>
       </div>
     );
   }
@@ -257,7 +288,7 @@ function AdminPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="grid h-10 w-10 place-items-center rounded-xl bg-purple-500/10 text-purple-600">
-            <FaUsers className="text-lg" />
+            <FaUsers className="text-lg" aria-hidden="true" />
           </div>
           <div>
             <h2 className="font-display text-xl font-semibold text-ink-900">用户管理</h2>
@@ -272,7 +303,7 @@ function AdminPage() {
 
       {/* Error */}
       {error ? (
-        <div className="rounded-xl border border-red-300/50 bg-red-50/70 px-4 py-3 text-sm text-red-700">{error}</div>
+        <div className="rounded-xl border border-red-300/50 bg-red-50/70 px-4 py-3 text-sm text-red-700" role="alert" aria-live="polite">{error}</div>
       ) : null}
 
       {/* User table */}
@@ -308,7 +339,7 @@ function AdminPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-xs text-ink-400">
-                      {user.created_at ? new Date(user.created_at).toLocaleDateString() : '-'}
+                      {user.created_at ? USER_DATE_FORMATTER.format(new Date(user.created_at)) : '-'}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
@@ -317,7 +348,7 @@ function AdminPage() {
                           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-ink-500 transition hover:bg-ink-900/5 hover:text-ink-700"
                           onClick={() => setModal({ type: 'edit', user })}
                         >
-                          <FaEdit />
+                          <FaEdit aria-hidden="true" />
                           编辑
                         </button>
                         <button
@@ -325,7 +356,7 @@ function AdminPage() {
                           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-ink-500 transition hover:bg-ink-900/5 hover:text-ink-700"
                           onClick={() => setModal({ type: 'password', user })}
                         >
-                          <FaKey />
+                          <FaKey aria-hidden="true" />
                           密码
                         </button>
                         <button
@@ -333,7 +364,7 @@ function AdminPage() {
                           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 hover:text-red-700"
                           onClick={() => setModal({ type: 'delete', user })}
                         >
-                          <FaTrash />
+                          <FaTrash aria-hidden="true" />
                           删除
                         </button>
                       </div>

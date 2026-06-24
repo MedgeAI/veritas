@@ -102,9 +102,9 @@ describe('ProvenanceGraph', () => {
     // Find the label for fig4 node (the one that contains "Figure 4")
     const fig4Label = texts.find((t) => t.textContent?.includes('Figure 4'));
     expect(fig4Label).toBeTruthy();
-    // The truncate function slices to maxLen-1 (13) and appends "..." (3) = 16 total
+    // The truncate function slices to maxLen-1 and appends the typographic ellipsis.
     expect(fig4Label.textContent.length).toBeLessThanOrEqual(16);
-    expect(fig4Label.textContent).toContain('...');
+    expect(fig4Label.textContent).toContain('…');
     // Original label is 34 chars, truncated should be much shorter
     expect(fig4Label.textContent.length).toBeLessThan(34);
   });

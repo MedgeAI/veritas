@@ -17,6 +17,7 @@
   html {
     scroll-behavior: smooth;
     overflow-x: hidden;
+    color-scheme: dark;
   }
 
   body {
@@ -84,11 +85,11 @@
   }
 
   .input-field {
-    @apply w-full rounded-2xl border border-ink-900/10 bg-paper-50/80 px-4 py-3 text-sm text-ink-900 shadow-insetline transition placeholder:text-ink-300 focus:border-signal-500 focus:bg-white;
+    @apply w-full rounded-2xl border border-ink-900/10 bg-paper-50/80 px-4 py-3 text-sm text-ink-900 shadow-insetline transition placeholder:text-ink-300 focus-visible:border-signal-500 focus-visible:bg-white;
   }
 
   .metric-label {
-    @apply text-[11px] font-bold uppercase tracking-[0.18em] text-ink-300;
+    @apply text-[11px] font-bold uppercase tracking-[0.18em] text-ink-500;
   }
 
   .section-title {

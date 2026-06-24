@@ -133,13 +133,15 @@ function AppLayout() {
           }
           return;
         }
-        // Detect admin by attempting to list users
-        let isAdmin = false;
-        try {
-          await listUsers();
-          isAdmin = true;
-        } catch {
-          // 403 = non-admin, that's fine
+        // Trust isAdmin from getCurrentUser(); only probe if not explicitly set
+        let isAdmin = user.isAdmin;
+        if (isAdmin === undefined) {
+          try {
+            await listUsers();
+            isAdmin = true;
+          } catch {
+            // 403 = non-admin, that's fine
+          }
         }
         setAuthState({ checked: true, user, isAdmin });
       } catch {
@@ -155,7 +157,14 @@ function AppLayout() {
     if (!authState.user) return;
     refreshCases();
     refreshBackendHealth();
-    const timer = window.setInterval(refreshBackendHealth, 5000);
+    const timer = window.setInterval(refreshBackendHealth, 15_000);
+
+    function handleVisibility() {
+      if (document.visibilityState === 'visible') {
+        refreshBackendHealth();
+      }
+    }
+
     function handlePopState() {
       const nextWorkspace = workspaceFromUrl();
       if (!nextWorkspace) return;
@@ -165,9 +174,12 @@ function AppLayout() {
         setSelectedRunId(nextWorkspace.runId);
       });
     }
+
+    document.addEventListener('visibilitychange', handleVisibility);
     window.addEventListener('popstate', handlePopState);
     return () => {
       window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('popstate', handlePopState);
     };
   }, [refreshCases, refreshBackendHealth, authState.user]);
@@ -303,7 +315,7 @@ function AppLayout() {
   // Auth gate: show login page when not authenticated
   if (authChecking) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center" role="status" aria-live="polite">
         <LoadingFallback />
       </div>
     );
@@ -394,7 +406,7 @@ function AppLayout() {
         ) : null}
 
         <section className="mb-6">
-          <p className="metric-label">{pageTitle}</p>
+          <h2 className="metric-label">{pageTitle}</h2>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-500">{pageSubtitle}</p>
         </section>
 

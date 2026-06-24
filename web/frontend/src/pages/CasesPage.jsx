@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { FaTrash } from 'react-icons/fa';
 import { FiActivity, FiAlertCircle, FiArrowRight, FiCheckCircle, FiFilePlus, FiTrendingUp } from 'react-icons/fi';
 import StatusPill from '../components/StatusPill.jsx';
@@ -24,20 +24,19 @@ function CaseCard({ item, onSelect, isSelected, isAdmin, onDeleteCase }) {
   const risk = item.technical_risk || 'pending';
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={() => onSelect(item.case_id)}
-      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onSelect(item.case_id); }}
-      aria-label={`进入 ${item.paper_title || '未命名项目'}`}
-      className={`flow-list-item group grid w-full gap-3 px-4 py-4 text-left transition md:grid-cols-[minmax(0,1fr)_auto] ${
+      className={`flow-list-item group grid w-full gap-3 px-4 py-4 text-left transition md:grid-cols-[minmax(0,1fr)_auto] md:items-center ${
         isSelected ? 'bg-signal-100/50' : 'hover:bg-white/45'
       }`}
     >
-      <div className="min-w-0">
+      <button
+        type="button"
+        onClick={() => onSelect(item.case_id)}
+        className="min-w-0 text-left"
+      >
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="min-w-0 break-words font-display text-base font-semibold text-ink-900">
+          <span className="min-w-0 break-words font-display text-base font-semibold text-ink-900">
             {item.paper_title || '未命名项目'}
-          </h3>
+          </span>
           <StatusPill>{translateStatus(item.status)}</StatusPill>
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-ink-500">
@@ -49,20 +48,26 @@ function CaseCard({ item, onSelect, isSelected, isAdmin, onDeleteCase }) {
           )}
           <span className="mono-chip">{new Intl.DateTimeFormat(navigator.languages ?? ['zh-CN'], { month: '2-digit', day: '2-digit' }).format(new Date(item.created_at))}</span>
         </div>
-      </div>
-      <div className="flex items-center gap-2 text-sm font-semibold text-signal-700">
+      </button>
+      <div className="flex items-center justify-end gap-2 text-sm font-semibold text-signal-700">
         {isAdmin && (
           <button
             type="button"
-            className="rounded-lg p-1.5 text-ink-300 transition hover:bg-red-50 hover:text-red-600"
-            title="删除 case"
-            onClick={(e) => { e.stopPropagation(); onDeleteCase(item); }}
+            className="rounded-lg p-1.5 text-ink-300 transition hover:bg-red-50 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
+            aria-label={`删除 ${item.paper_title || item.case_id}`}
+            onClick={() => onDeleteCase(item)}
           >
-            <FaTrash className="text-xs" />
+            <FaTrash className="text-xs" aria-hidden="true" />
           </button>
         )}
-        进入
-        <FiArrowRight className="transition group-hover:translate-x-1" aria-hidden="true" />
+        <button
+          type="button"
+          className="flex items-center gap-1 rounded-lg px-2 py-1 transition hover:bg-signal-100/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
+          onClick={() => onSelect(item.case_id)}
+        >
+          进入
+          <FiArrowRight className="transition group-hover:translate-x-1" aria-hidden="true" />
+        </button>
       </div>
     </div>
   );
@@ -72,6 +77,15 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+
+  useEffect(() => {
+    if (!deleteTarget || deleteLoading) return undefined;
+    function handleKeyDown(event) {
+      if (event.key === 'Escape') setDeleteTarget(null);
+    }
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [deleteTarget, deleteLoading]);
 
   const stats = useMemo(() => {
     const totalCases = cases.length;
@@ -116,7 +130,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
         <div className="dossier-panel rounded-2xl p-5">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-500/10 text-blue-600">
-              <FiActivity className="text-xl" />
+              <FiActivity className="text-xl" aria-hidden="true" />
             </div>
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-ink-500">Total Cases</p>
@@ -128,7 +142,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
         <div className="dossier-panel rounded-2xl p-5">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-purple-500/10 text-purple-600">
-              <FiTrendingUp className="text-xl" />
+              <FiTrendingUp className="text-xl" aria-hidden="true" />
             </div>
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-ink-500">Total Findings</p>
@@ -143,7 +157,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
         <div className="dossier-panel rounded-2xl p-5">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-red-500/10 text-red-600">
-              <FiAlertCircle className="text-xl" />
+              <FiAlertCircle className="text-xl" aria-hidden="true" />
             </div>
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-ink-500">Critical / High</p>
@@ -155,7 +169,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
         <div className="dossier-panel rounded-2xl p-5">
           <div className="flex items-center gap-3">
             <div className="grid h-10 w-10 place-items-center rounded-xl bg-orange-500/10 text-orange-600">
-              <FiActivity className="text-xl" />
+              <FiActivity className="text-xl" aria-hidden="true" />
             </div>
             <div>
               <p className="text-xs font-medium uppercase tracking-wide text-ink-500">Running</p>
@@ -230,19 +244,27 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
 
       {/* Delete confirmation dialog */}
       {deleteTarget ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => !deleteLoading && setDeleteTarget(null)}>
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <h3 className="mb-3 font-display text-lg font-semibold text-ink-900">确认删除</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/40"
+            aria-label="关闭删除确认"
+            onClick={() => !deleteLoading && setDeleteTarget(null)}
+            disabled={deleteLoading}
+            tabIndex={-1}
+          />
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="delete-case-title">
+            <h3 id="delete-case-title" className="mb-3 font-display text-lg font-semibold text-ink-900">确认删除</h3>
             <p className="mb-4 text-sm text-ink-600">
               确定要删除 case <strong className="text-ink-900">{deleteTarget.case_id}</strong>（{deleteTarget.paper_title || '未命名项目'}）吗？此操作不可撤销。
             </p>
             {deleteError ? (
-              <div className="mb-4 rounded-xl border border-red-300/50 bg-red-50/70 px-3 py-2 text-sm text-red-700">{deleteError}</div>
+              <div className="mb-4 rounded-xl border border-red-300/50 bg-red-50/70 px-3 py-2 text-sm text-red-700" role="alert" aria-live="polite">{deleteError}</div>
             ) : null}
             <div className="flex justify-end gap-2">
               <button type="button" className="btn-ghost" onClick={() => setDeleteTarget(null)} disabled={deleteLoading}>取消</button>
               <button type="button" className="btn-danger" onClick={handleConfirmDelete} disabled={deleteLoading}>
-                {deleteLoading ? '删除中...' : '删除'}
+                {deleteLoading ? '删除中…' : '删除'}
               </button>
             </div>
           </div>

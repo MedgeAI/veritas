@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useId, useMemo, useRef, useState } from 'react';
 import { forceCenter, forceCollide, forceLink, forceManyBody, forceSimulation } from 'd3-force';
 import { visualImageUrl } from '../services/api.js';
 
@@ -93,7 +93,7 @@ function edgeWidth(weight, maxWeight) {
  */
 function truncate(text, maxLen = 14) {
   if (!text) return '';
-  return text.length > maxLen ? `${text.slice(0, maxLen - 1)}...` : text;
+  return text.length > maxLen ? `${text.slice(0, maxLen - 1)}…` : text;
 }
 
 // ---------------------------------------------------------------------------
@@ -119,6 +119,7 @@ export default function ProvenanceGraph({
   width = 600,
   height = 450,
 }) {
+  const depthSliderId = useId();
   const svgRef = useRef(null);
   const [maxDepth, setMaxDepth] = useState(CONFIG.DEPTH_SHOW_ALL);
   const [selectedNode, setSelectedNode] = useState(null);
@@ -289,13 +290,16 @@ export default function ProvenanceGraph({
       <div className="flex flex-wrap items-center gap-4 mb-3">
         {/* Depth slider */}
         <div className="flex items-center gap-2">
-          <label className="text-xs text-ink-500">BFS Depth:</label>
+          <label htmlFor={depthSliderId} className="text-xs text-ink-500">BFS Depth:</label>
           <input
+            id={depthSliderId}
+            name="provenance_depth"
             type="range"
             min={1}
             max={CONFIG.DEPTH_SHOW_ALL}
             value={maxDepth}
             onChange={(e) => setMaxDepth(Number(e.target.value))}
+            aria-valuetext={maxDepth >= CONFIG.DEPTH_SHOW_ALL ? 'All' : `${maxDepth}`}
             className="w-24 accent-emerald-600"
             data-testid="depth-slider"
           />
@@ -332,6 +336,8 @@ export default function ProvenanceGraph({
           viewBox={`0 0 ${width} ${height}`}
           className="w-full bg-gray-50 rounded-xl border border-gray-200"
           style={{ height: Math.max(300, height * 0.65) }}
+          role="img"
+          aria-label="Evidence provenance graph"
           data-testid="provenance-svg"
         >
           {/* Edges */}
@@ -389,13 +395,14 @@ export default function ProvenanceGraph({
                 <g
                   key={node.id}
                   transform={`translate(${node.x},${node.y})`}
-                  className="cursor-pointer"
                   onClick={() => handleNodeClick(node)}
                   onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleNodeClick(node); } }}
                   role="button"
                   tabIndex={0}
+                  aria-label={`查看 ${node.label || node.id} 的溯源连接详情`}
                   onMouseEnter={() => setHoveredNode(node)}
                   onMouseLeave={() => setHoveredNode(null)}
+                  className="cursor-pointer focus-visible:[filter:drop-shadow(0_0_0.35rem_rgba(34,120,99,0.72))]"
                   data-testid={`node-${node.id}`}
                 >
                   {/* Node circle */}

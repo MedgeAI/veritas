@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { FiPlay, FiUploadCloud } from 'react-icons/fi';
 import MaterialChecklist from '../components/MaterialChecklist.jsx';
 import { checkMaterials, createCase, startRun, uploadInput } from '../services/api.js';
-import { translateAgentMode } from '../utils/piLabels.js';
 
 const DEFAULT_PARAMS = {
   agent_mode: 'full',
@@ -139,7 +138,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
               spellCheck={false}
               value={form.case_id}
               onChange={(event) => updateForm('case_id', event.target.value)}
-              placeholder="留空自动生成"
+              placeholder="留空自动生成…"
               disabled={busy}
             />
           </label>
@@ -149,9 +148,10 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
               className="input-field mt-2"
               name="paper_title"
               autoComplete="off"
+              spellCheck={false}
               value={form.paper_title}
               onChange={(event) => updateForm('paper_title', event.target.value)}
-              placeholder={extractingTitle ? '自动提取中...' : '留空从 PDF 提取'}
+              placeholder={extractingTitle ? '自动提取中…' : '留空从 PDF 提取…'}
               disabled={busy || extractingTitle}
             />
           </label>

@@ -36,7 +36,7 @@ function LoginPage({ onLogin }) {
       <div className="w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-ink-900 text-paper-50">
-            <FiGrid className="text-2xl" />
+            <FiGrid className="text-2xl" aria-hidden="true" />
           </div>
           <h1 className="mt-4 font-display text-3xl font-bold tracking-tight text-ink-900">
             Veritas
@@ -56,13 +56,14 @@ function LoginPage({ onLogin }) {
                 <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" aria-hidden="true" />
                 <input
                   id="login-username"
+                  name="username"
                   type="text"
                   className="input-field pl-10"
-                  placeholder="输入用户名"
+                  placeholder="输入用户名…"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   autoComplete="username"
-                  autoFocus
+                  spellCheck={false}
                 />
               </div>
             </div>
@@ -75,9 +76,10 @@ function LoginPage({ onLogin }) {
                 <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" aria-hidden="true" />
                 <input
                   id="login-password"
+                  name="password"
                   type="password"
                   className="input-field pl-10"
-                  placeholder="输入密码"
+                  placeholder="输入密码…"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
@@ -92,7 +94,7 @@ function LoginPage({ onLogin }) {
             ) : null}
 
             <button type="submit" className="btn-primary w-full justify-center" disabled={loading}>
-              {loading ? '登录中...' : '登录'}
+              {loading ? '登录中…' : '登录'}
             </button>
           </form>
         </div>

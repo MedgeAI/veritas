@@ -27,6 +27,38 @@ const STATUS_OPTIONS = [
   { value: 'needs_author_response', label: '需作者回复', color: 'bg-orange-100 text-orange-800' },
 ];
 
+function readActionsWorkspaceFromUrl() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    return {
+      filterStatus: params.get('actionStatus') || 'all',
+      filterRisk: params.get('actionRisk') || 'all',
+      selectedItemRef: params.get('actionItem') || '',
+    };
+  } catch {
+    return {
+      filterStatus: 'all',
+      filterRisk: 'all',
+      selectedItemRef: '',
+    };
+  }
+}
+
+function writeActionsWorkspaceUrl({ filterStatus, filterRisk, selectedItemRef }) {
+  try {
+    const url = new URL(window.location.href);
+    if (filterStatus && filterStatus !== 'all') url.searchParams.set('actionStatus', filterStatus);
+    else url.searchParams.delete('actionStatus');
+    if (filterRisk && filterRisk !== 'all') url.searchParams.set('actionRisk', filterRisk);
+    else url.searchParams.delete('actionRisk');
+    if (selectedItemRef) url.searchParams.set('actionItem', selectedItemRef);
+    else url.searchParams.delete('actionItem');
+    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+  } catch {
+    // URL state is progressive enhancement for deep-linking.
+  }
+}
+
 function buildEmailTemplate(caseId, missingItems) {
   const lines = missingItems.map(item => `- ${item.label}（${item.status}：${item.detail}）`);
   return `同学你好，\n\n在投稿前自查过程中，发现以下材料尚未提供完整，请尽快补充：\n\n${lines.join('\n')}\n\n请提供上述材料后，我将重新运行审查流程。\n\n谢谢！`;
@@ -60,14 +92,15 @@ function ScoreRing({ score }) {
 }
 
 function ActionsPage({ selectedCase }) {
+  const initialWorkspace = useMemo(() => readActionsWorkspaceFromUrl(), []);
   const [materials, setMaterials] = useState(null);
   const [reviewItems, setReviewItems] = useState([]);
   const [riskSummary, setRiskSummary] = useState(null);
-  const [selectedItem, setSelectedItem] = useState(null);
+  const [selectedItemRef, setSelectedItemRef] = useState(initialWorkspace.selectedItemRef);
   const [noteInput, setNoteInput] = useState('');
   const [saving, setSaving] = useState(false);
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [filterRisk, setFilterRisk] = useState('all');
+  const [filterStatus, setFilterStatus] = useState(initialWorkspace.filterStatus);
+  const [filterRisk, setFilterRisk] = useState(initialWorkspace.filterRisk);
   const [copiedKey, setCopiedKey] = useState(null);
   const [loadingMaterials, setLoadingMaterials] = useState(false);
   const [loadingReviews, setLoadingReviews] = useState(false);
@@ -104,6 +137,30 @@ function ActionsPage({ selectedCase }) {
   }, [caseId]);
 
   useEffect(() => { loadReviews(); }, [loadReviews]);
+
+  const selectedItem = useMemo(
+    () => reviewItems.find(item => item.source_ref === selectedItemRef) || null,
+    [reviewItems, selectedItemRef],
+  );
+
+  useEffect(() => {
+    writeActionsWorkspaceUrl({ filterStatus, filterRisk, selectedItemRef });
+  }, [filterStatus, filterRisk, selectedItemRef]);
+
+  useEffect(() => {
+    function handlePopState() {
+      const nextWorkspace = readActionsWorkspaceFromUrl();
+      setFilterStatus(nextWorkspace.filterStatus);
+      setFilterRisk(nextWorkspace.filterRisk);
+      setSelectedItemRef(nextWorkspace.selectedItemRef);
+    }
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (selectedItem) setNoteInput(selectedItem.decision?.note || '');
+  }, [selectedItem]);
 
   // Risk summary fetch (for follow-ups)
   useEffect(() => {
@@ -220,13 +277,13 @@ function ActionsPage({ selectedCase }) {
   return (
     <div className="space-y-6">
       {error && (
-        <div className="rounded-xl border border-risk-200 bg-risk-50 px-4 py-3 text-sm text-risk-700">
+        <div role="alert" aria-live="polite" className="rounded-xl border border-risk-200 bg-risk-50 px-4 py-3 text-sm text-risk-700">
           {error}
         </div>
       )}
 
       {copiedKey && (
-        <div className="rounded-xl bg-signal-100 px-3 py-2 text-xs text-signal-700">
+        <div className="rounded-xl bg-signal-100 px-3 py-2 text-xs text-signal-700" role="status" aria-live="polite">
           <FiCheck className="mr-1 inline" aria-hidden="true" />
           已复制到剪贴板
         </div>
@@ -270,7 +327,7 @@ function ActionsPage({ selectedCase }) {
                         {isOk ? '已提供' : '缺失'}
                       </StatusPill>
                     </div>
-                    <p className="mt-1 font-mono text-xs text-ink-500">{data.detail}</p>
+                    <p className="mt-1 break-words font-mono text-xs text-ink-500">{data.detail}</p>
                   </div>
                   {!isOk && (
                     <button
@@ -332,6 +389,7 @@ function ActionsPage({ selectedCase }) {
             <select
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
+              name="review_status_filter"
               className="rounded-lg border border-ink-900/10 bg-white/60 px-3 py-1.5 text-sm text-ink-900"
             >
               <option value="all">全部状态</option>
@@ -345,6 +403,7 @@ function ActionsPage({ selectedCase }) {
             <select
               value={filterRisk}
               onChange={e => setFilterRisk(e.target.value)}
+              name="review_risk_filter"
               className="rounded-lg border border-ink-900/10 bg-white/60 px-3 py-1.5 text-sm text-ink-900"
             >
               <option value="all">全部风险等级</option>
@@ -365,7 +424,7 @@ function ActionsPage({ selectedCase }) {
         ) : (
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             {/* Left: Item list */}
-            <div className="max-h-[500px] space-y-2 overflow-y-auto">
+            <div style={{ overscrollBehavior: 'contain' }} className="max-h-[500px] space-y-2 overflow-y-auto">
               {filteredItems.map(item => {
                 const isSelected = selectedItem?.source_ref === item.source_ref;
                 const status = item.decision?.status || 'open';
@@ -374,7 +433,7 @@ function ActionsPage({ selectedCase }) {
                   <button
                     key={item.source_ref}
                     type="button"
-                    onClick={() => { setSelectedItem(item); setNoteInput(item.decision?.note || ''); }}
+                    onClick={() => { setSelectedItemRef(item.source_ref); setNoteInput(item.decision?.note || ''); }}
                     className={`w-full rounded-xl border px-4 py-3 text-left transition ${
                       isSelected ? 'border-ink-900/30 bg-ink-900/5' : 'border-ink-900/10 bg-white/60 hover:bg-white'
                     }`}
@@ -463,7 +522,9 @@ function ActionsPage({ selectedCase }) {
                     <textarea
                       value={noteInput}
                       onChange={e => setNoteInput(e.target.value)}
+                      name="review_note"
                       aria-label="复核备注"
+                      autoComplete="off"
                       placeholder="备注（可选）…"
                       rows={2}
                       className="mb-3 w-full rounded-lg border border-ink-900/10 bg-white/80 px-3 py-2 text-sm"

@@ -2,7 +2,7 @@ import { startTransition, useEffect, useMemo, useState } from 'react';
 import { FiExternalLink, FiRefreshCw } from 'react-icons/fi';
 import StatusPill from '../components/StatusPill.jsx';
 import { listArtifacts, reportHtmlUrl } from '../services/api.js';
-import { translateStatus, friendlyError } from '../utils/piLabels.js';
+import { friendlyError } from '../utils/piLabels.js';
 
 function ReportCenterPage({ selectedCase }) {
   const [artifacts, setArtifacts] = useState([]);
@@ -149,7 +149,7 @@ function ReportActions({ isRefreshing, ready, reportUrl, onRefreshStatus, onRelo
     <div className="flex flex-wrap gap-3">
       <button type="button" className="btn-secondary" onClick={onRefreshStatus} disabled={isRefreshing}>
         <FiRefreshCw aria-hidden="true" />
-        {isRefreshing ? '刷新中' : '刷新状态'}
+        {isRefreshing ? '刷新中…' : '刷新状态'}
       </button>
       <button type="button" className="btn-secondary" onClick={onReloadPreview} disabled={!ready}>
         重新加载预览
@@ -192,9 +192,10 @@ function WaitingReportPreview() {
 
 function formatBytes(value) {
   if (typeof value !== 'number') return '-';
+  const formatter = new Intl.NumberFormat(navigator.languages ?? ['zh-CN'], { maximumFractionDigits: 1 });
   if (value < 1024) return `${value} B`;
-  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
-  return `${(value / 1024 / 1024).toFixed(1)} MB`;
+  if (value < 1024 * 1024) return `${formatter.format(value / 1024)} KB`;
+  return `${formatter.format(value / 1024 / 1024)} MB`;
 }
 
 export default ReportCenterPage;

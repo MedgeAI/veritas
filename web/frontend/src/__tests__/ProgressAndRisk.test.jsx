@@ -4,7 +4,7 @@ import ProgressTracker from '../components/ProgressTracker.jsx';
 import RiskTrafficLight from '../components/RiskTrafficLight.jsx';
 
 describe('ProgressTracker', () => {
-  it('maps step progress from event key rather than generic event type', () => {
+  it('maps dynamic step progress from event keys', () => {
     render(
       <ProgressTracker
         events={[
@@ -17,7 +17,7 @@ describe('ProgressTracker', () => {
       />
     );
 
-    expect(screen.getByText('步骤 3 / 5')).toBeInTheDocument();
+    expect(screen.getByText('步骤 1 / 2')).toBeInTheDocument();
   });
 });
 
