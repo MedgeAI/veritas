@@ -2028,6 +2028,15 @@ def collect_agent_refined_claim_mappings(
                 "source_role": "claim_extractor",
                 "canonical_source": "agent_refined",
                 "agent_status": item.get("status"),
+                "claim_decisiveness": str(
+                    item.get("claim_decisiveness") or "medium"
+                ),
+                "figure_refs": [
+                    str(ref) for ref in (item.get("figure_refs") or [])
+                ],
+                "expected_source_data": [
+                    str(ref) for ref in (item.get("expected_source_data") or [])
+                ],
                 "raw": item,
             },
         )

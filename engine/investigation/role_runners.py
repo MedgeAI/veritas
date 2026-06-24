@@ -76,11 +76,17 @@ Return this exact JSON shape:
       "claim_type": "numeric|method|figure_trace|code_execution|material_completeness",
       "paper_location": "...",
       "evidence_refs": ["..."],
-      "status": "needs_review"
+      "status": "needs_review",
+      "claim_decisiveness": "high|medium|low",
+      "figure_refs": ["Fig1", "Fig3a"],
+      "expected_source_data": ["Sheet:Fig3, cols B-E"]
     }}
   ],
   "limitations": ["..."]
 }}
+claim_decisiveness (optional, defaults to "medium"): how decisively this claim supports the paper's main conclusion.
+figure_refs (optional, defaults to []): figure/panel IDs referenced by this claim (e.g. ["Fig3a", "Fig3b"]).
+expected_source_data (optional, defaults to []): expected source data locations or structures (e.g. ["Sheet:Fig3, cols B-E"]).
 """.strip()
         focus = "Extract only technical claims that can be checked against Source Data, figures, code, methods, or material completeness."
     elif role_id == "source_data_auditor":
@@ -187,11 +193,16 @@ def fake_role_output(*, role_id: str, case_id: str, workdir: Path) -> dict[str, 
 
     review = fake_review(case_id=case_id, workdir=workdir)
     if role_id == "claim_extractor":
+        claims = review["candidate_claims"]
+        for claim in claims:
+            claim.setdefault("claim_decisiveness", "medium")
+            claim.setdefault("figure_refs", [])
+            claim.setdefault("expected_source_data", [])
         return {
             "schema_version": "1.0",
             "role_id": role_id,
             "case_id": case_id,
-            "claims": review["candidate_claims"],
+            "claims": claims,
             "limitations": review["limitations"],
         }
     if role_id == "source_data_auditor":
@@ -232,6 +243,19 @@ def validate_role_output(role_id: str, data: dict[str, Any]) -> dict[str, Any]:
         _require(data, "claims", list)
         data.setdefault("limitations", [])
         _require(data, "limitations", list)
+        valid_decisiveness = {"high", "medium", "low"}
+        for claim in data["claims"]:
+            if not isinstance(claim, dict):
+                continue
+            if "claim_decisiveness" in claim:
+                if claim["claim_decisiveness"] not in valid_decisiveness:
+                    claim["claim_decisiveness"] = "medium"
+            else:
+                claim.setdefault("claim_decisiveness", "medium")
+            if "figure_refs" not in claim:
+                claim["figure_refs"] = []
+            if "expected_source_data" not in claim:
+                claim["expected_source_data"] = []
     elif role_id == "source_data_auditor":
         for key in [
             "claim_to_source_data",
