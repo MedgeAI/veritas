@@ -241,7 +241,7 @@ function AppLayout() {
 
   function handleRunStarted(runRecord) {
     startTransition(() => {
-      setSelectedRunId(runRecord.run_id);
+      setSelectedRunId(runRecord.job_id);
       setActivePage('mission');
     });
     setWorkspaceNotice(null);

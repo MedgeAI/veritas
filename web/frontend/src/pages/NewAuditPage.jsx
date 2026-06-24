@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { FiPlay, FiUploadCloud } from 'react-icons/fi';
 import MaterialChecklist from '../components/MaterialChecklist.jsx';
-import { checkMaterials, createCase, startRun, uploadInput } from '../services/api.js';
+import { checkMaterials, createCase, submitAudit, uploadInput } from '../services/api.js';
 
 const DEFAULT_PARAMS = {
   agent_mode: 'full',
@@ -111,13 +111,15 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate }) {
       }
 
       // 启动审查
-      const run = await startRun(record.case_id, {
-        ...params,
-        agent_timeout_seconds: Number(params.agent_timeout_seconds || 600),
-        agent_max_retries: Number(params.agent_max_retries || 1),
+      const job = await submitAudit(record.case_id, {
+        options: {
+          ...params,
+          agent_timeout_seconds: Number(params.agent_timeout_seconds || 600),
+          agent_max_retries: Number(params.agent_max_retries || 1),
+        },
       });
       appendLog('审查已启动');
-      onRunStarted(run);
+      onRunStarted(job);
     } catch (nextError) {
       setError(nextError.message || String(nextError));
     } finally {
