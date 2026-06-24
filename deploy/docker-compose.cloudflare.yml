@@ -1,0 +1,27 @@
+# Veritas Cloudflare Tunnel overlay
+#
+# 叠加在根目录 docker-compose.yml 上使用：
+#   docker compose --env-file .env \
+#     -f docker-compose.yml \
+#     -f deploy/docker-compose.cloudflare.yml \
+#     up -d cloudflared
+#
+# 网络拓扑：
+#   内网用户 -> Cloudflare Edge -> cloudflared -> veritas:8765
+
+services:
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: veritas-cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    env_file:
+      - ../.env
+    depends_on:
+      veritas:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "5m"
+        max-file: "3"

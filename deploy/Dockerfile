@@ -1,20 +1,23 @@
 # Stage 1: Build frontend
 FROM node:22-alpine AS frontend-builder
 
+# Cache bust: rebuild frontend when git commit changes
+ARG BUILD_VERSION=dev
+
 WORKDIR /build
 COPY web/frontend/package*.json ./
 RUN npm ci --silent
 
 COPY web/frontend/ ./
-RUN npm run build
+RUN npm run build && echo "Built version: ${BUILD_VERSION}"
 
 # Stage 2: Python runtime
 FROM node:22-bookworm-slim
 
-# Create non-root user
+# Create non-root user matching host UID/GID for bind mount compatibility
 ARG USERNAME=veritas
 ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+ARG USER_GID=1000
 
 # Install Python and system dependencies for static audit/image processing
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -28,9 +31,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3-venv \
     tzdata \
     && rm -rf /var/lib/apt/lists/* \
-    # Create non-root user and group
-    && groupadd --gid $USER_GID $USERNAME \
-    && useradd --uid $USER_UID --gid $USER_GID --shell /bin/bash --create-home $USERNAME
+    && groupadd --gid $USER_GID $USERNAME 2>/dev/null \
+       || groupmod -n $USERNAME $(getent group $USER_GID | cut -d: -f1) 2>/dev/null \
+       || true \
+    && useradd --uid $USER_UID --gid $USER_GID --shell /bin/bash --create-home $USERNAME 2>/dev/null \
+       || usermod -l $USERNAME -d /home/$USERNAME -m $(getent passwd $USER_UID | cut -d: -f1) 2>/dev/null \
+       || true
 
 ARG OPENCODE_NPM_PACKAGE=opencode-ai@latest
 RUN npm install -g "${OPENCODE_NPM_PACKAGE}"
@@ -59,7 +65,7 @@ COPY .opencode/skills/ ./.opencode/skills/
 COPY README.md .
 RUN python3 -m venv "${VIRTUAL_ENV}" \
     && pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -e .
+    && pip install --no-cache-dir -e ".[web,pg]"
 
 # Copy frontend build artifacts from stage 1
 COPY --from=frontend-builder /build/dist ./web/frontend/dist
