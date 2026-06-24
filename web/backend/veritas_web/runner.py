@@ -39,7 +39,9 @@ class AuditRunner:
         self.store = store
         self.audit_func = audit_func
         self.output_root = str(output_root)
-        resolved_workers = max_workers if max_workers is not None else _resolve_max_concurrent()
+        resolved_workers = (
+            max_workers if max_workers is not None else _resolve_max_concurrent()
+        )
         self._max_concurrent = resolved_workers
         self._executor = ThreadPoolExecutor(
             max_workers=resolved_workers, thread_name_prefix="audit"
@@ -57,15 +59,14 @@ class AuditRunner:
         if self._active_runs_count() >= self._max_concurrent:
             raise HTTPException(
                 status_code=429,
-                detail=(
-                    f"Too many concurrent audits "
-                    f"(max={self._max_concurrent})"
-                ),
+                detail=(f"Too many concurrent audits (max={self._max_concurrent})"),
             )
         params = params or {}
         run = self.store.create_run(
             case_id, agent_mode=str(params.get("agent_mode", "review"))
         )
+        if os.environ.get("VERITAS_USE_CELERY", "").lower() in ("1", "true", "yes"):
+            return self._dispatch_celery_task(run, case_id, params)
         self._executor.submit(self.run_sync, case_id, run.run_id, params)
         return run
 
@@ -141,6 +142,101 @@ class AuditRunner:
                 },
             )
         self.store.save_run(run)
+        self._update_case_after_run(run)
+        return run
+
+    # ------------------------------------------------------------------
+    # Celery dispatch
+    # ------------------------------------------------------------------
+
+    def _dispatch_celery_task(
+        self,
+        run: AuditRunRecord,
+        case_id: str,
+        params: dict[str, Any],
+    ) -> AuditRunRecord:
+        """Dispatch the audit as a Celery task and store the celery_task_id.
+
+        Called by :meth:`start` when ``VERITAS_USE_CELERY`` is truthy.  The
+        Celery worker performs the four-layer idempotency guard internally
+        (see ``engine.tasks.audit_task``).
+        """
+        from engine.tasks.celery_app import celery_app
+        import engine.tasks.audit_task  # noqa: F401 — triggers task registration
+
+        paper_dir = self.store.inputs_dir(case_id)
+        options: dict[str, Any] = {
+            "output_root": params.get("output_root", self.output_root),
+            "fresh": bool(params.get("fresh", True)),
+            "force": bool(params.get("force", True)),
+            "no_env_file": bool(params.get("no_env_file", False)),
+            "agent_mode": str(params.get("agent_mode", "review")),
+            "agent_model": str(params.get("agent_model", "dashscope/qwen3.7-plus")),
+            "opencode_bin": str(
+                params.get("opencode_bin") or os.environ.get("OPENCODE_BIN", "opencode")
+            ),
+            "agent_timeout_seconds": int(params.get("agent_timeout_seconds", 300)),
+            "agent_max_retries": int(params.get("agent_max_retries", 1)),
+        }
+
+        try:
+            async_result = celery_app.send_task(
+                "run_audit",
+                args=[run.run_id, case_id, str(paper_dir), options],
+            )
+        except Exception as exc:
+            run.status = "failed"
+            run.error = f"Celery dispatch failed: {exc}"
+            self.store.save_run(run)
+            return run
+
+        self.store.set_run_celery_task_id(run.run_id, async_result.id)
+        return run
+
+    # ------------------------------------------------------------------
+    # Cancel
+    # ------------------------------------------------------------------
+
+    def cancel_run(self, run_id: str, case_id: str) -> AuditRunRecord:
+        """Cancel a running or queued audit.
+
+        * If Celery dispatched the task, revoke it.
+        * If the run was ``running`` in the thread pool, call
+          :func:`cleanup_audit_processes` to release subprocesses.
+        """
+        from .models import utc_now
+
+        run = self.store.get_run(case_id, run_id)
+        if run.status not in ("queued", "running"):
+            raise HTTPException(
+                status_code=409,
+                detail=f"run {run_id} is not active (status={run.status})",
+            )
+
+        was_running = run.status == "running"
+
+        # Revoke Celery task if bound.
+        celery_task_id = self.store.get_run_celery_task_id(run_id)
+        if celery_task_id:
+            try:
+                from engine.tasks.celery_app import celery_app
+
+                celery_app.control.revoke(celery_task_id, terminate=True)
+            except Exception:
+                pass
+
+        run.status = "cancelled"
+        run.completed_at = utc_now()
+        self.store.save_run(run)
+
+        if was_running:
+            try:
+                from engine.tasks.process_cleanup import cleanup_audit_processes
+
+                cleanup_audit_processes(run_id, case_id)
+            except Exception:
+                pass
+
         self._update_case_after_run(run)
         return run
 

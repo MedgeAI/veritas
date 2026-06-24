@@ -80,7 +80,7 @@ async function request(path, options = {}) {
   const response = await fetch(buildUrl(path), {
     method,
     headers,
-    credentials: 'omit', // 禁用浏览器自动 HTTP 认证
+    credentials: 'same-origin', // 允许同源 cookie（Cloudflare Access JWT）
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
     signal: options.signal,
   });
@@ -302,6 +302,30 @@ export async function deleteCase(caseId) {
 }
 
 // ---------------------------------------------------------------------------
+// Audit job APIs
+// ---------------------------------------------------------------------------
+
+export async function submitAudit(caseId, options = {}) {
+  return request(`/api/audit`, {
+    method: 'POST',
+    body: { case_id: caseId, ...options },
+    signal: options.signal,
+  });
+}
+
+export async function getAuditJob(jobId) {
+  return request(`/api/audit/${encodeURIComponent(jobId)}`);
+}
+
+export async function cancelAuditJob(jobId) {
+  return request(`/api/audit/${encodeURIComponent(jobId)}/cancel`, { method: 'POST' });
+}
+
+export async function getAuditQueue() {
+  return request('/api/audit/queue');
+}
+
+// ---------------------------------------------------------------------------
 // Current user info
 // ---------------------------------------------------------------------------
 
@@ -312,7 +336,7 @@ export async function getCurrentUser() {
     await request('/api/cases');
     // In no-auth mode (VERITAS_AUTH_MODE=none), return default operator
     if (!creds) {
-      return { username: 'operator', isAdmin: true };
+      return { username: 'operator', isAdmin: false };
     }
     return { username: creds.username };
   } catch (e) {

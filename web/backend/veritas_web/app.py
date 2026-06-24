@@ -29,6 +29,7 @@ from .investigations import WebInvestigationService
 from .runner import AuditRunner
 from .routers import (
     artifacts,
+    audit_jobs,
     cases,
     cbir,
     embeddings,
@@ -141,6 +142,7 @@ def create_app(
 
     # --- Routers -------------------------------------------------------
     app.include_router(cases.router, prefix="/api")
+    app.include_router(audit_jobs.router, prefix="/api")
     app.include_router(artifacts.router, prefix="/api")
     app.include_router(investigations.router, prefix="/api")
     app.include_router(visual.router, prefix="/api")
@@ -155,9 +157,16 @@ def create_app(
     # --- Health endpoint -----------------------------------------------
     @app.get("/api/health")
     async def health() -> dict[str, Any]:
+        import os as _os
+
+        runner_mode = (
+            "celery"
+            if _os.environ.get("VERITAS_USE_CELERY", "").lower() in ("1", "true", "yes")
+            else "thread_pool"
+        )
         return {
             "status": "ok",
-            "runner_mode": "thread_pool",
+            "runner_mode": runner_mode,
             "recovered_interrupted_runs": recovered,
         }
 
@@ -250,7 +259,12 @@ def serve(
         if isinstance(create_auth_provider(AuthConfig.from_env()), NoAuthProvider)
         else type(create_auth_provider(AuthConfig.from_env())).__name__
     )
-    logger.info("Veritas Web backend listening on http://%s:%s (auth: %s)", host, port, auth_mode)
+    logger.info(
+        "Veritas Web backend listening on http://%s:%s (auth: %s)",
+        host,
+        port,
+        auth_mode,
+    )
     uvicorn.run(app, host=host, port=port, log_level="info")
 
 

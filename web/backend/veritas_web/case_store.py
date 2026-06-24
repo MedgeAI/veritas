@@ -470,3 +470,129 @@ class CaseStore:
             return [m.to_dict() for m in models]
         finally:
             session.close()
+
+    # ------------------------------------------------------------------
+    # Async audit job helpers
+    # ------------------------------------------------------------------
+
+    def get_active_runs_by_case(self, case_id: str) -> list[AuditRunRecord]:
+        """Return runs in ``queued`` or ``running`` status for *case_id*."""
+        from .models import RunModel
+
+        session = self._session()
+        try:
+            models = (
+                session.query(RunModel)
+                .filter(
+                    RunModel.case_id == case_id,
+                    RunModel.status.in_(["queued", "running"]),
+                )
+                .all()
+            )
+            return [self._to_run_record(m) for m in models]
+        finally:
+            session.close()
+
+    def count_active_runs(self) -> int:
+        """Count all runs across all cases with status ``queued`` or ``running``."""
+        from .models import RunModel
+
+        session = self._session()
+        try:
+            return (
+                session.query(RunModel)
+                .filter(RunModel.status.in_(["queued", "running"]))
+                .count()
+            )
+        finally:
+            session.close()
+
+    def count_running_runs(self) -> int:
+        """Count all runs across all cases with status ``running``."""
+        from .models import RunModel
+
+        session = self._session()
+        try:
+            return (
+                session.query(RunModel)
+                .filter(RunModel.status == "running")
+                .count()
+            )
+        finally:
+            session.close()
+
+    def count_queued_runs(self) -> int:
+        """Count all runs across all cases with status ``queued``."""
+        from .models import RunModel
+
+        session = self._session()
+        try:
+            return (
+                session.query(RunModel)
+                .filter(RunModel.status == "queued")
+                .count()
+            )
+        finally:
+            session.close()
+
+
+    def update_run_stage(
+        self,
+        run_id: str,
+        stage: str,
+        progress: float | None = None,
+    ) -> None:
+        """Update ``current_stage`` and optionally ``stages`` progress on a run.
+
+        *stage* is the ID of the currently executing stage (e.g. ``pdf_parse``).
+        *progress* (0.0–1.0) is written into the matching entry of the
+        ``stages`` JSON array if present.
+        """
+        from .models import RunModel
+
+        session = self._session()
+        try:
+            run = session.get(RunModel, run_id)
+            if run is None:
+                raise FileNotFoundError(f"run not found: {run_id}")
+            run.current_stage = stage
+            if progress is not None and isinstance(run.stages, list):
+                for s in run.stages:
+                    if isinstance(s, dict) and s.get("id") == stage:
+                        s["progress"] = progress
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
+
+    def set_run_celery_task_id(self, run_id: str, celery_task_id: str) -> None:
+        """Persist the Celery task ID on the run row (bypasses AuditRunRecord)."""
+        from .models import RunModel
+
+        session = self._session()
+        try:
+            run = session.get(RunModel, run_id)
+            if run is None:
+                raise FileNotFoundError(f"run not found: {run_id}")
+            run.celery_task_id = celery_task_id
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
+
+    def get_run_celery_task_id(self, run_id: str) -> str | None:
+        """Return the ``celery_task_id`` stored on the run row, or ``None``."""
+        from .models import RunModel
+
+        session = self._session()
+        try:
+            run = session.get(RunModel, run_id)
+            if run is None:
+                return None
+            return run.celery_task_id
+        finally:
+            session.close()

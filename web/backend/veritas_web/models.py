@@ -49,7 +49,7 @@ CASE_STATUSES: set[str] = {
     "Archived",
 }
 
-RUN_STATUSES: set[str] = {"queued", "running", "completed", "failed", "interrupted"}
+RUN_STATUSES: set[str] = {"queued", "running", "completed", "failed", "interrupted", "cancelled"}
 
 STALE_RUN_THRESHOLD_SECONDS = 300  # 5 minutes — no heartbeat → stale
 
@@ -269,6 +269,9 @@ class RunModel(Base):
     error = Column(Text, nullable=True)
     last_event_at = Column(String(32), nullable=True)
     created_at = Column(String(32), default=utc_now)
+    celery_task_id = Column(String(255), nullable=True)
+    stages = Column(JSON, nullable=True)
+    current_stage = Column(String(50), nullable=True)
 
     case = relationship("CaseModel", back_populates="runs")
     events = relationship("RunEventModel", back_populates="run", lazy="selectin")
@@ -286,6 +289,9 @@ class RunModel(Base):
             "final_html_report_url": self.final_html_report_url,
             "error": self.error,
             "last_event_at": self.last_event_at,
+            "celery_task_id": self.celery_task_id,
+            "stages": self.stages,
+            "current_stage": self.current_stage,
         }
 
 
