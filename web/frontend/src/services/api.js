@@ -152,13 +152,6 @@ export async function uploadInput(caseId, file, { onProgress } = {}) {
   });
 }
 
-export async function startRun(caseId, payload) {
-  return request(`/api/cases/${encodeURIComponent(caseId)}/runs`, {
-    method: 'POST',
-    body: payload,
-  });
-}
-
 export async function getRun(caseId, runId) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/runs/${encodeURIComponent(runId)}`);
 }
