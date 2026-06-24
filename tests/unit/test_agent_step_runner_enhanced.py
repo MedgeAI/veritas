@@ -3,14 +3,15 @@
 from __future__ import annotations
 
 import json
-import subprocess
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
 from engine.investigation.agent_step_runner import AgentStepRunner
 
 
-def _make_completed(*, returncode: int = 0, stdout: str = "", stderr: str = "") -> MagicMock:
+def _make_completed(
+    *, returncode: int = 0, stdout: str = "", stderr: str = ""
+) -> MagicMock:
     completed = MagicMock()
     completed.returncode = returncode
     completed.stdout = stdout
@@ -28,7 +29,9 @@ def _identity_validator(data: dict) -> dict:
 
 
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_os_error_classified_as_non_zero_exit(mock_run: MagicMock, tmp_path: Path) -> None:
+def test_os_error_classified_as_non_zero_exit(
+    mock_run: MagicMock, tmp_path: Path
+) -> None:
     mock_run.side_effect = OSError("opencode binary not found")
 
     runner = AgentStepRunner(project_root=tmp_path)
@@ -43,7 +46,9 @@ def test_os_error_classified_as_non_zero_exit(mock_run: MagicMock, tmp_path: Pat
 
 
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_permission_rejected_via_auto_reject(mock_run: MagicMock, tmp_path: Path) -> None:
+def test_permission_rejected_via_auto_reject(
+    mock_run: MagicMock, tmp_path: Path
+) -> None:
     mock_run.return_value = _make_completed(
         returncode=1,
         stderr="Error: tool 'bash' was auto-rejected by policy",
@@ -59,7 +64,9 @@ def test_permission_rejected_via_auto_reject(mock_run: MagicMock, tmp_path: Path
 
 
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_generic_error_in_stderr_is_model_failure(mock_run: MagicMock, tmp_path: Path) -> None:
+def test_generic_error_in_stderr_is_model_failure(
+    mock_run: MagicMock, tmp_path: Path
+) -> None:
     mock_run.return_value = _make_completed(
         returncode=1,
         stderr="something error happened",
@@ -75,7 +82,9 @@ def test_generic_error_in_stderr_is_model_failure(mock_run: MagicMock, tmp_path:
 
 
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_non_error_non_zero_exit_is_non_zero_exit(mock_run: MagicMock, tmp_path: Path) -> None:
+def test_non_error_non_zero_exit_is_non_zero_exit(
+    mock_run: MagicMock, tmp_path: Path
+) -> None:
     mock_run.return_value = _make_completed(
         returncode=1,
         stderr="unexpected condition occurred",
@@ -98,8 +107,18 @@ def test_non_error_non_zero_exit_is_non_zero_exit(mock_run: MagicMock, tmp_path:
 
 @patch("engine.investigation.agent_step_runner.extract_json")
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_opencode_error_event_extracted(mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path) -> None:
-    error_json = json.dumps({"type": "error", "error": {"name": "RateLimitError", "data": {"message": "Too many requests", "statusCode": 429}}})
+def test_opencode_error_event_extracted(
+    mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path
+) -> None:
+    error_json = json.dumps(
+        {
+            "type": "error",
+            "error": {
+                "name": "RateLimitError",
+                "data": {"message": "Too many requests", "statusCode": 429},
+            },
+        }
+    )
     mock_run.return_value = _make_completed(returncode=0, stdout=error_json)
 
     runner = AgentStepRunner(project_root=tmp_path)
@@ -117,8 +136,18 @@ def test_opencode_error_event_extracted(mock_run: MagicMock, mock_extract: Magic
 
 @patch("engine.investigation.agent_step_runner.extract_json")
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_opencode_error_without_status_code(mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path) -> None:
-    error_json = json.dumps({"type": "error", "error": {"name": "UnknownError", "data": {"message": "Something went wrong"}}})
+def test_opencode_error_without_status_code(
+    mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path
+) -> None:
+    error_json = json.dumps(
+        {
+            "type": "error",
+            "error": {
+                "name": "UnknownError",
+                "data": {"message": "Something went wrong"},
+            },
+        }
+    )
     mock_run.return_value = _make_completed(returncode=0, stdout=error_json)
 
     runner = AgentStepRunner(project_root=tmp_path)
@@ -134,7 +163,9 @@ def test_opencode_error_without_status_code(mock_run: MagicMock, mock_extract: M
 
 @patch("engine.investigation.agent_step_runner.extract_json")
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_opencode_error_without_error_dict(mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path) -> None:
+def test_opencode_error_without_error_dict(
+    mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path
+) -> None:
     error_json = json.dumps({"type": "error", "error": "string error"})
     mock_run.return_value = _make_completed(returncode=0, stdout=error_json)
 
@@ -156,7 +187,9 @@ def test_opencode_error_without_error_dict(mock_run: MagicMock, mock_extract: Ma
 
 @patch("engine.investigation.agent_step_runner.extract_json")
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_retry_exhausted_returns_failed(mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path) -> None:
+def test_retry_exhausted_returns_failed(
+    mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path
+) -> None:
     mock_run.return_value = _make_completed(returncode=0, stdout="garbage")
     mock_extract.side_effect = ValueError("no JSON")
 
@@ -173,7 +206,9 @@ def test_retry_exhausted_returns_failed(mock_run: MagicMock, mock_extract: Magic
 
 
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_retry_prompt_includes_previous_error(mock_run: MagicMock, tmp_path: Path) -> None:
+def test_retry_prompt_includes_previous_error(
+    mock_run: MagicMock, tmp_path: Path
+) -> None:
     mock_run.side_effect = [
         _make_completed(returncode=1, stderr="something error happened"),
         _make_completed(stdout='{"valid": true}'),
@@ -200,7 +235,9 @@ def test_retry_prompt_includes_previous_error(mock_run: MagicMock, tmp_path: Pat
 
 @patch("engine.investigation.agent_step_runner.extract_json")
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_validator_rejection_triggers_retry(mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path) -> None:
+def test_validator_rejection_triggers_retry(
+    mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path
+) -> None:
     mock_run.side_effect = [
         _make_completed(stdout='{"key": "value"}'),
         _make_completed(stdout='{"key": "valid"}'),
@@ -212,7 +249,10 @@ def test_validator_rejection_triggers_retry(mock_run: MagicMock, mock_extract: M
             raise ValueError("missing required field: schema_version")
         return data
 
-    mock_extract.side_effect = [{"key": "value"}, {"key": "valid", "schema_version": "1.0"}]
+    mock_extract.side_effect = [
+        {"key": "value"},
+        {"key": "valid", "schema_version": "1.0"},
+    ]
 
     runner = AgentStepRunner(project_root=tmp_path)
     result = runner.run(
@@ -232,7 +272,9 @@ def test_validator_rejection_triggers_retry(mock_run: MagicMock, mock_extract: M
 
 @patch("engine.investigation.agent_step_runner.extract_json")
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_files_added_to_command(mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path) -> None:
+def test_files_added_to_command(
+    mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path
+) -> None:
     mock_run.return_value = _make_completed(stdout='{"ok": true}')
     mock_extract.return_value = {"ok": True}
 
@@ -254,7 +296,9 @@ def test_files_added_to_command(mock_run: MagicMock, mock_extract: MagicMock, tm
 
 @patch("engine.investigation.agent_step_runner.extract_json")
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_context_pack_added_to_command(mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path) -> None:
+def test_context_pack_added_to_command(
+    mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path
+) -> None:
     mock_run.return_value = _make_completed(stdout='{"ok": true}')
     mock_extract.return_value = {"ok": True}
 
@@ -275,7 +319,9 @@ def test_context_pack_added_to_command(mock_run: MagicMock, mock_extract: MagicM
 
 @patch("engine.investigation.agent_step_runner.extract_json")
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_nonexistent_file_not_added(mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path) -> None:
+def test_nonexistent_file_not_added(
+    mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path
+) -> None:
     mock_run.return_value = _make_completed(stdout='{"ok": true}')
     mock_extract.return_value = {"ok": True}
 
@@ -298,7 +344,9 @@ def test_nonexistent_file_not_added(mock_run: MagicMock, mock_extract: MagicMock
 
 @patch("engine.investigation.agent_step_runner.extract_json")
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_success_log_artifact_written(mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path) -> None:
+def test_success_log_artifact_written(
+    mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path
+) -> None:
     mock_run.return_value = _make_completed(stdout='{"ok": true}')
     mock_extract.return_value = {"ok": True}
 
@@ -324,9 +372,16 @@ def test_success_log_artifact_written(mock_run: MagicMock, mock_extract: MagicMo
 
 @patch("engine.investigation.agent_step_runner.extract_json")
 @patch("engine.investigation.agent_step_runner.subprocess.run")
-def test_multiple_opencode_errors_limits_to_three(mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path) -> None:
+def test_multiple_opencode_errors_limits_to_three(
+    mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path
+) -> None:
     errors = "\n".join(
-        json.dumps({"type": "error", "error": {"name": f"Error{i}", "data": {"message": f"msg{i}"}}})
+        json.dumps(
+            {
+                "type": "error",
+                "error": {"name": f"Error{i}", "data": {"message": f"msg{i}"}},
+            }
+        )
         for i in range(5)
     )
     mock_run.return_value = _make_completed(returncode=0, stdout=errors)

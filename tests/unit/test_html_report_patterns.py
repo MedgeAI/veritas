@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections import Counter
 
 from engine.static_audit.html_report._patterns import (
     build_pattern_groups,
@@ -11,12 +10,9 @@ from engine.static_audit.html_report._patterns import (
     first_report_sentence,
     is_context_only_pattern,
     is_primary_pattern,
-    irreducible_evidence_ledger,
     key_sheets,
     pattern_agent_sentences,
     pattern_definition,
-    pattern_display_text,
-    pattern_group_cards,
     pattern_sort_key,
     tier_patterns,
 )
@@ -29,7 +25,6 @@ from engine.static_audit.html_report._benign import (
     _benign_explanation_row_vector,
     _benign_explanation_visual_forensics,
     _benign_items_to_html,
-    _collect_source_sheets_cols,
     _parameterized_benign_explanation,
     cluster_benign_explanations,
     context_aware_review_question,
@@ -68,8 +63,13 @@ class TestPatternSortKey:
 class TestPatternDefinition:
     def test_known_keys(self) -> None:
         for key in [
-            "paired_offset_ratio_reuse", "row_vector_reuse", "duplicate_numeric_columns",
-            "formula_derivation", "visual_forensics", "numeric_forensics", "other",
+            "paired_offset_ratio_reuse",
+            "row_vector_reuse",
+            "duplicate_numeric_columns",
+            "formula_derivation",
+            "visual_forensics",
+            "numeric_forensics",
+            "other",
         ]:
             defn = pattern_definition(key)
             assert "title" in defn
@@ -240,9 +240,21 @@ class TestTierPatterns:
 
     def test_tier_splits_correctly(self) -> None:
         patterns = [
-            {"pattern_id": 1, "risk_level": "high", "findings": [{"issue_category": "consistency"}]},
-            {"pattern_id": 2, "risk_level": "low", "findings": [{"issue_category": "consistency"}]},
-            {"pattern_id": 3, "risk_level": "critical", "findings": [{"issue_category": "consistency"}]},
+            {
+                "pattern_id": 1,
+                "risk_level": "high",
+                "findings": [{"issue_category": "consistency"}],
+            },
+            {
+                "pattern_id": 2,
+                "risk_level": "low",
+                "findings": [{"issue_category": "consistency"}],
+            },
+            {
+                "pattern_id": 3,
+                "risk_level": "critical",
+                "findings": [{"issue_category": "consistency"}],
+            },
         ]
         primary, secondary = tier_patterns(patterns)
         assert len(primary) == 2
@@ -251,7 +263,11 @@ class TestTierPatterns:
 
     def test_tier_respects_top_n(self) -> None:
         patterns = [
-            {"pattern_id": i, "risk_level": "high", "findings": [{"issue_category": "consistency"}]}
+            {
+                "pattern_id": i,
+                "risk_level": "high",
+                "findings": [{"issue_category": "consistency"}],
+            }
             for i in range(30)
         ]
         primary, secondary = tier_patterns(patterns, top_n=5)
@@ -353,7 +369,11 @@ class TestBenignExplanations:
 
     def test_visual_forensics_forged(self) -> None:
         findings = [
-            {"category": "forged_region_suspicious", "figure_id": "Fig.1", "integrity_score": 0.7}
+            {
+                "category": "forged_region_suspicious",
+                "figure_id": "Fig.1",
+                "integrity_score": 0.7,
+            }
         ]
         result = _benign_explanation_visual_forensics(findings)
         assert "区域完整性" in result[0]
@@ -365,7 +385,11 @@ class TestBenignExplanations:
 
     def test_other_source_data_missing(self) -> None:
         findings = [
-            {"category": "source_data_missing", "finding_id": "SDM-SUMMARY-001", "figure_label": "Fig.1"}
+            {
+                "category": "source_data_missing",
+                "finding_id": "SDM-SUMMARY-001",
+                "figure_label": "Fig.1",
+            }
         ]
         result = _benign_explanation_other(findings)
         assert "Fig.1" in result[0]
@@ -380,7 +404,9 @@ class TestBenignExplanations:
 class TestParameterizedBenignExplanation:
     def test_dispatches_to_handler(self) -> None:
         findings = [{"sheet": "Sheet1", "column_pair": ["A", "B"]}]
-        result = _parameterized_benign_explanation("duplicate_numeric_columns", findings)
+        result = _parameterized_benign_explanation(
+            "duplicate_numeric_columns", findings
+        )
         assert "高度相同" in result[0]
 
     def test_visual_forensics(self) -> None:
@@ -418,7 +444,13 @@ class TestClusterBenignExplanations:
         assert ("Finding explanation", "agent") in result
 
     def test_parameterized_fallback(self) -> None:
-        findings = [{"category": "duplicate_numeric_columns", "sheet": "Sheet1", "column_pair": ["A", "B"]}]
+        findings = [
+            {
+                "category": "duplicate_numeric_columns",
+                "sheet": "Sheet1",
+                "column_pair": ["A", "B"],
+            }
+        ]
         result = cluster_benign_explanations(findings, [])
         assert any(source == "data" for _, source in result)
 
@@ -442,9 +474,7 @@ class TestClusterBenignExplanations:
 
 class TestContextAwareReviewQuestion:
     def test_paired_offset_handler(self) -> None:
-        findings = [
-            {"sheet": "Sheet1", "row_offset": 10, "support_rate": 0.95}
-        ]
+        findings = [{"sheet": "Sheet1", "row_offset": 10, "support_rate": 0.95}]
         result = context_aware_review_question("paired_offset_ratio_reuse", findings)
         assert "Sheet1" in result
         assert "行偏移" in result
@@ -505,8 +535,18 @@ class TestBenignItemsToHtml:
 class TestBuildPatternGroups:
     def test_groups_findings_by_pattern_key(self) -> None:
         findings = [
-            {"finding_id": "F-001", "category": "fixed_difference", "risk_level": "high", "sheet": "Sheet1"},
-            {"finding_id": "F-002", "category": "fixed_ratio", "risk_level": "medium", "sheet": "Sheet2"},
+            {
+                "finding_id": "F-001",
+                "category": "fixed_difference",
+                "risk_level": "high",
+                "sheet": "Sheet1",
+            },
+            {
+                "finding_id": "F-002",
+                "category": "fixed_ratio",
+                "risk_level": "medium",
+                "sheet": "Sheet2",
+            },
         ]
         result = build_pattern_groups(findings, [], [], [], {}, [])
         # Both fixed_difference and fixed_ratio map to formula_derivation
@@ -515,7 +555,12 @@ class TestBuildPatternGroups:
 
     def test_pattern_has_required_fields(self) -> None:
         findings = [
-            {"finding_id": "F-001", "category": "duplicate_numeric_columns", "risk_level": "high", "sheet": "Sheet1"}
+            {
+                "finding_id": "F-001",
+                "category": "duplicate_numeric_columns",
+                "risk_level": "high",
+                "sheet": "Sheet1",
+            }
         ]
         result = build_pattern_groups(findings, [], [], [], {}, [])
         assert len(result) == 1

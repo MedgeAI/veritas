@@ -8,8 +8,6 @@ from engine.tools.registry import (
     ExecutionPhase,
     ToolDefinition,
     TOOLS,
-    PAPER_STATIC_AUDIT_TOOL_IDS,
-    STATIC_AUDIT_V1_TOOL_IDS,
     SOURCE_DATA_FINDINGS_TOOL_ID,
     IMAGE_SIMILARITY_TOOL_ID,
     TOOL_ID_OVERLAP_REUSE,
@@ -18,8 +16,6 @@ from engine.tools.registry import (
     coerce_tool_params,
     selected_tool_ids_from_plan,
     source_data_findings_params_from_plan,
-    tool_catalog_for_agent,
-    tool_catalog_for_investigation,
     tool_ids_to_step_keys,
     validate_investigation_tool_action,
     validate_plan_tools,
@@ -256,13 +252,17 @@ class TestBoundedFloat:
 
 class TestValidatePlanTools:
     def test_valid_plan(self) -> None:
-        plan = {"selected_tools": [{"tool_id": SOURCE_DATA_FINDINGS_TOOL_ID, "params": {}}]}
+        plan = {
+            "selected_tools": [{"tool_id": SOURCE_DATA_FINDINGS_TOOL_ID, "params": {}}]
+        }
         result = validate_plan_tools(plan)
         assert isinstance(result, dict)
 
     def test_unknown_tool_rejected(self) -> None:
         with pytest.raises(ValueError, match="unsupported tool_id"):
-            validate_plan_tools({"selected_tools": [{"tool_id": "nonexistent.tool", "params": {}}]})
+            validate_plan_tools(
+                {"selected_tools": [{"tool_id": "nonexistent.tool", "params": {}}]}
+            )
 
     def test_empty_plan(self) -> None:
         result = validate_plan_tools({})
@@ -281,42 +281,50 @@ class TestValidatePlanTools:
 class TestValidateInvestigationToolAction:
     def test_rejects_non_selectable_tool(self) -> None:
         with pytest.raises(ValueError, match="not agent-selectable"):
-            validate_investigation_tool_action({
-                "tool_id": SOURCE_DATA_FINDINGS_TOOL_ID,
-                "params": {},
-                "hypothesis": "test",
-                "depends_on_artifacts": ["images/"],
-            })
+            validate_investigation_tool_action(
+                {
+                    "tool_id": SOURCE_DATA_FINDINGS_TOOL_ID,
+                    "params": {},
+                    "hypothesis": "test",
+                    "depends_on_artifacts": ["images/"],
+                }
+            )
 
     def test_accepts_agent_selectable_tool(self) -> None:
-        action = validate_investigation_tool_action({
-            "action_id": "IR-01-A001",
-            "tool_id": IMAGE_SIMILARITY_TOOL_ID,
-            "params": {"max_distance": "5"},
-            "hypothesis": "test similarity",
-            "depends_on_artifacts": ["images/"],
-            "expected_evidence_type": "image_similarity",
-        })
+        action = validate_investigation_tool_action(
+            {
+                "action_id": "IR-01-A001",
+                "tool_id": IMAGE_SIMILARITY_TOOL_ID,
+                "params": {"max_distance": "5"},
+                "hypothesis": "test similarity",
+                "depends_on_artifacts": ["images/"],
+                "expected_evidence_type": "image_similarity",
+            }
+        )
         assert action["tool_id"] == IMAGE_SIMILARITY_TOOL_ID
         assert action["params"]["max_distance"] == 5
 
     def test_hypothesis_required(self) -> None:
         with pytest.raises(ValueError, match="hypothesis"):
-            validate_investigation_tool_action({
-                "tool_id": IMAGE_SIMILARITY_TOOL_ID,
-                "params": {},
-                "hypothesis": "",
-                "depends_on_artifacts": ["images/"],
-            })
+            validate_investigation_tool_action(
+                {
+                    "tool_id": IMAGE_SIMILARITY_TOOL_ID,
+                    "params": {},
+                    "hypothesis": "",
+                    "depends_on_artifacts": ["images/"],
+                }
+            )
 
     def test_depends_on_artifacts_required(self) -> None:
         with pytest.raises(ValueError, match="depends_on_artifacts"):
-            validate_investigation_tool_action({
-                "tool_id": IMAGE_SIMILARITY_TOOL_ID,
-                "params": {},
-                "hypothesis": "test",
-                "depends_on_artifacts": [],
-            })
+            validate_investigation_tool_action(
+                {
+                    "tool_id": IMAGE_SIMILARITY_TOOL_ID,
+                    "params": {},
+                    "hypothesis": "test",
+                    "depends_on_artifacts": [],
+                }
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -334,17 +342,38 @@ class TestSourceDataFindingsParamsFromPlan:
         assert "min_overlap" in result
 
     def test_invalid_overlap_raises(self) -> None:
-        plan = {"selected_tools": [{"tool_id": SOURCE_DATA_FINDINGS_TOOL_ID, "params": {"min_overlap": "0"}}]}
+        plan = {
+            "selected_tools": [
+                {
+                    "tool_id": SOURCE_DATA_FINDINGS_TOOL_ID,
+                    "params": {"min_overlap": "0"},
+                }
+            ]
+        }
         with pytest.raises(ValueError):
             source_data_findings_params_from_plan(plan)
 
     def test_invalid_support_raises(self) -> None:
-        plan = {"selected_tools": [{"tool_id": SOURCE_DATA_FINDINGS_TOOL_ID, "params": {"min_support": "2.0"}}]}
+        plan = {
+            "selected_tools": [
+                {
+                    "tool_id": SOURCE_DATA_FINDINGS_TOOL_ID,
+                    "params": {"min_support": "2.0"},
+                }
+            ]
+        }
         with pytest.raises(ValueError):
             source_data_findings_params_from_plan(plan)
 
     def test_valid_override(self) -> None:
-        plan = {"selected_tools": [{"tool_id": SOURCE_DATA_FINDINGS_TOOL_ID, "params": {"min_overlap": "20", "min_support": "0.95"}}]}
+        plan = {
+            "selected_tools": [
+                {
+                    "tool_id": SOURCE_DATA_FINDINGS_TOOL_ID,
+                    "params": {"min_overlap": "20", "min_support": "0.95"},
+                }
+            ]
+        }
         result = source_data_findings_params_from_plan(plan)
         assert result["min_overlap"] == 20
         assert result["min_support"] == 0.95

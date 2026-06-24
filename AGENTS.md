@@ -173,14 +173,16 @@ PDF / MinerU images
 论文 PDF + Source Data 输入
 -> MinerU PDF 解析（evidence ledger）
 -> Source Data 内部一致性检测（duplicate columns / fixed difference / fixed ratio / pair forensics / cross-sheet）
+-> Sheet Briefing（结构摘要 + pattern 聚类 + sample data 去重）
+-> Source Data LLM 语义裁决（briefing 驱动，cluster→finding 展开）
 -> PaperFraud rule match
 -> 视觉取证全链路：panel extraction (YOLOv5) -> exact duplicate -> copy-move (RootSIFT+MAGSAC++) -> overlap/reuse (tile dHash + keypoint verification) -> TruFor skip-only
--> Agent investigation（最多 3 轮，可选触发 visual.overlap_reuse / image_similarity 等）
+-> Agent investigation（最多 3 轮，可选触发 source_data.query / visual.overlap_reuse / image_similarity 等）
 -> HTML 报告（Top-N findings、证据定位、良性解释、人工复核清单）
 -> Web 工作台（Visual Forensics Gallery、Overlap Graph、Detail Drawer）
 ```
 
-**paper1 全量审计验证**：257 figures、811 panels、493 pair forensics findings、14 分钟完成。1146 个测试全部通过（uv 环境 Python 3.12）。
+**paper1 全量审计验证**：257 figures、811 panels、493 pair forensics findings、14 分钟完成。1218 个测试全部通过（uv 环境 Python 3.12）。
 
 **演示注意事项**：
 - 报告呈现的是结构化证据和人工复核任务，不是最终科研诚信判定
@@ -394,18 +396,25 @@ tests/        单测、集成测试和 e2e 测试
 上文”当前范围”是产品边界，本节只补工程执行口径：
 
 - **P0 已完成**：`audit-paper` happy path 已稳定走通，能产出完整的结构化证据和报告。paper1 全量审计验证通过。
-- **P1 已完成**：God File 拆分、ELIS adapter 接入、视觉取证增强、测试覆盖率提升。1146 个测试全部通过。
+- **P1 已完成**：God File 拆分、ELIS adapter 接入、视觉取证增强、Source Data PRD v2 实现。1218 个测试全部通过。
 - **P1 当前重点**：面向老板演示和内测。Web P1 工作台、可靠性和关键差异化。
 - **PubPeer Ground Truth Pipeline**：代码框架已就绪（`engine/ground_truth/`），演示后继续迭代。
 - `precheck` / `run` / `report` 已存在，但不要因此把当前产品表述成完整 SaaS 或完整 runtime 审查系统。
 - PI / 课题组是第一付费方和主要报告读者；报告要保持谨慎风险语言和人工复核入口。
 
-### 最近改进（2026-06-22）
+### 最近改进（2026-06-24）
 
+- ✅ **Source Data PRD v2 实现**：Agent-centric Source Data 检测架构。确定性工具压缩搜索空间 → Agent 理解语义并裁决 → 结构化输出进入报告。详见 `docs/product/Veritas-Source-Data-检测能力演进-PRD.md`。
+- ✅ **Sheet Briefing**：`source_data_sheet_briefing.py` — 每个 sheet 的结构化情报摘要（组数、列块、pattern 聚类、sample data 去重）。替代逐条 findings 注入 LLM context，解决 287 findings 导致 fig7 verdict 失败的 context 爆炸问题。
+- ✅ **`source_data.query` 语义工具**：`source_data_query.py` — 高层语义输入（group name, column block label）+ 底层确定性实现。支持 `compare_groups` / `extract_block` / `find_cross_group_reuse`。已注册到 Tool Registry（agent-selectable）。
+- ✅ **Claim extractor enrich**：`claim_decisiveness`（high/medium/low）+ `figure_refs` + `expected_source_data` 字段加入 claim extractor 输出。向后兼容。
+- ✅ **Findings raw data samples**：每个 finding 附带 `raw_data_samples`（前 50 行完整列值），让 Agent 裁决时能看到原始数据。
+- ✅ **Verdict 升级**：`source_data_verdict.py` 改用 Sheet Briefing 驱动；cluster→finding verdict 展开保持 per-finding 输出兼容；priority 字段（critical/high/medium/low）。
+- ✅ **paper4 Fig3 golden fixture**：34 个实验组、9 个跨组 CFU 相同行对、列语义标注。`test_source_data_golden.py` 11 个测试。
+- ✅ **测试增长**：1146 → 1218 个测试。
 - ✅ **html_report 拆分**：`_core.py` 从 4332→381 行，拆分为 11 个子模块
 - ✅ **orchestrator 拆分**：从 1648→206 行，拆分为 pipeline/cli_driver/_pipeline_steps
 - ✅ **高复杂度重构**：`generate_fallback_questions` CC 26→3（策略模式）
-- ✅ **测试增强**：新增 10 个测试文件，测试覆盖率 0.38→0.50，测试数量 433→1146
 - ✅ **PGlite 修复**：解决 142 个 web 测试的连接泄漏问题
 - ✅ **CI 暂时禁用**：项目仍在大幅变动中，`.disabled` 后缀 mask
 
@@ -413,7 +422,8 @@ tests/        单测、集成测试和 e2e 测试
 
 **P1 优先级（当前阶段 — 面向演示和内测）**：
 
-1. **视觉 overlap/reuse detection** ✅ 已实现：`visual.overlap_reuse` tool 已注册，tile-level dHash retrieval + RootSIFT+MAGSAC++ verification，产出 `visual/overlap_reuse.json`，5 个 synthetic fixtures，19 个单测通过。数据契约已修复，investigation dispatch 已接入。详见 `VISUAL_OVERLAP_PRD.md`。
+1. **Source Data PRD v2（Agent-centric 检测）** ✅ 已完成：Sheet Briefing + `source_data.query` 语义工具 + claim extractor enrich + verdict 升级 + paper4 Fig3 golden fixture。1218 测试通过。详见 `docs/product/Veritas-Source-Data-检测能力演进-PRD.md`。
+2. **视觉 overlap/reuse detection** ✅ 已实现：`visual.overlap_reuse` tool 已注册，tile-level dHash retrieval + RootSIFT+MAGSAC++ verification，产出 `visual/overlap_reuse.json`，5 个 synthetic fixtures，19 个单测通过。数据契约已修复，investigation dispatch 已接入。详见 `VISUAL_OVERLAP_PRD.md`。
 2. **ELIS adapter 接入** ✅ 已完成：panel-extractor (YOLOv5)、copy-move keypoint (RootSIFT+MAGSAC++)、copy-move dense (SILA Docker)、TruFor (skip-only) 均已通过 subprocess adapter 接入主链路。详见 `ELIS_REUSE_DECISIONS.md`。
 3. **Tool Registry 扩展** ✅ 已完成：所有 ELIS-style 工具已注册到 `engine/tools/registry.py`，`visual.overlap_reuse` 为 agent-selectable。
 4. **Source Data pattern_strength 增强** ✅ 已完成：`fixed_difference` / `fixed_ratio` 已有 `pattern_strength` 字段（complete/strong/moderate/weak），HTML 报告已渲染。

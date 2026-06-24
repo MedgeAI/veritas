@@ -8,14 +8,13 @@ import json
 import shutil
 import sys
 from pathlib import Path
-from typing import Any
 
 PROJECT_ROOT_PATH = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT_PATH) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT_PATH))
 
 from engine.env import load_project_env
-from engine.static_audit._shared import PROJECT_ROOT, ProgressCallback
+from engine.static_audit._shared import PROJECT_ROOT
 
 
 def parse_args() -> argparse.Namespace:

@@ -7,19 +7,14 @@ from typing import Any
 
 from engine.static_audit.html_report._html_utils import h
 from engine.static_audit.html_report._shared import (
-    _confidence_badge,
     category_label,
     clean_report_text,
-    dedupe,
     finding_display_score,
     finding_support_value,
-    highest_display_risk,
-    list_items,
     metric,
     risk_label,
     risk_score,
     shorten,
-    status_label,
 )
 
 
@@ -33,7 +28,13 @@ def evidence_source_text(finding: dict[str, Any]) -> str:
     sheet = finding.get("sheet")
     if workbook or sheet:
         return " / ".join(str(item) for item in (workbook, sheet) if item)
-    for key in ("source_path", "image_path", "figure_path", "artifact_path", "source_artifact"):
+    for key in (
+        "source_path",
+        "image_path",
+        "figure_path",
+        "artifact_path",
+        "source_artifact",
+    ):
         if finding.get(key):
             return str(finding.get(key))
     refs = finding.get("evidence_refs") or []
@@ -44,8 +45,11 @@ def evidence_source_text(finding: dict[str, Any]) -> str:
 
 def evidence_locator(finding: dict[str, Any]) -> str:
     columns = (
-        finding.get("columns") or finding.get("column_pair")
-        or finding.get("target_column") or finding.get("column") or []
+        finding.get("columns")
+        or finding.get("column_pair")
+        or finding.get("target_column")
+        or finding.get("column")
+        or []
     )
     if isinstance(columns, list):
         columns_text = ",".join(str(item) for item in columns)
@@ -98,12 +102,16 @@ def evidence_sample_text(finding: dict[str, Any], limit: int = 3) -> str:
 
 def support_text(finding: dict[str, Any]) -> str:
     support = (
-        finding.get("support_rows") or finding.get("matched_pairs")
-        or finding.get("matched_pair_groups") or finding.get("duplicate_row_count")
-        or finding.get("exact_reuse_pairs") or finding.get("equal_rows")
+        finding.get("support_rows")
+        or finding.get("matched_pairs")
+        or finding.get("matched_pair_groups")
+        or finding.get("duplicate_row_count")
+        or finding.get("exact_reuse_pairs")
+        or finding.get("equal_rows")
     )
     overlap = (
-        finding.get("overlap_rows") or finding.get("overlap_pairs")
+        finding.get("overlap_rows")
+        or finding.get("overlap_pairs")
         or finding.get("overlap_pair_groups")
     )
     pattern_strength = finding.get("pattern_strength")
@@ -158,8 +166,14 @@ def evidence_records_table(
 
 
 def paperfraud_rule_section(artifact: dict[str, Any]) -> str:
-    summary = artifact.get("summary") if isinstance(artifact.get("summary"), dict) else {}
-    triggered = [item for item in (artifact.get("triggered_rules") or []) if isinstance(item, dict)]
+    summary = (
+        artifact.get("summary") if isinstance(artifact.get("summary"), dict) else {}
+    )
+    triggered = [
+        item
+        for item in (artifact.get("triggered_rules") or [])
+        if isinstance(item, dict)
+    ]
     rows = []
     for item in triggered[:12]:
         rows.append(
@@ -208,22 +222,45 @@ def pair_forensics_table(findings: list[dict[str, Any]]) -> str:
     if not findings:
         return "<p class='muted'>未生成配对/行偏移重点记录。</p>"
     rows = []
-    findings = sorted(findings, key=lambda f: (-finding_display_score(f), -finding_support_value(f), str(f.get("finding_id", ""))))
+    findings = sorted(
+        findings,
+        key=lambda f: (
+            -finding_display_score(f),
+            -finding_support_value(f),
+            str(f.get("finding_id", "")),
+        ),
+    )
     for finding in findings[:12]:
-        risk = finding_display_score(finding)
-        from engine.static_audit.html_report._shared import display_risk_level_for_finding
+        from engine.static_audit.html_report._shared import (
+            display_risk_level_for_finding,
+        )
+
         risk_level = display_risk_level_for_finding(finding)
         sup = (
-            finding.get("support_rows") or finding.get("matched_pairs")
-            or finding.get("matched_pair_groups") or finding.get("duplicate_row_count")
-            or finding.get("exact_reuse_pairs") or "-"
+            finding.get("support_rows")
+            or finding.get("matched_pairs")
+            or finding.get("matched_pair_groups")
+            or finding.get("duplicate_row_count")
+            or finding.get("exact_reuse_pairs")
+            or "-"
         )
         overlap = (
-            finding.get("overlap_rows") or finding.get("overlap_pairs")
-            or finding.get("overlap_pair_groups") or "-"
+            finding.get("overlap_rows")
+            or finding.get("overlap_pairs")
+            or finding.get("overlap_pair_groups")
+            or "-"
         )
-        columns = finding.get("columns") or finding.get("column_pair") or finding.get("column") or []
-        columns_text = ", ".join(str(item) for item in columns) if isinstance(columns, list) else str(columns)
+        columns = (
+            finding.get("columns")
+            or finding.get("column_pair")
+            or finding.get("column")
+            or []
+        )
+        columns_text = (
+            ", ".join(str(item) for item in columns)
+            if isinstance(columns, list)
+            else str(columns)
+        )
         rows.append(
             "<tr>"
             f"<td><code>{h(finding.get('finding_id', '-'))}</code></td>"
@@ -247,11 +284,18 @@ def pair_forensics_review_tasks_table(tasks: list[dict[str, Any]]) -> str:
         display_priority_for_pair_task,
         manual_task_focus_score,
     )
+
     tasks = [t for t in tasks if isinstance(t, dict)]
     if not tasks:
         return "<p class='muted'>未生成配对/行偏移复核项。</p>"
     rows = []
-    tasks = sorted(tasks, key=lambda t: (-risk_score(display_priority_for_pair_task(t)), manual_task_focus_score(t)))
+    tasks = sorted(
+        tasks,
+        key=lambda t: (
+            -risk_score(display_priority_for_pair_task(t)),
+            manual_task_focus_score(t),
+        ),
+    )
     for task in tasks[:12]:
         priority = display_priority_for_pair_task(task)
         rows.append(
@@ -278,10 +322,18 @@ def pair_forensics_cluster_table(clusters: list[dict[str, Any]]) -> str:
     if not clusters:
         return "<p class='muted'>未生成配对/行偏移记录簇。</p>"
     rows = []
-    clusters = sorted(clusters, key=lambda c: (-risk_score(display_risk_level_for_pair_cluster(c)), -int(c.get("finding_count") or 0)))
+    clusters = sorted(
+        clusters,
+        key=lambda c: (
+            -risk_score(display_risk_level_for_pair_cluster(c)),
+            -int(c.get("finding_count") or 0),
+        ),
+    )
     for cluster in clusters[:12]:
         risk = display_risk_level_for_pair_cluster(cluster)
-        representatives = ", ".join(str(item) for item in (cluster.get("representative_finding_ids") or [])[:5])
+        representatives = ", ".join(
+            str(item) for item in (cluster.get("representative_finding_ids") or [])[:5]
+        )
         rows.append(
             "<tr>"
             f"<td><code>{h(cluster.get('cluster_id', '-'))}</code></td>"

@@ -16,7 +16,6 @@ from engine.static_audit.html_report._shared import (
     finding_display_score,
     finding_support_value,
     risk_label,
-    risk_score,
     SOURCE_DATA_FINDINGS_ARTIFACT,
     SOURCE_DATA_PAIR_FORENSICS_ARTIFACT,
     ISSUE_CATEGORY_LABELS,
@@ -39,8 +38,10 @@ def source_artifact_for_finding(finding: dict[str, Any]) -> str:
     if finding.get("source_artifact"):
         return str(finding.get("source_artifact"))
     pair_categories = {
-        "row_offset_scalar_multiple", "long_format_paired_ratio_reuse",
-        "duplicate_row_vector", "long_format_within_pair_ratio_enrichment",
+        "row_offset_scalar_multiple",
+        "long_format_paired_ratio_reuse",
+        "duplicate_row_vector",
+        "long_format_within_pair_ratio_enrichment",
         "row_offset_partial_copy_rounding_bias",
     }
     if str(finding.get("category")) in pair_categories:
@@ -70,8 +71,17 @@ def relation_text(finding: dict[str, Any]) -> str:
 
 
 def default_finding_summary(finding: dict[str, Any]) -> str:
-    columns = finding.get("column_pair") or finding.get("columns") or finding.get("column") or []
-    columns_text = ", ".join(str(i) for i in columns) if isinstance(columns, list) else str(columns)
+    columns = (
+        finding.get("column_pair")
+        or finding.get("columns")
+        or finding.get("column")
+        or []
+    )
+    columns_text = (
+        ", ".join(str(i) for i in columns)
+        if isinstance(columns, list)
+        else str(columns)
+    )
     if finding.get("workbook") or finding.get("sheet"):
         return f"{finding.get('workbook', '-')} / {finding.get('sheet', '-')} 中 {columns_text or evidence_locator(finding)} 出现 {finding.get('category', '-')}。"
     source = evidence_source_text(finding)
@@ -86,7 +96,9 @@ def default_finding_summary(finding: dict[str, Any]) -> str:
 # ---------------------------------------------------------------------------
 
 
-def annotate_findings(findings: list[dict[str, Any]], source_artifact: str) -> list[dict[str, Any]]:
+def annotate_findings(
+    findings: list[dict[str, Any]], source_artifact: str
+) -> list[dict[str, Any]]:
     annotated = []
     for f in findings:
         if not isinstance(f, dict):
@@ -98,7 +110,9 @@ def annotate_findings(findings: list[dict[str, Any]], source_artifact: str) -> l
     return annotated
 
 
-def source_path_for_evidence_refs(evidence_refs: list[Any], bundle: dict[str, Any]) -> str:
+def source_path_for_evidence_refs(
+    evidence_refs: list[Any], bundle: dict[str, Any]
+) -> str:
     evidence_by_id = {
         str(item.get("evidence_id")): item
         for item in (bundle.get("evidence_items") or [])
@@ -112,18 +126,34 @@ def source_path_for_evidence_refs(evidence_refs: list[Any], bundle: dict[str, An
     return ", ".join(dedupe(paths)[:3])
 
 
-def normalize_bundle_finding(item: dict[str, Any], bundle: dict[str, Any]) -> dict[str, Any]:
+def normalize_bundle_finding(
+    item: dict[str, Any], bundle: dict[str, Any]
+) -> dict[str, Any]:
     metadata = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
     finding = dict(metadata)
-    for key in ("finding_id", "category", "risk_level", "summary", "evidence_refs",
-                "claim_refs", "benign_explanations", "pressure_test_result",
-                "manual_review_note", "issue_category", "suppressed_by"):
+    for key in (
+        "finding_id",
+        "category",
+        "risk_level",
+        "summary",
+        "evidence_refs",
+        "claim_refs",
+        "benign_explanations",
+        "pressure_test_result",
+        "manual_review_note",
+        "issue_category",
+        "suppressed_by",
+    ):
         if item.get(key) not in (None, "", []):
             finding[key] = item.get(key)
-    finding.setdefault("source_artifact", metadata.get("source_artifact") or "static_audit_bundle.json")
+    finding.setdefault(
+        "source_artifact", metadata.get("source_artifact") or "static_audit_bundle.json"
+    )
     finding.setdefault("issue_category", "consistency")
     if not finding.get("source_path"):
-        finding["source_path"] = source_path_for_evidence_refs(finding.get("evidence_refs") or [], bundle)
+        finding["source_path"] = source_path_for_evidence_refs(
+            finding.get("evidence_refs") or [], bundle
+        )
     return finding
 
 
@@ -133,7 +163,9 @@ def dedupe_findings(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for f in findings:
         if not isinstance(f, dict):
             continue
-        key = str(f.get("finding_id") or json.dumps(f, sort_keys=True, ensure_ascii=False))
+        key = str(
+            f.get("finding_id") or json.dumps(f, sort_keys=True, ensure_ascii=False)
+        )
         if key in seen:
             continue
         seen.add(key)
@@ -142,23 +174,35 @@ def dedupe_findings(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def collect_report_findings(
-    source_findings: dict[str, Any], pair_forensics: dict[str, Any], bundle: dict[str, Any],
+    source_findings: dict[str, Any],
+    pair_forensics: dict[str, Any],
+    bundle: dict[str, Any],
 ) -> list[dict[str, Any]]:
     suppressed_ids: set[str] = set()
     for item in bundle.get("findings") or []:
         if isinstance(item, dict) and item.get("suppressed_by"):
             suppressed_ids.add(str(item.get("finding_id") or ""))
     findings: list[dict[str, Any]] = []
-    findings.extend(annotate_findings(
-        [f for f in (source_findings.get("priority_findings") or [])
-         if str(f.get("finding_id") or "") not in suppressed_ids],
-        SOURCE_DATA_FINDINGS_ARTIFACT,
-    ))
-    findings.extend(annotate_findings(
-        [f for f in (pair_forensics.get("priority_findings") or [])
-         if str(f.get("finding_id") or "") not in suppressed_ids],
-        SOURCE_DATA_PAIR_FORENSICS_ARTIFACT,
-    ))
+    findings.extend(
+        annotate_findings(
+            [
+                f
+                for f in (source_findings.get("priority_findings") or [])
+                if str(f.get("finding_id") or "") not in suppressed_ids
+            ],
+            SOURCE_DATA_FINDINGS_ARTIFACT,
+        )
+    )
+    findings.extend(
+        annotate_findings(
+            [
+                f
+                for f in (pair_forensics.get("priority_findings") or [])
+                if str(f.get("finding_id") or "") not in suppressed_ids
+            ],
+            SOURCE_DATA_PAIR_FORENSICS_ARTIFACT,
+        )
+    )
     seen = {str(f.get("finding_id")) for f in findings if f.get("finding_id")}
     for item in bundle.get("findings") or []:
         if not isinstance(item, dict):
@@ -172,8 +216,12 @@ def collect_report_findings(
         findings.append(normalized)
     return sorted(
         dedupe_findings([f for f in findings if not f.get("suppressed_by")]),
-        key=lambda f: (-finding_display_score(f), -finding_support_value(f),
-                       str(f.get("source_artifact", "")), str(f.get("finding_id", ""))),
+        key=lambda f: (
+            -finding_display_score(f),
+            -finding_support_value(f),
+            str(f.get("source_artifact", "")),
+            str(f.get("finding_id", "")),
+        ),
     )
 
 
@@ -182,7 +230,9 @@ def collect_report_findings(
 # ---------------------------------------------------------------------------
 
 
-def map_findings_to_mappings(mappings: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+def map_findings_to_mappings(
+    mappings: list[dict[str, Any]],
+) -> dict[str, list[dict[str, Any]]]:
     result: dict[str, list[dict[str, Any]]] = {}
     for mapping in mappings:
         for finding in mapping.get("linked_priority_findings") or []:
@@ -193,10 +243,14 @@ def map_findings_to_mappings(mappings: list[dict[str, Any]]) -> dict[str, list[d
 
 
 def map_reviews(reviews: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
-    return {str(item.get("finding_id")): item for item in reviews if item.get("finding_id")}
+    return {
+        str(item.get("finding_id")): item for item in reviews if item.get("finding_id")
+    }
 
 
-def risk_for_finding(risks: list[dict[str, Any]], finding_id: Any) -> dict[str, Any] | None:
+def risk_for_finding(
+    risks: list[dict[str, Any]], finding_id: Any
+) -> dict[str, Any] | None:
     if finding_id is None:
         return None
     for risk in risks:
@@ -208,7 +262,11 @@ def risk_for_finding(risks: list[dict[str, Any]], finding_id: Any) -> dict[str, 
 def paper_refs(mappings: list[dict[str, Any]]) -> list[dict[str, Any]]:
     refs: list[dict[str, Any]] = []
     for mapping in mappings:
-        refs.extend(ref for ref in (mapping.get("matched_paper_references") or []) if isinstance(ref, dict))
+        refs.extend(
+            ref
+            for ref in (mapping.get("matched_paper_references") or [])
+            if isinstance(ref, dict)
+        )
     return refs
 
 
@@ -220,7 +278,9 @@ def best_paper_ref(refs: list[dict[str, Any]]) -> dict[str, Any]:
     return refs[0] if refs else {}
 
 
-def source_locator(finding: dict[str, Any], paper_ref: dict[str, Any]) -> dict[str, str]:
+def source_locator(
+    finding: dict[str, Any], paper_ref: dict[str, Any]
+) -> dict[str, str]:
     line_start = paper_ref.get("line_start")
     line_end = paper_ref.get("line_end")
     if line_start and line_end and line_start != line_end:
@@ -243,10 +303,18 @@ def first_claim(mappings: list[dict[str, Any]]) -> str:
     return ""
 
 
-def review_question(source_review: dict[str, Any], risk: dict[str, Any] | None, finding: dict[str, Any]) -> str:
+def review_question(
+    source_review: dict[str, Any], risk: dict[str, Any] | None, finding: dict[str, Any]
+) -> str:
     if risk and risk.get("requires_human_review"):
-        return str(risk.get("reason", "请人工复核该记录的证据定位、论文表述影响和良性解释。"))
-    refs = source_review.get("evidence_refs") if isinstance(source_review.get("evidence_refs"), dict) else {}
+        return str(
+            risk.get("reason", "请人工复核该记录的证据定位、论文表述影响和良性解释。")
+        )
+    refs = (
+        source_review.get("evidence_refs")
+        if isinstance(source_review.get("evidence_refs"), dict)
+        else {}
+    )
     linked = refs.get("linked_claims") if refs else None
     linked_text = f"关联论文表述: {', '.join(linked)}。" if linked else ""
     if finding.get("workbook") or finding.get("sheet"):
@@ -291,7 +359,11 @@ def sample_pairs_html(samples: list[dict[str, Any]]) -> str:
         f"<div class='sample-row'><div>行 {h(item.get('row', '-'))}</div><div>{h(item.get('left', '-'))}</div><div>{h(item.get('right', '-'))}</div></div>"
         for item in samples[:8]
     ]
-    return "<div class='samples'><div class='sample-row muted'><div>行</div><div>左列</div><div>右列</div></div>" + "".join(rows) + "</div>"
+    return (
+        "<div class='samples'><div class='sample-row muted'><div>行</div><div>左列</div><div>右列</div></div>"
+        + "".join(rows)
+        + "</div>"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -302,11 +374,20 @@ def sample_pairs_html(samples: list[dict[str, Any]]) -> str:
 def evidence_card_findings(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return sorted(
         findings,
-        key=lambda item: (-finding_display_score(item), -int(item.get("support_rows") or item.get("equal_rows") or 0), str(item.get("finding_id", ""))),
+        key=lambda item: (
+            -finding_display_score(item),
+            -int(item.get("support_rows") or item.get("equal_rows") or 0),
+            str(item.get("finding_id", "")),
+        ),
     )[:MAX_EVIDENCE_CARDS]
 
 
-def finding_card(finding: dict[str, Any], mappings: list[dict[str, Any]], source_review: dict[str, Any], risk: dict[str, Any] | None) -> str:
+def finding_card(
+    finding: dict[str, Any],
+    mappings: list[dict[str, Any]],
+    source_review: dict[str, Any],
+    risk: dict[str, Any] | None,
+) -> str:
     finding_id = str(finding.get("finding_id", "-"))
     category = str(finding.get("category", "-"))
     risk_level = display_risk_level_for_finding(finding)
@@ -317,7 +398,11 @@ def finding_card(finding: dict[str, Any], mappings: list[dict[str, Any]], source
     refs = paper_refs(mappings)
     first_ref = best_paper_ref(refs)
     locator = source_locator(finding, first_ref)
-    benign = source_review.get("benign_explanations") or finding.get("benign_explanations") or []
+    benign = (
+        source_review.get("benign_explanations")
+        or finding.get("benign_explanations")
+        or []
+    )
     review_action = review_question(source_review, risk, finding)
     sample_rows = sample_evidence_html(finding)
     claim_text = first_claim(mappings)
@@ -360,8 +445,10 @@ def finding_card(finding: dict[str, Any], mappings: list[dict[str, Any]], source
 
 
 def render_findings_by_category(
-    findings: list[dict[str, Any]], linked_mapping_by_finding: dict[str, list],
-    source_reviews: dict[str, dict], judge_risks: list[dict],
+    findings: list[dict[str, Any]],
+    linked_mapping_by_finding: dict[str, list],
+    source_reviews: dict[str, dict],
+    judge_risks: list[dict],
 ) -> str:
     """Group findings by issue_category and render with chapter headings."""
     if not findings:
@@ -378,9 +465,12 @@ def render_findings_by_category(
         label = ISSUE_CATEGORY_LABELS[category]
         count = len(category_findings)
         cards = "\n".join(
-            finding_card(finding, linked_mapping_by_finding.get(finding.get("finding_id"), []),
-                         source_reviews.get(finding.get("finding_id"), {}),
-                         risk_for_finding(judge_risks, finding.get("finding_id")))
+            finding_card(
+                finding,
+                linked_mapping_by_finding.get(finding.get("finding_id"), []),
+                source_reviews.get(finding.get("finding_id"), {}),
+                risk_for_finding(judge_risks, finding.get("finding_id")),
+            )
             for finding in category_findings
         )
         sections.append(
@@ -388,4 +478,8 @@ def render_findings_by_category(
             f"<h3 class='category-heading'>{chapter}、{label} <span class='category-count'>({count} 条)</span></h3>"
             f"{cards}</div>"
         )
-    return "\n".join(sections) if sections else "<p class='muted'>未生成高优先级复核记录。</p>"
+    return (
+        "\n".join(sections)
+        if sections
+        else "<p class='muted'>未生成高优先级复核记录。</p>"
+    )

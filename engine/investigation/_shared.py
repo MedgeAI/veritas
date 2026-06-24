@@ -473,6 +473,21 @@ def _artifact_summary(workdir: Path) -> dict[str, Any]:
         for item in (source_findings.get("claim_to_source_data") or [])[:18]
         if isinstance(item, dict)
     ]
+    # Sheet briefings — compact structural intelligence for investigation planner
+    briefings_artifact = (
+        _read_json_artifact(workdir, "source_data_sheet_briefings.json") or {}
+    )
+    summary["source_data_briefings"] = [
+        {
+            "sheet": b.get("sheet"),
+            "workbook": b.get("workbook"),
+            "finding_count": b.get("finding_count"),
+            "structure": b.get("structure", {}),
+            "detected_patterns": b.get("detected_patterns", []),
+        }
+        for b in (briefings_artifact.get("sheets") or [])[:20]
+        if isinstance(b, dict)
+    ]
     summary["image_duplicates"] = {
         "image_count": image_duplicates.get("image_count"),
         "duplicate_group_count": image_duplicates.get("duplicate_group_count"),

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from unittest.mock import patch, MagicMock
 
 from engine.static_audit.pipeline import (
     material_plan_from_inventory,
@@ -102,11 +101,18 @@ class TestMaterialPlanFromInventory:
     def test_basic_plan_structure(self) -> None:
         inventory = {
             "files": [
-                {"relative_path": "source_data.xlsx", "material_type": "source_data", "status": "selected"}
+                {
+                    "relative_path": "source_data.xlsx",
+                    "material_type": "source_data",
+                    "status": "selected",
+                }
             ]
         }
         result = material_plan_from_inventory(
-            case_id="test-case", inventory=inventory, status="ok", detail="Plan generated",
+            case_id="test-case",
+            inventory=inventory,
+            status="ok",
+            detail="Plan generated",
         )
         assert result["schema_version"] == "1.0"
         assert result["case_id"] == "test-case"
@@ -116,27 +122,41 @@ class TestMaterialPlanFromInventory:
     def test_unsupported_materials(self) -> None:
         inventory = {
             "files": [
-                {"relative_path": "table.html", "material_type": "structured_table_text"},
+                {
+                    "relative_path": "table.html",
+                    "material_type": "structured_table_text",
+                },
                 {"relative_path": "raw.csv", "material_type": "raw_data"},
             ]
         }
         result = material_plan_from_inventory(
-            case_id="test-case", inventory=inventory, status="ok", detail="test",
+            case_id="test-case",
+            inventory=inventory,
+            status="ok",
+            detail="test",
         )
-        unsupported_types = [m["material_type"] for m in result["unsupported_materials"]]
+        unsupported_types = [
+            m["material_type"] for m in result["unsupported_materials"]
+        ]
         assert "structured_table_text" in unsupported_types
         assert "raw_data" in unsupported_types
 
     def test_missing_materials_when_no_selected_lanes(self) -> None:
         inventory = {"files": []}
         result = material_plan_from_inventory(
-            case_id="test-case", inventory=inventory, status="ok", detail="test",
+            case_id="test-case",
+            inventory=inventory,
+            status="ok",
+            detail="test",
         )
         assert "source_data_xlsx" in result["missing_materials"]
 
     def test_has_agent_rationale(self) -> None:
         result = material_plan_from_inventory(
-            case_id="test-case", inventory={"files": []}, status="ok", detail="test",
+            case_id="test-case",
+            inventory={"files": []},
+            status="ok",
+            detail="test",
         )
         assert len(result["agent_rationale"]) >= 1
 
@@ -148,7 +168,11 @@ class TestMaterialPlanFromInventory:
 
 class TestOptionalLanesFromMaterialPlan:
     def test_uses_material_plan_lanes(self) -> None:
-        plan = {"selected_optional_lanes": [{"lane_id": "source_data_xlsx", "status": "selected"}]}
+        plan = {
+            "selected_optional_lanes": [
+                {"lane_id": "source_data_xlsx", "status": "selected"}
+            ]
+        }
         result = optional_lanes_from_material_plan(plan, {})
         assert len(result) == 1
         assert result[0]["lane_id"] == "source_data_xlsx"
@@ -234,5 +258,6 @@ class TestRunStaticAuditFromArgs:
             skip_unavailable_tools=False,
         )
         import pytest
+
         with pytest.raises(NotADirectoryError):
             _run_static_audit_from_args(args)

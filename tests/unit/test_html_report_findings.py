@@ -10,7 +10,6 @@ from engine.static_audit.html_report._findings import (
     default_finding_summary,
     evidence_card_findings,
     first_claim,
-    finding_card,
     map_findings_to_mappings,
     map_reviews,
     mapping_granularity_note,
@@ -45,15 +44,21 @@ class TestSourceArtifactForFinding:
 
     def test_pair_category_returns_pair_forensics(self) -> None:
         finding = {"category": "row_offset_scalar_multiple"}
-        assert source_artifact_for_finding(finding) == SOURCE_DATA_PAIR_FORENSICS_ARTIFACT
+        assert (
+            source_artifact_for_finding(finding) == SOURCE_DATA_PAIR_FORENSICS_ARTIFACT
+        )
 
     def test_paired_ratio_reuse(self) -> None:
         finding = {"category": "long_format_paired_ratio_reuse"}
-        assert source_artifact_for_finding(finding) == SOURCE_DATA_PAIR_FORENSICS_ARTIFACT
+        assert (
+            source_artifact_for_finding(finding) == SOURCE_DATA_PAIR_FORENSICS_ARTIFACT
+        )
 
     def test_duplicate_row_vector(self) -> None:
         finding = {"category": "duplicate_row_vector"}
-        assert source_artifact_for_finding(finding) == SOURCE_DATA_PAIR_FORENSICS_ARTIFACT
+        assert (
+            source_artifact_for_finding(finding) == SOURCE_DATA_PAIR_FORENSICS_ARTIFACT
+        )
 
     def test_workbook_returns_source_findings(self) -> None:
         finding = {"workbook": "source.xlsx", "category": "fixed_difference"}
@@ -211,12 +216,20 @@ class TestCollectReportFindings:
     def test_merges_source_and_pair_findings(self) -> None:
         source = {
             "priority_findings": [
-                {"finding_id": "SRC-001", "category": "fixed_difference", "risk_level": "medium"}
+                {
+                    "finding_id": "SRC-001",
+                    "category": "fixed_difference",
+                    "risk_level": "medium",
+                }
             ]
         }
         pair = {
             "priority_findings": [
-                {"finding_id": "PAIR-001", "category": "row_offset_scalar_multiple", "risk_level": "high"}
+                {
+                    "finding_id": "PAIR-001",
+                    "category": "row_offset_scalar_multiple",
+                    "risk_level": "high",
+                }
             ]
         }
         bundle = {"findings": [], "evidence_items": []}
@@ -228,13 +241,15 @@ class TestCollectReportFindings:
     def test_suppressed_findings_excluded(self) -> None:
         source = {
             "priority_findings": [
-                {"finding_id": "SRC-001", "category": "fixed_difference", "risk_level": "medium"}
+                {
+                    "finding_id": "SRC-001",
+                    "category": "fixed_difference",
+                    "risk_level": "medium",
+                }
             ]
         }
         bundle = {
-            "findings": [
-                {"finding_id": "SRC-001", "suppressed_by": "other_finding"}
-            ],
+            "findings": [{"finding_id": "SRC-001", "suppressed_by": "other_finding"}],
             "evidence_items": [],
         }
         result = collect_report_findings(source, {}, bundle)
@@ -259,8 +274,18 @@ class TestCollectReportFindings:
     def test_sorted_by_risk_then_support(self) -> None:
         source = {
             "priority_findings": [
-                {"finding_id": "LOW", "category": "fixed_difference", "risk_level": "low", "support_rows": 10},
-                {"finding_id": "HIGH", "category": "fixed_difference", "risk_level": "high", "support_rows": 5},
+                {
+                    "finding_id": "LOW",
+                    "category": "fixed_difference",
+                    "risk_level": "low",
+                    "support_rows": 10,
+                },
+                {
+                    "finding_id": "HIGH",
+                    "category": "fixed_difference",
+                    "risk_level": "high",
+                    "support_rows": 5,
+                },
             ]
         }
         bundle = {"findings": [], "evidence_items": []}
@@ -270,12 +295,20 @@ class TestCollectReportFindings:
     def test_deduplication_across_sources(self) -> None:
         source = {
             "priority_findings": [
-                {"finding_id": "DUP-001", "category": "fixed_difference", "risk_level": "medium"}
+                {
+                    "finding_id": "DUP-001",
+                    "category": "fixed_difference",
+                    "risk_level": "medium",
+                }
             ]
         }
         bundle = {
             "findings": [
-                {"finding_id": "DUP-001", "category": "fixed_difference", "risk_level": "medium"}
+                {
+                    "finding_id": "DUP-001",
+                    "category": "fixed_difference",
+                    "risk_level": "medium",
+                }
             ],
             "evidence_items": [],
         }
@@ -297,7 +330,10 @@ class TestFindingMappings:
             },
             {
                 "mapping_id": "CM-002",
-                "linked_priority_findings": [{"finding_id": "F-001"}, {"finding_id": "F-002"}],
+                "linked_priority_findings": [
+                    {"finding_id": "F-001"},
+                    {"finding_id": "F-002"},
+                ],
             },
         ]
         result = map_findings_to_mappings(mappings)
@@ -526,7 +562,11 @@ class TestSampleEvidence:
 class TestEvidenceCardFindings:
     def test_sorted_by_score_and_limited(self) -> None:
         findings = [
-            {"finding_id": f"F-{i}", "risk_level": "low", "category": "fixed_difference"}
+            {
+                "finding_id": f"F-{i}",
+                "risk_level": "low",
+                "category": "fixed_difference",
+            }
             for i in range(15)
         ]
         findings[0]["risk_level"] = "critical"
@@ -550,8 +590,18 @@ class TestRenderFindingsByCategory:
 
     def test_groups_by_category(self) -> None:
         findings = [
-            {"finding_id": "F-001", "issue_category": "consistency", "risk_level": "high", "category": "fixed_difference"},
-            {"finding_id": "F-002", "issue_category": "completeness", "risk_level": "low", "category": "source_data_missing"},
+            {
+                "finding_id": "F-001",
+                "issue_category": "consistency",
+                "risk_level": "high",
+                "category": "fixed_difference",
+            },
+            {
+                "finding_id": "F-002",
+                "issue_category": "completeness",
+                "risk_level": "low",
+                "category": "source_data_missing",
+            },
         ]
         result = render_findings_by_category(findings, {}, {}, [])
         assert "一致性问题" in result
@@ -561,8 +611,18 @@ class TestRenderFindingsByCategory:
 
     def test_category_count(self) -> None:
         findings = [
-            {"finding_id": "F-001", "issue_category": "consistency", "risk_level": "high", "category": "a"},
-            {"finding_id": "F-002", "issue_category": "consistency", "risk_level": "high", "category": "b"},
+            {
+                "finding_id": "F-001",
+                "issue_category": "consistency",
+                "risk_level": "high",
+                "category": "a",
+            },
+            {
+                "finding_id": "F-002",
+                "issue_category": "consistency",
+                "risk_level": "high",
+                "category": "b",
+            },
         ]
         result = render_findings_by_category(findings, {}, {}, [])
         assert "(2 条)" in result

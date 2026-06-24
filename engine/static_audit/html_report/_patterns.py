@@ -13,7 +13,6 @@ from engine.static_audit.html_report._shared import (
     clean_report_text,
     dedupe,
     finding_display_score,
-    finding_support_value,
     highest_display_risk,
     pattern_key_for_finding,
     ref_mentions_finding,
@@ -30,11 +29,16 @@ from engine.static_audit.html_report._benign import (
 def pattern_sort_key(item: tuple[str, list[dict[str, Any]]]) -> tuple[int, int, str]:
     key, findings = item
     order = {
-        "paired_offset_ratio_reuse": 0, "row_vector_reuse": 1,
-        "duplicate_numeric_columns": 2, "partial_copy_rounding_bias": 3,
-        "row_vector_reuse_rounding": 4, "formula_derivation": 5,
-        "visual_forensics": 6, "numeric_forensics": 7,
-        "execution_evidence": 8, "other": 9,
+        "paired_offset_ratio_reuse": 0,
+        "row_vector_reuse": 1,
+        "duplicate_numeric_columns": 2,
+        "partial_copy_rounding_bias": 3,
+        "row_vector_reuse_rounding": 4,
+        "formula_derivation": 5,
+        "visual_forensics": 6,
+        "numeric_forensics": 7,
+        "execution_evidence": 8,
+        "other": 9,
     }
     return (order.get(key, 7), -len(findings), key)
 
@@ -115,7 +119,9 @@ def key_sheets(clusters: list[dict[str, Any]], limit: int) -> list[str]:
 
 
 def factual_pattern_title(pattern_key: str, findings: list[dict[str, Any]]) -> str:
-    categories = Counter(str(f.get("category") or "") for f in findings if isinstance(f, dict))
+    categories = Counter(
+        str(f.get("category") or "") for f in findings if isinstance(f, dict)
+    )
     category = next((item for item, _ in categories.most_common() if item), "")
     if category:
         label = category_label(category)
@@ -127,7 +133,9 @@ def factual_pattern_title(pattern_key: str, findings: list[dict[str, Any]]) -> s
 
 
 def pattern_agent_sentences(
-    manual_tasks: list[dict[str, Any]], risks: list[dict[str, Any]], reviews: list[dict[str, Any]],
+    manual_tasks: list[dict[str, Any]],
+    risks: list[dict[str, Any]],
+    reviews: list[dict[str, Any]],
 ) -> list[str]:
     sentences: list[str] = []
     for risk in risks:
@@ -155,23 +163,41 @@ def first_report_sentence(text: str) -> str:
 
 
 def pattern_display_text(
-    pattern_key: str, findings: list[dict[str, Any]], manual_tasks: list[dict[str, Any]],
-    risks: list[dict[str, Any]], reviews: list[dict[str, Any]], definition: dict[str, str],
+    pattern_key: str,
+    findings: list[dict[str, Any]],
+    manual_tasks: list[dict[str, Any]],
+    risks: list[dict[str, Any]],
+    reviews: list[dict[str, Any]],
+    definition: dict[str, str],
 ) -> dict[str, str]:
     agent_sentences = pattern_agent_sentences(manual_tasks, risks, reviews)
     if agent_sentences:
-        return {"title": shorten(first_report_sentence(agent_sentences[0]), 78),
-                "thesis": shorten("；".join(agent_sentences[:3]), 260), "source": "agent"}
+        return {
+            "title": shorten(first_report_sentence(agent_sentences[0]), 78),
+            "thesis": shorten("；".join(agent_sentences[:3]), 260),
+            "source": "agent",
+        }
     data_sentence = context_aware_review_question(pattern_key, findings)
     if data_sentence and data_sentence != definition.get("review_question"):
-        return {"title": shorten(first_report_sentence(data_sentence), 78),
-                "thesis": shorten(data_sentence, 260), "source": "data"}
-    return {"title": factual_pattern_title(pattern_key, findings),
-            "thesis": f"该类别未生成摘要；仅保留 {len(findings)} 条原始证据记录。", "source": "rule"}
+        return {
+            "title": shorten(first_report_sentence(data_sentence), 78),
+            "thesis": shorten(data_sentence, 260),
+            "source": "data",
+        }
+    return {
+        "title": factual_pattern_title(pattern_key, findings),
+        "thesis": f"该类别未生成摘要；仅保留 {len(findings)} 条原始证据记录。",
+        "source": "rule",
+    }
 
 
 def displayable_patterns(patterns: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    return [p for p in patterns if str(p.get("summary_source") or "") != "rule" and not is_context_only_pattern(p)]
+    return [
+        p
+        for p in patterns
+        if str(p.get("summary_source") or "") != "rule"
+        and not is_context_only_pattern(p)
+    ]
 
 
 def is_context_only_pattern(pattern: dict[str, Any]) -> bool:
@@ -191,64 +217,134 @@ def is_primary_pattern(pattern: dict[str, Any]) -> bool:
     return any(str(f.get("issue_category") or "") == "consistency" for f in findings)
 
 
-def tier_patterns(patterns: list[dict[str, Any]], top_n: int = 20) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+def tier_patterns(
+    patterns: list[dict[str, Any]], top_n: int = 20
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     primary = [p for p in patterns if is_primary_pattern(p)][:top_n]
-    primary_keys = {p.get("pattern_id") if p.get("pattern_id") is not None else id(p) for p in primary}
-    secondary = [p for p in patterns if (p.get("pattern_id") if p.get("pattern_id") is not None else id(p)) not in primary_keys]
+    primary_keys = {
+        p.get("pattern_id") if p.get("pattern_id") is not None else id(p)
+        for p in primary
+    }
+    secondary = [
+        p
+        for p in patterns
+        if (p.get("pattern_id") if p.get("pattern_id") is not None else id(p))
+        not in primary_keys
+    ]
     return primary, secondary
 
 
 def build_pattern_groups(
-    findings: list[dict[str, Any]], claim_mappings: list[dict[str, Any]],
-    claims: list[dict[str, Any]], manual_tasks: list[dict[str, Any]],
-    source_reviews: dict[str, dict[str, Any]], judge_risks: list[dict[str, Any]],
+    findings: list[dict[str, Any]],
+    claim_mappings: list[dict[str, Any]],
+    claims: list[dict[str, Any]],
+    manual_tasks: list[dict[str, Any]],
+    source_reviews: dict[str, dict[str, Any]],
+    judge_risks: list[dict[str, Any]],
 ) -> list[dict[str, Any]]:
-    from engine.static_audit.html_report._clusters import claims_for_finding_ids, tasks_for_finding_ids
+    from engine.static_audit.html_report._clusters import (
+        claims_for_finding_ids,
+        tasks_for_finding_ids,
+    )
+
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for finding in findings:
         if isinstance(finding, dict):
             grouped[pattern_key_for_finding(finding)].append(finding)
     patterns = []
-    for index, (pattern_key, group_findings) in enumerate(sorted(grouped.items(), key=pattern_sort_key), start=1):
-        group_findings = sorted(group_findings, key=lambda f: (-finding_display_score(f), str(f.get("sheet", "")), str(f.get("finding_id", ""))))
+    for index, (pattern_key, group_findings) in enumerate(
+        sorted(grouped.items(), key=pattern_sort_key), start=1
+    ):
+        group_findings = sorted(
+            group_findings,
+            key=lambda f: (
+                -finding_display_score(f),
+                str(f.get("sheet", "")),
+                str(f.get("finding_id", "")),
+            ),
+        )
         definition = pattern_definition(pattern_key)
-        finding_ids = [str(f.get("finding_id")) for f in group_findings if f.get("finding_id")]
+        finding_ids = [
+            str(f.get("finding_id")) for f in group_findings if f.get("finding_id")
+        ]
         matched_claims = claims_for_finding_ids(finding_ids, claims, claim_mappings)
         matched_tasks = tasks_for_finding_ids(finding_ids, manual_tasks)
-        matched_risks = [r for r in judge_risks if any(ref_mentions_finding(ref, finding_ids) for ref in (r.get("evidence_refs") or []))]
+        matched_risks = [
+            r
+            for r in judge_risks
+            if any(
+                ref_mentions_finding(ref, finding_ids)
+                for ref in (r.get("evidence_refs") or [])
+            )
+        ]
         reviews = [source_reviews[fid] for fid in finding_ids if fid in source_reviews]
         sheets = sorted({str(f.get("sheet")) for f in group_findings if f.get("sheet")})
-        workbooks = sorted({str(f.get("workbook")) for f in group_findings if f.get("workbook")})
+        workbooks = sorted(
+            {str(f.get("workbook")) for f in group_findings if f.get("workbook")}
+        )
         categories = Counter(str(f.get("category", "-")) for f in group_findings)
         risk = highest_display_risk(group_findings)
-        display = pattern_display_text(pattern_key, group_findings, matched_tasks, matched_risks, reviews, definition)
-        patterns.append({
-            "pattern_id": f"P-{index:03d}", "pattern_key": pattern_key,
-            "title": display["title"], "thesis": display["thesis"], "summary_source": display["source"],
-            "fallback_title": definition["title"], "fallback_thesis": definition["thesis"],
-            "review_question": definition["review_question"], "risk_level": risk,
-            "findings": group_findings, "finding_ids": finding_ids, "sheets": sheets,
-            "workbooks": workbooks, "categories": categories, "claims": matched_claims,
-            "manual_tasks": matched_tasks, "risks": matched_risks, "reviews": reviews,
-            "benign_explanations": cluster_benign_explanations(group_findings, reviews),
-        })
+        display = pattern_display_text(
+            pattern_key,
+            group_findings,
+            matched_tasks,
+            matched_risks,
+            reviews,
+            definition,
+        )
+        patterns.append(
+            {
+                "pattern_id": f"P-{index:03d}",
+                "pattern_key": pattern_key,
+                "title": display["title"],
+                "thesis": display["thesis"],
+                "summary_source": display["source"],
+                "fallback_title": definition["title"],
+                "fallback_thesis": definition["thesis"],
+                "review_question": definition["review_question"],
+                "risk_level": risk,
+                "findings": group_findings,
+                "finding_ids": finding_ids,
+                "sheets": sheets,
+                "workbooks": workbooks,
+                "categories": categories,
+                "claims": matched_claims,
+                "manual_tasks": matched_tasks,
+                "risks": matched_risks,
+                "reviews": reviews,
+                "benign_explanations": cluster_benign_explanations(
+                    group_findings, reviews
+                ),
+            }
+        )
     return patterns
 
 
 def pattern_group_cards(patterns: list[dict[str, Any]]) -> str:
     if not patterns:
         return "<p class='muted'>未形成重点事实摘要。请查看原始证据记录。</p>"
-    from engine.static_audit.html_report._clusters import context_aware_review_question as _carq
     cards = []
     for pattern in patterns:
         source = str(pattern.get("summary_source") or "rule")
         claims = pattern.get("claims") or []
-        claim_items = [f"<li><code>{h(claim.get('claim_id', '-'))}</code> {h(shorten(claim.get('claim_text') or claim.get('text') or '-', 220))}</li>" for claim in claims[:5]] or ["<li class='muted'>未自动关联到具体论文表述，需人工补映射。</li>"]
-        _manual = [t for t in (pattern.get("manual_tasks") or []) if isinstance(t, dict) and t.get("question")]
+        claim_items = [
+            f"<li><code>{h(claim.get('claim_id', '-'))}</code> {h(shorten(claim.get('claim_text') or claim.get('text') or '-', 220))}</li>"
+            for claim in claims[:5]
+        ] or ["<li class='muted'>未自动关联到具体论文表述，需人工补映射。</li>"]
+        _manual = [
+            t
+            for t in (pattern.get("manual_tasks") or [])
+            if isinstance(t, dict) and t.get("question")
+        ]
         if _manual:
-            task_items = [f"<li>{_confidence_badge('data')}{h(shorten(clean_report_text(t.get('question', '')), 180))}</li>" for t in _manual[:3]]
+            task_items = [
+                f"<li>{_confidence_badge('data')}{h(shorten(clean_report_text(t.get('question', '')), 180))}</li>"
+                for t in _manual[:3]
+            ]
         else:
-            task_items = [f"<li>{_confidence_badge('data')}{h(shorten(context_aware_review_question(pattern.get('pattern_key', 'other'), pattern.get('findings') or []), 260))}</li>"]
+            task_items = [
+                f"<li>{_confidence_badge('data')}{h(shorten(context_aware_review_question(pattern.get('pattern_key', 'other'), pattern.get('findings') or []), 260))}</li>"
+            ]
         categories = pattern.get("categories") or Counter()
         cards.append(f"""
 <article class="pattern-card" id="{h(pattern.get("pattern_id"))}">
@@ -282,6 +378,7 @@ def pattern_group_cards(patterns: list[dict[str, Any]]) -> str:
 
 def _evidence_records_table_import():
     from engine.static_audit.html_report._source_data import evidence_records_table
+
     return evidence_records_table
 
 
@@ -289,8 +386,12 @@ def irreducible_evidence_ledger(patterns: list[dict[str, Any]]) -> str:
     if not patterns:
         return "<p class='muted'>未生成不可约证据记录。</p>"
     from engine.static_audit.html_report._source_data import evidence_records_table
+
     sections = []
-    for pattern in sorted(patterns, key=lambda p: (is_context_only_pattern(p), str(p.get("pattern_id") or ""))):
+    for pattern in sorted(
+        patterns,
+        key=lambda p: (is_context_only_pattern(p), str(p.get("pattern_id") or "")),
+    ):
         sections.append(f"""
 <details class="compact-details">
   <summary><span><strong>{h(pattern.get("pattern_id"))} · {h(clean_report_text(pattern.get("title")))}</strong><br/><span class="muted">{h(len(pattern.get("findings") or []))} 条记录 · {h(", ".join(pattern.get("sheets") or []) or "-")}</span></span><span class="badge skipped">展开</span></summary>

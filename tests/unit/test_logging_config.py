@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import logging
 import os
-import textwrap
 from logging.handlers import RotatingFileHandler
 from unittest import mock
 
@@ -30,7 +29,9 @@ def test_configure_logging_adds_stream_handler():
 
     root = logging.getLogger("veritas")
     stream_handlers = [
-        h for h in root.handlers if isinstance(h, logging.StreamHandler)
+        h
+        for h in root.handlers
+        if isinstance(h, logging.StreamHandler)
         and not isinstance(h, (RotatingFileHandler, logging.FileHandler))
     ]
     assert len(stream_handlers) >= 1
@@ -101,7 +102,9 @@ def test_log_format():
 
 def test_fallback_on_unwritable_log_dir():
     """When log dir cannot be created, we degrade to stderr only."""
-    with mock.patch.dict(os.environ, {"VERITAS_LOG_DIR": "/proc/nonexistent/impossible"}):
+    with mock.patch.dict(
+        os.environ, {"VERITAS_LOG_DIR": "/proc/nonexistent/impossible"}
+    ):
         logging_config.configure_logging()
 
     root = logging.getLogger("veritas")
@@ -110,7 +113,8 @@ def test_fallback_on_unwritable_log_dir():
     assert len(file_handlers) == 0
     # But stream handler should still be present
     stream_handlers = [
-        h for h in root.handlers
+        h
+        for h in root.handlers
         if isinstance(h, logging.StreamHandler)
         and not isinstance(h, (RotatingFileHandler, logging.FileHandler))
     ]

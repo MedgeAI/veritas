@@ -10,7 +10,6 @@ from engine.static_audit.html_report._shared import (
     clean_report_text,
     dedupe,
     list_items,
-    risk_label,
     risk_score,
     shorten,
 )
@@ -230,7 +229,8 @@ def executive_summary(
 
     if has_only_completeness:
         missing_count = sum(
-            1 for f in findings
+            1
+            for f in findings
             if str(f.get("category")) == "source_data_missing"
             and str(f.get("finding_id", "")).startswith("SDM-SUMMARY-")
         )

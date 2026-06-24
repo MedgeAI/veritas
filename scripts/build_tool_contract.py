@@ -47,8 +47,8 @@ def _build_markdown() -> str:
 
     lines.append("## Summary")
     lines.append("")
-    lines.append(f"| Metric | Value |")
-    lines.append(f"|---|---|")
+    lines.append("| Metric | Value |")
+    lines.append("|---|---|")
     lines.append(f"| Total tools | {len(TOOLS)} |")
     for phase in ExecutionPhase:
         lines.append(f"| {_phase_label(phase)} | {phase_counts[phase]} |")
@@ -56,9 +56,7 @@ def _build_markdown() -> str:
 
     # Per-phase sections
     for phase in ExecutionPhase:
-        tools_in_phase = [
-            t for t in TOOLS.values() if t.execution_phase == phase
-        ]
+        tools_in_phase = [t for t in TOOLS.values() if t.execution_phase == phase]
         if not tools_in_phase:
             continue
 
@@ -68,9 +66,7 @@ def _build_markdown() -> str:
             "| tool_id | deterministic | agent_selectable | "
             "input_artifacts | output_artifacts |"
         )
-        lines.append(
-            "|---|---|---|---|---|"
-        )
+        lines.append("|---|---|---|---|---|")
         for t in tools_in_phase:
             lines.append(
                 f"| `{t.tool_id}` | {'yes' if t.deterministic else '**no**'} | "
@@ -90,10 +86,16 @@ def _build_markdown() -> str:
             )
             lines.append("")
             lines.append("- Tool must have `execution_phase = agent_selectable`")
-            lines.append("- Tool must be `deterministic = true` (non-deterministic agents are invoked via role layer, not investigation)")
-            lines.append("- Params are validated against `param_schema` ranges in registry")
+            lines.append(
+                "- Tool must be `deterministic = true` (non-deterministic agents are invoked via role layer, not investigation)"
+            )
+            lines.append(
+                "- Params are validated against `param_schema` ranges in registry"
+            )
             lines.append("- Max 3 investigation rounds per audit run")
-            lines.append("- Each action requires `hypothesis`, `depends_on_artifacts`, and `expected_evidence_type`")
+            lines.append(
+                "- Each action requires `hypothesis`, `depends_on_artifacts`, and `expected_evidence_type`"
+            )
             lines.append("")
 
     return "\n".join(lines)

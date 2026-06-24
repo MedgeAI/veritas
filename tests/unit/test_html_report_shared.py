@@ -6,9 +6,6 @@ import json
 from pathlib import Path
 
 from engine.static_audit.html_report._shared import (
-    MAX_EVIDENCE_CARDS,
-    SOURCE_DATA_FINDINGS_ARTIFACT,
-    SOURCE_DATA_PAIR_FORENSICS_ARTIFACT,
     _confidence_badge,
     category_label,
     clean_report_text,
@@ -32,7 +29,7 @@ from engine.static_audit.html_report._shared import (
     status_label,
     summary_text,
 )
-from engine.static_audit.html_report._html_utils import h as h_func, h_attr
+from engine.static_audit.html_report._html_utils import h_attr
 
 
 # ---------------------------------------------------------------------------
@@ -42,7 +39,10 @@ from engine.static_audit.html_report._html_utils import h as h_func, h_attr
 
 class TestHtmlEscape:
     def test_h_escapes_angle_brackets(self) -> None:
-        assert h("<script>alert('x')</script>") == "&lt;script&gt;alert(&#x27;x&#x27;)&lt;/script&gt;"
+        assert (
+            h("<script>alert('x')</script>")
+            == "&lt;script&gt;alert(&#x27;x&#x27;)&lt;/script&gt;"
+        )
 
     def test_h_escapes_ampersand(self) -> None:
         assert h("a&b") == "a&amp;b"
@@ -382,7 +382,10 @@ class TestRefMentionsFinding:
 
 class TestPatternKeyForFinding:
     def test_paired_offset_ratio_reuse(self) -> None:
-        finding = {"category": "row_offset_scalar_multiple", "source_artifact": "x.json"}
+        finding = {
+            "category": "row_offset_scalar_multiple",
+            "source_artifact": "x.json",
+        }
         assert pattern_key_for_finding(finding) == "paired_offset_ratio_reuse"
 
     def test_long_format_paired_ratio(self) -> None:
@@ -428,7 +431,10 @@ class TestPatternKeyForFinding:
     def test_trufor_via_source_artifact(self) -> None:
         # forged_region_suspicious is not directly matched by visual tokens,
         # but visual_evidence.json as source_artifact triggers visual_forensics
-        finding = {"category": "forged_region_suspicious", "source_artifact": "visual_evidence.json"}
+        finding = {
+            "category": "forged_region_suspicious",
+            "source_artifact": "visual_evidence.json",
+        }
         assert pattern_key_for_finding(finding) == "visual_forensics"
 
     def test_numeric_forensics(self) -> None:

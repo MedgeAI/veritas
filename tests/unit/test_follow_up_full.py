@@ -4,9 +4,8 @@ from __future__ import annotations
 
 import asyncio
 import json
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
-import pytest
 
 from engine.follow_up.generator import (
     LLMFollowUpGenerator,
@@ -18,15 +17,6 @@ from engine.follow_up.templates import (
     _column_ref,
     _first,
     _fmt_list,
-    _gen_copy_move,
-    _gen_default,
-    _gen_exact_image_duplicate,
-    _gen_fixed_relation,
-    _gen_forged_region,
-    _gen_overlap_reuse,
-    _gen_paperfraud,
-    _gen_paired_reuse,
-    _gen_source_data_missing,
     _metadata,
     _panel_ref,
     _score_ref,
@@ -107,7 +97,10 @@ class TestColumnRef:
 
 class TestSheetRef:
     def test_workbook_and_sheet(self) -> None:
-        assert _sheet_ref({"workbook": "source.xlsx", "sheet": "Fig2"}) == "source.xlsx / Fig2"
+        assert (
+            _sheet_ref({"workbook": "source.xlsx", "sheet": "Fig2"})
+            == "source.xlsx / Fig2"
+        )
 
     def test_sheet_only(self) -> None:
         assert _sheet_ref({"sheet": "Fig2"}) == "Fig2"
@@ -119,7 +112,9 @@ class TestSheetRef:
         assert _sheet_ref({}) == "Source Data"
 
     def test_file_key(self) -> None:
-        assert _sheet_ref({"file": "data.xlsx", "sheet": "Sheet1"}) == "data.xlsx / Sheet1"
+        assert (
+            _sheet_ref({"file": "data.xlsx", "sheet": "Sheet1"}) == "data.xlsx / Sheet1"
+        )
 
 
 class TestSupportRef:
@@ -148,7 +143,10 @@ class TestPanelRef:
         assert _panel_ref({"panels": ["P-001", "P-002"]}) == "P-001, P-002"
 
     def test_source_and_target(self) -> None:
-        assert _panel_ref({"source_panel_id": "P-A", "target_panel_id": "P-B"}) == "P-A, P-B"
+        assert (
+            _panel_ref({"source_panel_id": "P-A", "target_panel_id": "P-B"})
+            == "P-A, P-B"
+        )
 
 
 class TestScoreRef:
@@ -174,7 +172,13 @@ class TestGenDuplicateColumn:
     def test_basic(self) -> None:
         finding = {
             "category": "duplicate_numeric_columns",
-            "metadata": {"workbook": "s.xlsx", "sheet": "S1", "column_labels": ["E", "G"], "equal_rows": 18, "overlap_rows": 18},
+            "metadata": {
+                "workbook": "s.xlsx",
+                "sheet": "S1",
+                "column_labels": ["E", "G"],
+                "equal_rows": 18,
+                "overlap_rows": 18,
+            },
         }
         questions = generate_fallback_questions(finding)
         assert "s.xlsx / S1" in questions[0]
@@ -186,7 +190,14 @@ class TestGenFixedRelation:
     def test_fixed_difference(self) -> None:
         finding = {
             "category": "fixed_difference",
-            "metadata": {"workbook": "s.xlsx", "sheet": "S1", "column_pair": ["D", "E"], "support_rows": 35, "overlap_rows": 35, "difference": "0.3"},
+            "metadata": {
+                "workbook": "s.xlsx",
+                "sheet": "S1",
+                "column_pair": ["D", "E"],
+                "support_rows": 35,
+                "overlap_rows": 35,
+                "difference": "0.3",
+            },
         }
         questions = generate_fallback_questions(finding)
         assert "固定差值关系" in questions[0]
@@ -195,7 +206,13 @@ class TestGenFixedRelation:
     def test_fixed_ratio(self) -> None:
         finding = {
             "category": "fixed_ratio",
-            "metadata": {"workbook": "s.xlsx", "sheet": "S1", "column_pair": ["A", "B"], "support_rows": 20, "ratio": "2.0"},
+            "metadata": {
+                "workbook": "s.xlsx",
+                "sheet": "S1",
+                "column_pair": ["A", "B"],
+                "support_rows": 20,
+                "ratio": "2.0",
+            },
         }
         questions = generate_fallback_questions(finding)
         assert "固定比例关系" in questions[0]
@@ -204,7 +221,13 @@ class TestGenFixedRelation:
     def test_formula_derived(self) -> None:
         finding = {
             "category": "formula_derived_column",
-            "metadata": {"workbook": "s.xlsx", "sheet": "S1", "column_pair": ["A", "B"], "support_rows": 10, "value": "A/B"},
+            "metadata": {
+                "workbook": "s.xlsx",
+                "sheet": "S1",
+                "column_pair": ["A", "B"],
+                "support_rows": 10,
+                "value": "A/B",
+            },
         }
         questions = generate_fallback_questions(finding)
         assert "公式派生" in questions[0]
@@ -214,7 +237,14 @@ class TestGenPairedReuse:
     def test_paired_ratio_reuse(self) -> None:
         finding = {
             "category": "long_format_paired_ratio_reuse",
-            "metadata": {"workbook": "s.xlsx", "sheet": "S1", "column_pair": ["A", "B"], "matched_pairs": 10, "overlap_pairs": 10, "row_offset": 5},
+            "metadata": {
+                "workbook": "s.xlsx",
+                "sheet": "S1",
+                "column_pair": ["A", "B"],
+                "matched_pairs": 10,
+                "overlap_pairs": 10,
+                "row_offset": 5,
+            },
         }
         questions = generate_fallback_questions(finding)
         assert "成对复用模式" in questions[0]
@@ -233,7 +263,12 @@ class TestGenCopyMove:
     def test_basic(self) -> None:
         finding = {
             "category": "copy_move_cross",
-            "metadata": {"source_panel_id": "P-A", "target_panel_id": "P-B", "score": 0.85, "match_method": "rootsift"},
+            "metadata": {
+                "source_panel_id": "P-A",
+                "target_panel_id": "P-B",
+                "score": 0.85,
+                "match_method": "rootsift",
+            },
         }
         questions = generate_fallback_questions(finding)
         assert "P-A" in questions[0]
@@ -244,7 +279,10 @@ class TestGenCopyMove:
 
 class TestGenSourceDataMissing:
     def test_with_figure_id(self) -> None:
-        finding = {"category": "source_data_missing", "metadata": {"figure_id": "Fig.3"}}
+        finding = {
+            "category": "source_data_missing",
+            "metadata": {"figure_id": "Fig.3"},
+        }
         questions = generate_fallback_questions(finding)
         assert "Fig.3" in questions[0]
 
@@ -256,12 +294,18 @@ class TestGenSourceDataMissing:
 
 class TestGenExactImageDuplicate:
     def test_with_images(self) -> None:
-        finding = {"category": "exact_image_duplicate", "metadata": {"images": ["fig1.png", "fig2.png"]}}
+        finding = {
+            "category": "exact_image_duplicate",
+            "metadata": {"images": ["fig1.png", "fig2.png"]},
+        }
         questions = generate_fallback_questions(finding)
         assert "fig1.png" in questions[0]
 
     def test_with_file_a(self) -> None:
-        finding = {"category": "exact_image_duplicate", "metadata": {"file_a": "img1.png"}}
+        finding = {
+            "category": "exact_image_duplicate",
+            "metadata": {"file_a": "img1.png"},
+        }
         questions = generate_fallback_questions(finding)
         assert "img1.png" in questions[0]
 
@@ -270,7 +314,11 @@ class TestGenOverlapReuse:
     def test_basic(self) -> None:
         finding = {
             "category": "overlap_reuse_detected",
-            "metadata": {"figure_a": "Fig.1", "figure_b": "Fig.2", "shared_area": "1234"},
+            "metadata": {
+                "figure_a": "Fig.1",
+                "figure_b": "Fig.2",
+                "shared_area": "1234",
+            },
         }
         questions = generate_fallback_questions(finding)
         assert "Fig.1" in questions[0]
@@ -282,7 +330,12 @@ class TestGenForgedRegion:
     def test_basic(self) -> None:
         finding = {
             "category": "forged_region_suspicious",
-            "metadata": {"source_panel_id": "P-001", "target_panel_id": "P-002", "score": 0.7, "heatmap_path": "heat.png"},
+            "metadata": {
+                "source_panel_id": "P-001",
+                "target_panel_id": "P-002",
+                "score": 0.7,
+                "heatmap_path": "heat.png",
+            },
         }
         questions = generate_fallback_questions(finding)
         assert "P-001" in questions[0]
@@ -304,7 +357,11 @@ class TestGenPaperfraud:
 
 class TestGenDefault:
     def test_with_finding_id(self) -> None:
-        finding = {"finding_id": "GEN-001", "category": "unknown", "summary": "Custom finding"}
+        finding = {
+            "finding_id": "GEN-001",
+            "category": "unknown",
+            "summary": "Custom finding",
+        }
         questions = generate_fallback_questions(finding)
         assert "GEN-001" in questions[0]
         assert "Custom finding" in questions[0]
@@ -327,7 +384,11 @@ class TestGenerateFallbackQuestions:
         assert len(questions) >= 1
 
     def test_paperfraud_prefix(self) -> None:
-        finding = {"category": "paperfraud.methodology_review", "summary": "test", "metadata": {"rule_id": "test.rule"}}
+        finding = {
+            "category": "paperfraud.methodology_review",
+            "summary": "test",
+            "metadata": {"rule_id": "test.rule"},
+        }
         questions = generate_fallback_questions(finding)
         assert "test.rule" in questions[0]
 
@@ -375,7 +436,11 @@ class TestLLMFollowUpGenerator:
         client = MagicMock()
         client.chat.side_effect = Exception("LLM unavailable")
         gen = LLMFollowUpGenerator(client)
-        finding = {"category": "duplicate_numeric_columns", "metadata": {"sheet": "S1"}, "finding_id": "F-001"}
+        finding = {
+            "category": "duplicate_numeric_columns",
+            "metadata": {"sheet": "S1"},
+            "finding_id": "F-001",
+        }
         result = asyncio.run(gen.generate(finding))
         assert len(result) >= 1  # Falls back to template
 

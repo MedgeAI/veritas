@@ -176,6 +176,97 @@ class TestValidateVerdictOutput:
                 }
             )
 
+    def test_priority_field_accepted(self):
+        """New priority field should be accepted when valid."""
+        for priority in ("critical", "high", "medium", "low"):
+            result = _validate_verdict_output(
+                {
+                    "sheet_verdict": "mostly_false_positive",
+                    "findings": [
+                        {
+                            "id": "FR-0001",
+                            "verdict": "false_positive",
+                            "priority": priority,
+                        },
+                    ],
+                }
+            )
+            assert result["findings"][0]["priority"] == priority
+
+    def test_priority_field_optional(self):
+        """Priority field should be optional (backward compatibility)."""
+        result = _validate_verdict_output(
+            {
+                "sheet_verdict": "mostly_false_positive",
+                "findings": [
+                    {"id": "FR-0001", "verdict": "false_positive"},
+                ],
+            }
+        )
+        assert "priority" not in result["findings"][0]
+
+    def test_invalid_priority_rejected(self):
+        """Invalid priority values should be rejected."""
+        with pytest.raises(ValueError, match="invalid priority"):
+            _validate_verdict_output(
+                {
+                    "sheet_verdict": "mixed",
+                    "findings": [
+                        {"id": "X", "verdict": "uncertain", "priority": "invalid"},
+                    ],
+                }
+            )
+
+    def test_reason_field_accepted(self):
+        """New reason field should be accepted when it's a string."""
+        result = _validate_verdict_output(
+            {
+                "sheet_verdict": "mostly_false_positive",
+                "findings": [
+                    {
+                        "id": "FR-0001",
+                        "verdict": "false_positive",
+                        "reason": "Column B is Sum, column C is Mean, and B = C * 10 in all rows",
+                    },
+                ],
+            }
+        )
+        assert (
+            result["findings"][0]["reason"]
+            == "Column B is Sum, column C is Mean, and B = C * 10 in all rows"
+        )
+
+    def test_invalid_reason_type_rejected(self):
+        """Non-string reason values should be rejected."""
+        with pytest.raises(ValueError, match="invalid reason type"):
+            _validate_verdict_output(
+                {
+                    "sheet_verdict": "mixed",
+                    "findings": [
+                        {"id": "X", "verdict": "uncertain", "reason": 123},
+                    ],
+                }
+            )
+
+    def test_combined_new_fields(self):
+        """Both priority and reason can be present together."""
+        result = _validate_verdict_output(
+            {
+                "sheet_verdict": "mixed",
+                "findings": [
+                    {
+                        "id": "FR-0001",
+                        "verdict": "true_positive",
+                        "priority": "critical",
+                        "reason": "Directly supports main conclusion",
+                        "confidence": 0.95,
+                    },
+                ],
+            }
+        )
+        assert result["findings"][0]["priority"] == "critical"
+        assert result["findings"][0]["reason"] == "Directly supports main conclusion"
+
 
 # ── run_source_data_verdict ───────────────────────────────────────────
 
@@ -324,10 +415,10 @@ def test_run_source_data_verdict_writes_summary_and_artifact(
     assert [sheet["sheet"] for sheet in persisted["sheets"]] == ["S1", "S2"]
     s1_context = next(ctx for ctx in seen_contexts if ctx["sheet"] == "S1")
     assert s1_context["columns"] is not None
-    assert [finding["id"] for finding in s1_context["findings"]] == [
-        "FR-0001",
-        "DC-0001",
-    ]
+    assert "briefing" in s1_context
+    briefing = s1_context["briefing"]
+    assert briefing["finding_count"] >= 1
+    assert len(briefing["detected_patterns"]) >= 1
 
 
 def test_run_source_data_verdict_keeps_findings_uncertain_when_sheet_call_fails(
@@ -388,14 +479,12 @@ def test_run_source_data_verdict_keeps_findings_uncertain_when_sheet_call_fails(
     assert result["summary"]["uncertain"] == 1
     failed_sheet = next(sheet for sheet in result["sheets"] if sheet["sheet"] == "S2")
     assert failed_sheet["verdict_status"] == "failed"
-    assert failed_sheet["findings"] == [
-        {
-            "id": "F-FAIL",
-            "verdict": "uncertain",
-            "confidence": 0.0,
-            "explanation": "LLM verdict unavailable (default fallback — not LLM-judged)",
-        }
-    ]
+    # Fallback verdicts use detected_patterns category as id (from briefing)
+    assert len(failed_sheet["findings"]) >= 1
+    for fv in failed_sheet["findings"]:
+        assert fv["verdict"] == "uncertain"
+        assert fv["confidence"] == 0.0
+        assert fv["priority"] == "medium"
 
 
 # ── read_xlsx_column_context ─────────────────────────────────────────
@@ -494,7 +583,8 @@ class TestBuildSheetContext:
         assert ctx["workbook"] == key[0]
         assert ctx["sheet"] == key[1]
         assert ctx["columns"] is not None
-        assert len(ctx["findings"]) == len(grouped[key])
+        assert "briefing" in ctx
+        assert ctx["briefing"]["finding_count"] >= 1
         assert ctx["profile"] is not None
 
     def test_context_without_xlsx(self):
@@ -514,4 +604,5 @@ class TestBuildSheetContext:
             None,
         )
         assert ctx["columns"] is None
-        assert len(ctx["findings"]) == 1
+        assert "briefing" in ctx
+        assert ctx["briefing"]["finding_count"] == 1
