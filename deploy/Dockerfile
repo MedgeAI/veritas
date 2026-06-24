@@ -60,6 +60,13 @@ COPY runtime/ ./runtime/
 COPY configs/ ./configs/
 COPY web/backend/ ./web/backend/
 COPY scripts/ ./scripts/
+# Audit-critical third-party adapters. See .dockerignore for why only these subdirs.
+# research-integrity-auditor: MinerU convert, evidence ledger, numeric forensics scripts.
+# elis/system_modules: panel-extractor (YOLOv5), copy-move (RootSIFT/SILA), TruFor.
+# paperconan: GRIM/GRIMMER numeric forensics (imported via sys.path in adapter).
+COPY third_party/research-integrity-auditor/ ./third_party/research-integrity-auditor/
+COPY third_party/elis/system_modules/ ./third_party/elis/system_modules/
+COPY third_party/paperconan/ ./third_party/paperconan/
 COPY opencode.json .
 COPY .opencode/skills/ ./.opencode/skills/
 COPY README.md .

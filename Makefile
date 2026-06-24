@@ -46,7 +46,7 @@ LOCAL_DATABASE_URL ?= postgresql://veritas:veritas@127.0.0.1:5432/veritas
 	deploy-up deploy-down deploy-rebuild deploy-logs \
 	db-up db-down db-init db-migrate db-reset \
 	precheck run report demo audit audit-off audit-fresh report-path \
-	web-backend web-frontend web-install web-build web-preview \
+	web-backend web-backend-reload celery-worker web-frontend web-install web-build web-preview dev \
 	test test-fast test-unit test-integration test-e2e test-visual test-model \
 	lint lint-python lint-web web-test \
 	deslop \
@@ -135,6 +135,20 @@ deploy-down: ## Stop all services including Cloudflare Tunnel
 
 deploy-rebuild: ## Rebuild and restart all services with Cloudflare Tunnel
 	$(COMPOSE_DEPLOY) up --build -d --force-recreate
+	@echo ""
+	@echo "Waiting for services to be healthy..."
+	@for i in $$(seq 1 30); do \
+		status=$$($(COMPOSE_DEPLOY) ps --format json 2>/dev/null | $(PYTHON) -c "import sys,json; lines=[json.loads(l) for l in sys.stdin if l.strip()]; print('ok' if all(l.get('Health','')=='' or l.get('Health','').startswith('healthy') or l.get('Health','').startswith('running') for l in lines) else 'waiting')" 2>/dev/null || echo "waiting"); \
+		if [ "$$status" = "ok" ]; then echo "All services healthy."; break; fi; \
+		echo "  [$${i}/30] waiting..."; sleep 2; \
+	done
+	@echo ""
+	@echo "Running post-deploy smoke tests..."
+	@$(COMPOSE_DEPLOY) exec -T veritas curl -sf http://localhost:8765/api/health | $(PYTHON) -m json.tool || echo "⚠ /api/health failed"
+	@$(COMPOSE_DEPLOY) exec -T veritas curl -sf http://localhost:8765/api/health/deep | $(PYTHON) -m json.tool || echo "⚠ /api/health/deep failed"
+	@$(COMPOSE_DEPLOY) exec -T veritas curl -sf http://localhost:8765/api/cases | $(PYTHON) -c "import sys,json; d=json.load(sys.stdin); print(f'✓ /api/cases OK ({len(d.get(\"cases\",[]))} cases)')" || echo "⚠ /api/cases failed"
+	@echo ""
+	@echo "Deploy complete. Check cloudflared logs: make deploy-logs"
 
 deploy-logs: ## Show cloudflared container logs
 	$(COMPOSE_DEPLOY) logs --tail=100 -f cloudflared
@@ -252,14 +266,28 @@ report-path: ## Print the expected final audit-paper HTML report path
 
 # -- Web P1 --------------------------------------------------------------
 
-web-backend: ## Start local stdlib Python web backend
+web-backend: ## Start local stdlib Python web backend (PGlite, no Docker needed)
 	VERITAS_ENABLE_PGLITE=1 VERITAS_DATABASE_BACKEND=pglite $(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.app import serve; serve(host='$(HOST)', port=$(PORT), data_root='$(WEB_DATA_DIR)', output_root='$(OUTPUT_ROOT)')"
+
+web-backend-reload: ## Start web backend with auto-reload on code changes
+	VERITAS_ENABLE_PGLITE=1 VERITAS_DATABASE_BACKEND=pglite $(PY_ENV) $(PYTHON) -c "\
+from web.backend.veritas_web.app import create_app; \
+import uvicorn; \
+app = create_app(data_root='$(WEB_DATA_DIR)', output_root='$(OUTPUT_ROOT)'); \
+uvicorn.run(app, host='$(HOST)', port=$(PORT), reload=True, reload_dirs=['engine', 'web/backend'])"
 
 celery-worker: ## Start Celery worker for async audit tasks
 	$(PY_ENV) celery -A engine.tasks.celery_app worker --loglevel=info
 
-web-frontend: ## Start Vite frontend dev server
+web-frontend: ## Start Vite frontend dev server (HMR + API proxy to backend:$(PORT))
 	cd $(FRONTEND_DIR) && npm run dev
+
+dev: web-backend-reload ## Start full local dev environment (see also: web-frontend, celery-worker)
+	@echo ""
+	@echo "Local dev stack:"
+	@echo "  Backend:  http://$(HOST):$(PORT)  (auto-reload on code change)"
+	@echo "  Frontend: http://localhost:5173   (Vite HMR, API → backend:$(PORT))"
+	@echo "  Open another terminal for: make celery-worker"
 
 web-install: ## Install frontend dependencies
 	cd $(FRONTEND_DIR) && npm install

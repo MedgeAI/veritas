@@ -224,6 +224,34 @@ async def submit_audit(
 
 
 # ---------------------------------------------------------------------------
+# GET /api/audit/queue — queue status
+#
+# IMPORTANT: Must be defined BEFORE the parameterized /{job_id} routes
+# below, otherwise FastAPI matches ``/api/audit/queue`` as job_id="queue".
+# ---------------------------------------------------------------------------
+
+
+@router.get("/queue")
+async def queue_status(
+    deps: AppDependencies = Depends(get_app_dependencies),
+) -> dict[str, Any]:
+    """Return the number of queued/running jobs and the concurrency limits."""
+    store = deps.store
+    runner = _get_runner(deps)
+
+    queued = store.count_queued_runs()
+    running = store.count_running_runs()
+    max_queue_size = int(os.environ.get("AUDIT_MAX_QUEUE_SIZE", "10"))
+
+    return {
+        "queued": queued,
+        "running": running,
+        "max_concurrent": runner._max_concurrent,
+        "max_queue_size": max_queue_size,
+    }
+
+
+# ---------------------------------------------------------------------------
 # GET /api/audit/{job_id} — status
 # ---------------------------------------------------------------------------
 
@@ -302,31 +330,6 @@ async def stream_audit_progress(
             "X-Accel-Buffering": "no",
         },
     )
-
-
-# ---------------------------------------------------------------------------
-# GET /api/audit/queue — queue status
-# ---------------------------------------------------------------------------
-
-
-@router.get("/queue")
-async def queue_status(
-    deps: AppDependencies = Depends(get_app_dependencies),
-) -> dict[str, Any]:
-    """Return the number of queued/running jobs and the concurrency limits."""
-    store = deps.store
-    runner = _get_runner(deps)
-
-    queued = store.count_queued_runs()
-    running = store.count_running_runs()
-    max_queue_size = int(os.environ.get("AUDIT_MAX_QUEUE_SIZE", "10"))
-
-    return {
-        "queued": queued,
-        "running": running,
-        "max_concurrent": runner._max_concurrent,
-        "max_queue_size": max_queue_size,
-    }
 
 
 # ---------------------------------------------------------------------------

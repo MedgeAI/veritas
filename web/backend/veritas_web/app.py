@@ -170,6 +170,65 @@ def create_app(
             "recovered_interrupted_runs": recovered,
         }
 
+    @app.get("/api/health/deep")
+    async def health_deep() -> dict[str, Any]:
+        """Deep health check — verifies audit-critical dependencies exist.
+
+        Used by deploy smoke tests and Docker HEALTHCHECK to catch
+        missing third_party scripts or broken imports early.
+        """
+        import shutil as _shutil
+        from engine.static_audit._shared import AUDITOR_ROOT
+
+        checks: dict[str, Any] = {}
+        all_ok = True
+
+        # 1. MinerU / evidence_ledger / numeric_forensics scripts
+        mineru_scripts = AUDITOR_ROOT / "scripts"
+        mineru_ok = mineru_scripts.is_dir() and (mineru_scripts / "mineru_convert.py").exists()
+        checks["mineru_scripts"] = {
+            "ok": mineru_ok,
+            "path": str(mineru_scripts),
+            "detail": "ok" if mineru_ok else "AUDITOR_ROOT scripts directory or mineru_convert.py missing",
+        }
+        if not mineru_ok:
+            all_ok = False
+
+        # 2. opencode binary
+        opencode_path = _shutil.which("opencode")
+        checks["opencode"] = {
+            "ok": opencode_path is not None,
+            "path": opencode_path or "not found on PATH",
+        }
+        if opencode_path is None:
+            all_ok = False
+
+        # 3. Data directories writable
+        _data = Path(str(data_root) if not isinstance(data_root, Path) else data_root)  # type: ignore[name-defined]
+        _out = Path(str(output_root) if not isinstance(output_root, Path) else output_root)  # type: ignore[name-defined]
+        for name, d in [("data_root", _data), ("output_root", _out)]:
+            writable = d.exists() and os.access(str(d), os.W_OK)
+            checks[name] = {"ok": writable, "path": str(d)}
+            if not writable:
+                all_ok = False
+
+        # 4. Python audit imports
+        import_ok = True
+        try:
+            from engine.static_audit import _pipeline_steps  # noqa: F401
+            from engine.static_audit.adapters.paperconan_adapter import run_paperconan_scan  # noqa: F401
+        except ImportError as exc:
+            import_ok = False
+            checks["python_imports"] = {"ok": False, "detail": str(exc)}
+            all_ok = False
+        if import_ok:
+            checks["python_imports"] = {"ok": True}
+
+        return {
+            "status": "ok" if all_ok else "degraded",
+            "checks": checks,
+        }
+
     # --- Frontend static files ----------------------------------------
     dist = (
         Path(frontend_dist)

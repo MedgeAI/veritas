@@ -320,11 +320,61 @@ def _run_static_audit_from_args(
     steps.extend(ap_steps)
 
     # MinerU + forensics
-    steps.extend(
-        _run_mineru_forensics_section(
-            args=args, workdir=workdir, paper_pdf=paper_pdf, env=env, progress=progress
-        )
+    mineru_steps, mineru_ok = _run_mineru_forensics_section(
+        args=args, workdir=workdir, paper_pdf=paper_pdf, env=env, progress=progress
     )
+    steps.extend(mineru_steps)
+
+    if not mineru_ok:
+        # Early termination: MinerU is the foundation of the audit pipeline.
+        # Without full.md (paper text) and images/ (extracted figures), every
+        # downstream step either fails silently or produces high-false-positive
+        # noise.  Fail fast instead of wasting resources on a blind audit.
+        _MINERU_FAIL_REASON = (
+            "MinerU PDF 解析失败（full.md 未生成）。"
+            "无论文全文上下文，后续步骤终止——"
+            "请检查 MINERU_API_TOKEN 是否配置、PDF 是否损坏，或重试。"
+        )
+        for key, title in [
+            ("source_data_profile", "Source Data profile"),
+            ("source_data_findings", "Source Data findings"),
+            ("source_data_pair_forensics", "Source Data pair forensics"),
+            ("source_data_cross_sheet", "Source Data cross-sheet duplicates"),
+            ("source_data_verdict", "Source Data LLM 语义裁决"),
+            ("exact_image_duplicates", "图片字节级重复检查"),
+            ("image_similarity_candidates", "图片近似相似候选检查"),
+            ("panel_extraction", "Panel 提取 (YOLOv5)"),
+            ("visual_copy_move", "Copy-Move 检测 (RootSIFT)"),
+            ("visual_copy_move_dense", "密集 Copy-Move 检测 (SILA)"),
+            ("visual_trufor", "TruFor 伪造检测"),
+            ("visual_overlap_reuse", "图像复用检测"),
+            ("investigation", "Agent 调查轮次"),
+            ("investigation_fallback", "调查 fallback 工具"),
+            ("agent_review", "Agent 结构化复核"),
+            ("agent_roles", "Agent 角色层 (Claim/SourceData/Judge)"),
+            ("bundle", "产物打包与报告生成"),
+        ]:
+            record_step(
+                steps, StepResult(key, title, "failed", _MINERU_FAIL_REASON), progress
+            )
+        # Jump straight to bundle + report so the user gets a visible
+        # failure record instead of an empty / missing output directory.
+        return _run_bundle_and_report(
+            paper_dir=paper_dir,
+            paper_pdf=paper_pdf,
+            source_data_dir=source_data_dir,
+            workdir=workdir,
+            case_id=case_id,
+            agent_mode=args.agent_mode,
+            steps=steps,
+            agent_manifest=agent_manifest,
+            material_inventory_path=mi_path,
+            agent_material_plan_path=resolve_artifact_path(
+                workdir, "agent_material_plan.json"
+            ),
+            optional_lanes=optional_lanes,
+            progress=progress,
+        )
 
     # Source data
     if source_lane and source_data_dir and source_data_dir.is_dir():

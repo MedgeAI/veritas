@@ -683,7 +683,7 @@ def _run_mineru_forensics_section(
     paper_pdf: Path,
     env: dict[str, str],
     progress: ProgressCallback | None,
-) -> list[StepResult]:
+) -> tuple[list[StepResult], bool]:
     """Run MinerU, evidence ledger, numeric forensics, and PaperFraud rule matching."""
     from engine.static_audit.cli_driver import exists_all
     from engine.static_audit.tools.paperfraud_rules import run_paperfraud_rule_match
@@ -813,7 +813,7 @@ def _run_mineru_forensics_section(
             record_step(
                 steps, StepResult(key, title, "skipped", "full.md missing."), progress
             )
-    return steps
+    return steps, (workdir / "full.md").exists()
 
 
 def _run_agent_review_section(

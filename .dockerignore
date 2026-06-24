@@ -53,7 +53,14 @@ Thumbs.db
 input/
 outputs/
 web_data/
-third_party/
+# Third-party: exclude all except audit-critical subdirectories.
+# research-integrity-auditor: MinerU convert, evidence ledger, numeric forensics scripts.
+# elis/system_modules: panel-extractor (YOLOv5), copy-move (RootSIFT/SILA), TruFor adapters.
+# paperconan: GRIM/GRIMMER numeric forensics (imported via sys.path in adapter).
+# All three are required at runtime — see engine/static_audit/_pipeline_steps.py (AUDITOR_ROOT)
+# and engine/static_audit/adapters/paperconan_adapter/__init__.py.
+third_party/AsyncReview/
+third_party/deepwiki-open/
 web/frontend/node_modules/
 web/frontend/dist/
 *.pdf
