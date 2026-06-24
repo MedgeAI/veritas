@@ -165,9 +165,9 @@ PDF / MinerU images
 - **ELIS adapter 已替换传统 CV 实现**：YOLOv5 panel extraction、RootSIFT+MAGSAC++ copy-move、TruFor skip-only、SILA dense 均已通过 subprocess adapter 接入主链路。`visual.overlap_reuse` 为 P1 新增工具。详见 [`ELIS_REUSE_DECISIONS.md`](ELIS_REUSE_DECISIONS.md)。
 - **详见 [`ELIS_REUSE_DECISIONS.md`](ELIS_REUSE_DECISIONS.md)**。
 
-## 当前 Demo / 汇报重点
+## 当前能力与测试重点
 
-**当前可演示能力**（`make audit PAPER_DIR=<dir> CASE_ID=<case_id>`）：
+**当前核心能力**（`make audit PAPER_DIR=<dir> CASE_ID=<case_id>`）：
 
 ```text
 论文 PDF + Source Data 输入
@@ -180,14 +180,16 @@ PDF / MinerU images
 -> Agent investigation（最多 3 轮，可选触发 source_data.query / visual.overlap_reuse / image_similarity 等）
 -> HTML 报告（Top-N findings、证据定位、良性解释、人工复核清单）
 -> Web 工作台（Visual Forensics Gallery、Overlap Graph、Detail Drawer）
+-> 异步审计任务（Celery + PostgreSQL，SSE 实时进度，进程清理）
 ```
 
-**paper1 全量审计验证**：257 figures、811 panels、493 pair forensics findings、14 分钟完成。1218 个测试全部通过（uv 环境 Python 3.12）。
+**验证数据**：paper1 全量审计（257 figures、811 panels、493 pair forensics findings、14 分钟完成）。1216 个测试全部通过（uv 环境 Python 3.12）。
 
-**演示注意事项**：
+**测试注意事项**：
 - 报告呈现的是结构化证据和人工复核任务，不是最终科研诚信判定
-- TruFor / SILA dense / CBIR 为重型可选工具，演示时可展示入口但不强求全量运行
+- TruFor / SILA dense / CBIR 为重型可选工具，测试时可验证入口但不强求全量运行
 - `visual.overlap_reuse` 仅在 investigation 中触发，不在 baseline 全量运行
+- 异步审计系统已就绪，测试并发场景和进程清理机制
 
 ## 开发前先读
 
@@ -359,6 +361,11 @@ Markdown / HTML report
 ```text
 cli/          CLI demo 入口
 engine/       claim 审计、静态审查内核、Agent 调查和报告逻辑
+├── tasks/    Celery 异步任务（审计任务、进程清理）
+├── static_audit/   静态审查内核
+├── investigation/  Agent 调查编排
+├── follow_up/      Follow-up 行动生成
+└── tools/registry.py   Tool Registry（核心契约）
 runtime/      本地执行后端，未来可能独立成服务
 protocols/    垂直领域规则，先从医学生信开始
 configs/      opencode 上下文、领域 methodology 和运行配置
@@ -375,6 +382,13 @@ tests/        单测、集成测试和 e2e 测试
 `engine/tools/registry.py` 是产品运行时允许执行的确定性工具集合。opencode skill 和 methodology 可以描述工具，但 `audit-paper` 只能执行 registry 允许的 tool_id。
 
 `engine/static_audit/` 是当前 `audit-paper` 的 first-party 静态审查内核。后续新增静态审查 schema、role、tool、orchestrator 行为，优先放在这里，不要继续把产品逻辑堆进 `scripts/`。
+
+`engine/tasks/` 是 Celery 异步任务模块，支持长时间审计任务（30-60 分钟）的异步执行。核心组件：
+- `celery_app.py`：Celery 配置（PostgreSQL 作为 broker，无需 Redis）
+- `audit_task.py`：审计任务实现（4 层幂等保证：唯一索引 + FOR UPDATE + task_id 绑定 + 状态机）
+- `process_cleanup.py`：进程清理模块（MinerU 子进程、Docker 容器、临时文件、GPU 显存）
+
+异步审计系统通过 `VERITAS_USE_CELERY` 环境变量启用，默认使用线程池。API 端点：POST/GET/DELETE `/api/audit`，GET `/api/audit/{id}/stream`（SSE），GET `/api/audit/queue`。并发控制：`AUDIT_MAX_CONCURRENT_JOBS`（running 任务数）和 `AUDIT_MAX_QUEUE_SIZE`（queued 任务数）独立限制。
 
 `CodeMAP.md` 是模块职责和调用关系索引。做跨模块改动前优先读取它，避免凭目录名猜边界。
 
@@ -396,14 +410,15 @@ tests/        单测、集成测试和 e2e 测试
 上文”当前范围”是产品边界，本节只补工程执行口径：
 
 - **P0 已完成**：`audit-paper` happy path 已稳定走通，能产出完整的结构化证据和报告。paper1 全量审计验证通过。
-- **P1 已完成**：God File 拆分、ELIS adapter 接入、视觉取证增强、Source Data PRD v2 实现。1218 个测试全部通过。
-- **P1 当前重点**：面向老板演示和内测。Web P1 工作台、可靠性和关键差异化。
-- **PubPeer Ground Truth Pipeline**：代码框架已就绪（`engine/ground_truth/`），演示后继续迭代。
+- **P1 已完成**：God File 拆分、ELIS adapter 接入、视觉取证增强、Source Data PRD v2 实现、异步审计任务系统。1216 个测试全部通过。
+- **当前阶段**：内部测试。重点收集真实用户反馈、修复问题、优化体验。
+- **PubPeer Ground Truth Pipeline**：代码框架已就绪（`engine/ground_truth/`），测试阶段继续迭代。
 - `precheck` / `run` / `report` 已存在，但不要因此把当前产品表述成完整 SaaS 或完整 runtime 审查系统。
 - PI / 课题组是第一付费方和主要报告读者；报告要保持谨慎风险语言和人工复核入口。
 
 ### 最近改进（2026-06-24）
 
+- ✅ **异步审计任务系统**：Celery + PostgreSQL（broker）架构，支持长时间审计任务（30-60 分钟）异步执行。4 层幂等保证、并发控制（running + queued 独立限制）、进程清理、SSE 实时进度推送。详见 `docs/product/Veritas-异步审计任务系统PRD.md`。
 - ✅ **Source Data PRD v2 实现**：Agent-centric Source Data 检测架构。确定性工具压缩搜索空间 → Agent 理解语义并裁决 → 结构化输出进入报告。详见 `docs/product/Veritas-Source-Data-检测能力演进-PRD.md`。
 - ✅ **Sheet Briefing**：`source_data_sheet_briefing.py` — 每个 sheet 的结构化情报摘要（组数、列块、pattern 聚类、sample data 去重）。替代逐条 findings 注入 LLM context，解决 287 findings 导致 fig7 verdict 失败的 context 爆炸问题。
 - ✅ **`source_data.query` 语义工具**：`source_data_query.py` — 高层语义输入（group name, column block label）+ 底层确定性实现。支持 `compare_groups` / `extract_block` / `find_cross_group_reuse`。已注册到 Tool Registry（agent-selectable）。
@@ -420,28 +435,33 @@ tests/        单测、集成测试和 e2e 测试
 
 ## 当前开发优先级
 
-**P1 优先级（当前阶段 — 面向演示和内测）**：
+**内部测试阶段（当前重点）**：
 
-1. **Source Data PRD v2（Agent-centric 检测）** ✅ 已完成：Sheet Briefing + `source_data.query` 语义工具 + claim extractor enrich + verdict 升级 + paper4 Fig3 golden fixture。1218 测试通过。详见 `docs/product/Veritas-Source-Data-检测能力演进-PRD.md`。
-2. **视觉 overlap/reuse detection** ✅ 已实现：`visual.overlap_reuse` tool 已注册，tile-level dHash retrieval + RootSIFT+MAGSAC++ verification，产出 `visual/overlap_reuse.json`，5 个 synthetic fixtures，19 个单测通过。数据契约已修复，investigation dispatch 已接入。详见 `VISUAL_OVERLAP_PRD.md`。
-2. **ELIS adapter 接入** ✅ 已完成：panel-extractor (YOLOv5)、copy-move keypoint (RootSIFT+MAGSAC++)、copy-move dense (SILA Docker)、TruFor (skip-only) 均已通过 subprocess adapter 接入主链路。详见 `ELIS_REUSE_DECISIONS.md`。
-3. **Tool Registry 扩展** ✅ 已完成：所有 ELIS-style 工具已注册到 `engine/tools/registry.py`，`visual.overlap_reuse` 为 agent-selectable。
-4. **Source Data pattern_strength 增强** ✅ 已完成：`fixed_difference` / `fixed_ratio` 已有 `pattern_strength` 字段（complete/strong/moderate/weak），HTML 报告已渲染。
-5. **investigation 产物整合** ✅ 已完成：`_read_overlap_reuse_outputs()` 合并 baseline + investigation 产出，通过 `seen_pairs` 去重。
-6. **opencode Agent 层** ✅ 已完成：`engine/investigation/` 完整实现，AgentStepRunner、context_pack、role_runners 正常工作。
-7. **Web P1 工作台**：完善 Web Visual Forensics Gallery，支持 overlap graph、relationship detail drawer、manual review workflow。
-8. **视觉 fixture/golden 测试**：补强 visual v1 的 fixture/golden 测试，尤其是 panel ground truth、copy-move 负例、overlap 正负例、失败隔离和 strict evidence refs。
+1. **Source Data PRD v2（Agent-centric 检测）** ✅ 已完成：Sheet Briefing + `source_data.query` 语义工具 + claim extractor enrich + verdict 升级 + paper4 Fig3 golden fixture。1216 测试通过。详见 `docs/product/Veritas-Source-Data-检测能力演进-PRD.md`。
+2. **异步审计任务系统** ✅ 已完成：Celery + PostgreSQL broker，4 层幂等保证，并发控制（running/queued 独立限制），进程清理，SSE 实时进度。API 端点：POST/GET/DELETE `/api/audit`，GET `/api/audit/{id}/stream`，GET `/api/audit/queue`。详见 `docs/product/Veritas-异步审计任务系统PRD.md`。
+3. **视觉 overlap/reuse detection** ✅ 已实现：`visual.overlap_reuse` tool 已注册，tile-level dHash retrieval + RootSIFT+MAGSAC++ verification，产出 `visual/overlap_reuse.json`，5 个 synthetic fixtures，19 个单测通过。数据契约已修复，investigation dispatch 已接入。详见 `VISUAL_OVERLAP_PRD.md`。
+4. **ELIS adapter 接入** ✅ 已完成：panel-extractor (YOLOv5)、copy-move keypoint (RootSIFT+MAGSAC++)、copy-move dense (SILA Docker)、TruFor (skip-only) 均已通过 subprocess adapter 接入主链路。详见 `ELIS_REUSE_DECISIONS.md`。
+5. **Tool Registry 扩展** ✅ 已完成：所有 ELIS-style 工具已注册到 `engine/tools/registry.py`，`visual.overlap_reuse` 为 agent-selectable。
+6. **Source Data pattern_strength 增强** ✅ 已完成：`fixed_difference` / `fixed_ratio` 已有 `pattern_strength` 字段（complete/strong/moderate/weak），HTML 报告已渲染。
+7. **investigation 产物整合** ✅ 已完成：`_read_overlap_reuse_outputs()` 合并 baseline + investigation 产出，通过 `seen_pairs` 去重。
+8. **opencode Agent 层** ✅ 已完成：`engine/investigation/` 完整实现，AgentStepRunner、context_pack、role_runners 正常工作。
 
-**P2 — 演示后推进**：
+**测试阶段重点**：
 
-9. **Ground Truth Pipeline**：从 PubPeer ground truth 提炼通用检测原语的 5 阶段 pipeline（parser → mapper → gap_analyzer → design_spec → anti_overfit）。paper2 数据已就绪，代码框架已实现（`engine/ground_truth/`），待演示后继续迭代。
+9. **Web P1 工作台**：收集内测反馈，修复问题，优化 Visual Forensics Gallery、overlap graph、relationship detail drawer、manual review workflow。
+10. **视觉 fixture/golden 测试**：根据内测发现的问题，补强 visual v1 的 fixture/golden 测试，尤其是 panel ground truth、copy-move 负例、overlap 正负例、失败隔离和 strict evidence refs。
+11. **用户体验优化**：根据真实用户反馈改进报告可读性、交互流程、错误提示。
+
+**测试后推进**：
+
+9. **Ground Truth Pipeline**：从 PubPeer ground truth 提炼通用检测原语的 5 阶段 pipeline（parser → mapper → gap_analyzer → design_spec → anti_overfit）。paper2 数据已就绪，代码框架已实现（`engine/ground_truth/`），测试阶段继续迭代。
 10. 验证 opencode SDK / opencode 风格 Agent 能否接入 claim-to-code mapping。
 11. 定义 `veritas.yml` schema，YAML 主、JSON 兼容。
 12. 增强 subprocess runtime，产出结构化 execution evidence。
 13. 接百炼 Qwen vLLM 做图表初筛。
 14. 生成 Markdown/PDF 报告，支持作者视图和 PI 视图。
 
-加入真实外部集成时，如果短期阻塞 demo，先做 typed adapter + mock fixture，并在文档中写清缺口。
+加入真实外部集成时，如果短期阻塞测试，先做 typed adapter + mock fixture，并在文档中写清缺口。
 
 ## 核心设计规则
 
@@ -549,13 +569,13 @@ make run
 make report
 ```
 
-当前老板 demo 推荐使用：
+当前内部测试推荐使用：
 
 ```bash
 make audit PAPER_DIR=<paper_dir> CASE_ID=<case_id>
 ```
 
-优先展示 `outputs/<case_id>/research-integrity-audit/final_audit_report.html`。该 HTML 是单文件静态报告，围绕 Top-N priority findings、证据定位、良性解释、人工复核动作和 role trace 展示；不要把它表述成最终科研诚信判定。`audit-paper` 进度写入 `stderr`，最终 summary JSON 写入 `stdout`，不要把进度事件混入最终 JSON；MinerU 子进程输出可以作为 `command_output` 进度事件转发。
+优先验证 `outputs/<case_id>/research-integrity-audit/final_audit_report.html`。该 HTML 是单文件静态报告，围绕 Top-N priority findings、证据定位、良性解释、人工复核动作和 role trace 展示；不要把它表述成最终科研诚信判定。`audit-paper` 进度写入 `stderr`，最终 summary JSON 写入 `stdout`，不要把进度事件混入最终 JSON；MinerU 子进程输出可以作为 `command_output` 进度事件转发。
 
 `veritas run` 默认按 `eval` 深度设计。
 
