@@ -59,7 +59,7 @@ def _panel_image_path(panel: dict[str, Any]) -> Path | None:
 def _compute_hsv_histogram(img: Image.Image) -> list[float]:
     """Compute a normalized HSV color histogram as a flat list of floats."""
     hsv = img.convert("HSV").resize((64, 64))
-    pixels = list(hsv.getdata())
+    pixels = list(hsv.get_flattened_data())
     hist = [0.0] * _FEATURE_DIM
     total = len(pixels)
     if total == 0:

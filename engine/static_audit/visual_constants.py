@@ -39,7 +39,7 @@ def _dhash_single(img, hash_size: int = 8) -> int:
 
     try:
         resized = img.convert("L").resize((hash_size + 1, hash_size))
-        pixels = list(resized.getdata())
+        pixels = list(resized.get_flattened_data())
     finally:
         if close_after:
             img.close()

@@ -81,7 +81,7 @@ def _analyze_image(image_path: Path) -> list[dict[str, Any]]:
     if w == 0 or h == 0:
         return []
 
-    pixels = list(gray.getdata())
+    pixels = list(gray.get_flattened_data())
     mean_pixel = sum(pixels) / len(pixels)
 
     # Build 2-D gray array as plain lists for the helper functions.

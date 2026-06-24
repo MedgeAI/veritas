@@ -88,7 +88,7 @@ def dhash(path: Path, hash_size: int = 8) -> int:
 
     with Image.open(path) as image:
         resized = image.convert("L").resize((hash_size + 1, hash_size))
-        pixels = list(resized.getdata())
+        pixels = list(resized.get_flattened_data())
     value = 0
     for row in range(hash_size):
         for col in range(hash_size):
