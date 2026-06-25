@@ -533,34 +533,6 @@ def _run_material_plan_section(
             ),
             progress,
         )
-    elif args.agent_mode == "off":
-        material_plan = material_plan_from_inventory(
-            case_id=case_id,
-            inventory=material_inventory,
-            status="deterministic_fallback",
-            detail="agent_mode=off; optional lanes were selected from deterministic material inventory only.",
-        )
-        amp_path.write_text(
-            json.dumps(material_plan, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
-        agent_manifest["material_plan"] = {
-            "status": "not_run",
-            "detail": material_plan["detail"],
-            "runtime_seconds": None,
-            "retries": 0,
-            "command": [],
-            "output": str(amp_path),
-        }
-        record_step(
-            steps,
-            StepResult(
-                "agent_material_plan",
-                "opencode Agent 材料计划",
-                "skipped",
-                material_plan["detail"],
-            ),
-            progress,
-        )
     else:
         emit_step_start(
             progress,

@@ -410,8 +410,9 @@ def finding_card(
     source_artifact = source_artifact_for_finding(finding)
     mapping_note = mapping_granularity_note(finding)
     risk_badge = _confidence_badge("agent") if risk and risk_reason else ""
+    anchor_id = f"finding-{finding_id.replace('.', '-').replace(' ', '-')}"
     return f"""
-<article class="finding-card">
+<article class="finding-card" id="{h(anchor_id)}">
   <div>
     <div class="finding-title">
       <span class="badge {h(review_badge_class)}">{h(review_badge_label)}</span>

@@ -82,7 +82,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     audit_parser.add_argument(
         "--agent-mode",
-        choices=["off", "plan", "review", "full"],
+        choices=["plan", "review", "full"],
         default="full",
         help="opencode Agent mode for audit planning/review.",
     )

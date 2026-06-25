@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
 
 from ..dependencies import AppDependencies, get_app_dependencies, require_case_access
 from ..models import CaseRecord
@@ -40,7 +40,7 @@ async def get_artifact(
         content_type = "application/x-ndjson"
     elif path.suffix == ".md":
         content_type = "text/markdown; charset=utf-8"
-    return Response(content=path.read_bytes(), media_type=content_type)
+    return FileResponse(path=str(path), media_type=content_type)
 
 
 @router.get("/cases/{case_id}/report/html")
@@ -52,4 +52,8 @@ async def get_report_html(
     path = deps.artifacts.report_html_path(case_id)
     if not path:
         raise HTTPException(status_code=404, detail="final HTML report not found")
-    return Response(content=path.read_bytes(), media_type="text/html; charset=utf-8")
+    return FileResponse(
+        path=str(path),
+        media_type="text/html; charset=utf-8",
+        headers={"Cache-Control": "no-cache"},
+    )

@@ -141,12 +141,23 @@ class AuditRunner:
                     "traceback": traceback.format_exc(limit=8),
                 },
             )
+        # ---------------------------------------------------------------
+        # Guard: re-read run status from DB before writing terminal state.
+        # If the run was cancelled (e.g. by cancel_run()) while this
+        # thread was executing the pipeline, do NOT overwrite the
+        # cancelled status.
+        # ---------------------------------------------------------------
+        current_run = self.store.get_run(case_id, run_id)
+        if current_run.status == "cancelled":
+            run.status = "cancelled"
+            run.completed_at = current_run.completed_at
+            self.store.save_run(run)
+            self._update_case_after_run(run)
+            return run
+
         self.store.save_run(run)
         self._update_case_after_run(run)
         return run
-
-    # ------------------------------------------------------------------
-    # Celery dispatch
     # ------------------------------------------------------------------
 
     def _dispatch_celery_task(
@@ -275,6 +286,9 @@ class AuditRunner:
             case_record.review_needed_count = max(case_record.review_needed_count, 1)
             if risk_rank(case_record.technical_risk) < risk_rank("high"):
                 case_record.technical_risk = "high"
+        elif run.status == "cancelled":
+            case_record.status = "Cancelled"
+            case_record.review_needed_count = 0
         case_record.latest_run_id = run.run_id
         self.store.save_case(case_record)
 

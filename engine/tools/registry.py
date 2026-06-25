@@ -19,7 +19,6 @@ TOOL_ID_PROVENANCE_GRAPH = "visual.provenance_graph"
 TOOL_ID_SILA_DENSE = "visual.copy_move_dense"
 TOOL_ID_IMAGE_QUALITY = "visual.image_quality"
 TOOL_ID_OVERLAP_REUSE = "visual.overlap_reuse"
-TOOL_ID_CBIR_SEARCH = "visual.cbir_search"
 SOURCE_DATA_VERDICT_TOOL_ID = "source_data.verdict"
 SOURCE_DATA_QUERY_TOOL_ID = "source_data.query"
 
@@ -469,33 +468,12 @@ TOOLS: dict[str, ToolDefinition] = {
             "tile_stride": {"type": "integer", "minimum": 32, "maximum": 512},
             "candidate_method": {
                 "type": "string",
-                "enum": ["dhash_tile", "sscd_tile", "hybrid"],
+                "enum": ["dhash_tile"],
             },
             "max_candidate_pairs": {"type": "integer", "minimum": 10, "maximum": 10000},
             "min_inliers": {"type": "integer", "minimum": 4, "maximum": 200},
             "min_overlap_area": {"type": "number", "minimum": 0.0, "maximum": 1.0},
             "max_relationships": {"type": "integer", "minimum": 1, "maximum": 5000},
-        },
-    ),
-    TOOL_ID_CBIR_SEARCH: ToolDefinition(
-        tool_id=TOOL_ID_CBIR_SEARCH,
-        step_key="visual_cbir_search",
-        title="CBIR 跨面板相似性检索",
-        source="engine/static_audit/tools",
-        description="Content-Based Image Retrieval over extracted panels: computes per-panel feature vectors and retrieves similar panel pairs via cosine similarity.",
-        expected_outputs=("visual/cbir_search.json",),
-        parameter_defaults={
-            "top_k": 5,
-            "min_score": 0.70,
-            "max_pairs": 500,
-        },
-        execution_phase=ExecutionPhase.AGENT_SELECTABLE,
-        input_artifacts=("visual/panel_evidence.json", "visual/evidence.json"),
-        output_artifacts=("visual/cbir_search.json",),
-        param_schema={
-            "top_k": {"type": "integer", "minimum": 1, "maximum": 50},
-            "min_score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
-            "max_pairs": {"type": "integer", "minimum": 1, "maximum": 5000},
         },
     ),
     "static_audit.bundle": ToolDefinition(

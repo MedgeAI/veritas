@@ -162,10 +162,9 @@ def _header_section(data: _ReportData) -> list[str]:
     lines.append("## 结论先行")
     lines.append("")
     lines.append("- 本报告由本地 orchestrator 汇总确定性脚本产物生成。")
-    if data.agent_mode != "off":
-        lines.append(
-            "- opencode Agent 作为编排与结构化审阅层参与：前置选择/参数填充，后置 claim/finding 复核。"
-        )
+    lines.append(
+        "- opencode Agent 作为编排与结构化审阅层参与：前置选择/参数填充，后置 claim/finding 复核。"
+    )
     lines.append(
         "- 当前不做最终科研诚信判定，只报告技术事实候选、材料缺口和人工复核入口。"
     )

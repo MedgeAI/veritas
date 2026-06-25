@@ -11,7 +11,6 @@ from fastapi import APIRouter, Depends
 from ..auth import AuthContext
 from ..dependencies import AppDependencies, get_app_dependencies, get_auth_context
 from ..diagnostics import run_full_diagnostics
-from ..embeddings import SSCDEncoder
 from ..tool_catalog import get_investigation_catalog, seed_tool_registry
 
 router = APIRouter(tags=["tools"])
@@ -41,15 +40,12 @@ async def tools_health(
     """Health check for tool infrastructure (Docker, GPU, model weights)."""
     docker = _command_health(["docker", "info", "--format", "{{json .ServerVersion}}"])
     gpu = _command_health(["nvidia-smi", "-L"])
-    encoder = SSCDEncoder()
     return {
         "docker_available": docker["ok"],
         "gpu_available": gpu["ok"],
-        "sscd_model_available": encoder.available,
         "details": {
             "docker": docker,
             "gpu": gpu,
-            "sscd_model_path": str(encoder._model_path),
         },
     }
 

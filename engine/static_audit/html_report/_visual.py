@@ -387,8 +387,9 @@ def _visual_finding_cards(
         )
         cap_note = f"<span> | risk note: {h(cap_reason)}</span>" if cap_reason else ""
 
+        anchor_id = f"finding-{finding_id.replace('.', '-').replace(' ', '-')}"
         cards.append(
-            f'<article class="visual-finding-card">'
+            f'<article class="visual-finding-card" id="{h(anchor_id)}">'
             f'<div class="finding-header">'
             f'<span class="badge {h(risk_level)}">{h(risk_label(risk_level))}</span>'
             f'<span class="badge">{h(category)}</span>'

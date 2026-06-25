@@ -31,10 +31,9 @@ safe_id = _safe_id
 class CaseStore:
     """SQL-only case store.
 
-    *database_url* defaults to ``VERITAS_DATABASE_URL``. Local development can
-    opt into an in-memory PGlite PostgreSQL-compatible server with
-    ``VERITAS_ENABLE_PGLITE=1``. There is no implicit SQLite file fallback for
-    Web case/run state.
+    *database_url* defaults to ``VERITAS_DATABASE_URL``. Local development
+    uses Docker PostgreSQL (``make db-up``). There is no implicit SQLite
+    fallback for Web case/run state.
     """
 
     def __init__(
@@ -180,8 +179,6 @@ class CaseStore:
     def delete_case(self, case_id: str, user_id: str | None = None) -> bool:
         from .models import (
             CaseModel,
-            EmbeddingIndexJobModel,
-            ImageEmbeddingModel,
             InvestigationRecordModel,
             ReviewDecisionModel,
             RunEventModel,
@@ -210,12 +207,6 @@ class CaseStore:
             ).delete(synchronize_session=False)
             session.query(ReviewDecisionModel).filter(
                 ReviewDecisionModel.case_id == case_id
-            ).delete(synchronize_session=False)
-            session.query(ImageEmbeddingModel).filter(
-                ImageEmbeddingModel.case_id == case_id
-            ).delete(synchronize_session=False)
-            session.query(EmbeddingIndexJobModel).filter(
-                EmbeddingIndexJobModel.case_id == case_id
             ).delete(synchronize_session=False)
             session.query(CaseModel).filter(CaseModel.case_id == case_id).delete(
                 synchronize_session=False

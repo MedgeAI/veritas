@@ -40,7 +40,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Lightweight ORM layer — self-contained for the Celery worker process.
 #
-# We cannot import web.backend ORM classes (they pull in FastAPI / PGlite).
+# We cannot import web.backend ORM classes (they pull in FastAPI).
 # Instead we define a minimal mapping over the same ``runs`` / ``run_events``
 # tables.
 # ---------------------------------------------------------------------------
@@ -132,17 +132,21 @@ def _notify_progress(run_id: str, event: dict[str, Any]) -> None:
 
     The web backend's SSE infrastructure is the primary consumer.  In the
     Celery worker the SSE module may not be importable (different process,
-    different classpath).  We attempt a lazy import and silently no-op on
-    failure — the run row itself is always the source of truth.
+    different classpath).  We attempt a lazy import and log on failure —
+    the run row itself is always the source of truth.
     """
     try:
         from web.backend.veritas_web.sse import notify_progress  # type: ignore[import-not-found]
 
-        notify_progress(run_id, event)
+        event_type = event.get("event", "progress")
+        notify_progress(run_id, event_type, event)
     except Exception:
-        # SSE is best-effort from the worker side.  The DB record is the
-        # authoritative progress store; SSE consumers poll it.
-        pass
+        logger.debug(
+            "SSE notify_progress failed for run_id=%s event=%s",
+            run_id,
+            event.get("key") or event.get("event") or "?",
+            exc_info=True,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -485,24 +489,33 @@ def _run_audit_impl(
             session.query(_RunRow).filter(_RunRow.run_id == run_id).first()
         )
         if final_row is not None:
-            now = _utc_now()
-            final_row.completed_at = now
-            final_row.last_event_at = now
-            final_row.current_stage = None  # clear — run is done
-            if result["status"] == "completed":
-                final_row.status = "completed"
-                final_row.summary = result.get("summary")
-                final_row.workdir = result.get("workdir")
-                final_row.final_html_report_url = result.get(
-                    "final_html_report_url"
+            # Guard: if the run was cancelled while the pipeline was
+            # executing, do NOT overwrite the cancelled status.
+            if final_row.status == "cancelled":
+                logger.info(
+                    "run_audit: run_id=%s was cancelled during execution — "
+                    "preserving cancelled status",
+                    run_id,
                 )
-                if failed_steps:
-                    final_row.error = f"partial: {failed_steps}"
-            elif result["status"] == "cancelled":
-                final_row.status = "cancelled"
             else:
-                final_row.status = "failed"
-                final_row.error = result.get("error", "unknown error")
+                now = _utc_now()
+                final_row.completed_at = now
+                final_row.last_event_at = now
+                final_row.current_stage = None  # clear — run is done
+                if result["status"] == "completed":
+                    final_row.status = "completed"
+                    final_row.summary = result.get("summary")
+                    final_row.workdir = result.get("workdir")
+                    final_row.final_html_report_url = result.get(
+                        "final_html_report_url"
+                    )
+                    if failed_steps:
+                        final_row.error = f"partial: {failed_steps}"
+                elif result["status"] == "cancelled":
+                    final_row.status = "cancelled"
+                else:
+                    final_row.status = "failed"
+                    final_row.error = result.get("error", "unknown error")
             session.commit()
     except Exception:
         session.rollback()

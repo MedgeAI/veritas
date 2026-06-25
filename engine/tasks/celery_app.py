@@ -24,10 +24,10 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 _DEFAULT_BROKER = (
-    "sqlalchemy+postgresql://veritas:veritas@localhost:5432/veritas"
+    "sqlalchemy+postgresql://veritas_dev:veritas_dev_pass@localhost:5433/veritas_dev"
 )
 _DEFAULT_BACKEND = (
-    "db+postgresql://veritas:veritas@localhost:5432/veritas"
+    "db+postgresql://veritas_dev:veritas_dev_pass@localhost:5433/veritas_dev"
 )
 
 BROKER_URL: str = os.environ.get("CELERY_BROKER_URL", _DEFAULT_BROKER)

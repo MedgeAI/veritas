@@ -48,6 +48,7 @@ class AuthConfig:
 
         Raises:
             ValueError: If VERITAS_AUTH_MODE is invalid.
+            ValueError: If bearer mode is enabled but JWT secret is too short.
         """
         mode = os.getenv("VERITAS_AUTH_MODE", "none").lower()
         if mode not in ("none", "bearer", "basic"):
@@ -56,9 +57,17 @@ class AuthConfig:
                 "Must be 'none', 'bearer', or 'basic'."
             )
 
+        secret = os.getenv("VERITAS_JWT_SECRET", "")
+        if mode == "bearer" and len(secret) < 32:
+            raise ValueError(
+                "VERITAS_JWT_SECRET must be at least 32 characters when "
+                "VERITAS_AUTH_MODE=bearer. "
+                "Set a strong secret or switch to VERITAS_AUTH_MODE=none."
+            )
+
         return cls(
             mode=mode,
-            jwt_shared_secret=os.getenv("VERITAS_JWT_SECRET", ""),
+            jwt_shared_secret=secret,
             jwt_issuer=os.getenv("VERITAS_JWT_ISSUER", "veritas"),
             sqlite_db_path=Path(os.getenv("VERITAS_USERS_DB", "web_data/users.db")),
         )

@@ -519,6 +519,7 @@ REPORT_CSS = """
       background: rgba(255,255,255,.65);
       margin-bottom: 8px;
     }
+    .finding-card, [id^="finding-"] { scroll-margin-top: 80px; }
     .conf-badge { display: inline-flex; align-items: center; font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-right: 4px; font-weight: 600; }
     .conf-rule { background: #e8e0d0; color: #5a5040; }
     .conf-data { background: #dfeee7; color: #1e5c4f; }

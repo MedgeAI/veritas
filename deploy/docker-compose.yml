@@ -6,13 +6,13 @@ services:
     # ports:
     #   - "5432:5432"
     environment:
-      POSTGRES_DB: veritas
-      POSTGRES_USER: veritas
-      POSTGRES_PASSWORD: veritas
+      POSTGRES_DB: ${POSTGRES_DB:-veritas_prod}
+      POSTGRES_USER: ${POSTGRES_USER:-veritas_prod}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in deploy/.env}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U veritas"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-veritas_prod}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -34,6 +34,8 @@ services:
       - ../outputs:/app/outputs
     env_file:
       - ../.env
+      - path: .env
+        required: false
     environment:
       - TZ=Asia/Shanghai
       - VERITAS_LOG_LEVEL=INFO
@@ -41,7 +43,7 @@ services:
       - VERITAS_PORT=8765
       - VERITAS_DATA_ROOT=/app/web_data
       - VERITAS_OUTPUT_ROOT=/app/outputs
-      - VERITAS_DATABASE_URL=postgresql://veritas:veritas@postgres:5432/veritas
+      - VERITAS_DATABASE_URL=postgresql://${POSTGRES_USER:-veritas_prod}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-veritas_prod}
       - VERITAS_AUTH_MODE=none
       - VERITAS_USERS_DB=/app/web_data/users.db
     healthcheck:
@@ -72,14 +74,16 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - ../.env
+      - path: .env
+        required: false
     environment:
       - TZ=Asia/Shanghai
       - VERITAS_LOG_LEVEL=INFO
       - VERITAS_DATA_ROOT=/app/web_data
       - VERITAS_OUTPUT_ROOT=/app/outputs
-      - VERITAS_DATABASE_URL=postgresql://veritas:veritas@postgres:5432/veritas
-      - CELERY_BROKER_URL=sqlalchemy+postgresql://veritas:veritas@postgres:5432/veritas
-      - CELERY_RESULT_BACKEND=db+postgresql://veritas:veritas@postgres:5432/veritas
+      - VERITAS_DATABASE_URL=postgresql://${POSTGRES_USER:-veritas_prod}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-veritas_prod}
+      - CELERY_BROKER_URL=sqlalchemy+postgresql://${POSTGRES_USER:-veritas_prod}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-veritas_prod}
+      - CELERY_RESULT_BACKEND=db+postgresql://${POSTGRES_USER:-veritas_prod}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-veritas_prod}
     depends_on:
       postgres:
         condition: service_healthy

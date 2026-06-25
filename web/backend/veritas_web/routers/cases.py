@@ -24,6 +24,9 @@ router = APIRouter(tags=["cases"])
 # Maximum allowed upload size for input files (200 MB).
 MAX_UPLOAD_SIZE_BYTES = 200 * 1024 * 1024
 
+# Maximum upload size for the legacy JSON base64 path (50 MB).
+LEGACY_JSON_UPLOAD_LIMIT_BYTES = 50 * 1024 * 1024
+
 
 @router.get("/cases")
 async def list_cases(
@@ -100,13 +103,33 @@ async def upload_input(
             raise HTTPException(
                 status_code=400, detail="multipart upload requires a 'file' field"
             )
-        content = await upload.read()
-        if len(content) > MAX_UPLOAD_SIZE_BYTES:
-            raise HTTPException(
-                status_code=413,
-                detail="File size exceeds 200MB limit",
-            )
+
+        # Early rejection via Content-Length header (avoids reading the
+        # entire body into memory when it clearly exceeds the limit).
+        cl_header = request.headers.get("content-length")
+        if cl_header and cl_header.isdigit():
+            if int(cl_header) > MAX_UPLOAD_SIZE_BYTES * 2:
+                raise HTTPException(
+                    status_code=413, detail="File size exceeds 200MB limit"
+                )
+
+        # Stream the upload in chunks to bound peak memory usage.
         filename = getattr(upload, "filename", None) or "upload"
+        total_size = 0
+        chunks: list[bytes] = []
+        chunk_size = 1024 * 1024  # 1 MB
+        while True:
+            chunk = await upload.read(chunk_size)
+            if not chunk:
+                break
+            total_size += len(chunk)
+            if total_size > MAX_UPLOAD_SIZE_BYTES:
+                raise HTTPException(
+                    status_code=413, detail="File size exceeds 200MB limit"
+                )
+            chunks.append(chunk)
+        content = b"".join(chunks)
+
         relative_path = form.get("relative_path")
         path = deps.store.write_input(
             case_id,
@@ -115,7 +138,7 @@ async def upload_input(
             relative_path=str(relative_path) if relative_path else None,
         )
     else:
-        # Legacy JSON path (backward compatible)
+        # Legacy JSON path (backward compatible, deprecated)
         try:
             body = await request.json()
         except Exception:
@@ -128,20 +151,26 @@ async def upload_input(
         if payload.content_base64 is not None:
             # Estimate decoded size: every 4 base64 chars → 3 bytes.
             estimated_size = len(payload.content_base64) * 3 // 4
-            if estimated_size > MAX_UPLOAD_SIZE_BYTES:
+            if estimated_size > LEGACY_JSON_UPLOAD_LIMIT_BYTES:
                 raise HTTPException(
                     status_code=413,
-                    detail="File size exceeds 200MB limit",
+                    detail=(
+                        "JSON upload exceeds 50MB limit. "
+                        "Use multipart/form-data upload instead."
+                    ),
                 )
             path = deps.store.write_input_base64(
                 case_id, payload.filename, payload.content_base64
             )
         elif payload.content is not None:
             content_bytes = payload.content.encode("utf-8")
-            if len(content_bytes) > MAX_UPLOAD_SIZE_BYTES:
+            if len(content_bytes) > LEGACY_JSON_UPLOAD_LIMIT_BYTES:
                 raise HTTPException(
                     status_code=413,
-                    detail="File size exceeds 200MB limit",
+                    detail=(
+                        "JSON upload exceeds 50MB limit. "
+                        "Use multipart/form-data upload instead."
+                    ),
                 )
             path = deps.store.write_input(
                 case_id, payload.filename, content_bytes

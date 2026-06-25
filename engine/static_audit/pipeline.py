@@ -413,7 +413,8 @@ def _run_static_audit_from_args(
                 "图片字节级重复检查",
                 [
                     sys.executable,
-                    str(PROJECT_ROOT / "scripts" / "exact_image_duplicates.py"),
+                    "-m",
+                    "engine.static_audit.tools.exact_image_duplicates",
                     str(images_dir),
                     "--output",
                     str(resolve_artifact_path(workdir, "exact_image_duplicates.json")),
@@ -454,7 +455,7 @@ def _run_static_audit_from_args(
         case_id=case_id,
         workdir=workdir,
         source_data_dir=source_data_dir,
-        agent_enabled=args.agent_mode != "off",
+        agent_enabled=args.agent_mode in {"review", "full"},
         agent_mode=args.agent_mode,
         force=args.force,
         project_root=PROJECT_ROOT,

@@ -7,7 +7,7 @@ import mimetypes
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
 
 from ..dependencies import AppDependencies, get_app_dependencies, require_case_access
 from ..models import CaseRecord
@@ -57,4 +57,8 @@ async def get_visual_image(
     if not path:
         raise HTTPException(status_code=404, detail=f"image not found: {image_path}")
     content_type = mimetypes.guess_type(str(path))[0] or "application/octet-stream"
-    return Response(content=path.read_bytes(), media_type=content_type)
+    return FileResponse(
+        path=str(path),
+        media_type=content_type,
+        headers={"Cache-Control": "public, max-age=3600"},
+    )

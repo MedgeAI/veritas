@@ -34,7 +34,6 @@ from engine.tools.registry import (
     SOURCE_DATA_CROSS_SHEET_TOOL_ID,
     SOURCE_DATA_FINDINGS_TOOL_ID,
     SOURCE_DATA_PAIR_FORENSICS_TOOL_ID,
-    TOOL_ID_CBIR_SEARCH,
     TOOL_ID_COPY_MOVE,
     TOOL_ID_OVERLAP_REUSE,
     TOOL_ID_SILA_DENSE,
@@ -592,56 +591,6 @@ def run_investigation_tool_action(
             output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
         status = result.get("status", "failed")
         detail = f"panels={result.get('panel_count', 0)} rels={result.get('relationship_count', 0)}"
-        step = StepResult(
-            key,
-            "Agent Investigation Tool",
-            "ran" if status == "ran" else "failed",
-            detail,
-        )
-        emit_step_result(progress, step)
-        return step, [str(output)]
-    elif action.tool_id == TOOL_ID_CBIR_SEARCH:
-        panel_json = resolve_artifact_path(workdir, "panel_evidence.json")
-        if not panel_json.exists():
-            step = StepResult(
-                key,
-                "Agent Investigation Tool",
-                "skipped",
-                "panel_evidence.json missing.",
-            )
-            emit_step_result(progress, step)
-            return step, []
-        output = action_dir / "cbir_search.json"
-        try:
-            from engine.static_audit.tools.cbir_search import run_cbir_search
-
-            panels_data = json.loads(panel_json.read_text())
-            panels_list = (
-                panels_data.get("panels", panels_data)
-                if isinstance(panels_data, dict)
-                else panels_data
-            )
-            params = action.params
-            result = run_cbir_search(
-                panels_list,
-                workdir=workdir,
-                top_k=int(params.get("top_k", 5)),
-                min_score=float(params.get("min_score", 0.70)),
-                max_pairs=int(params.get("max_pairs", 500)),
-            )
-            output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
-        except Exception as e:
-            result = {
-                "status": "failed",
-                "pairs": [],
-                "pair_count": 0,
-                "errors": [str(e)],
-            }
-            output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
-        status = result.get("status", "failed")
-        detail = (
-            f"panels={result.get('panel_count', 0)} pairs={result.get('pair_count', 0)}"
-        )
         step = StepResult(
             key,
             "Agent Investigation Tool",

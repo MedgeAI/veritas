@@ -25,7 +25,6 @@ from sqlalchemy import (
     Boolean,
     Column,
     ForeignKey,
-    Index,
     Integer,
     String,
     Text,
@@ -230,12 +229,6 @@ class CaseModel(Base):
     investigation_records = relationship(
         "InvestigationRecordModel", back_populates="case", lazy="selectin"
     )
-    image_embeddings = relationship(
-        "ImageEmbeddingModel", back_populates="case", lazy="selectin"
-    )
-    embedding_index_jobs = relationship(
-        "EmbeddingIndexJobModel", back_populates="case", lazy="selectin"
-    )
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -383,64 +376,6 @@ class ReviewDecisionModel(Base):
             "note": self.note,
             "decided_by": self.decided_by,
             "decided_at": self.decided_at,
-        }
-
-
-class ImageEmbeddingModel(Base):
-    __tablename__ = "image_embeddings"
-    __table_args__ = (
-        Index("idx_image_embeddings_case", "case_id"),
-        Index("idx_image_embeddings_level", "case_id", "embedding_level"),
-        UniqueConstraint(
-            "case_id",
-            "panel_id",
-            "embedding_level",
-            name="uq_image_embedding_case_panel_level",
-        ),
-    )
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    case_id = Column(String(128), ForeignKey("cases.case_id"), nullable=False)
-    panel_id = Column(String(128), nullable=False)
-    figure_id = Column(String(128), nullable=True)
-    image_path = Column(Text, nullable=False)
-    embedding = Column(
-        JSON, nullable=True
-    )  # 512-dim float list; pgvector Vector in production
-    embedding_level = Column(
-        String(16), default="panel", nullable=False
-    )  # "panel" or "figure"
-    embedding_model = Column(String(64), default="sscd_disc_mixup", nullable=False)
-    embedding_dim = Column(Integer, default=512, nullable=False)
-    indexed_at = Column(String(32), default=utc_now)
-
-    case = relationship("CaseModel", back_populates="image_embeddings")
-
-
-class EmbeddingIndexJobModel(Base):
-    __tablename__ = "embedding_index_jobs"
-
-    case_id = Column(String(128), ForeignKey("cases.case_id"), primary_key=True)
-    status = Column(String(32), default="not_indexed")
-    indexed_count = Column(Integer, default=0)
-    expected_count = Column(Integer, nullable=True)
-    detail = Column(Text, default="")
-    started_at = Column(String(32), nullable=True)
-    completed_at = Column(String(32), nullable=True)
-    updated_at = Column(String(32), default=utc_now)
-
-    case = relationship("CaseModel", back_populates="embedding_index_jobs")
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "case_id": self.case_id,
-            "status": self.status,
-            "indexed_count": self.indexed_count,
-            "expected_count": self.expected_count,
-            "detail": self.detail,
-            "started_at": self.started_at,
-            "completed_at": self.completed_at,
-            "updated_at": self.updated_at,
         }
 
 
@@ -600,29 +535,6 @@ class ReviewItemRead(BaseModel):
     recommended_action: str = ""
     benign_explanation: str = ""
     decision: ReviewDecisionRead | None = None
-
-
-# --- Embeddings ---
-
-
-class EmbeddingStatusRead(BaseModel):
-    case_id: str
-    indexed_count: int = 0
-    last_indexed_at: str | None = None
-    status: str = "not_indexed"
-    model_available: bool | None = None
-    expected_count: int | None = None
-    detail: str = ""
-    started_at: str | None = None
-    completed_at: str | None = None
-    updated_at: str | None = None
-
-
-class SimilarityResult(BaseModel):
-    panel_id: str
-    similarity: float
-    figure_id: str | None = None
-    image_path: str = ""
 
 
 # --- Tool Catalog ---
