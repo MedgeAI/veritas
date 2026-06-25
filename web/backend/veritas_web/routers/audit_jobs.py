@@ -163,9 +163,10 @@ async def submit_audit(
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail=f"case not found: {case_id}")
 
-    # Validate PDF exists in inputs.
+    # Validate PDF exists in inputs (search recursively — uploads may
+    # be organised into subdirectories via relative_path).
     inputs_dir = store.inputs_dir(case_id)
-    pdfs = list(inputs_dir.glob("*.pdf"))
+    pdfs = list(inputs_dir.rglob("*.pdf"))
     if not pdfs:
         raise HTTPException(
             status_code=400,

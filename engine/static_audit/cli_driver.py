@@ -45,9 +45,9 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--agent-mode",
-        choices=["off", "plan", "review", "full"],
+        choices=["plan", "review", "full"],
         default="full",
-        help="opencode Agent mode: off disables Agent, plan only tunes deterministic steps, review only interprets artifacts, full does both.",
+        help="opencode Agent mode: plan only tunes deterministic steps, review only interprets artifacts, full does both.",
     )
     parser.add_argument(
         "--agent-model",
@@ -101,7 +101,7 @@ def load_env(include_env_file: bool) -> dict[str, str]:
 
 
 def discover_pdf(paper_dir: Path) -> Path:
-    pdfs = sorted(path for path in paper_dir.glob("*.pdf") if path.is_file())
+    pdfs = sorted(path for path in paper_dir.rglob("*.pdf") if path.is_file())
     if not pdfs:
         raise FileNotFoundError(f"No PDF found in {paper_dir}")
     # Deterministic choice for the MVP; future manifest should remove ambiguity.
