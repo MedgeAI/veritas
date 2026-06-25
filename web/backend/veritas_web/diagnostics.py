@@ -94,7 +94,7 @@ def run_full_diagnostics() -> DiagReport:
 
 
 def _check_infrastructure(report: DiagReport) -> None:
-    """PostgreSQL/PGlite, Docker daemon, GPU."""
+    """PostgreSQL, Docker daemon, GPU."""
     # PostgreSQL
     db_url = os.environ.get("VERITAS_DATABASE_URL", "")
     if db_url:
@@ -111,10 +111,7 @@ def _check_infrastructure(report: DiagReport) -> None:
                 False,
                 str(exc)[:200],
                 severity="critical",
-                fix_hint=(
-                    "检查 VERITAS_DATABASE_URL、PostgreSQL 容器，"
-                    "或开发模式下的 PGlite 服务"
-                ),
+                fix_hint="检查 VERITAS_DATABASE_URL 和 PostgreSQL 容器（make db-up）",
             )
     else:
         report.add(
@@ -122,10 +119,7 @@ def _check_infrastructure(report: DiagReport) -> None:
             False,
             "VERITAS_DATABASE_URL 未设置",
             severity="critical",
-            fix_hint=(
-                "设置 VERITAS_DATABASE_URL，或用 make web-backend "
-                "启用 VERITAS_ENABLE_PGLITE=1"
-            ),
+            fix_hint="设置 VERITAS_DATABASE_URL，或运行 make db-up 启动 Docker PostgreSQL",
         )
 
     # Docker — 容器内无 Docker CLI，跳过
@@ -163,49 +157,18 @@ def _check_infrastructure(report: DiagReport) -> None:
             except Exception as exc:
                 report.add("docker", False, str(exc)[:200], severity="critical")
 
-    # opencode — 容器内直接可用，宿主机需要检查容器
-    if _IN_CONTAINER:
-        oc_bin = shutil.which("opencode")
-        if oc_bin:
-            report.add("opencode", True, f"in-container: {oc_bin}")
-        else:
-            report.add(
-                "opencode",
-                False,
-                "opencode not found in container",
-                severity="critical",
-                fix_hint="Dockerfile.dev 应预装 opencode-ai",
-            )
+    # opencode — 检查是否在 PATH 中
+    oc_bin = shutil.which("opencode")
+    if oc_bin:
+        report.add("opencode", True, oc_bin)
     else:
-        try:
-            r = subprocess.run(
-                [
-                    "docker",
-                    "inspect",
-                    "veritas-backend-dev",
-                    "--format",
-                    "{{.State.Running}}",
-                ],
-                capture_output=True,
-                text=True,
-                timeout=5,
-                check=False,
-            )
-            running = r.stdout.strip() == "true"
-            if running:
-                report.add("opencode", True, "available via backend container")
-            else:
-                report.add(
-                    "opencode",
-                    False,
-                    "backend 容器未运行",
-                    severity="critical",
-                    fix_hint="运行 ./scripts/dev.sh up",
-                )
-        except Exception:
-            report.add(
-                "opencode", False, "无法检查 backend 容器状态", severity="warning"
-            )
+        report.add(
+            "opencode",
+            False,
+            "opencode not found",
+            severity="critical",
+            fix_hint="npm install -g opencode-ai",
+        )
 
     # GPU
     try:
@@ -230,8 +193,8 @@ def _check_python_deps(report: DiagReport) -> None:
     deps = {
         "yacs": ("critical", "TruFor model code 需要 yacs.config"),
         "matplotlib": ("warning", "TruFor 可视化输出需要 matplotlib"),
-        "torch": ("critical", "SSCD embedding + TruFor 推理需要 PyTorch"),
-        "torchvision": ("critical", "SSCD 图像预处理需要 torchvision"),
+        "torch": ("critical", "TruFor 推理需要 PyTorch"),
+        "torchvision": ("critical", "TruFor 图像预处理需要 torchvision"),
         "PIL": ("critical", "图像处理需要 Pillow"),
         "numpy": ("critical", "数值计算需要 numpy"),
         "sqlalchemy": ("critical", "Web 后端数据层需要 SQLAlchemy"),
@@ -265,22 +228,6 @@ def _check_model_weights(report: DiagReport) -> None:
             "weights not found",
             severity="critical",
             fix_hint="TruFor 伪造检测需要模型权重; make download-models 或手动下载",
-        )
-
-    # SSCD — check multiple candidate paths
-    from web.backend.veritas_web.embeddings import _default_model_path
-
-    sscd_path = _default_model_path()
-    if sscd_path.exists():
-        size_mb = sscd_path.stat().st_size / (1024 * 1024)
-        report.add("model:sscd", True, f"{sscd_path.name} ({size_mb:.0f}MB)")
-    else:
-        report.add(
-            "model:sscd",
-            False,
-            f"not found at {sscd_path}",
-            severity="warning",
-            fix_hint="下载 sscd_disc_mixup.torchscript.pt 到 models/sscd/",
         )
 
 

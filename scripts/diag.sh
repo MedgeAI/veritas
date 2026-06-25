@@ -15,7 +15,7 @@ PROJECT_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$PROJECT_ROOT"
 
 export VERITAS_DATABASE_URL="${VERITAS_DATABASE_URL:-postgresql://veritas:veritas@127.0.0.1:5433/veritas}"
-export OPENCODE_BIN="${OPENCODE_BIN:-$PROJECT_ROOT/scripts/opencode-docker.sh}"
+export OPENCODE_BIN="${OPENCODE_BIN:-$(which opencode 2>/dev/null || echo opencode)}"
 
 if [[ "${1:-}" == "--json" ]]; then
     uv run python -c "

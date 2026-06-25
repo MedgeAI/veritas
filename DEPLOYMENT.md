@@ -586,7 +586,7 @@ docker inspect veritas-web | grep -A 10 DeviceRequests
 dpkg -l | grep nvidia-container-toolkit
 ```
 
-> 生产 Dockerfile 基于 CPU 镜像构建。如需 GPU 支持，需要使用 `Dockerfile.dev`（基于 PyTorch CUDA 镜像）或修改生产 Dockerfile 基础镜像。
+> 生产 Dockerfile 基于 CPU 镜像构建。如需 GPU 支持，修改生产 Dockerfile 基础镜像为 PyTorch CUDA 镜像（如 `pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime`）。
 
 ### 8.6 数据库连接失败
 

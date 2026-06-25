@@ -39,7 +39,7 @@ HOST ?= 127.0.0.1
 PORT ?= 8765
 WEB_DATA_DIR ?= web_data
 FRONTEND_DIR := web/frontend
-LOCAL_DATABASE_URL ?= postgresql://veritas:veritas@127.0.0.1:5432/veritas
+LOCAL_DATABASE_URL ?= postgresql://veritas_dev:veritas_dev_pass@127.0.0.1:5433/veritas_dev
 
 .PHONY: help show-config sync install setup \
 	up down rebuild restart logs ps shell health docker-health \
@@ -97,9 +97,6 @@ DOCKER_BUILD_ARGS := --build-arg USER_UID=$$(id -u) --build-arg USER_GID=$$(id -
 
 docker-build: ## Build Docker image with host user UID/GID (for bind mount compatibility)
 	docker build $(DOCKER_BUILD_ARGS) -t veritas:latest .
-
-docker-build-dev: ## Build development Docker image (runs as root)
-	docker build -f deploy/Dockerfile.dev -t veritas:dev .
 
 up: ## Start the Docker web service
 	$(COMPOSE) up -d
@@ -167,11 +164,6 @@ check-elis-provenance: ## Check if veritas-elis-provenance image exists
 		echo "  Run: make build-elis-provenance"; \
 		exit 1; \
 	fi
-
-# -- Tool Availability Check ----------------------------------------------
-
-check-tools: ## Check all tool availability (Docker images, model weights, dependencies, GPU)
-	@./scripts/dev.sh check-tools
 
 # -- Database lifecycle --------------------------------------------------
 
@@ -266,27 +258,28 @@ report-path: ## Print the expected final audit-paper HTML report path
 
 # -- Web P1 --------------------------------------------------------------
 
-web-backend: ## Start local stdlib Python web backend (PGlite, no Docker needed)
-	VERITAS_ENABLE_PGLITE=1 VERITAS_DATABASE_BACKEND=pglite $(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.app import serve; serve(host='$(HOST)', port=$(PORT), data_root='$(WEB_DATA_DIR)', output_root='$(OUTPUT_ROOT)')"
+web-backend: ## Start local web backend (requires Docker PostgreSQL — run 'make db-up' first)
+	VERITAS_DEV=1 VERITAS_LOG_DIR=logs $(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.app import serve; serve(host='$(HOST)', port=$(PORT), data_root='$(WEB_DATA_DIR)', output_root='$(OUTPUT_ROOT)')"
 
 web-backend-reload: ## Start web backend with auto-reload on code changes
-	VERITAS_ENABLE_PGLITE=1 VERITAS_DATABASE_BACKEND=pglite $(PY_ENV) $(PYTHON) -c "\
+	VERITAS_DEV=1 VERITAS_LOG_DIR=logs $(PY_ENV) $(PYTHON) -c "\
 from web.backend.veritas_web.app import create_app; \
 import uvicorn; \
 app = create_app(data_root='$(WEB_DATA_DIR)', output_root='$(OUTPUT_ROOT)'); \
 uvicorn.run(app, host='$(HOST)', port=$(PORT), reload=True, reload_dirs=['engine', 'web/backend'])"
 
 celery-worker: ## Start Celery worker for async audit tasks
-	$(PY_ENV) celery -A engine.tasks.celery_app worker --loglevel=info
+	VERITAS_DEV=1 VERITAS_LOG_DIR=logs $(PY_ENV) celery -A engine.tasks.celery_app worker --loglevel=debug
 
 web-frontend: ## Start Vite frontend dev server (HMR + API proxy to backend:$(PORT))
 	cd $(FRONTEND_DIR) && npm run dev
 
-dev: web-backend-reload ## Start full local dev environment (see also: web-frontend, celery-worker)
+dev: web-backend-reload ## Start full local dev environment (run 'make db-up' first for PostgreSQL)
 	@echo ""
 	@echo "Local dev stack:"
 	@echo "  Backend:  http://$(HOST):$(PORT)  (auto-reload on code change)"
 	@echo "  Frontend: http://localhost:5173   (Vite HMR, API → backend:$(PORT))"
+	@echo "  DB:       PostgreSQL + pgvector   (make db-up)"
 	@echo "  Open another terminal for: make celery-worker"
 
 web-install: ## Install frontend dependencies
