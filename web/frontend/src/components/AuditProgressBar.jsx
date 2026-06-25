@@ -32,7 +32,7 @@ function StageIcon({ status }) {
     case 'running':
       return <FiLoader aria-hidden="true" className="h-4 w-4 animate-spin text-signal-600" />;
     case 'skipped':
-      return <FiMinus aria-hidden="true" className="h-4 w-4 text-ink-400" />;
+      return <FiMinus aria-hidden="true" className="h-4 w-4 text-ink-500" />;
     default:
       return <FiCircle aria-hidden="true" className="h-4 w-4 text-ink-300" />;
   }
@@ -51,6 +51,7 @@ function formatDuration(seconds) {
 
 function AuditProgressBar({ job, onCancel }) {
   const [elapsed, setElapsed] = useState(() => computeElapsed(job));
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   const status = job?.status || 'queued';
   const stages = useMemo(() => (Array.isArray(job?.stages) ? job.stages : []), [job]);
@@ -76,7 +77,7 @@ function AuditProgressBar({ job, onCancel }) {
             {STATUS_LABEL[status] || status}
           </span>
           {job?.case_id && (
-            <span className="font-mono text-xs text-ink-400">
+            <span className="font-mono text-xs text-ink-500">
               case {job.case_id}
             </span>
           )}
@@ -87,14 +88,34 @@ function AuditProgressBar({ job, onCancel }) {
         </div>
 
         {canCancel && onCancel && (
-          <button
-            type="button"
-            className="btn-ghost inline-flex items-center gap-1.5 text-risk-600 hover:text-risk-700"
-            onClick={() => onCancel(job)}
-          >
-            <FiX aria-hidden="true" className="h-3.5 w-3.5" />
-            Cancel
-          </button>
+          showCancelConfirm ? (
+            <div className="flex items-center gap-2 rounded-xl border border-risk-400/30 bg-risk-50 px-3 py-2 text-xs">
+              <span className="text-risk-700">确定要取消此审计任务吗？</span>
+              <button
+                type="button"
+                className="rounded-lg bg-risk-600 px-2.5 py-1 font-semibold text-white hover:bg-risk-700"
+                onClick={() => { onCancel(job); setShowCancelConfirm(false); }}
+              >
+                确定取消
+              </button>
+              <button
+                type="button"
+                className="btn-ghost text-risk-600 hover:text-risk-700"
+                onClick={() => setShowCancelConfirm(false)}
+              >
+                返回
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="btn-ghost inline-flex items-center gap-1.5 text-risk-600 hover:text-risk-700"
+              onClick={() => setShowCancelConfirm(true)}
+            >
+              <FiX aria-hidden="true" className="h-3.5 w-3.5" />
+              Cancel
+            </button>
+          )
         )}
       </div>
 
@@ -104,7 +125,7 @@ function AuditProgressBar({ job, onCancel }) {
           className={`h-full rounded-full transition-[width] duration-500 ${
             status === 'completed' ? 'bg-green-500'
               : status === 'failed' ? 'bg-risk-500'
-                : status === 'cancelled' ? 'bg-ink-400'
+                : status === 'cancelled' ? 'bg-ink-500'
                   : 'bg-signal-500'
           }`}
           style={{ width: `${progress}%` }}
@@ -120,7 +141,7 @@ function AuditProgressBar({ job, onCancel }) {
               <span className={
                 stage.status === 'completed' ? 'text-ink-500'
                   : stage.status === 'running' ? 'font-semibold text-ink-900'
-                    : 'text-ink-400'
+                    : 'text-ink-500'
               }>
                 {stage.label || stage.id || `Stage ${idx + 1}`}
               </span>
@@ -130,7 +151,7 @@ function AuditProgressBar({ job, onCancel }) {
       )}
 
       {totalCount > 0 && (
-        <p className="mt-2 font-mono text-[11px] text-ink-400">
+        <p className="mt-2 font-mono text-[11px] text-ink-500">
           {completedCount} / {totalCount} stages — {progress}%
         </p>
       )}

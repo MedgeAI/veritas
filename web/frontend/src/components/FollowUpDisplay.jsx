@@ -6,7 +6,7 @@ function FollowUpDisplay({ followUps }) {
 
   if (!followUps || followUps.length === 0) {
     return (
-      <p className="text-xs text-ink-300 italic">无追问建议</p>
+      <p className="text-xs text-ink-500 italic">无追问建议</p>
     );
   }
 

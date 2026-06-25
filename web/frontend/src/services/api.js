@@ -48,26 +48,37 @@ function buildUrl(path) {
   return `${API_BASE_URL.replace(/\/$/, '')}${path}`;
 }
 
-function requestErrorMessage(payload) {
-  if (typeof payload === 'string') {
-    return payload || 'request failed';
+// ---------------------------------------------------------------------------
+// Centralized error translation: backend payload → user-friendly message
+// ---------------------------------------------------------------------------
+
+const GENERIC_ERROR_MESSAGES = {
+  400: '请求参数有误，请检查输入后重试',
+  401: '认证已过期，请重新登录',
+  403: '没有权限执行此操作',
+  404: '请求的资源不存在',
+  409: '数据冲突，请刷新页面后重试',
+  422: '数据校验失败，请检查输入格式',
+  429: '操作过于频繁，请稍后再试',
+  500: '服务内部错误，请稍后重试或联系管理员',
+  502: '服务暂时不可用，请稍后重试',
+  503: '服务维护中，请稍后重试',
+};
+
+export function translateError(status, payload) {
+  const detail = typeof payload === 'string'
+    ? payload
+    : (payload?.detail ?? payload?.error ?? payload?.message);
+
+  // Business-level overrides (matched against backend detail text)
+  if (typeof detail === 'string' && detail.length > 0) {
+    if (detail.includes('duplicate') || detail.includes('already exists'))
+      return '该记录已存在，请勿重复提交';
+    if (detail.includes('not found'))
+      return '请求的资源未找到';
   }
 
-  const detail = payload?.detail ?? payload?.error;
-  if (typeof detail === 'string') {
-    return detail;
-  }
-
-  if (detail && typeof detail === 'object') {
-    const code = detail.error || payload?.error;
-    const message = detail.detail || detail.message || payload?.message;
-    if (code && message) return `${code}: ${message}`;
-    if (code) return String(code);
-    if (message) return String(message);
-    return JSON.stringify(detail);
-  }
-
-  return payload?.message || 'request failed';
+  return GENERIC_ERROR_MESSAGES[status] || `操作失败（${status}），请稍后重试`;
 }
 
 async function request(path, options = {}) {
@@ -89,8 +100,8 @@ async function request(path, options = {}) {
   const payload = contentType.includes('application/json') ? await response.json() : await response.text();
 
   if (!response.ok) {
-    const errorMsg = requestErrorMessage(payload);
-    const error = new Error(`${response.status}: ${errorMsg}`);
+    console.error(`[API] ${method} ${path} → ${response.status}`, payload);
+    const error = new Error(translateError(response.status, payload));
     error.status = response.status;
     throw error;
   }
@@ -145,7 +156,8 @@ export function uploadInputWithAbort(caseId, file, { onProgress } = {}) {
       if (xhr.status >= 200 && xhr.status < 300) {
         resolve(parsed);
       } else {
-        reject(new Error(requestErrorMessage(parsed) || `Upload failed: ${xhr.status} ${xhr.statusText}`));
+        console.error(`[API] XHR upload → ${xhr.status}`, parsed);
+        reject(new Error(translateError(xhr.status, parsed)));
       }
     };
     xhr.onerror = () => reject(new Error('Upload network error'));
@@ -264,7 +276,8 @@ export async function getArtifactText(caseId, artifactId) {
   });
   const text = await response.text();
   if (!response.ok) {
-    throw new Error(text || `artifact request failed: ${artifactId}`);
+    console.error(`[API] artifact ${artifactId} → ${response.status}`, text);
+    throw new Error(translateError(response.status, text));
   }
   return text;
 }
@@ -324,22 +337,6 @@ export async function saveReviewDecision(caseId, sourceRef, payload) {
     method: 'POST',
     body: payload,
   });
-}
-
-// Embeddings / Similarity API
-export async function triggerEmbeddingIndex(caseId, options = {}) {
-  return request(`/api/cases/${encodeURIComponent(caseId)}/embeddings/index`, {
-    method: 'POST',
-    signal: options.signal,
-  });
-}
-
-export async function getEmbeddingStatus(caseId, options = {}) {
-  return request(`/api/cases/${encodeURIComponent(caseId)}/embeddings/status`, options);
-}
-
-export async function fetchAllSimilarPairs(caseId, { threshold = 0.85, signal } = {}) {
-  return request(`/api/cases/${encodeURIComponent(caseId)}/similarity/pairs?threshold=${threshold}`, { signal });
 }
 
 // Material Completeness Check API
@@ -423,7 +420,7 @@ export async function getCurrentUser() {
     }
     return { username: creds.username };
   } catch (e) {
-    if (e.message.includes('401')) {
+    if (e.status === 401) {
       clearAuthCredentials();
       return null;
     }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { FiGrid, FiLock, FiUser } from 'react-icons/fi';
 import { setAuthCredentials, getCurrentUser } from '../services/api.js';
 
@@ -6,14 +6,31 @@ function LoginPage({ onLogin }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [fieldError, setFieldError] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const usernameRef = useRef(null);
+  const passwordRef = useRef(null);
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!username.trim() || !password) {
-      setError('请输入用户名和密码');
+    if (loading) return;
+    const newFieldError = { username: '', password: '' };
+    let firstEmpty = null;
+    if (!username.trim()) {
+      newFieldError.username = '请输入用户名';
+      firstEmpty = firstEmpty || 'username';
+    }
+    if (!password) {
+      newFieldError.password = '请输入密码';
+      firstEmpty = firstEmpty || 'password';
+    }
+    if (firstEmpty) {
+      setFieldError(newFieldError);
+      if (firstEmpty === 'username') usernameRef.current?.focus();
+      else passwordRef.current?.focus();
       return;
     }
+    setFieldError({ username: '', password: '' });
     setLoading(true);
     setError('');
     try {
@@ -25,7 +42,7 @@ function LoginPage({ onLogin }) {
       }
       onLogin(user);
     } catch (err) {
-      setError(err.message || '登录失败');
+      setError(err.message || '登录失败，请检查网络连接后重试');
     } finally {
       setLoading(false);
     }
@@ -53,7 +70,7 @@ function LoginPage({ onLogin }) {
                 用户名
               </label>
               <div className="relative">
-                <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" aria-hidden="true" />
+                <FiUser className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-500" aria-hidden="true" />
                 <input
                   id="login-username"
                   name="username"
@@ -64,8 +81,11 @@ function LoginPage({ onLogin }) {
                   onChange={(e) => setUsername(e.target.value)}
                   autoComplete="username"
                   spellCheck={false}
+                  autoFocus
+                  ref={usernameRef}
                 />
               </div>
+              {fieldError.username && <p className="mt-1 text-xs text-red-600">{fieldError.username}</p>}
             </div>
 
             <div>
@@ -73,7 +93,7 @@ function LoginPage({ onLogin }) {
                 密码
               </label>
               <div className="relative">
-                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" aria-hidden="true" />
+                <FiLock className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-500" aria-hidden="true" />
                 <input
                   id="login-password"
                   name="password"
@@ -83,8 +103,10 @@ function LoginPage({ onLogin }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
+                  ref={passwordRef}
                 />
               </div>
+              {fieldError.password && <p className="mt-1 text-xs text-red-600">{fieldError.password}</p>}
             </div>
 
             {error ? (
@@ -93,13 +115,19 @@ function LoginPage({ onLogin }) {
               </div>
             ) : null}
 
-            <button type="submit" className="btn-primary w-full justify-center" disabled={loading}>
+            <button type="submit" className="btn-primary w-full justify-center">
+              {loading && (
+                <svg className="animate-spin -ml-1 mr-2 h-4 w-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+              )}
               {loading ? '登录中…' : '登录'}
             </button>
           </form>
         </div>
 
-        <p className="mt-6 text-center text-xs text-ink-400">
+        <p className="mt-6 text-center text-xs text-ink-500">
           呈现结构化证据与待办事项，不代替学术判断。
         </p>
       </div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaTrash } from 'react-icons/fa';
 import { FiActivity, FiAlertCircle, FiArrowRight, FiCheckCircle, FiFilePlus, FiTrendingUp } from 'react-icons/fi';
 import StatusPill from '../components/StatusPill.jsx';
@@ -78,13 +78,50 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
 
+  const dialogRef = useRef(null);
+  const cancelBtnRef = useRef(null);
+
   useEffect(() => {
-    if (!deleteTarget || deleteLoading) return undefined;
+    if (!deleteTarget) return undefined;
+    const previouslyFocused = document.activeElement;
+    // Focus cancel button on open
+    const timer = setTimeout(() => {
+      cancelBtnRef.current?.focus();
+    }, 0);
+
+    const dialog = dialogRef.current;
+    if (!dialog) return () => clearTimeout(timer);
+
     function handleKeyDown(event) {
-      if (event.key === 'Escape') setDeleteTarget(null);
+      if (event.key === 'Escape') {
+        if (!deleteLoading) setDeleteTarget(null);
+        return;
+      }
+      if (event.key === 'Tab') {
+        const focusable = dialog.querySelectorAll(
+          'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length === 0) return;
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (event.shiftKey) {
+          if (document.activeElement === first) {
+            event.preventDefault();
+            last.focus();
+          }
+        } else if (document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     }
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+
+    dialog.addEventListener('keydown', handleKeyDown);
+    return () => {
+      clearTimeout(timer);
+      dialog.removeEventListener('keydown', handleKeyDown);
+      previouslyFocused?.focus();
+    };
   }, [deleteTarget, deleteLoading]);
 
   const stats = useMemo(() => {
@@ -92,7 +129,24 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
     const totalFindings = cases.reduce((sum, c) => sum + (c.review_needed_count || 0), 0);
     const criticalCount = cases.filter((c) => c.technical_risk === 'critical' || c.technical_risk === 'high').length;
     const runningCount = cases.filter((c) => c.status === 'Running').length;
-    return { totalCases, totalFindings, criticalCount, runningCount };
+
+    // Risk distribution for mini bar
+    const riskDist = { critical: 0, high: 0, medium: 0, low: 0, unknown: 0 };
+    for (const c of cases) {
+      const r = c.technical_risk || 'unknown';
+      if (r in riskDist) riskDist[r]++;
+      else riskDist.unknown++;
+    }
+
+    // Recent activity: cases created in last 7 days
+    const weekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const recentCount = cases.filter((c) => new Date(c.created_at).getTime() > weekAgo).length;
+
+    // Pending review summary
+    const pendingReview = cases.filter((c) => (c.review_needed_count || 0) > 0);
+    const pendingFindings = pendingReview.reduce((sum, c) => sum + (c.review_needed_count || 0), 0);
+
+    return { totalCases, totalFindings, criticalCount, runningCount, riskDist, recentCount, pendingReview: pendingReview.length, pendingFindings };
   }, [cases]);
 
   const grouped = useMemo(() => {
@@ -117,7 +171,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
       setDeleteTarget(null);
       if (onRefreshCases) onRefreshCases();
     } catch (err) {
-      setDeleteError(err.message || '删除失败');
+      setDeleteError(err.message || '删除失败，请稍后重试');
     } finally {
       setDeleteLoading(false);
     }
@@ -179,6 +233,70 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
         </div>
       </div>
 
+      {/* Aggregate summary strip */}
+      {cases.length > 0 && (
+        <div className="dossier-panel rounded-2xl p-5">
+          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+            {/* Risk distribution mini bar */}
+            <div className="flex-1">
+              <p className="text-xs font-medium uppercase tracking-wide text-ink-500">风险分布</p>
+              <div className="mt-2 flex h-3 overflow-hidden rounded-full bg-ink-900/5">
+                {stats.riskDist.critical > 0 && (
+                  <div
+                    className="bg-red-500 transition-all duration-300"
+                    style={{ width: `${(stats.riskDist.critical / stats.totalCases) * 100}%` }}
+                    title={`Critical: ${stats.riskDist.critical}`}
+                  />
+                )}
+                {stats.riskDist.high > 0 && (
+                  <div
+                    className="bg-orange-500 transition-all duration-300"
+                    style={{ width: `${(stats.riskDist.high / stats.totalCases) * 100}%` }}
+                    title={`High: ${stats.riskDist.high}`}
+                  />
+                )}
+                {stats.riskDist.medium > 0 && (
+                  <div
+                    className="bg-amber-400 transition-all duration-300"
+                    style={{ width: `${(stats.riskDist.medium / stats.totalCases) * 100}%` }}
+                    title={`Medium: ${stats.riskDist.medium}`}
+                  />
+                )}
+                {stats.riskDist.low > 0 && (
+                  <div
+                    className="bg-signal-500 transition-all duration-300"
+                    style={{ width: `${(stats.riskDist.low / stats.totalCases) * 100}%` }}
+                    title={`Low: ${stats.riskDist.low}`}
+                  />
+                )}
+              </div>
+              <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-500">
+                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-red-500" />Critical {stats.riskDist.critical}</span>
+                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-orange-500" />High {stats.riskDist.high}</span>
+                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-amber-400" />Medium {stats.riskDist.medium}</span>
+                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-signal-500" />Low {stats.riskDist.low}</span>
+              </div>
+            </div>
+
+            {/* Pending review + recent activity */}
+            <div className="flex items-center gap-6 border-t border-ink-900/8 pt-4 md:border-l md:border-t-0 md:pl-6 md:pt-0">
+              <div className="text-center">
+                <p className="font-display text-2xl font-semibold text-ink-900">{stats.pendingFindings}</p>
+                <p className="text-[11px] text-ink-500">待审阅 findings</p>
+                {stats.pendingReview > 0 && (
+                  <p className="text-[10px] text-ink-500">分布在 {stats.pendingReview} 个 case</p>
+                )}
+              </div>
+              <div className="h-8 w-px bg-ink-900/10" aria-hidden="true" />
+              <div className="text-center">
+                <p className="font-display text-2xl font-semibold text-ink-900">{stats.recentCount}</p>
+                <p className="text-[11px] text-ink-500">近 7 天新增</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Kanban board */}
       <div className="space-y-5">
         <div className="flex items-center justify-between">
@@ -220,7 +338,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
                   </div>
 
                   {items.length === 0 ? (
-                    <p className="mt-4 text-center text-sm text-ink-400">无</p>
+                    <p className="mt-4 text-center text-sm text-ink-500">无</p>
                   ) : (
                     <div className="mt-2 divide-y divide-ink-900/8">
                       {items.map((item) => (
@@ -253,16 +371,16 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
             disabled={deleteLoading}
             tabIndex={-1}
           />
-          <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="delete-case-title">
+          <div ref={dialogRef} className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="delete-case-title">
             <h3 id="delete-case-title" className="mb-3 font-display text-lg font-semibold text-ink-900">确认删除</h3>
-            <p className="mb-4 text-sm text-ink-600">
+            <p className="mb-4 text-sm text-ink-500">
               确定要删除 case <strong className="text-ink-900">{deleteTarget.case_id}</strong>（{deleteTarget.paper_title || '未命名项目'}）吗？此操作不可撤销。
             </p>
             {deleteError ? (
               <div className="mb-4 rounded-xl border border-red-300/50 bg-red-50/70 px-3 py-2 text-sm text-red-700" role="alert" aria-live="polite">{deleteError}</div>
             ) : null}
             <div className="flex justify-end gap-2">
-              <button type="button" className="btn-ghost" onClick={() => setDeleteTarget(null)} disabled={deleteLoading}>取消</button>
+              <button ref={cancelBtnRef} type="button" className="btn-ghost" onClick={() => setDeleteTarget(null)} disabled={deleteLoading}>取消</button>
               <button type="button" className="btn-danger" onClick={handleConfirmDelete} disabled={deleteLoading}>
                 {deleteLoading ? '删除中…' : '删除'}
               </button>

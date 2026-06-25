@@ -101,7 +101,7 @@ export function useVisualArtifacts(selectedCase) {
         const realErrors = errors.filter((e) => !isExpectedAbsence(e));
 
         if (realErrors.length > 0) {
-          setError(`部分数据加载失败：${realErrors.join('; ')}`);
+          setError(`部分数据加载失败，请刷新页面重试`);
         }
       }
     } catch (err) {

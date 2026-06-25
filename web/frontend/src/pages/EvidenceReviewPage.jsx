@@ -1,5 +1,12 @@
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
-import { FiCheck, FiCpu, FiLink, FiPlay, FiRefreshCw, FiShuffle } from 'react-icons/fi';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  FiAlertTriangle,
+  FiCheck,
+  FiCircle,
+  FiFlag,
+  FiPlay,
+  FiRefreshCw,
+} from 'react-icons/fi';
 import MetricCard from '../components/MetricCard.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import StatusPill from '../components/StatusPill.jsx';
@@ -8,7 +15,6 @@ import OverlapDetailDrawer from '../components/OverlapDetailDrawer.jsx';
 import ProvenanceGraph from '../components/ProvenanceGraph.jsx';
 import { visualImageUrl } from '../services/api.js';
 import { useVisualArtifacts } from '../hooks/useVisualArtifacts.js';
-import { useEmbeddingIndex } from '../hooks/useEmbeddingIndex.js';
 import { useDenseInvestigation } from '../hooks/useDenseInvestigation.js';
 import { translateStatus, translateRiskLevel } from '../utils/piLabels.js';
 
@@ -20,6 +26,8 @@ function readEvidenceWorkspaceFromUrl() {
       filterCategory: params.get('evidenceCategory') || 'all',
       panelIds: (params.get('evidencePanels') || '').split(',').map((id) => id.trim()).filter(Boolean),
       overlapId: params.get('evidenceOverlap') || '',
+      selectedFindingId: params.get('finding') || '',
+      activeTab: params.get('tab') || 'evidence',
     };
   } catch {
     return {
@@ -27,11 +35,13 @@ function readEvidenceWorkspaceFromUrl() {
       filterCategory: 'all',
       panelIds: [],
       overlapId: '',
+      selectedFindingId: '',
+      activeTab: 'evidence',
     };
   }
 }
 
-function writeEvidenceWorkspaceUrl({ filterRisk, filterCategory, panelIds, overlapId }) {
+function writeEvidenceWorkspaceUrl({ filterRisk, filterCategory, panelIds, overlapId, selectedFindingId, activeTab }) {
   try {
     const url = new URL(window.location.href);
     if (filterRisk && filterRisk !== 'all') url.searchParams.set('evidenceRisk', filterRisk);
@@ -42,6 +52,10 @@ function writeEvidenceWorkspaceUrl({ filterRisk, filterCategory, panelIds, overl
     else url.searchParams.delete('evidencePanels');
     if (overlapId) url.searchParams.set('evidenceOverlap', overlapId);
     else url.searchParams.delete('evidenceOverlap');
+    if (selectedFindingId) url.searchParams.set('finding', selectedFindingId);
+    else url.searchParams.delete('finding');
+    if (activeTab && activeTab !== 'evidence') url.searchParams.set('tab', activeTab);
+    else url.searchParams.delete('tab');
     window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
   } catch {
     // URL state is progressive enhancement for deep-linking.
@@ -50,13 +64,16 @@ function writeEvidenceWorkspaceUrl({ filterRisk, filterCategory, panelIds, overl
 
 function EvidenceReviewPage({ selectedCase }) {
   const initialWorkspace = useMemo(() => readEvidenceWorkspaceFromUrl(), []);
-  const similarityThresholdId = useId();
   const previousCaseIdRef = useRef(selectedCase?.case_id || '');
   const [filterRisk, setFilterRisk] = useState(initialWorkspace.filterRisk);
   const [filterCategory, setFilterCategory] = useState(initialWorkspace.filterCategory);
   const [selectedPanelIds, setSelectedPanelIds] = useState(initialWorkspace.panelIds);
   const [selectedOverlapId, setSelectedOverlapId] = useState(initialWorkspace.overlapId);
   const [denseMaxPanels, setDenseMaxPanels] = useState(20);
+  const [selectedFindingId, setSelectedFindingId] = useState(initialWorkspace.selectedFindingId || null);
+  const [activeTab, setActiveTab] = useState(initialWorkspace.activeTab || 'evidence');
+  const [decisions, setDecisions] = useState({});
+  const [autoAdvanceId, setAutoAdvanceId] = useState(null);
 
   // Data fetching hook
   const {
@@ -76,21 +93,6 @@ function EvidenceReviewPage({ selectedCase }) {
     setInvestigationResults,
   } = useVisualArtifacts(selectedCase);
 
-  // Embedding index hook
-  const {
-    embeddingStatus,
-    similarPairs,
-    similarityThreshold,
-    setSimilarityThreshold,
-    isIndexing,
-    similarityError,
-    canFindSimilarPairs,
-    indexedPanelCount,
-    embeddingStatusBlocked,
-    handleIndexPanels,
-    handleLoadSimilarPairs,
-  } = useEmbeddingIndex(selectedCase);
-
   // Dense investigation hook
   const { runDense, isRunning: runningInvestigation, denseError, setDenseError } = useDenseInvestigation(
     selectedCase,
@@ -104,6 +106,9 @@ function EvidenceReviewPage({ selectedCase }) {
     if (previousCaseIdRef.current && previousCaseIdRef.current !== nextCaseId) {
       setSelectedPanelIds([]);
       setSelectedOverlapId('');
+      setSelectedFindingId(null);
+      setDecisions({});
+      setAutoAdvanceId(null);
     }
     previousCaseIdRef.current = nextCaseId;
     setDenseError('');
@@ -115,8 +120,10 @@ function EvidenceReviewPage({ selectedCase }) {
       filterCategory,
       panelIds: selectedPanelIds,
       overlapId: selectedOverlapId,
+      selectedFindingId: selectedFindingId || '',
+      activeTab,
     });
-  }, [filterRisk, filterCategory, selectedPanelIds, selectedOverlapId]);
+  }, [filterRisk, filterCategory, selectedPanelIds, selectedOverlapId, selectedFindingId, activeTab]);
 
   useEffect(() => {
     function handlePopState() {
@@ -125,10 +132,29 @@ function EvidenceReviewPage({ selectedCase }) {
       setFilterCategory(nextWorkspace.filterCategory);
       setSelectedPanelIds(nextWorkspace.panelIds);
       setSelectedOverlapId(nextWorkspace.overlapId);
+      setSelectedFindingId(nextWorkspace.selectedFindingId || null);
+      setActiveTab(nextWorkspace.activeTab || 'evidence');
     }
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
+
+  // Auto-advance to next undecided finding after decision
+  useEffect(() => {
+    if (!autoAdvanceId) return undefined;
+    const timeoutId = setTimeout(() => {
+      setSelectedFindingId(autoAdvanceId);
+      setAutoAdvanceId(null);
+    }, 1500);
+    return () => clearTimeout(timeoutId);
+  }, [autoAdvanceId]);
+
+  // Cancel auto-advance when user manually selects a finding
+  useEffect(() => {
+    if (selectedFindingId && autoAdvanceId && selectedFindingId !== autoAdvanceId) {
+      setAutoAdvanceId(null);
+    }
+  }, [selectedFindingId, autoAdvanceId]);
 
   const clearPanelSelection = useCallback(() => {
     setSelectedPanelIds([]);
@@ -162,6 +188,29 @@ function EvidenceReviewPage({ selectedCase }) {
     [overlapRelationships, selectedOverlapId],
   );
 
+  const selectedFinding = useMemo(
+    () => findings.find((f) => f.finding_id === selectedFindingId) || null,
+    [findings, selectedFindingId],
+  );
+
+  const decidedCount = useMemo(
+    () => filteredFindings.filter((f) => decisions[f.finding_id]).length,
+    [filteredFindings, decisions],
+  );
+
+  const handleDecision = useCallback((findingId, status) => {
+    setDecisions((prev) => ({
+      ...prev,
+      [findingId]: { status, note: '', timestamp: new Date().toISOString() },
+    }));
+    const idx = filteredFindings.findIndex((f) => f.finding_id === findingId);
+    const remaining = filteredFindings.filter((f, i) => i > idx && !decisions[f.finding_id]);
+    const nextFinding = remaining.length > 0 ? remaining[0] : filteredFindings.find((f, i) => i < idx && !decisions[f.finding_id]);
+    if (nextFinding) {
+      setAutoAdvanceId(nextFinding.finding_id);
+    }
+  }, [filteredFindings, decisions]);
+
   if (!selectedCase) {
     return (
       <EmptyState>
@@ -187,7 +236,7 @@ function EvidenceReviewPage({ selectedCase }) {
         </div>
 
         {error ? (
-          <div className="mt-5 rounded-2xl border border-risk-300/45 bg-risk-100/70 p-4 text-sm text-risk-700">
+          <div className="mt-5 rounded-2xl border border-risk-300/45 bg-risk-100/70 p-4 text-sm text-risk-700" aria-live="polite" role="status">
             {error}
           </div>
         ) : null}
@@ -214,137 +263,55 @@ function EvidenceReviewPage({ selectedCase }) {
         )}
       </section>
 
-      {/* SSCD Pre-filter: Two-step flow */}
-      {embeddingStatusBlocked ? (
+      {/* Split View: Finding List + Evidence Detail */}
+      {findings.length > 0 && (
         <section className="dossier-panel rounded-[2rem] p-6">
-          <h3 className="section-title flex items-center gap-2">
-            <FiCpu className="text-ink-500" aria-hidden="true" />
-            SSCD 相似 Panel 预筛
-          </h3>
-          <p className="mt-3 text-sm text-ink-400">
-            SSCD embedding 模型未部署，此功能暂不可用。当前使用 copy-move / overlap-reuse / exact duplicate 作为主要视觉取证手段。
-          </p>
-        </section>
-      ) : (
-      <section className="dossier-panel rounded-[2rem] p-6">
-        <h3 className="section-title flex items-center gap-2">
-          <FiCpu className="text-ink-500" aria-hidden="true" />
-          相似 Panel 预筛
-        </h3>
-        <p className="mt-2 text-sm text-ink-500">
-          用 SSCD 神经网络提取 panel 向量，快速筛出可疑相似 panel 对（纯 CPU，不跑 Docker）。
-          然后在 Step 2 中对筛出的子集跑 SILA Dense 精确检测。
-        </p>
-
-        <div className="mt-4 flex flex-wrap items-center gap-4">
-          {/* Embedding status */}
-          <div className="text-sm">
-            {embeddingStatus?.status === 'partial' ? (
-              <span className="text-amber-700">
-                部分索引 {indexedPanelCount}
-                {embeddingStatus.expected_count ? ` / ${embeddingStatus.expected_count}` : ''} 个 panel
-                {embeddingStatus.detail ? <span className="ml-2 text-ink-400">{embeddingStatus.detail}</span> : null}
-              </span>
-            ) : indexedPanelCount > 0 ? (
-              <span className="text-emerald-700 inline-flex items-center gap-1">
-                <FiCheck className="shrink-0" aria-hidden="true" />
-                已索引 {indexedPanelCount} 个 panel
-                {embeddingStatus.last_indexed_at && (
-                  <span className="text-ink-400 ml-2">({embeddingStatus.last_indexed_at})</span>
-                )}
-              </span>
-            ) : embeddingStatus?.status === 'queued' || embeddingStatus?.status === 'running' ? (
-              <span className="text-ink-500">索引任务 {translateStatus(embeddingStatus.status)}</span>
-            ) : embeddingStatus?.status === 'no_panels' ? (
-              <span className="text-amber-700">没有可索引的 panel</span>
-            ) : (
-              <span className="text-ink-400">未索引</span>
-            )}
-          </div>
-
-          {/* Index button */}
-          <button
-            type="button"
-            onClick={handleIndexPanels}
-            disabled={isIndexing || !selectedCase}
-            className="flex items-center gap-2 rounded-xl border border-ink-900/10 bg-white/60 px-4 py-2 text-sm text-ink-900/70 transition hover:bg-white disabled:opacity-50"
-          >
-            <FiCpu className={isIndexing ? 'animate-spin' : ''} aria-hidden="true" />
-            {isIndexing ? '索引中…' : indexedPanelCount > 0 ? '重新索引' : '索引 Panels'}
-          </button>
-
-          {/* Threshold slider */}
-          <div className="flex items-center gap-2">
-            <label htmlFor={similarityThresholdId} className="text-xs text-ink-500">相似度阈值:</label>
-            <input
-              id={similarityThresholdId}
-              name="similarity_threshold"
-              type="range"
-              min="0.5"
-              max="0.99"
-              step="0.01"
-              value={similarityThreshold}
-              onChange={(e) => setSimilarityThreshold(Number(e.target.value))}
-              aria-valuetext={similarityThreshold.toFixed(2)}
-              className="w-24"
-            />
-            <span className="text-sm font-mono text-ink-700">{similarityThreshold.toFixed(2)}</span>
-          </div>
-
-          {/* Load pairs button */}
-          <button
-            type="button"
-            onClick={handleLoadSimilarPairs}
-            disabled={!canFindSimilarPairs}
-            className="flex items-center gap-2 rounded-xl bg-ink-900/5 px-4 py-2 text-sm text-ink-900/70 transition hover:bg-ink-900/10 disabled:opacity-50"
-          >
-            <FiLink aria-hidden="true" />
-            查找相似 Panel 对
-          </button>
-        </div>
-
-        {similarityError && (
-          <p className="mt-2 text-sm text-red-600">{similarityError}</p>
-        )}
-
-        {/* Similar pairs list */}
-        {similarPairs.length > 0 && (
-          <div className="mt-4">
-            <h4 className="text-sm font-semibold text-ink-900/70">
-              发现 {similarPairs.length} 对相似 Panel
-              <span className="ml-2 text-xs text-ink-400">(threshold ≥ {similarityThreshold})</span>
-            </h4>
-            <div className="mt-2 max-h-48 overflow-y-auto space-y-1" style={{ overscrollBehavior: 'contain' }}>
-              {similarPairs.map((pair, i) => (
-                <div key={i} className="flex items-center justify-between rounded-lg border border-ink-900/5 bg-white/40 px-3 py-2">
-                  <div className="flex items-center gap-3 text-sm">
-                    <span className="font-mono text-ink-700">{pair.source_panel_id}</span>
-                    <FiShuffle className="text-ink-300 shrink-0" aria-hidden="true" />
-                    <span className="font-mono text-ink-700">{pair.target_panel_id}</span>
-                    <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800">
-                      {(pair.similarity * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectPair(pair)}
-                    disabled={runningInvestigation}
-                    className="rounded-lg bg-ink-900/5 px-3 py-1 text-xs text-ink-900/70 transition hover:bg-ink-900/10"
-                  >
-                    {runningInvestigation ? '运行中…' : '选中并跑 Dense'}
-                  </button>
+          <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
+            {/* LEFT COLUMN - Finding List */}
+            <div className="min-w-0">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <h3 className="section-title">视觉发现</h3>
+                <FilterBar
+                  filterRisk={filterRisk}
+                  filterCategory={filterCategory}
+                  categories={categories}
+                  onRiskChange={setFilterRisk}
+                  onCategoryChange={setFilterCategory}
+                />
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <span className="text-xs text-ink-500">已审阅 {decidedCount}/{filteredFindings.length}</span>
+                <div className="h-1 flex-1 overflow-hidden rounded-full bg-ink-900/8">
+                  <div
+                    className="h-full rounded-full bg-signal-500 transition-all duration-300"
+                    style={{ width: filteredFindings.length > 0 ? `${(decidedCount / filteredFindings.length) * 100}%` : '0%' }}
+                  />
                 </div>
-              ))}
+              </div>
+              <div className="mt-3">
+                <FindingList
+                  findings={filteredFindings}
+                  decisions={decisions}
+                  selectedFindingId={selectedFindingId}
+                  onSelectFinding={setSelectedFindingId}
+                />
+              </div>
+            </div>
+
+            {/* RIGHT COLUMN - Evidence Detail */}
+            <div className="min-w-0">
+              <EvidenceDetailPanel
+                finding={selectedFinding}
+                panels={panels}
+                caseId={selectedCase.case_id}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                decisions={decisions}
+                onDecision={handleDecision}
+              />
             </div>
           </div>
-        )}
-
-        {canFindSimilarPairs && similarPairs.length === 0 && !similarityError && (
-          <p className="mt-3 text-sm text-ink-400">
-            点击「查找相似 Panel 对」在已索引的 panel 中搜索相似对。
-          </p>
-        )}
-      </section>
+        </section>
       )}
 
       <ManualInvestigationPanel
@@ -370,7 +337,7 @@ function EvidenceReviewPage({ selectedCase }) {
             <OverlapGraph
               relationships={overlapRelationships}
               panels={panels}
-              onSelectRelationship={(rel) => setSelectedOverlapId(rel.relationship_id || '')}
+              onSelectRelationship={(rel) => setSelectedOverlapId(rel.relationship_id)}
             />
           </div>
           <div className="mt-3 text-xs text-ink-500">
@@ -403,7 +370,7 @@ function EvidenceReviewPage({ selectedCase }) {
             />
           </div>
           {provenanceGraph.statistics && (
-            <div className="mt-3 flex flex-wrap gap-4 text-xs text-ink-400">
+            <div className="mt-3 flex flex-wrap gap-4 text-xs text-ink-500">
               <span>节点：{provenanceGraph.statistics.node_count || 0}</span>
               <span>边：{provenanceGraph.statistics.edge_count || 0}</span>
               <span>连通分量：{provenanceGraph.statistics.component_count || 0}</span>
@@ -428,29 +395,6 @@ function EvidenceReviewPage({ selectedCase }) {
           <p className="mt-4 text-sm text-ink-500">未发现 panel 间相似关系。</p>
         ) : (
           <RelationshipTable relationships={relationships} />
-        )}
-      </section>
-
-      {/* Findings with Filter */}
-      <section className="dossier-panel rounded-[2rem] p-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h3 className="section-title">视觉发现</h3>
-            <p className="mt-2 text-sm text-ink-500">基于 relationship 生成的 visual finding cards。</p>
-          </div>
-          <FilterBar
-            filterRisk={filterRisk}
-            filterCategory={filterCategory}
-            categories={categories}
-            onRiskChange={setFilterRisk}
-            onCategoryChange={setFilterCategory}
-          />
-        </div>
-
-        {filteredFindings.length === 0 ? (
-          <p className="mt-4 text-sm text-ink-500">未生成 visual finding 或当前筛选无结果。</p>
-        ) : (
-          <FindingCards findings={filteredFindings} panels={panels} caseId={selectedCase.case_id} />
         )}
       </section>
     </div>
@@ -514,12 +458,12 @@ function ManualInvestigationPanel({
         </div>
       </div>
       {error ? (
-        <div className="mt-4 rounded-2xl border border-risk-300/45 bg-risk-100/70 p-4 text-sm text-risk-700">
+        <div className="mt-4 rounded-2xl border border-risk-300/45 bg-risk-100/70 p-4 text-sm text-risk-700" aria-live="polite" role="status">
           {error}
         </div>
       ) : null}
       {artifactErrors.length > 0 ? (
-        <div className="mt-4 rounded-2xl border border-amber-300/60 bg-amber-50/80 p-4 text-sm text-amber-800">
+        <div className="mt-4 rounded-2xl border border-amber-300/60 bg-amber-50/80 p-4 text-sm text-amber-800" aria-live="polite" role="status">
           {artifactErrors.slice(0, 3).map((entry) => (
             <p key={`${entry.action_id || 'action'}-${entry.artifact}`}>
               {entry.error}
@@ -573,11 +517,11 @@ function InvestigationResults({ results, caseId }) {
                     return (
                       <div key={rel.relationship_id} className="rounded-xl border border-ink-900/8 bg-white/55 p-3">
                         <div className="flex flex-wrap items-center gap-2 text-xs text-ink-500">
-                          <span className="font-mono text-[10px] text-ink-400">{rel.relationship_id}</span>
+                          <span className="font-mono text-[10px] text-ink-500">{rel.relationship_id}</span>
                           <span>score {(rel.score || 0).toFixed(3)}</span>
                           <span>{rel.match_method}</span>
                         </div>
-                        <p className="mt-2 font-mono text-[11px] text-ink-400">
+                        <p className="mt-2 font-mono text-[11px] text-ink-500">
                           {rel.source_panel_id} &rarr; {rel.target_panel_id}
                         </p>
                         {overlayPath ? (
@@ -644,7 +588,66 @@ function RelationshipTable({ relationships }) {
   );
 }
 
-function FindingCards({ findings, panels, caseId }) {
+function DecisionStatusIcon({ status }) {
+  switch (status) {
+    case 'follow_up':
+      return <FiAlertTriangle className="text-amber-500" aria-hidden="true" />;
+    case 'explained':
+      return <FiCheck className="text-emerald-500" aria-hidden="true" />;
+    case 'flagged':
+      return <FiFlag className="text-risk-500" aria-hidden="true" />;
+    default:
+      return <FiCircle className="text-ink-500" aria-hidden="true" />;
+  }
+}
+
+function FindingList({ findings, decisions, selectedFindingId, onSelectFinding }) {
+  return (
+    <div className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-240px)] lg:overflow-y-auto" style={{ overscrollBehavior: 'contain' }}>
+      {findings.length === 0 ? (
+        <p className="mt-2 text-sm text-ink-500">当前筛选无结果。</p>
+      ) : (
+        <div className="space-y-1">
+          {findings.map((finding) => {
+            const isSelected = finding.finding_id === selectedFindingId;
+            const decision = decisions[finding.finding_id];
+            const riskTone = finding.risk_level === 'critical' ? 'critical' : finding.risk_level === 'high' ? 'warning' : 'neutral';
+
+            return (
+              <button
+                key={finding.finding_id}
+                type="button"
+                onClick={() => onSelectFinding(finding.finding_id)}
+                className={`relative w-full rounded-xl border px-4 py-3 pr-10 text-left transition ${
+                  isSelected
+                    ? 'border-signal-500 ring-2 ring-signal-500 bg-signal-50/30'
+                    : 'border-ink-900/8 hover:bg-ink-900/5'
+                }`}
+              >
+                <div className="absolute right-3 top-3">
+                  <DecisionStatusIcon status={decision?.status} />
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <StatusPill tone={riskTone}>{translateRiskLevel(finding.risk_level)}</StatusPill>
+                  <span className="font-mono text-[10px] text-ink-500">{finding.finding_id}</span>
+                  <span className="rounded-full border border-ink-900/10 bg-white/60 px-1.5 py-0.5 text-[10px]">{finding.category}</span>
+                </div>
+                <p className="mt-1.5 text-sm text-ink-700 line-clamp-2">
+                  {finding.summary}
+                </p>
+                <div className="mt-1.5 flex items-center justify-between">
+                  <span className="font-mono text-xs text-ink-500">score {(finding.score || 0).toFixed(3)}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function EvidenceDetailPanel({ finding, panels, caseId, activeTab, onTabChange, decisions, onDecision }) {
   const panelsById = useMemo(() => {
     const map = {};
     for (const p of panels) {
@@ -653,41 +656,58 @@ function FindingCards({ findings, panels, caseId }) {
     return map;
   }, [panels]);
 
+  const [noteInput, setNoteInput] = useState('');
+
+  useEffect(() => {
+    setNoteInput(decisions[finding?.finding_id]?.note || '');
+  }, [finding?.finding_id, decisions]);
+
+  const tabs = [
+    { id: 'evidence', label: '证据' },
+    { id: 'analysis', label: '分析' },
+    { id: 'raw', label: '原始数据' },
+  ];
+
+  if (!finding) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center rounded-2xl border border-dashed border-ink-900/20 bg-white/40">
+        <p className="text-sm text-ink-500">选择左侧发现查看详情</p>
+      </div>
+    );
+  }
+
+  const sourcePanel = panelsById[finding.source_panel_id] || {};
+  const targetPanel = panelsById[finding.target_panel_id] || {};
+  const isWithinPanel = finding.source_panel_id === finding.target_panel_id;
+  const currentDecision = decisions[finding.finding_id];
+
   return (
-    <div className="mt-5 space-y-4">
-      {findings.map((finding) => {
-        const sourcePanel = panelsById[finding.source_panel_id] || {};
-        const targetPanel = panelsById[finding.target_panel_id] || {};
-        const riskTone = finding.risk_level === 'critical' ? 'critical' : finding.risk_level === 'high' ? 'warning' : 'neutral';
-        const isWithinPanel = finding.source_panel_id === finding.target_panel_id;
+    <div className="rounded-2xl border border-ink-900/8 bg-paper-100/50">
+      {/* Tab bar */}
+      <div className="flex border-b border-ink-900/10">
+        {tabs.map((tab) => (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => onTabChange(tab.id)}
+            className={`px-4 py-3 text-sm font-medium transition ${
+              activeTab === tab.id
+                ? 'border-b-2 border-signal-500 text-ink-900'
+                : 'text-ink-500 hover:text-ink-700'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </div>
 
-        return (
-          <article key={finding.finding_id} className="rounded-2xl border border-ink-900/8 bg-gradient-to-br from-paper-100/80 to-paper-200/60 p-5">
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusPill tone={riskTone}>{translateRiskLevel(finding.risk_level)}</StatusPill>
-              <span className="font-mono text-[10px] text-ink-400">{finding.finding_id}</span>
-              <span className="rounded-full border border-ink-900/10 bg-white/60 px-2 py-0.5 text-xs">{finding.category}</span>
-              {isWithinPanel && (
-                <span className="rounded-full border border-signal-500/30 bg-signal-100/40 px-2 py-0.5 text-xs text-signal-700">
-                  单图内检测
-                </span>
-              )}
-            </div>
-
-            <p className="mt-3 text-sm text-ink-700">
-              {isWithinPanel
-                ? `Panel ${finding.source_panel_id} 内部存在复制区域`
-                : finding.summary}
-            </p>
-            <p className="mt-2 font-mono text-xs text-ink-400">
-              score: {(finding.score || 0).toFixed(3)} | source: {finding.source_panel_id} | target: {finding.target_panel_id}
-            </p>
-
-            {/* Evidence visualization */}
+      {/* Tab content */}
+      <div className="p-6">
+        {activeTab === 'evidence' && (
+          <div>
             {isWithinPanel ? (
-              // Single-panel copy-move: show one image with overlay mask
-              <div className="mt-4 rounded-xl border border-ink-900/8 bg-white/60 p-3">
-                <p className="mb-2 text-xs font-semibold text-ink-600">
+              <div className="rounded-xl border border-ink-900/8 bg-white/60 p-3">
+                <p className="mb-2 text-xs font-semibold text-ink-500">
                   证据：同一 panel 内的复制区域（白色 mask）
                 </p>
                 <div className="relative inline-block">
@@ -719,12 +739,11 @@ function FindingCards({ findings, panels, caseId }) {
                 </p>
               </div>
             ) : (
-              // Cross-panel copy-move: show side-by-side comparison
-              <div className="mt-4 rounded-xl border border-ink-900/8 bg-white/60 p-3">
-                <p className="mb-2 text-xs font-semibold text-ink-600">证据对比</p>
+              <div className="rounded-xl border border-ink-900/8 bg-white/60 p-3">
+                <p className="mb-2 text-xs font-semibold text-ink-500">证据对比</p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs text-ink-400">Source: {finding.source_panel_id}</p>
+                    <p className="text-xs text-ink-500">Source: {finding.source_panel_id}</p>
                     <img
                       src={visualImageUrl(caseId, sourcePanel.crop_path || '')}
                       alt="source"
@@ -737,7 +756,7 @@ function FindingCards({ findings, panels, caseId }) {
                     />
                   </div>
                   <div>
-                    <p className="text-xs text-ink-400">Target: {finding.target_panel_id}</p>
+                    <p className="text-xs text-ink-500">Target: {finding.target_panel_id}</p>
                     <img
                       src={visualImageUrl(caseId, targetPanel.crop_path || '')}
                       alt="target"
@@ -752,38 +771,156 @@ function FindingCards({ findings, panels, caseId }) {
                 </div>
                 {finding.overlay_path && (
                   <div className="mt-2">
-                    <p className="text-xs text-ink-400">Overlay: <span className="font-mono">{finding.overlay_path}</span></p>
+                    <p className="text-xs text-ink-500">Overlay: <span className="font-mono">{finding.overlay_path}</span></p>
                   </div>
                 )}
               </div>
             )}
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              <span className="mono-chip">score: {(finding.score || 0).toFixed(3)}</span>
+              <span className="mono-chip">source: {finding.source_panel_id}</span>
+              <span className="mono-chip">target: {finding.target_panel_id}</span>
+            </div>
+          </div>
+        )}
 
-            {/* Benign explanations */}
+        {activeTab === 'analysis' && (
+          <div className="space-y-4">
             {finding.benign_explanations && finding.benign_explanations.length > 0 && (
-              <details className="mt-2">
-                <summary className="cursor-pointer text-sm font-semibold text-ink-700">良性解释</summary>
-                <ul className="mt-2 space-y-1 text-sm text-ink-600">
+              <div>
+                <h4 className="text-sm font-semibold text-ink-700">良性解释</h4>
+                <ul className="mt-2 space-y-1 text-sm text-ink-500">
                   {finding.benign_explanations.map((exp, i) => (
                     <li key={i}>- {exp}</li>
                   ))}
                 </ul>
-              </details>
+              </div>
             )}
-
-            {/* Manual review questions */}
             {finding.manual_review_questions && finding.manual_review_questions.length > 0 && (
-              <details className="mt-2">
-                <summary className="cursor-pointer text-sm font-semibold text-ink-700">人工复核问题</summary>
-                <ul className="mt-2 space-y-1 text-sm text-ink-600">
+              <div>
+                <h4 className="text-sm font-semibold text-ink-700">人工复核问题</h4>
+                <ul className="mt-2 space-y-1 text-sm text-ink-500">
                   {finding.manual_review_questions.map((q, i) => (
                     <li key={i}>- {q}</li>
                   ))}
                 </ul>
-              </details>
+              </div>
             )}
-          </article>
-        );
-      })}
+            {!finding.benign_explanations?.length && !finding.manual_review_questions?.length && (
+              <p className="text-sm text-ink-500">暂无分析数据。</p>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'raw' && (
+          <div className="space-y-3">
+            <div>
+              <h4 className="text-xs font-semibold text-ink-500">Finding ID</h4>
+              <p className="mt-1 font-mono text-sm text-ink-700">{finding.finding_id}</p>
+            </div>
+            <div>
+              <h4 className="text-xs font-semibold text-ink-500">Category</h4>
+              <p className="mt-1 text-sm text-ink-700">{finding.category}</p>
+            </div>
+            <div>
+              <h4 className="text-xs font-semibold text-ink-500">Risk Level</h4>
+              <p className="mt-1 text-sm text-ink-700">{finding.risk_level}</p>
+            </div>
+            <div>
+              <h4 className="text-xs font-semibold text-ink-500">Source Panel</h4>
+              <p className="mt-1 font-mono text-sm text-ink-700">{finding.source_panel_id}</p>
+              {sourcePanel.crop_path && (
+                <p className="font-mono text-xs text-ink-500">{sourcePanel.crop_path}</p>
+              )}
+            </div>
+            <div>
+              <h4 className="text-xs font-semibold text-ink-500">Target Panel</h4>
+              <p className="mt-1 font-mono text-sm text-ink-700">{finding.target_panel_id}</p>
+              {targetPanel.crop_path && (
+                <p className="font-mono text-xs text-ink-500">{targetPanel.crop_path}</p>
+              )}
+            </div>
+            {finding.overlay_path && (
+              <div>
+                <h4 className="text-xs font-semibold text-ink-500">Overlay Path</h4>
+                <p className="mt-1 font-mono text-xs text-ink-700">{finding.overlay_path}</p>
+              </div>
+            )}
+            {finding.evidence_refs && finding.evidence_refs.length > 0 && (
+              <div>
+                <h4 className="text-xs font-semibold text-ink-500">Evidence Refs</h4>
+                <ul className="mt-1 space-y-1">
+                  {finding.evidence_refs.map((ref, i) => (
+                    <li key={i} className="font-mono text-xs text-ink-700">
+                      {typeof ref === 'string' ? ref : JSON.stringify(ref)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Decision bar */}
+      <div className="border-t border-ink-900/10 p-6">
+        <textarea
+          value={noteInput}
+          onChange={(e) => setNoteInput(e.target.value)}
+          name="finding_note"
+          aria-label="Finding 备注"
+          autoComplete="off"
+          placeholder="备注（可选）…"
+          rows={2}
+          className="mb-3 w-full rounded-lg border border-ink-900/10 bg-white/80 px-3 py-2 text-sm"
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => onDecision(finding.finding_id, 'follow_up')}
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+              currentDecision?.status === 'follow_up'
+                ? 'border-amber-300 bg-amber-100 text-amber-800'
+                : 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
+            }`}
+          >
+            {currentDecision?.status === 'follow_up' && <FiCheck aria-hidden="true" />}
+            <FiAlertTriangle aria-hidden="true" />
+            需要跟进
+          </button>
+          <button
+            type="button"
+            onClick={() => onDecision(finding.finding_id, 'explained')}
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+              currentDecision?.status === 'explained'
+                ? 'border-emerald-300 bg-emerald-100 text-emerald-800'
+                : 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
+            }`}
+          >
+            {currentDecision?.status === 'explained' && <FiCheck aria-hidden="true" />}
+            <FiCheck aria-hidden="true" />
+            已解释
+          </button>
+          <button
+            type="button"
+            onClick={() => onDecision(finding.finding_id, 'flagged')}
+            className={`flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-medium transition ${
+              currentDecision?.status === 'flagged'
+                ? 'border-risk-300 bg-risk-100 text-risk-800'
+                : 'border-risk-200 bg-risk-50 text-risk-700 hover:bg-risk-100'
+            }`}
+          >
+            {currentDecision?.status === 'flagged' && <FiCheck aria-hidden="true" />}
+            <FiFlag aria-hidden="true" />
+            标记为风险
+          </button>
+          {currentDecision && (
+            <span className="ml-2 text-xs text-ink-500">
+              已决定
+            </span>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

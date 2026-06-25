@@ -278,7 +278,7 @@ export default function ProvenanceGraph({
   // Empty state
   if (!nodes.length) {
     return (
-      <div className="flex items-center justify-center h-48 text-ink-400 text-sm">
+      <div className="flex items-center justify-center h-48 text-ink-500 text-sm">
         无溯源图数据
       </div>
     );
@@ -323,7 +323,7 @@ export default function ProvenanceGraph({
         </button>
 
         {/* Stats */}
-        <span className="text-xs text-ink-400">
+        <span className="text-xs text-ink-500">
           {totalVisibleNodes} nodes / {totalVisibleEdges} edges
           {statistics.component_count > 1 && ` / ${statistics.component_count} components`}
         </span>
@@ -431,7 +431,7 @@ export default function ProvenanceGraph({
                   <text
                     y={r + 14}
                     textAnchor="middle"
-                    className="text-[8px] fill-ink-600 pointer-events-none select-none"
+                    className="text-[8px] fill-ink-500 pointer-events-none select-none"
                   >
                     {displayLabel}
                   </text>
@@ -444,10 +444,10 @@ export default function ProvenanceGraph({
         {/* Hover tooltip */}
         {hoveredNode && !selectedNode && (
           <div className="absolute top-2 left-2 text-xs bg-white/95 border border-gray-200 shadow-sm rounded-lg px-3 py-2 pointer-events-none max-w-[240px]">
-            <div className="font-medium text-ink-800 truncate">{hoveredNode.label || hoveredNode.id}</div>
-            <div className="text-ink-400 text-[10px] mt-0.5">{hoveredNode.id}</div>
+            <div className="font-medium text-ink-700 truncate">{hoveredNode.label || hoveredNode.id}</div>
+            <div className="text-ink-500 text-[10px] mt-0.5">{hoveredNode.id}</div>
             {hoveredNode.depth !== undefined && (
-              <div className="text-ink-400 text-[10px]">Depth: {hoveredNode.depth}</div>
+              <div className="text-ink-500 text-[10px]">Depth: {hoveredNode.depth}</div>
             )}
           </div>
         )}
@@ -456,19 +456,19 @@ export default function ProvenanceGraph({
         <div className="absolute bottom-2 left-2 flex flex-col gap-1 bg-white/90 rounded-lg px-2 py-1.5 text-[10px] shadow-sm border border-gray-100">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-700" />
-            <span className="text-ink-600">Query Figure</span>
+            <span className="text-ink-500">Query Figure</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-indigo-500 border border-indigo-400" />
-            <span className="text-ink-600">Matched Figure</span>
+            <span className="text-ink-500">Matched Figure</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-6 h-0.5 bg-gray-600 rounded" />
-            <span className="text-ink-600">MST Edge</span>
+            <span className="text-ink-500">MST Edge</span>
           </div>
           <div className="flex items-center gap-1.5">
             <div className="w-6 h-0.5 bg-gray-300 rounded" style={{ borderTop: '1px dashed #cbd5e1' }} />
-            <span className="text-ink-600">Non-MST Edge</span>
+            <span className="text-ink-500">Non-MST Edge</span>
           </div>
         </div>
       </div>
@@ -481,7 +481,7 @@ export default function ProvenanceGraph({
         >
           <div className="flex items-start justify-between">
             <div>
-              <h4 className="text-sm font-semibold text-ink-800">
+              <h4 className="text-sm font-semibold text-ink-700">
                 {selectedNode.label || selectedNode.id}
                 {selectedNode.is_query && (
                   <span className="ml-2 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] text-emerald-700">
@@ -489,12 +489,12 @@ export default function ProvenanceGraph({
                   </span>
                 )}
               </h4>
-              <p className="text-xs text-ink-400 mt-0.5 font-mono">{selectedNode.id}</p>
+              <p className="text-xs text-ink-500 mt-0.5 font-mono">{selectedNode.id}</p>
             </div>
             <button
               type="button"
               onClick={handleCloseDetail}
-              className="text-ink-400 hover:text-ink-700 text-sm"
+              className="text-ink-500 hover:text-ink-700 text-sm"
               aria-label="Close detail"
             >
               &times;
@@ -518,7 +518,7 @@ export default function ProvenanceGraph({
           {/* Connected edges */}
           {selectedEdges.length > 0 && (
             <div className="mt-3">
-              <h5 className="text-xs font-medium text-ink-600 mb-1">
+              <h5 className="text-xs font-medium text-ink-500 mb-1">
                 Connections ({selectedEdges.length})
               </h5>
               <div className="space-y-1 max-h-40 overflow-y-auto">
@@ -536,7 +536,7 @@ export default function ProvenanceGraph({
                         {truncate(otherNode?.label || otherId, 20)}
                       </span>
                       <div className="flex items-center gap-2">
-                        <span className="text-ink-400">
+                        <span className="text-ink-500">
                           {edge.matched_keypoints} kpts
                         </span>
                         <span
@@ -564,7 +564,7 @@ export default function ProvenanceGraph({
 
           {/* Shared area info */}
           {selectedEdges.length > 0 && (
-            <div className="mt-2 text-[10px] text-ink-400">
+            <div className="mt-2 text-[10px] text-ink-500">
               Shared area: source avg{' '}
               {(selectedEdges.reduce((s, e) => s + (e.shared_area_source || 0), 0) / selectedEdges.length).toFixed(3)}
               {' / '}target avg{' '}

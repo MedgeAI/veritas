@@ -518,7 +518,7 @@ function ActionsPage({ selectedCase }) {
 
                   {/* Decision controls */}
                   <div className="border-t border-ink-900/10 pt-4">
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-400">决定</p>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-ink-500">决定</p>
                     <textarea
                       value={noteInput}
                       onChange={e => setNoteInput(e.target.value)}
@@ -584,7 +584,7 @@ function ActionsPage({ selectedCase }) {
           <ul className="mt-4 space-y-2">
             {allFollowUps.map(({ findingId, question }) => (
               <li key={findingId + question} className="flex items-start gap-2 text-sm text-ink-700">
-                <span className="mt-0.5 shrink-0 rounded-full bg-ink-900/5 px-1.5 py-0.5 font-mono text-[10px] text-ink-400">
+                <span className="mt-0.5 shrink-0 rounded-full bg-ink-900/5 px-1.5 py-0.5 font-mono text-[10px] text-ink-500">
                   {findingId}
                 </span>
                 <span className="min-w-0 flex-1">{question}</span>

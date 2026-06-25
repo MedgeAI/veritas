@@ -15,7 +15,7 @@ function PlaceholderPage({ title, body, lanes = [] }) {
           </div>
         </div>
         <aside className="rounded-[2rem] bg-ink-900 p-5 text-paper-50">
-          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-paper-200/60">Reserved Lanes</p>
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-paper-300">Reserved Lanes</p>
           <div className="mt-4 space-y-3">
             {lanes.map((lane) => (
               <div key={lane} className="rounded-2xl border border-paper-50/10 bg-paper-50/6 px-4 py-3 font-mono text-xs">

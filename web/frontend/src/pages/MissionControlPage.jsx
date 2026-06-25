@@ -99,7 +99,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
       {run ? (
         <div className="xl:col-span-2">
-          <ProgressTracker events={events} runStatus={run.status} startedAt={run.started_at} caseId={selectedCaseId} />
+          <ProgressTracker events={events} runStatus={run.status} _startedAt={run.started_at} caseId={selectedCaseId} />
         </div>
       ) : null}
 
@@ -110,7 +110,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
           <div className="mt-4">
             <RiskTrafficLight riskLevel={riskSummary.overall_risk} riskCounts={riskSummary.risk_counts} />
           </div>
-          <p className="mt-4 font-mono text-[11px] text-ink-300">
+          <p className="mt-4 font-mono text-[11px] text-ink-500">
             {riskSummary.status === 'unavailable'
               ? '风险概览数据尚未生成，当前证据不足以汇总风险。'
               : `共 ${riskSummary.total_findings} 个发现，其中 ${riskSummary.high_quality_count} 个为中高风险`}
@@ -130,12 +130,12 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
                     <div className="flex flex-wrap items-start justify-between gap-3">
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="font-mono text-[11px] text-ink-300">{fId}</span>
+                          <span className="font-mono text-[11px] text-ink-500">{fId}</span>
                           <StatusPill tone={finding.risk_level === 'critical' || finding.risk_level === 'high' ? 'risk' : 'warn'}>
                             {translateRiskLevel(finding.risk_level)}
                           </StatusPill>
                           {finding.issue_category ? (
-                            <span className="font-mono text-[10px] text-ink-300">{translateIssueCategory(finding.issue_category)}</span>
+                            <span className="font-mono text-[10px] text-ink-500">{translateIssueCategory(finding.issue_category)}</span>
                           ) : null}
                         </div>
                         <p className="mt-1.5 text-sm leading-6 text-ink-700">{finding.summary}</p>
@@ -186,7 +186,16 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
                 <span className="block">这通常说明本地缓存记录的是旧工作区，或审查数据已被清理。请选择当前审查项目的最新运行，或重新启动审查。</span>
               </>
             ) : (
-              error
+              <>
+                {error}
+                <button
+                  type="button"
+                  className="mt-2 block text-sm underline"
+                  onClick={() => { setError(''); refresh(); }}
+                >
+                  刷新重试
+                </button>
+              </>
             )}
           </div>
         ) : null}

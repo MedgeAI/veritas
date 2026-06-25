@@ -146,6 +146,13 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
     if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
   }, []);
 
+  function guardedNavigate(page) {
+    if (hasUnsavedFiles && !window.confirm('有未上传的文件，确定要离开吗？未保存的内容将丢失。')) {
+      return;
+    }
+    onNavigate(page);
+  }
+
   function handleCancelUpload() {
     if (abortRef.current) {
       abortRef.current();
@@ -218,7 +225,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
       setOverallProgress(100);
 
       if (uploadErrors.length === files.length) {
-        throw new Error(`所有文件上传失败（${uploadErrors.length} 个文件）`);
+        throw new Error(`所有文件上传失败（${uploadErrors.length} 个文件），请检查网络后重试`);
       }
       if (uploadErrors.length > 0) {
         setError(`${uploadErrors.length} 个文件上传失败，其余文件将继续审查`);
@@ -235,7 +242,8 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
       setHasUnsavedFiles(false);
       onRunStarted(job);
     } catch (nextError) {
-      setError(nextError.message || String(nextError));
+      const msg = nextError.message || String(nextError);
+      setError(msg.endsWith('重试') ? msg : `${msg}，请稍后重试`);
     } finally {
       setBusy(false);
     }
@@ -263,9 +271,9 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
               <div>
                 <p className="font-semibold text-ink-900">{selectedCase.paper_title || selectedCase.case_id}</p>
                 <p className="mt-1 font-mono text-xs text-ink-500">{selectedCase.case_id}</p>
-                {selectedRunId && <p className="mt-1 text-xs text-ink-400">最近运行：{selectedRunId}</p>}
+                {selectedRunId && <p className="mt-1 text-xs text-ink-500">最近运行：{selectedRunId}</p>}
               </div>
-              <span className="rounded-full bg-ink-900/5 px-3 py-1 text-xs font-medium text-ink-600">
+              <span className="rounded-full bg-ink-900/5 px-3 py-1 text-xs font-medium text-ink-500">
                 {selectedCase.status || 'Draft'}
               </span>
             </div>
@@ -350,7 +358,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
                     选择目录
                   </button>
                 </p>
-                <p className="mt-2 text-xs text-ink-400">PDF, XLSX, CSV, ZIP, TXT, MD, PY, R</p>
+                <p className="mt-2 text-xs text-ink-500">PDF, XLSX, CSV, ZIP, TXT, MD, PY, R</p>
               </div>
             </div>
             <input
@@ -414,7 +422,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
                           }
                           return null;
                         })()}
-                        <span className="text-ink-400">{FILE_SIZE_FORMATTER.format(Math.ceil(file.size / 1024))} KB</span>
+                        <span className="text-ink-500">{FILE_SIZE_FORMATTER.format(Math.ceil(file.size / 1024))} KB</span>
                         {!busy && (
                           <button
                             type="button"
@@ -450,7 +458,6 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
             <select className="input-field mt-2" name="agent_mode" value={params.agent_mode} onChange={(event) => updateParam('agent_mode', event.target.value)}>
               <option value="full">完整审查</option>
               <option value="review">复核模式</option>
-              <option value="off">关闭</option>
             </select>
           </label>
           <label>
@@ -499,11 +506,11 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
             </button>
           )}
           {isExistingCase && !busy && (
-            <button type="button" className="btn-secondary" onClick={() => onNavigate('mission')}>
+            <button type="button" className="btn-secondary" onClick={() => guardedNavigate('mission')}>
               查看当前结果
             </button>
           )}
-          <button type="button" className="btn-ghost" onClick={() => onNavigate('cases')} disabled={busy}>
+          <button type="button" className="btn-ghost" onClick={() => guardedNavigate('cases')} disabled={busy}>
             返回列表
           </button>
         </div>

@@ -20,27 +20,37 @@ function sortFindings(findings) {
 function FindingsPage({ selectedCase, onNavigate }) {
   const [riskSummary, setRiskSummary] = useState(null);
   const [visualFindings, setVisualFindings] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [showAllFindings, setShowAllFindings] = useState(false);
 
   useEffect(() => {
     if (!selectedCase) return;
+    setLoading(true);
     let cancelled = false;
-    getRiskSummary(selectedCase.case_id)
-      .then((data) => { if (!cancelled) setRiskSummary(data); })
-      .catch(() => { if (!cancelled) setRiskSummary(null); });
-    return () => { cancelled = true; };
-  }, [selectedCase]);
-
-  useEffect(() => {
-    if (!selectedCase) return;
-    let cancelled = false;
-    fetchVisualFindings(selectedCase.case_id)
-      .then((data) => { if (!cancelled) setVisualFindings(data); })
-      .catch(() => { if (!cancelled) setVisualFindings(null); });
+    Promise.all([
+      getRiskSummary(selectedCase.case_id).catch(() => null),
+      fetchVisualFindings(selectedCase.case_id).catch(() => null),
+    ]).then(([rs, vf]) => {
+      if (!cancelled) {
+        setRiskSummary(rs);
+        setVisualFindings(vf);
+        setLoading(false);
+      }
+    });
     return () => { cancelled = true; };
   }, [selectedCase]);
 
   if (!selectedCase) {
     return <EmptyState title="请先选择审查项目" message="选择审查项目后将展示审查发现。" />;
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="h-5 w-5 animate-spin rounded-full border-2 border-ink-300 border-t-ink-700" aria-hidden="true" />
+        <span className="ml-3 text-sm text-ink-500">加载中…</span>
+      </div>
+    );
   }
 
   const runCompleted = riskSummary && riskSummary.status !== 'unavailable';
@@ -55,6 +65,8 @@ function FindingsPage({ selectedCase, onNavigate }) {
   }
 
   const sortedFindings = sortFindings(riskSummary.top_findings || []);
+  const displayedFindings = showAllFindings ? sortedFindings : sortedFindings.slice(0, 10);
+  const hasMoreFindings = sortedFindings.length > 10;
   const visualList = Array.isArray(visualFindings)
     ? visualFindings
     : (visualFindings?.findings || []);
@@ -73,11 +85,11 @@ function FindingsPage({ selectedCase, onNavigate }) {
         </div>
         <div className="mt-4 flex flex-wrap gap-6">
           <div>
-            <p className="font-mono text-[11px] text-ink-300">发现总数</p>
+            <p className="font-mono text-[11px] text-ink-500">发现总数</p>
             <p className="mt-1 text-2xl font-bold text-ink-900">{riskSummary.total_findings}</p>
           </div>
           <div>
-            <p className="font-mono text-[11px] text-ink-300">中高风险</p>
+            <p className="font-mono text-[11px] text-ink-500">中高风险</p>
             <p className="mt-1 text-2xl font-bold text-ink-900">{riskSummary.high_quality_count}</p>
           </div>
         </div>
@@ -88,18 +100,18 @@ function FindingsPage({ selectedCase, onNavigate }) {
         <p className="metric-label">高危发现</p>
         {sortedFindings.length > 0 ? (
           <div className="mt-4 space-y-4">
-            {sortedFindings.map((finding, idx) => {
+            {displayedFindings.map((finding, idx) => {
               const fId = finding.finding_id || '';
               const followUps = riskSummary.follow_ups?.[fId] || [];
               return (
                 <article key={fId || idx} className="rounded-2xl border border-ink-900/8 bg-white/50 p-4">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-[11px] text-ink-300">{fId}</span>
+                    <span className="font-mono text-[11px] text-ink-500">{fId}</span>
                     <StatusPill tone={finding.risk_level === 'critical' || finding.risk_level === 'high' ? 'risk' : 'warn'}>
                       {translateRiskLevel(finding.risk_level)}
                     </StatusPill>
                     {finding.issue_category ? (
-                      <span className="font-mono text-[10px] text-ink-300">{translateIssueCategory(finding.issue_category)}</span>
+                      <span className="font-mono text-[10px] text-ink-500">{translateIssueCategory(finding.issue_category)}</span>
                     ) : null}
                   </div>
                   <p className="mt-1.5 text-sm leading-6 text-ink-700">{finding.summary}</p>
@@ -112,6 +124,15 @@ function FindingsPage({ selectedCase, onNavigate }) {
                 </article>
               );
             })}
+            {hasMoreFindings ? (
+              <button
+                type="button"
+                className="mt-2 text-sm font-medium text-ink-500 underline"
+                onClick={() => setShowAllFindings((v) => !v)}
+              >
+                {showAllFindings ? '收起' : `展开全部 (${sortedFindings.length})`}
+              </button>
+            ) : null}
           </div>
         ) : (
           <p className="mt-4 rounded-2xl bg-white/45 p-4 text-sm text-ink-500">
@@ -125,7 +146,7 @@ function FindingsPage({ selectedCase, onNavigate }) {
         <div className="flex flex-col gap-3 border-b border-ink-900/10 pb-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="metric-label">视觉发现</p>
-            <p className="mt-1 font-mono text-[11px] text-ink-300">
+            <p className="mt-1 font-mono text-[11px] text-ink-500">
               {visualList.length} 个视觉发现
             </p>
           </div>
@@ -151,10 +172,10 @@ function FindingsPage({ selectedCase, onNavigate }) {
                   </StatusPill>
                   <span className="font-mono text-xs text-ink-700">{f.finding_id}</span>
                   {f.category ? (
-                    <span className="truncate text-xs text-ink-400">{f.category}</span>
+                    <span className="truncate text-xs text-ink-500">{f.category}</span>
                   ) : null}
                 </div>
-                <span className="shrink-0 font-mono text-xs text-ink-400">
+                <span className="shrink-0 font-mono text-xs text-ink-500">
                   score {(f.score || 0).toFixed(3)}
                 </span>
               </div>

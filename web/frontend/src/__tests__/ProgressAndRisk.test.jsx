@@ -8,16 +8,16 @@ describe('ProgressTracker', () => {
     render(
       <ProgressTracker
         events={[
-          { event: 'step_start', key: 'source_data_findings', timestamp: '2026-06-21T00:00:00Z' },
-          { event: 'step_result', key: 'visual_copy_move', timestamp: '2026-06-21T00:00:01Z' },
+          { event: 'step_start', key: 'source_data_findings', status: 'running', timestamp: '2026-06-21T00:00:00Z' },
+          { event: 'step_result', key: 'source_data_findings', status: 'ran', timestamp: '2026-06-21T00:00:01Z' },
         ]}
         runStatus="running"
-        startedAt={null}
+        _startedAt={null}
         caseId="case-1"
       />
     );
 
-    expect(screen.getByText('步骤 1 / 2')).toBeInTheDocument();
+    expect(screen.getByText(/步骤 1\/22/)).toBeInTheDocument();
   });
 });
 

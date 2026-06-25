@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { FiClock, FiEye, FiFileText, FiX } from 'react-icons/fi';
 
 const STATUS_BADGE = {
@@ -42,6 +43,8 @@ function getActiveStage(job) {
 }
 
 function AuditTaskList({ jobs, onRefresh, onView, onCancel, onViewReport }) {
+  const [cancellingJobId, setCancellingJobId] = useState(null);
+
   if (!jobs || jobs.length === 0) {
     return (
       <div className="dossier-panel rounded-[2rem] border p-8 text-center">
@@ -87,7 +90,7 @@ function AuditTaskList({ jobs, onRefresh, onView, onCancel, onViewReport }) {
 
               return (
                 <tr key={jobId} className="border-b border-ink-900/5 text-sm hover:bg-paper-100/30">
-                  <td className="px-5 py-3 font-mono text-xs text-ink-600">
+                  <td className="px-5 py-3 font-mono text-xs text-ink-500">
                     {truncateId(jobId)}
                   </td>
                   <td className="px-5 py-3 text-ink-700">
@@ -98,7 +101,7 @@ function AuditTaskList({ jobs, onRefresh, onView, onCancel, onViewReport }) {
                       {STATUS_LABEL[status] || status}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-sm text-ink-600">
+                  <td className="px-5 py-3 text-sm text-ink-500">
                     {getActiveStage(job)}
                   </td>
                   <td className="px-5 py-3 font-mono text-xs text-ink-500">
@@ -121,15 +124,35 @@ function AuditTaskList({ jobs, onRefresh, onView, onCancel, onViewReport }) {
                         </button>
                       )}
                       {canCancel && onCancel && (
-                        <button
-                          type="button"
-                          className="btn-ghost inline-flex items-center gap-1 text-xs text-risk-600 hover:text-risk-700"
-                          onClick={() => onCancel(job)}
-                          title="Cancel job"
-                        >
-                          <FiX aria-hidden="true" className="h-3 w-3" />
-                          Cancel
-                        </button>
+                        cancellingJobId === jobId ? (
+                          <div className="flex items-center gap-1.5 rounded-lg border border-risk-400/30 bg-risk-50 px-2 py-1 text-xs">
+                            <span className="text-risk-700 whitespace-nowrap">确定取消？</span>
+                            <button
+                              type="button"
+                              className="rounded-md bg-risk-600 px-2 py-0.5 font-semibold text-white hover:bg-risk-700"
+                              onClick={() => { onCancel(job); setCancellingJobId(null); }}
+                            >
+                              确定
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-ghost py-0.5 text-risk-600 hover:text-risk-700"
+                              onClick={() => setCancellingJobId(null)}
+                            >
+                              返回
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            className="btn-ghost inline-flex items-center gap-1 text-xs text-risk-600 hover:text-risk-700"
+                            onClick={() => setCancellingJobId(jobId)}
+                            title="Cancel job"
+                          >
+                            <FiX aria-hidden="true" className="h-3 w-3" />
+                            Cancel
+                          </button>
+                        )
                       )}
                       {status === 'completed' && onViewReport && (
                         <button

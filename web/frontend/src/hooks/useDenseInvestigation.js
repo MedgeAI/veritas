@@ -39,10 +39,10 @@ export function useDenseInvestigation(selectedCase, setInvestigationRecords, set
         ]);
 
         if (response.db_sync_error) {
-          setDenseError(`DB 同步失败：${response.db_sync_error}`);
+          setDenseError(`DB 同步失败：${response.db_sync_error}，请稍后重试或联系管理员`);
         }
       } catch (err) {
-        setDenseError(err.message || String(err));
+        setDenseError((err.message || String(err)) + '，请稍后重试或联系管理员');
       } finally {
         setIsRunning(false);
       }

@@ -55,10 +55,10 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
           </div>
           <div>
             <p className="font-display text-2xl font-semibold leading-none">Veritas</p>
-            <p className="mt-1 text-xs uppercase tracking-[0.22em] text-paper-200/65">Audit Console</p>
+            <p className="mt-1 text-xs uppercase tracking-[0.22em] text-paper-300">Audit Console</p>
           </div>
         </div>
-        <p className="mt-6 text-sm leading-6 text-paper-100/85">
+        <p className="mt-6 text-sm leading-6 text-paper-300">
           面向生物医药论文的 Agent-native 技术事实复核工作台。
         </p>
       </div>
@@ -66,7 +66,7 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
       <nav className="flex-1 space-y-6 overflow-y-auto px-4 py-5">
         {GROUPS.map((group, gi) => (
           <section key={group.label}>
-            <p className="px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-paper-200/70">{group.label}</p>
+            <p className="px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-paper-300">{group.label}</p>
             <div className="mt-2 space-y-1">
               {group.items.map(([page, label, Icon]) => {
                 const active = activePage === page;
@@ -83,10 +83,10 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
                     aria-current={active ? 'page' : undefined}
                     className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm transition ${
                       disabled
-                        ? 'cursor-not-allowed text-paper-100/35'
+                        ? 'cursor-not-allowed text-paper-300'
                         : active
                         ? 'bg-paper-50 text-ink-900 shadow-insetline'
-                        : 'text-paper-100/85 hover:bg-paper-50/[0.08] hover:text-paper-50'
+                        : 'text-paper-300 hover:bg-paper-50/[0.08] hover:text-paper-50'
                     }`}
                   >
                     <Icon className="text-lg" aria-hidden="true" />
@@ -104,7 +104,7 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
         {/* Admin section */}
         {isAdmin ? (
           <section>
-            <p className="px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-paper-200/70">管理</p>
+            <p className="px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-paper-300">管理</p>
             <div className="mt-2 space-y-1">
               <button
                 type="button"
@@ -115,7 +115,7 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
                 className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm transition ${
                   activePage === 'admin'
                     ? 'bg-paper-50 text-ink-900 shadow-insetline'
-                    : 'text-paper-100/85 hover:bg-paper-50/[0.08] hover:text-paper-50'
+                    : 'text-paper-300 hover:bg-paper-50/[0.08] hover:text-paper-50'
                 }`}
               >
                 <FaUsers className="text-lg" aria-hidden="true" />
@@ -129,7 +129,7 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
       {/* Recent cases quick-switch */}
       {recentCases.length > 0 && (
         <div className="border-t border-paper-50/10 px-4 py-4">
-          <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-[0.22em] text-paper-200/70">最近审查项目</p>
+          <p className="mb-2 px-1 text-[10px] font-bold uppercase tracking-[0.22em] text-paper-300">最近审查项目</p>
           <div className="space-y-1">
             {recentCases.map((item) => {
               const isSelected = item.case_id === selectedCaseId;
@@ -142,11 +142,11 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
                   className={`flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-xs transition ${
                     isSelected
                       ? 'bg-paper-50 text-ink-900'
-                      : 'text-paper-100/75 hover:bg-paper-50/[0.08] hover:text-paper-50'
+                      : 'text-paper-300 hover:bg-paper-50/[0.08] hover:text-paper-50'
                   }`}
                 >
                   <span className="flex-1 truncate">{item.paper_title || '未命名项目'}</span>
-                  <span className="shrink-0 text-[10px] text-paper-100/75">{formatCaseDate(item.created_at)}</span>
+                  <span className="shrink-0 text-[10px] text-paper-300">{formatCaseDate(item.created_at)}</span>
                 </button>
               );
             })}
@@ -154,7 +154,7 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
         </div>
       )}
 
-      <div className="border-t border-paper-50/10 p-4 text-xs leading-5 text-paper-100/70">
+      <div className="border-t border-paper-50/10 p-4 text-xs leading-5 text-paper-300">
         呈现结构化证据与待办事项，不代替学术判断。
       </div>
     </aside>
