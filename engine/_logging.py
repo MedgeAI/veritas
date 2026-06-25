@@ -1,15 +1,18 @@
-"""Centralized logging configuration for the Veritas project.
+"""Centralized logging for the Veritas engine/CLI.
 
 Usage::
 
     from engine._logging import get_logger, configure_logging
 
     # In CLI entry point (once at startup):
-    configure_logging("INFO")
+    configure_logging("DEBUG")
 
     # In each module:
     logger = get_logger(__name__)
     logger.info("progress message")
+
+The ``configure_logging`` call attaches a stderr handler to the **root**
+logger so that all ``logging.getLogger(__name__)`` calls propagate correctly.
 """
 
 from __future__ import annotations
@@ -17,36 +20,28 @@ from __future__ import annotations
 import logging
 import sys
 
+_FORMAT = "[%(asctime)s] %(name)-40s %(levelname)-7s: %(message)s"
+
 
 def get_logger(name: str) -> logging.Logger:
-    """Return a namespaced logger under the ``veritas`` hierarchy.
+    """Return a logger for the given module name.
 
-    If *name* starts with ``engine.``, ``cli.`` or ``runtime.`` the prefix is
-    kept so log records identify the originating subsystem.
+    Since the root logger is configured at startup, all loggers propagate
+    through the same handler. No namespace prefixing needed.
     """
-    # Avoid double-prefixing when called as get_logger("veritas.x")
-    if name.startswith("veritas."):
-        return logging.getLogger(name)
-    return logging.getLogger(f"veritas.{name}")
+    return logging.getLogger(name)
 
 
 def configure_logging(level: str = "INFO") -> None:
-    """Attach a stderr handler to the ``veritas`` root logger.
+    """Attach a stderr handler to the **root** logger.
 
-    Call once at CLI startup.  Subsequent calls are harmless (a duplicate
-    handler would be added, but Python's logging module de-duplicates by
-    identity when using ``basicConfig``; here we guard explicitly).
+    Call once at CLI startup. Subsequent calls are no-ops.
     """
-    root = logging.getLogger("veritas")
-    # Guard against duplicate handlers on repeated calls.
+    root = logging.getLogger()
     if root.handlers:
         return
     handler = logging.StreamHandler(sys.stderr)
-    handler.setFormatter(
-        logging.Formatter(
-            "[%(asctime)s] %(name)s %(levelname)s: %(message)s",
-            datefmt="%H:%M:%S",
-        )
-    )
-    root.setLevel(getattr(logging, level.upper(), logging.INFO))
+    handler.setFormatter(logging.Formatter(_FORMAT, datefmt="%H:%M:%S"))
+    effective = getattr(logging, level.upper(), logging.INFO)
+    root.setLevel(effective)
     root.addHandler(handler)

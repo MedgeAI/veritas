@@ -31,8 +31,6 @@ from .routers import (
     artifacts,
     audit_jobs,
     cases,
-    cbir,
-    embeddings,
     investigations,
     materials,
     metrics,
@@ -90,7 +88,7 @@ def create_app(
     auth = auth_provider or create_auth_provider(AuthConfig.from_env())
 
     # --- Dependency injection -----------------------------------------
-    # Use CaseStore's engine if it has one (keeps PGlite-backed apps on one pool).
+    # Use CaseStore's engine if it has one (keeps apps on one connection pool).
     engine = getattr(store, "_engine", None) or (
         create_db_engine() if (database_url or store.sql_mode) else None
     )
@@ -102,6 +100,9 @@ def create_app(
     set_dependencies(deps)
 
     if deps._session_factory is not None:
+        from .database import check_db_or_raise
+
+        check_db_or_raise(engine)
         session = deps._session_factory()
         try:
             seed_tool_registry(session)
@@ -111,6 +112,27 @@ def create_app(
     recovered = runner.recover_interrupted_runs()
 
     # --- Middleware ----------------------------------------------------
+    # Request logging — must be added BEFORE CORS so it sees the original request.
+    @app.middleware("http")
+    async def log_requests(request: Request, call_next):
+        import time
+
+        start = time.perf_counter()
+        response = await call_next(request)
+        duration_ms = (time.perf_counter() - start) * 1000
+
+        # Skip health checks to reduce noise.
+        path = request.url.path
+        if not path.startswith("/api/health"):
+            logger.info(
+                "%s %s → %d (%.1fms)",
+                request.method,
+                path,
+                response.status_code,
+                duration_ms,
+            )
+        return response
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
@@ -148,8 +170,6 @@ def create_app(
     app.include_router(visual.router, prefix="/api")
     app.include_router(review.router, prefix="/api")
     app.include_router(tools.router, prefix="/api")
-    app.include_router(embeddings.router, prefix="/api")
-    app.include_router(cbir.router, prefix="/api")
     app.include_router(materials.router, prefix="/api")
     app.include_router(metrics.router, prefix="/api")
     app.include_router(users.router, prefix="/api")

@@ -413,6 +413,8 @@ def record_step(
     workdir: Path | None = None,
 ) -> StepResult:
     steps.append(step)
+    log_fn = logger.info if step.status in ("ran", "reused") else logger.warning
+    log_fn("pipeline step [%s] %s — %s (%s)", step.key, step.title, step.status, step.detail[:120])
     emit_step_result(progress, step, workdir=workdir)
     return step
 
