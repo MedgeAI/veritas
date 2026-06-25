@@ -12,7 +12,15 @@ This is the stdlib backend contract for the first Web audit flow.
 
 - `POST /api/cases/{case_id}/inputs`
 
-Payload:
+Multipart form-data upload (preferred):
+
+```
+Content-Type: multipart/form-data
+file: <binary>
+relative_path: "subdir/paper.pdf"  (optional)
+```
+
+Legacy JSON path (deprecated, 50MB limit):
 
 ```json
 {
@@ -23,25 +31,33 @@ Payload:
 
 ## Runs
 
-- `POST /api/cases/{case_id}/runs`
+- `POST /api/audit` — submit a new audit job (single entry point)
+- `GET /api/audit/{job_id}`
+- `DELETE /api/audit/{job_id}` — cancel
+- `GET /api/audit/{job_id}/stream` — SSE progress
+- `GET /api/audit/queue` — queue status
 - `GET /api/cases/{case_id}/runs/{run_id}`
 - `GET /api/cases/{case_id}/runs/{run_id}/events`
 
-Run payload defaults to the real `audit-paper` path:
+Submit payload:
 
 ```json
 {
-  "agent_mode": "review",
-  "fresh": true,
-  "force": true,
-  "no_env_file": false,
-  "agent_timeout_seconds": 300,
-  "agent_max_retries": 1
+  "case_id": "...",
+  "options": {
+    "agent_mode": "review",
+    "fresh": true,
+    "force": true,
+    "no_env_file": false,
+    "agent_timeout_seconds": 300,
+    "agent_max_retries": 1
+  }
 }
 ```
 
-The backend calls `engine.static_audit.orchestrator.run_static_audit()` directly.
-It does not set fake Agent or fake MinerU mode.
+The backend dispatches via Celery (when ``VERITAS_USE_CELERY`` is set) or
+the thread-pool ``AuditRunner``.  It does not set fake Agent or fake MinerU
+mode.
 
 ## Artifacts
 

@@ -58,6 +58,17 @@ Runtime 负责执行命令和记录证据（command manifest、stdout/stderr、e
 
 详见 `engine/static_audit/pipeline.py` 中 `_run_mineru_forensics_section` 的返回值处理。
 
+### Fail-Loud 原则
+
+配置缺失、环境异常、依赖不可用时，**必须立即报错并给出修复指引**，而不是静默 fallback 到默认值。
+
+**Agent 行为准则**：
+- 需求有多种解释时，**列出歧义并确认**，不要默默选择一个
+- 缺少关键上下文时（如文件路径、API 格式、测试期望），**停下来问**，不要编造
+- 操作不可逆时（删除文件、修改 API、发布内容），**先确认再执行**
+- 不确定修改是否会破坏现有行为时，**先运行测试**，不要假设"应该没问题"
+
+
 ### 契约更新顺序
 
 新增字段/状态/事件/artifact 时：契约/registry → producer → consumer → report/render → tests/golden fixture。单边修改协议是架构错误。
@@ -68,7 +79,7 @@ Runtime 负责执行命令和记录证据（command manifest、stdout/stderr、e
 
 | 维度 | 本地开发 | 生产部署 (Docker + Cloudflare) |
 |---|---|---|
-| 数据库 | PGlite（内存，用完即弃） | PostgreSQL 16 + pgvector |
+| 数据库 | PostgreSQL 16 + pgvector（`make db-up`，`veritas_dev@5433`） | PostgreSQL 16 + pgvector（`deploy/.env` 凭据，`5432` 内部） |
 | 审计执行 | 线程池（同步） | Celery worker（异步） |
 | 前端 | Vite dev server（HMR）或 `npm run build` | Docker 构建阶段 `npm run build` |
 | Auth | `none` | `none`（可在 `.env` 中切换） |
@@ -77,7 +88,10 @@ Runtime 负责执行命令和记录证据（command manifest、stdout/stderr、e
 ### 本地开发工作流
 
 ```bash
-# 终端 1: 后端（auto-reload on code change, PGlite 内存数据库）
+# 终端 0: 启动 PostgreSQL + pgvector（首次或重启后）
+make db-up
+
+# 终端 1: 后端（auto-reload on code change, Docker PostgreSQL）
 make dev
 # 或分别启动:
 make web-backend-reload   # 后端 auto-reload
@@ -88,8 +102,9 @@ make celery-worker
 ```
 
 - Vite dev server 已配置 API proxy（`/api` → `http://127.0.0.1:8765`），改前端代码秒级 HMR
-- PGlite 是内存数据库，重启即清空——适合快速迭代，不污染线上数据
-- 需要持久化或 pgvector 特性时：`make db-up` 启动 PostgreSQL 容器，设置 `VERITAS_DATABASE_URL`
+- `make db-up` 启动 Docker PostgreSQL + pgvector（`veritas_dev@localhost:5433`）
+- `VERITAS_DATABASE_URL` 必须显式设置（无默认值），`Makefile` 中的 `db-init`/`db-reset` 已内置 dev URL
+- 生产凭据在 `deploy/.env`（gitignored），与开发凭据完全隔离
 
 ### 生产部署
 

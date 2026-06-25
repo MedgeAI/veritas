@@ -57,9 +57,9 @@ capabilities:
     driven_by: []
     test_coverage: []
 
-  - capability_id: "visual.provenance_sscd"
+  - capability_id: "visual.provenance_graph"
     category: "visual"
-    description: "SSCD embedding + RootSIFT provenance graph construction"
+    description: "ELIS provenance-analysis adapter: RootSIFT recursive BFS + MST provenance graph"
     registry_tool_id: "visual.provenance_graph"
     version: "1.0.0"
     driven_by: []
