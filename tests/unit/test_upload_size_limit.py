@@ -24,8 +24,9 @@ from web.backend.veritas_web.routers import cases as cases_router
 @pytest.fixture
 def app_and_client(tmp_path, monkeypatch):
     """Create app + client with a patched upload limit for testable size checks."""
-    # Patch the limit to 100 bytes so we can test rejection without allocating 200MB.
+    # Patch both limits to 100 bytes so we can test rejection without allocating 200MB.
     monkeypatch.setattr(cases_router, "MAX_UPLOAD_SIZE_BYTES", 100)
+    monkeypatch.setattr(cases_router, "LEGACY_JSON_UPLOAD_LIMIT_BYTES", 100)
     app = create_app(
         data_root=tmp_path / "web_data", output_root=tmp_path / "outputs"
     )
@@ -88,7 +89,7 @@ def test_base64_upload_rejects_oversized_content(app_and_client):
         json={"filename": "big.pdf", "content_base64": b64},
     )
     assert resp.status_code == 413
-    assert "200MB" in resp.json()["detail"]
+    assert "50MB" in resp.json()["detail"]
 
 
 def test_base64_upload_accepts_content_at_limit(app_and_client):
@@ -132,7 +133,7 @@ def test_plain_content_upload_rejects_oversized_content(app_and_client):
         json={"filename": "big.txt", "content": oversized},
     )
     assert resp.status_code == 413
-    assert "200MB" in resp.json()["detail"]
+    assert "50MB" in resp.json()["detail"]
 
 
 def test_plain_content_upload_accepts_at_limit(app_and_client):

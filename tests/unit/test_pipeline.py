@@ -250,7 +250,7 @@ class TestRunStaticAuditFromArgs:
             fresh=False,
             force=False,
             no_env_file=True,
-            agent_mode="off",
+            agent_mode="review",
             agent_model="test",
             opencode_bin="opencode",
             agent_timeout_seconds=60,

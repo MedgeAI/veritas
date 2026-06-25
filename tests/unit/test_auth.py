@@ -408,16 +408,36 @@ class TestAuthConfig:
     def test_from_env_bearer_mode(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test from_env() with bearer mode."""
         monkeypatch.setenv("VERITAS_AUTH_MODE", "bearer")
-        monkeypatch.setenv("VERITAS_JWT_SECRET", "my-secret-key")
+        monkeypatch.setenv("VERITAS_JWT_SECRET", "a" * 32)
         monkeypatch.setenv("VERITAS_JWT_ISSUER", "my-issuer")
         monkeypatch.setenv("VERITAS_USERS_DB", "/tmp/test_users.db")
 
         config = AuthConfig.from_env()
 
         assert config.mode == "bearer"
-        assert config.jwt_shared_secret == "my-secret-key"
+        assert config.jwt_shared_secret == "a" * 32
         assert config.jwt_issuer == "my-issuer"
         assert str(config.sqlite_db_path) == "/tmp/test_users.db"
+
+    def test_from_env_bearer_short_secret_rejected(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Bearer mode with a secret shorter than 32 chars must fail fast."""
+        monkeypatch.setenv("VERITAS_AUTH_MODE", "bearer")
+        monkeypatch.setenv("VERITAS_JWT_SECRET", "short")
+
+        with pytest.raises(ValueError, match="at least 32 characters"):
+            AuthConfig.from_env()
+
+    def test_from_env_bearer_empty_secret_rejected(
+        self, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Bearer mode with an empty secret must fail fast."""
+        monkeypatch.setenv("VERITAS_AUTH_MODE", "bearer")
+        monkeypatch.delenv("VERITAS_JWT_SECRET", raising=False)
+
+        with pytest.raises(ValueError, match="at least 32 characters"):
+            AuthConfig.from_env()
 
     def test_from_env_basic_mode(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test from_env() with basic mode."""
@@ -437,6 +457,7 @@ class TestAuthConfig:
     def test_from_env_case_insensitive(self, monkeypatch: pytest.MonkeyPatch) -> None:
         """Test from_env() is case-insensitive for mode."""
         monkeypatch.setenv("VERITAS_AUTH_MODE", "BEARER")
+        monkeypatch.setenv("VERITAS_JWT_SECRET", "b" * 32)
 
         config = AuthConfig.from_env()
 
