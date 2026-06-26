@@ -1,4 +1,5 @@
 """Entry point for HTML report generation.
+# All f-string interpolations MUST use h() or h_attr() for XSS protection.
 
 This module was split from a 4300+ line God File.  All rendering logic
 now lives in sibling sub-modules; this file only orchestrates data

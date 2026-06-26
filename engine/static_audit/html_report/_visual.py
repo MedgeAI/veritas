@@ -1,4 +1,5 @@
 """Visual evidence section for the HTML report.
+# All f-string interpolations MUST use h() or h_attr() for XSS protection.
 
 Renders the Visual Evidence Package: figures, panels, relationships,
 finding cards and review checklists.

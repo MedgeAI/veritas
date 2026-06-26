@@ -1,4 +1,5 @@
 """Finding collection, normalisation, card rendering, and display helpers."""
+# All f-string interpolations MUST use h() or h_attr() for XSS protection.
 
 from __future__ import annotations
 
@@ -480,7 +481,7 @@ def render_findings_by_category(
         )
         sections.append(
             f"<div class='category-group'>"
-            f"<h3 class='category-heading'>{chapter}、{label} <span class='category-count'>({count} 条)</span></h3>"
+            f"<h3 class='category-heading'>{chapter}、{label} <span class='category-count'>({h(count)} 条)</span></h3>"
             f"{cards}</div>"
         )
     return (
@@ -533,7 +534,7 @@ def render_findings_by_layer(
         )
         sections.append(
             f'<div class="findings-layer {css_class}">'
-            f"<h3>{label} ({count})</h3>"
+            f"<h3>{label} ({h(count)})</h3>"
             f"{cards}</div>"
         )
 

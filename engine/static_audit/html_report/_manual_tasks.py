@@ -1,4 +1,5 @@
 """Manual task rendering and display-priority helpers."""
+# All f-string interpolations MUST use h() or h_attr() for XSS protection.
 
 from __future__ import annotations
 

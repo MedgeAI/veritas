@@ -1,4 +1,5 @@
 """Evidence cluster building, rendering, and shared cross-reference helpers."""
+# All f-string interpolations MUST use h() or h_attr() for XSS protection.
 
 from __future__ import annotations
 
@@ -229,7 +230,7 @@ def evidence_cluster_cards(clusters: list[dict[str, Any]]) -> str:
             task_items = DEFAULT_CLUSTER_TASK_ITEMS
         categories = cluster.get("categories") or Counter()
         category_text = ", ".join(
-            f"{category_label(k)}×{v}" for k, v in categories.most_common()
+            f"{category_label(k)}×{h(v)}" for k, v in categories.most_common()
         )
         cards.append(f"""
 <article class="cluster-card" id="{h(cluster.get("cluster_id"))}">

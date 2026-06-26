@@ -1,4 +1,6 @@
-"""HTML escaping utilities for safe embedding of user-controlled data."""
+"""HTML escaping utilities for safe embedding of user-controlled data.
+# All f-string interpolations MUST use h() or h_attr() for XSS protection.
+"""
 
 from __future__ import annotations
 

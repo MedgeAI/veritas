@@ -1,4 +1,5 @@
 """Executive summary, hero section, verdict, and limitations."""
+# All f-string interpolations MUST use h() or h_attr() for XSS protection.
 
 from __future__ import annotations
 
