@@ -631,6 +631,221 @@ def _should_skip_for_modality(
     return True
 
 
+def _build_relationship_finding(
+    rel: dict,
+    counter: int,
+    panel_map: dict[str, dict],
+    high_score_threshold: float,
+) -> dict | None:
+    """Build a single visual finding from a relationship, or None if skipped."""
+    raw_score = float(rel.get("score", 0.0))
+    score = _normalized_score(raw_score)
+    if score < high_score_threshold:
+        return None
+
+    src = str(rel.get("source_panel_id", ""))
+    tgt = str(rel.get("target_panel_id", ""))
+    source_type = str(rel.get("source_type", ""))
+
+    # Only emit findings for categories with template support
+    if source_type not in BENIGN_EXPLANATIONS:
+        return None
+
+    # Check if this relationship should be skipped due to code-generated modality
+    if _should_skip_for_modality(src, tgt, source_type, panel_map):
+        panel_type = _dominant_modality(src, tgt, panel_map)
+        # Mark the relationship as skipped (mutation for pipeline to track)
+        rel["skipped"] = f"skipped due to code-generated modality: {panel_type}"
+        return None
+
+    panel_type = _dominant_modality(src, tgt, panel_map)
+    risk_level = compute_risk_level(score, modality=panel_type)
+
+    benign = list(BENIGN_EXPLANATIONS[source_type])
+    questions = list(MANUAL_REVIEW_QUESTIONS[source_type])
+    summary = _generate_summary(source_type, src, tgt)
+
+    # Flip detection: add review question if horizontal flip detected
+    flip_detected = bool(rel.get("flip_detected", False))
+    if flip_detected:
+        questions.append(
+            "检测到水平翻转复制 — 请核实是否为正常实验对称性或镜像操作。"
+        )
+        summary += " [FLIP DETECTED]"
+
+    # Language compliance: drop finding if any text violates
+    all_text = [summary] + benign + questions
+    for text in all_text:
+        if check_language_compliance(text):
+            return None
+
+    pe_meta = _resolve_panel(src, panel_map)
+    target_pe_meta = _resolve_panel(tgt, panel_map)
+    source_method = str(pe_meta.get("extraction_method") or "unknown")
+    target_method = str(target_pe_meta.get("extraction_method") or "unknown")
+    extraction_quality = _panel_extraction_quality(pe_meta, target_pe_meta)
+    displayed_score = score
+    confidence_adjustments = []
+    if raw_score != score:
+        confidence_adjustments.append("raw score normalized to [0,1]")
+    if extraction_quality == "whole_figure_fallback":
+        displayed_score = min(score, 0.39)
+        risk_level = _cap_risk_level(
+            compute_risk_level(displayed_score, modality=panel_type), "medium"
+        )
+        confidence_adjustments.append(
+            "risk capped because at least one panel is whole_figure_fallback"
+        )
+
+    if panel_type in {"Graphs", "Flow Cytometry"} and source_type in {
+        "copy_move_single",
+        "copy_move_cross",
+        "overlap_reuse_cross_panel",
+    }:
+        risk_level = _cap_risk_level(risk_level, "medium")
+        confidence_adjustments.append(
+            f"risk capped because {panel_type} panels often match axes, text, legends, or plot geometry"
+        )
+
+    # Overlap reuse: cap risk at high (never critical by default)
+    if source_type == "overlap_reuse_cross_panel":
+        risk_level = _cap_risk_level(risk_level, "high")
+
+    return {
+        "finding_id": f"VF-{counter:04d}",
+        "category": source_type,
+        "risk_level": risk_level,
+        "summary": summary,
+        "source_panel_id": src,
+        "target_panel_id": tgt,
+        "relationship_id": rel.get("relationship_id", ""),
+        "score": displayed_score,
+        "benign_explanations": benign,
+        "manual_review_questions": questions,
+        # 仅为 medium/high/critical 级别的 finding 保留 overlay_path，消除冗余
+        "overlay_path": rel.get("overlay_path")
+        if _risk_rank(risk_level) >= RISK_RANK["medium"]
+        else None,
+        "metadata": {
+            "match_method": rel.get("match_method", ""),
+            "inlier_count": rel.get("inlier_count", 0),
+            "flip_detected": flip_detected,
+            "raw_score": raw_score,
+            "normalized_score": score,
+            "displayed_score": displayed_score,
+            "confidence_adjustment": "; ".join(confidence_adjustments) or None,
+            "panel_extraction_quality": extraction_quality,
+            "source_parent_figure_id": _parent_figure_id(pe_meta, src),
+            "target_parent_figure_id": _parent_figure_id(target_pe_meta, tgt),
+            "panel_type": panel_type,
+            "source_panel_type": pe_meta.get("panel_type"),
+            "target_panel_type": target_pe_meta.get("panel_type"),
+            "source_extraction_method": source_method,
+            "target_extraction_method": target_method,
+            "source_panel_metadata": pe_meta.get("metadata", {}),
+            "target_panel_metadata": target_pe_meta.get("metadata", {}),
+        },
+    }
+
+
+def _build_trufor_finding(
+    fre: dict,
+    counter: int,
+    panel_map: dict[str, dict],
+) -> dict | None:
+    """Build a single TruFor forged-region finding, or None if skipped."""
+    if not fre.get("is_suspicious"):
+        return None
+    integrity_score = _parse_score(fre.get("integrity_score"))
+    if integrity_score < 0.5:
+        return None
+    figure_id = str(fre.get("figure_id") or "")
+    if not figure_id:
+        return None
+    risk_level = trufor_integrity_risk_level(integrity_score)
+    # Collect ALL panel_types for this figure to decide filtering
+    figure_panel_types: set[str] = set()
+    for _pid, _pdata in panel_map.items():
+        if not isinstance(_pdata, dict):
+            continue
+        if str(_pdata.get("parent_figure_id") or "") == figure_id:
+            pt = _pdata.get("panel_type")
+            if pt:
+                figure_panel_types.add(str(pt))
+
+    trufor_panel_type = (
+        next(iter(figure_panel_types)) if figure_panel_types else None
+    )
+
+    _CODE_GENERATED_TYPES = {"Graphs", "Flow Cytometry"}
+    if figure_panel_types and figure_panel_types <= _CODE_GENERATED_TYPES:
+        # All panels are code-generated → skip entirely
+        fre["skipped"] = (
+            f"skipped: all panels are code-generated types: "
+            f"{sorted(figure_panel_types)}"
+        )
+        return None
+
+    has_code_generated = bool(figure_panel_types & _CODE_GENERATED_TYPES)
+
+    confidence_adjustments: list[str] = []
+    if has_code_generated:
+        risk_level = _cap_risk_level(risk_level, "medium")
+        confidence_adjustments.append(
+            "risk capped because figure contains code-generated panel types "
+            f"({sorted(figure_panel_types & _CODE_GENERATED_TYPES)}) mixed with other types"
+        )
+    elif trufor_panel_type not in {"Blots", "Microscopy"}:
+        risk_level = _cap_risk_level(risk_level, "medium")
+        confidence_adjustments.append(
+            "risk capped because TruFor finding is figure-level and not a Blots/Microscopy panel"
+        )
+    benign = list(BENIGN_EXPLANATIONS["forged_region_suspicious"])
+    questions = list(MANUAL_REVIEW_QUESTIONS["forged_region_suspicious"])
+    summary = _generate_trufor_summary(figure_id, integrity_score)
+
+    # Language compliance
+    all_text = [summary] + benign + questions
+    for text in all_text:
+        if check_language_compliance(text):
+            return None
+
+    return {
+        "finding_id": f"VF-{counter:04d}",
+        "category": "forged_region_suspicious",
+        "risk_level": risk_level,
+        "summary": summary,
+        "source_panel_id": "",
+        "target_panel_id": "",
+        "relationship_id": "",
+        "score": _normalized_score(integrity_score),
+        "benign_explanations": benign,
+        "manual_review_questions": questions,
+        # 仅为 medium/high/critical 级别的 finding 保留 overlay_path
+        "overlay_path": _optional_str(fre.get("localization_map_path"))
+        if _risk_rank(risk_level) >= RISK_RANK["medium"]
+        else None,
+        "metadata": {
+            "source": "tru_for",
+            "forged_region_evidence_id": str(
+                fre.get("forged_region_evidence_id") or ""
+            ),
+            "figure_id": figure_id,
+            "integrity_score": integrity_score,
+            "confidence_map_path": _optional_str(
+                fre.get("confidence_map_path")
+            ),
+            "panel_extraction_quality": "unknown",
+            "panel_type": trufor_panel_type,
+            "risk_cap_reason": "; ".join(confidence_adjustments) or None,
+            "source_parent_figure_id": figure_id,
+            "target_parent_figure_id": figure_id,
+            "source_extraction_method": "tru_for",
+            "target_extraction_method": "tru_for",
+        },
+    }
+
+
 def build_visual_findings(
     relationships: list[dict],
     *,
@@ -673,225 +888,24 @@ def build_visual_findings(
     findings: list[dict] = []
     counter = 0
 
+    # Build findings from relationships
     for rel in relationships:
-        raw_score = float(rel.get("score", 0.0))
-        score = _normalized_score(raw_score)
-        if score < high_score_threshold:
-            continue
+        finding = _build_relationship_finding(
+            rel, counter + 1, panel_map, high_score_threshold
+        )
+        if finding is not None:
+            counter += 1
+            findings.append(finding)
 
-        src = str(rel.get("source_panel_id", ""))
-        tgt = str(rel.get("target_panel_id", ""))
-        source_type = str(rel.get("source_type", ""))
-
-        # Only emit findings for categories with template support
-        if source_type not in BENIGN_EXPLANATIONS:
-            continue
-
-        # Check if this relationship should be skipped due to code-generated modality
-        if _should_skip_for_modality(src, tgt, source_type, panel_map):
-            panel_type = _dominant_modality(src, tgt, panel_map)
-            # Mark the relationship as skipped (mutation for pipeline to track)
-            rel["skipped"] = f"skipped due to code-generated modality: {panel_type}"
-            continue
-
-        counter += 1
-        panel_type = _dominant_modality(src, tgt, panel_map)
-        risk_level = compute_risk_level(score, modality=panel_type)
-
-        benign = list(BENIGN_EXPLANATIONS[source_type])
-        questions = list(MANUAL_REVIEW_QUESTIONS[source_type])
-        summary = _generate_summary(source_type, src, tgt)
-
-        # Flip detection: add review question if horizontal flip detected
-        flip_detected = bool(rel.get("flip_detected", False))
-        if flip_detected:
-            questions.append(
-                "检测到水平翻转复制 — 请核实是否为正常实验对称性或镜像操作。"
-            )
-            summary += " [FLIP DETECTED]"
-
-        # Language compliance: drop finding if any text violates
-        all_text = [summary] + benign + questions
-        violated = False
-        for text in all_text:
-            if check_language_compliance(text):
-                violated = True
-                break
-        if violated:
-            continue
-
-        pe_meta = _resolve_panel(src, panel_map)
-        target_pe_meta = _resolve_panel(tgt, panel_map)
-        source_method = str(pe_meta.get("extraction_method") or "unknown")
-        target_method = str(target_pe_meta.get("extraction_method") or "unknown")
-        extraction_quality = _panel_extraction_quality(pe_meta, target_pe_meta)
-        displayed_score = score
-        confidence_adjustments = []
-        if raw_score != score:
-            confidence_adjustments.append("raw score normalized to [0,1]")
-        if extraction_quality == "whole_figure_fallback":
-            displayed_score = min(score, 0.39)
-            risk_level = _cap_risk_level(
-                compute_risk_level(displayed_score, modality=panel_type), "medium"
-            )
-            confidence_adjustments.append(
-                "risk capped because at least one panel is whole_figure_fallback"
-            )
-
-        if panel_type in {"Graphs", "Flow Cytometry"} and source_type in {
-            "copy_move_single",
-            "copy_move_cross",
-            "overlap_reuse_cross_panel",
-        }:
-            risk_level = _cap_risk_level(risk_level, "medium")
-            confidence_adjustments.append(
-                f"risk capped because {panel_type} panels often match axes, text, legends, or plot geometry"
-            )
-
-        # Overlap reuse: cap risk at high (never critical by default)
-        if source_type == "overlap_reuse_cross_panel":
-            risk_level = _cap_risk_level(risk_level, "high")
-
-        finding: dict = {
-            "finding_id": f"VF-{counter:04d}",
-            "category": source_type,
-            "risk_level": risk_level,
-            "summary": summary,
-            "source_panel_id": src,
-            "target_panel_id": tgt,
-            "relationship_id": rel.get("relationship_id", ""),
-            "score": displayed_score,
-            "benign_explanations": benign,
-            "manual_review_questions": questions,
-            # 仅为 medium/high/critical 级别的 finding 保留 overlay_path，消除冗余
-            "overlay_path": rel.get("overlay_path")
-            if _risk_rank(risk_level) >= RISK_RANK["medium"]
-            else None,
-            "metadata": {
-                "match_method": rel.get("match_method", ""),
-                "inlier_count": rel.get("inlier_count", 0),
-                "flip_detected": flip_detected,
-                "raw_score": raw_score,
-                "normalized_score": score,
-                "displayed_score": displayed_score,
-                "confidence_adjustment": "; ".join(confidence_adjustments) or None,
-                "panel_extraction_quality": extraction_quality,
-                "source_parent_figure_id": _parent_figure_id(pe_meta, src),
-                "target_parent_figure_id": _parent_figure_id(target_pe_meta, tgt),
-                "panel_type": panel_type,
-                "source_panel_type": pe_meta.get("panel_type"),
-                "target_panel_type": target_pe_meta.get("panel_type"),
-                "source_extraction_method": source_method,
-                "target_extraction_method": target_method,
-                "source_panel_metadata": pe_meta.get("metadata", {}),
-                "target_panel_metadata": target_pe_meta.get("metadata", {}),
-            },
-        }
-        findings.append(finding)
-
-    # ------------------------------------------------------------------
-    # TruFor forged-region findings (figure-level, additive)
-    # ------------------------------------------------------------------
+    # Build TruFor forged-region findings
     if forged_region_evidence:
         for fre in forged_region_evidence:
             if not isinstance(fre, dict):
                 continue
-            if not fre.get("is_suspicious"):
-                continue
-            integrity_score = _parse_score(fre.get("integrity_score"))
-            if integrity_score < 0.5:
-                continue
-            figure_id = str(fre.get("figure_id") or "")
-            if not figure_id:
-                continue
-            risk_level = trufor_integrity_risk_level(integrity_score)
-            # Collect ALL panel_types for this figure to decide filtering
-            figure_panel_types: set[str] = set()
-            for _pid, _pdata in panel_map.items():
-                if not isinstance(_pdata, dict):
-                    continue
-                if str(_pdata.get("parent_figure_id") or "") == figure_id:
-                    pt = _pdata.get("panel_type")
-                    if pt:
-                        figure_panel_types.add(str(pt))
-
-            trufor_panel_type = (
-                next(iter(figure_panel_types)) if figure_panel_types else None
-            )
-
-            _CODE_GENERATED_TYPES = {"Graphs", "Flow Cytometry"}
-            if figure_panel_types and figure_panel_types <= _CODE_GENERATED_TYPES:
-                # All panels are code-generated → skip entirely
-                fre["skipped"] = (
-                    f"skipped: all panels are code-generated types: "
-                    f"{sorted(figure_panel_types)}"
-                )
-                continue
-
-            has_code_generated = bool(figure_panel_types & _CODE_GENERATED_TYPES)
-
-            confidence_adjustments: list[str] = []
-            if has_code_generated:
-                risk_level = _cap_risk_level(risk_level, "medium")
-                confidence_adjustments.append(
-                    "risk capped because figure contains code-generated panel types "
-                    f"({sorted(figure_panel_types & _CODE_GENERATED_TYPES)}) mixed with other types"
-                )
-            elif trufor_panel_type not in {"Blots", "Microscopy"}:
-                risk_level = _cap_risk_level(risk_level, "medium")
-                confidence_adjustments.append(
-                    "risk capped because TruFor finding is figure-level and not a Blots/Microscopy panel"
-                )
-            benign = list(BENIGN_EXPLANATIONS["forged_region_suspicious"])
-            questions = list(MANUAL_REVIEW_QUESTIONS["forged_region_suspicious"])
-            summary = _generate_trufor_summary(figure_id, integrity_score)
-
-            # Language compliance
-            all_text = [summary] + benign + questions
-            violated = False
-            for text in all_text:
-                if check_language_compliance(text):
-                    violated = True
-                    break
-            if violated:
-                continue
-
-            counter += 1
-            finding = {
-                "finding_id": f"VF-{counter:04d}",
-                "category": "forged_region_suspicious",
-                "risk_level": risk_level,
-                "summary": summary,
-                "source_panel_id": "",
-                "target_panel_id": "",
-                "relationship_id": "",
-                "score": _normalized_score(integrity_score),
-                "benign_explanations": benign,
-                "manual_review_questions": questions,
-                # 仅为 medium/high/critical 级别的 finding 保留 overlay_path
-                "overlay_path": _optional_str(fre.get("localization_map_path"))
-                if _risk_rank(risk_level) >= RISK_RANK["medium"]
-                else None,
-                "metadata": {
-                    "source": "tru_for",
-                    "forged_region_evidence_id": str(
-                        fre.get("forged_region_evidence_id") or ""
-                    ),
-                    "figure_id": figure_id,
-                    "integrity_score": integrity_score,
-                    "confidence_map_path": _optional_str(
-                        fre.get("confidence_map_path")
-                    ),
-                    "panel_extraction_quality": "unknown",
-                    "panel_type": trufor_panel_type,
-                    "risk_cap_reason": "; ".join(confidence_adjustments) or None,
-                    "source_parent_figure_id": figure_id,
-                    "target_parent_figure_id": figure_id,
-                    "source_extraction_method": "tru_for",
-                    "target_extraction_method": "tru_for",
-                },
-            }
-            findings.append(finding)
+            finding = _build_trufor_finding(fre, counter + 1, panel_map)
+            if finding is not None:
+                counter += 1
+                findings.append(finding)
 
     return findings
 

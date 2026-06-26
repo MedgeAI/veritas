@@ -513,42 +513,15 @@ def _run_rotation_detection(
     return results
 
 
-def detect_copy_move(
-    panel_evidence: list[dict],
-    figure_evidence: list[dict],
-    *,
+def _process_single_image_results(
+    single_results: list[dict[str, Any]],
     workdir: Path,
-    method: str = "rootsift_magsac",
-    min_matches: int = COPY_MOVE_DEFAULTS["min_matches"],
-    min_score: float = COPY_MOVE_DEFAULTS["min_score"],
-    max_relationships: int = COPY_MOVE_DEFAULTS["max_relationships"],
-    figure_classification: dict[str, Any] | None = None,
-) -> dict[str, Any]:
-    """Detect copy-move manipulation within and across panels.
-
-    Phase 2a: single-image copy-move per panel (within-panel forgery).
-    Phase 2b: cross-figure with dhash pre-filter (cross-figure reuse).
-    Phase 2c: rotation/flip/scale detection using SIFT + affine transform (wet_lab only).
-    """
-    panels_with_crops = [
-        p for p in panel_evidence if _resolve_panel_image_path(p, workdir)
-    ]
-    if not panels_with_crops and not figure_evidence:
-        return _empty_result(
-            "skipped", method, limitations=["No panels or figures available."]
-        )
-
-    relationships: list[dict[str, Any]] = []
-    errors: list[str] = []
-    limitations: list[str] = []
-
-    # --- Phase 2a: Single-image copy-move per panel ---
-    single_results = _run_single_image_detection(
-        panels_with_crops,
-        workdir,
-        min_keypoints=min_matches,
-        min_area=0.01,
-    )
+    min_matches: int,
+    min_score: float,
+    relationships: list[dict[str, Any]],
+    errors: list[str],
+) -> None:
+    """Process Phase 2a single-image detection results into relationships."""
     for r in single_results:
         if not r.get("success"):
             if r.get("error"):
@@ -594,6 +567,210 @@ def detect_copy_move(
             }
         )
 
+
+def _process_cross_figure_result(
+    r: dict[str, Any],
+    workdir: Path,
+    min_matches: int,
+    min_score: float,
+    figure_panel_types: dict[str, set[str]],
+    relationships: list[dict[str, Any]],
+    errors: list[str],
+) -> None:
+    """Process a single Phase 2b cross-figure detection result."""
+    if not r.get("success"):
+        if r.get("error"):
+            errors.append(f"Cross-image {r.get('pair_id')}: {r['error']}")
+        return
+    if not r.get("found_forgery"):
+        return
+    kp_count = r.get("matched_keypoints", 0)
+    if kp_count < min_matches:
+        return
+
+    shared_src = r.get("shared_area_source", 0.0)
+    shared_tgt = r.get("shared_area_target", 0.0)
+    score = min(shared_src, shared_tgt)
+    if score < min_score:
+        return
+
+    overlay = r.get("matches_path", "")
+    if overlay:
+        try:
+            overlay = str(Path(overlay).relative_to(workdir))
+        except ValueError:
+            pass
+
+    # Resolve panel types for the matched figure pair.
+    src_fid = r.get("source_figure_id", "")
+    tgt_fid = r.get("target_figure_id", "")
+    src_types = sorted(figure_panel_types.get(src_fid) or set())
+    tgt_types = sorted(figure_panel_types.get(tgt_fid) or set())
+    # The matched panel type(s): intersection of both sides.
+    matched_types = sorted(set(src_types) & set(tgt_types))
+    src_panel_type = ",".join(src_types) if src_types else "unknown"
+    tgt_panel_type = ",".join(tgt_types) if tgt_types else "unknown"
+
+    relationships.append(
+        {
+            "relationship_id": f"IR-{len(relationships) + 1:04d}",
+            "source_type": "copy_move_cross",
+            "source_panel_id": src_fid,
+            "target_panel_id": tgt_fid,
+            "score": round(score, 4),
+            "match_method": "rootsift_magsac_cross",
+            "inlier_count": kp_count,
+            "homography": None,
+            "overlay_path": overlay or None,
+            "flip_detected": r.get("is_flipped", False),
+            "metadata": {
+                "shared_area_source": round(shared_src, 4),
+                "shared_area_target": round(shared_tgt, 4),
+                "num_clusters_source": r.get("num_clusters_source", 0),
+                "num_clusters_target": r.get("num_clusters_target", 0),
+                "detection_mode": "cross_image",
+                "source_panel_type": src_panel_type,
+                "target_panel_type": tgt_panel_type,
+                "matched_panel_types": ",".join(matched_types)
+                if matched_types
+                else "unknown",
+            },
+        }
+    )
+
+
+def _process_cross_figure_results(
+    cross_results: list[dict[str, Any]],
+    workdir: Path,
+    min_matches: int,
+    min_score: float,
+    figure_panel_types: dict[str, set[str]],
+    relationships: list[dict[str, Any]],
+    errors: list[str],
+) -> None:
+    """Process all Phase 2b cross-figure detection results."""
+    for r in cross_results:
+        _process_cross_figure_result(
+            r, workdir, min_matches, min_score, figure_panel_types, relationships, errors
+        )
+
+
+def _process_rotation_result(
+    r: dict[str, Any],
+    min_matches: int,
+    min_score: float,
+    figure_panel_types: dict[str, set[str]],
+    relationships: list[dict[str, Any]],
+    errors: list[str],
+) -> None:
+    """Process a single Phase 2c rotation detection result."""
+    if not r.get("success"):
+        if r.get("error"):
+            errors.append(f"Rotation {r.get('pair_id')}: {r['error']}")
+        return
+    if not r.get("found_forgery"):
+        return
+
+    inlier_count = r.get("inlier_count", 0)
+    if inlier_count < min_matches:
+        return
+
+    score = r.get("score", 0.0)
+    if score < min_score:
+        return
+
+    src_fid = r.get("source_figure_id", "")
+    tgt_fid = r.get("target_figure_id", "")
+
+    # Resolve panel types
+    src_types = sorted(figure_panel_types.get(src_fid) or set())
+    tgt_types = sorted(figure_panel_types.get(tgt_fid) or set())
+    matched_types = sorted(set(src_types) & set(tgt_types))
+    src_panel_type = ",".join(src_types) if src_types else "unknown"
+    tgt_panel_type = ",".join(tgt_types) if tgt_types else "unknown"
+
+    relationships.append(
+        {
+            "relationship_id": f"IR-{len(relationships) + 1:04d}",
+            "source_type": "copy_move_rotation",
+            "source_panel_id": src_fid,
+            "target_panel_id": tgt_fid,
+            "score": round(score, 4),
+            "match_method": "sift_ransac_affine",
+            "inlier_count": inlier_count,
+            "homography": r.get("transform_matrix"),
+            "overlay_path": None,  # Rotation detection doesn't generate overlay
+            "flip_detected": r.get("is_flipped", False),
+            "metadata": {
+                "detection_mode": "rotation_affine",
+                "rotation_angle": r.get("rotation_angle", 0.0),
+                "scale_factor": r.get("scale_factor", 1.0),
+                "is_flipped": r.get("is_flipped", False),
+                "source_panel_type": src_panel_type,
+                "target_panel_type": tgt_panel_type,
+                "matched_panel_types": ",".join(matched_types)
+                if matched_types
+                else "unknown",
+            },
+        }
+    )
+
+
+def _process_rotation_results(
+    rotation_results: list[dict[str, Any]],
+    min_matches: int,
+    min_score: float,
+    figure_panel_types: dict[str, set[str]],
+    relationships: list[dict[str, Any]],
+    errors: list[str],
+) -> None:
+    """Process all Phase 2c rotation detection results."""
+    for r in rotation_results:
+        _process_rotation_result(
+            r, min_matches, min_score, figure_panel_types, relationships, errors
+        )
+
+
+def detect_copy_move(
+    panel_evidence: list[dict],
+    figure_evidence: list[dict],
+    *,
+    workdir: Path,
+    method: str = "rootsift_magsac",
+    min_matches: int = COPY_MOVE_DEFAULTS["min_matches"],
+    min_score: float = COPY_MOVE_DEFAULTS["min_score"],
+    max_relationships: int = COPY_MOVE_DEFAULTS["max_relationships"],
+    figure_classification: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Detect copy-move manipulation within and across panels.
+
+    Phase 2a: single-image copy-move per panel (within-panel forgery).
+    Phase 2b: cross-figure with dhash pre-filter (cross-figure reuse).
+    Phase 2c: rotation/flip/scale detection using SIFT + affine transform (wet_lab only).
+    """
+    panels_with_crops = [
+        p for p in panel_evidence if _resolve_panel_image_path(p, workdir)
+    ]
+    if not panels_with_crops and not figure_evidence:
+        return _empty_result(
+            "skipped", method, limitations=["No panels or figures available."]
+        )
+
+    relationships: list[dict[str, Any]] = []
+    errors: list[str] = []
+    limitations: list[str] = []
+
+    # --- Phase 2a: Single-image copy-move per panel ---
+    single_results = _run_single_image_detection(
+        panels_with_crops,
+        workdir,
+        min_keypoints=min_matches,
+        min_area=0.01,
+    )
+    _process_single_image_results(
+        single_results, workdir, min_matches, min_score, relationships, errors
+    )
+
     # --- Phase 2b: Cross-figure with dhash pre-filter ---
     figure_panel_types = _build_figure_panel_type_map(panel_evidence)
     cross_results = _run_cross_figure_detection(
@@ -603,66 +780,9 @@ def detect_copy_move(
         min_area=0.01,
         figure_panel_types=figure_panel_types,
     )
-    for r in cross_results:
-        if not r.get("success"):
-            if r.get("error"):
-                errors.append(f"Cross-image {r.get('pair_id')}: {r['error']}")
-            continue
-        if not r.get("found_forgery"):
-            continue
-        kp_count = r.get("matched_keypoints", 0)
-        if kp_count < min_matches:
-            continue
-
-        shared_src = r.get("shared_area_source", 0.0)
-        shared_tgt = r.get("shared_area_target", 0.0)
-        score = min(shared_src, shared_tgt)
-        if score < min_score:
-            continue
-
-        overlay = r.get("matches_path", "")
-        if overlay:
-            try:
-                overlay = str(Path(overlay).relative_to(workdir))
-            except ValueError:
-                pass
-
-        # Resolve panel types for the matched figure pair.
-        src_fid = r.get("source_figure_id", "")
-        tgt_fid = r.get("target_figure_id", "")
-        src_types = sorted(figure_panel_types.get(src_fid) or set())
-        tgt_types = sorted(figure_panel_types.get(tgt_fid) or set())
-        # The matched panel type(s): intersection of both sides.
-        matched_types = sorted(set(src_types) & set(tgt_types))
-        src_panel_type = ",".join(src_types) if src_types else "unknown"
-        tgt_panel_type = ",".join(tgt_types) if tgt_types else "unknown"
-
-        relationships.append(
-            {
-                "relationship_id": f"IR-{len(relationships) + 1:04d}",
-                "source_type": "copy_move_cross",
-                "source_panel_id": src_fid,
-                "target_panel_id": tgt_fid,
-                "score": round(score, 4),
-                "match_method": "rootsift_magsac_cross",
-                "inlier_count": kp_count,
-                "homography": None,
-                "overlay_path": overlay or None,
-                "flip_detected": r.get("is_flipped", False),
-                "metadata": {
-                    "shared_area_source": round(shared_src, 4),
-                    "shared_area_target": round(shared_tgt, 4),
-                    "num_clusters_source": r.get("num_clusters_source", 0),
-                    "num_clusters_target": r.get("num_clusters_target", 0),
-                    "detection_mode": "cross_image",
-                    "source_panel_type": src_panel_type,
-                    "target_panel_type": tgt_panel_type,
-                    "matched_panel_types": ",".join(matched_types)
-                    if matched_types
-                    else "unknown",
-                },
-            }
-        )
+    _process_cross_figure_results(
+        cross_results, workdir, min_matches, min_score, figure_panel_types, relationships, errors
+    )
 
     # --- Phase 2c: Rotation/flip/scale detection (wet_lab only) ---
     rotation_results = _run_rotation_detection(
@@ -673,57 +793,9 @@ def detect_copy_move(
         figure_panel_types=figure_panel_types,
         figure_classification=figure_classification,
     )
-    for r in rotation_results:
-        if not r.get("success"):
-            if r.get("error"):
-                errors.append(f"Rotation {r.get('pair_id')}: {r['error']}")
-            continue
-        if not r.get("found_forgery"):
-            continue
-
-        inlier_count = r.get("inlier_count", 0)
-        if inlier_count < min_matches:
-            continue
-
-        score = r.get("score", 0.0)
-        if score < min_score:
-            continue
-
-        src_fid = r.get("source_figure_id", "")
-        tgt_fid = r.get("target_figure_id", "")
-
-        # Resolve panel types
-        src_types = sorted(figure_panel_types.get(src_fid) or set())
-        tgt_types = sorted(figure_panel_types.get(tgt_fid) or set())
-        matched_types = sorted(set(src_types) & set(tgt_types))
-        src_panel_type = ",".join(src_types) if src_types else "unknown"
-        tgt_panel_type = ",".join(tgt_types) if tgt_types else "unknown"
-
-        relationships.append(
-            {
-                "relationship_id": f"IR-{len(relationships) + 1:04d}",
-                "source_type": "copy_move_rotation",
-                "source_panel_id": src_fid,
-                "target_panel_id": tgt_fid,
-                "score": round(score, 4),
-                "match_method": "sift_ransac_affine",
-                "inlier_count": inlier_count,
-                "homography": r.get("transform_matrix"),
-                "overlay_path": None,  # Rotation detection doesn't generate overlay
-                "flip_detected": r.get("is_flipped", False),
-                "metadata": {
-                    "detection_mode": "rotation_affine",
-                    "rotation_angle": r.get("rotation_angle", 0.0),
-                    "scale_factor": r.get("scale_factor", 1.0),
-                    "is_flipped": r.get("is_flipped", False),
-                    "source_panel_type": src_panel_type,
-                    "target_panel_type": tgt_panel_type,
-                    "matched_panel_types": ",".join(matched_types)
-                    if matched_types
-                    else "unknown",
-                },
-            }
-        )
+    _process_rotation_results(
+        rotation_results, min_matches, min_score, figure_panel_types, relationships, errors
+    )
 
     # Sort by score descending, cap at max_relationships
     relationships.sort(key=lambda r: r["score"], reverse=True)
