@@ -15,9 +15,6 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
-import bcrypt
-import jwt
-
 logger = logging.getLogger(__name__)
 
 
@@ -128,6 +125,8 @@ class BearerTokenProvider(AuthProvider):
             ``AuthContext`` on success, ``None`` when the header is missing,
             malformed, or the token fails validation.
         """
+        import jwt  # deferred import (optional [web] dependency)
+
         auth_header = headers.get("Authorization") or headers.get("authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
             return None
@@ -225,6 +224,8 @@ class BasicAuthProvider(AuthProvider):
         if row is None:
             return None
 
+        import bcrypt  # deferred import (optional [web] dependency)
+
         password_hash, email, roles_str = row
         if not bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8")):
             return None
@@ -243,6 +244,8 @@ class BasicAuthProvider(AuthProvider):
         roles: str = "operator",
     ) -> None:
         """Hash *password* with bcrypt and upsert the user row."""
+        import bcrypt  # deferred import (optional [web] dependency)
+
         password_hash = bcrypt.hashpw(
             password.encode("utf-8"), bcrypt.gensalt()
         ).decode("utf-8")
@@ -280,6 +283,8 @@ class BasicAuthProvider(AuthProvider):
 
     def change_password(self, username: str, new_password: str) -> bool:
         """Update the password for *username*. Returns ``True`` if the user existed."""
+        import bcrypt  # deferred import (optional [web] dependency)
+
         password_hash = bcrypt.hashpw(
             new_password.encode("utf-8"), bcrypt.gensalt()
         ).decode("utf-8")
@@ -391,6 +396,8 @@ class CloudflareAccessProvider(AuthProvider):
         On signature failure the JWKS cache is refreshed once to handle
         key rotation.
         """
+        import jwt  # deferred import (optional [web] dependency)
+
         for attempt in range(2):
             jwks = self._get_jwks(force_refresh=(attempt == 1))
             if jwks is None:
@@ -440,6 +447,8 @@ class CloudflareAccessProvider(AuthProvider):
     @staticmethod
     def _find_signing_key(token: str, jwks: dict[str, Any]) -> Any:
         """Locate the matching public key from JWKS for the given token."""
+        import jwt  # deferred import (optional [web] dependency)
+
         try:
             unverified = jwt.get_unverified_header(token)
         except jwt.InvalidTokenError:
