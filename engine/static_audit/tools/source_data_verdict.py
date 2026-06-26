@@ -174,6 +174,7 @@ def read_xlsx_column_context(
     try:
         wb = openpyxl.load_workbook(str(xlsx_path), read_only=True, data_only=True)
     except Exception:
+        logger.debug("Failed to open workbook for column context: %s", xlsx_path, exc_info=True)
         return None
 
     try:
@@ -235,12 +236,13 @@ def read_xlsx_column_context(
             "columns": columns,
         }
     except Exception:
+        logger.debug("Failed to read XLSX column context for %s/%s", xlsx_path.name, sheet_name, exc_info=True)
         return None
     finally:
         try:
             wb.close()
         except Exception:
-            pass
+            logger.debug("Failed to close workbook after reading column context: %s", xlsx_path, exc_info=True)
 
 
 # ── Sheet context builder ────────────────────────────────────────────
@@ -396,6 +398,7 @@ def get_sheet_verdict(
 
             has_query_tool = "source_data.query" in TOOLS
         except Exception:
+            logger.debug("Failed to check tool registry for source_data.query", exc_info=True)
             has_query_tool = False
 
     # Build prompt with enriched context
@@ -445,7 +448,7 @@ def get_sheet_verdict(
         try:
             ctx_path.unlink(missing_ok=True)
         except Exception:
-            pass
+            logger.debug("Failed to clean up verdict context file: %s", ctx_path, exc_info=True)
 
     if result.status == "success" and result.output:
         output = dict(result.output)

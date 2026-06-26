@@ -96,6 +96,7 @@ def _index_embeddings_impl(
             session.commit()
     except Exception:
         session.rollback()
+        logger.debug("Failed to mark embedding job as running: case_id=%s", case_id, exc_info=True)
     finally:
         session.close()
 
@@ -116,6 +117,7 @@ def _index_embeddings_impl(
             except Exception:
                 session.rollback()
                 session.close()
+                logger.debug("index_panels failed, rolling back: case_id=%s", case_id, exc_info=True)
                 raise
     except Exception as exc:
         logger.exception("index_embeddings failed: case_id=%s", case_id)

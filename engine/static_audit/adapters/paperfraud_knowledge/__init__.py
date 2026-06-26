@@ -122,7 +122,7 @@ def load_reporting_standards() -> dict[str, list[dict]]:
             raw = yaml.safe_load(yaml_file.read_text(encoding="utf-8")) or {}
             standards[yaml_file.stem] = raw.get("checklist", [])
         except Exception:
-            pass
+            logger.warning("Failed to load reporting standards from %s", yaml_file.name, exc_info=True)
 
     return standards
 
