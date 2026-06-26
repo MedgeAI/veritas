@@ -6,6 +6,14 @@ from pathlib import Path
 from typing import Any
 
 from engine.static_audit.html_report._html_utils import h
+from engine.static_audit.html_report._config import (
+    MAX_STEP_DETAIL_LENGTH,
+    MAX_INVESTIGATION_RECORDS,
+    MAX_INVESTIGATION_DETAIL_LENGTH,
+    MAX_CANONICAL_MAPPINGS,
+    MAX_CLAIM_TEXT_IN_MAPPING,
+    MAX_SOURCE_MAPPINGS,
+)
 from engine.static_audit.html_report._shared import (
     clean_report_text,
     risk_label,
@@ -21,12 +29,13 @@ from engine.static_audit.paths import resolve_artifact_path
 
 
 def steps_table(steps: list[dict[str, Any]]) -> str:
+    """Render execution steps as an HTML table."""
     rows = []
     for step in steps:
         key = step.get("key") or step.get("step_key") or "-"
         title = step.get("title", key)
         status = step.get("status", "-")
-        detail = str(step.get("detail", ""))[:120]
+        detail = str(step.get("detail", ""))[:MAX_STEP_DETAIL_LENGTH]
         rows.append(
             f"<tr><td><code>{h(key)}</code></td><td>{h(clean_report_text(title))}</td>"
             f"<td><span class='badge {h(status)}'>{h(status_label(status))}</span></td>"
@@ -120,7 +129,7 @@ def canonical_mapping_table(
         return "<p class='muted'>未生成精炼映射；如存在确定性脚手架，请查看对应工具 JSON。</p>"
     claim_by_id = {str(c.get("claim_id")): c for c in claims if c.get("claim_id")}
     rows = []
-    for mapping in mappings[:12]:
+    for mapping in mappings[:MAX_CANONICAL_MAPPINGS]:
         claim = claim_by_id.get(str(mapping.get("claim_id"))) or {}
         metadata = (
             mapping.get("metadata") if isinstance(mapping.get("metadata"), dict) else {}
@@ -133,7 +142,7 @@ def canonical_mapping_table(
             "<tr>"
             f"<td><code>{h(mapping.get('mapping_id', '-'))}</code></td>"
             f"<td><code>{h(mapping.get('claim_id', '-'))}</code></td>"
-            f"<td>{h(str(claim.get('text', '-'))[:260])}</td>"
+            f"<td>{h(str(claim.get('text', '-'))[:MAX_CLAIM_TEXT_IN_MAPPING])}</td>"
             f"<td>{h(mapping.get('confidence', '-'))}</td>"
             f"<td><span class='badge warning'>{h('需人工复核' if needs_review is not False else '低优先级')}</span></td>"
             f"<td><code>{h(', '.join(str(r) for r in source_refs[:4]) or '-')}</code></td></tr>"
@@ -145,11 +154,12 @@ def canonical_mapping_table(
 
 
 def investigation_table(records: list[dict[str, Any]]) -> str:
+    """Render investigation rounds as an HTML table."""
     records = [r for r in records if isinstance(r, dict)]
     if not records:
         return "<p class='muted'>本次未生成 investigation round 记录。</p>"
     rows = []
-    for record in records[:20]:
+    for record in records[:MAX_INVESTIGATION_RECORDS]:
         status = str(record.get("status", "skipped"))
         artifacts = record.get("output_artifacts") or []
         rows.append(
@@ -158,7 +168,7 @@ def investigation_table(records: list[dict[str, Any]]) -> str:
             f"<td><code>{h(record.get('action_id', '-'))}</code></td>"
             f"<td><code>{h(record.get('tool_id', '-'))}</code></td>"
             f"<td><span class='badge {h(status)}'>{h(risk_label(status))}</span></td>"
-            f"<td>{h(shorten(clean_report_text(record.get('hypothesis') or record.get('detail') or '-'), 220))}</td>"
+            f"<td>{h(shorten(clean_report_text(record.get('hypothesis') or record.get('detail') or '-'), MAX_INVESTIGATION_DETAIL_LENGTH))}</td>"
             f"<td>{h(', '.join(str(i) for i in artifacts[:3]) or '-')}</td></tr>"
         )
     return (
@@ -257,7 +267,7 @@ def claim_impact_matrix(
     }
     rows = []
     if source_mappings:
-        for mapping in source_mappings[:14]:
+        for mapping in source_mappings[:MAX_SOURCE_MAPPINGS]:
             if not isinstance(mapping, dict):
                 continue
             claim = claims_by_id.get(str(mapping.get("claim_id"))) or {}
@@ -276,13 +286,13 @@ def claim_impact_matrix(
             rows.append(
                 "<tr>"
                 f"<td><code>{h(mapping.get('claim_id', '-'))}</code></td>"
-                f"<td>{h((claim.get('claim_text') or claim.get('text') or '-')[:260])}</td>"
+                f"<td>{h((claim.get('claim_text') or claim.get('text') or '-')[:MAX_CLAIM_TEXT_IN_MAPPING])}</td>"
                 f"<td><code>{h(', '.join(refs[:4]) or '-')}</code></td>"
                 f"<td><code>{h(', '.join(finding_refs[:6]) or '-')}</code></td>"
                 f"<td><span class='badge {'warning' if needs_review is not False else 'low'}'>{h('需人工复核' if needs_review is not False else '低优先级')}</span></td></tr>"
             )
     elif canonical_mappings:
-        for mapping in canonical_mappings[:14]:
+        for mapping in canonical_mappings[:MAX_SOURCE_MAPPINGS]:
             if not isinstance(mapping, dict):
                 continue
             claim = claims_by_id.get(str(mapping.get("claim_id"))) or {}
@@ -297,7 +307,7 @@ def claim_impact_matrix(
             rows.append(
                 "<tr>"
                 f"<td><code>{h(mapping.get('claim_id', '-'))}</code></td>"
-                f"<td>{h((claim.get('claim_text') or claim.get('text') or '-')[:260])}</td>"
+                f"<td>{h((claim.get('claim_text') or claim.get('text') or '-')[:MAX_CLAIM_TEXT_IN_MAPPING])}</td>"
                 f"<td><code>{h(', '.join(refs[:4]) or '-')}</code></td>"
                 f"<td><code>{h(', '.join(finding_refs[:6]) or '-')}</code></td>"
                 f"<td><span class='badge {'warning' if needs_review is not False else 'low'}'>{h('需人工复核' if needs_review is not False else '低优先级')}</span></td></tr>"

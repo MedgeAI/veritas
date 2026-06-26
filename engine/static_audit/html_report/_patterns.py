@@ -7,6 +7,16 @@ from collections import Counter, defaultdict
 from typing import Any
 
 from engine.static_audit.html_report._html_utils import h
+from engine.static_audit.html_report._config import (
+    PATTERN_DEFINITIONS,
+    PATTERN_SORT_ORDER,
+    SOURCE_DATA_PATTERN_KEYS,
+    MAX_PRIMARY_PATTERNS,
+    MAX_PATTERN_TITLE_LENGTH,
+    MAX_PATTERN_THESIS_LENGTH,
+    MAX_CLAIMS_PER_GROUP,
+    MAX_TASKS_PER_PATTERN,
+)
 from engine.static_audit.html_report._shared import (
     _confidence_badge,
     category_label,
@@ -27,75 +37,15 @@ from engine.static_audit.html_report._benign import (
 
 
 def pattern_sort_key(item: tuple[str, list[dict[str, Any]]]) -> tuple[int, int, str]:
+    """Return sort key for pattern groups (lower = higher priority)."""
     key, findings = item
-    order = {
-        "paired_offset_ratio_reuse": 0,
-        "row_vector_reuse": 1,
-        "duplicate_numeric_columns": 2,
-        "partial_copy_rounding_bias": 3,
-        "row_vector_reuse_rounding": 4,
-        "formula_derivation": 5,
-        "visual_forensics": 6,
-        "numeric_forensics": 7,
-        "execution_evidence": 8,
-        "other": 9,
-    }
-    return (order.get(key, 7), -len(findings), key)
+    order = PATTERN_SORT_ORDER.get(key, 7)
+    return (order, -len(findings), key)
 
 
 def pattern_definition(pattern_key: str) -> dict[str, str]:
-    definitions = {
-        "paired_offset_ratio_reuse": {
-            "title": "配对样本固定行偏移与比例复用",
-            "thesis": "多个 Source Data sheet 中，配对样本在固定行偏移后反复出现标量关系或两组比例复用；规律只在这里描述一次，具体 sheet/行/列作为证据记录保留。",
-            "review_question": "确认这些固定偏移和比例复用是否来自合法配对排序、归一化分母或批量派生，而不是同一数据的重复改写。",
-        },
-        "row_vector_reuse_rounding": {
-            "title": "低维行向量重复与舍入偏差",
-            "thesis": "若干 figure 的 Source Data 出现行向量重复、部分复制或四舍五入偏差；该规律可能是模板行、censoring 行或真实重复，也可能提示需要追溯导出过程。",
-            "review_question": "核对重复行是否有实验或统计语义，例如 censoring 模板、分组标签、重复测量，或导出时批量复制。",
-        },
-        "row_vector_reuse": {
-            "title": "行向量重复候选",
-            "thesis": "Source Data 中存在多行共享相同数值向量；该信号需要结合样本 ID、分组标签、零值矩阵和导出模板判断，不能直接推定为异常。",
-            "review_question": "核对重复行是否有实验或统计语义，例如 censoring 模板、分组标签、重复测量、全零矩阵，或导出时批量复制。",
-        },
-        "duplicate_numeric_columns": {
-            "title": "数值列重复候选",
-            "thesis": "Source Data 中存在数值列高度相同；需要确认这些列是否为索引列、设计列、共享时间点、全零矩阵或同一指标的合法重复展示。",
-            "review_question": "核对重复列的列标题、单位、sheet 注释和对应 figure panel，确认是否为合法索引/设计列、派生列或数据复制。",
-        },
-        "partial_copy_rounding_bias": {
-            "title": "部分复制或舍入偏差候选",
-            "thesis": "Source Data 中出现行偏移后的部分复用或舍入后相似；需要追溯导出、四舍五入、格式化和上游计算过程。",
-            "review_question": "核对这些相似行/列是否由合法四舍五入、格式化导出或批量处理产生，并要求提供上游原始表格或脚本。",
-        },
-        "formula_derivation": {
-            "title": "公式派生列与固定倍数转换",
-            "thesis": "部分列由相邻单元格或同列历史值按固定公式派生。公式本身不是异常，但它会改变 claim 对“原始测量值”的可追溯性。",
-            "review_question": "确认论文图表引用的是原始测量值还是派生值，并要求作者说明公式来源、单位换算或归一化逻辑。",
-        },
-        "visual_forensics": {
-            "title": "视觉证据相似或复用候选",
-            "thesis": "视觉工具生成了需要人工确认的图像、panel、相似关系或区域级候选；这些信号只能作为复核入口，不能直接作为诚信结论。",
-            "review_question": "核对原图、panel、caption、相似方法、分数和最强良性解释，确认是否对应同一主体、合法复用或导出伪影。",
-        },
-        "numeric_forensics": {
-            "title": "PDF 数字取证候选",
-            "thesis": "PDF 或表格数字检查生成了统计线索；需要排除 OCR、表格解析、四舍五入和展示层转写造成的伪影。",
-            "review_question": "回到原始表格、Source Data 或结果文件，确认数字关系是否能由原始数据和统计流程解释。",
-        },
-        "execution_evidence": {
-            "title": "执行证据与 claim 对账候选",
-            "thesis": "运行命令、日志或结果文件与论文 claim 之间存在待核对项；该类 finding 需要回到 runtime manifest 和输出产物验证。",
-            "review_question": "核对命令、环境、stdout/stderr、exit code、结果文件 hash 和表述映射是否一致。",
-        },
-        "other": {
-            "title": "其他未归类技术异常",
-            "thesis": "这些证据尚未被归入稳定领域规律，需保留原始记录后人工判断。",
-            "review_question": "逐条核对 finding 的数据语义、生成过程和论文 claim 影响。",
-        },
-    }
+    """Return the definition (title, thesis, review_question) for a pattern key."""
+    definitions = PATTERN_DEFINITIONS
     if pattern_key.startswith("category:"):
         category = pattern_key.split(":", 1)[1]
         label = category_label(category)
@@ -170,18 +120,19 @@ def pattern_display_text(
     reviews: list[dict[str, Any]],
     definition: dict[str, str],
 ) -> dict[str, str]:
+    """Generate display text (title, thesis, source) for a pattern."""
     agent_sentences = pattern_agent_sentences(manual_tasks, risks, reviews)
     if agent_sentences:
         return {
-            "title": shorten(first_report_sentence(agent_sentences[0]), 78),
-            "thesis": shorten("；".join(agent_sentences[:3]), 260),
+            "title": shorten(first_report_sentence(agent_sentences[0]), MAX_PATTERN_TITLE_LENGTH),
+            "thesis": shorten("；".join(agent_sentences[:3]), MAX_PATTERN_THESIS_LENGTH),
             "source": "agent",
         }
     data_sentence = context_aware_review_question(pattern_key, findings)
     if data_sentence and data_sentence != definition.get("review_question"):
         return {
-            "title": shorten(first_report_sentence(data_sentence), 78),
-            "thesis": shorten(data_sentence, 260),
+            "title": shorten(first_report_sentence(data_sentence), MAX_PATTERN_TITLE_LENGTH),
+            "thesis": shorten(data_sentence, MAX_PATTERN_THESIS_LENGTH),
             "source": "data",
         }
     return {
@@ -218,8 +169,9 @@ def is_primary_pattern(pattern: dict[str, Any]) -> bool:
 
 
 def tier_patterns(
-    patterns: list[dict[str, Any]], top_n: int = 20
+    patterns: list[dict[str, Any]], top_n: int = MAX_PRIMARY_PATTERNS
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Split patterns into primary (high priority) and secondary tiers."""
     primary = [p for p in patterns if is_primary_pattern(p)][:top_n]
     primary_keys = {
         p.get("pattern_id") if p.get("pattern_id") is not None else id(p)

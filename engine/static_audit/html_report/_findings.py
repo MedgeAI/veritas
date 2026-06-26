@@ -7,6 +7,12 @@ from collections import defaultdict
 from typing import Any
 
 from engine.static_audit.html_report._html_utils import h
+from engine.static_audit.html_report._config import (
+    MAX_SAMPLE_ROWS,
+    MAX_CLAIMS_PER_GROUP,
+    MAX_CLAIM_TEXT_LENGTH,
+    PAIR_FORENSICS_CATEGORIES,
+)
 from engine.static_audit.html_report._shared import (
     _confidence_badge,
     category_label,
@@ -35,16 +41,10 @@ from engine.static_audit.html_report._source_data import (
 
 
 def source_artifact_for_finding(finding: dict[str, Any]) -> str:
+    """Determine which artifact file a finding came from."""
     if finding.get("source_artifact"):
         return str(finding.get("source_artifact"))
-    pair_categories = {
-        "row_offset_scalar_multiple",
-        "long_format_paired_ratio_reuse",
-        "duplicate_row_vector",
-        "long_format_within_pair_ratio_enrichment",
-        "row_offset_partial_copy_rounding_bias",
-    }
-    if str(finding.get("category")) in pair_categories:
+    if str(finding.get("category")) in PAIR_FORENSICS_CATEGORIES:
         return SOURCE_DATA_PAIR_FORENSICS_ARTIFACT
     if finding.get("workbook") or finding.get("sheet"):
         return SOURCE_DATA_FINDINGS_ARTIFACT
@@ -271,6 +271,7 @@ def paper_refs(mappings: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def best_paper_ref(refs: list[dict[str, Any]]) -> dict[str, Any]:
+    """Select the best paper reference to display (prefer longer, non-generic refs)."""
     for ref in refs:
         text = str(ref.get("text", ""))
         if "See next page" not in text and len(text) > 40:
@@ -281,6 +282,7 @@ def best_paper_ref(refs: list[dict[str, Any]]) -> dict[str, Any]:
 def source_locator(
     finding: dict[str, Any], paper_ref: dict[str, Any]
 ) -> dict[str, str]:
+    """Extract source location info from a paper reference."""
     line_start = paper_ref.get("line_start")
     line_end = paper_ref.get("line_end")
     if line_start and line_end and line_start != line_end:
@@ -293,13 +295,14 @@ def source_locator(
 
 
 def first_claim(mappings: list[dict[str, Any]]) -> str:
+    """Extract the first claim text from mappings (truncated to max length)."""
     for mapping in mappings:
         claims = mapping.get("candidate_claims") or []
         if claims and isinstance(claims[0], dict):
-            return str(claims[0].get("text", ""))[:700]
+            return str(claims[0].get("text", ""))[:MAX_CLAIM_TEXT_LENGTH]
         refs = mapping.get("matched_paper_references") or []
         if refs and isinstance(refs[0], dict):
-            return str(refs[0].get("text", ""))[:700]
+            return str(refs[0].get("text", ""))[:MAX_CLAIM_TEXT_LENGTH]
     return ""
 
 
@@ -353,11 +356,12 @@ def sample_evidence_html(finding: dict[str, Any]) -> str:
 
 
 def sample_pairs_html(samples: list[dict[str, Any]]) -> str:
+    """Render sample pairs as HTML rows."""
     if not samples:
         return "<p class='muted'>没有可展示的样本行。</p>"
     rows = [
         f"<div class='sample-row'><div>行 {h(item.get('row', '-'))}</div><div>{h(item.get('left', '-'))}</div><div>{h(item.get('right', '-'))}</div></div>"
-        for item in samples[:8]
+        for item in samples[:MAX_SAMPLE_ROWS]
     ]
     return (
         "<div class='samples'><div class='sample-row muted'><div>行</div><div>左列</div><div>右列</div></div>"

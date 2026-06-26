@@ -6,6 +6,14 @@ import json
 from typing import Any
 
 from engine.static_audit.html_report._html_utils import h
+from engine.static_audit.html_report._config import (
+    MAX_PAPERFRAUD_RULES_DISPLAY,
+    MAX_PAIR_FORENSICS_FINDINGS,
+    MAX_PAIR_FORENSICS_REVIEW_TASKS,
+    MAX_PAIR_FORENSICS_CLUSTERS,
+    MAX_EVIDENCE_SAMPLE_LENGTH,
+    MAX_SUMMARY_VALUE_LENGTH,
+)
 from engine.static_audit.html_report._shared import (
     category_label,
     clean_report_text,
@@ -92,11 +100,11 @@ def evidence_sample_text(finding: dict[str, Any], limit: int = 3) -> str:
     for key in ("sample_rows", "examples", "sample_values"):
         values = finding.get(key) or []
         if values:
-            return shorten(json.dumps(values[:limit], ensure_ascii=False), 220)
+            return shorten(json.dumps(values[:limit], ensure_ascii=False), MAX_EVIDENCE_SAMPLE_LENGTH)
     if finding.get("dominant_formula_support"):
         return f"{finding.get('dominant_formula_pattern', '-')} ({finding.get('dominant_formula_support')})"
     if finding.get("summary"):
-        return shorten(clean_report_text(finding.get("summary")), 220)
+        return shorten(clean_report_text(finding.get("summary")), MAX_EVIDENCE_SAMPLE_LENGTH)
     return "-"
 
 
@@ -175,7 +183,7 @@ def paperfraud_rule_section(artifact: dict[str, Any]) -> str:
         if isinstance(item, dict)
     ]
     rows = []
-    for item in triggered[:12]:
+    for item in triggered[:MAX_PAPERFRAUD_RULES_DISPLAY]:
         rows.append(
             "<tr>"
             f"<td><code>{h(item.get('rule_id', '-'))}</code></td>"
@@ -230,7 +238,7 @@ def pair_forensics_table(findings: list[dict[str, Any]]) -> str:
             str(f.get("finding_id", "")),
         ),
     )
-    for finding in findings[:12]:
+    for finding in findings[:MAX_PAIR_FORENSICS_FINDINGS]:
         from engine.static_audit.html_report._shared import (
             display_risk_level_for_finding,
         )
@@ -296,7 +304,7 @@ def pair_forensics_review_tasks_table(tasks: list[dict[str, Any]]) -> str:
             manual_task_focus_score(t),
         ),
     )
-    for task in tasks[:12]:
+    for task in tasks[:MAX_PAIR_FORENSICS_REVIEW_TASKS]:
         priority = display_priority_for_pair_task(task)
         rows.append(
             "<tr>"
@@ -329,7 +337,7 @@ def pair_forensics_cluster_table(clusters: list[dict[str, Any]]) -> str:
             -int(c.get("finding_count") or 0),
         ),
     )
-    for cluster in clusters[:12]:
+    for cluster in clusters[:MAX_PAIR_FORENSICS_CLUSTERS]:
         risk = display_risk_level_for_pair_cluster(cluster)
         representatives = ", ".join(
             str(item) for item in (cluster.get("representative_finding_ids") or [])[:5]

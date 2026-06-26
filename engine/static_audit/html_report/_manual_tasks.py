@@ -5,6 +5,9 @@ from __future__ import annotations
 from typing import Any
 
 from engine.static_audit.html_report._html_utils import h
+from engine.static_audit.html_report._config import (
+    MAX_MANUAL_TASKS_DISPLAY,
+)
 from engine.static_audit.html_report._shared import (
     _confidence_badge,
     clean_report_text,
@@ -76,6 +79,7 @@ def display_risk_level_for_judge_risk(risk: dict[str, Any]) -> str:
 
 
 def manual_tasks_table(tasks: list[dict[str, Any]]) -> str:
+    """Render manual tasks as an HTML table."""
     if not tasks:
         return "<p class='muted'>未生成独立人工复核任务。</p>"
     rows = []
@@ -86,7 +90,7 @@ def manual_tasks_table(tasks: list[dict[str, Any]]) -> str:
             manual_task_focus_score(task),
         ),
     )
-    for task in visible_tasks[:10]:
+    for task in visible_tasks[:MAX_MANUAL_TASKS_DISPLAY]:
         refs = task.get("evidence_refs") or []
         priority = display_priority_for_manual_task(task)
         rows.append(
