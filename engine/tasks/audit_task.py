@@ -373,7 +373,7 @@ def _run_audit_impl(
         row.stages = stages
 
         session.commit()
-    except Exception:
+    except Exception as exc:
         session.rollback()
         session.close()
         raise
@@ -396,12 +396,16 @@ def _run_audit_impl(
                         r.current_stage = stage
                         r.last_event_at = _utc_now()
                         s.commit()
-                except Exception:
+                except Exception as exc:
                     s.rollback()
+                    logger.debug(
+                        "stage commit failed for run_id=%s stage=%s",
+                        run_id, stage, exc_info=True,
+                    )
                 finally:
                     s.close()
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.debug("stage update skipped", exc_info=True)
 
         # Update heartbeat on every progress event
         try:
@@ -411,12 +415,16 @@ def _run_audit_impl(
                 if r is not None:
                     r.last_event_at = _utc_now()
                     s.commit()
-            except Exception:
+            except Exception as exc:
                 s.rollback()
+                logger.debug(
+                    "heartbeat commit failed for run_id=%s",
+                    run_id, exc_info=True,
+                )
             finally:
                 s.close()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.debug("heartbeat update skipped", exc_info=True)
 
         # Forward event to SSE subscribers
         _notify_progress(run_id, event)
@@ -517,7 +525,7 @@ def _run_audit_impl(
                     final_row.status = "failed"
                     final_row.error = result.get("error", "unknown error")
             session.commit()
-    except Exception:
+    except Exception as exc:
         session.rollback()
         logger.exception("run_audit: failed to finalise run_id=%s", run_id)
 
