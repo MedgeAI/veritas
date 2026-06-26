@@ -5,6 +5,20 @@ from __future__ import annotations
 from typing import Any
 
 from engine.static_audit.html_report._html_utils import h
+from engine.static_audit.html_report._config import (
+    AUDIT_DEPTH_LABELS,
+    DEFAULT_ACTION_QUESTIONS,
+    MAX_HERO_ACTIONS,
+    MAX_ACTION_QUESTION_LENGTH,
+    MAX_HERO_PATTERNS,
+    MAX_LIMITATIONS_FROM_BUNDLE,
+    MAX_LIMITATIONS_FROM_JUDGE,
+    MIN_SOURCE_DATA_PATTERNS_FOR_MULTI_SUMMARY,
+    SOURCE_DATA_PATTERN_KEYS,
+    VERDICT_DISCLAIMER,
+    VERDICT_HEADLINES,
+    VERDICT_LABELS,
+)
 from engine.static_audit.html_report._shared import (
     _confidence_badge,
     clean_report_text,
@@ -21,6 +35,7 @@ from engine.static_audit.html_report._shared import (
 
 
 def audit_depth_label(bundle: dict[str, Any], tool_runs: list[dict[str, Any]]) -> str:
+    """Determine the audit coverage depth label based on what was executed."""
     step_keys = {
         str(step.get("key") or step.get("step_key"))
         for step in tool_runs
@@ -30,19 +45,19 @@ def audit_depth_label(bundle: dict[str, Any], tool_runs: list[dict[str, Any]]) -
     claim_mapping_count = len(bundle.get("claim_mappings") or [])
     execution_status = (bundle.get("execution_status") or {}).get("status")
     if not evidence_count and not step_keys:
-        return "V0 coverage"
+        return AUDIT_DEPTH_LABELS["v0"]
     if execution_status == "ran":
-        return "V4 coverage"
+        return AUDIT_DEPTH_LABELS["v4"]
     if claim_mapping_count or len(bundle.get("agent_traces") or []):
-        return "V3 coverage"
+        return AUDIT_DEPTH_LABELS["v3"]
     if {
         "source_data_profile",
         "source_data_findings",
         "source_data_pair_forensics",
         "exact_image_duplicates",
     } & step_keys:
-        return "V2 coverage"
-    return "V1 coverage"
+        return AUDIT_DEPTH_LABELS["v2"]
+    return AUDIT_DEPTH_LABELS["v1"]
 
 
 def report_verdict(
@@ -51,6 +66,7 @@ def report_verdict(
     tool_runs: list[dict[str, Any]],
     bundle: dict[str, Any],
 ) -> dict[str, str]:
+    """Determine the overall verdict for the report based on findings and tool status."""
     from engine.static_audit.html_report._findings import finding_display_score
 
     statuses = {str(step.get("status")) for step in tool_runs if isinstance(step, dict)}
@@ -60,22 +76,16 @@ def report_verdict(
     has_warning_tool = "warning" in statuses
 
     if max_risk >= risk_score("critical"):
-        label = "需优先复核"
-        headline = "发现高优先级复核项"
-        result = "fail"
+        verdict_key = "fail"
     elif has_review_work or has_failed_tool or has_warning_tool:
-        label = "需人工复核"
-        headline = "发现待核对记录"
-        result = "warning"
+        verdict_key = "warning"
     else:
-        label = "未见高优先级项"
-        headline = "未见高优先级复核项"
-        result = "pass"
+        verdict_key = "pass"
 
     return {
-        "label": label,
-        "headline": headline,
-        "result": result,
+        "label": VERDICT_LABELS[verdict_key],
+        "headline": VERDICT_HEADLINES[verdict_key],
+        "result": verdict_key,
         "depth": audit_depth_label(bundle, tool_runs),
     }
 
@@ -131,12 +141,14 @@ def executive_summary(
     profile_summary: dict[str, Any],
     exact_images: dict[str, Any],
 ) -> str:
+    """Generate the executive summary paragraph based on findings and patterns."""
     source_coverage = source_coverage_text(profile_summary)
     image_count = exact_images.get("image_count", "-")
     workbook_count = profile_summary.get("workbook_count", "-")
     sheet_count = profile_summary.get("sheet_count", "-")
     claim_mapping_count = bundle_counts.get("claim_mappings", 0)
     pattern_clause = summary_pattern_clause(patterns)
+    disclaimer = VERDICT_DISCLAIMER
 
     if not findings:
         return (
@@ -152,20 +164,12 @@ def executive_summary(
         if "visual_forensics" in str(p.get("pattern_key", ""))
         for f in (p.get("findings") or [])
     )
-    sd_keys = {
-        "paired_offset_ratio_reuse",
-        "row_vector_reuse_rounding",
-        "row_vector_reuse",
-        "duplicate_numeric_columns",
-        "partial_copy_rounding_bias",
-        "formula_derivation",
-    }
     source_data_pattern_keys = {
         str(p.get("pattern_key", ""))
         for p in patterns
-        if str(p.get("pattern_key", "")) in sd_keys
+        if str(p.get("pattern_key", "")) in SOURCE_DATA_PATTERN_KEYS
     }
-    has_multiple_sd_patterns = len(source_data_pattern_keys) >= 2
+    has_multiple_sd_patterns = len(source_data_pattern_keys) >= MIN_SOURCE_DATA_PATTERNS_FOR_MULTI_SUMMARY
     has_source_data_findings = (
         _has_pattern_type(patterns, "paired_offset")
         or _has_pattern_type(patterns, "row_vector")
@@ -190,14 +194,14 @@ def executive_summary(
             f"{sd_count} 条 Source Data 复核记录，{pattern_clause}"
             f"当前已覆盖 {workbook_count} 个 workbook / {sheet_count} 个 sheet、"
             f"{claim_mapping_count} 条表述映射和 {image_count} 张 PDF 提取图片；"
-            "这些记录只用于安排人工复核，不作诚信结论。"
+            f"{disclaimer}"
         )
 
     if has_multiple_sd_patterns:
         sd_count = len(findings)
         sheet_set: set[str] = set()
         for p in patterns:
-            if str(p.get("pattern_key", "")) in sd_keys:
+            if str(p.get("pattern_key", "")) in SOURCE_DATA_PATTERN_KEYS:
                 sheet_set.update(str(s) for s in (p.get("sheets") or []))
         sheet_text = "、".join(sorted(sheet_set)[:3]) or "多个 sheet"
         return (
@@ -205,7 +209,7 @@ def executive_summary(
             f"涉及 {len(source_data_pattern_keys)} 类模式，跨 {sheet_text} 等多个 sheet，{pattern_clause}"
             f"当前已覆盖 {workbook_count} 个 workbook / {sheet_count} 个 sheet、"
             f"{claim_mapping_count} 条表述映射和 {image_count} 张 PDF 提取图片；"
-            "这些记录只用于安排人工复核，不作诚信结论。"
+            f"{disclaimer}"
         )
 
     if has_visual_critical:
@@ -215,7 +219,7 @@ def executive_summary(
             f"{pattern_clause}"
             f"当前 {source_coverage}、"
             f"{claim_mapping_count} 条表述映射和 {image_count} 张 PDF 提取图片；"
-            "这些记录只用于安排人工复核，不作诚信结论。"
+            f"{disclaimer}"
         )
 
     if has_source_data_findings:
@@ -224,7 +228,7 @@ def executive_summary(
             f"{pattern_clause}"
             f"当前 {source_coverage}、"
             f"{claim_mapping_count} 条表述映射和 {image_count} 张 PDF 提取图片；"
-            "这些记录只用于安排人工复核，不作诚信结论。"
+            f"{disclaimer}"
         )
 
     if has_only_completeness:
@@ -246,7 +250,7 @@ def executive_summary(
         f"{pattern_clause}"
         f"当前 {source_coverage}、"
         f"{claim_mapping_count} 条表述映射和 {image_count} 张 PDF 提取图片；"
-        "这些记录只用于安排人工复核，不作诚信结论。"
+        f"{disclaimer}"
     )
 
 
@@ -260,10 +264,11 @@ def hero_metric(label: str, value: Any) -> str:
 
 
 def hero_pattern_list(patterns: list[dict[str, Any]]) -> str:
+    """Render the top patterns in the hero section."""
     if not patterns:
         return "<p class='muted'>未形成重点摘要。请查看原始证据记录。</p>"
     rows = []
-    for index, pattern in enumerate(patterns[:3], start=1):
+    for index, pattern in enumerate(patterns[:MAX_HERO_PATTERNS], start=1):
         source = str(pattern.get("summary_source") or "rule")
         rows.append(
             "<li>"
@@ -278,6 +283,7 @@ def hero_pattern_list(patterns: list[dict[str, Any]]) -> str:
 
 
 def hero_action_list(tasks: list[dict[str, Any]]) -> str:
+    """Render the action list in the hero section."""
     from engine.static_audit.html_report._manual_tasks import (
         is_context_only_manual_task,
         manual_task_focus_score,
@@ -290,16 +296,12 @@ def hero_action_list(tasks: list[dict[str, Any]]) -> str:
     ]
     visible_tasks = sorted(visible_tasks, key=manual_task_focus_score)
     questions = [
-        shorten(clean_report_text(task.get("question", "")), 150)
-        for task in visible_tasks[:3]
+        shorten(clean_report_text(task.get("question", "")), MAX_ACTION_QUESTION_LENGTH)
+        for task in visible_tasks[:MAX_HERO_ACTIONS]
         if task.get("question")
     ]
     if not questions:
-        questions = [
-            "核对材料清单、PDF 解析、Source Data、图像和代码材料是否完整。",
-            "要求作者补充缺失的原始数据、导出过程、分析脚本或结果文件。",
-            "把后续生成的复核记录与论文表述逐条对账，确认是否需要补充材料或说明。",
-        ]
+        questions = DEFAULT_ACTION_QUESTIONS
     return "<ul class='action-list'>" + list_items(questions) + "</ul>"
 
 
@@ -311,6 +313,7 @@ def hero_action_list(tasks: list[dict[str, Any]]) -> str:
 def collect_limitations(
     bundle: dict[str, Any], agent_judge: dict[str, Any], similarity: dict[str, Any]
 ) -> list[str]:
+    """Collect limitation statements from bundle, judge, and similarity data."""
     limitations = ["本报告不做最终科研诚信判定，只展示技术记录和人工复核入口。"]
     if bundle.get("claim_mappings"):
         limitations.append(
@@ -325,6 +328,6 @@ def collect_limitations(
         )
     if similarity.get("status") == "not_available":
         limitations.append("近似图像相似度未运行；只能说明 exact duplicate 未发现。")
-    limitations.extend(str(item) for item in (bundle.get("limitations") or [])[:5])
-    limitations.extend(str(item) for item in (agent_judge.get("limitations") or [])[:5])
+    limitations.extend(str(item) for item in (bundle.get("limitations") or [])[:MAX_LIMITATIONS_FROM_BUNDLE])
+    limitations.extend(str(item) for item in (agent_judge.get("limitations") or [])[:MAX_LIMITATIONS_FROM_JUDGE])
     return dedupe(limitations)

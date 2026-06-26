@@ -6,6 +6,16 @@ from collections import Counter, defaultdict
 from typing import Any
 
 from engine.static_audit.html_report._html_utils import h
+from engine.static_audit.html_report._config import (
+    MAX_EVIDENCE_CLUSTERS,
+    MAX_CLUSTERS_IN_BRIEF,
+    MAX_CLAIMS_PER_CLUSTER,
+    MAX_TASKS_PER_CLUSTER,
+    MAX_SIGNALS_PER_CLUSTER,
+    MAX_SHEETS_IN_HEADLINE,
+    MAX_CATEGORIES_IN_HEADLINE,
+    DEFAULT_CLUSTER_TASK_ITEMS,
+)
 from engine.static_audit.html_report._shared import (
     category_label,
     clean_report_text,
@@ -72,13 +82,15 @@ def tasks_for_finding_ids(
 def cluster_headline(
     sheet: str, findings: list[dict[str, Any]], claims: list[dict[str, Any]]
 ) -> str:
+    """Generate a headline for an evidence cluster."""
     categories = Counter(str(f.get("category", "-")) for f in findings)
-    category_text = "、".join(category_label(c) for c, _ in categories.most_common(3))
+    category_text = "、".join(category_label(c) for c, _ in categories.most_common(MAX_CATEGORIES_IN_HEADLINE))
     claim_hint = f"；已关联 {len(claims)} 条论文表述" if claims else ""
     return f"{sheet} 聚集了 {len(findings)} 条高优先级记录，主要类别为 {category_text or '复核记录'}{claim_hint}，建议作为人工复核入口。"
 
 
 def finding_signal(finding: dict[str, Any]) -> str:
+    """Generate a signal description for a finding."""
     category = str(finding.get("category", "-"))
     support = support_text(finding)
     columns = (
@@ -114,8 +126,9 @@ def build_evidence_clusters(
     manual_tasks: list[dict[str, Any]],
     source_reviews: dict[str, dict[str, Any]],
     judge_risks: list[dict[str, Any]],
-    max_clusters: int = 6,
+    max_clusters: int = MAX_EVIDENCE_CLUSTERS,
 ) -> list[dict[str, Any]]:
+    """Build evidence clusters grouped by workbook/sheet, ranked by risk and size."""
     grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for finding in findings:
         if not isinstance(finding, dict):
@@ -185,7 +198,7 @@ def build_evidence_clusters(
                 "risks": matched_risks,
                 "reviews": reviews,
                 "headline": cluster_headline(anchor, group_findings, matched_claims),
-                "signals": [finding_signal(f) for f in group_findings[:4]],
+                "signals": [finding_signal(f) for f in group_findings[:MAX_SIGNALS_PER_CLUSTER]],
                 "benign_explanations": cluster_benign_explanations(
                     group_findings, reviews
                 ),
@@ -196,26 +209,24 @@ def build_evidence_clusters(
 
 
 def evidence_cluster_cards(clusters: list[dict[str, Any]]) -> str:
+    """Render evidence cluster cards as HTML."""
     if not clusters:
         return "<p class='muted'>未形成主证据簇。请查看技术附录中的原始工具输出。</p>"
     cards = []
     for index, cluster in enumerate(clusters, start=1):
         claims = cluster.get("claims") or []
         claim_items = [
-            f"<li><code>{h(claim.get('claim_id', '-'))}</code> {h((claim.get('claim_text') or claim.get('text') or '-')[:260])}</li>"
-            for claim in claims[:4]
+            f"<li><code>{h(claim.get('claim_id', '-'))}</code> {h((claim.get('claim_text') or claim.get('text') or '-')[:MAX_CLUSTER_CLAIM_LENGTH])}</li>"
+            for claim in claims[:MAX_CLAIMS_PER_CLUSTER]
         ] or ["<li class='muted'>未自动关联到具体论文表述，需人工补映射。</li>"]
         tasks = cluster.get("manual_tasks") or []
         task_items = [
             clean_report_text(t.get("question", ""))
-            for t in tasks[:3]
+            for t in tasks[:MAX_TASKS_PER_CLUSTER]
             if t.get("question")
         ]
         if not task_items:
-            task_items = [
-                "核对 Source Data 的 workbook/sheet/column header、row offset、merged cells 和 figure panel 语义。",
-                "要求作者提供原始分析脚本或数据导出过程，解释该结构性模式是否来自合法归一化或批量派生。",
-            ]
+            task_items = DEFAULT_CLUSTER_TASK_ITEMS
         categories = cluster.get("categories") or Counter()
         category_text = ", ".join(
             f"{category_label(k)}×{v}" for k, v in categories.most_common()

@@ -10,6 +10,15 @@ from pathlib import Path
 from typing import Any
 
 from engine.static_audit.html_report._html_utils import h
+from engine.static_audit.html_report._config import (
+    MAX_VISUAL_FIGURES,
+    MAX_VISUAL_FINDINGS,
+    MAX_VISUAL_REVIEW_QUEUE,
+    MAX_VISUAL_CLUSTERS,
+    MAX_VISUAL_PANELS_PER_FIGURE,
+    MAX_VISUAL_RELATIONSHIPS,
+    MAX_FIGURE_CAPTION_LENGTH,
+)
 from engine.static_audit.html_report._shared import (
     _confidence_badge,
     clean_report_text,
@@ -118,12 +127,12 @@ def _visual_figure_cards(
             panels_by_figure.setdefault(parent, []).append(panel)
 
     cards = []
-    for figure in figures[:20]:
+    for figure in figures[:MAX_VISUAL_FIGURES]:
         if not isinstance(figure, dict):
             continue
         figure_id = str(figure.get("figure_id") or "-")
         label = str(figure.get("label") or "-")
-        caption = str(figure.get("caption") or "")[:200]
+        caption = str(figure.get("caption") or "")[:MAX_FIGURE_CAPTION_LENGTH]
         image_path = str(figure.get("source_image_path") or "")
         panel_count = figure.get("panel_count", 0)
         figure_panels = panels_by_figure.get(figure_id, [])
@@ -131,7 +140,7 @@ def _visual_figure_cards(
         panel_thumbnails = ""
         if figure_panels:
             panel_items = []
-            for panel in figure_panels[:12]:
+            for panel in figure_panels[:MAX_VISUAL_PANELS_PER_FIGURE]:
                 panel_id = str(panel.get("panel_id") or "-")
                 panel_label = str(panel.get("label") or "-")
                 panel_crop = str(panel.get("crop_path") or "")
@@ -184,7 +193,7 @@ def _visual_relationship_table(rels: list[dict[str, Any]]) -> str:
         key=lambda r: -(r.get("score") or 0),
     )
     rows = []
-    for rel in sorted_rels[:30]:
+    for rel in sorted_rels[:MAX_VISUAL_RELATIONSHIPS]:
         source = str(rel.get("source_panel_id") or "-")
         target = str(rel.get("target_panel_id") or "-")
         rel_type = str(rel.get("source_type") or "-")
@@ -214,7 +223,7 @@ def _visual_review_queue_table(tasks: list[dict[str, Any]]) -> str:
     if not tasks:
         return "<p class='muted'>未生成图像复核队列。</p>"
     rows = []
-    for task in tasks[:20]:
+    for task in tasks[:MAX_VISUAL_REVIEW_QUEUE]:
         priority = str(task.get("priority") or "medium")
         quality = str(task.get("panel_extraction_quality") or "unknown")
         quality_note = (
@@ -244,7 +253,7 @@ def _visual_cluster_table(clusters: list[dict[str, Any]]) -> str:
     if not clusters:
         return "<p class='muted'>未生成图像证据簇。</p>"
     rows = []
-    for cluster in clusters[:20]:
+    for cluster in clusters[:MAX_VISUAL_CLUSTERS]:
         risk = str(cluster.get("risk_level") or "medium")
         quality = str(cluster.get("panel_extraction_quality") or "unknown")
         representatives = ", ".join(
@@ -313,7 +322,7 @@ def _visual_finding_cards(
     panels_by_id = _panel_lookup(panels)
 
     cards = []
-    for finding in visual_findings[:20]:
+    for finding in visual_findings[:MAX_VISUAL_FINDINGS]:
         if not isinstance(finding, dict):
             continue
 

@@ -10,6 +10,11 @@ from __future__ import annotations
 from typing import Any
 
 from engine.static_audit.html_report._html_utils import h
+from engine.static_audit.html_report._config import (
+    MAX_AGENT_BENIGN_FROM_REVIEWS,
+    MAX_AGENT_BENIGN_FROM_FINDINGS,
+    MAX_BENIGN_EXPLANATIONS_PER_CLUSTER,
+)
 from engine.static_audit.html_report._shared import (
     _confidence_badge,
     category_label,
@@ -266,10 +271,10 @@ def cluster_benign_explanations(
     """Return benign explanations as list of (text, source_type) tuples."""
     items: list[tuple[str, str]] = []
     for review in reviews:
-        for item in (review.get("benign_explanations") or [])[:3]:
+        for item in (review.get("benign_explanations") or [])[:MAX_AGENT_BENIGN_FROM_REVIEWS]:
             items.append((str(item), "agent"))
     for finding in findings:
-        for item in (finding.get("benign_explanations") or [])[:2]:
+        for item in (finding.get("benign_explanations") or [])[:MAX_AGENT_BENIGN_FROM_FINDINGS]:
             items.append((str(item), "agent"))
     if not items:
         pattern_keys = {pattern_key_for_finding(finding) for finding in findings}
@@ -299,7 +304,7 @@ def cluster_benign_explanations(
         if text and text not in seen:
             seen.add(text)
             deduped.append((text, source_type))
-    return deduped[:5]
+    return deduped[:MAX_BENIGN_EXPLANATIONS_PER_CLUSTER]
 
 
 # ---------------------------------------------------------------------------
