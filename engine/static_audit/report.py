@@ -282,15 +282,16 @@ def _material_section(data: _ReportData) -> list[str]:
         if isinstance(inventory_summary.get("by_material_type"), dict)
         else {}
     )
-    selected_lanes = (
-        (data.material_plan or {}).get("selected_optional_lanes")
+    selected_lanes_raw = (data.material_plan or {}).get("selected_optional_lanes")
+    selected_lanes: list[Any] = (
+        selected_lanes_raw  # type: ignore[assignment]
         if isinstance((data.material_plan or {}).get("selected_optional_lanes"), list)
         else []
     )
     selected_lane_text = brief_list(
         [
             f"{lane.get('lane_id')}:{lane.get('status')}:{lane.get('root') or '-'}"
-            for lane in selected_lanes
+            for lane in (selected_lanes or [])  # Type narrow: ensure not None
             if isinstance(lane, dict)
         ],
         limit=5,

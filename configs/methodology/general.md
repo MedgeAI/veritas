@@ -15,7 +15,7 @@
 
 - PDF page、figure、table、caption、Markdown line、content block。
 - Source Data workbook、sheet、row、column、cell、formula。
-- image path、crop/panel、hash/similarity candidate、VLM triage output。
+- image path、crop/panel、hash/similarity candidate。
 - command、stdout/stderr、exit code、result file、file hash。
 
 Agent 输出只能解释、映射、压力测试和综合，不得替代 primary evidence。

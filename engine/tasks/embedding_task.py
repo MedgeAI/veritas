@@ -80,7 +80,7 @@ def _index_embeddings_impl(
     workdir: str,
 ) -> dict[str, Any]:
     """Run SSCD embedding extraction for all panels in *case_id*."""
-    from engine.embeddings.sscd import SSCDEncoder
+    from engine.embeddings.sscd import SSCDEncoder  # type: ignore[import-untyped]
 
     session_factory = _get_session_factory()
     now = _utc_now()
@@ -107,7 +107,7 @@ def _index_embeddings_impl(
             result["status"] = "failed"
             result["error"] = f"SSCD model not found at {encoder._model_path}"
         else:
-            from web.backend.veritas_web.embeddings import index_panels
+            from web.backend.veritas_web.embeddings import index_panels  # type: ignore[import-untyped]
 
             session = session_factory()
             try:

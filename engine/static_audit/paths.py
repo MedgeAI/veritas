@@ -98,7 +98,6 @@ ARTIFACT_PATH_MAP = {
     "agent_digit_pattern.json": "agents/digit_pattern.json",
     "agent_math_consistency.json": "agents/math_consistency.json",
     "agent_domain_sanity.json": "agents/domain_sanity.json",
-    "agent_visual_triage.json": "agents/visual_triage.json",
     "agent_traces": "agents/traces",
     "context_pack_material_plan.json": "agents/context_pack_material_plan.json",
     "context_pack_claim_extractor.json": "agents/context_pack_claim_extractor.json",
@@ -107,7 +106,6 @@ ARTIFACT_PATH_MAP = {
     "context_pack_judge.json": "agents/context_pack_judge.json",
     "context_pack_investigation_plan_round_1.json": "agents/context_pack_investigation_plan_round_1.json",
     "agent_investigation_plan_round_01.json": "agents/investigation_plan_round_01.json",
-    "vlm_triage_selected.json": "agents/vlm_triage_selected.json",
     "logs": "agents/logs",
     # Final deliverables
     "static_audit_bundle.json": "reports/static_audit_bundle.json",
