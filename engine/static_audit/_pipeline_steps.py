@@ -89,7 +89,7 @@ def _relocate_mineru_outputs(workdir: Path) -> None:
                 json.dumps(ledger, ensure_ascii=False, indent=2), encoding="utf-8"
             )
         except Exception:
-            pass
+            logger.warning("Ledger image path update failed (non-critical)", exc_info=True)
 
 
 def _update_ledger_image_paths(obj: Any, old: str, new: str) -> None:
