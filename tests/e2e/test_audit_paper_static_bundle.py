@@ -1,10 +1,17 @@
 from __future__ import annotations
 
 import json
+import os
+
+import pytest
 
 from engine.static_audit.orchestrator import run_static_audit, resolve_artifact_path
 
 
+@pytest.mark.skipif(
+    not os.environ.get("MINERU_API_TOKEN"),
+    reason="MINERU_API_TOKEN required for e2e audit pipeline (early-fail without full.md)",
+)
 def test_audit_paper_writes_static_bundle_with_fake_agent(
     tmp_path, monkeypatch
 ) -> None:
@@ -51,8 +58,9 @@ def test_audit_paper_writes_static_bundle_with_fake_agent(
     assert "| final_audit_report.html | missing |" not in markdown
     assert bundle["protocol_version"] == "static_audit_protocol.v1"
     assert bundle["metadata"]["investigation_records"]
-    assert len(traces) == 8
+    # After PRD3-T6 VLM triage removal: 8 roles -> 7 roles (visual_triage deleted)
+    assert len(traces) == 7
     assert traces["claim_extractor"]["status"] == "ran"
     assert traces["source_data_auditor"]["status"] == "ran"
     assert traces["judge"]["status"] == "ran"
-    assert traces["visual_triage"]["status"] == "skipped"
+    # visual_triage role removed in PRD3-T6; no longer in traces

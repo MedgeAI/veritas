@@ -39,7 +39,7 @@
 ┌─ role_layer ───────────────────────────────────────┐
 │  claim_extractor → source_data_auditor → judge      │
 │  + reserved roles: defense, digit_pattern,          │
-│    domain_sanity, math_consistency, visual_triage   │
+│    domain_sanity, math_consistency                │
 └─────────────────────────────────────────────────────┘
   │
   ▼
@@ -184,7 +184,7 @@ Role 层 agent 的结构化输出。应归入 `agents/`。
 | `agent_digit_pattern.json` | digit_pattern | ❌ reserved |
 | `agent_domain_sanity.json` | domain_sanity | ❌ reserved |
 | `agent_math_consistency.json` | math_consistency | ❌ reserved |
-| `agent_visual_triage.json` | visual_triage | ❌ reserved |
+| `agent_visual_triage.json` | visual_triage | removed (PRD3-T6) |
 | `agent_investigation_plan_round_01.json` | investigation_plan | ✅ |
 
 ### `context_pack_*.json` (7 files)

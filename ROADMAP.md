@@ -224,7 +224,6 @@ Now
 - CBIR/Milvus：优先 single-paper internal similarity，再考虑跨论文检索。
 - YOLOv5/ELIS panel extraction：已决策作为下一步 adapter 路线，用于替换当前 OpenCV 过渡实现。
 - RootSIFT/MAGSAC 和 dense copy-move：已决策作为下一步 adapter 路线，用于替换或增强当前 ORB/SIFT 过渡实现。
-- VLM visual triage：描述视觉事实和排序人工复核优先级，不输出最终判断。
 
 ### Decision Gates
 

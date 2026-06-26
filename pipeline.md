@@ -1,18 +1,10 @@
 # audit-paper Pipeline 说明
 
-更新时间：2026-06-17
+更新时间：2026-06-26
 
 本文描述当前 `audit-paper` 的实际数据流、Agent 参与位置、真实 case 暴露的断点，以及下一版需要收敛的 pipeline contract。
 
-2026-06-17 校准：本文区分旧 run 产物症状和当前代码状态。`case-20260616T154322Z-d693198d` 是回归样例，不代表后续代码已经修复的能力仍然缺失。
-
-参考真实产物：
-
-```text
-outputs/case-20260616T154322Z-d693198d/research-integrity-audit/
-```
-
-该 case 的结论用于校准 pipeline，不应把任何单一图号、列名或 finding id 写入默认审查逻辑。
+2026-06-26 校准：`orchestrator.py` 已重构为 backward-compat shim，实际 pipeline 逻辑归属 `pipeline.py`。Tool Registry 当前 30 个 ToolDefinition，按 `ExecutionPhase` 四层分类：`MANDATORY_BASELINE` / `CONDITIONAL_BASELINE` / `AGENT_SELECTABLE` / `REPORT_ONLY`。新增 `paths.py`（artifact 路径解析）、`ground_truth/`（标注管线）、`follow_up/`（行动生成）、`tasks/`（Celery 异步任务）。
 
 ## 输入
 
@@ -36,7 +28,7 @@ make audit-fresh PAPER_DIR=<paper_dir> CASE_ID=<case_id> AGENT_TIMEOUT_SECONDS=3
 ## 当前实际数据流
 
 ```text
-CLI / Web runner
+CLI / Web runner / Celery worker
   -> discover_pdf
   -> material_inventory.json
   -> agent_material_plan.json
@@ -56,24 +48,31 @@ CLI / Web runner
             -> visual/evidence.json
             -> visual/panel_evidence.json
             -> panels/<figure-id>/<panel>.png
+       -> visual.image_quality
+            -> visual/image_quality.json
+       -> visual.tru_for (MANDATORY_BASELINE, skip-only without GPU)
+            -> visual/forged_region_evidence.json
+       -> visual.provenance_graph (MANDATORY_BASELINE)
+            -> visual/provenance_graph.json
 
-  -> Source Data optional lane
+  -> Source Data conditional lane
        -> source_data/profile.json
        -> source_data/findings.json
        -> source_data/pair_forensics.json
        -> source_data/cross_sheet.json
+       -> source_data/findings_verdict.json  (LLM 语义裁决)
 
   -> AgentInvestigationPlanner
        -> agent_investigation_plan_round_XX.json
        -> investigation/investigation_rounds.jsonl
        -> investigation/round_XX/ir_XX_aYYY/<tool artifact>
-       -> optional visual.copy_move / image.similarity_candidates / source_data tools
+       -> optional: visual.copy_move / visual.copy_move_dense /
+                    visual.overlap_reuse / image.similarity_candidates /
+                    source_data.query / paperconan.numeric_forensics
 
-  -> visual finding pipeline
+  -> visual finding pipeline (REPORT_ONLY — 聚合已有 artifacts)
        -> visual/relationships.json
        -> visual/findings.json
-       -> visual/provenance_graph.json
-       -> visual/forged_region_evidence.json
 
   -> agent_review.json
   -> role layer
@@ -91,9 +90,11 @@ CLI / Web runner
 
 所有 opencode Agent 调用都应通过 `AgentStepRunner` 进入：先由 `context_pack.py` 构建有边界的 `AgentContextPack`，再调用 opencode、抽取 JSON、做 schema validation、按错误类别重试并写入日志。`engine/investigation/opencode_agent.py` 仍保留 legacy adapter，保证 orchestrator 和报告消费侧不用一次性迁移。
 
+路径解析已提取到 `engine/static_audit/paths.py`（`resolve_artifact_path`、`artifact_path_candidates`、`existing_artifact_path`），消除 `orchestrator.py` 中的路径散落。
+
 ## 真实 case 反校准
 
-`case-20260616T154322Z-d693198d` 说明当前 pipeline 不能表述为 ELIS 超集。
+历史 case（如 `case-20260616T154322Z-d693198d`）暴露的断点推动了以下改进：
 
 ### 跑通的部分
 
@@ -214,11 +215,22 @@ Top visual finding 至少展示：
 
 ### 4. Tool Registry 是唯一执行事实源
 
-Agent、orchestrator、manifest、report 必须使用同一套 Tool Registry 事实。
+Agent、orchestrator、manifest、report 必须使用同一套 Tool Registry 事实。当前 Tool Registry 包含 30 个 `ToolDefinition`，按 `ExecutionPhase` 四层分类：
+
+```text
+MANDATORY_BASELINE    — 无条件执行（MinerU、evidence_ledger、numeric_forensics、
+                        paperfraud_rule_match、exact_duplicates、panel_extraction、
+                        image_quality、tru_for、provenance_graph）
+CONDITIONAL_BASELINE  — 条件满足时执行（source_data.profile/findings/pair_forensics/
+                        cross_sheet/verdict）
+AGENT_SELECTABLE      — 仅在 Agent investigation rounds 中选择执行
+REPORT_ONLY           — 消费已有 artifacts 生成报告（finding_pipeline、bundle、
+                        render_markdown、render_static_html）
+```
 
 约束：
 
-- AgentInvestigationPlanner 只能看到真实可执行的 `agent_selectable=True` 且 deterministic 的工具。
+- AgentInvestigationPlanner 只能看到真实可执行的 `agent_selectable=True` 且 `deterministic=True` 的工具。
 - context pack 中的 investigation tool catalog 必须与 orchestrator dispatch 表一致。
 - registry 里存在但 dispatch 未实现的工具，不得暴露给 Agent。
 - unsupported action 不能标 `validation_status=accepted`。
@@ -253,7 +265,7 @@ tool finding
 
 ## Mandatory Bootstrap
 
-只要输入有 PDF，系统尝试执行以下基础层：
+只要输入有 PDF，系统尝试执行以下基础层（`ExecutionPhase.MANDATORY_BASELINE`）：
 
 - `mineru.parse_pdf`：生成 `mineru/full.md`、图片和 MinerU manifest。
 - `paper.evidence_ledger`：生成论文内容、表格、图片、caption 的结构化索引。
@@ -261,8 +273,11 @@ tool finding
 - `paperfraud.rule_match`：生成方法论 checklist 和复核提示；默认不进入 Top consistency findings。
 - `image.exact_duplicates`：对 MinerU 抽取图片做字节级重复检查。
 - `visual.panel_extraction`：生成 canonical `visual/evidence.json` 和 `visual/panel_evidence.json`。
+- `visual.image_quality`：检测图片质量异常（uniform border、solid-color figures）。
+- `visual.tru_for`：TruFor SegFormer-B2 伪造检测。需要 GPU；无 GPU 时整体 skipped。
+- `visual.provenance_graph`：跨 figure 内容共享溯源图构建（recursive BFS expansion）。
 
-`visual.finding_pipeline` 当前仍在 bootstrap 后运行，但其输出只有在满足 canonical id、artifact refs 和 schema 完整性后才能进入正式 finding。
+`visual.finding_pipeline` 当前是 `REPORT_ONLY`——它消费已有 artifacts（panel_evidence、copy_move、exact_duplicates）聚合为 canonical relationships/findings，不在 bootstrap 阶段独立执行。
 
 MinerU 是远端服务，若接口断连，Veritas 侧会做重试和退避等待，但不能保证远端一定可用。
 
@@ -302,18 +317,25 @@ MinerU images
        -> visual/evidence.json
        -> visual/panel_evidence.json
        -> panel crops
+  -> visual.image_quality
+       -> visual/image_quality.json
+  -> visual.tru_for (MANDATORY_BASELINE, GPU required)
+       -> visual/forged_region_evidence.json
+  -> visual.provenance_graph (MANDATORY_BASELINE)
+       -> visual/provenance_graph.json
   -> AgentInvestigationPlanner
        -> may select image.similarity_candidates
        -> may select visual.copy_move
-  -> visual.finding_pipeline
+       -> may select visual.copy_move_dense
+       -> may select visual.overlap_reuse
+  -> visual.finding_pipeline (REPORT_ONLY)
        -> visual/relationships.json
        -> visual/findings.json
   -> final report
-       -> current code has visual renderer
-       -> old run artifact still needs rerun validation
+       -> HTML visual renderer in engine/static_audit/html_report/
 ```
 
-当前状态不能称为 ELIS 超集。原因是 TruFor 未跑通、CBIR 未闭环、copy-move 假阳性高、canonical id 断裂，且旧 run 的 HTML 视觉证据消费尚未用当前代码重跑验证。panel-extractor、keypoint copy-move、TruFor adapter 已存在，但 adapter 存在不等于可靠证据闭环。
+TruFor 和 provenance graph 已提升为 `MANDATORY_BASELINE`。TruFor 需要 GPU（`timm` + SegFormer-B2 权重），无 GPU 时整体 skipped。copy-move（RootSIFT+MAGSAC++）仍是 optional investigation tool。SILA dense copy-move 和 overlap_reuse 是 Agent-selectable。
 
 ### 目标能力状态
 
@@ -364,11 +386,13 @@ MinerU images / ELIS pdf-extractor images
 - `source_data.findings`
 - `source_data.pair_forensics`
 - `source_data.cross_sheet`
+- `source_data.query`（语义查询：compare_groups / extract_block / find_cross_group_reuse）
 - `paperconan.numeric_forensics`（只有 dispatch 实现后才可暴露）
-- `visual.copy_move`
-- `visual.copy_move_dense`（重型，必须有 max panels 和失败隔离）
-- `visual.tru_for`（只有依赖/权重/设备策略就绪后才可暴露）
-- `visual.provenance_graph`（只有 dispatch 和 canonical input 就绪后才可暴露）
+- `visual.copy_move`（RootSIFT+MAGSAC++ keypoint matching）
+- `visual.copy_move_dense`（SILA dense features，需 Docker）
+- `visual.overlap_reuse`（tile-level retrieval + geometric verification）
+- `visual.tru_for`（MANDATORY_BASELINE，需 GPU，无 GPU 时 skip-only）
+- `visual.provenance_graph`（MANDATORY_BASELINE，recursive BFS expansion）
 
 追加调查输出不会覆盖 baseline artifacts，而是写入：
 
@@ -452,6 +476,13 @@ source_data.pair_forensics
 
 source_data.cross_sheet
   -> cross workbook/sheet duplicate columns
+
+source_data.verdict  (LLM 语义裁决, CONDITIONAL_BASELINE, deterministic=False)
+  -> 对 source_data findings 做 true_positive / false_positive / uncertain 裁决
+  -> 依赖 column context from XLSX files
+
+source_data.query  (AGENT_SELECTABLE)
+  -> 语义级确定性查询: compare_groups / extract_block / find_cross_group_reuse
 ```
 
 后续增强重点：
@@ -505,13 +536,23 @@ completeness  材料缺失、代码/环境/原始数据未提供
 ## 当前边界
 
 - `image_similarity_candidates` 当前是 optional investigation tool，不是固定 baseline。
-- `visual.copy_move` 当前是 optional investigation tool，不是固定 baseline。
-- `visual.tru_for` 只有在依赖/权重/设备策略和整体 skipped 语义完整后，才应暴露给 Agent 或写成稳定能力。
-- `visual.provenance_graph`、`paperconan.numeric_forensics` 只有在 registry、validator、dispatch 和 report consumer 对齐后，才应暴露给 Agent 或写成稳定能力。
+- `visual.copy_move` 当前是 optional investigation tool（RootSIFT+MAGSAC++），不是固定 baseline。
+- `visual.copy_move_dense`（SILA dense features）需要 Docker 环境，`AGENT_SELECTABLE`。
+- `visual.overlap_reuse`（tile-level retrieval）当前是 `AGENT_SELECTABLE`。
+- `visual.tru_for` 已提升为 `MANDATORY_BASELINE`；无 GPU 时整体 skipped，不刷重复错误。
+- `visual.provenance_graph` 已提升为 `MANDATORY_BASELINE`。
+- `visual.finding_pipeline` 是 `REPORT_ONLY`——消费已有 artifacts 聚合为 canonical findings。
+- `visual.image_quality` 是 `MANDATORY_BASELINE`，检测 uniform border / solid-color figures。
+- `source_data.verdict` 是 `CONDITIONAL_BASELINE`（LLM 语义裁决），`deterministic=False`。
+- `source_data.query` 是 `AGENT_SELECTABLE`，提供语义级确定性查询。
+- `paperconan.numeric_forensics` 是 `AGENT_SELECTABLE`（GRIM/GRIMMER 等）。
 - investigation 追加产物目前仍需要显式合并进 canonical finding/evidence 图，不能只展示在 Agent Investigation Path。
 - CSV/TSV Source Data 还未正式执行，只进入材料清单和 unsupported materials。
-- ELIS-style panel/RootSIFT/TruFor adapters 已有入口，但还缺质量门控、失败隔离和 fixture/golden 验证；CBIR/Milvus 与 vLLM/VLM 视觉初筛仍未接入稳定 pipeline。
+- ELIS-style panel/RootSIFT/TruFor adapters 已有入口；CBIR/Milvus 与 vLLM/VLM 视觉初筛仍未接入稳定 pipeline。
 - 代码执行型 runtime 审查尚未并入 `audit-paper` 主链路。
+- `engine/ground_truth/` 提供标注解析（`parser.py`）、claim-finding 映射（`mapper.py`）、PRD gap 分析（`gap_analyzer.py`）和过拟合防护（`anti_overfit.py`），用于验证 pipeline 输出质量，不是审查主链路。
+- `engine/follow_up/` 生成 Follow-up 行动建议，通过 Web `ActionsPage` 展示。
+- `engine/tasks/` 提供 Celery 异步任务路径（`audit_task.py`、`embedding_task.py`），生产部署使用。
 
 ## 下一版最低验收
 

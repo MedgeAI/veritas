@@ -15,6 +15,16 @@ Current local operations are documented in `README.md` and the root `Makefile`. 
 
 For current module/data-flow orientation, read `CodeMAP.md` and `Dataflow.md` before making cross-module changes. Visual forensics is currently a first-party beta with ELIS adapters planned, not a fully replaced ELIS pipeline.
 
+** 代码探索优先使用 codebase-memory-mcp**：需要探索代码仓库、理解模块关系、追踪调用链、定位符号定义时，**优先使用 `codebase-memory-mcp` 工具**而非裸 Grep/Read。项目已启用 `auto_index`。常用操作：
+- `search_graph` — 按名称/标签/语义搜索函数、类、路由
+- `trace_path` — 追踪调用链（calls）、数据流（data_flow）、跨服务路径（cross_service）
+- `get_code_snippet` — 用 qualified_name 精确取源码（带精确行号范围）
+- `query_graph` — Cypher 查询，处理复杂多跳模式
+- `get_architecture` — 项目结构、聚类、依赖全景
+- `search_code` — 文本模式搜索（graph-augmented grep），按结构重要性排序
+
+流程：若项目未索引，先 `index_repository` 再查询。查询结果不足时再用 Grep/Glob/Read 补充细节。
+
 **核心产品设计哲学**：只讲事实，不讲观点。报告解释层只呈现从结构化数据动态生成的事实描述，不输出主观判断。不引入 LLM 生成自由文本进入报告正文。详见 `AGENTS.md` → "只讲事实，不讲观点"。
 
 ## 分层架构
