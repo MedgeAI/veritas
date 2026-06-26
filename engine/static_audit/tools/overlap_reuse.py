@@ -349,6 +349,7 @@ def _polygon_intersection_area(
     except Exception:
         # Sutherland-Hodgman clipping can fail on degenerate polygons;
         # fall back to bbox overlap rather than crashing the pipeline.
+        logger.debug("Polygon intersection clipping failed, falling back to bbox overlap", exc_info=True)
         return _bbox_overlap_area(poly_a, poly_b)
 
 

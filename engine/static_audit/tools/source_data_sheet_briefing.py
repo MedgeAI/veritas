@@ -149,6 +149,7 @@ def _analyze_sheet_structure(
     try:
         wb = load_workbook(str(xlsx_path), read_only=True, data_only=True)
     except Exception:
+        logger.debug("Failed to open workbook for structure analysis: %s", xlsx_path, exc_info=True)
         return None
 
     try:
@@ -169,12 +170,13 @@ def _analyze_sheet_structure(
             "column_blocks": column_blocks,
         }
     except Exception:
+        logger.debug("Failed to analyze sheet structure for %s/%s", xlsx_path.name, sheet_name, exc_info=True)
         return None
     finally:
         try:
             wb.close()
         except Exception:
-            pass
+            logger.debug("Failed to close workbook after analysis: %s", xlsx_path, exc_info=True)
 
 
 # ── Finding clustering ────────────────────────────────────────────────
