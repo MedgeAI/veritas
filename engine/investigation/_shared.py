@@ -408,8 +408,213 @@ def _role_input_files(role_id: str, workdir: Path) -> list[Path]:
     ]
 
 
+def _artifact_summary_material_section(
+    material_inventory: dict[str, Any],
+    material_plan: dict[str, Any],
+) -> dict[str, Any]:
+    """Build material inventory and plan summary sections."""
+    inventory_summary = material_inventory.get("summary") or {}
+    return {
+        "material_inventory": {
+            "file_count": inventory_summary.get("file_count"),
+            "by_material_type": inventory_summary.get("by_material_type", {}),
+            "candidate_source_roots": (
+                material_inventory.get("candidate_source_roots") or []
+            )[:8],
+            "limitations": material_inventory.get("limitations", []),
+        },
+        "material_plan": {
+            "status": material_plan.get("status", "ok") if material_plan else "missing",
+            "selected_optional_lanes": material_plan.get("selected_optional_lanes", []),
+            "missing_materials": material_plan.get("missing_materials", []),
+            "unsupported_materials": (material_plan.get("unsupported_materials") or [])[
+                :12
+            ],
+        },
+    }
+
+
+def _artifact_summary_evidence_section(
+    ledger: dict[str, Any],
+    numeric: dict[str, Any],
+) -> dict[str, Any]:
+    """Build evidence ledger and numeric forensics summary sections."""
+    return {
+        "evidence_ledger_stats": ledger.get("stats", {}),
+        "evidence_ledger_warnings": [
+            {"code": item.get("code"), "message": str(item.get("message", ""))[:220]}
+            for item in (ledger.get("warnings") or [])[:10]
+            if isinstance(item, dict)
+        ],
+        "numeric_forensics": {
+            "all_number_count": numeric.get("all_number_count"),
+            "number_count": numeric.get("number_count"),
+            "table_count": numeric.get("table_count"),
+            "effective_scope": numeric.get("effective_scope"),
+            "benford_applicability": (numeric.get("benford") or {}).get("applicability"),
+            "benford_mad": (numeric.get("benford") or {}).get(
+                "mad", (numeric.get("benford") or {}).get("mean_absolute_deviation")
+            ),
+        },
+    }
+
+
+def _artifact_summary_source_data_section(
+    source_findings: dict[str, Any],
+    pair_forensics: dict[str, Any],
+) -> dict[str, Any]:
+    """Build source data findings and pair forensics summary sections."""
+    return {
+        "source_data_findings_summary": source_findings.get("summary", {}),
+        "source_data_pair_forensics_summary": pair_forensics.get("summary", {}),
+        "source_data_pair_forensics_review_tasks": [
+            {
+                "task_id": item.get("task_id"),
+                "priority": item.get("priority"),
+                "cluster_id": item.get("cluster_id"),
+                "category": item.get("category"),
+                "workbook": item.get("workbook"),
+                "sheet": item.get("sheet"),
+                "cluster_count": item.get("cluster_count"),
+                "finding_count": item.get("finding_count"),
+                "question": str(item.get("question", ""))[:280],
+                "representative_finding_ids": (
+                    item.get("representative_finding_ids") or []
+                )[:6],
+            }
+            for item in (pair_forensics.get("review_tasks") or [])[:12]
+            if isinstance(item, dict)
+        ],
+        "source_data_pair_forensics_clusters": [
+            {
+                "cluster_id": item.get("cluster_id"),
+                "category": item.get("category"),
+                "risk_level": item.get("risk_level"),
+                "workbook": item.get("workbook"),
+                "sheet": item.get("sheet"),
+                "pattern_signature": item.get("pattern_signature"),
+                "finding_count": item.get("finding_count"),
+                "representative_finding_ids": (
+                    item.get("representative_finding_ids") or []
+                )[:6],
+            }
+            for item in (pair_forensics.get("finding_clusters") or [])[:12]
+            if isinstance(item, dict)
+        ],
+        "source_data_pair_forensics_priority": [
+            _compact_pair_forensics_finding(item)
+            for item in (pair_forensics.get("priority_findings") or [])[:12]
+            if isinstance(item, dict)
+        ],
+        "priority_findings": [
+            _compact_priority_finding(item)
+            for item in (source_findings.get("priority_findings") or [])[:12]
+            if isinstance(item, dict)
+        ],
+        "claim_to_source_data": [
+            _compact_claim_mapping(item)
+            for item in (source_findings.get("claim_to_source_data") or [])[:18]
+            if isinstance(item, dict)
+        ],
+    }
+
+
+def _artifact_summary_briefings_section(
+    workdir: Path,
+) -> dict[str, Any]:
+    """Build source data briefings section."""
+    briefings_artifact = (
+        _read_json_artifact(workdir, "source_data_sheet_briefings.json") or {}
+    )
+    return {
+        "source_data_briefings": [
+            {
+                "sheet": b.get("sheet"),
+                "workbook": b.get("workbook"),
+                "finding_count": b.get("finding_count"),
+                "structure": b.get("structure", {}),
+                "detected_patterns": b.get("detected_patterns", []),
+            }
+            for b in (briefings_artifact.get("sheets") or [])[:20]
+            if isinstance(b, dict)
+        ]
+    }
+
+
+def _artifact_summary_image_section(
+    image_duplicates: dict[str, Any],
+    image_similarity: dict[str, Any],
+) -> dict[str, Any]:
+    """Build image duplicates and similarity sections."""
+    return {
+        "image_duplicates": {
+            "image_count": image_duplicates.get("image_count"),
+            "duplicate_group_count": image_duplicates.get("duplicate_group_count"),
+            "duplicate_image_count": image_duplicates.get("duplicate_image_count"),
+        },
+        "image_similarity_candidates": {
+            "status": image_similarity.get("status"),
+            "method": image_similarity.get("method"),
+            "image_count": image_similarity.get("image_count"),
+            "candidate_count": image_similarity.get("candidate_count"),
+        },
+    }
+
+
+def _artifact_summary_visual_section(
+    visual_findings: dict[str, Any],
+) -> dict[str, Any]:
+    """Build visual findings sections."""
+    visual_summary = {
+        "status": visual_findings.get("status"),
+        "relationship_count": visual_findings.get("relationship_count"),
+        "finding_count": visual_findings.get("finding_count"),
+        "finding_cluster_count": visual_findings.get("finding_cluster_count"),
+        "review_queue_count": visual_findings.get("review_queue_count"),
+    }
+    return {
+        "visual_findings": visual_summary,
+        "visual_review_queue": [
+            {
+                "task_id": item.get("task_id"),
+                "priority": item.get("priority"),
+                "cluster_id": item.get("cluster_id"),
+                "category": item.get("category"),
+                "scope": item.get("scope"),
+                "figure_ids": (item.get("figure_ids") or [])[:6],
+                "finding_count": item.get("finding_count"),
+                "relationship_count": item.get("relationship_count"),
+                "panel_extraction_quality": item.get("panel_extraction_quality"),
+                "question": str(item.get("question", ""))[:280],
+            }
+            for item in (visual_findings.get("review_queue") or [])[:12]
+            if isinstance(item, dict)
+        ],
+        "visual_finding_clusters": [
+            {
+                "cluster_id": item.get("cluster_id"),
+                "category": item.get("category"),
+                "risk_level": item.get("risk_level"),
+                "scope": item.get("scope"),
+                "figure_ids": (item.get("figure_ids") or [])[:6],
+                "panel_extraction_quality": item.get("panel_extraction_quality"),
+                "finding_count": item.get("finding_count"),
+                "relationship_count": item.get("relationship_count"),
+                "max_score": item.get("max_score"),
+                "representative_finding_ids": (
+                    item.get("representative_finding_ids") or []
+                )[:6],
+            }
+            for item in (visual_findings.get("finding_clusters") or [])[:12]
+            if isinstance(item, dict)
+        ],
+    }
+
+
 def _artifact_summary(workdir: Path) -> dict[str, Any]:
     summary: dict[str, Any] = {"workdir": str(workdir)}
+
+    # Load all artifacts
     material_inventory = _read_json_artifact(workdir, "material_inventory.json") or {}
     material_plan = _read_json_artifact(workdir, "agent_material_plan.json") or {}
     ledger = _read_json_artifact(workdir, "evidence_ledger.json") or {}
@@ -419,161 +624,19 @@ def _artifact_summary(workdir: Path) -> dict[str, Any]:
         _read_json_artifact(workdir, "source_data_pair_forensics.json") or {}
     )
     image_duplicates = _read_json_artifact(workdir, "exact_image_duplicates.json") or {}
-    investigation_records = _read_investigation_records(workdir)
-    inventory_summary = material_inventory.get("summary") or {}
-    summary["material_inventory"] = {
-        "file_count": inventory_summary.get("file_count"),
-        "by_material_type": inventory_summary.get("by_material_type", {}),
-        "candidate_source_roots": (
-            material_inventory.get("candidate_source_roots") or []
-        )[:8],
-        "limitations": material_inventory.get("limitations", []),
-    }
-    summary["material_plan"] = {
-        "status": material_plan.get("status", "ok") if material_plan else "missing",
-        "selected_optional_lanes": material_plan.get("selected_optional_lanes", []),
-        "missing_materials": material_plan.get("missing_materials", []),
-        "unsupported_materials": (material_plan.get("unsupported_materials") or [])[
-            :12
-        ],
-    }
-    summary["evidence_ledger_stats"] = ledger.get("stats", {})
-    summary["evidence_ledger_warnings"] = [
-        {"code": item.get("code"), "message": str(item.get("message", ""))[:220]}
-        for item in (ledger.get("warnings") or [])[:10]
-        if isinstance(item, dict)
-    ]
-    benford = numeric.get("benford") or {}
-    summary["numeric_forensics"] = {
-        "all_number_count": numeric.get("all_number_count"),
-        "number_count": numeric.get("number_count"),
-        "table_count": numeric.get("table_count"),
-        "effective_scope": numeric.get("effective_scope"),
-        "benford_applicability": benford.get("applicability"),
-        "benford_mad": benford.get("mad", benford.get("mean_absolute_deviation")),
-    }
-    summary["source_data_findings_summary"] = source_findings.get("summary", {})
-    summary["source_data_pair_forensics_summary"] = pair_forensics.get("summary", {})
-    summary["source_data_pair_forensics_review_tasks"] = [
-        {
-            "task_id": item.get("task_id"),
-            "priority": item.get("priority"),
-            "cluster_id": item.get("cluster_id"),
-            "category": item.get("category"),
-            "workbook": item.get("workbook"),
-            "sheet": item.get("sheet"),
-            "cluster_count": item.get("cluster_count"),
-            "finding_count": item.get("finding_count"),
-            "question": str(item.get("question", ""))[:280],
-            "representative_finding_ids": (
-                item.get("representative_finding_ids") or []
-            )[:6],
-        }
-        for item in (pair_forensics.get("review_tasks") or [])[:12]
-        if isinstance(item, dict)
-    ]
-    summary["source_data_pair_forensics_clusters"] = [
-        {
-            "cluster_id": item.get("cluster_id"),
-            "category": item.get("category"),
-            "risk_level": item.get("risk_level"),
-            "workbook": item.get("workbook"),
-            "sheet": item.get("sheet"),
-            "pattern_signature": item.get("pattern_signature"),
-            "finding_count": item.get("finding_count"),
-            "representative_finding_ids": (
-                item.get("representative_finding_ids") or []
-            )[:6],
-        }
-        for item in (pair_forensics.get("finding_clusters") or [])[:12]
-        if isinstance(item, dict)
-    ]
-    summary["source_data_pair_forensics_priority"] = [
-        _compact_pair_forensics_finding(item)
-        for item in (pair_forensics.get("priority_findings") or [])[:12]
-        if isinstance(item, dict)
-    ]
-    summary["priority_findings"] = [
-        _compact_priority_finding(item)
-        for item in (source_findings.get("priority_findings") or [])[:12]
-        if isinstance(item, dict)
-    ]
-    summary["claim_to_source_data"] = [
-        _compact_claim_mapping(item)
-        for item in (source_findings.get("claim_to_source_data") or [])[:18]
-        if isinstance(item, dict)
-    ]
-    # Sheet briefings — compact structural intelligence for investigation planner
-    briefings_artifact = (
-        _read_json_artifact(workdir, "source_data_sheet_briefings.json") or {}
-    )
-    summary["source_data_briefings"] = [
-        {
-            "sheet": b.get("sheet"),
-            "workbook": b.get("workbook"),
-            "finding_count": b.get("finding_count"),
-            "structure": b.get("structure", {}),
-            "detected_patterns": b.get("detected_patterns", []),
-        }
-        for b in (briefings_artifact.get("sheets") or [])[:20]
-        if isinstance(b, dict)
-    ]
-    summary["image_duplicates"] = {
-        "image_count": image_duplicates.get("image_count"),
-        "duplicate_group_count": image_duplicates.get("duplicate_group_count"),
-        "duplicate_image_count": image_duplicates.get("duplicate_image_count"),
-    }
     image_similarity = (
         _read_json_artifact(workdir, "image_similarity_candidates.json") or {}
     )
-    summary["image_similarity_candidates"] = {
-        "status": image_similarity.get("status"),
-        "method": image_similarity.get("method"),
-        "image_count": image_similarity.get("image_count"),
-        "candidate_count": image_similarity.get("candidate_count"),
-    }
     visual_findings = _read_json_artifact(workdir, "visual_findings.json") or {}
-    visual_summary = {
-        "status": visual_findings.get("status"),
-        "relationship_count": visual_findings.get("relationship_count"),
-        "finding_count": visual_findings.get("finding_count"),
-        "finding_cluster_count": visual_findings.get("finding_cluster_count"),
-        "review_queue_count": visual_findings.get("review_queue_count"),
-    }
-    summary["visual_findings"] = visual_summary
-    summary["visual_review_queue"] = [
-        {
-            "task_id": item.get("task_id"),
-            "priority": item.get("priority"),
-            "cluster_id": item.get("cluster_id"),
-            "category": item.get("category"),
-            "scope": item.get("scope"),
-            "figure_ids": (item.get("figure_ids") or [])[:6],
-            "finding_count": item.get("finding_count"),
-            "relationship_count": item.get("relationship_count"),
-            "panel_extraction_quality": item.get("panel_extraction_quality"),
-            "question": str(item.get("question", ""))[:280],
-        }
-        for item in (visual_findings.get("review_queue") or [])[:12]
-        if isinstance(item, dict)
-    ]
-    summary["visual_finding_clusters"] = [
-        {
-            "cluster_id": item.get("cluster_id"),
-            "category": item.get("category"),
-            "risk_level": item.get("risk_level"),
-            "scope": item.get("scope"),
-            "figure_ids": (item.get("figure_ids") or [])[:6],
-            "panel_extraction_quality": item.get("panel_extraction_quality"),
-            "finding_count": item.get("finding_count"),
-            "relationship_count": item.get("relationship_count"),
-            "max_score": item.get("max_score"),
-            "representative_finding_ids": (
-                item.get("representative_finding_ids") or []
-            )[:6],
-        }
-        for item in (visual_findings.get("finding_clusters") or [])[:12]
-        if isinstance(item, dict)
-    ]
+    investigation_records = _read_investigation_records(workdir)
+
+    # Build sections
+    summary.update(_artifact_summary_material_section(material_inventory, material_plan))
+    summary.update(_artifact_summary_evidence_section(ledger, numeric))
+    summary.update(_artifact_summary_source_data_section(source_findings, pair_forensics))
+    summary.update(_artifact_summary_briefings_section(workdir))
+    summary.update(_artifact_summary_image_section(image_duplicates, image_similarity))
+    summary.update(_artifact_summary_visual_section(visual_findings))
     summary["investigation_records"] = investigation_records[-20:]
+
     return summary
