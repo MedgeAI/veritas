@@ -1,4 +1,5 @@
 """Source data evidence text, records tables, pair forensics, and paperfraud section."""
+# All f-string interpolations MUST use h() or h_attr() for XSS protection.
 
 from __future__ import annotations
 
@@ -379,15 +380,15 @@ def excluded_findings_section(
         pattern = h(str(f.get("llm_sheet_pattern") or ""))
         rows.append(
             f"<tr><td><code>{fid}</code></td><td>{cat}</td><td>{wb} / {sh}</td>"
-            f"<td>{pattern}</td><td>{conf:.0%}</td><td>{expl}</td></tr>"
+            f"<td>{pattern}</td><td>{h(f'{conf:.0%}')}</td><td>{expl}</td></tr>"
         )
     return (
         f'<details class="compact-details">'
-        f"<summary><span><strong>LLM 语义裁决排除项（{fp_count} 条假阳性）</strong>"
+        f"<summary><span><strong>LLM 语义裁决排除项（{h(fp_count)} 条假阳性）</strong>"
         f'<br/><span class="muted">'
-        f"确定性检测产出 {total} 条 Source Data findings，"
-        f"LLM 逐 sheet 裁决后排除 {fp_count} 条假阳性，"
-        f"保留 {tp_count + un_count} 条待人工复核（TP={tp_count}, uncertain={un_count}）。"
+        f"确定性检测产出 {h(total)} 条 Source Data findings，"
+        f"LLM 逐 sheet 裁决后排除 {h(fp_count)} 条假阳性，"
+        f"保留 {h(tp_count + un_count)} 条待人工复核（TP={h(tp_count)}, uncertain={h(un_count)}）。"
         f"</span></span>"
         f'<span class="badge skipped">展开</span></summary>'
         f'<table class="report-table">'

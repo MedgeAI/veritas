@@ -1,4 +1,5 @@
 """Benign explanations and context-aware review questions.
+# All f-string interpolations MUST use h() or h_attr() for XSS protection.
 
 Contains the parameterized benign explanation dispatchers and the
 review-question handlers that generate finding-specific review text

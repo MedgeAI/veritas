@@ -1,4 +1,5 @@
 """Pattern grouping, definitions, and display logic."""
+# All f-string interpolations MUST use h() or h_attr() for XSS protection.
 
 from __future__ import annotations
 
@@ -365,7 +366,7 @@ def pattern_group_cards(patterns: list[dict[str, Any]]) -> str:
   </div>
   <div class="grid cols-2 pattern-actions">
     <div><h3>规律出现在哪里</h3><p>{h(", ".join(pattern.get("sheets") or []) or "-")}</p>
-    <p class="muted">{h(", ".join(f"{category_label(k)}×{v}" for k, v in categories.most_common()) or "-")}</p></div>
+    <p class="muted">{h(", ".join(f"{category_label(k)}×{h(v)}" for k, v in categories.most_common()) or "-")}</p></div>
     <div><h3>人工复核问题</h3><ul>{"".join(task_items)}</ul></div>
   </div>
   <details class="section"><summary>展开：关联的论文表述</summary><ul>{"".join(claim_items)}</ul></details>

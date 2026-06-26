@@ -1,4 +1,5 @@
 """Appendix tables: steps, traces, material plan, mappings, investigation, risks, artifacts."""
+# All f-string interpolations MUST use h() or h_attr() for XSS protection.
 
 from __future__ import annotations
 
@@ -53,7 +54,7 @@ def traces_table(traces: list[dict[str, Any]]) -> str:
             f"<td><code>{h(trace.get('output_path', '-'))}</code></td></tr>"
         )
     summary = " ".join(
-        f"<span class='badge {h(k)}'>{h(status_label(k))} {v}</span>"
+        f"<span class='badge {h(k)}'>{h(status_label(k))} {h(v)}</span>"
         for k, v in sorted(counts.items())
     )
     return f"<p>{summary}</p><table><thead><tr><th>role</th><th>状态</th><th>摘要</th><th>输出文件</th></tr></thead><tbody>{''.join(rows)}</tbody></table>"
@@ -240,7 +241,7 @@ def artifact_links(workdir: Path) -> str:
         size = path.stat().st_size if path.exists() else "-"
         rows.append(
             f"<div class='artifact'><span><code>{h(name)}</code></span>"
-            f"<span><span class='badge {status}'>{status_label(status)}</span> {h(size)} 字节</span></div>"
+            f"<span><span class='badge {h(status)}'>{h(status_label(status))}</span> {h(size)} 字节</span></div>"
         )
     return "<div class='artifact-list'>" + "".join(rows) + "</div>"
 
@@ -279,7 +280,7 @@ def claim_impact_matrix(
                 f"<td>{h((claim.get('claim_text') or claim.get('text') or '-')[:260])}</td>"
                 f"<td><code>{h(', '.join(refs[:4]) or '-')}</code></td>"
                 f"<td><code>{h(', '.join(finding_refs[:6]) or '-')}</code></td>"
-                f"<td><span class='badge {'warning' if needs_review is not False else 'low'}'>{h('需人工复核' if needs_review is not False else '低优先级')}</span></td></tr>"
+                f"<td><span class='badge {h('warning' if needs_review is not False else 'low')}'>{h('需人工复核' if needs_review is not False else '低优先级')}</span></td></tr>"
             )
     elif canonical_mappings:
         for mapping in canonical_mappings[:14]:
@@ -300,7 +301,7 @@ def claim_impact_matrix(
                 f"<td>{h((claim.get('claim_text') or claim.get('text') or '-')[:260])}</td>"
                 f"<td><code>{h(', '.join(refs[:4]) or '-')}</code></td>"
                 f"<td><code>{h(', '.join(finding_refs[:6]) or '-')}</code></td>"
-                f"<td><span class='badge {'warning' if needs_review is not False else 'low'}'>{h('需人工复核' if needs_review is not False else '低优先级')}</span></td></tr>"
+                f"<td><span class='badge {h('warning' if needs_review is not False else 'low')}'>{h('需人工复核' if needs_review is not False else '低优先级')}</span></td></tr>"
             )
     if not rows:
         return "<p class='muted'>未生成论文表述对照表。</p>"
