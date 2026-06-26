@@ -53,7 +53,6 @@ import json
 import logging
 import subprocess
 import tempfile
-import threading
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone

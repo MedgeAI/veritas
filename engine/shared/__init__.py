@@ -5,7 +5,7 @@ across engine.static_audit and engine.investigation modules to eliminate
 circular imports.
 """
 
-from engine.shared.constants import (
+from engine.shared.constants import (  # noqa: F401
     ARTIFACT_PATH_MAP,
     AUDITOR_ROOT,
     MAX_INVESTIGATION_ROUNDS,
@@ -13,7 +13,8 @@ from engine.shared.constants import (
     PROJECT_ROOT,
     STEP_TOOL_IDS,
 )
-from engine.shared.helpers import (
+from engine.shared.helpers import (  # noqa: F401
+    _write_long_text_to_log,
     EXPECTED_EVIDENCE_TYPES,
     agent_step_status,
     artifact_exists,
@@ -35,7 +36,7 @@ from engine.shared.helpers import (
     source_finding_params_from_plan,
     write_json_artifact,
 )
-from engine.shared.types import (
+from engine.shared.types import (  # noqa: F401
     InvestigationAction,
     ProgressCallback,
     StepResult,
@@ -55,6 +56,7 @@ __all__ = [
     "PROJECT_ROOT",
     "STEP_TOOL_IDS",
     # Helpers
+    "_write_long_text_to_log",
     "agent_step_status",
     "artifact_exists",
     "classify_finding",

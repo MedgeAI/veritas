@@ -31,7 +31,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 # Re-export from engine.shared for backward compatibility
 # ---------------------------------------------------------------------------
-from engine.shared import (
+from engine.shared import (  # noqa: F401
     ARTIFACT_PATH_MAP,
     AUDITOR_ROOT,
     MAX_INVESTIGATION_ROUNDS,
@@ -41,6 +41,7 @@ from engine.shared import (
     InvestigationAction,
     ProgressCallback,
     StepResult,
+    _write_long_text_to_log,
     agent_step_status,
     artifact_exists,
     classify_finding,
@@ -62,14 +63,14 @@ from engine.shared import (
 )
 
 # Re-export from engine.static_audit.paths for backward compatibility
-from engine.static_audit.paths import (
+from engine.static_audit.paths import (  # noqa: F401
     artifact_path_candidates,
     ensure_output_subdirs,
     output_subdir,
 )
 
 # Re-export from engine.tools.registry for backward compatibility
-from engine.tools.registry import (
+from engine.tools.registry import (  # noqa: F401
     PAPERFRAUD_RULE_MATCH_TOOL_ID,
     SOURCE_DATA_VERDICT_TOOL_ID,
     TOOLS,
@@ -84,13 +85,13 @@ from engine.tools.registry import (
 )
 
 # Re-export from engine.investigation.agent_models for backward compatibility
-from engine.investigation.agent_models import PROGRESS_EVENT_SUMMARY_MAX_CHARS
+from engine.investigation.agent_models import PROGRESS_EVENT_SUMMARY_MAX_CHARS  # noqa: F401
 
 # Re-export from engine.investigation.opencode_agent for backward compatibility
-from engine.investigation.opencode_agent import DEFAULT_SOURCE_FINDING_PARAMS
+from engine.investigation.opencode_agent import DEFAULT_SOURCE_FINDING_PARAMS  # noqa: F401
 
 # Re-export from engine.static_audit.investigation for backward compatibility
-from engine.static_audit.investigation import normalize_expected_evidence_type
+from engine.static_audit.investigation import normalize_expected_evidence_type  # noqa: F401
 
 logger = logging.getLogger(__name__)
 

@@ -8,6 +8,7 @@ from typing import Any
 
 from engine.static_audit.html_report._html_utils import h
 from engine.static_audit.html_report._config import (
+    MAX_CLUSTER_CLAIM_LENGTH,
     MAX_EVIDENCE_CLUSTERS,
     MAX_CLUSTERS_IN_BRIEF,
     MAX_CLAIMS_PER_CLUSTER,
