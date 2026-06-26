@@ -6,19 +6,22 @@ import ProgressTracker from '../components/ProgressTracker.jsx';
 import RiskTrafficLight from '../components/RiskTrafficLight.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import StatusPill from '../components/StatusPill.jsx';
+import { useRunSteps } from '../hooks/useRunSteps.js';
 import { translateStatus, translateArtifactLabel, translateRiskLevel, translateIssueCategory } from '../utils/piLabels.js';
-import { checkMaterials, getEvents, getRiskSummary, getRun, listArtifacts, reportHtmlUrl } from '../services/api.js';
+import { checkMaterials, getRiskSummary, getRun, listArtifacts, reportHtmlUrl } from '../services/api.js';
 
 function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefreshCases }) {
   const selectedCaseId = selectedCase?.case_id || '';
   const effectiveRunId = selectedRunId || selectedCase?.latest_run_id || '';
   const [run, setRun] = useState(null);
-  const [events, setEvents] = useState([]);
   const [artifacts, setArtifacts] = useState([]);
   const [error, setError] = useState('');
   const [staleRun, setStaleRun] = useState(false);
   const [riskSummary, setRiskSummary] = useState(null);
   const [materials, setMaterials] = useState(null);
+
+  // Fetch steps from backend for dynamic progress rendering
+  const { steps } = useRunSteps(selectedCaseId, effectiveRunId);
 
   const selectedCaseRef = useRef(selectedCase);
   useEffect(() => { selectedCaseRef.current = selectedCase; }, [selectedCase]);
@@ -30,13 +33,11 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
     const sc = selectedCaseRef.current;
     if (!sc || !effectiveRunId) return;
     try {
-      const [nextRun, nextEvents, nextArtifacts] = await Promise.all([
+      const [nextRun, nextArtifacts] = await Promise.all([
         getRun(sc.case_id, effectiveRunId),
-        getEvents(sc.case_id, effectiveRunId),
         listArtifacts(sc.case_id),
       ]);
       setRun(nextRun);
-      setEvents(nextEvents.events || []);
       setArtifacts(nextArtifacts.artifacts || []);
       onSelectRun(nextRun.run_id);
       setError('');
@@ -99,7 +100,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
       {run ? (
         <div className="xl:col-span-2">
-          <ProgressTracker events={events} runStatus={run.status} _startedAt={run.started_at} caseId={selectedCaseId} />
+          <ProgressTracker steps={steps} runStatus={run.status} caseId={selectedCaseId} />
         </div>
       ) : null}
 

@@ -10,14 +10,14 @@ function formatDuration(seconds) {
   return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
 }
 
-export default function CollapsedPastPhases({ phases, stepStatuses, stepDurations = {} }) {
+export default function CollapsedPastPhases({ phases, stepDurations = {} }) {
   const [expanded, setExpanded] = useState(false);
 
   if (!phases || phases.length === 0) return null;
 
   const totalDuration = phases.reduce((sum, phase) => {
     const phaseDuration = phase.steps.reduce((s, step) => {
-      return s + (stepDurations[step.key] || 0);
+      return s + (stepDurations[step.key] || step.duration_seconds || 0);
     }, 0);
     return sum + phaseDuration;
   }, 0);
@@ -49,16 +49,15 @@ export default function CollapsedPastPhases({ phases, stepStatuses, stepDuration
         <div className="space-y-1 mt-1">
           {phases.map((phase) => {
             const phaseDuration = phase.steps.reduce((sum, step) => {
-              return sum + (stepDurations[step.key] || 0);
+              return sum + (stepDurations[step.key] || step.duration_seconds || 0);
             }, 0);
 
             return (
               <div
-                key={phase.id}
+                key={phase.name}
                 className="h-9 flex items-center gap-3 px-3 pl-8 rounded-lg"
               >
-                <span className="text-base">{phase.icon}</span>
-                <span className="text-sm text-ink-600">{phase.label}</span>
+                <span className="text-sm text-ink-600">{phase.name}</span>
                 <span className="text-xs text-ink-500">· {phase.steps.length} 步</span>
                 {phaseDuration > 0 && (
                   <span className="text-xs font-mono text-ink-500 ml-auto">
@@ -76,11 +75,8 @@ export default function CollapsedPastPhases({ phases, stepStatuses, stepDuration
 
 CollapsedPastPhases.propTypes = {
   phases: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
-    icon: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
     steps: PropTypes.array.isRequired,
   })).isRequired,
-  stepStatuses: PropTypes.object.isRequired,
   stepDurations: PropTypes.object,
 };

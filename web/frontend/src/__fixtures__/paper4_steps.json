@@ -1,0 +1,263 @@
+[
+  {
+    "key": "discover",
+    "title": "发现输入材料",
+    "phase": "准备",
+    "phase_order": 1,
+    "status": "completed",
+    "duration_seconds": null,
+    "started_at": null
+  },
+  {
+    "key": "material_inventory",
+    "title": "材料清单扫描",
+    "phase": "准备",
+    "phase_order": 1,
+    "status": "completed",
+    "duration_seconds": null,
+    "started_at": null
+  },
+  {
+    "key": "agent_material_plan",
+    "title": "opencode Agent 材料计划",
+    "phase": "准备",
+    "phase_order": 1,
+    "status": "completed",
+    "duration_seconds": 26.0,
+    "started_at": "2026-06-24T09:39:40Z"
+  },
+  {
+    "key": "agent_plan",
+    "title": "opencode Agent 审查计划",
+    "phase": "准备",
+    "phase_order": 1,
+    "status": "completed",
+    "duration_seconds": 50.0,
+    "started_at": "2026-06-24T09:40:06Z"
+  },
+  {
+    "key": "mineru",
+    "title": "MinerU PDF 解析",
+    "phase": "文档解析",
+    "phase_order": 2,
+    "status": "completed",
+    "duration_seconds": 12.0,
+    "started_at": "2026-06-24T09:40:56Z"
+  },
+  {
+    "key": "evidence_ledger",
+    "title": "构建 evidence ledger",
+    "phase": "文档解析",
+    "phase_order": 2,
+    "status": "completed",
+    "duration_seconds": 1.0,
+    "started_at": "2026-06-24T09:41:08Z"
+  },
+  {
+    "key": "numeric_forensics",
+    "title": "PDF 数字取证",
+    "phase": "数值取证",
+    "phase_order": 3,
+    "status": "completed",
+    "duration_seconds": 0.0,
+    "started_at": "2026-06-24T09:41:09Z"
+  },
+  {
+    "key": "paperfraud_rule_match",
+    "title": "PaperFraud 规则库匹配",
+    "phase": "数值取证",
+    "phase_order": 3,
+    "status": "completed",
+    "duration_seconds": 0.0,
+    "started_at": "2026-06-24T09:41:10Z"
+  },
+  {
+    "key": "source_data_profile",
+    "title": "Source Data profile",
+    "phase": "数据分析",
+    "phase_order": 4,
+    "status": "completed",
+    "duration_seconds": 7.0,
+    "started_at": "2026-06-24T09:41:10Z"
+  },
+  {
+    "key": "source_data_findings",
+    "title": "Source Data findings",
+    "phase": "数据分析",
+    "phase_order": 4,
+    "status": "completed",
+    "duration_seconds": 133.0,
+    "started_at": "2026-06-24T09:41:17Z"
+  },
+  {
+    "key": "source_data_pair_forensics",
+    "title": "数值对取证",
+    "phase": "数据分析",
+    "phase_order": 4,
+    "status": "completed",
+    "duration_seconds": 15.0,
+    "started_at": "2026-06-24T09:43:30Z"
+  },
+  {
+    "key": "source_data_cross_sheet",
+    "title": "跨 sheet 重复检测",
+    "phase": "数据分析",
+    "phase_order": 4,
+    "status": "completed",
+    "duration_seconds": 29.0,
+    "started_at": "2026-06-24T09:43:45Z"
+  },
+  {
+    "key": "paperconan_scan",
+    "title": "PaperConan 扫描",
+    "phase": "数值取证",
+    "phase_order": 3,
+    "status": "completed",
+    "duration_seconds": 128.0,
+    "started_at": "2026-06-24T09:44:14Z"
+  },
+  {
+    "key": "agent_review",
+    "title": "Agent 审查",
+    "phase": "Unknown",
+    "phase_order": 99,
+    "status": "completed",
+    "duration_seconds": 255.0,
+    "started_at": "2026-06-24T09:46:22Z"
+  },
+  {
+    "key": "agent_role_claim_extractor",
+    "title": "Role: Claim Extractor",
+    "phase": "Unknown",
+    "phase_order": 99,
+    "status": "completed",
+    "duration_seconds": 225.0,
+    "started_at": "2026-06-24T09:50:37Z"
+  },
+  {
+    "key": "agent_role_source_data_auditor",
+    "title": "Role: Source Data Auditor",
+    "phase": "Unknown",
+    "phase_order": 99,
+    "status": "completed",
+    "duration_seconds": 278.0,
+    "started_at": "2026-06-24T09:54:22Z"
+  },
+  {
+    "key": "agent_role_judge",
+    "title": "Role: Judge Agent",
+    "phase": "Unknown",
+    "phase_order": 99,
+    "status": "completed",
+    "duration_seconds": 255.0,
+    "started_at": "2026-06-24T09:59:00Z"
+  },
+  {
+    "key": "static_audit_bundle",
+    "title": "生成审计 bundle",
+    "phase": "报告生成",
+    "phase_order": 7,
+    "status": "completed",
+    "duration_seconds": 135.0,
+    "started_at": "2026-06-24T10:03:15Z"
+  },
+  {
+    "key": "html_report",
+    "title": "生成 HTML 报告",
+    "phase": "报告生成",
+    "phase_order": 7,
+    "status": "completed",
+    "duration_seconds": 195.0,
+    "started_at": "2026-06-24T10:05:30Z"
+  },
+  {
+    "key": "investigation_01",
+    "title": "Agent 调查轮次 1",
+    "phase": "Unknown",
+    "phase_order": 99,
+    "status": "completed",
+    "duration_seconds": 105.0,
+    "started_at": "2026-06-24T10:08:45Z"
+  },
+  {
+    "key": "investigation_01_ir_01_a001",
+    "title": "调查动作 1",
+    "phase": "Unknown",
+    "phase_order": 99,
+    "status": "completed",
+    "duration_seconds": null,
+    "started_at": null
+  },
+  {
+    "key": "investigation_01_ir_01_a002",
+    "title": "调查动作 2",
+    "phase": "Unknown",
+    "phase_order": 99,
+    "status": "skipped",
+    "duration_seconds": null,
+    "started_at": null
+  },
+  {
+    "key": "investigation_01_ir_01_a003",
+    "title": "调查动作 3",
+    "phase": "Unknown",
+    "phase_order": 99,
+    "status": "completed",
+    "duration_seconds": null,
+    "started_at": null
+  },
+  {
+    "key": "investigation_02",
+    "title": "Agent 调查轮次 2",
+    "phase": "Unknown",
+    "phase_order": 99,
+    "status": "completed",
+    "duration_seconds": 90.0,
+    "started_at": "2026-06-24T10:10:30Z"
+  },
+  {
+    "key": "investigation_02_ir_02_a001",
+    "title": "调查动作 1",
+    "phase": "Unknown",
+    "phase_order": 99,
+    "status": "completed",
+    "duration_seconds": null,
+    "started_at": null
+  },
+  {
+    "key": "investigation_02_ir_02_a002",
+    "title": "调查动作 2",
+    "phase": "Unknown",
+    "phase_order": 99,
+    "status": "completed",
+    "duration_seconds": null,
+    "started_at": null
+  },
+  {
+    "key": "source_data_sheet_briefing",
+    "title": "Sheet Briefing",
+    "phase": "Unknown",
+    "phase_order": 99,
+    "status": "completed",
+    "duration_seconds": 30.0,
+    "started_at": "2026-06-24T10:12:00Z"
+  },
+  {
+    "key": "source_data_verdict",
+    "title": "Source Data Verdict",
+    "phase": "数据分析",
+    "phase_order": 4,
+    "status": "completed",
+    "duration_seconds": 75.0,
+    "started_at": "2026-06-24T10:12:30Z"
+  },
+  {
+    "key": "final_report",
+    "title": "最终报告整合",
+    "phase": "Unknown",
+    "phase_order": 99,
+    "status": "completed",
+    "duration_seconds": 37.0,
+    "started_at": "2026-06-24T10:13:45Z"
+  }
+]

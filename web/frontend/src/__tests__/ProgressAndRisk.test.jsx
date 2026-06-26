@@ -4,20 +4,26 @@ import ProgressTracker from '../components/ProgressTracker.jsx';
 import RiskTrafficLight from '../components/RiskTrafficLight.jsx';
 
 describe('ProgressTracker', () => {
-  it('maps dynamic step progress from event keys', () => {
+  it('maps dynamic step progress from step list', () => {
     render(
       <ProgressTracker
-        events={[
-          { event: 'step_start', key: 'source_data_findings', status: 'running', timestamp: '2026-06-21T00:00:00Z' },
-          { event: 'step_result', key: 'source_data_findings', status: 'ran', timestamp: '2026-06-21T00:00:01Z' },
+        steps={[
+          {
+            key: 'source_data_findings',
+            title: 'Source Data 发现',
+            phase: '数据分析',
+            phase_order: 4,
+            status: 'completed',
+            duration_seconds: 1,
+            started_at: '2026-06-21T00:00:00Z',
+          },
         ]}
         runStatus="running"
-        _startedAt={null}
         caseId="case-1"
       />
     );
 
-    expect(screen.getByText(/步骤 1\/22/)).toBeInTheDocument();
+    expect(screen.getByText(/步骤 1\/1/)).toBeInTheDocument();
   });
 });
 

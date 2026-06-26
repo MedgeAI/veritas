@@ -8,11 +8,11 @@ export default function GhostedFuturePhases({ phases }) {
     <div className="mt-4 opacity-50">
       {phases.map((phase) => (
         <div
-          key={phase.id}
+          key={phase.name}
           className="h-9 flex items-center gap-3 px-4 rounded-xl"
         >
           <FiCircle className="w-4 h-4 text-ink-400" />
-          <span className="text-sm text-ink-500">{phase.label}</span>
+          <span className="text-sm text-ink-500">{phase.name}</span>
           <span className="text-xs text-ink-500 ml-auto">
             {phase.steps.length} 步
           </span>
@@ -24,9 +24,7 @@ export default function GhostedFuturePhases({ phases }) {
 
 GhostedFuturePhases.propTypes = {
   phases: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
-    icon: PropTypes.string.isRequired,
+    name: PropTypes.string.isRequired,
     steps: PropTypes.array.isRequired,
   })).isRequired,
 };

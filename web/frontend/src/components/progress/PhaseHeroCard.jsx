@@ -24,6 +24,7 @@ const STATUS_ICON = {
   completed: { Icon: FiCheck, className: 'text-signal-500' },
   running:   { Icon: FiLoader, className: 'text-signal-500 animate-spin' },
   failed:    { Icon: FiX,     className: 'text-risk-500' },
+  skipped:   { Icon: FiCheck, className: 'text-ink-400' },
   pending:   { Icon: FiCircle, className: 'text-ink-300' },
 };
 
@@ -31,12 +32,13 @@ const LABEL_CLASS = {
   completed: 'text-ink-700',
   running:   'text-ink-900 font-medium',
   failed:    'text-risk-600',
+  skipped:   'text-ink-500',
   pending:   'text-ink-500',
 };
 
-function PhaseHeroCard({ phase, stepStatuses, stepDurations = {} }) {
+function PhaseHeroCard({ phase, stepDurations = {} }) {
   const steps = phase.steps ?? [];
-  const completedCount = steps.filter(s => stepStatuses[s.key] === 'completed').length;
+  const completedCount = steps.filter(s => s.status === 'completed').length;
   const totalCount = steps.length;
 
   return (
@@ -44,8 +46,7 @@ function PhaseHeroCard({ phase, stepStatuses, stepDurations = {} }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">
-          <span className="text-2xl leading-none">{phase.icon}</span>
-          <span className="text-lg font-semibold text-ink-900">{phase.label}</span>
+          <span className="text-lg font-semibold text-ink-900">{phase.name}</span>
         </div>
         <span className="mono-chip px-2.5 py-0.5">
           {completedCount}/{totalCount}
@@ -55,7 +56,7 @@ function PhaseHeroCard({ phase, stepStatuses, stepDurations = {} }) {
       {/* Step list */}
       <ul className="space-y-1">
         {steps.map(step => {
-          const status = stepStatuses[step.key] ?? 'pending';
+          const status = step.status ?? 'pending';
           const { Icon, className: iconClass } = STATUS_ICON[status] ?? STATUS_ICON.pending;
           const labelClass = LABEL_CLASS[status] ?? LABEL_CLASS.pending;
           const isRunning = status === 'running';
@@ -63,11 +64,13 @@ function PhaseHeroCard({ phase, stepStatuses, stepDurations = {} }) {
           // Right-side content
           let rightContent;
           if (status === 'completed') {
-            rightContent = formatDuration(stepDurations[step.key]);
+            rightContent = formatDuration(stepDurations[step.key] ?? step.duration_seconds);
           } else if (status === 'running') {
             rightContent = <span className="text-signal-600">运行中…</span>;
           } else if (status === 'failed') {
             rightContent = <span className="text-risk-500">失败</span>;
+          } else if (status === 'skipped') {
+            rightContent = <span className="text-ink-400">已跳过</span>;
           } else {
             rightContent = <span className="text-ink-400">—</span>;
           }
@@ -89,7 +92,7 @@ function PhaseHeroCard({ phase, stepStatuses, stepDurations = {} }) {
 
               {/* Step label */}
               <span className={`flex-1 text-sm truncate ${labelClass}`}>
-                {step.label}
+                {step.title}
               </span>
 
               {/* Right: duration or status text */}
@@ -106,15 +109,14 @@ function PhaseHeroCard({ phase, stepStatuses, stepDurations = {} }) {
 
 PhaseHeroCard.propTypes = {
   phase: PropTypes.shape({
-    id:    PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
-    icon:  PropTypes.string.isRequired,
+    name:  PropTypes.string.isRequired,
     steps: PropTypes.arrayOf(PropTypes.shape({
       key:   PropTypes.string.isRequired,
-      label: PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      status: PropTypes.string.isRequired,
+      duration_seconds: PropTypes.number,
     })).isRequired,
   }).isRequired,
-  stepStatuses:  PropTypes.object.isRequired,
   stepDurations: PropTypes.object,
 };
 

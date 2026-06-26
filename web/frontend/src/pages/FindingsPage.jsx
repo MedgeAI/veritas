@@ -3,9 +3,11 @@ import { FiArrowRight } from 'react-icons/fi';
 import StatusPill from '../components/StatusPill.jsx';
 import RiskTrafficLight from '../components/RiskTrafficLight.jsx';
 import FollowUpDisplay from '../components/FollowUpDisplay.jsx';
+import LayerGroup from '../components/LayerGroup.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import { getRiskSummary, fetchVisualFindings } from '../services/api.js';
 import { translateRiskLevel, translateIssueCategory } from '../utils/piLabels.js';
+import { groupFindingsByLayer } from '../utils/layers.js';
 
 const RISK_ORDER = { critical: 0, high: 1, medium: 2, low: 3 };
 
@@ -21,7 +23,6 @@ function FindingsPage({ selectedCase, onNavigate }) {
   const [riskSummary, setRiskSummary] = useState(null);
   const [visualFindings, setVisualFindings] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showAllFindings, setShowAllFindings] = useState(false);
 
   useEffect(() => {
     if (!selectedCase) return;
@@ -64,13 +65,20 @@ function FindingsPage({ selectedCase, onNavigate }) {
     );
   }
 
-  const sortedFindings = sortFindings(riskSummary.top_findings || []);
-  const displayedFindings = showAllFindings ? sortedFindings : sortedFindings.slice(0, 10);
-  const hasMoreFindings = sortedFindings.length > 10;
   const visualList = Array.isArray(visualFindings)
     ? visualFindings
     : (visualFindings?.findings || []);
   const topVisual = visualList.slice(0, 10);
+
+  // Layer grouping (PRD2-T8): prefer backend-computed layers, fallback to client-side
+  const findingsByLayer = riskSummary.findings_by_layer
+    || groupFindingsByLayer(riskSummary.top_findings || []);
+  const layerFindings = {
+    layer_1: sortFindings(findingsByLayer.layer_1 || []),
+    layer_2: sortFindings(findingsByLayer.layer_2 || []),
+    layer_3: sortFindings(findingsByLayer.layer_3 || []),
+  };
+  const totalLayered = layerFindings.layer_1.length + layerFindings.layer_2.length + layerFindings.layer_3.length;
 
   return (
     <div className="space-y-6">
@@ -95,50 +103,46 @@ function FindingsPage({ selectedCase, onNavigate }) {
         </div>
       </section>
 
-      {/* Section 2: Priority Findings */}
+      {/* Section 2: Layered Findings (PRD2-T8) */}
       <section className="dossier-panel rounded-[2rem] p-6">
-        <p className="metric-label">高危发现</p>
-        {sortedFindings.length > 0 ? (
-          <div className="mt-4 space-y-4">
-            {displayedFindings.map((finding, idx) => {
-              const fId = finding.finding_id || '';
-              const followUps = riskSummary.follow_ups?.[fId] || [];
-              return (
-                <article key={fId || idx} className="rounded-2xl border border-ink-900/8 bg-white/50 p-4">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-mono text-[11px] text-ink-500">{fId}</span>
-                    <StatusPill tone={finding.risk_level === 'critical' || finding.risk_level === 'high' ? 'risk' : 'warn'}>
-                      {translateRiskLevel(finding.risk_level)}
-                    </StatusPill>
-                    {finding.issue_category ? (
-                      <span className="font-mono text-[10px] text-ink-500">{translateIssueCategory(finding.issue_category)}</span>
-                    ) : null}
-                  </div>
-                  <p className="mt-1.5 text-sm leading-6 text-ink-700">{finding.summary}</p>
-                  {followUps.length > 0 ? (
-                    <div className="mt-3 border-t border-ink-900/5 pt-3">
-                      <p className="mb-1.5 text-[11px] font-semibold text-ink-500">建议追问</p>
-                      <FollowUpDisplay followUps={followUps} />
-                    </div>
-                  ) : null}
-                </article>
-              );
-            })}
-            {hasMoreFindings ? (
-              <button
-                type="button"
-                className="mt-2 text-sm font-medium text-ink-500 underline"
-                onClick={() => setShowAllFindings((v) => !v)}
-              >
-                {showAllFindings ? '收起' : `展开全部 (${sortedFindings.length})`}
-              </button>
-            ) : null}
-          </div>
-        ) : (
-          <p className="mt-4 rounded-2xl bg-white/45 p-4 text-sm text-ink-500">
-            未发现中高风险问题。
-          </p>
-        )}
+        <p className="metric-label">分层发现</p>
+        <p className="mt-1 font-mono text-[11px] text-ink-500">
+          {totalLayered} 条发现，按置信度分为三层
+        </p>
+        <div className="mt-4 space-y-3">
+          {['layer_1', 'layer_2', 'layer_3'].map((layerKey) => (
+            <LayerGroup key={layerKey} layer={layerKey} findings={layerFindings[layerKey]}>
+              {(items) => (
+                <div className="space-y-3">
+                  {items.map((finding, idx) => {
+                    const fId = finding.finding_id || '';
+                    const followUps = riskSummary.follow_ups?.[fId] || [];
+                    return (
+                      <article key={fId || idx} className="rounded-xl border border-ink-900/8 bg-white/50 p-4">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="font-mono text-[11px] text-ink-500">{fId}</span>
+                          <StatusPill tone={finding.risk_level === 'critical' || finding.risk_level === 'high' ? 'risk' : 'warn'}>
+                            {translateRiskLevel(finding.risk_level)}
+                          </StatusPill>
+                          {finding.issue_category ? (
+                            <span className="font-mono text-[10px] text-ink-500">{translateIssueCategory(finding.issue_category)}</span>
+                          ) : null}
+                        </div>
+                        <p className="mt-1.5 text-sm leading-6 text-ink-700">{finding.summary}</p>
+                        {followUps.length > 0 ? (
+                          <div className="mt-3 border-t border-ink-900/5 pt-3">
+                            <p className="mb-1.5 text-[11px] font-semibold text-ink-500">建议追问</p>
+                            <FollowUpDisplay followUps={followUps} />
+                          </div>
+                        ) : null}
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </LayerGroup>
+          ))}
+        </div>
       </section>
 
       {/* Section 3: Visual Findings */}

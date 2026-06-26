@@ -5,12 +5,16 @@ function PhaseRail({ phases, phaseStatuses }) {
   return (
     <div className="flex w-full items-start justify-between px-2">
       {phases.map((phase, idx) => {
-        const status = phaseStatuses[phase.id] || 'pending';
+        const status = phaseStatuses[phase.name] || 'pending';
         const nextStatus = idx < phases.length - 1
-          ? phaseStatuses[phases[idx + 1].id] || 'pending'
+          ? phaseStatuses[phases[idx + 1].name] || 'pending'
           : null;
 
         const isLast = idx === phases.length - 1;
+
+        // Compute progress for this phase
+        const completedSteps = phase.steps.filter((s) => s.status === 'completed').length;
+        const totalSteps = phase.steps.length;
 
         // Dot styling
         const dotBase = 'flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all duration-300';
@@ -38,14 +42,19 @@ function PhaseRail({ phases, phaseStatuses }) {
             : 'mt-1.5 text-center text-[11px] font-medium text-ink-500';
 
         return (
-          <div key={phase.id} className="flex flex-1 items-start">
+          <div key={phase.name} className="flex flex-1 items-start">
             <div className="flex flex-col items-center">
               <div className={dotClass}>
-                {status === 'completed'
-                  ? <FiCheck className="h-4 w-4" />
-                  : <span className="text-sm">{phase.icon}</span>}
+                {status === 'completed' ? <FiCheck className="h-4 w-4" /> : null}
               </div>
-              <span className={labelClass}>{phase.label}</span>
+              <span className={labelClass}>
+                {phase.name}
+                {totalSteps > 0 && (
+                  <span className="block text-[10px] opacity-70">
+                    {completedSteps}/{totalSteps}
+                  </span>
+                )}
+              </span>
             </div>
 
             {!isLast && <div className={lineClass} />}
@@ -57,11 +66,12 @@ function PhaseRail({ phases, phaseStatuses }) {
 }
 
 PhaseRail.propTypes = {
-  phases: PropTypes.arrayOf(PropTypes.shape({
-    id: PropTypes.string.isRequired,
-    label: PropTypes.string.isRequired,
-    icon: PropTypes.string.isRequired,
-  })).isRequired,
+  phases: PropTypes.arrayOf(
+    PropTypes.shape({
+      name: PropTypes.string.isRequired,
+      steps: PropTypes.array.isRequired,
+    }),
+  ).isRequired,
   phaseStatuses: PropTypes.objectOf(PropTypes.oneOf(['completed', 'running', 'pending'])).isRequired,
 };
 
