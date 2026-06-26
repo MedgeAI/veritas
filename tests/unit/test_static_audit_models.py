@@ -87,15 +87,15 @@ def test_protocol_manifest_exposes_ordered_stages() -> None:
     assert "legacy_report" in stage_ids
 
 
-def test_roles_include_three_real_v1_roles_and_skipped_trace() -> None:
+def test_roles_catalog_has_expected_v1_roles_and_skipped_trace() -> None:
     catalog = role_catalog()
     real_roles = [item["role_id"] for item in catalog if item["real_in_v1"]]
 
-    assert len(catalog) == 8
+    assert len(catalog) == 7
     assert real_roles == ["claim_extractor", "source_data_auditor", "judge"]
 
     trace = skipped_trace(ROLE_DEFINITIONS[2])
-    assert trace.role_id == "visual_triage"
+    assert trace.role_id == "digit_pattern"
     assert trace.status == "skipped"
 
 

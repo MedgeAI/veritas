@@ -130,7 +130,7 @@ def normalize_bundle_finding(
     item: dict[str, Any], bundle: dict[str, Any]
 ) -> dict[str, Any]:
     metadata = item.get("metadata") if isinstance(item.get("metadata"), dict) else {}
-    finding = dict(metadata)
+    finding: dict[str, Any] = dict(metadata) if metadata else {}
     for key in (
         "finding_id",
         "category",
@@ -479,6 +479,60 @@ def render_findings_by_category(
             f"<h3 class='category-heading'>{chapter}、{label} <span class='category-count'>({count} 条)</span></h3>"
             f"{cards}</div>"
         )
+    return (
+        "\n".join(sections)
+        if sections
+        else "<p class='muted'>未生成高优先级复核记录。</p>"
+    )
+
+
+def render_findings_by_layer(
+    findings: list[dict[str, Any]],
+    linked_mapping_by_finding: dict[str, list],
+    source_reviews: dict[str, dict],
+    judge_risks: list[dict],
+) -> str:
+    """Group findings by layer (layer_1/layer_2/layer_3) and render with layer headings.
+
+    PRD2-T7: Report layer grouping — Layer 1 = HIGH severity, Layer 2 = MEDIUM, Layer 3 = LOW.
+    """
+    if not findings:
+        return "<p class='muted'>未生成高优先级复核记录。</p>"
+
+    # Group by layer (default to layer_2 if not specified)
+    by_layer: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for finding in findings:
+        layer = finding.get("_layer", finding.get("layer", "layer_2"))
+        by_layer[layer].append(finding)
+
+    layer_labels = {
+        "layer_1": ("高置信度发现", "layer-1-high"),
+        "layer_2": ("需人工判断", "layer-2-medium"),
+        "layer_3": ("其他信号", "layer-3-low"),
+    }
+
+    sections = []
+    for layer_key in ["layer_1", "layer_2", "layer_3"]:
+        layer_findings = by_layer.get(layer_key, [])
+        if not layer_findings:
+            continue
+        label, css_class = layer_labels[layer_key]
+        count = len(layer_findings)
+        cards = "\n".join(
+            finding_card(
+                finding,
+                linked_mapping_by_finding.get(finding.get("finding_id"), []),
+                source_reviews.get(finding.get("finding_id"), {}),
+                risk_for_finding(judge_risks, finding.get("finding_id")),
+            )
+            for finding in layer_findings
+        )
+        sections.append(
+            f'<div class="findings-layer {css_class}">'
+            f"<h3>{label} ({count})</h3>"
+            f"{cards}</div>"
+        )
+
     return (
         "\n".join(sections)
         if sections

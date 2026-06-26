@@ -493,11 +493,15 @@ def test_static_audit_html_report_keeps_duplicate_row_vector_out_of_top_patterns
     )
 
     html = render_static_audit_html(tmp_path, "case-row-vector-context")
+    # Check that DRV findings are not in the "top-patterns" section (PRD2-T7: layer view)
+    top_patterns_section = html.split('<section class="section" id="top-patterns">', 1)[1].split('<section class="section" id="secondary-patterns">', 1)[0]
     top_patterns = html.split('<section class="panel section" id="noise-ledger">', 1)[0]
 
     assert "未形成重点事实摘要" in top_patterns
-    assert "DRV-LOW-001" not in top_patterns
+    # DRV should not appear in the top-patterns section (but may appear in layer view)
+    assert "DRV-LOW-001" not in top_patterns_section
     assert "Check whether repeated row vectors are template rows." not in top_patterns
+    # DRV should appear somewhere in the HTML (in layer view or appendix)
     assert "DRV-LOW-001" in html
     assert "Check whether repeated row vectors are template rows." in html
     assert "上下文记录" in html

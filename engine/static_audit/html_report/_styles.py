@@ -407,6 +407,23 @@ REPORT_CSS = """
       color: var(--muted);
       margin-left: 8px;
     }
+    /* PRD2-T7: Layer-grouped findings */
+    .layer-group { margin-bottom: 32px; }
+    .layer-heading {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--ink);
+      margin: 0 0 8px 0;
+    }
+    .layer-count {
+      font-size: 14px;
+      font-weight: 400;
+      color: var(--muted);
+      margin-left: 8px;
+    }
+    .layer-group.layer-1 .layer-heading { border-left: 4px solid var(--critical); padding-left: 12px; }
+    .layer-group.layer-2 .layer-heading { border-left: 4px solid var(--warn); padding-left: 12px; }
+    .layer-group.layer-3 .layer-heading { border-left: 4px solid var(--muted); padding-left: 12px; }
     /* Visual Evidence Package styles */
     .visual-figure-grid {
       display: grid;

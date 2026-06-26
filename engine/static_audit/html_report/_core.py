@@ -58,6 +58,7 @@ from engine.static_audit.html_report._findings import (
     map_findings_to_mappings,
     map_reviews,
     render_findings_by_category,
+    render_findings_by_layer,
 )
 from engine.static_audit.html_report._manual_tasks import manual_tasks_table
 from engine.static_audit.html_report._patterns import (
@@ -193,6 +194,11 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
         card_findings, linked_mapping_by_finding, source_reviews, judge_risks,
     )
 
+    # PRD2-T7: Layer-grouped findings view
+    layer_cards = render_findings_by_layer(
+        card_findings, linked_mapping_by_finding, source_reviews, judge_risks,
+    )
+
     return f"""<!doctype html>
 <html lang="zh-CN">
 <head>
@@ -232,7 +238,7 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
         {hero_pattern_list(summarized_patterns)}
         <div><h3>下一步动作</h3>{hero_action_list(manual_tasks)}</div>
         <nav class="quick-nav" aria-label="report shortcuts">
-          <a href="#top-patterns">重点事实</a><a href="#noise-ledger">原始证据</a>
+          <a href="#top-patterns">重点事实</a><a href="#findings-by-layer">分层视图</a><a href="#noise-ledger">原始证据</a>
           <a href="#claim-impact">表述对照</a><a href="#manual-review">人工复核</a>
           <a href="#appendix">技术附录</a>
         </nav>
@@ -249,6 +255,12 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
     <section class="section" id="secondary-patterns">
       <h2>提示性记录</h2>
       <details><summary>展开 {h(len(secondary_patterns))} 条提示性记录</summary>{pattern_cards_secondary}</details>
+    </section>
+
+    <section class="panel section" id="findings-by-layer">
+      <h2>分层复核视图</h2>
+      <p class="muted">按置信度分层呈现证据卡：Layer 1 为高置信度发现，Layer 2 为需人工判断，Layer 3 为信息性记录。</p>
+      {layer_cards}
     </section>
 
     <section class="panel section" id="noise-ledger">

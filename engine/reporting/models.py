@@ -41,6 +41,10 @@ class VerificationReport:
     limitations: list[str] = field(default_factory=list)
     claim_table: list[dict[str, Any]] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
+    # PRD2-T7: Layer-grouped findings for three-tier report presentation
+    layer_1: list[dict[str, Any]] = field(default_factory=list)
+    layer_2: list[dict[str, Any]] = field(default_factory=list)
+    layer_3: list[dict[str, Any]] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -57,6 +61,9 @@ class VerificationReport:
             "limitations": self.limitations,
             "claim_table": self.claim_table,
             "notes": self.notes,
+            "layer_1": self.layer_1,
+            "layer_2": self.layer_2,
+            "layer_3": self.layer_3,
         }
 
 
@@ -75,4 +82,7 @@ def report_from_dict(data: dict[str, Any]) -> VerificationReport:
         limitations=data.get("limitations", []),
         claim_table=data.get("claim_table", []),
         notes=data.get("notes", []),
+        layer_1=data.get("layer_1", []),
+        layer_2=data.get("layer_2", []),
+        layer_3=data.get("layer_3", []),
     )

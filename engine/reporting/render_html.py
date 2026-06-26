@@ -6,10 +6,17 @@ from engine.reporting.models import VerificationReport
 
 
 def render_html(report: VerificationReport) -> str:
-    findings_html = (
-        "".join(_finding_block(item) for item in report.findings)
-        or "<p>No findings.</p>"
-    )
+    # Check if layer-grouped findings are present
+    has_layers = bool(report.layer_1 or report.layer_2 or report.layer_3)
+
+    if has_layers:
+        findings_html = _render_layered_findings(report)
+    else:
+        findings_html = (
+            "".join(_finding_block(item) for item in report.findings)
+            or "<p>No findings.</p>"
+        )
+
     claims_html = "".join(_claim_row(row) for row in report.claim_table) or (
         "<tr><td colspan='7'>No structured claims were checked.</td></tr>"
     )
@@ -70,6 +77,12 @@ def render_html(report: VerificationReport) -> str:
     .finding.critical {{ border-color: var(--critical); }}
     .finding.warning {{ border-color: var(--warn); }}
     .finding.info {{ border-color: #8e8169; }}
+    .layer-section {{ margin: 24px 0; }}
+    .layer-header {{ font-size: 18px; font-weight: 600; margin-bottom: 8px; padding: 12px 16px; background: #faf5ec; border-left: 4px solid var(--line); border-radius: 0 8px 8px 0; }}
+    .layer-header.layer-1 {{ border-color: var(--critical); }}
+    .layer-header.layer-2 {{ border-color: var(--warn); }}
+    .layer-header.layer-3 {{ border-color: #8e8169; }}
+    .layer-count {{ display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 12px; margin-left: 8px; background: var(--line); }}
     code {{ font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace; font-size: 13px; }}
     table {{ width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 12px; }}
     th, td {{ border: 1px solid var(--line); padding: 10px 12px; text-align: left; vertical-align: top; }}
@@ -116,6 +129,79 @@ def render_html(report: VerificationReport) -> str:
 """
 
 
+def _render_layered_findings(report: VerificationReport) -> str:
+    """Render findings grouped by layer with appropriate section titles and states."""
+    from engine.reporting.layers import LAYER_METADATA
+
+    sections = []
+
+    for layer_key in ["layer_1", "layer_2", "layer_3"]:
+        findings = getattr(report, layer_key)
+        metadata = LAYER_METADATA[layer_key]
+        title = metadata["title"]
+        description = metadata["description"]
+        default_open = metadata["default_open"]
+
+        if not findings:
+            continue
+
+        # Build the layer header
+        header_class = f"layer-header {layer_key.replace('_', '-')}"
+        count_badge = f"<span class='layer-count'>{len(findings)}</span>"
+
+        # Render findings in this layer
+        findings_html = "".join(_finding_block_dict(f) for f in findings)
+
+        # Use <details> for Layer 3 (collapsed by default), open section for others
+        if default_open:
+            section_html = f"""
+<div class="layer-section">
+  <div class="{header_class}">
+    {escape(title)} {count_badge}
+    <div class="muted" style="margin-top: 4px; font-size: 13px;">{escape(description)}</div>
+  </div>
+  {findings_html}
+</div>
+"""
+        else:
+            section_html = f"""
+<div class="layer-section">
+  <details>
+    <summary class="{header_class}">
+      {escape(title)} {count_badge}
+      <span class="muted" style="margin-left: 8px; font-size: 13px;">{escape(description)}</span>
+    </summary>
+    {findings_html}
+  </details>
+</div>
+"""
+        sections.append(section_html)
+
+    return "\n".join(sections) if sections else "<p>No findings.</p>"
+
+
+def _finding_block_dict(finding: dict) -> str:
+    """Render a finding dict as an HTML block."""
+    finding_id = str(finding.get("id") or finding.get("finding_id") or "-")
+    title = str(finding.get("title") or finding.get("category") or "-")
+    severity = str(finding.get("severity") or finding.get("risk_level") or "info")
+    category = str(finding.get("category") or "-")
+    source = str(finding.get("source") or finding.get("source_artifact") or "-")
+    fact = str(finding.get("fact") or finding.get("summary") or "-")
+    inference = str(finding.get("inference") or "-")
+    suggestion = str(finding.get("suggestion") or "-")
+
+    return (
+        f"<div class='finding {escape(severity)}'>"
+        f"<strong>{escape(finding_id)} · {escape(title)}</strong>"
+        f"<div class='muted'>{escape(category)} · {escape(source)}</div>"
+        f"<p><strong>Fact:</strong> {escape(fact)}</p>"
+        f"<p><strong>Inference:</strong> {escape(inference)}</p>"
+        f"<p><strong>Suggestion:</strong> {escape(suggestion)}</p>"
+        f"</div>"
+    )
+
+
 def _finding_block(item: object) -> str:
     return (
         f"<div class='finding {escape(item.severity)}'>"
@@ -140,3 +226,4 @@ def _claim_row(row: dict[str, object]) -> str:
         f"<td>{escape(str(row.get('status', '')))}</td>"
         "</tr>"
     )
+
