@@ -85,7 +85,7 @@ def _analyze_image(image_path: Path) -> list[dict[str, Any]]:
     mean_pixel = sum(pixels) / len(pixels)
 
     # Build 2-D gray array as plain lists for the helper functions.
-    gray_2d: list[list[int]] = [pixels[y * w : (y + 1) * w] for y in range(h)]
+    gray_2d: list[list[int]] = [pixels[y * w : (y + 1) * w] for y in range(h)]  # type: ignore[assignment,operator]
 
     details: dict[str, Any] = {"mean_pixel": round(mean_pixel, 2)}
 

@@ -42,7 +42,10 @@ pg = [
     "psycopg2-binary>=2.9.0",
     "pgvector>=0.3.0",
 ]
-all = ["veritas[web,visual,models,pg]"]
+llm = [
+    "openai>=1.0.0",
+]
+all = ["veritas[web,visual,models,pg,llm]"]
 
 [project.scripts]
 veritas = "cli.main:main"

@@ -470,7 +470,7 @@ def long_format_pair_groups(
         return {}
     if len(paired) / len(groups) < 0.75:
         return {}
-    return paired
+    return paired  # type: ignore[assignment,operator]
 
 
 def long_format_pair_ratios(

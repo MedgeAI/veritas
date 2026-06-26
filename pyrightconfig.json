@@ -1,0 +1,26 @@
+{
+  "venvPath": ".",
+  "venv": ".venv",
+  "pythonVersion": "3.12",
+  "typeCheckingMode": "basic",
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "reportUnusedImport": "warning",
+  "reportUnusedVariable": "warning",
+  "reportOptionalMemberAccess": "warning",
+  "reportUnsupportedDunderAll": "warning",
+  "reportAttributeAccessIssue": "warning",
+  "reportAssignmentIssue": "warning",
+  "reportOptionalSubscript": "warning",
+  "reportArgumentType": "warning",
+  "reportCallIssue": "warning",
+  "reportGeneralTypeIssues": "warning",
+  "extraPaths": [
+    "third_party/elis/system_modules/copy-move-detection/src",
+    "third_party/elis/system_modules/copy-move-detection-keypoint/src",
+    "third_party/elis/system_modules/trufor",
+    "third_party/paperconan"
+  ],
+  "include": ["engine", "web", "cli", "runtime", "protocols", "tests"],
+  "exclude": ["**/node_modules", "**/__pycache__", "**/third_party", ".venv", "outputs", "web_data"]
+}

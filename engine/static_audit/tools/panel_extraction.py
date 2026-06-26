@@ -337,7 +337,9 @@ def _convert_csv_rows_to_panels(
         panels.append(panel.to_dict())
 
     if skipped_count > 0:
-        logger.info(
+        # Per-figure 0-panel detail is DEBUG; summary is emitted by caller.
+        log_fn = logger.info if panels else logger.debug
+        log_fn(
             "Figure %s: extracted %d panels for visual forensics, "
             "skipped %d code-generated panels (Graphs/etc.)",
             figure_id,
@@ -759,7 +761,7 @@ def _heuristic_panel_type(img: "Image.Image", width: int, height: int) -> str:
     gray_px = gray.load()
     gray_samples = [gray_px[x, y] for x, y in sample_coords]
     n_gray = len(gray_samples)
-    gray_bg_count = sum(1 for p in gray_samples if 40 <= p <= 200)
+    gray_bg_count = sum(1 for p in gray_samples if 40 <= p <= 200)  # type: ignore[assignment,operator]
     gray_ratio = gray_bg_count / n_gray if n_gray else 0
     if gray_ratio < 0.6:
         return ""

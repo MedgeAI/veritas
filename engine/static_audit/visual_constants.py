@@ -49,7 +49,7 @@ def _dhash_single(img, hash_size: int = 8) -> int:
         for col in range(hash_size):
             left = pixels[row * (hash_size + 1) + col]
             right = pixels[row * (hash_size + 1) + col + 1]
-            value = (value << 1) | int(left > right)
+            value = (value << 1) | int(left > right)  # type: ignore[assignment,operator]
     return value
 
 
