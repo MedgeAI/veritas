@@ -19,8 +19,9 @@ HOST_GID := $(shell id -g)
 export UID := $(HOST_UID)
 export GID := $(HOST_GID)
 
-COMPOSE ?= docker compose --env-file $(CURDIR)/.env -p vdeploy -f deploy/docker-compose.yml
-COMPOSE_DEPLOY ?= docker compose --env-file $(CURDIR)/.env -p vdeploy -f deploy/docker-compose.yml -f deploy/docker-compose.cloudflare.yml
+COMPOSE ?= docker compose --env-file $(CURDIR)/.env --env-file $(CURDIR)/deploy/.env -p vdeploy -f deploy/docker-compose.yml
+COMPOSE_DEPLOY ?= docker compose --env-file $(CURDIR)/.env --env-file $(CURDIR)/deploy/.env -p vdeploy -f deploy/docker-compose.yml -f deploy/docker-compose.cloudflare.yml
+COMPOSE_DB ?= docker compose -p vdev -f deploy/docker-compose.local-db.yml
 
 MANIFEST ?= examples/bioinfo_python_case/veritas.json
 OUTPUT_DIR ?= outputs/demo
@@ -46,7 +47,7 @@ LOCAL_DATABASE_URL ?= postgresql://veritas_dev:veritas_dev_pass@127.0.0.1:5433/v
 	deploy-up deploy-down deploy-rebuild deploy-logs \
 	db-up db-down db-init db-migrate db-reset \
 	precheck run report demo audit audit-off audit-fresh report-path \
-	web-backend web-backend-reload celery-worker web-frontend web-install web-build web-preview dev \
+	web-backend web-backend-reload celery-worker web-frontend web-install web-build web-preview dev dev-up dev-down \
 	test test-fast test-unit test-integration test-e2e test-visual test-model \
 	lint lint-python lint-web web-test \
 	deslop \
@@ -168,17 +169,17 @@ check-elis-provenance: ## Check if veritas-elis-provenance image exists
 # -- Database lifecycle --------------------------------------------------
 
 db-up: ## Start PostgreSQL with pgvector via Docker Compose
-	$(COMPOSE) up -d postgres
+	$(COMPOSE_DB) up -d postgres
 	@echo "Waiting for PostgreSQL..."
 	@for i in $$(seq 1 15); do \
-		if docker compose exec -T postgres pg_isready -U veritas >/dev/null 2>&1; then \
+		if $(COMPOSE_DB) exec -T postgres pg_isready -U veritas_dev -d veritas_dev >/dev/null 2>&1; then \
 			echo "PostgreSQL ready."; break; \
 		fi; \
 		sleep 1; \
 	done
 
 db-down: ## Stop PostgreSQL container
-	$(COMPOSE) stop postgres
+	$(COMPOSE_DB) stop postgres
 
 db-init: db-up ## Initialise database tables (development only)
 	VERITAS_DATABASE_URL="$(LOCAL_DATABASE_URL)" $(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.database import init_db; init_db()"
@@ -281,6 +282,19 @@ dev: web-backend-reload ## Start full local dev environment (run 'make db-up' fi
 	@echo "  Frontend: http://localhost:5173   (Vite HMR, API → backend:$(PORT))"
 	@echo "  DB:       PostgreSQL + pgvector   (make db-up)"
 	@echo "  Open another terminal for: make celery-worker"
+
+dev-up: ## One-command start: DB + backend + frontend (all in background)
+	@$(COMPOSE_DB) up -d postgres 2>/dev/null || true
+	@for i in $$(seq 1 10); do \
+		if $(COMPOSE_DB) exec -T postgres pg_isready -U veritas_dev -d veritas_dev >/dev/null 2>&1; then \
+			echo "PostgreSQL ready."; break; \
+		fi; \
+		sleep 1; \
+	done
+	@bash scripts/dev-start.sh
+
+dev-down: ## One-command stop: kill backend + frontend + DB
+	@bash scripts/dev-stop.sh
 
 web-install: ## Install frontend dependencies
 	cd $(FRONTEND_DIR) && npm install
