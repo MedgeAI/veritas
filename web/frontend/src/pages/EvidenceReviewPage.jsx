@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import {
   FiAlertTriangle,
   FiCheck,
@@ -159,16 +159,6 @@ function EvidenceReviewPage({ selectedCase }) {
   const clearPanelSelection = useCallback(() => {
     setSelectedPanelIds([]);
   }, []);
-
-  // Select panels from a similar pair and immediately run dense investigation
-  const handleSelectPair = useCallback(
-    (pair) => {
-      const panelIds = [pair.source_panel_id, pair.target_panel_id].filter(Boolean);
-      setSelectedPanelIds(panelIds);
-      runDense(panelIds, denseMaxPanels);
-    },
-    [runDense, denseMaxPanels],
-  );
 
   const filteredFindings = useMemo(() => {
     return findings.filter((f) => {

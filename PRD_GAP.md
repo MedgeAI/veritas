@@ -1,6 +1,6 @@
 # Veritas 当前实现与 PRD 差距
 
-更新时间：2026-06-15
+更新时间：2026-06-26
 
 参照目标文档：`docs/product/Veritas完整项目PRD.md`
 
@@ -156,9 +156,54 @@ workdir/investigation/round_XX/action_YY/
 - copy-move dense/keypoint 检测 adapter。
 - TruFor 神经网络伪造检测 adapter。
 - CBIR + Milvus 单论文内部相似检索 adapter。
-- vLLM/VLM 图表初筛。
 - 真实撤稿论文或公开样本 fixture 下的 panel/copy-move 精度评估和误报基线。
 - panel-level crop 和 figure-caption-source-data 强绑定。
+
+### 7.1 运行观测与重型视觉任务稳定性决策（2026-06-26，待执行）
+
+本节记录本地 case `case-20260625T154243Z-f0aa93ba` 暴露出的运行观测、日志和 ELIS 重型任务问题。目标是先修正产品/工程契约，再进入具体代码修改。
+
+#### 日志与启动
+
+- 本地开发日志统一写入 repo 下 `logs/`，标准文件为 `logs/dev-backend.log`、`logs/dev-celery.log`、`logs/dev-frontend.log` 和应用旋转日志 `logs/veritas.log`。
+- `/tmp/veritas-*.log` 只作为临时手动调试路径，不作为标准开发日志入口。
+- 生产环境以 `docker logs` 为主要排障入口，不额外要求应用在容器内写业务日志文件。
+- 生产 Docker `json-file` 日志轮转目标调整为 `50m x 5`，避免容器重启后短期排障信息过早被覆盖；但 `compose down`、重建容器或轮转淘汰后仍不承诺永久保留。
+- 数据库连接日志在开发环境保留“连到哪个库”的可见性，但只允许显示 `user`、`host`、`port`、`db` 和环境标签；密码必须脱敏。生产环境强制脱敏。
+- 默认本地启动入口必须按“后端健康检查通过 -> 前端启动”的顺序执行。
+- 前端 health check 也要具备初始退避/静默能力，避免用户手动先启动前端时刷出低价值 `ECONNREFUSED` proxy 噪声。
+
+#### 日志降噪
+
+- 高频 polling 请求（如 `/runs`、`/events`、`/artifacts`）不应在 INFO 级别逐条刷屏；仅记录状态变化、错误、慢请求或周期性摘要。
+- 重复 `Database connecting` 信息不应在每次 session/connection 时刷 INFO；应降到 DEBUG 或限制为进程启动/首次连接摘要。
+- 图像 panel extraction 中大量 `0 panels` 或 code-generated panel 跳过明细不应逐条刷 INFO；应改为阶段汇总，必要时在 DEBUG 保留明细。
+
+#### ELIS provenance graph
+
+- ELIS provenance graph 超过固定时间不等同于失败。产品语义应区分 `running`、`stalled`、`needs_investigation`、`failed`。
+- 当前观测到的问题不是 Docker 未启动，而是 ELIS 任务很慢且缺少 phase-level 观测；后续重点是定位瓶颈在哪个阶段。
+- ELIS provenance graph 必须记录 phase 级耗时，至少包括：输入准备、Docker 启动、descriptor extraction、matching/BFS、MST/graph build、artifact 写入。
+- 设置 `5min` inactivity watchdog：若 5 分钟没有 heartbeat、新 artifact 或 phase 进展，标记为 `stalled` 并写入 manifest/step metadata。
+- 设置 `30min` hard cap：超过 30 分钟仍未完成时，标记为 `needs_investigation`，不等同于 deterministic failure，不应覆盖已产出的有效 artifact。
+- 任务结束或 cap 触发后应复核 output directory；若存在完整可解析的 `provenance_graph.json`，应采纳并记录 limitation/diagnostic，而不是仅凭 wrapper timeout 写死失败。
+- Docker 调用失败或慢任务必须记录 command、image、timeout/cap、output dir、stderr 摘要和最后进展点；默认继续使用 `--rm`，不保留容器。
+
+#### Agent review grounding
+
+- `agent_review` 的 hallucination check 不应只以 `top_n_findings` 作为合法 ID 白名单；`top_n_findings` 数量有限，不能代表底层 artifact 全量 finding 集。
+- 合法 finding id 集合应来自全量 canonical artifacts / bounded artifact registry，而不是仅来自 Top-N 展示列表。
+- Agent review 可以引用底层 artifact 中存在的 finding id；但报告和 metadata 必须能回链到对应 artifact path。
+- 引用不存在于任何 canonical artifact / registry 的 finding id 仍应触发 retry 或 failed trace。
+- `hallucination_checks.all_passed=false` 不应导致整个 audit run 失败；对应 review artifact 应标记为 `needs_review`，并把 grounding warning 暴露到 manifest/bundle/report metadata。
+
+#### VLM 初筛删除范围
+
+- 批量 VLM 图表初筛从 Veritas first-party pipeline、progress、report 和 PRD 路线中删除，不再作为 skipped/disabled 能力展示。
+- 删除 first-party `visual_triage` / VLM triage 相关角色、reserved artifact、report section、progress step 和测试预期。
+- 不删除 third_party/upstream 文档中的 VLM 字样。
+- 不删除 MinerU 自身 `model_version=vlm` 能力说明，除非后续单独决定禁用 MinerU VLM 模式。
+- 不删除 PaperConan 的 `triage` profile；该 profile 不是 VLM 能力。
 
 ### 8. CSV/TSV 和更多 Source Data 类型未执行
 
