@@ -1,60 +1,45 @@
+"""Investigation round models and utilities.
+
+This module contains models for investigation rounds and utilities for
+managing investigation records.
+"""
+
 from __future__ import annotations
 
-import hashlib
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from engine.shared.helpers import EXPECTED_EVIDENCE_TYPES, normalize_expected_evidence_type
+from engine.shared.types import InvestigationAction
 from engine.static_audit.models import utc_now_iso
-
 
 INVESTIGATION_ROUNDS_FILENAME = "investigation_rounds.jsonl"
 
-EXPECTED_EVIDENCE_TYPES = {
-    "material_gap",
-    "figure_mapping",
-    "numeric_pattern",
-    "image_similarity",
-    "claim_mapping",
-    "source_data_pattern",
-}
+# Re-export for backward compatibility
+__all__ = [
+    "InvestigationAction",
+    "InvestigationRecord",
+    "EXPECTED_EVIDENCE_TYPES",
+    "INVESTIGATION_ROUNDS_FILENAME",
+    "investigation_rounds_path",
+    "append_investigation_record",
+    "read_investigation_records",
+    "normalize_expected_evidence_type",
+]
 
-
-@dataclass(frozen=True)
-class InvestigationAction:
-    round_id: int
-    action_id: str
-    tool_id: str
-    params: dict[str, Any]
-    hypothesis: str
-    depends_on_artifacts: list[str]
-    expected_evidence_type: str
-    stop_if_no_new_evidence: bool = True
-    output_artifacts: list[str] = field(default_factory=list)
-
-    def signature(self) -> str:
-        payload = {
-            "tool_id": self.tool_id,
-            "params": self.params,
-            "depends_on_artifacts": sorted(self.depends_on_artifacts),
-        }
-        raw = json.dumps(payload, ensure_ascii=False, sort_keys=True)
-        return hashlib.sha256(raw.encode("utf-8")).hexdigest()
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "round_id": self.round_id,
-            "action_id": self.action_id,
-            "tool_id": self.tool_id,
-            "params": self.params,
-            "hypothesis": self.hypothesis,
-            "depends_on_artifacts": self.depends_on_artifacts,
-            "expected_evidence_type": self.expected_evidence_type,
-            "stop_if_no_new_evidence": self.stop_if_no_new_evidence,
-            "output_artifacts": self.output_artifacts,
-            "signature": self.signature(),
-        }
+# Re-export InvestigationAction for backward compatibility
+__all__ = [
+    "InvestigationAction",
+    "InvestigationRecord",
+    "EXPECTED_EVIDENCE_TYPES",
+    "INVESTIGATION_ROUNDS_FILENAME",
+    "investigation_rounds_path",
+    "append_investigation_record",
+    "read_investigation_records",
+    "normalize_expected_evidence_type",
+]
 
 
 @dataclass
@@ -122,10 +107,3 @@ def read_investigation_records(workdir: Path) -> list[dict[str, Any]]:
         if isinstance(value, dict):
             records.append(value)
     return records
-
-
-def normalize_expected_evidence_type(value: str) -> str:
-    value = str(value or "").strip()
-    if value in EXPECTED_EVIDENCE_TYPES:
-        return value
-    return "source_data_pattern"
