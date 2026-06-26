@@ -79,8 +79,9 @@ def create_app(
     logging_config.configure_logging()
     app = FastAPI(title="Veritas Web P1", version="0.1.0")
 
-    # --- Core services ------------------------------------------------
+    # Log database configuration with redacted credentials
     resolved_database_url = _resolve_database_url(data_root, database_url)
+    logger.info(logging_config.redact_dsn(resolved_database_url))
     store = CaseStore(data_root, database_url=resolved_database_url)
     runner = AuditRunner(store, output_root=output_root)
     artifacts_svc = ArtifactService(store, output_root=output_root)
@@ -92,10 +93,14 @@ def create_app(
     engine = getattr(store, "_engine", None) or (
         create_db_engine() if (database_url or store.sql_mode) else None
     )
-    deps = AppDependencies(store=store, auth_provider=auth, engine=engine)
-    deps.runner = runner  # type: ignore[attr-defined]
-    deps.artifacts = artifacts_svc  # type: ignore[attr-defined]
-    deps.investigations = investigations_svc  # type: ignore[attr-defined]
+    deps = AppDependencies(
+        store=store,
+        auth_provider=auth,
+        engine=engine,
+        runner=runner,
+        artifacts=artifacts_svc,
+        investigations=investigations_svc,
+    )
     app.state.dependencies = deps
     set_dependencies(deps)
 
@@ -123,14 +128,32 @@ def create_app(
 
         # Skip health checks to reduce noise.
         path = request.url.path
-        if not path.startswith("/api/health"):
-            logger.info(
-                "%s %s → %d (%.1fms)",
-                request.method,
-                path,
-                response.status_code,
-                duration_ms,
-            )
+        if path.startswith("/api/health"):
+            return response
+
+        # Polling paths (runs/events/artifacts) are too noisy at INFO.
+        # Only log at INFO for errors (5xx) or slow requests (>5s).
+        if logging_config.is_polling_path(path):
+            if (
+                response.status_code >= 500
+                or duration_ms > logging_config.SLOW_REQUEST_THRESHOLD_MS
+            ):
+                logger.info(
+                    "%s %s -> %d (%.1fms)",
+                    request.method,
+                    path,
+                    response.status_code,
+                    duration_ms,
+                )
+            return response
+
+        logger.info(
+            "%s %s -> %d (%.1fms)",
+            request.method,
+            path,
+            response.status_code,
+            duration_ms,
+        )
         return response
 
     app.add_middleware(

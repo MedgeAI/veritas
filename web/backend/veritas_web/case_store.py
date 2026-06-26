@@ -594,6 +594,6 @@ class CaseStore:
             run = session.get(RunModel, run_id)
             if run is None:
                 return None
-            return run.celery_task_id
+            return run.celery_task_id  # type: ignore[assignment,operator]
         finally:
             session.close()

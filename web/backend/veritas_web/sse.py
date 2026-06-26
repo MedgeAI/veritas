@@ -8,6 +8,17 @@ Two entry points:
 * :func:`sse_event_stream` — **async** generator consumed by FastAPI
   ``StreamingResponse``.  Polls ``run_events`` every 2 s, yields SSE-formatted
   frames, and stops when the run reaches a terminal status.
+
+Event filtering
+---------------
+The stream supports three verbosity levels via the ``events`` parameter:
+
+* ``lifecycle`` (default): pipeline/step/progress events + legacy status events
+* ``agent``: lifecycle + agent reasoning events (agent.thinking, agent.tool_call)
+* ``debug``: all events including log streams
+
+Legacy event types (stage_changed, progress, completed, failed, cancelled) are
+always included at the lifecycle level for backward compatibility.
 """
 
 from __future__ import annotations
@@ -15,12 +26,13 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-from typing import Any, AsyncIterator
+from typing import Any, AsyncIterator, Literal
 
 from sqlalchemy import text
 
 from .database import create_db_engine, create_session_factory, get_database_url
 from .models import utc_now
+from .sse_buffer import SSEEventBuffer, get_event_buffer
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +44,19 @@ _POLL_INTERVAL = 2
 
 # Heartbeat interval (seconds) — keep-alive so proxies do not close the connection.
 _HEARTBEAT_INTERVAL = 15
+
+# Event verbosity levels.
+EventLevel = Literal["lifecycle", "agent", "debug"]
+
+# Event type prefixes for filtering.
+_LIFECYCLE_PREFIXES = ("pipeline.", "step.", "progress.")
+_AGENT_PREFIXES = ("agent.",)
+_DEBUG_PREFIXES = ("log",)
+
+# Legacy event types always included at lifecycle level.
+_LEGACY_LIFECYCLE_TYPES = frozenset(
+    {"stage_changed", "progress", "completed", "failed", "cancelled"}
+)
 
 
 # ---------------------------------------------------------------------------
@@ -118,6 +143,16 @@ def notify_progress(
             {"payload": notify_payload},
         )
         session.commit()
+        # Push to in-process buffer for fast same-process notification.
+        # This wakes up SSE consumers immediately without waiting for
+        # the next DB poll cycle.  Cross-process consumers still rely
+        # on pg_notify (not implemented in this module).
+        try:
+            buffer = get_event_buffer()
+            buffer.push(run_id, event_type, data)
+            buffer.notify_waiters(run_id)
+        except Exception:
+            logger.debug("buffer push/notify failed for run %s", run_id, exc_info=True)
     except Exception:
         session.rollback()
         raise
@@ -127,7 +162,28 @@ def notify_progress(
 
 
 # ---------------------------------------------------------------------------
-# Async: consumed by FastAPI StreamingResponse
+# Event filtering
+# ---------------------------------------------------------------------------
+
+
+def _matches_level(event_type: str, level: EventLevel) -> bool:
+    """Return True if *event_type* should be emitted at the given *level*."""
+    # Legacy lifecycle types always pass at lifecycle level.
+    if event_type in _LEGACY_LIFECYCLE_TYPES:
+        return True
+
+    # Check prefixes for new event types.
+    if event_type.startswith(_LIFECYCLE_PREFIXES):
+        return True
+    if level in ("agent", "debug") and event_type.startswith(_AGENT_PREFIXES):
+        return True
+    if level == "debug" and event_type.startswith(_DEBUG_PREFIXES):
+        return True
+    return False
+
+
+# ---------------------------------------------------------------------------
+# SSE frame formatting
 # ---------------------------------------------------------------------------
 
 
@@ -143,15 +199,39 @@ def _format_sse(
     return "\n".join(lines) + "\n\n"
 
 
+def _format_buffered_sse(event: dict[str, Any]) -> str:
+    """Format a buffered event dict as an SSE frame."""
+    event_id = event.get("id")
+    event_type = event.get("type", "progress")
+    data = event.get("data", {})
+    # Add timestamp to data if not present.
+    if "timestamp" not in data:
+        data = {"timestamp": event.get("timestamp"), **data}
+    return _format_sse(event_type, data, event_id=event_id)
+
+
+# ---------------------------------------------------------------------------
+# Async: consumed by FastAPI StreamingResponse
+# ---------------------------------------------------------------------------
+
+
 async def sse_event_stream(
     run_id: str,
     db_engine: Any = None,
+    *,
+    level: EventLevel = "lifecycle",
+    last_event_id: str | None = None,
+    buffer: SSEEventBuffer | None = None,
 ) -> AsyncIterator[str]:
     """Async generator that yields SSE frames for *run_id*.
 
     Polls ``run_events`` every :data:`_POLL_INTERVAL` seconds for new rows
     with ``id > last_id``.  Falls back to polling because async PG LISTEN
     requires ``asyncpg`` which is not in the dependency tree.
+
+    When *buffer* is provided and the notification happens in the same
+    process, events are delivered immediately via :class:`asyncio.Event`
+    without waiting for the next DB poll cycle.
 
     The generator:
 
@@ -168,15 +248,33 @@ async def sse_event_stream(
     db_engine:
         SQLAlchemy engine to reuse.  If ``None``, a new engine is created
         and disposed when the stream ends.
+    level:
+        Event verbosity: ``lifecycle`` (default), ``agent``, or ``debug``.
+    last_event_id:
+        Resume streaming from this event id (for reconnection).  Events
+        with id ≤ *last_event_id* are skipped.
+    buffer:
+        In-process event buffer for fast notification.  If ``None``, the
+        global buffer is used.
     """
     own_engine = db_engine is None
     engine = db_engine or create_db_engine()
     session_factory = create_session_factory(engine)
-    last_id: int = 0
+    last_id: int = int(last_event_id) if last_event_id else 0
     last_heartbeat: float = 0.0
     loop = asyncio.get_running_loop()
+    event_buffer = buffer or get_event_buffer()
 
     try:
+        # Fast path: replay buffered events that the client missed.
+        buffered_events = event_buffer.get_since(run_id, str(last_id))
+        for ev in buffered_events:
+            if _matches_level(ev.get("type", "progress"), level):
+                last_id = int(ev["id"])
+                yield _format_buffered_sse(ev)
+                if ev.get("type") in _TERMINAL_STATUSES:
+                    return
+
         while True:
             events: list[dict[str, Any]] = []
             run_status: str | None = None
@@ -227,16 +325,20 @@ async def sse_event_stream(
             # Yield any new events.
             for ev in events:
                 last_id = ev["id"]
+                event_type = ev["event_type"]
+                # Filter events by level.
+                if not _matches_level(event_type, level):
+                    continue
                 frame_data: dict[str, Any] = {
                     "timestamp": ev["timestamp"],
                     **ev["payload"],
                 }
-                yield _format_sse(ev["event_type"], frame_data, event_id=ev["id"])
+                yield _format_sse(event_type, frame_data, event_id=ev["id"])
                 # Update heartbeat timestamp whenever we send data.
                 last_heartbeat = now
 
                 # Terminal event → stop after yielding.
-                if ev["event_type"] in _TERMINAL_STATUSES:
+                if event_type in _TERMINAL_STATUSES:
                     return
 
             # If the run reached terminal status via a different code path
@@ -255,7 +357,14 @@ async def sse_event_stream(
                 yield ": heartbeat\n\n"
                 last_heartbeat = now
 
-            await asyncio.sleep(_POLL_INTERVAL)
+            # Wait for either a buffer notification or a timeout.
+            wait_event = event_buffer.pop_wait_event(run_id)
+            try:
+                await asyncio.wait_for(
+                    wait_event.wait(), timeout=_POLL_INTERVAL
+                )
+            except asyncio.TimeoutError:
+                pass  # Poll the DB on timeout.
     finally:
         if own_engine:
             engine.dispose()

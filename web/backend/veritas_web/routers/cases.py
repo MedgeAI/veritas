@@ -6,7 +6,8 @@ import json
 from http import HTTPStatus
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
+from fastapi.responses import StreamingResponse
 
 from ..dependencies import (
     AppDependencies,
@@ -15,9 +16,11 @@ from ..dependencies import (
     require_case_access,
 )
 from ..auth import AuthContext
+from ..routers.audit_jobs import get_auth_context_sse
 from ..permissions import require_admin
 from ..models import CaseCreate, CaseRecord, InputUpload
 from ..risk import summarize_findings
+from ..sse import sse_event_stream
 
 router = APIRouter(tags=["cases"])
 
@@ -221,6 +224,71 @@ async def list_events(
     return {"events": deps.store.list_events(case_id, run_id)}
 
 
+@router.get("/cases/{case_id}/runs/{run_id}/steps")
+async def get_run_steps(
+    case_id: str,
+    run_id: str,
+    case: CaseRecord = Depends(require_case_access),
+    deps: AppDependencies = Depends(get_app_dependencies),
+) -> dict[str, Any]:
+    """Return structured step list with progress aggregates.
+
+    Builds the step list from step_start/step_result events for this run.
+    Returns ``{steps, total, completed, running, failed, skipped, progress_pct}``.
+    """
+    from engine.static_audit.run_steps import build_steps_list, summarise_steps
+
+    events = deps.store.list_events(case_id, run_id)
+    steps = build_steps_list(events)
+    summary = summarise_steps(steps)
+    return {"steps": steps, **summary}
+
+
+@router.get("/cases/{case_id}/runs/{run_id}/stream")
+async def stream_run_progress(
+    case_id: str,
+    run_id: str,
+    request: Request,
+    events: str = Query(
+        "lifecycle",
+        description="Event verbosity: lifecycle (default), agent, or debug",
+    ),
+    auth: AuthContext = Depends(get_auth_context_sse),
+    deps: AppDependencies = Depends(get_app_dependencies),
+) -> StreamingResponse:
+    """Stream real-time run progress via Server-Sent Events.
+
+    Subscribes to the same event stream as ``/api/audit/{job_id}/stream``
+    but uses the ``cases/{case_id}/runs/{run_id}`` URL pattern with case
+    ownership verification.  Supports ``Last-Event-ID`` for reconnection.
+    """
+    uid = None if auth.is_admin() else auth.user_id
+    try:
+        deps.store.get_case(case_id, user_id=uid)
+    except PermissionError:
+        raise HTTPException(status_code=403, detail=f"not the owner of case {case_id}")
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail=f"case not found: {case_id}")
+
+    level = events if events in ("lifecycle", "agent", "debug") else "lifecycle"
+    last_event_id = request.headers.get("Last-Event-ID")
+
+    engine = getattr(deps, "_engine", None)
+    return StreamingResponse(
+        sse_event_stream(
+            run_id,
+            db_engine=engine,
+            level=level,
+            last_event_id=last_event_id,
+        ),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
 @router.get("/cases/{case_id}/risk-summary")
 async def get_risk_summary(
     case_id: str,
@@ -243,6 +311,7 @@ async def get_risk_summary(
             "follow_ups": {},
             "total_findings": 0,
             "high_quality_count": 0,
+            "findings_by_layer": {"layer_1": [], "layer_2": [], "layer_3": []},
             "message": "static_audit_bundle.json is not available for this case",
         }
 
@@ -273,4 +342,5 @@ async def get_risk_summary(
         "follow_ups": follow_ups,
         "total_findings": summary["total_findings"],
         "high_quality_count": summary["high_quality_count"],
+        "findings_by_layer": summary["findings_by_layer"],
     }

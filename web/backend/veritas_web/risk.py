@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
+from engine.reporting.layers import group_findings_by_layer
 from engine.static_audit.paths import resolve_artifact_path
 
 from .path_mapping import normalize_workdir_path
@@ -81,6 +82,9 @@ def summarize_findings(findings: list[Any], *, top_limit: int = 5) -> dict[str, 
         reverse=True,
     )[:top_limit]
 
+    # Group all findings by layer for frontend layered display (PRD2-T8)
+    findings_by_layer = group_findings_by_layer(valid_findings)
+
     return {
         "status": "ok",
         "overall_risk": overall_risk,
@@ -88,4 +92,5 @@ def summarize_findings(findings: list[Any], *, top_limit: int = 5) -> dict[str, 
         "top_findings": top_findings,
         "total_findings": len(valid_findings),
         "high_quality_count": len(high_quality_findings),
+        "findings_by_layer": findings_by_layer,
     }

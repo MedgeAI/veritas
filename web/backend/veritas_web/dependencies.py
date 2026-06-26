@@ -12,10 +12,13 @@ from typing import AsyncGenerator, Generator
 from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from .artifacts import ArtifactService
 from .auth import AuthContext, AuthProvider, NoAuthProvider
 from .case_store import CaseStore
 from .database import create_session_factory
+from .investigations import WebInvestigationService
 from .models import CaseRecord
+from .runner import AuditRunner
 
 
 class AppDependencies:
@@ -30,9 +33,15 @@ class AppDependencies:
         store: CaseStore,
         auth_provider: AuthProvider,
         engine=None,
+        runner: AuditRunner | None = None,
+        artifacts: ArtifactService | None = None,
+        investigations: WebInvestigationService | None = None,
     ) -> None:
         self.store = store
         self.auth_provider = auth_provider
+        self.runner = runner
+        self.artifacts = artifacts
+        self.investigations = investigations
         self._engine = engine
         self._session_factory = None
         if engine is not None:
@@ -121,10 +130,14 @@ async def get_auth_context(
     if ctx is None:
         challenge = getattr(provider, "challenge_headers", None)
         headers_map = challenge() if callable(challenge) else None
+        # Type narrow: challenge_headers() should return dict[str, str] | None
+        headers_dict: dict[str, str] | None = (
+            dict(headers_map) if isinstance(headers_map, dict) else None
+        )
         raise HTTPException(
             status_code=401,
             detail="authentication failed",
-            headers=headers_map,
+            headers=headers_dict,
         )
     return ctx
 

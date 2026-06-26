@@ -980,7 +980,7 @@ def selected_tool_ids_from_plan(plan: dict[str, Any] | None) -> list[str]:
             if isinstance(item, dict) and item.get("tool_id") in TOOLS
         ]
         if tool_ids:
-            return tool_ids
+            return tool_ids  # type: ignore[assignment,operator]
     selected_steps = plan.get("selected_steps")
     if isinstance(selected_steps, list):
         reverse = {tool.step_key: tool.tool_id for tool in TOOLS.values()}

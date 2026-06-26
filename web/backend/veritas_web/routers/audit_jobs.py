@@ -320,6 +320,11 @@ async def cancel_audit(
 @router.get("/{job_id}/stream")
 async def stream_audit_progress(
     job_id: str,
+    request: Request,
+    events: str = Query(
+        "lifecycle",
+        description="Event verbosity: lifecycle (default), agent, or debug",
+    ),
     auth: AuthContext = Depends(get_auth_context_sse),
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> StreamingResponse:
@@ -327,14 +332,36 @@ async def stream_audit_progress(
 
     Authentication is via the ``token`` query parameter because the
     browser ``EventSource`` API cannot set custom headers.
+
+    Parameters
+    ----------
+    events:
+        Event verbosity level:
+        - ``lifecycle`` (default): pipeline/step/progress events
+        - ``agent``: lifecycle + agent reasoning events
+        - ``debug``: all events including log streams
+    Last-Event-ID:
+        HTTP header for reconnection.  When present, the stream resumes
+        from the event with id strictly greater than the supplied value.
     """
     store = deps.store
     run_model = _get_run_model(store, job_id)
     _verify_case_ownership(store, run_model.case_id, auth.user_id, is_admin=auth.is_admin())
 
+    # Validate events parameter.
+    level = events if events in ("lifecycle", "agent", "debug") else "lifecycle"
+
+    # Extract Last-Event-ID header for reconnection support.
+    last_event_id = request.headers.get("Last-Event-ID")
+
     engine = getattr(deps, "_engine", None)
     return StreamingResponse(
-        sse_event_stream(job_id, db_engine=engine),
+        sse_event_stream(
+            job_id,
+            db_engine=engine,
+            level=level,
+            last_event_id=last_event_id,
+        ),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
