@@ -1177,56 +1177,46 @@ def _panels_from_caption_body(body: str) -> set[str]:
     return panels
 
 
-def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
-    """Generate completeness findings for figure panels without source data sheets."""
-    profile = read_json(resolve_artifact_path(workdir, "source_data_profile.json"))
-    if not profile or not profile.get("workbooks"):
-        return []
+# ---------------------------------------------------------------------------
+# Helpers for _find_missing_source_data_findings
+# ---------------------------------------------------------------------------
 
-    # Collect figure keys covered by source data sheets.
+
+def _collect_covered_keys(profile: dict) -> set[tuple[str, str, str | None]]:
+    """Collect figure keys covered by source data sheets."""
     covered: set[tuple[str, str, str | None]] = set()
-    for wb in profile["workbooks"]:
+    for wb in profile.get("workbooks", []):
         for sheet in wb.get("sheets", []):
             for key in _parse_sheet_figure_keys(sheet.get("name", "")):
                 covered.add(key)
+    return covered
 
-    # Collect figure panel references from the evidence ledger.
-    ledger = read_json(resolve_artifact_path(workdir, "evidence_ledger.json"))
-    if not ledger:
-        return []
-    captions = ledger.get("captions", [])
 
-    # Map: (kind, fig_num) -> set of panel letters
-    paper_panels: dict[tuple[str, str], set[str]] = {}
-
-    # Pre-pass: identify extended-data figure numbers from main captions.
-    # MinerU may produce raw_labels with NBSP (U+00A0) and omit the
-    # "Extended Data" prefix, so we also check the text field.
-    ext_data_fig_nums: set[str] = set()
+def _identify_ext_data_figures(captions: list[dict]) -> set[str]:
+    """Pre-pass: identify extended-data figure numbers from main captions."""
+    ext: set[str] = set()
     for cap in captions:
         raw = (cap.get("raw_label", "") or "").replace("\xa0", " ")
         text = cap.get("text", "") or ""
-        main_fig_match = re.match(r"(?:Extended Data )?Fig\.\s*(\d+)$", raw)
-        if main_fig_match and "|" in text and "See next page" not in text:
-            is_ext = (
+        m = re.match(r"(?:Extended Data )?Fig\.\s*(\d+)$", raw)
+        if m and "|" in text and "See next page" not in text:
+            if (
                 "Extended Data" in raw
                 or "Extended Data Fig" in text
                 or re.search(r"Extended\s+Data\s+Fig", text) is not None
-            )
-            if is_ext:
-                ext_data_fig_nums.add(main_fig_match.group(1))
+            ):
+                ext.add(m.group(1))
+    return ext
 
-    _logger = logging.getLogger(__name__)
-    _logger.debug(
-        "source_data_missing: ext_data_fig_nums from main captions: %s",
-        sorted(ext_data_fig_nums),
-    )
 
+def _extract_panels_from_captions(
+    captions: list[dict], ext_data_fig_nums: set[str]
+) -> dict[tuple[str, str], set[str]]:
+    """Extract paper panel references from evidence ledger captions."""
+    paper_panels: dict[tuple[str, str], set[str]] = {}
     for cap in captions:
         raw = (cap.get("raw_label", "") or "").replace("\xa0", " ")
         text = cap.get("text", "") or ""
-
-        # Main figure caption: raw_label = "Fig. N" (no panel letter), text has "|"
         main_fig_match = re.match(r"(?:Extended Data )?Fig\.\s*(\d+)$", raw)
         if main_fig_match and "|" in text and "See next page" not in text:
             fig_num = main_fig_match.group(1)
@@ -1237,16 +1227,9 @@ def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
             )
             kind = "extended_data" if is_ext else "main_figure"
             body = text.split("|", 1)[-1].strip()
-            panels = _panels_from_caption_body(body)
-            paper_panels.setdefault((kind, fig_num), set()).update(panels)
-            _logger.debug(
-                "source_data_missing: main_caption kind=%s fig=%s panels=%s",
-                kind,
-                fig_num,
-                sorted(panels),
+            paper_panels.setdefault((kind, fig_num), set()).update(
+                _panels_from_caption_body(body)
             )
-
-        # Body text reference: raw_label = "Fig. 7d" (with panel letter)
         panel_ref_match = re.match(r"(Extended Data )?Fig\.\s*(\d+)([a-z])$", raw)
         if panel_ref_match:
             fig_num = panel_ref_match.group(2)
@@ -1258,55 +1241,44 @@ def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
             )
             kind = "extended_data" if is_ext else "main_figure"
             paper_panels.setdefault((kind, fig_num), set()).add(panel)
+    return paper_panels
 
-    _logger.debug(
-        "source_data_missing: paper_panels summary: %d main_figure, %d extended_data; "
-        "covered keys: %d",
-        sum(1 for k in paper_panels if k[0] == "main_figure"),
-        sum(1 for k in paper_panels if k[0] == "extended_data"),
-        len(covered),
-    )
-    # Log per-figure coverage for debug traceability.
-    for (kind, fig_num), panels in sorted(paper_panels.items()):
-        missing_in_fig = [
-            p for p in sorted(panels) if (kind, fig_num, p) not in covered
-        ]
-        if missing_in_fig:
-            _logger.debug(
-                "source_data_missing: %s fig=%s missing_panels=%s (of %d total)",
-                kind,
-                fig_num,
-                missing_in_fig,
-                len(panels),
-            )
 
-    # Also scan the full paper markdown for "Fig. Xy" references.
-    # This catches panels mentioned in body text that are not in ledger captions.
-    full_md_path = resolve_artifact_path(workdir, "full.md")
-    if full_md_path.exists():
-        try:
-            full_text = full_md_path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            full_text = ""
-        for m in re.finditer(r"(?:Extended\s+Data\s+)?Fig\.\s*(\d+)([a-z])", full_text):
-            prefix = full_text[max(0, m.start() - 20) : m.start()]
-            is_ext = "Extended Data" in prefix or "extended data" in prefix.lower()
-            kind = "extended_data" if is_ext else "main_figure"
-            fig_num = m.group(1)
-            panel = m.group(2)
-            paper_panels.setdefault((kind, fig_num), set()).add(panel)
+def _extract_panels_from_full_md(
+    full_md_path: Path,
+) -> dict[tuple[str, str], set[str]]:
+    """Scan full paper markdown for 'Fig. Xy' references."""
+    paper_panels: dict[tuple[str, str], set[str]] = {}
+    if not full_md_path.exists():
+        return paper_panels
+    try:
+        full_text = full_md_path.read_text(encoding="utf-8", errors="replace")
+    except OSError:
+        return paper_panels
+    for m in re.finditer(r"(?:Extended\s+Data\s+)?Fig\.\s*(\d+)([a-z])", full_text):
+        prefix = full_text[max(0, m.start() - 20) : m.start()]
+        is_ext = "Extended Data" in prefix or "extended data" in prefix.lower()
+        kind = "extended_data" if is_ext else "main_figure"
+        paper_panels.setdefault((kind, m.group(1)), set()).add(m.group(2))
+    return paper_panels
 
-    # Generate findings for paper panels not covered by source data.
-    raw_findings: list[Finding] = []
+
+def _generate_missing_findings(
+    paper_panels: dict[tuple[str, str], set[str]],
+    covered: set[tuple[str, str, str | None]],
+) -> list[Finding]:
+    """Generate per-panel findings for panels not covered by source data."""
+    findings: list[Finding] = []
     counter = 1
     for (kind, fig_num), panels in sorted(paper_panels.items()):
         for panel in sorted(panels):
             if (kind, fig_num, panel) not in covered:
-                if kind == "extended_data":
-                    fig_id = f"Extended Data Fig. {fig_num}{panel}"
-                else:
-                    fig_id = f"Fig. {fig_num}{panel}"
-                raw_findings.append(
+                fig_id = (
+                    f"Extended Data Fig. {fig_num}{panel}"
+                    if kind == "extended_data"
+                    else f"Fig. {fig_num}{panel}"
+                )
+                findings.append(
                     Finding(
                         finding_id=f"COMP-SRC-{counter:03d}",
                         category="source_data_missing",
@@ -1327,33 +1299,33 @@ def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
                     )
                 )
                 counter += 1
+    return findings
 
-    _logger.debug(
-        "source_data_missing: raw_findings=%d before summary merge",
-        len(raw_findings),
-    )
 
-    # Group by figure (kind + fig_num) and create summary findings.
+def _merge_into_summary_findings(
+    raw_findings: list[Finding],
+) -> list[Finding]:
+    """Group per-panel findings by figure and create summary findings."""
     findings: list[Finding] = []
     grouped: dict[tuple[str, str], list[Finding]] = {}
     for f in raw_findings:
-        key = (f.metadata["kind"], f.metadata["figure_number"])
-        grouped.setdefault(key, []).append(f)
-
+        grouped.setdefault((f.metadata["kind"], f.metadata["figure_number"]), []).append(f)
     summary_idx = 1
     for (kind, fig_num), group in sorted(grouped.items()):
         panels = [f.metadata["panel"] for f in group]
-        if kind == "extended_data":
-            fig_label = f"Extended Data Fig. {fig_num}"
-        else:
-            fig_label = f"Fig. {fig_num}"
+        fig_label = (
+            f"Extended Data Fig. {fig_num}" if kind == "extended_data" else f"Fig. {fig_num}"
+        )
         summary_id = f"SDM-SUMMARY-{summary_idx:03d}"
         findings.append(
             Finding(
                 finding_id=summary_id,
                 category="source_data_missing",
                 risk_level="low",
-                summary=f"Figure {fig_label} 缺失 {len(panels)} 个 panel 的 source data: {', '.join(panels)}",
+                summary=(
+                    f"Figure {fig_label} 缺失 {len(panels)} 个 panel 的 source data: "
+                    f"{', '.join(panels)}"
+                ),
                 issue_category="completeness",
                 metadata={
                     "figure_label": fig_label,
@@ -1365,20 +1337,65 @@ def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
                 },
             )
         )
-        _logger.debug(
-            "source_data_missing: summary %s = %s, merged %d panels: %s",
-            summary_id,
-            fig_label,
-            len(panels),
-            panels,
-        )
-        # Mark original findings as suppressed.
         for f in group:
             f.metadata["suppressed_by"] = summary_id
         findings.extend(group)
         summary_idx += 1
-
     return findings
+
+
+def _find_missing_source_data_findings(workdir: Path) -> list[Finding]:
+    """Generate completeness findings for figure panels without source data sheets."""
+    _logger = logging.getLogger(__name__)
+
+    profile = read_json(resolve_artifact_path(workdir, "source_data_profile.json"))
+    if not profile or not profile.get("workbooks"):
+        return []
+
+    covered = _collect_covered_keys(profile)
+
+    ledger = read_json(resolve_artifact_path(workdir, "evidence_ledger.json"))
+    if not ledger:
+        return []
+    captions = ledger.get("captions", [])
+
+    ext_data_fig_nums = _identify_ext_data_figures(captions)
+    _logger.debug(
+        "source_data_missing: ext_data_fig_nums from main captions: %s",
+        sorted(ext_data_fig_nums),
+    )
+
+    paper_panels = _extract_panels_from_captions(captions, ext_data_fig_nums)
+    _logger.debug(
+        "source_data_missing: paper_panels summary: %d main_figure, %d extended_data; "
+        "covered keys: %d",
+        sum(1 for k in paper_panels if k[0] == "main_figure"),
+        sum(1 for k in paper_panels if k[0] == "extended_data"),
+        len(covered),
+    )
+    for (kind, fig_num), panels in sorted(paper_panels.items()):
+        missing_in_fig = [
+            p for p in sorted(panels) if (kind, fig_num, p) not in covered
+        ]
+        if missing_in_fig:
+            _logger.debug(
+                "source_data_missing: %s fig=%s missing_panels=%s (of %d total)",
+                kind,
+                fig_num,
+                missing_in_fig,
+                len(panels),
+            )
+
+    full_md_panels = _extract_panels_from_full_md(resolve_artifact_path(workdir, "full.md"))
+    for key, panels in full_md_panels.items():
+        paper_panels.setdefault(key, set()).update(panels)
+
+    raw_findings = _generate_missing_findings(paper_panels, covered)
+    _logger.debug(
+        "source_data_missing: raw_findings=%d before summary merge", len(raw_findings)
+    )
+
+    return _merge_into_summary_findings(raw_findings)
 
 
 def build_static_audit_bundle(
