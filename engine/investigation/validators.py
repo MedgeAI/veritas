@@ -23,6 +23,8 @@ def extract_json(text: str) -> dict[str, Any]:
     except json.JSONDecodeError:
         pass
 
+    # JSONL line-by-line: look for opencode text events first (most specific
+    # path for structured wire output).
     event_texts: list[str] = []
     fallback_texts: list[str] = []
     for line in text.splitlines():
@@ -41,6 +43,16 @@ def extract_json(text: str) -> dict[str, Any]:
         fallback_texts.extend(_collect_strings(item))
     if event_texts:
         return _extract_json_from_text("\n".join(event_texts))
+
+    # No JSONL text events found. Try raw-text extraction (fence regex +
+    # object-candidate heuristic) on the full text. This handles markdown
+    # fences and JSON embedded in natural language.
+    try:
+        return _extract_json_from_text(text)
+    except ValueError:
+        pass
+
+    # Last resort: extract strings from parsed JSONL lines.
     combined = "\n".join(fallback_texts) if fallback_texts else text
     return _extract_json_from_text(combined)
 
