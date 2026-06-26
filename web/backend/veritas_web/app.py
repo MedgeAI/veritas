@@ -14,17 +14,17 @@ import os
 from pathlib import Path
 from typing import Any
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from . import logging_config
 from .artifacts import ArtifactService
-from .auth import AuthProvider, NoAuthProvider
+from .auth import AuthContext, AuthProvider, NoAuthProvider
 from .case_store import CaseStore
 from .config import AuthConfig, create_auth_provider
 from .database import create_db_engine, get_database_url
-from .dependencies import AppDependencies, set_dependencies
+from .dependencies import AppDependencies, get_auth_context, set_dependencies
 from .investigations import WebInvestigationService
 from .runner import AuditRunner
 from .routers import (
@@ -258,6 +258,22 @@ def create_app(
         return {
             "status": "ok" if all_ok else "degraded",
             "checks": checks,
+        }
+
+    # --- Auth info endpoint --------------------------------------------
+    @app.get("/api/me")
+    async def get_me(
+        auth: AuthContext = Depends(get_auth_context),
+    ) -> dict[str, Any]:
+        """Return the current user's identity and roles.
+
+        Used by the frontend to determine auth state on page load.
+        """
+        return {
+            "user_id": auth.user_id,
+            "email": auth.email,
+            "roles": sorted(auth.roles),
+            "is_admin": auth.is_admin(),
         }
 
     # --- Frontend static files ----------------------------------------

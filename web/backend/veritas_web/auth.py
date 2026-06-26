@@ -1,20 +1,24 @@
 """Authentication system for Veritas Web API.
 
 This module provides authentication primitives and context management.
-It supports multiple auth modes (none, bearer, basic) through a pluggable
-provider architecture.
+It supports multiple auth modes (none, bearer, basic, cloudflare) through
+a pluggable provider architecture.
 """
 
 from __future__ import annotations
 
 import base64
+import logging
 import sqlite3
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
 import bcrypt
 import jwt
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -307,3 +311,259 @@ class BasicAuthProvider(AuthProvider):
     def is_enabled(self) -> bool:
         """Always returns ``True``."""
         return True
+
+
+class CloudflareAccessProvider(AuthProvider):
+    """Cloudflare Access JWT authentication.
+
+    Validates RS256-signed JWTs issued by Cloudflare Access.  The public
+    keys are fetched from the Cloudflare JWKS endpoint and cached in memory
+    with a 1-hour TTL.
+
+    On first contact the user is auto-registered in the ``cf_users`` table
+    with ``roles='operator'``.  If their email matches a bootstrap admin
+    address they are promoted to ``admin`` instead.
+
+    Attributes:
+        team_name: Cloudflare Access team name (used to build JWKS URL).
+        aud: Expected ``aud`` claim (Access Application AUD tag).
+        bootstrap_admins: Emails auto-promoted to admin on first access.
+    """
+
+    _JWKS_TTL_SECONDS = 3600  # 1 hour
+
+    def __init__(
+        self,
+        team_name: str,
+        aud: str,
+        bootstrap_admins: list[str] | None = None,
+    ) -> None:
+        self._team_name = team_name
+        self._aud = aud
+        self._jwks_url = (
+            f"https://{team_name}.cloudflareaccess.com/cdn-cgi/access/certs"
+        )
+        self._bootstrap_admins = [e.lower() for e in (bootstrap_admins or [])]
+        self._jwks_data: dict[str, Any] | None = None
+        self._jwks_fetched_at: float = 0
+        self._engine: Any = None  # lazily bound on first authenticate()
+
+    # -- AuthProvider interface ------------------------------------------
+
+    def authenticate(self, headers: dict[str, Any]) -> AuthContext | None:
+        """Validate Cloudflare Access JWT from request headers.
+
+        Reads ``cf-access-jwt-assertion`` (injected by cloudflared tunnel
+        into every origin-bound request).
+        """
+        token = headers.get("cf-access-jwt-assertion")
+        if not token:
+            return None
+
+        claims = self._verify_jwt(token)
+        if claims is None:
+            return None
+
+        email = (claims.get("email") or "").lower()
+        if not email:
+            logger.warning("Cloudflare JWT missing email claim")
+            return None
+
+        self._ensure_user(email, claims.get("name"))
+        roles = self._load_roles(email)
+
+        return AuthContext(
+            user_id=email,
+            email=email,
+            roles=roles,
+            metadata={"source": "cloudflare_access"},
+        )
+
+    def is_enabled(self) -> bool:
+        return True
+
+    # -- JWT verification ------------------------------------------------
+
+    def _verify_jwt(self, token: str) -> dict[str, Any] | None:
+        """Verify RS256 signature and standard claims.
+
+        Returns the decoded payload on success, ``None`` on any failure.
+        On signature failure the JWKS cache is refreshed once to handle
+        key rotation.
+        """
+        for attempt in range(2):
+            jwks = self._get_jwks(force_refresh=(attempt == 1))
+            if jwks is None:
+                return None
+            try:
+                signing_key = self._find_signing_key(token, jwks)
+                if signing_key is None:
+                    if attempt == 0:
+                        continue  # refresh JWKS and retry
+                    return None
+                return jwt.decode(
+                    token,
+                    signing_key,
+                    algorithms=["RS256"],
+                    audience=self._aud,
+                    issuer=f"https://{self._team_name}.cloudflareaccess.com",
+                    options={"require": ["exp", "iss", "aud", "email"]},
+                )
+            except jwt.InvalidTokenError as exc:
+                logger.debug("JWT verification failed (attempt %d): %s", attempt + 1, exc)
+                if attempt == 1:
+                    return None
+        return None
+
+    def _get_jwks(self, *, force_refresh: bool = False) -> dict[str, Any] | None:
+        """Fetch and cache the Cloudflare JWKS document."""
+        now = time.monotonic()
+        if (
+            not force_refresh
+            and self._jwks_data is not None
+            and (now - self._jwks_fetched_at) < self._JWKS_TTL_SECONDS
+        ):
+            return self._jwks_data
+
+        try:
+            import json
+            import urllib.request
+
+            with urllib.request.urlopen(self._jwks_url, timeout=10) as resp:
+                self._jwks_data = json.loads(resp.read())
+            self._jwks_fetched_at = now
+            return self._jwks_data
+        except Exception as exc:
+            logger.error("Failed to fetch JWKS from %s: %s", self._jwks_url, exc)
+            return None
+
+    @staticmethod
+    def _find_signing_key(token: str, jwks: dict[str, Any]) -> Any:
+        """Locate the matching public key from JWKS for the given token."""
+        try:
+            unverified = jwt.get_unverified_header(token)
+        except jwt.InvalidTokenError:
+            return None
+        kid = unverified.get("kid")
+        if not kid:
+            return None
+
+        for key_data in jwks.get("keys", []):
+            if key_data.get("kid") == kid:
+                return jwt.algorithms.RSAAlgorithm.from_jwk(key_data)
+        return None
+
+    # -- User management (cf_users table) --------------------------------
+
+    def _get_engine(self) -> Any:
+        """Return the SQLAlchemy engine, lazily initialising on first call."""
+        if self._engine is None:
+            from .database import create_db_engine
+
+            self._engine = create_db_engine()
+        return self._engine
+
+    def _ensure_user(self, email: str, display_name: str | None) -> None:
+        """Auto-register user on first access."""
+        from .models import CloudflareUserModel
+
+        engine = self._get_engine()
+        with engine.connect() as conn:
+            existing = conn.execute(
+                CloudflareUserModel.__table__.select().where(
+                    CloudflareUserModel.__table__.c.email == email
+                )
+            ).fetchone()
+
+            if existing is None:
+                roles = "admin" if email in self._bootstrap_admins else "operator"
+                conn.execute(
+                    CloudflareUserModel.__table__.insert().values(
+                        email=email,
+                        display_name=display_name or "",
+                        roles=roles,
+                    )
+                )
+                conn.commit()
+                logger.info(
+                    "Auto-registered Cloudflare user %s with role=%s", email, roles
+                )
+            elif display_name and not existing.display_name:
+                conn.execute(
+                    CloudflareUserModel.__table__.update()
+                    .where(CloudflareUserModel.__table__.c.email == email)
+                    .values(display_name=display_name)
+                )
+                conn.commit()
+
+    def _load_roles(self, email: str) -> frozenset[str]:
+        """Load roles for *email* from cf_users table."""
+        from .models import CloudflareUserModel
+
+        engine = self._get_engine()
+        with engine.connect() as conn:
+            row = conn.execute(
+                CloudflareUserModel.__table__.select().where(
+                    CloudflareUserModel.__table__.c.email == email
+                )
+            ).fetchone()
+
+        if row is None:
+            return frozenset({"operator"})
+        roles_str = row.roles or "operator"
+        return frozenset(r.strip() for r in roles_str.split(",") if r.strip())
+
+    # -- User management API (for /api/users router) ---------------------
+
+    def list_users(self) -> list[dict[str, Any]]:
+        """Return all cf_users rows as dicts."""
+        from .models import CloudflareUserModel
+
+        engine = self._get_engine()
+        with engine.connect() as conn:
+            rows = conn.execute(
+                CloudflareUserModel.__table__.select().order_by(
+                    CloudflareUserModel.__table__.c.email
+                )
+            ).fetchall()
+        return [
+            {
+                "email": row.email,
+                "display_name": row.display_name or "",
+                "roles": [
+                    r.strip()
+                    for r in (row.roles or "operator").split(",")
+                    if r.strip()
+                ],
+                "created_at": row.created_at,
+            }
+            for row in rows
+        ]
+
+    def update_user_roles(self, email: str, roles: str) -> bool:
+        """Update roles for *email*. Returns ``True`` if the user existed."""
+        from .models import CloudflareUserModel
+
+        engine = self._get_engine()
+        with engine.connect() as conn:
+            cursor = conn.execute(
+                CloudflareUserModel.__table__.update()
+                .where(CloudflareUserModel.__table__.c.email == email)
+                .values(roles=roles)
+            )
+            conn.commit()
+        return cursor.rowcount > 0
+
+    def delete_user(self, email: str) -> bool:
+        """Delete a user record. Returns ``True`` if the row existed."""
+        from .models import CloudflareUserModel
+
+        engine = self._get_engine()
+        with engine.connect() as conn:
+            cursor = conn.execute(
+                CloudflareUserModel.__table__.delete().where(
+                    CloudflareUserModel.__table__.c.email == email
+                )
+            )
+            conn.commit()
+        return cursor.rowcount > 0

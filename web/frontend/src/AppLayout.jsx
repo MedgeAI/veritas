@@ -3,7 +3,7 @@ import Sidebar from './components/Sidebar.jsx';
 import Topbar from './components/Topbar.jsx';
 import LoadingFallback from './components/LoadingFallback.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
-import { checkHealth, clearAuthCredentials, getCurrentUser, listCases, listUsers } from './services/api.js';
+import { checkHealth, clearAuthCredentials, getCurrentUser, listCases } from './services/api.js';
 
 const LoginPage = lazy(() => import('./pages/LoginPage.jsx'));
 const CasesPage = lazy(() => import('./pages/CasesPage.jsx'));
@@ -126,24 +126,14 @@ function AppLayout() {
     (async () => {
       try {
         const user = await getCurrentUser();
-        if (cancelled || !user) {
-          if (!cancelled) {
-            setAuthState({ checked: true, user: null, isAdmin: false });
-            setAuthChecking(false);
-          }
+        if (cancelled) return;
+        if (!user) {
+          setAuthState({ checked: true, user: null, isAdmin: false });
+          setAuthChecking(false);
           return;
         }
-        // Trust isAdmin from getCurrentUser(); only probe if not explicitly set
-        let isAdmin = user.isAdmin;
-        if (isAdmin === undefined) {
-          try {
-            await listUsers();
-            isAdmin = true;
-          } catch {
-            // 403 = non-admin, that's fine
-          }
-        }
-        setAuthState({ checked: true, user, isAdmin });
+        // /api/me returns is_admin directly
+        setAuthState({ checked: true, user, isAdmin: user.isAdmin || false });
       } catch {
         if (!cancelled) setAuthState({ checked: true, user: null, isAdmin: false });
       } finally {
@@ -255,17 +245,8 @@ function AppLayout() {
   }
 
   function handleLogin(user) {
-    // Re-detect admin
-    (async () => {
-      let isAdmin = false;
-      try {
-        await listUsers();
-        isAdmin = true;
-      } catch {
-        // non-admin
-      }
-      setAuthState({ checked: true, user, isAdmin });
-    })();
+    // /api/me already returns isAdmin from Cloudflare provider
+    setAuthState({ checked: true, user, isAdmin: user.isAdmin || false });
   }
 
   function handleLogout() {

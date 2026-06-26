@@ -46,7 +46,7 @@ function Topbar({ selectedCase, selectedRunId, onRefresh, currentUser, onLogout 
         {currentUser ? (
           <div className="flex items-center gap-2 rounded-full border border-ink-900/10 bg-paper-50/80 px-3 py-1.5 text-sm text-ink-500">
             <FaUser className="text-xs text-ink-500" aria-hidden="true" />
-            <span className="font-medium">{currentUser.username}</span>
+            <span className="font-medium">{currentUser.email || currentUser.username || 'operator'}</span>
           </div>
         ) : null}
         {onLogout ? (

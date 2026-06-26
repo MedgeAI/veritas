@@ -21,7 +21,7 @@ import os
 from typing import Any
 
 import jwt as pyjwt
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
@@ -67,54 +67,63 @@ class QueueStatusResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# SSE auth dependency — accepts token via query param (EventSource cannot
-# set custom HTTP headers).
+# SSE auth dependency — unified provider path.
+#
+# Cloudflare tunnel injects ``Cf-Access-Jwt-Assertion`` into every
+# origin-bound request (including SSE), so same-origin EventSource calls
+# are authenticated without a query-param token.
+#
+# For the legacy ``bearer`` mode (non-Cloudflare), the token is still
+# accepted via query param because ``EventSource`` cannot set custom headers.
 # ---------------------------------------------------------------------------
 
 
 async def get_auth_context_sse(
+    request: Request,
     token: str | None = Query(None),
-    authorization: str | None = Query(None, alias="authorization"),
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> AuthContext:
-    """Authenticate SSE requests.
+    """Authenticate SSE requests via the same auth provider.
 
-    The ``EventSource`` browser API cannot set custom headers, so the
-    JWT is accepted via the ``token`` query parameter.  The standard
-    ``Authorization`` header path is preserved for non-browser clients.
+    Cloudflare tunnel injects ``Cf-Access-Jwt-Assertion`` into every
+    request, so same-origin EventSource calls work without a query param.
+
+    For ``bearer`` mode (legacy), the HS256 token is accepted via the
+    ``token`` query parameter since ``EventSource`` cannot set headers.
     """
     provider = deps.auth_provider
 
-    from ..auth import NoAuthProvider
+    from ..auth import BearerTokenProvider, NoAuthProvider
 
     if isinstance(provider, NoAuthProvider):
         return AuthContext(user_id="operator", roles=frozenset({"admin"}))
 
-    # Try query-param token first (SSE / EventSource).
-    bearer_token = token or authorization
-    if bearer_token:
-        from ..auth import BearerTokenProvider
-
-        if isinstance(provider, BearerTokenProvider):
-            try:
-                payload = pyjwt.decode(
-                    bearer_token,
-                    provider.shared_secret,
-                    algorithms=["HS256"],
-                    issuer=provider.issuer,
-                    options={"require": ["exp", "iss", "userId"]},
-                )
-            except pyjwt.InvalidTokenError:
-                raise HTTPException(status_code=401, detail="invalid token")
-            user_id = payload.get("userId")
-            if not isinstance(user_id, str) or not user_id.strip():
-                raise HTTPException(status_code=401, detail="invalid token payload")
-            return AuthContext(
-                user_id=user_id.strip(),
-                roles=frozenset({"operator"}),
+    # For bearer mode: accept token via query param (EventSource limitation)
+    if isinstance(provider, BearerTokenProvider) and token:
+        try:
+            payload = pyjwt.decode(
+                token,
+                provider.shared_secret,
+                algorithms=["HS256"],
+                issuer=provider.issuer,
+                options={"require": ["exp", "iss", "userId"]},
             )
+        except pyjwt.InvalidTokenError:
+            raise HTTPException(status_code=401, detail="invalid token")
+        user_id = payload.get("userId")
+        if not isinstance(user_id, str) or not user_id.strip():
+            raise HTTPException(status_code=401, detail="invalid token payload")
+        return AuthContext(
+            user_id=user_id.strip(),
+            roles=frozenset({"operator"}),
+        )
 
-    raise HTTPException(status_code=401, detail="authentication required")
+    # For cloudflare (and bearer without query param): use request headers
+    headers = dict(request.headers)
+    ctx = provider.authenticate(headers)
+    if ctx is None:
+        raise HTTPException(status_code=401, detail="authentication required")
+    return ctx
 
 
 # ---------------------------------------------------------------------------
@@ -155,9 +164,10 @@ async def submit_audit(
     store = deps.store
     runner = _get_runner(deps)
 
-    # Verify case exists and is owned by the caller.
+    # Verify case exists and is owned by the caller (admin bypasses check).
+    uid = None if auth.is_admin() else auth.user_id
     try:
-        store.get_case(case_id, user_id=auth.user_id)
+        store.get_case(case_id, user_id=uid)
     except PermissionError:
         raise HTTPException(status_code=403, detail=f"not the owner of case {case_id}")
     except FileNotFoundError:
@@ -266,7 +276,7 @@ async def get_audit_status(
     """Return the current status of job *job_id*, including stage progress."""
     store = deps.store
     run_model = _get_run_model(store, job_id)
-    _verify_case_ownership(store, run_model.case_id, auth.user_id)
+    _verify_case_ownership(store, run_model.case_id, auth.user_id, is_admin=auth.is_admin())
     return _run_model_to_dict(run_model)
 
 
@@ -290,7 +300,7 @@ async def cancel_audit(
     store = deps.store
     runner = _get_runner(deps)
     run_model = _get_run_model(store, job_id)
-    _verify_case_ownership(store, run_model.case_id, auth.user_id)
+    _verify_case_ownership(store, run_model.case_id, auth.user_id, is_admin=auth.is_admin())
 
     if run_model.status not in ("queued", "running"):
         raise HTTPException(
@@ -320,7 +330,7 @@ async def stream_audit_progress(
     """
     store = deps.store
     run_model = _get_run_model(store, job_id)
-    _verify_case_ownership(store, run_model.case_id, auth.user_id)
+    _verify_case_ownership(store, run_model.case_id, auth.user_id, is_admin=auth.is_admin())
 
     engine = getattr(deps, "_engine", None)
     return StreamingResponse(
@@ -381,10 +391,13 @@ class _RunSnapshot:
             setattr(self, attr, getattr(model, attr, None))
 
 
-def _verify_case_ownership(store: Any, case_id: str, user_id: str) -> None:
-    """Raise 403 if *user_id* does not own *case_id*."""
+def _verify_case_ownership(
+    store: Any, case_id: str, user_id: str, *, is_admin: bool = False
+) -> None:
+    """Raise 403 if *user_id* does not own *case_id*.  Admin bypasses check."""
+    uid = None if is_admin else user_id
     try:
-        store.get_case(case_id, user_id=user_id)
+        store.get_case(case_id, user_id=uid)
     except PermissionError:
         raise HTTPException(status_code=403, detail=f"not the owner of case {case_id}")
     except FileNotFoundError:

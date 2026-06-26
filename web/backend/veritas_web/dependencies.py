@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import AsyncGenerator, Generator
 
-from fastapi import Depends, Header, HTTPException, Request
+from fastapi import Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from .auth import AuthContext, AuthProvider, NoAuthProvider
@@ -100,24 +100,23 @@ async def get_db(
 
 
 async def get_auth_context(
-    authorization: str | None = Header(None),
+    request: Request,
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> AuthContext:
     """Authenticate the request and return an ``AuthContext``.
 
-    Translates the legacy ``AuthProvider.authenticate(headers_dict)`` call
-    into a FastAPI-compatible dependency.
+    Passes the full set of HTTP headers to the auth provider so that
+    Cloudflare Access (``cf-access-jwt-assertion``) and standard
+    ``Authorization`` headers are both available.
     """
     provider = deps.auth_provider
 
     if isinstance(provider, NoAuthProvider):
         return AuthContext(user_id="operator", roles=frozenset({"admin"}))
 
-    # Build a headers dict from the FastAPI Header parameter
-    headers: dict[str, str] = {}
-    if authorization:
-        headers["Authorization"] = authorization
-
+    # Pass all headers — provider picks what it needs (Authorization,
+    # Cf-Access-Jwt-Assertion, etc.).
+    headers = dict(request.headers)
     ctx = provider.authenticate(headers)
     if ctx is None:
         challenge = getattr(provider, "challenge_headers", None)
@@ -135,9 +134,14 @@ async def require_case_access(
     auth: AuthContext = Depends(get_auth_context),
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> CaseRecord:
-    """Return the case if the authenticated user owns it; 403 otherwise."""
+    """Return the case if the authenticated user owns it; 403 otherwise.
+
+    Admin users bypass the ownership check (``user_id=None`` skips
+    ``_check_owner`` in CaseStore).
+    """
+    uid = None if auth.is_admin() else auth.user_id
     try:
-        return deps.store.get_case(case_id, user_id=auth.user_id)
+        return deps.store.get_case(case_id, user_id=uid)
     except PermissionError:
         raise HTTPException(status_code=403, detail=f"not the owner of case {case_id}")
     except FileNotFoundError:

@@ -135,10 +135,13 @@ export function uploadInputWithAbort(caseId, file, { onProgress } = {}) {
   const promise = new Promise((resolve, reject) => {
     xhr = new XMLHttpRequest();
     xhr.open('POST', buildUrl(`/api/cases/${encodeURIComponent(caseId)}/inputs`));
+    // Basic auth header for legacy/basic mode; Cloudflare mode uses
+    // same-origin cookies automatically (credentials: 'include').
     const creds = getAuthCredentials();
     if (creds) {
       xhr.setRequestHeader('Authorization', `Basic ${btoa(`${creds.username}:${creds.password}`)}`);
     }
+    xhr.withCredentials = true;
 
     if (onProgress && xhr.upload) {
       xhr.upload.addEventListener('progress', (e) => {
@@ -359,15 +362,18 @@ export async function createUser(username, password, email, roles) {
   });
 }
 
-export async function updateUser(username, email, roles) {
-  return request(`/api/users/${encodeURIComponent(username)}`, {
+export async function updateUser(userId, email, roles) {
+  // In basic mode: userId = username, body = { email, roles }
+  // In cloudflare mode: userId = email, body = { roles }
+  const body = email !== undefined ? { email, roles } : { roles };
+  return request(`/api/users/${encodeURIComponent(userId)}`, {
     method: 'PUT',
-    body: { email, roles },
+    body,
   });
 }
 
-export async function deleteUser(username) {
-  return request(`/api/users/${encodeURIComponent(username)}`, { method: 'DELETE' });
+export async function deleteUser(userId) {
+  return request(`/api/users/${encodeURIComponent(userId)}`, { method: 'DELETE' });
 }
 
 export async function changePassword(username, newPassword) {
@@ -410,15 +416,13 @@ export async function getAuditQueue() {
 // ---------------------------------------------------------------------------
 
 export async function getCurrentUser() {
-  const creds = getAuthCredentials();
   try {
-    // Use an auth-required endpoint to validate credentials
-    await request('/api/cases');
-    // In no-auth mode (VERITAS_AUTH_MODE=none), return default operator
-    if (!creds) {
-      return { username: 'operator', isAdmin: false };
-    }
-    return { username: creds.username };
+    const me = await request('/api/me');
+    return {
+      email: me.email,
+      roles: me.roles || [],
+      isAdmin: me.is_admin || false,
+    };
   } catch (e) {
     if (e.status === 401) {
       clearAuthCredentials();

@@ -216,7 +216,7 @@ class CaseModel(Base):
     status = Column(String(32), default="Draft")
     technical_risk = Column(String(32), default="pending")
     review_needed_count = Column(Integer, default=0)
-    owner = Column(String(128), default="operator", nullable=False)
+    owner = Column(String(320), default="operator", nullable=False)
     created_at = Column(String(32), default=utc_now)
     updated_at = Column(String(32), default=utc_now)
     latest_run_id = Column(String(128), nullable=True)
@@ -426,6 +426,30 @@ class UserModel(Base):
             "username": self.username,
             "email": self.email,
             "roles": self.roles.split(",") if self.roles else [],
+            "created_at": self.created_at,
+        }
+
+
+class CloudflareUserModel(Base):
+    """Cloudflare Access authenticated user.
+
+    Stored in PostgreSQL so that ``Base.metadata.create_all()`` discovers it
+    during startup.  The ``cf_users`` table is intentionally separate from
+    the ``users`` table (used by BasicAuthProvider's SQLite store).
+    """
+
+    __tablename__ = "cf_users"
+
+    email = Column(String(320), primary_key=True)
+    display_name = Column(String(256), default="")
+    roles = Column(String(128), default="operator", nullable=False)
+    created_at = Column(String(32), default=utc_now)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "email": self.email,
+            "display_name": self.display_name,
+            "roles": [r.strip() for r in self.roles.split(",") if r.strip()],
             "created_at": self.created_at,
         }
 

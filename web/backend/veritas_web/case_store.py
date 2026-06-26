@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+from sqlalchemy import text
+
 from .models import AuditRunRecord, CaseRecord, utc_now
 
 
@@ -66,6 +68,14 @@ class CaseStore:
         from .database import Base
 
         Base.metadata.create_all(bind=self._engine)
+
+        # Ensure owner column is wide enough for email addresses (RFC 5321: up to 320).
+        # This is a no-op on PostgreSQL when the column is already VARCHAR(320)+.
+        with self._engine.connect() as conn:
+            conn.execute(
+                text("ALTER TABLE cases ALTER COLUMN owner TYPE VARCHAR(320)")
+            )
+            conn.commit()
 
     def _session(self):
         return self._session_factory()

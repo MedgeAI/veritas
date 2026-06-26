@@ -217,9 +217,10 @@ function CreateUserModal({ onClose, onCreated }) {
 // Edit user form
 // ---------------------------------------------------------------------------
 
-function EditUserModal({ user, onClose, onUpdated }) {
+function EditUserModal({ user, isCloudflare, onClose, onUpdated }) {
   const emailId = useId();
   const rolesId = useId();
+  const userId = user.username || user.email;
   const initialEmail = user.email || '';
   const initialRoles = (user.roles || []).join(', ');
   const [email, setEmail] = useState(initialEmail);
@@ -235,7 +236,7 @@ function EditUserModal({ user, onClose, onUpdated }) {
     setLoading(true);
     setError('');
     try {
-      await updateUser(user.username, email.trim() || undefined, roles.split(',').map((r) => r.trim()).filter(Boolean));
+      await updateUser(userId, isCloudflare ? undefined : (email.trim() || undefined), roles.split(',').map((r) => r.trim()).filter(Boolean));
       onUpdated();
       onClose();
     } catch (err) {
@@ -246,12 +247,19 @@ function EditUserModal({ user, onClose, onUpdated }) {
   }
 
   return (
-    <Modal title={`编辑用户: ${user.username}`} onClose={() => confirmClose(onClose)}>
+    <Modal title={`编辑用户: ${userId}`} onClose={() => confirmClose(onClose)}>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor={emailId} className="mb-1 block text-sm font-medium text-ink-700">邮箱</label>
-          <input id={emailId} name="email" className="input-field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" spellCheck={false} />
-        </div>
+        {!isCloudflare ? (
+          <div>
+            <label htmlFor={emailId} className="mb-1 block text-sm font-medium text-ink-700">邮箱</label>
+            <input id={emailId} name="email" className="input-field" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" spellCheck={false} />
+          </div>
+        ) : (
+          <div>
+            <label className="mb-1 block text-sm font-medium text-ink-700">邮箱</label>
+            <input className="input-field opacity-60" value={userId} disabled />
+          </div>
+        )}
         <div>
           <label htmlFor={rolesId} className="mb-1 block text-sm font-medium text-ink-700">角色（逗号分隔）</label>
           <input id={rolesId} name="roles" className="input-field" value={roles} onChange={(e) => setRoles(e.target.value)} autoComplete="off" spellCheck={false} />
@@ -272,6 +280,7 @@ function EditUserModal({ user, onClose, onUpdated }) {
 
 function ChangePasswordModal({ user, onClose }) {
   const passwordId = useId();
+  const userId = user.username || user.email;
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [fieldError, setFieldError] = useState('');
@@ -293,7 +302,7 @@ function ChangePasswordModal({ user, onClose }) {
     setLoading(true);
     setError('');
     try {
-      await changePassword(user.username, password);
+      await changePassword(userId, password);
       setSuccess(true);
       setPassword('');
     } catch (err) {
@@ -304,7 +313,7 @@ function ChangePasswordModal({ user, onClose }) {
   }
 
   return (
-    <Modal title={`修改密码: ${user.username}`} onClose={() => confirmClose(onClose)}>
+    <Modal title={`修改密码: ${userId}`} onClose={() => confirmClose(onClose)}>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor={passwordId} className="mb-1 block text-sm font-medium text-ink-700">新密码</label>
@@ -326,7 +335,8 @@ function ChangePasswordModal({ user, onClose }) {
 // Delete confirmation
 // ---------------------------------------------------------------------------
 
-function DeleteConfirmModal({ user, onClose, onDeleted }) {
+function DeleteConfirmModal({ user, userKey, onClose, onDeleted }) {
+  const userId = userKey ? userKey(user) : (user.username || user.email);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -334,7 +344,7 @@ function DeleteConfirmModal({ user, onClose, onDeleted }) {
     setLoading(true);
     setError('');
     try {
-      await deleteUser(user.username);
+      await deleteUser(userId);
       onDeleted();
       onClose();
     } catch (err) {
@@ -347,7 +357,7 @@ function DeleteConfirmModal({ user, onClose, onDeleted }) {
   return (
     <Modal title="确认删除" onClose={onClose}>
       <p className="mb-4 text-sm text-ink-500">
-        确定要删除用户 <strong className="text-ink-900">{user.username}</strong> 吗？此操作不可撤销。
+        确定要删除用户 <strong className="text-ink-900">{userId}</strong> 吗？此操作不可撤销。
       </p>
       {error ? <div className="mb-4 rounded-xl border border-red-300/50 bg-red-50/70 px-3 py-2 text-sm text-red-700" role="alert" aria-live="polite">{error}</div> : null}
       <div className="flex justify-end gap-2">
@@ -386,6 +396,12 @@ function AdminPage() {
     fetchUsers();
   }, [fetchUsers]);
 
+  // Detect Cloudflare mode: users have `email` but no `username`
+  const isCloudflareMode = users.length > 0 && users[0].email && !users[0].username;
+  // Unique key for each user: prefer username (basic), fall back to email (cloudflare)
+  const userKey = (u) => u.username || u.email;
+  const userLabel = (u) => u.username || u.email;
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -407,10 +423,14 @@ function AdminPage() {
             <p className="text-sm text-ink-500">{users.length} 个用户</p>
           </div>
         </div>
-        <button type="button" className="btn-primary" onClick={() => setModal({ type: 'create' })}>
-          <FaPlus aria-hidden="true" />
-          创建用户
-        </button>
+        {!isCloudflareMode ? (
+          <button type="button" className="btn-primary" onClick={() => setModal({ type: 'create' })}>
+            <FaPlus aria-hidden="true" />
+            创建用户
+          </button>
+        ) : (
+          <span className="text-xs text-ink-400">Cloudflare Access 模式 — 用户首次访问时自动注册</span>
+        )}
       </div>
 
       {/* Error */}
@@ -424,8 +444,8 @@ function AdminPage() {
           <table className="w-full text-left text-sm">
             <thead className="border-b border-ink-900/10 bg-ink-50/50">
               <tr>
-                <th className="px-4 py-3 font-medium text-ink-500">用户名</th>
-                <th className="px-4 py-3 font-medium text-ink-500">邮箱</th>
+                <th className="px-4 py-3 font-medium text-ink-500">{isCloudflareMode ? '邮箱' : '用户名'}</th>
+                {!isCloudflareMode ? <th className="px-4 py-3 font-medium text-ink-500">邮箱</th> : null}
                 <th className="px-4 py-3 font-medium text-ink-500">角色</th>
                 <th className="px-4 py-3 font-medium text-ink-500">创建时间</th>
                 <th className="px-4 py-3 text-right font-medium text-ink-500">操作</th>
@@ -438,9 +458,9 @@ function AdminPage() {
                 </tr>
               ) : (
                 users.map((user) => (
-                  <tr key={user.username} className="hover:bg-white/45">
-                    <td className="px-4 py-3 font-medium text-ink-900">{user.username}</td>
-                    <td className="px-4 py-3 text-ink-500">{user.email || '-'}</td>
+                  <tr key={userKey(user)} className="hover:bg-white/45">
+                    <td className="px-4 py-3 font-medium text-ink-900">{userLabel(user)}</td>
+                    {!isCloudflareMode ? <td className="px-4 py-3 text-ink-500">{user.email || '-'}</td> : null}
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-1">
                         {(user.roles || []).filter(Boolean).map((role) => (
@@ -463,14 +483,16 @@ function AdminPage() {
                           <FaEdit aria-hidden="true" />
                           编辑
                         </button>
-                        <button
-                          type="button"
-                          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-ink-500 transition hover:bg-ink-900/5 hover:text-ink-700"
-                          onClick={() => setModal({ type: 'password', user })}
-                        >
-                          <FaKey aria-hidden="true" />
-                          密码
-                        </button>
+                        {!isCloudflareMode ? (
+                          <button
+                            type="button"
+                            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-ink-500 transition hover:bg-ink-900/5 hover:text-ink-700"
+                            onClick={() => setModal({ type: 'password', user })}
+                          >
+                            <FaKey aria-hidden="true" />
+                            密码
+                          </button>
+                        ) : null}
                         <button
                           type="button"
                           className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 hover:text-red-700"
@@ -494,13 +516,13 @@ function AdminPage() {
         <CreateUserModal onClose={() => setModal(null)} onCreated={fetchUsers} />
       ) : null}
       {modal?.type === 'edit' ? (
-        <EditUserModal user={modal.user} onClose={() => setModal(null)} onUpdated={fetchUsers} />
+        <EditUserModal user={modal.user} isCloudflare={isCloudflareMode} onClose={() => setModal(null)} onUpdated={fetchUsers} />
       ) : null}
       {modal?.type === 'password' ? (
         <ChangePasswordModal user={modal.user} onClose={() => setModal(null)} />
       ) : null}
       {modal?.type === 'delete' ? (
-        <DeleteConfirmModal user={modal.user} onClose={() => setModal(null)} onDeleted={fetchUsers} />
+        <DeleteConfirmModal user={modal.user} userKey={userKey} onClose={() => setModal(null)} onDeleted={fetchUsers} />
       ) : null}
     </div>
   );

@@ -1,7 +1,7 @@
 """Operational metrics endpoint.
 
 Exposes aggregate case/run statistics and uptime as plain JSON.
-No authentication required — intended for internal network monitoring.
+Admin-only — aggregate data covers all users' cases.
 """
 
 from __future__ import annotations
@@ -12,7 +12,9 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 
-from ..dependencies import AppDependencies, get_app_dependencies
+from ..auth import AuthContext
+from ..dependencies import AppDependencies, get_app_dependencies, get_auth_context
+from ..permissions import require_admin
 
 router = APIRouter(tags=["metrics"])
 
@@ -26,9 +28,11 @@ def _uptime_seconds() -> int:
 
 @router.get("/metrics")
 async def get_metrics(
+    auth: AuthContext = Depends(get_auth_context),
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> dict[str, Any]:
-    """Return aggregate operational metrics as JSON."""
+    """Return aggregate operational metrics as JSON.  Admin only."""
+    require_admin(auth)
     store = deps.store
     cases = store.list_cases()
     runs = store.list_all_runs()

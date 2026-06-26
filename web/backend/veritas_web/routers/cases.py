@@ -33,7 +33,8 @@ async def list_cases(
     auth: AuthContext = Depends(get_auth_context),
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> dict[str, Any]:
-    cases = deps.store.list_cases(user_id=auth.user_id)
+    uid = None if auth.is_admin() else auth.user_id
+    cases = deps.store.list_cases(user_id=uid)
     return {"cases": [c.to_dict() for c in cases]}
 
 
@@ -56,7 +57,8 @@ async def get_case_stats(
     auth: AuthContext = Depends(get_auth_context),
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> dict[str, Any]:
-    cases = deps.store.list_cases(user_id=auth.user_id)
+    uid = None if auth.is_admin() else auth.user_id
+    cases = deps.store.list_cases(user_id=uid)
     return {
         "total_cases": len(cases),
         "total_findings": sum(c.review_needed_count for c in cases),
