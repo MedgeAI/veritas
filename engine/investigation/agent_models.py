@@ -34,6 +34,7 @@ AgentErrorCategory = Literal[
     "permission_rejected",
     "model_failure",
     "non_zero_exit",
+    "grounding_failure",  # Added for PRD3-T7 agent review grounding
 ]
 
 AgentRunStatus = Literal["success", "failed", "skipped"]

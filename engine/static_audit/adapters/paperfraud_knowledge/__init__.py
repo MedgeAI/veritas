@@ -4,7 +4,7 @@ Loads structured YAML detection rules and provides rule matching
 against paper text. Register as a Veritas Tool via engine/tools/registry.py.
 
 Rules are split into two types:
-  - methodology_review: Study design quality, confounding, reporting standards
+  - methodology_review: Statistical method quality (sample size, p-hacking, normality)
   - fraud_detection: Numerical forensics, text patterns, statistical anomalies
 
 Usage::

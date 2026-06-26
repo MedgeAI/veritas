@@ -34,7 +34,9 @@ def test_paperfraud_rule_match_writes_artifact_and_reviewer_form(tmp_path) -> No
     artifact = run_paperfraud_rule_match(full_md, output_path)
     data = json.loads(output_path.read_text(encoding="utf-8"))
 
-    assert artifact["summary"]["total_rules_loaded"] >= 40
+    # After PRD2-T1 methodology rule removal (reporting/study_design/confounding),
+    # total_rules_loaded dropped from 40+ to ~10 (numerical forensics + source data rules only).
+    assert artifact["summary"]["total_rules_loaded"] >= 10
     assert data["summary"]["total_triggered"] > 0
     assert data["triggered_rules"][0]["rule_id"]
     assert len(data["reviewer_form"]) == data["summary"]["total_rules_loaded"]

@@ -48,8 +48,8 @@ class PaperconanAdapterError(RuntimeError):
 
 def _load_paperconan() -> tuple[Any, type[Exception]]:
     try:
-        from paperconan import scan_dir
-        from paperconan.schema import PaperconanInputError
+        from paperconan import scan_dir  # type: ignore[import-untyped]
+        from paperconan.schema import PaperconanInputError  # type: ignore[import-untyped]
     except ModuleNotFoundError as exc:
         raise PaperconanAdapterError(
             f"paperconan dependency is not available: {exc.name}. Run dependency sync before scanning source data."

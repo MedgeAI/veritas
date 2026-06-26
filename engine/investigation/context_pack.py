@@ -40,6 +40,18 @@ _EXCLUDED_EXTENSIONS = {
 _LARGE_ARTIFACT_KEYS = {"full.md", "evidence_ledger.json"}
 _JUDGE_CONTEXT_SUMMARY_ARTIFACT = "judge_context_summary.json"
 
+# Cache for canonical finding IDs, keyed by workdir string.
+_canonical_ids_cache: dict[str, set[str]] = {}
+
+# Ordered list of canonical artifacts scanned for finding IDs.
+_CANONICAL_FINDING_ARTIFACTS: list[str] = [
+    "source_data_findings.json",
+    "source_data_pair_forensics.json",
+    "visual_findings.json",
+    "image_relationships.json",
+    "static_audit_bundle.json",
+]
+
 _ROLE_ARTIFACTS: dict[str, list[str]] = {
     "claim_extractor": [
         "material_inventory.json",
@@ -75,6 +87,94 @@ _ALL_DETERMINISTIC_ARTIFACTS = [
     "audit_run_manifest.json",
     "investigation_rounds.jsonl",
 ]
+
+
+# ---------------------------------------------------------------------------
+# Canonical finding ID registry (PRD3-T7)
+# ---------------------------------------------------------------------------
+
+
+def _scan_artifact_finding_ids(
+    data: dict | list | None,
+    target: set[str],
+) -> None:
+    """Extract finding_id values from a parsed JSON artifact into *target*."""
+    if not isinstance(data, dict):
+        return
+    for list_key in ("priority_findings", "findings", "review_queue", "relationships"):
+        items = data.get(list_key) or []
+        if not isinstance(items, list):
+            continue
+        for item in items:
+            if isinstance(item, dict):
+                fid = item.get("finding_id")
+                if isinstance(fid, str) and fid:
+                    target.add(fid)
+
+
+def get_all_canonical_finding_ids(workdir: Path) -> set[str]:
+    """Return the union of finding_ids across all canonical audit artifacts.
+
+    Scans source_data_findings, source_data_pair_forensics, visual_findings,
+    image_relationships, static_audit_bundle, and investigation追加 artifacts.
+    Results are cached per workdir to avoid redundant I/O within a single run.
+    """
+    workdir_str = str(workdir)
+    if workdir_str in _canonical_ids_cache:
+        return set(_canonical_ids_cache[workdir_str])
+
+    all_ids: set[str] = set()
+    for artifact_name in _CANONICAL_FINDING_ARTIFACTS:
+        data = _read_json_artifact(workdir, artifact_name)
+        _scan_artifact_finding_ids(data, all_ids)
+
+    # Investigation追加 artifacts (JSONL records)
+    investigation_path = _artifact_path(workdir, "investigation_rounds.jsonl")
+    if investigation_path.exists():
+        try:
+            for line in investigation_path.read_text(encoding="utf-8").splitlines():
+                if not line.strip():
+                    continue
+                try:
+                    record = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if isinstance(record, dict):
+                    _scan_artifact_finding_ids(record, all_ids)
+                    for artifact_ref in record.get("output_artifacts") or []:
+                        if isinstance(artifact_ref, str) and artifact_ref.endswith(".json"):
+                            ref_data = _read_json_artifact(workdir, artifact_ref)
+                            _scan_artifact_finding_ids(ref_data, all_ids)
+        except OSError:
+            pass
+
+    _canonical_ids_cache[workdir_str] = all_ids
+    return set(all_ids)
+
+
+def get_artifact_backref(finding_id: str, workdir: Path) -> str | None:
+    """Return the relative artifact path where *finding_id* was first found.
+
+    Scans canonical artifacts in order and returns the first match.
+    Returns None if the finding_id is not present in any artifact.
+    """
+    for artifact_name in _CANONICAL_FINDING_ARTIFACTS:
+        data = _read_json_artifact(workdir, artifact_name)
+        if not isinstance(data, dict):
+            continue
+        for list_key in ("priority_findings", "findings", "review_queue", "relationships"):
+            items = data.get(list_key) or []
+            if not isinstance(items, list):
+                continue
+            for item in items:
+                if isinstance(item, dict) and item.get("finding_id") == finding_id:
+                    return str(resolve_artifact_path(workdir, artifact_name).relative_to(workdir))
+    return None
+
+
+def clear_canonical_ids_cache() -> None:
+    """Clear the canonical finding IDs cache. Intended for tests."""
+    _canonical_ids_cache.clear()
 
 
 def estimate_tokens(text: str) -> int:
@@ -478,6 +578,17 @@ def _extend_unique_strings(target: list[str], values: Any) -> None:
             target.append(value)
 
 
+def _lazy_filter_judge_input(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Lazy import wrapper to avoid circular dependency.
+
+    Imports filter_judge_input from engine.static_audit._shared at runtime
+    to break the circular import chain:
+    context_pack → _shared → opencode_agent → _shared (investigation) → context_pack
+    """
+    from engine.static_audit._shared import filter_judge_input
+    return filter_judge_input(findings)
+
+
 def _build_judge_context_summary(workdir: Path) -> dict[str, Any]:
     claim_output = _read_json_artifact(workdir, "agent_claim_extractor.json")
     source_output = _read_json_artifact(workdir, "agent_source_data_auditor.json")
@@ -675,7 +786,8 @@ def _build_judge_context_summary(workdir: Path) -> dict[str, Any]:
             ],
             "image_relationships": _artifact_summary_value(image_relationships),
         },
-        "top_n_findings": _extract_top_n_findings(workdir, n=12),
+        # PRD2-T6: Filter Judge input to only Layer 1 + Layer 2 findings
+        "top_n_findings": _lazy_filter_judge_input(_extract_top_n_findings(workdir, n=12)),
         "limitations": limitations[:12],
     }
 
@@ -758,6 +870,8 @@ def build_context_pack_for_role(
     top_n_findings = _extract_top_n_findings(workdir, n=12 if role == "judge" else 5)
     limitations = _collect_limitations(workdir)
     if role == "judge":
+        # PRD2-T6: Filter Judge input to only Layer 1 + Layer 2 findings
+        top_n_findings = _lazy_filter_judge_input(top_n_findings)
         bounded_excerpts = {
             _JUDGE_CONTEXT_SUMMARY_ARTIFACT: _json_excerpt(
                 _build_judge_context_summary(workdir),

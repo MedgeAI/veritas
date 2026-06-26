@@ -42,17 +42,6 @@ ROLE_DEFINITIONS: tuple[RoleDefinition, ...] = (
         },
     ),
     RoleDefinition(
-        role_id="visual_triage",
-        title="VisualTriageAgent",
-        real_in_v1=False,
-        input_artifacts=(
-            "images/",
-            "exact_image_duplicates.json",
-            "image_similarity_candidates.json",
-        ),
-        output_artifact="agent_visual_triage.json",
-    ),
-    RoleDefinition(
         role_id="digit_pattern",
         title="DigitPatternAgent",
         real_in_v1=False,

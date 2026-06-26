@@ -46,6 +46,8 @@ class AgentStepRunner:
         self.model = model
         self.opencode_bin = str(opencode_bin)
         self.env = env or {}
+        # Grounding info from the last run, for trace artifact
+        self._last_grounding: dict | None = None
 
     def run(
         self,
@@ -57,11 +59,15 @@ class AgentStepRunner:
         files: list[Path] | None = None,
         context_pack_path: Path | None = None,
         log_dir: Path | None = None,
+        workdir: Path | None = None,
     ) -> AgentRunResult:
         """Execute opencode with retry and structured error handling.
 
         Returns AgentRunResult with status="success" on first valid output,
         or status="failed" after all retries exhausted.
+
+        Args:
+            workdir: Audit output directory for canonical finding ID grounding.
         """
         command = [
             self.opencode_bin,
@@ -156,11 +162,26 @@ class AgentStepRunner:
                 last_detail = f"validation failed: {exc}"
                 continue
 
+            # Grounding check: validate finding_ids against canonical artifacts
+            if workdir is not None:
+                grounding = self._run_grounding_check(validated, Path(workdir))
+                unknown_ids = grounding.get("unknown_finding_ids") or []
+                if unknown_ids:
+                    last_error_category = "grounding_failure"
+                    last_detail = (
+                        f"agent cited {len(unknown_ids)} finding_id(s) not in canonical "
+                        f"artifacts: {unknown_ids[:5]}"
+                    )
+                    # Store grounding info for trace
+                    self._last_grounding = grounding
+                    continue
+
             total_runtime = time.monotonic() - start_all
             log_ref = None
             trace_ref = None
+            grounding_info: dict | None = None
             if log_dir:
-                log_ref, trace_ref = self._write_log_artifact(
+                log_ref, trace_ref, grounding_info = self._write_log_artifact(
                     log_dir=log_dir,
                     role=role,
                     command=command,
@@ -171,7 +192,17 @@ class AgentStepRunner:
                     attempt=attempt,
                     context_pack_path=context_pack_path,
                     validated_output=validated,
+                    workdir=Path(workdir) if workdir else None,
                 )
+
+            result_metadata: dict = {
+                "model": self.model,
+                "runtime_seconds": total_runtime,
+                "attempts": attempt + 1,
+                "trace_ref": trace_ref,
+            }
+            if grounding_info:
+                result_metadata["grounding"] = grounding_info
 
             return AgentRunResult(
                 status="success",
@@ -180,19 +211,15 @@ class AgentStepRunner:
                 error_category=None,
                 runtime_seconds=total_runtime,
                 log_ref=log_ref,
-                metadata={
-                    "model": self.model,
-                    "runtime_seconds": total_runtime,
-                    "attempts": attempt + 1,
-                    "trace_ref": trace_ref,
-                },
+                metadata=result_metadata,
             )
 
         total_runtime = time.monotonic() - start_all
         log_ref = None
         trace_ref = None
+        grounding_info = self._last_grounding
         if log_dir:
-            log_ref, trace_ref = self._write_log_artifact(
+            log_ref, trace_ref, grounding_info_from_trace = self._write_log_artifact(
                 log_dir=log_dir,
                 role=role,
                 command=command,
@@ -203,7 +230,20 @@ class AgentStepRunner:
                 attempt=max_retries,
                 context_pack_path=context_pack_path,
                 validated_output=None,
+                workdir=Path(workdir) if workdir else None,
             )
+            if grounding_info_from_trace:
+                grounding_info = grounding_info_from_trace
+
+        failed_metadata: dict = {
+            "model": self.model,
+            "runtime_seconds": total_runtime,
+            "attempts": max_retries + 1,
+            "last_detail": last_detail,
+            "trace_ref": trace_ref,
+        }
+        if grounding_info:
+            failed_metadata["grounding"] = grounding_info
 
         return AgentRunResult(
             status="failed",
@@ -212,13 +252,7 @@ class AgentStepRunner:
             error_category=last_error_category or "non_zero_exit",
             runtime_seconds=total_runtime,
             log_ref=log_ref,
-            metadata={
-                "model": self.model,
-                "runtime_seconds": total_runtime,
-                "attempts": max_retries + 1,
-                "last_detail": last_detail,
-                "trace_ref": trace_ref,
-            },
+            metadata=failed_metadata,
         )
 
     def _classify_exit_error(self, stderr: str) -> AgentErrorCategory:
@@ -273,11 +307,12 @@ class AgentStepRunner:
         attempt: int,
         context_pack_path: Path | None = None,
         validated_output: dict | None = None,
-    ) -> tuple[str, str | None]:
+        workdir: Path | None = None,
+    ) -> tuple[str, str | None, dict | None]:
         """Write enhanced log artifact + structured trace JSON.
 
-        Returns (log_ref, trace_ref) — relative paths to the log file and
-        the trace JSON file.
+        Returns (log_ref, trace_ref, grounding_info) — relative paths to the log
+        file and the trace JSON file, plus grounding metadata if applicable.
         """
         log_dir = Path(log_dir)
         log_dir.mkdir(parents=True, exist_ok=True)
@@ -315,7 +350,7 @@ class AgentStepRunner:
         log_path.write_text("\n".join(content_lines), encoding="utf-8")
 
         # Write structured trace JSON (P1)
-        trace_ref = self._write_trace_artifact(
+        trace_ref, grounding_info = self._write_trace_artifact(
             log_dir=log_dir,
             role=role,
             timestamp=timestamp,
@@ -327,6 +362,7 @@ class AgentStepRunner:
             token_usage=token_usage,
             runtime_seconds=runtime_seconds,
             stdout=stdout,
+            workdir=workdir,
         )
 
         try:
@@ -334,7 +370,7 @@ class AgentStepRunner:
         except ValueError:
             log_ref = str(log_path)
 
-        return log_ref, trace_ref
+        return log_ref, trace_ref, grounding_info
 
     def _build_log_header(
         self,
@@ -550,8 +586,13 @@ class AgentStepRunner:
         token_usage: dict,
         runtime_seconds: float,
         stdout: str,
-    ) -> str | None:
-        """Write structured trace JSON for machine-readable observability."""
+        workdir: Path | None = None,
+    ) -> tuple[str | None, dict | None]:
+        """Write structured trace JSON for machine-readable observability.
+
+        Returns (trace_ref, grounding_info) — relative path to the trace JSON
+        file and grounding metadata if grounding check was performed.
+        """
         trace_path = log_dir / f"step_trace_{role}_{timestamp}.json"
 
         # Build context pack summary
@@ -599,10 +640,20 @@ class AgentStepRunner:
             json.dumps(trace, ensure_ascii=False, indent=2), encoding="utf-8"
         )
 
+        # Run grounding check if workdir provided and output is valid
+        grounding_info: dict | None = None
+        if workdir and validated_output:
+            grounding_info = self._run_grounding_check(validated_output, Path(workdir))
+            if grounding_info:
+                trace["grounding"] = grounding_info
+                trace_path.write_text(
+                    json.dumps(trace, ensure_ascii=False, indent=2), encoding="utf-8"
+                )
+
         try:
-            return str(trace_path.relative_to(self.project_root))
+            return str(trace_path.relative_to(self.project_root)), grounding_info
         except ValueError:
-            return str(trace_path)
+            return str(trace_path), grounding_info
 
     def _run_hallucination_checks(
         self,
@@ -642,6 +693,45 @@ class AgentStepRunner:
                 pass
 
         return checks
+
+    def _run_grounding_check(
+        self,
+        output: dict,
+        workdir: Path,
+    ) -> dict:
+        """Check that all cited finding_ids exist in canonical artifacts.
+
+        PRD3-T7: Validates agent output against the full set of canonical
+        finding IDs from all audit artifacts, not just context_pack top_n.
+        Returns grounding metadata for trace artifact.
+        """
+        from engine.investigation.context_pack import (
+            get_all_canonical_finding_ids,
+            get_artifact_backref,
+        )
+
+        cited_ids = self._extract_finding_ids(output)
+        if not cited_ids:
+            return {"all_passed": True, "unknown_finding_ids": []}
+
+        canonical_ids = get_all_canonical_finding_ids(workdir)
+        unknown_ids = cited_ids - canonical_ids
+
+        if not unknown_ids:
+            return {"all_passed": True, "unknown_finding_ids": []}
+
+        # Build backref map for known IDs
+        artifact_backrefs: dict[str, str] = {}
+        for fid in (cited_ids - unknown_ids):
+            backref = get_artifact_backref(fid, workdir)
+            if backref:
+                artifact_backrefs[fid] = backref
+
+        return {
+            "all_passed": False,
+            "unknown_finding_ids": sorted(unknown_ids),
+            "artifact_backrefs": artifact_backrefs,
+        }
 
     def _extract_finding_ids(self, obj: Any, depth: int = 0) -> set[str]:
         """Recursively extract finding_id values from nested dicts/lists."""

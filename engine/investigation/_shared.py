@@ -61,8 +61,37 @@ def _convert_runner_result(
     This adapter enables the Phase 2 migration: the orchestrator still
     consumes the legacy AgentRunResult, while internally we use
     AgentStepRunner for structured error classification.
+
+    PRD3-T7: When error_category is grounding_failure but deterministic evidence
+    is intact, status becomes "ok" with grounding metadata embedded in output,
+    allowing the audit run to continue with needs_review status instead of failing.
     """
     status = "ok" if new_result.status == "success" else "failed"
+    grounding_info = new_result.metadata.get("grounding")
+
+    # PRD3-T7: Grounding failure doesn't fail the audit run if deterministic
+    # evidence is intact. Mark status as "ok" but embed grounding info.
+    if (
+        status == "failed"
+        and new_result.error_category == "grounding_failure"
+        and grounding_info
+        and new_result.output is not None
+    ):
+        status = "ok"
+        detail = f"opencode {expected} ok with grounding warning"
+        # Inject grounding info into output so review artifact can render it
+        output_with_grounding = dict(new_result.output)
+        output_with_grounding["status"] = "needs_review"
+        output_with_grounding["grounding"] = grounding_info
+        return AgentRunResult(
+            status=status,
+            data=output_with_grounding,
+            detail=detail,
+            command=[],
+            runtime_seconds=new_result.runtime_seconds,
+            retries=max(new_result.metadata.get("attempts", 1) - 1, 0),
+        )
+
     if status == "ok":
         detail = f"opencode {expected} ok"
     else:
@@ -121,6 +150,7 @@ def _run_with_context_pack(
         max_retries=max_retries,
         context_pack_path=context_pack_path,
         log_dir=log_dir,
+        workdir=workdir,
     )
 
     return _convert_runner_result(new_result, expected)

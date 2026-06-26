@@ -159,6 +159,7 @@ Judge-specific input contract:
 - Do not request or infer from full `source_data_findings.json`, `source_data_pair_forensics.json`, `full.md`, image files, or other large raw artifacts.
 - Return at most 8 risk_suggestions, 8 report_notes, and 10 limitations.
 - Every risk_suggestions item must cite evidence_refs already present in the compact summary or top_n_findings.
+- Input findings are pre-filtered: you only receive Layer 1 (high-confidence data issues) and Layer 2 (needs human judgment) findings. Layer 3 informational findings (duplicate row vectors, low-risk signals, methodology checks) are excluded to reduce noise.
 """.strip()
     else:
         raise ValueError(f"unsupported role prompt: {role_id}")
