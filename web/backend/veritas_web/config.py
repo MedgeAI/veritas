@@ -6,10 +6,11 @@ for development.
 
 from __future__ import annotations
 
-import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal
+
+from engine.env import get_env
 
 from .auth import (
     AuthProvider,
@@ -66,14 +67,14 @@ class AuthConfig:
             ValueError: If bearer mode but JWT secret is too short.
             ValueError: If cloudflare mode but team_name or audience_tag missing.
         """
-        mode = os.getenv("VERITAS_AUTH_MODE", "none").lower()
+        mode = get_env("VERITAS_AUTH_MODE", required=False, default="none").lower()
         if mode not in ("none", "bearer", "basic", "cloudflare"):
             raise ValueError(
                 f"Invalid VERITAS_AUTH_MODE: {mode!r}. "
                 "Must be 'none', 'bearer', 'basic', or 'cloudflare'."
             )
 
-        secret = os.getenv("VERITAS_JWT_SECRET", "")
+        secret = get_env("VERITAS_JWT_SECRET", required=False, default="")
         if mode == "bearer" and len(secret) < 32:
             raise ValueError(
                 "VERITAS_JWT_SECRET must be at least 32 characters when "
@@ -81,8 +82,8 @@ class AuthConfig:
                 "Set a strong secret or switch to VERITAS_AUTH_MODE=none."
             )
 
-        cf_team_name = os.getenv("VERITAS_CF_TEAM_NAME", "")
-        cf_audience_tag = os.getenv("VERITAS_CF_AUDIENCE_TAG", "")
+        cf_team_name = get_env("VERITAS_CF_TEAM_NAME", required=False, default="")
+        cf_audience_tag = get_env("VERITAS_CF_AUDIENCE_TAG", required=False, default="")
         if mode == "cloudflare":
             if not cf_team_name:
                 raise ValueError(
@@ -95,7 +96,9 @@ class AuthConfig:
                     "VERITAS_AUTH_MODE=cloudflare."
                 )
 
-        bootstrap_raw = os.getenv("VERITAS_BOOTSTRAP_ADMIN_EMAILS", "")
+        bootstrap_raw = get_env(
+            "VERITAS_BOOTSTRAP_ADMIN_EMAILS", required=False, default=""
+        )
         bootstrap_admins = [
             e.strip().lower() for e in bootstrap_raw.split(",") if e.strip()
         ]
@@ -103,8 +106,14 @@ class AuthConfig:
         return cls(
             mode=mode,
             jwt_shared_secret=secret,
-            jwt_issuer=os.getenv("VERITAS_JWT_ISSUER", "veritas"),
-            sqlite_db_path=Path(os.getenv("VERITAS_USERS_DB", "web_data/users.db")),
+            jwt_issuer=get_env("VERITAS_JWT_ISSUER", required=False, default="veritas"),
+            sqlite_db_path=Path(
+                get_env(
+                    "VERITAS_USERS_DB",
+                    required=False,
+                    default="web_data/users.db",
+                )
+            ),
             cf_team_name=cf_team_name,
             cf_audience_tag=cf_audience_tag,
             cf_bootstrap_admins=bootstrap_admins,

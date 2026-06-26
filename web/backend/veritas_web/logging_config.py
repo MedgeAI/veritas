@@ -22,6 +22,8 @@ import sys
 from logging.handlers import RotatingFileHandler
 from urllib.parse import urlparse
 
+from engine.env import get_env
+
 _CONFIGURED = False
 
 _LOG_FORMAT = "%(asctime)s [%(levelname)-7s] %(name)s: %(message)s"
@@ -133,9 +135,16 @@ def configure_logging(level: str | None = None) -> None:
     _CONFIGURED = True
 
     # Default to DEBUG in dev, INFO in prod.
-    is_dev = os.environ.get("VERITAS_DEV", "").strip() in ("1", "true", "yes")
+    is_dev = get_env("VERITAS_DEV", required=False, default="").strip() in (
+        "1", "true", "yes"
+    )
     effective_level = (
-        level or os.environ.get("VERITAS_LOG_LEVEL", "DEBUG" if is_dev else "INFO")
+        level
+        or get_env(
+            "VERITAS_LOG_LEVEL",
+            required=False,
+            default="DEBUG" if is_dev else "INFO",
+        )
     ).upper()
 
     root = logging.getLogger()  # ROOT logger — catches all module loggers
@@ -149,7 +158,7 @@ def configure_logging(level: str | None = None) -> None:
     root.addHandler(stream_handler)
 
     # --- Rotating file handler (optional) ---
-    log_dir = os.environ.get("VERITAS_LOG_DIR", "logs/")
+    log_dir = get_env("VERITAS_LOG_DIR", required=False, default="logs/")
     if log_dir:
         try:
             os.makedirs(log_dir, exist_ok=True)

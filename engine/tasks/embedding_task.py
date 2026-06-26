@@ -8,12 +8,13 @@ process does not import FastAPI or web backend modules.
 from __future__ import annotations
 
 import logging
-import os
 from pathlib import Path
 from typing import Any
 
 from sqlalchemy import Column, Integer, String, Text, create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+
+from engine.env import get_env
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +53,10 @@ def _get_session_factory() -> sessionmaker[Session]:
     if _session_factory is not None:
         return _session_factory
 
-    db_url = os.environ.get("VERITAS_DATABASE_URL") or os.environ.get("DATABASE_URL")
+    db_url = (
+        get_env("VERITAS_DATABASE_URL", required=False)
+        or get_env("DATABASE_URL", required=False)
+    )
     if not db_url:
         raise RuntimeError(
             "VERITAS_DATABASE_URL (or DATABASE_URL) must be set for the "

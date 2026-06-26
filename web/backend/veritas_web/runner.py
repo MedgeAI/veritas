@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
@@ -9,6 +8,7 @@ from typing import Any, Callable
 
 from fastapi import HTTPException
 
+from engine.env import get_env
 from engine.static_audit.orchestrator import run_static_audit
 
 from .case_store import CaseStore
@@ -20,7 +20,7 @@ AuditFunction = Callable[..., dict[str, Any]]
 
 def _resolve_max_concurrent() -> int:
     """Read VERITAS_MAX_CONCURRENT_AUDITS env var, default 5."""
-    raw = os.environ.get("VERITAS_MAX_CONCURRENT_AUDITS", "5")
+    raw = get_env("VERITAS_MAX_CONCURRENT_AUDITS", required=False, default="5")
     try:
         value = int(raw)
     except (ValueError, TypeError):
@@ -63,7 +63,9 @@ class AuditRunner:
         run = self.store.create_run(
             case_id, agent_mode=str(params.get("agent_mode", "review"))
         )
-        if os.environ.get("VERITAS_USE_CELERY", "").lower() in ("1", "true", "yes"):
+        if get_env("VERITAS_USE_CELERY", required=False, default="").lower() in (
+            "1", "true", "yes"
+        ):
             return self._dispatch_celery_task(run, case_id, params)
         self._executor.submit(self.run_sync, case_id, run.run_id, params)
         return run
@@ -98,7 +100,7 @@ class AuditRunner:
                 agent_model=str(params.get("agent_model", "dashscope/qwen3.7-plus")),
                 opencode_bin=str(
                     params.get("opencode_bin")
-                    or os.environ.get("OPENCODE_BIN", "opencode")
+                    or get_env("OPENCODE_BIN", required=False, default="opencode")
                 ),
                 agent_timeout_seconds=int(params.get("agent_timeout_seconds", 300)),
                 agent_max_retries=int(params.get("agent_max_retries", 1)),
@@ -183,7 +185,8 @@ class AuditRunner:
             "agent_mode": str(params.get("agent_mode", "review")),
             "agent_model": str(params.get("agent_model", "dashscope/qwen3.7-plus")),
             "opencode_bin": str(
-                params.get("opencode_bin") or os.environ.get("OPENCODE_BIN", "opencode")
+                params.get("opencode_bin")
+                or get_env("OPENCODE_BIN", required=False, default="opencode")
             ),
             "agent_timeout_seconds": int(params.get("agent_timeout_seconds", 300)),
             "agent_max_retries": int(params.get("agent_max_retries", 1)),

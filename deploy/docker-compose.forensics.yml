@@ -1,0 +1,46 @@
+# Visual forensics long-running services.
+#
+# SILA dense (copy-move detection) and ELIS provenance (image provenance
+# graph) run as persistent HTTP services instead of one-shot Docker
+# containers, eliminating per-invocation startup overhead.
+#
+# Both services share a bind mount of the project root at /data so they
+# can read input images and write output artifacts using container-side
+# paths.  The Python adapter translates host ↔ container paths.
+#
+# Usage:
+#   docker compose -p vdev -f deploy/docker-compose.forensics.yml up -d --build
+#   docker compose -p vdev -f deploy/docker-compose.forensics.yml down
+
+services:
+  sila-dense:
+    build: ./forensics/sila-dense
+    image: veritas-sila-service:latest
+    container_name: veritas-sila-service
+    ports:
+      - "8770:8770"
+    volumes:
+      - "${PROJECT_ROOT:-..}:/data:rw"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8770/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  elis-forensic:
+    build: ./forensics/elis-forensic
+    image: veritas-elis-forensic-service:latest
+    container_name: veritas-elis-forensic-service
+    ports:
+      - "8771:8771"
+    volumes:
+      - "${PROJECT_ROOT:-..}:/data:rw"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8771/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s

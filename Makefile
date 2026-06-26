@@ -22,6 +22,7 @@ export GID := $(HOST_GID)
 COMPOSE ?= docker compose --env-file $(CURDIR)/.env --env-file $(CURDIR)/deploy/.env -p vdeploy -f deploy/docker-compose.yml
 COMPOSE_DEPLOY ?= docker compose --env-file $(CURDIR)/.env --env-file $(CURDIR)/deploy/.env -p vdeploy -f deploy/docker-compose.yml -f deploy/docker-compose.cloudflare.yml
 COMPOSE_DB ?= docker compose -p vdev -f deploy/docker-compose.local-db.yml
+COMPOSE_FORE ?= docker compose -p vdev -f deploy/docker-compose.forensics.yml
 
 MANIFEST ?= examples/bioinfo_python_case/veritas.json
 OUTPUT_DIR ?= outputs/demo
@@ -48,6 +49,7 @@ LOCAL_DATABASE_URL ?= postgresql://veritas_dev:veritas_dev_pass@127.0.0.1:5433/v
 	db-up db-down db-init db-migrate db-reset \
 	precheck run report demo audit audit-off audit-fresh report-path \
 	web-backend web-backend-reload celery-worker web-frontend web-install web-build web-preview dev dev-up dev-down \
+	forensics-up forensics-down \
 	test test-fast test-unit test-integration test-e2e test-visual test-model \
 	lint lint-python lint-web web-test \
 	deslop \
@@ -308,8 +310,17 @@ dev-up: ## One-command start: DB + backend + frontend (all in background)
 	done
 	@bash scripts/dev-start.sh
 
-dev-down: ## One-command stop: kill backend + frontend + DB
+dev-down: ## One-command stop: kill backend + frontend + forensics + DB
 	@bash scripts/dev-stop.sh
+
+forensics-up: ## Build and start visual forensics services (SILA dense :8770, ELIS provenance :8771)
+	@$(COMPOSE_FORE) up -d --build
+
+forensics-down: ## Stop visual forensics services
+	@$(COMPOSE_FORE) down
+
+forensics-logs: ## Tail forensics service logs
+	@$(COMPOSE_FORE) logs -f
 
 web-install: ## Install frontend dependencies
 	cd $(FRONTEND_DIR) && npm install

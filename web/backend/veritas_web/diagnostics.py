@@ -14,6 +14,8 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
+from engine.env import get_env
+
 
 @dataclass
 class CheckResult:
@@ -96,7 +98,7 @@ def run_full_diagnostics() -> DiagReport:
 def _check_infrastructure(report: DiagReport) -> None:
     """PostgreSQL, Docker daemon, GPU."""
     # PostgreSQL
-    db_url = os.environ.get("VERITAS_DATABASE_URL", "")
+    db_url = get_env("VERITAS_DATABASE_URL", required=False) or ""
     if db_url:
         try:
             from sqlalchemy import create_engine, text
@@ -279,14 +281,14 @@ def _check_env_vars(report: DiagReport) -> None:
         ),
     }
     for var, (severity, hint) in vars_check.items():
-        val = os.environ.get(var, "")
+        val = get_env(var, required=False) or ""
         if val:
             report.add(f"env:{var}", True, "set")
         else:
             report.add(f"env:{var}", False, "not set", severity=severity, fix_hint=hint)
 
     # OPENCODE_BIN
-    oc = os.environ.get("OPENCODE_BIN", "")
+    oc = get_env("OPENCODE_BIN", required=False) or ""
     if oc:
         exists = Path(oc).exists() or shutil.which(oc)
         report.add(
@@ -324,7 +326,7 @@ def _check_opencode_wrapper(report: DiagReport) -> None:
     Skipped inside container (opencode is directly available, checked earlier)."""
     if _IN_CONTAINER:
         return
-    wrapper = os.environ.get("OPENCODE_BIN", "")
+    wrapper = get_env("OPENCODE_BIN", required=False) or ""
     if not wrapper or not Path(wrapper).exists():
         # Not using wrapper; check if opencode is on PATH
         oc = shutil.which("opencode")

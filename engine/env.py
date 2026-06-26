@@ -9,19 +9,37 @@ NO_ENV_FILE_MARKER = "VERITAS_NO_ENV_FILE"
 DEFAULT_LOG_DIR = "logs/"
 
 
-def get_env(key: str, *, required: bool = True) -> str | None:
-    """Read an environment variable, fail-loud if required and missing.
+def get_env(
+    key: str, *, required: bool = True, default: str | None = None
+) -> str | None:
+    """Read an environment variable with fail-loud semantics.
 
     This is the single point of env-var access for business code.
-    Do not use os.getenv / os.environ in engine/.
+    Do not use os.getenv / os.environ in engine/ or web/backend/.
+
+    Args:
+        key: Environment variable name.
+        required: If True (default), raise RuntimeError when the variable
+            is missing or empty.  Set to False for optional configuration.
+        default: Fallback value returned when the variable is missing/empty
+            and *required* is False.  Ignored when *required* is True.
+
+    Returns:
+        The variable value, or *default* if not set and not required.
+
+    Raises:
+        RuntimeError: If *required* is True and the variable is not set
+            or is empty.
     """
     value = os.environ.get(key)
-    if required and not value:
+    if value:
+        return value
+    if required:
         raise RuntimeError(
             f"Required environment variable {key!r} is not set. "
             f"Set it in the shell or in the project .env file."
         )
-    return value
+    return default
 
 
 def parse_env_file(env_file: Path) -> dict[str, str]:

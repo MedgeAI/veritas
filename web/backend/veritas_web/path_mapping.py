@@ -2,16 +2,18 @@
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
+from engine.env import get_env
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 
 
 def configured_output_root(output_root: str | Path | None = None) -> Path:
     """Return the configured output root as an absolute path."""
-    raw = Path(str(output_root or os.environ.get("VERITAS_OUTPUT_ROOT", "outputs")))
+    raw = Path(
+        str(output_root or get_env("VERITAS_OUTPUT_ROOT", required=False, default="outputs"))
+    )
     if raw.is_absolute():
         return raw
     return (PROJECT_ROOT / raw).resolve()

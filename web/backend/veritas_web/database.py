@@ -3,13 +3,14 @@
 from __future__ import annotations
 
 import logging
-import os
 from typing import Any, Generator
 from urllib.parse import urlparse
 
 from sqlalchemy import create_engine, event, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+
+from engine.env import get_env
 
 
 class Base(DeclarativeBase):
@@ -31,7 +32,7 @@ def get_database_url() -> str:
         RuntimeError: If ``VERITAS_DATABASE_URL`` is not set or the resolved
             URL is not PostgreSQL-compatible.
     """
-    url = os.environ.get("VERITAS_DATABASE_URL")
+    url = get_env("VERITAS_DATABASE_URL", required=False)
     if not url:
         raise RuntimeError(
             "VERITAS_DATABASE_URL is not set.\n"

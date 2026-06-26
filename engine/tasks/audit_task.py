@@ -28,12 +28,13 @@ wraps it with:
 from __future__ import annotations
 
 import logging
-import os
 from pathlib import Path
 from typing import Any
 
 from sqlalchemy import Column, JSON, String, Text, create_engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+
+from engine.env import get_env
 
 logger = logging.getLogger(__name__)
 
@@ -92,8 +93,8 @@ def _get_session_factory() -> sessionmaker[Session]:
         return _session_factory
 
     db_url = (
-        os.environ.get("VERITAS_DATABASE_URL")
-        or os.environ.get("DATABASE_URL")
+        get_env("VERITAS_DATABASE_URL", required=False)
+        or get_env("DATABASE_URL", required=False)
     )
     if not db_url:
         raise RuntimeError(
@@ -453,7 +454,7 @@ def _run_audit_impl(
             agent_mode=options.get("agent_mode", "review"),
             agent_model=options.get("agent_model", "dashscope/qwen3.7-plus"),
             opencode_bin=options.get("opencode_bin")
-            or os.environ.get("OPENCODE_BIN", "opencode"),
+            or get_env("OPENCODE_BIN", required=False, default="opencode"),
             agent_timeout_seconds=int(options.get("agent_timeout_seconds", 300)),
             agent_max_retries=int(options.get("agent_max_retries", 1)),
             progress=_progress,

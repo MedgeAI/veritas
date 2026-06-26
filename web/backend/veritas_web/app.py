@@ -14,6 +14,21 @@ import os
 from pathlib import Path
 from typing import Any
 
+# ---------------------------------------------------------------------------
+# Load project .env into os.environ BEFORE reading any config variables.
+#
+# ``load_project_env`` returns a merged dict (shell env + .env file, shell
+# wins) but does NOT mutate ``os.environ``.  We inject via ``setdefault``
+# so that ``get_env()`` — and any downstream ``os.environ.get()`` — sees
+# .env values.  Shell exports still take priority (setdefault won't
+# overwrite).
+# ---------------------------------------------------------------------------
+_PROJECT_ROOT = Path(__file__).resolve().parents[3]
+from engine.env import get_env, load_project_env  # noqa: E402
+
+for _k, _v in load_project_env(_PROJECT_ROOT).items():
+    os.environ.setdefault(_k, _v)
+
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -200,11 +215,10 @@ def create_app(
     # --- Health endpoint -----------------------------------------------
     @app.get("/api/health")
     async def health() -> dict[str, Any]:
-        import os as _os
-
         runner_mode = (
             "celery"
-            if _os.environ.get("VERITAS_USE_CELERY", "").lower() in ("1", "true", "yes")
+            if get_env("VERITAS_USE_CELERY", required=False, default="").lower()
+            in ("1", "true", "yes")
             else "thread_pool"
         )
         return {
@@ -399,8 +413,8 @@ def serve(
 
 if __name__ == "__main__":
     serve(
-        host=os.environ.get("VERITAS_HOST", "127.0.0.1"),
-        port=int(os.environ.get("VERITAS_PORT", "8765")),
-        data_root=os.environ.get("VERITAS_DATA_ROOT", "web_data"),
-        output_root=os.environ.get("VERITAS_OUTPUT_ROOT", "outputs"),
+        host=get_env("VERITAS_HOST", required=False, default="127.0.0.1"),
+        port=int(get_env("VERITAS_PORT", required=False, default="8765")),
+        data_root=get_env("VERITAS_DATA_ROOT", required=False, default="web_data"),
+        output_root=get_env("VERITAS_OUTPUT_ROOT", required=False, default="outputs"),
     )

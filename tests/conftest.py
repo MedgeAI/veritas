@@ -12,6 +12,11 @@ os.environ.setdefault(
     "postgresql://veritas_dev:veritas_dev_pass@localhost:5433/veritas_dev",
 )
 
+# Tests run without a Celery worker — force synchronous thread-pool execution.
+# Overrides .env VERITAS_USE_CELERY=true so runner.start() takes the
+# thread-pool path. Individual tests can still monkeypatch if needed.
+os.environ["VERITAS_USE_CELERY"] = "false"
+
 
 WEB_DB_TEST_PATHS = (
     "tests/unit/test_case_isolation.py",

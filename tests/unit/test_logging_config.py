@@ -33,7 +33,9 @@ def _reset_logging_config():
     root.setLevel(saved_level)
 
 
-def test_configure_logging_adds_stream_handler():
+def test_configure_logging_adds_stream_handler(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.delenv("VERITAS_DEV", raising=False)
+    monkeypatch.delenv("VERITAS_LOG_LEVEL", raising=False)
     logging_config.configure_logging()
 
     root = logging.getLogger()

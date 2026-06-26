@@ -14,8 +14,24 @@ from __future__ import annotations
 
 import logging
 import os
+from pathlib import Path
 
 from celery import Celery
+
+# ---------------------------------------------------------------------------
+# Load project .env into os.environ BEFORE reading any config variables.
+#
+# ``load_project_env`` returns a merged dict (shell env + .env file, shell
+# wins) but does NOT mutate ``os.environ``.  We inject via ``setdefault``
+# so that ``get_env()`` — and any downstream ``os.environ.get()`` — sees
+# .env values.  Shell exports still take priority (setdefault won't
+# overwrite).
+# ---------------------------------------------------------------------------
+_PROJECT_ROOT = Path(__file__).resolve().parents[2]
+from engine.env import get_env, load_project_env  # noqa: E402
+
+for _k, _v in load_project_env(_PROJECT_ROOT).items():
+    os.environ.setdefault(_k, _v)
 
 logger = logging.getLogger(__name__)
 
@@ -23,22 +39,21 @@ logger = logging.getLogger(__name__)
 # Broker / backend URLs
 # ---------------------------------------------------------------------------
 
-_DEFAULT_BROKER = (
-    "sqlalchemy+postgresql://veritas_dev:veritas_dev_pass@localhost:5433/veritas_dev"
+BROKER_URL: str = get_env(
+    "CELERY_BROKER_URL", required=False,
+    default="sqlalchemy+postgresql://veritas_dev:veritas_dev_pass@localhost:5433/veritas_dev",
 )
-_DEFAULT_BACKEND = (
-    "db+postgresql://veritas_dev:veritas_dev_pass@localhost:5433/veritas_dev"
+RESULT_BACKEND: str = get_env(
+    "CELERY_RESULT_BACKEND", required=False,
+    default="db+postgresql://veritas_dev:veritas_dev_pass@localhost:5433/veritas_dev",
 )
-
-BROKER_URL: str = os.environ.get("CELERY_BROKER_URL", _DEFAULT_BROKER)
-RESULT_BACKEND: str = os.environ.get("CELERY_RESULT_BACKEND", _DEFAULT_BACKEND)
 
 # ---------------------------------------------------------------------------
 # Concurrency and timeout knobs
 # ---------------------------------------------------------------------------
 
-_MAX_CONCURRENT = int(os.environ.get("AUDIT_MAX_CONCURRENT_JOBS", "2"))
-_TASK_TIME_LIMIT = int(os.environ.get("AUDIT_TASK_TIMEOUT_SECONDS", "3600"))
+_MAX_CONCURRENT = int(get_env("AUDIT_MAX_CONCURRENT_JOBS", required=False, default="2"))
+_TASK_TIME_LIMIT = int(get_env("AUDIT_TASK_TIMEOUT_SECONDS", required=False, default="3600"))
 _TASK_SOFT_TIME_LIMIT = max(_TASK_TIME_LIMIT - 100, 60)
 
 # ---------------------------------------------------------------------------

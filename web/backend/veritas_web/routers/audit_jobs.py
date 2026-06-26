@@ -17,13 +17,14 @@ GET    /api/audit/queue        Queue depth summary.
 from __future__ import annotations
 
 import logging
-import os
 from typing import Any
 
 import jwt as pyjwt
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
+
+from engine.env import get_env
 
 from ..auth import AuthContext
 from ..dependencies import (
@@ -132,7 +133,9 @@ async def get_auth_context_sse(
 
 
 def _use_celery() -> bool:
-    return os.environ.get("VERITAS_USE_CELERY", "").lower() in ("1", "true", "yes")
+    return get_env("VERITAS_USE_CELERY", required=False, default="").lower() in (
+        "1", "true", "yes"
+    )
 
 
 def _get_runner(deps: AppDependencies) -> AuditRunner:
@@ -204,7 +207,7 @@ async def submit_audit(
         )
 
     # Queue capacity limit — waiting tasks (queued).
-    max_queue_size = int(os.environ.get("AUDIT_MAX_QUEUE_SIZE", "10"))
+    max_queue_size = int(get_env("AUDIT_MAX_QUEUE_SIZE", required=False, default="10"))
     queued_count = store.count_queued_runs()
     if queued_count >= max_queue_size:
         raise HTTPException(
@@ -252,7 +255,7 @@ async def queue_status(
 
     queued = store.count_queued_runs()
     running = store.count_running_runs()
-    max_queue_size = int(os.environ.get("AUDIT_MAX_QUEUE_SIZE", "10"))
+    max_queue_size = int(get_env("AUDIT_MAX_QUEUE_SIZE", required=False, default="10"))
 
     return {
         "queued": queued,

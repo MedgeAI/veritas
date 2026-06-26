@@ -40,22 +40,32 @@ def test_sila_dense_mask_coverage_failure_does_not_create_relationship(
     mask_path = tmp_path / "bad_mask.png"
     mask_path.write_text("not an image", encoding="utf-8")
 
-    def fake_run_single_image_docker(_crop_path: Path, _output_dir: Path) -> dict:
+    def fake_detect_batch(image_paths, output_dir, method=2):
         return {
             "success": True,
-            "mask_path": str(mask_path),
-            "matches_path": None,
-            "stdout": "",
-            "stderr": "",
+            "total": len(image_paths),
+            "succeeded": len(image_paths),
+            "failed": 0,
+            "results": [
+                {
+                    "id": p.stem,
+                    "success": True,
+                    "mask_path": str(mask_path),
+                    "matches_path": None,
+                    "clusters_path": None,
+                    "elapsed_seconds": 0.1,
+                }
+                for p in image_paths
+            ],
         }
 
     monkeypatch.setattr(
-        "engine.static_audit.tools.sila_dense._docker_available",
+        "engine.static_audit.tools.sila_dense._service_available",
         lambda: True,
     )
     monkeypatch.setattr(
-        "engine.static_audit.tools.sila_dense._run_single_image_docker",
-        fake_run_single_image_docker,
+        "engine.static_audit.tools.sila_dense._detect_batch_via_service",
+        fake_detect_batch,
     )
 
     result = detect_sila_dense(
