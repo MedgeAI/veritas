@@ -5,18 +5,21 @@ Merged from: test_{basic_auth,bearer_auth,auth_schema}.
 
 from __future__ import annotations
 
-import base64
-import jwt
+# Skip entire module if web dependencies are not installed
 import pytest
-import time
+jwt = pytest.importorskip("jwt")
+pytest.importorskip("bcrypt")
 
-from web.backend.veritas_web.auth import (
+import base64  # noqa: E402
+import time  # noqa: E402
+
+from web.backend.veritas_web.auth import (  # noqa: E402
     AuthContext,
     NoAuthProvider,
 )
-from web.backend.veritas_web.auth import BasicAuthProvider
-from web.backend.veritas_web.auth import BearerTokenProvider
-from web.backend.veritas_web.config import AuthConfig
+from web.backend.veritas_web.auth import BasicAuthProvider  # noqa: E402
+from web.backend.veritas_web.auth import BearerTokenProvider  # noqa: E402
+from web.backend.veritas_web.config import AuthConfig  # noqa: E402
 
 
 # ===========================================================================

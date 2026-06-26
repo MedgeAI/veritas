@@ -6,11 +6,15 @@ computation, and progress tracking of the Celery audit task.
 
 from __future__ import annotations
 
-from pathlib import Path
-from unittest.mock import MagicMock, patch
+# Skip entire module if web dependencies are not installed
+import pytest
+pytest.importorskip("sqlalchemy")
+
+from pathlib import Path  # noqa: E402
+from unittest.mock import MagicMock, patch  # noqa: E402
 
 
-from engine.tasks.audit_task import (
+from engine.tasks.audit_task import (  # noqa: E402
     _compute_stages,
     _resolve_stage_from_event,
     _run_audit_impl,

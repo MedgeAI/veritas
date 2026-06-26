@@ -7,17 +7,19 @@ to inject mocked CaseStore and AuditRunner.
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Any
-from unittest.mock import MagicMock
-
+# Skip entire module if web dependencies are not installed
 import pytest
+pytest.importorskip("fastapi")
 
-from tests.helpers.asgi_client import LocalASGITestClient as TestClient
-from web.backend.veritas_web.auth import NoAuthProvider
-from web.backend.veritas_web.dependencies import AppDependencies, get_app_dependencies
-from web.backend.veritas_web.models import AuditRunRecord, CaseRecord
-from web.backend.veritas_web.routers.audit_jobs import router
+from pathlib import Path  # noqa: E402
+from typing import Any  # noqa: E402
+from unittest.mock import MagicMock  # noqa: E402
+
+from tests.helpers.asgi_client import LocalASGITestClient as TestClient  # noqa: E402
+from web.backend.veritas_web.auth import NoAuthProvider  # noqa: E402
+from web.backend.veritas_web.dependencies import AppDependencies, get_app_dependencies  # noqa: E402
+from web.backend.veritas_web.models import AuditRunRecord, CaseRecord  # noqa: E402
+from web.backend.veritas_web.routers.audit_jobs import router  # noqa: E402
 
 
 def _build_app(store: MagicMock, runner: MagicMock) -> Any:
