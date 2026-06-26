@@ -136,3 +136,25 @@ def resolve_artifact_path(workdir: Path, artifact_name: str) -> Path:
     if artifact_name in ARTIFACT_PATH_MAP:
         return workdir / ARTIFACT_PATH_MAP[artifact_name]
     return workdir / artifact_name
+
+
+def artifact_path_candidates(workdir: Path, artifact_name: str) -> tuple[Path, ...]:
+    """Return read candidates for an artifact in preference order.
+
+    New runs write mapped artifacts under their responsibility subdirectory.
+    Older runs may still have flat root-level artifacts, so readers should try
+    the mapped path first and then the legacy flat path.
+    """
+    mapped = resolve_artifact_path(workdir, artifact_name)
+    legacy = workdir / artifact_name
+    if legacy == mapped:
+        return (mapped,)
+    return (mapped, legacy)
+
+
+def existing_artifact_path(workdir: Path, artifact_name: str) -> Path | None:
+    """Return the first existing mapped-or-legacy artifact path."""
+    for candidate in artifact_path_candidates(workdir, artifact_name):
+        if candidate.exists():
+            return candidate
+    return None

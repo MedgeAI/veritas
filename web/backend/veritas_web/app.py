@@ -59,7 +59,7 @@ class VeritasWebApp:
         )
         self.runner = AuditRunner(self.store, output_root=output_root)
         self.recovered_interrupted_runs = self.runner.recover_interrupted_runs()
-        self.artifacts = ArtifactService(self.store)
+        self.artifacts = ArtifactService(self.store, output_root=output_root)
         self.investigations = WebInvestigationService(self.store, self.artifacts)
         self.frontend_dist = (
             Path(frontend_dist)
@@ -83,7 +83,7 @@ def create_app(
     resolved_database_url = _resolve_database_url(data_root, database_url)
     store = CaseStore(data_root, database_url=resolved_database_url)
     runner = AuditRunner(store, output_root=output_root)
-    artifacts_svc = ArtifactService(store)
+    artifacts_svc = ArtifactService(store, output_root=output_root)
     investigations_svc = WebInvestigationService(store, artifacts_svc)
     auth = auth_provider or create_auth_provider(AuthConfig.from_env())
 
@@ -205,11 +205,15 @@ def create_app(
 
         # 1. MinerU / evidence_ledger / numeric_forensics scripts
         mineru_scripts = AUDITOR_ROOT / "scripts"
-        mineru_ok = mineru_scripts.is_dir() and (mineru_scripts / "mineru_convert.py").exists()
+        mineru_ok = (
+            mineru_scripts.is_dir() and (mineru_scripts / "mineru_convert.py").exists()
+        )
         checks["mineru_scripts"] = {
             "ok": mineru_ok,
             "path": str(mineru_scripts),
-            "detail": "ok" if mineru_ok else "AUDITOR_ROOT scripts directory or mineru_convert.py missing",
+            "detail": "ok"
+            if mineru_ok
+            else "AUDITOR_ROOT scripts directory or mineru_convert.py missing",
         }
         if not mineru_ok:
             all_ok = False
@@ -225,7 +229,9 @@ def create_app(
 
         # 3. Data directories writable
         _data = Path(str(data_root) if not isinstance(data_root, Path) else data_root)  # type: ignore[name-defined]
-        _out = Path(str(output_root) if not isinstance(output_root, Path) else output_root)  # type: ignore[name-defined]
+        _out = Path(
+            str(output_root) if not isinstance(output_root, Path) else output_root
+        )  # type: ignore[name-defined]
         for name, d in [("data_root", _data), ("output_root", _out)]:
             writable = d.exists() and os.access(str(d), os.W_OK)
             checks[name] = {"ok": writable, "path": str(d)}
@@ -235,9 +241,14 @@ def create_app(
         # 4. Python audit imports
         import_ok = True
         try:
-            from engine.static_audit import _pipeline_steps  # noqa: F401
-            from engine.static_audit.adapters.paperconan_adapter import run_paperconan_scan  # noqa: F401
-        except ImportError as exc:
+            import importlib
+
+            importlib.import_module("engine.static_audit._pipeline_steps")
+            paperconan_adapter = importlib.import_module(
+                "engine.static_audit.adapters.paperconan_adapter"
+            )
+            getattr(paperconan_adapter, "run_paperconan_scan")
+        except (AttributeError, ImportError) as exc:
             import_ok = False
             checks["python_imports"] = {"ok": False, "detail": str(exc)}
             all_ok = False

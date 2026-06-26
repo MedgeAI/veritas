@@ -7,7 +7,9 @@ from pathlib import Path
 from engine.static_audit.orchestrator import (
     ARTIFACT_PATH_MAP,
     OUTPUT_DIRS,
+    artifact_path_candidates,
     ensure_output_subdirs,
+    existing_artifact_path,
     output_subdir,
     resolve_artifact_path,
 )
@@ -108,6 +110,22 @@ def test_resolve_artifact_path_fallback() -> None:
     assert resolve_artifact_path(workdir, "unknown_file.json") == Path(
         "/tmp/test/unknown_file.json"
     )
+
+
+def test_existing_artifact_path_prefers_mapped_then_legacy(tmp_path: Path) -> None:
+    """Readers should support new mapped paths and legacy flat artifacts."""
+    workdir = tmp_path / "audit"
+    mapped = workdir / "mineru" / "full.md"
+    legacy = workdir / "full.md"
+    mapped.parent.mkdir(parents=True)
+    workdir.mkdir(exist_ok=True)
+
+    legacy.write_text("legacy", encoding="utf-8")
+    assert artifact_path_candidates(workdir, "full.md") == (mapped, legacy)
+    assert existing_artifact_path(workdir, "full.md") == legacy
+
+    mapped.write_text("mapped", encoding="utf-8")
+    assert existing_artifact_path(workdir, "full.md") == mapped
 
 
 def test_artifact_path_map_consistency() -> None:

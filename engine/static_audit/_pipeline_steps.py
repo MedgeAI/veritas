@@ -26,6 +26,7 @@ from engine.static_audit._shared import (
     StepResult,
     emit_progress,
     emit_step_start,
+    existing_artifact_path,
     read_json,
     record_step,
     resolve_artifact_path,
@@ -172,8 +173,8 @@ def _run_source_data_steps(
         "--max-findings-per-category",
         str(source_finding_params["max_findings_per_category"]),
     ]
-    full_md = resolve_artifact_path(workdir, "full.md")
-    if full_md.exists():
+    full_md = existing_artifact_path(workdir, "full.md")
+    if full_md is not None:
         cmd.extend(["--full-md", str(full_md)])
     steps.append(
         run_command(
@@ -657,15 +658,14 @@ def _run_mineru_forensics_section(
     progress: ProgressCallback | None,
 ) -> tuple[list[StepResult], bool]:
     """Run MinerU, evidence ledger, numeric forensics, and PaperFraud rule matching."""
-    from engine.static_audit.cli_driver import exists_all
     from engine.static_audit.tools.paperfraud_rules import run_paperfraud_rule_match
 
     steps: list[StepResult] = []
     mineru_outputs = [
-        resolve_artifact_path(workdir, k)
+        existing_artifact_path(workdir, k)
         for k in ("full.md", "mineru_manifest.json", "images")
     ]
-    if exists_all(mineru_outputs) and not args.force:
+    if all(mineru_outputs) and not args.force:
         record_step(
             steps,
             StepResult(
@@ -711,7 +711,8 @@ def _run_mineru_forensics_section(
                 stream_output=True,
             )
         )
-    if (workdir / "full.md").exists():
+    full_md = existing_artifact_path(workdir, "full.md")
+    if full_md is not None:
         steps.append(
             run_command(
                 "evidence_ledger",
@@ -731,6 +732,7 @@ def _run_mineru_forensics_section(
             )
         )
         _relocate_mineru_outputs(workdir)
+        full_md = existing_artifact_path(workdir, "full.md")
         steps.append(
             run_command(
                 "numeric_forensics",
@@ -768,7 +770,9 @@ def _run_mineru_forensics_section(
                 "PaperFraud 规则库匹配",
                 "Matching structured PaperFraud rules against parsed paper text.",
             )
-            run_paperfraud_rule_match(resolve_artifact_path(workdir, "full.md"), pf_out)
+            run_paperfraud_rule_match(
+                full_md or resolve_artifact_path(workdir, "full.md"), pf_out
+            )
             record_step(
                 steps,
                 StepResult(
@@ -785,7 +789,7 @@ def _run_mineru_forensics_section(
             record_step(
                 steps, StepResult(key, title, "skipped", "full.md missing."), progress
             )
-    return steps, (workdir / "full.md").exists()
+    return steps, existing_artifact_path(workdir, "full.md") is not None
 
 
 def _run_agent_review_section(

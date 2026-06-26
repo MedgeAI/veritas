@@ -49,9 +49,7 @@ class AuditRunner:
 
     def _active_runs_count(self) -> int:
         """Count runs with status='running' across all cases."""
-        return sum(
-            1 for run in self.store.list_all_runs() if run.status == "running"
-        )
+        return sum(1 for run in self.store.list_all_runs() if run.status == "running")
 
     def start(
         self, case_id: str, params: dict[str, Any] | None = None
@@ -158,6 +156,7 @@ class AuditRunner:
         self.store.save_run(run)
         self._update_case_after_run(run)
         return run
+
     # ------------------------------------------------------------------
 
     def _dispatch_celery_task(
@@ -257,7 +256,7 @@ class AuditRunner:
             failed_steps = []
             if run.summary:
                 failed_steps = list(run.summary.get("failed_steps") or [])
-            bundle = load_static_audit_bundle(run.workdir)
+            bundle = load_static_audit_bundle(run.workdir, output_root=self.output_root)
             finding_review_count = 0
             if bundle is not None:
                 findings = bundle.get("findings", [])

@@ -6,6 +6,8 @@ from typing import Any
 
 from engine.static_audit.paths import resolve_artifact_path
 
+from .path_mapping import normalize_workdir_path
+
 
 RISK_ORDER = {"info": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
 RISK_LEVELS = ("critical", "high", "medium", "low", "info")
@@ -25,10 +27,12 @@ def normalize_risk_level(value: Any) -> str:
     return level if level in RISK_ORDER else "info"
 
 
-def static_audit_bundle_path(workdir: str | Path | None) -> Path | None:
+def static_audit_bundle_path(
+    workdir: str | Path | None, *, output_root: str | Path | None = None
+) -> Path | None:
     if not workdir:
         return None
-    root = Path(workdir)
+    root = normalize_workdir_path(workdir, output_root=output_root)
     mapped = resolve_artifact_path(root, "static_audit_bundle.json")
     if mapped.exists():
         return mapped
@@ -38,8 +42,10 @@ def static_audit_bundle_path(workdir: str | Path | None) -> Path | None:
     return None
 
 
-def load_static_audit_bundle(workdir: str | Path | None) -> dict[str, Any] | None:
-    path = static_audit_bundle_path(workdir)
+def load_static_audit_bundle(
+    workdir: str | Path | None, *, output_root: str | Path | None = None
+) -> dict[str, Any] | None:
+    path = static_audit_bundle_path(workdir, output_root=output_root)
     if path is None:
         return None
     try:

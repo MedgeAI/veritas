@@ -3,10 +3,11 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from pathlib import Path
 
-from engine.static_audit.paths import resolve_artifact_path
+from engine.static_audit.paths import existing_artifact_path
 
 from .case_store import CaseStore
 from .models import ArtifactRef
+from .path_mapping import normalize_workdir_path
 
 
 KNOWN_ARTIFACTS = (
@@ -46,8 +47,11 @@ KNOWN_ARTIFACTS = (
 
 
 class ArtifactService:
-    def __init__(self, store: CaseStore) -> None:
+    def __init__(
+        self, store: CaseStore, *, output_root: str | Path | None = None
+    ) -> None:
         self.store = store
+        self.output_root = output_root
 
     def list_artifacts(self, case_id: str) -> list[ArtifactRef]:
         workdir = self.latest_workdir(case_id)
@@ -104,9 +108,11 @@ class ArtifactService:
             return None
         run = self.store.get_run(case_id, case.latest_run_id)
         if run.workdir:
-            return Path(run.workdir)
+            return normalize_workdir_path(run.workdir, output_root=self.output_root)
         if run.summary and run.summary.get("workdir"):
-            return Path(str(run.summary["workdir"]))
+            return normalize_workdir_path(
+                str(run.summary["workdir"]), output_root=self.output_root
+            )
         return None
 
     @staticmethod
@@ -128,10 +134,4 @@ def file_metadata(path: Path) -> tuple[int, str]:
 
 
 def artifact_file_path(workdir: Path, filename: str) -> Path | None:
-    mapped = resolve_artifact_path(workdir, filename)
-    if mapped.exists():
-        return mapped
-    legacy = workdir / filename
-    if legacy.exists():
-        return legacy
-    return None
+    return existing_artifact_path(workdir, filename)
