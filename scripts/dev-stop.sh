@@ -10,6 +10,10 @@ pkill -f "vite.*5173" 2>/dev/null && echo "  Frontend stopped." || echo "  Front
 
 echo "→ Stopping backend..."
 pkill -f "veritas_web.app.*serve" 2>/dev/null && echo "  Backend stopped." || echo "  Backend not running."
+pkill -f "uvicorn.*veritas_web" 2>/dev/null && echo "  Backend (uvicorn) stopped." || true
+
+echo "→ Stopping celery worker..."
+pkill -f "celery.*engine.tasks.celery_app" 2>/dev/null && echo "  Celery worker stopped." || echo "  Celery worker not running."
 
 echo "→ Stopping PostgreSQL..."
 cd "$REPO_ROOT"

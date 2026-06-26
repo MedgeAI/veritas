@@ -39,6 +39,18 @@ nohup npm run dev > "$REPO_ROOT/logs/dev-frontend.log" 2>&1 &
 FRONTEND_PID=$!
 echo "  Frontend PID=$FRONTEND_PID"
 
+echo "→ Starting celery worker..."
+cd "$REPO_ROOT"
+VERITAS_DATABASE_URL="$LOCAL_DB_URL" \
+VERITAS_DEV=1 \
+VERITAS_LOG_DIR=logs \
+VERITAS_AUTH_MODE="${VERITAS_AUTH_MODE:-none}" \
+VERITAS_USERS_DB="${VERITAS_USERS_DB:-web_data/users.db}" \
+PYTHONPATH="$REPO_ROOT" \
+  nohup uv run celery -A engine.tasks.celery_app worker --loglevel=debug > "$REPO_ROOT/logs/dev-celery.log" 2>&1 &
+CELERY_PID=$!
+echo "  Celery PID=$CELERY_PID"
+
 # Wait for backend
 echo "→ Waiting for backend..."
 for i in $(seq 1 20); do
@@ -69,5 +81,5 @@ echo ""
 echo "Dev stack ready:"
 echo "  Frontend: http://localhost:5173"
 echo "  Backend:  http://$BACKEND_HOST:$BACKEND_PORT"
-echo "  Logs:     logs/dev-backend.log, logs/dev-frontend.log"
+echo "  Logs:     logs/dev-backend.log, logs/dev-frontend.log, logs/dev-celery.log, logs/veritas.log"
 echo "  Stop:     make dev-down"

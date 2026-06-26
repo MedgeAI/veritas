@@ -3,8 +3,25 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-
 NO_ENV_FILE_MARKER = "VERITAS_NO_ENV_FILE"
+
+# Default log directory (repo-relative).  Override with VERITAS_LOG_DIR.
+DEFAULT_LOG_DIR = "logs/"
+
+
+def get_env(key: str, *, required: bool = True) -> str | None:
+    """Read an environment variable, fail-loud if required and missing.
+
+    This is the single point of env-var access for business code.
+    Do not use os.getenv / os.environ in engine/.
+    """
+    value = os.environ.get(key)
+    if required and not value:
+        raise RuntimeError(
+            f"Required environment variable {key!r} is not set. "
+            f"Set it in the shell or in the project .env file."
+        )
+    return value
 
 
 def parse_env_file(env_file: Path) -> dict[str, str]:
