@@ -98,7 +98,7 @@ def _load_model(weights_path: str, device: str) -> Any:
     cfg.MODEL.EXTRA.CONF = True
     cfg.TEST = CN({"MODEL_FILE": weights_path})
 
-    from models.cmx.builder_np_conf import myEncoderDecoder as confcmx
+    from models.cmx.builder_np_conf import myEncoderDecoder as confcmx  # type: ignore[import-untyped]
 
     model = confcmx(cfg=cfg)
 
@@ -116,7 +116,7 @@ def _preprocess_image(
 ) -> tuple[torch.Tensor, tuple[int, int]]:
     """Load and preprocess an image for TruFor inference."""
     _setup_trufor_path()
-    from data_core import myDataset
+    from data_core import myDataset  # type: ignore[import-untyped]
 
     dataset = myDataset(list_img=[image_path])
     loader = torch.utils.data.DataLoader(dataset, batch_size=1)

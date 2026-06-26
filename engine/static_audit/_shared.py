@@ -89,6 +89,7 @@ STEP_TOOL_IDS = {
     "paperfraud_rule_match": PAPERFRAUD_RULE_MATCH_TOOL_ID,
     "material_inventory": "material.inventory",
     "agent_material_plan": "agent.material_plan",
+    "figure_classification": "llm.figure_classification",
     "source_data_profile": "source_data.profile",
     "source_data_findings": "source_data.findings",
     "source_data_pair_forensics": "source_data.pair_forensics",
@@ -735,3 +736,298 @@ def source_finding_params_from_lane(lane: dict[str, Any] | None) -> dict[str, An
             if key in source_params:
                 params[key] = source_params[key]
     return params
+
+
+# ---------------------------------------------------------------------------
+# Figure classification helpers
+# ---------------------------------------------------------------------------
+# Panel classifications that should undergo visual forensics (TruFor, Copy-Move).
+# 'mixed' is included because it may contain wet-lab panels.
+# 'unknown' is also included as a conservative fallback (run forensics to be safe).
+WET_LAB_TYPES = {"wet_lab", "mixed"}
+
+
+def filter_wet_lab_panels(
+    all_panels: list[dict[str, Any]],
+    classifications: dict[str, Any],
+) -> list[dict[str, Any]]:
+    """Filter panels to only those classified as wet_lab or mixed.
+
+    Args:
+        all_panels: List of panel dicts from panel_evidence.json
+        classifications: Figure classification data from figure_classification.json
+
+    Returns:
+        Filtered list of panels that should undergo visual forensics.
+
+    Panel classification priority:
+        1. panel['panel_classification'] if already set
+        2. Look up by figure_id in classifications['classifications']
+        3. Default to 'unknown' (included in wet_lab filter)
+    """
+    cls_data: dict[str, Any] = {}
+    if classifications and isinstance(classifications, dict):
+        raw = classifications.get("classifications", {})
+        if isinstance(raw, dict):
+            cls_data = raw
+
+    result = []
+    for panel in all_panels:
+        if not isinstance(panel, dict):
+            continue
+
+        # Determine classification for this panel
+        panel_cls = panel.get("panel_classification")
+
+        if not panel_cls and cls_data:
+            # Look up by panel label in LLM classifications
+            panel_label = panel.get("label", "")
+            for fig_label, fig_panels in cls_data.items():
+                if not isinstance(fig_panels, dict):
+                    continue
+                if panel_label in fig_panels:
+                    panel_info = fig_panels[panel_label]
+                    if isinstance(panel_info, dict):
+                        panel_cls = panel_info.get("classification", "unknown")
+                        break
+
+        # Default to 'unknown' if no classification found
+        if not panel_cls:
+            panel_cls = "unknown"
+
+        # Include wet_lab, mixed, and unknown (conservative)
+        if panel_cls in WET_LAB_TYPES or panel_cls == "unknown":
+            result.append(panel)
+
+    return result
+
+
+# ---------------------------------------------------------------------------
+# Cross-sheet column classification (LLM-based)
+# ---------------------------------------------------------------------------
+def classify_columns_with_llm(
+    column_names: list[str],
+    sample_values: dict[str, list],
+    llm_client: Any,
+) -> dict[str, str]:
+    """Use LLM to classify columns as metadata/measurement/index.
+
+    Args:
+        column_names: List of column names to classify.
+        sample_values: Dict mapping column name to sample values (up to 3).
+        llm_client: VeritasLLMClient instance.
+
+    Returns:
+        Dict mapping column name to type: "metadata", "measurement", or "index".
+        On LLM failure, returns empty dict (caller should fallback).
+    """
+    if not column_names:
+        return {}
+
+    # Limit to first 20 columns to keep prompt small
+    cols_to_classify = column_names[:20]
+    sample_preview = {col: sample_values.get(col, [])[:3] for col in cols_to_classify}
+
+    prompt = f"""判断以下 source data 列的类型：
+
+列名和样本值：
+{json.dumps(sample_preview, indent=2, ensure_ascii=False)}
+
+分类规则：
+- metadata: 标识符、分组、临床状态（patient_id, group, treatment, status, survival_time, recurrence, death_status）
+- measurement: 实验测量值（expression, count, ratio, percentage, concentration, fold_change）
+- index: 行号、序号（row_number, index, #）
+
+返回 JSON: {{"column_name": "metadata|measurement|index", ...}}
+只返回 JSON，不要解释。"""
+
+    try:
+        result = llm_client.chat_json(prompt, max_tokens=2048)
+        # Validate result structure
+        if not isinstance(result, dict):
+            logger.warning("LLM column classification returned non-dict: %r", result)
+            return {}
+        # Normalize values to lowercase
+        return {k: v.lower() for k, v in result.items() if isinstance(v, str)}
+    except Exception as e:
+        logger.warning("LLM column classification failed: %s", e)
+        return {}
+
+
+def run_cross_sheet_filter(
+    workdir: Path,
+    cross_sheet_findings: list[dict],
+    llm_client: Any,
+) -> list[dict]:
+    """Filter cross-sheet findings by LLM column classification.
+
+    Only keeps findings where the column is classified as "measurement".
+    Metadata and index columns are filtered out (they are expected to be
+    shared across sheets).
+
+    On LLM failure, returns all findings unchanged (conservative fallback)
+    and logs a warning.
+
+    Args:
+        workdir: Working directory (for logging/artifacts).
+        cross_sheet_findings: List of cross-sheet finding dicts.
+        llm_client: VeritasLLMClient instance.
+
+    Returns:
+        Filtered list of findings (only measurement columns).
+    """
+    if not cross_sheet_findings:
+        return []
+
+    # Extract unique column names and sample values from findings
+    column_names: set[str] = set()
+    sample_values: dict[str, list] = {}
+
+    for finding in cross_sheet_findings:
+        # Cross-sheet findings have column_1, column_2 or column_pair
+        col1 = finding.get("column_1") or finding.get("column")
+        col2 = finding.get("column_2")
+        col1_label = finding.get("column_1_label", "")
+        col2_label = finding.get("column_2_label", "")
+
+        if col1:
+            column_names.add(col1)
+            if col1_label and col1 not in sample_values:
+                sample_values[col1] = [col1_label]
+        if col2:
+            column_names.add(col2)
+            if col2_label and col2 not in sample_values:
+                sample_values[col2] = [col2_label]
+
+    if not column_names:
+        logger.warning("No column names found in cross-sheet findings")
+        return cross_sheet_findings
+
+    # Classify columns with LLM
+    column_types = classify_columns_with_llm(
+        list(column_names), sample_values, llm_client
+    )
+
+    # LLM failure: conservative fallback (keep all findings)
+    if not column_types:
+        logger.warning(
+            "LLM column classification failed; keeping all %d cross-sheet findings",
+            len(cross_sheet_findings),
+        )
+        return cross_sheet_findings
+
+    # Filter: only keep findings where column is "measurement"
+    filtered = []
+    for finding in cross_sheet_findings:
+        col1 = finding.get("column_1") or finding.get("column")
+        col2 = finding.get("column_2")
+
+        # Check if either column is a measurement
+        col1_type = column_types.get(col1, "unknown") if col1 else "unknown"
+        col2_type = column_types.get(col2, "unknown") if col2 else "unknown"
+
+        if col1_type == "measurement" or col2_type == "measurement":
+            # Annotate with classification for transparency
+            finding_copy = dict(finding)
+            finding_copy["column_1_type"] = col1_type
+            finding_copy["column_2_type"] = col2_type
+            filtered.append(finding_copy)
+
+    logger.info(
+        "Cross-sheet filter: %d -> %d findings (filtered %d metadata/index columns)",
+        len(cross_sheet_findings),
+        len(filtered),
+        len(cross_sheet_findings) - len(filtered),
+    )
+
+    return filtered
+
+
+# ---------------------------------------------------------------------------
+# Finding layer classification (PRD2-T7)
+# ---------------------------------------------------------------------------
+# Categories that are always informational (Layer 3), regardless of risk_level.
+_LAYER3_CATEGORIES = frozenset({
+    "duplicate_row_vector",
+    "paperfraud.methodology_review",
+})
+
+# Tokens that identify Paperconan/numeric-forensics findings.
+# Paperconan HIGH-risk goes to Layer 2, not Layer 1 (per PRD section 5).
+_PAPERCONAN_TOKENS = ("paperfraud", "numeric_forensics", "benford", "digit")
+
+
+def classify_finding(finding: dict[str, Any]) -> str:
+    """Classify a finding into one of three report layers.
+
+    Layer assignment rules (PRD section 5):
+        Layer 1 (high confidence): risk_level in {critical, high},
+            except duplicate_row_vector and paperfraud.methodology_review.
+        Layer 2 (needs human judgment): risk_level == medium,
+            OR high-risk paperfraud/numeric-forensics findings.
+        Layer 3 (informational): risk_level in {low, info, context},
+            OR duplicate_row_vector, OR paperfraud.methodology_review.
+
+    Args:
+        finding: A finding dict with at least 'risk_level' and optionally
+            'category' and 'source_artifact' keys.
+
+    Returns:
+        One of 'layer_1', 'layer_2', or 'layer_3'.
+    """
+    risk_level = str(finding.get("risk_level") or "medium").lower()
+    category = str(finding.get("category") or "").lower()
+    source_artifact = str(finding.get("source_artifact") or "").lower()
+
+    # Duplicate row vectors and methodology review are always Layer 3
+    if category in _LAYER3_CATEGORIES:
+        return "layer_3"
+
+    # Check if this is a Paperconan/numeric-forensics finding
+    is_paperconan = any(
+        token in category or token in source_artifact
+        for token in _PAPERCONAN_TOKENS
+    )
+
+    if risk_level in ("critical", "high"):
+        # Paperconan HIGH-risk goes to Layer 2 (per PRD section 5)
+        if is_paperconan:
+            return "layer_2"
+        return "layer_1"
+
+    if risk_level == "medium":
+        return "layer_2"
+
+    # low, info, context
+    return "layer_3"
+
+
+def filter_judge_input(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Filter findings for Judge input: only Layer 1 + Layer 2.
+
+    Filters out:
+    - Layer 3 findings (DRV, Paperconan MEDIUM/LOW, TruFor LOW)
+    - PaperFraud methodology findings (Wave 2 removed, verified here)
+    - Metadata column cross-sheet findings (Wave 3 filtered, verified here)
+
+    Args:
+        findings: List of finding dicts from various audit artifacts.
+
+    Returns:
+        Filtered list containing only Layer 1 + Layer 2 findings,
+        annotated with ``_layer`` for transparency.
+    """
+    if not findings:
+        return []
+
+    filtered = []
+    for finding in findings:
+        if not isinstance(finding, dict):
+            continue
+        layer = classify_finding(finding)
+        if layer in ("layer_1", "layer_2"):
+            annotated = dict(finding)
+            annotated["_layer"] = layer
+            filtered.append(annotated)
+
+    return filtered

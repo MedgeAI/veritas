@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import shutil
+import time
 from pathlib import Path
 from typing import Any
 
@@ -74,8 +75,15 @@ def run_visual_panel_extraction(
     images_dir: Path,
     force: bool,
     progress: ProgressCallback | None = None,
+    figure_classification: dict[str, Any] | None = None,
 ) -> tuple[list[StepResult], dict[str, Any]]:
-    """Create canonical figure and panel evidence from extracted PDF images."""
+    """Create canonical figure and panel evidence from extracted PDF images.
+
+    Args:
+        figure_classification: Optional figure classification data from
+            figure_classification.json. If provided, each panel will be
+            annotated with 'panel_classification' field.
+    """
     steps: list[StepResult] = []
     figure_output = resolve_artifact_path(workdir, "visual_evidence.json")
     panel_output = resolve_artifact_path(workdir, "panel_evidence.json")
@@ -112,6 +120,7 @@ def run_visual_panel_extraction(
         "Building canonical figure_evidence and panel_evidence artifacts.",
     )
 
+    start_time = time.monotonic()
     evidence_ledger = (
         read_json(resolve_artifact_path(workdir, "evidence_ledger.json")) or {}
     )
@@ -156,23 +165,37 @@ def run_visual_panel_extraction(
         batch_panels = {}
 
     # Distribute panels to figures; fallback for figures with zero panels
+    fallback_count = 0
     for fid, source_path in figure_path_pairs:
         figure = figure_by_id.get(fid)
         if figure is None:
             continue
         result_panels = batch_panels.get(fid, [])
         if not result_panels:
+            logger.debug("Figure %s: 0 panels detected; applying whole-figure fallback", fid)
             fallback_panel = whole_figure_panel(
                 figure, workdir=workdir, output_dir=workdir
             )
             if fallback_panel:
                 result_panels = [fallback_panel]
+                fallback_count += 1
                 # Post-hoc heuristic typing: infer panel_type from image
                 # shape/color so downstream forensics routing can make
                 # informed decisions even when YOLOv5 detected nothing.
                 _classify_fallback_panels(result_panels, workdir=workdir)
                 limitations.append(
                     f"{fid}: YOLOv5 panel extraction did not detect panels; whole-figure fallback panel was created."
+                )
+
+        # Annotate panels with LLM classification (if available)
+        if figure_classification:
+            from engine.static_audit.figure_classification import (
+                classify_panel_with_yolo_priority,
+            )
+
+            for panel in result_panels:
+                panel["panel_classification"] = classify_panel_with_yolo_priority(
+                    panel, figure_classification
                 )
 
         panels.extend(result_panels)
@@ -190,6 +213,16 @@ def run_visual_panel_extraction(
         status = _visual_status(extraction_statuses)
         if status == "ran":
             status = "warning"
+
+    elapsed_s = time.monotonic() - start_time
+    logger.info(
+        "Panel extraction summary: figures=%d panels=%d fallbacks=%d failures=%d elapsed=%.1fs",
+        len(figures),
+        len(panels),
+        fallback_count,
+        len(errors),
+        elapsed_s,
+    )
 
     visual_evidence = {
         "schema_version": "1.0",
@@ -588,8 +621,13 @@ def run_tru_for_detection(
     allow_env_skip: bool = False,
     panel_extraction_status: str | None = None,
     progress: ProgressCallback | None = None,
+    figure_classification: dict[str, Any] | None = None,
 ) -> tuple[list[StepResult], dict[str, Any]]:
-    """Run TruFor forgery detection on all figures."""
+    """Run TruFor forgery detection on all figures.
+
+    If figure_classification is provided, only figures with wet_lab|mixed panels
+    will be processed, reducing computation on code-generated visualizations.
+    """
     steps: list[StepResult] = []
     output_path = resolve_artifact_path(workdir, "forged_region_evidence.json")
     if output_path.exists() and not force:
@@ -650,6 +688,37 @@ def run_tru_for_detection(
 
     visual_evidence = read_json(visual_evidence_path) or {}
     figures = visual_evidence.get("figures", [])
+
+    # Filter figures to only those with wet_lab panels (if classification available)
+    if figure_classification and figures:
+        from engine.static_audit._shared import WET_LAB_TYPES
+
+        # Load panel evidence to check panel classifications
+        panel_evidence_path = resolve_artifact_path(workdir, "panel_evidence.json")
+        panel_evidence = read_json(panel_evidence_path) or {}
+        panels = panel_evidence.get("panels", [])
+
+        # Find figure_ids that have wet_lab panels
+        wet_lab_figure_ids: set[str] = set()
+        for panel in panels:
+            if not isinstance(panel, dict):
+                continue
+            panel_cls = panel.get("panel_classification", "unknown")
+            if panel_cls in WET_LAB_TYPES or panel_cls == "unknown":
+                parent_id = panel.get("parent_figure_id")
+                if parent_id:
+                    wet_lab_figure_ids.add(parent_id)
+
+        # Filter figures
+        original_count = len(figures)
+        figures = [f for f in figures if f.get("figure_id") in wet_lab_figure_ids]
+        filtered_count = original_count - len(figures)
+        if filtered_count > 0:
+            logger.info(
+                "TruFor: filtered %d figures (keeping %d with wet_lab panels)",
+                filtered_count,
+                len(figures),
+            )
 
     if not figures:
         # Legitimate scenario: paper has no figures. Skip without failure.
@@ -1097,8 +1166,13 @@ def run_sila_dense_detection(
     allow_env_skip: bool = False,
     panel_extraction_status: str | None = None,
     progress: ProgressCallback | None = None,
+    figure_classification: dict[str, Any] | None = None,
 ) -> tuple[list[StepResult], dict[str, Any]]:
-    """Run SILA dense copy-move detection via Docker."""
+    """Run SILA dense copy-move detection via Docker.
+
+    If figure_classification is provided, only wet_lab|mixed panels will be
+    processed, reducing computation on code-generated visualizations.
+    """
     steps: list[StepResult] = []
     output_path = resolve_artifact_path(workdir, "visual_copy_move_dense.json")
     if output_path.exists() and not force:
@@ -1157,6 +1231,26 @@ def run_sila_dense_detection(
 
     panel_evidence = read_json(panel_evidence_path) or {}
     panels = panel_evidence.get("panels", [])
+
+    # Filter panels to only wet_lab panels (if classification available)
+    if figure_classification and panels:
+        from engine.static_audit._shared import WET_LAB_TYPES
+
+        original_count = len(panels)
+        panels = [
+            p for p in panels
+            if isinstance(p, dict) and (
+                p.get("panel_classification") in WET_LAB_TYPES
+                or p.get("panel_classification") == "unknown"
+            )
+        ]
+        filtered_count = original_count - len(panels)
+        if filtered_count > 0:
+            logger.info(
+                "SILA dense: filtered %d panels (keeping %d wet_lab panels)",
+                filtered_count,
+                len(panels),
+            )
 
     visual_evidence_path = resolve_artifact_path(workdir, "visual_evidence.json")
     visual_evidence = (

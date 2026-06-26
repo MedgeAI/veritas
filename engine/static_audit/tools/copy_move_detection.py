@@ -21,12 +21,15 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import shutil
 import subprocess
 import sys
 from itertools import combinations
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from engine.static_audit.visual_constants import (
     COPY_MOVE_DEFAULTS,
@@ -50,7 +53,7 @@ def _dhash(path: Path, hash_size: int = 8) -> int:
         for col in range(hash_size):
             left = pixels[row * (hash_size + 1) + col]
             right = pixels[row * (hash_size + 1) + col + 1]
-            value = (value << 1) | int(left > right)
+            value = (value << 1) | int(left > right)  # type: ignore[assignment,operator]
     return value
 
 
@@ -334,6 +337,182 @@ def _run_cross_figure_detection(
     return result.get("results", [])
 
 
+def _is_wet_lab_figure(
+    figure_id: str,
+    figure_panel_types: dict[str, set[str]] | None,
+    figure_classification: dict[str, Any] | None,
+) -> bool:
+    """Check if a figure should run rotation detection (wet_lab only).
+
+    Rotation detection is restricted to wet_lab panels to avoid false positives
+    on code-generated images. A figure is eligible if:
+    1. figure_classification indicates it has wet_lab/mixed panels, OR
+    2. figure_panel_types includes wet_lab-like YOLO types (Blots, Microscopy, etc.)
+
+    Args:
+        figure_id: The figure identifier
+        figure_panel_types: Map of figure_id -> set of YOLO panel types
+        figure_classification: Figure classification data from figure_classification.json
+
+    Returns:
+        True if rotation detection should run on this figure
+    """
+    # Check figure_classification first (LLM-based)
+    if figure_classification:
+        classifications = figure_classification.get("classifications", [])
+        for cls_item in classifications:
+            if isinstance(cls_item, dict):
+                fid = cls_item.get("figure_id", "")
+                cls = cls_item.get("classification", "")
+                if fid == figure_id and cls in {"wet_lab", "mixed"}:
+                    return True
+
+    # Fall back to YOLO panel types
+    if figure_panel_types:
+        types = figure_panel_types.get(figure_id, set())
+        wet_lab_yolo_types = {"Blots", "Microscopy", "Body Imaging", "Flow Cytometry"}
+        if types & wet_lab_yolo_types:
+            return True
+
+    return False
+
+
+def _run_rotation_detection(
+    figure_evidence: list[dict[str, Any]],
+    workdir: Path,
+    min_matches: int,
+    min_score: float,
+    figure_panel_types: dict[str, set[str]] | None = None,
+    figure_classification: dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    """Phase 2c: Detect copy-move with rotation/flip/scale on wet_lab figures.
+
+    Only runs on figures classified as wet_lab or mixed to avoid false positives
+    on code-generated images (UMAP, heatmaps, etc.).
+
+    Args:
+        figure_evidence: List of figure dicts
+        workdir: Working directory
+        min_matches: Minimum inlier matches for RANSAC
+        min_score: Minimum score to emit relationship
+        figure_panel_types: Map of figure_id -> set of YOLO panel types
+        figure_classification: Figure classification data from figure_classification.json
+
+    Returns:
+        List of rotation detection results (same format as cross-figure results)
+    """
+    try:
+        import cv2
+    except ImportError:
+        logger.warning("cv2 not available; skipping rotation detection")
+        return []
+
+    from engine.static_audit.tools._copy_move_rotation import (
+        detect_copy_move_rotation,
+    )
+
+    # Collect figures with valid paths
+    figures_with_paths = []
+    for fig in figure_evidence:
+        source = str(fig.get("source_image_path") or "")
+        if not source:
+            continue
+        fig_path = workdir / source
+        if fig_path.exists():
+            figures_with_paths.append(
+                {
+                    "figure_id": str(fig.get("figure_id") or ""),
+                    "path": fig_path,
+                }
+            )
+
+    if len(figures_with_paths) < 2:
+        return []
+
+    # Filter to wet_lab figures only
+    wet_lab_figures = []
+    for fig in figures_with_paths:
+        fid = fig["figure_id"]
+        if _is_wet_lab_figure(fid, figure_panel_types, figure_classification):
+            wet_lab_figures.append(fig)
+
+    if len(wet_lab_figures) < 2:
+        logger.debug(
+            f"Rotation detection: {len(wet_lab_figures)} wet_lab figures (need >= 2)"
+        )
+        return []
+
+    # Compare all wet_lab pairs (capped to avoid O(n^2) blowup)
+    results = []
+    max_pairs = 500
+    pair_count = 0
+
+    for i, fig_a in enumerate(wet_lab_figures):
+        for fig_b in wet_lab_figures[i + 1 :]:
+            if pair_count >= max_pairs:
+                logger.warning(f"Rotation detection: capped at {max_pairs} pairs")
+                break
+
+            pair_count += 1
+            pair_id = f"{fig_a['figure_id']}__{fig_b['figure_id']}"
+
+            try:
+                img_a = cv2.imread(str(fig_a["path"]))
+                img_b = cv2.imread(str(fig_b["path"]))
+
+                if img_a is None or img_b is None:
+                    logger.warning(f"Failed to load images for rotation pair {pair_id}")
+                    continue
+
+                result = detect_copy_move_rotation(img_a, img_b, min_matches=min_matches)
+
+                if result is None:
+                    continue
+
+                inlier_count = result["inlier_count"]
+                angle = result["angle"]
+                scale = result["scale"]
+                is_flipped = result["is_flipped"]
+
+                # Score based on inlier count
+                score = min(1.0, inlier_count / 200.0)
+
+                if score < min_score:
+                    continue
+
+                results.append(
+                    {
+                        "pair_id": pair_id,
+                        "source_figure_id": fig_a["figure_id"],
+                        "target_figure_id": fig_b["figure_id"],
+                        "success": True,
+                        "found_forgery": True,
+                        "matched_keypoints": inlier_count,
+                        "inlier_count": inlier_count,
+                        "score": round(score, 4),
+                        "is_flipped": is_flipped,
+                        "rotation_angle": round(angle, 2),
+                        "scale_factor": round(scale, 4),
+                        "transform_matrix": result["transform_matrix"],
+                    }
+                )
+
+            except Exception as e:
+                logger.warning(f"Rotation detection failed for pair {pair_id}: {e}")
+                results.append(
+                    {
+                        "pair_id": pair_id,
+                        "source_figure_id": fig_a["figure_id"],
+                        "target_figure_id": fig_b["figure_id"],
+                        "success": False,
+                        "found_forgery": False,
+                        "error": str(e),
+                    }
+                )
+
+    return results
+
+
 def detect_copy_move(
     panel_evidence: list[dict],
     figure_evidence: list[dict],
@@ -343,11 +522,13 @@ def detect_copy_move(
     min_matches: int = COPY_MOVE_DEFAULTS["min_matches"],
     min_score: float = COPY_MOVE_DEFAULTS["min_score"],
     max_relationships: int = COPY_MOVE_DEFAULTS["max_relationships"],
+    figure_classification: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Detect copy-move manipulation within and across panels.
 
     Phase 2a: single-image copy-move per panel (within-panel forgery).
     Phase 2b: cross-figure with dhash pre-filter (cross-figure reuse).
+    Phase 2c: rotation/flip/scale detection using SIFT + affine transform (wet_lab only).
     """
     panels_with_crops = [
         p for p in panel_evidence if _resolve_panel_image_path(p, workdir)
@@ -483,6 +664,67 @@ def detect_copy_move(
             }
         )
 
+    # --- Phase 2c: Rotation/flip/scale detection (wet_lab only) ---
+    rotation_results = _run_rotation_detection(
+        figure_evidence,
+        workdir,
+        min_matches=max(min_matches, 10),  # Rotation needs at least 10 matches
+        min_score=min_score,
+        figure_panel_types=figure_panel_types,
+        figure_classification=figure_classification,
+    )
+    for r in rotation_results:
+        if not r.get("success"):
+            if r.get("error"):
+                errors.append(f"Rotation {r.get('pair_id')}: {r['error']}")
+            continue
+        if not r.get("found_forgery"):
+            continue
+
+        inlier_count = r.get("inlier_count", 0)
+        if inlier_count < min_matches:
+            continue
+
+        score = r.get("score", 0.0)
+        if score < min_score:
+            continue
+
+        src_fid = r.get("source_figure_id", "")
+        tgt_fid = r.get("target_figure_id", "")
+
+        # Resolve panel types
+        src_types = sorted(figure_panel_types.get(src_fid) or set())
+        tgt_types = sorted(figure_panel_types.get(tgt_fid) or set())
+        matched_types = sorted(set(src_types) & set(tgt_types))
+        src_panel_type = ",".join(src_types) if src_types else "unknown"
+        tgt_panel_type = ",".join(tgt_types) if tgt_types else "unknown"
+
+        relationships.append(
+            {
+                "relationship_id": f"IR-{len(relationships) + 1:04d}",
+                "source_type": "copy_move_rotation",
+                "source_panel_id": src_fid,
+                "target_panel_id": tgt_fid,
+                "score": round(score, 4),
+                "match_method": "sift_ransac_affine",
+                "inlier_count": inlier_count,
+                "homography": r.get("transform_matrix"),
+                "overlay_path": None,  # Rotation detection doesn't generate overlay
+                "flip_detected": r.get("is_flipped", False),
+                "metadata": {
+                    "detection_mode": "rotation_affine",
+                    "rotation_angle": r.get("rotation_angle", 0.0),
+                    "scale_factor": r.get("scale_factor", 1.0),
+                    "is_flipped": r.get("is_flipped", False),
+                    "source_panel_type": src_panel_type,
+                    "target_panel_type": tgt_panel_type,
+                    "matched_panel_types": ",".join(matched_types)
+                    if matched_types
+                    else "unknown",
+                },
+            }
+        )
+
     # Sort by score descending, cap at max_relationships
     relationships.sort(key=lambda r: r["score"], reverse=True)
     relationships = relationships[:max_relationships]
@@ -542,6 +784,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--max-relationships", type=int, default=COPY_MOVE_DEFAULTS["max_relationships"]
     )
+    parser.add_argument(
+        "--figure-classification",
+        default=None,
+        help="Path to figure_classification.json (for wet_lab filtering)",
+    )
     return parser.parse_args()
 
 
@@ -566,6 +813,12 @@ def main() -> int:
                 figure_data.get("figures", []) if isinstance(figure_data, dict) else []
             )
 
+    figure_classification = None
+    if args.figure_classification:
+        fc_path = Path(args.figure_classification).expanduser().resolve()
+        if fc_path.exists():
+            figure_classification = json.loads(fc_path.read_text(encoding="utf-8"))
+
     result = detect_copy_move(
         panels,
         figures,
@@ -574,6 +827,7 @@ def main() -> int:
         min_matches=args.min_matches,
         min_score=args.min_score,
         max_relationships=args.max_relationships,
+        figure_classification=figure_classification,
     )
 
     output = Path(args.output).expanduser().resolve()

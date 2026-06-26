@@ -158,6 +158,7 @@ def _run_visual_baseline(
     images_dir: Path,
     args: argparse.Namespace,
     progress: ProgressCallback | None,
+    figure_classification: dict[str, Any] | None = None,
 ) -> tuple[list[StepResult], dict[str, Any]]:
     from engine.static_audit.visual_pipeline import (
         run_visual_panel_extraction,
@@ -170,7 +171,11 @@ def _run_visual_baseline(
     steps: list[StepResult] = []
     manifest: dict[str, Any] = {}
     vs, vm = run_visual_panel_extraction(
-        workdir=workdir, images_dir=images_dir, force=args.force, progress=progress
+        workdir=workdir,
+        images_dir=images_dir,
+        force=args.force,
+        progress=progress,
+        figure_classification=figure_classification,
     )
     steps.extend(vs)
     manifest["visual_forensics"] = vm
@@ -190,6 +195,7 @@ def _run_visual_baseline(
         }
         if runner is not run_image_quality_detection:
             kw["allow_env_skip"] = allow_env_skip
+            kw["figure_classification"] = figure_classification
         kw["panel_extraction_status"] = pe_status
         s, m = runner(**kw)
         steps.extend(s)
@@ -437,9 +443,26 @@ def _run_static_audit_from_args(
                 progress,
             )
 
+    # Figure classification (LLM legend analysis)
+    from engine.static_audit.figure_classification import (
+        run_figure_classification_step,
+    )
+
+    fc_steps, fc_manifest = run_figure_classification_step(
+        workdir=workdir,
+        force=args.force,
+        progress=progress,
+    )
+    steps.extend(fc_steps)
+    agent_manifest["figure_classification"] = fc_manifest.get("figure_classification")
+
     # Visual baseline
     vb_steps, vb_manifest = _run_visual_baseline(
-        workdir=workdir, images_dir=images_dir, args=args, progress=progress
+        workdir=workdir,
+        images_dir=images_dir,
+        args=args,
+        progress=progress,
+        figure_classification=fc_manifest.get("figure_classification"),
     )
     steps.extend(vb_steps)
     agent_manifest.setdefault("visual_forensics", {}).update(
@@ -478,32 +501,10 @@ def _run_static_audit_from_args(
             env=env,
             args=args,
             progress=progress,
+            figure_classification=fc_manifest.get("figure_classification"),
         )
     )
 
-    # VLM triage
-    if (resolve_artifact_path(workdir, "vlm_triage_selected.json")).exists():
-        record_step(
-            steps,
-            StepResult(
-                "vlm_triage",
-                "VLM 抽样初筛",
-                "reused",
-                "Existing VLM triage artifact found.",
-            ),
-            progress,
-        )
-    else:
-        record_step(
-            steps,
-            StepResult(
-                "vlm_triage",
-                "VLM 抽样初筛",
-                "skipped",
-                "Batch VLM triage is not implemented in this orchestrator.",
-            ),
-            progress,
-        )
 
     # Agent review
     steps.extend(

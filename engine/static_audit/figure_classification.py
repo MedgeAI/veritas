@@ -1,0 +1,435 @@
+"""Figure classification via LLM legend analysis.
+
+Parses figure legends from MinerU's full.md and uses LLM to classify each
+figure's panels into: wet_lab | bioinformatics | mixed | other.
+
+This enables downstream visual forensics (TruFor, Copy-Move) to focus on
+wet-lab panels only, reducing false positives and computation time.
+
+Architecture:
+    full.md (MinerU output)
+        -> parse_figure_legends()  — extract legend text per figure
+        -> classify_figure()       — LLM call per figure
+        -> figure_classification.json
+
+Downstream:
+    visual_pipeline.py reads figure_classification.json to annotate panels
+    with panel_classification field, then filters wet_lab|mixed panels for
+    TruFor/Copy-Move analysis.
+"""
+
+from __future__ import annotations
+
+import json
+import logging
+import re
+from pathlib import Path
+from typing import Any
+
+from engine.static_audit._shared import (
+    ProgressCallback,
+    StepResult,
+    emit_step_start,
+    existing_artifact_path,
+    record_step,
+    resolve_artifact_path,
+    write_json_artifact,
+)
+
+logger = logging.getLogger(__name__)
+
+
+# ---------------------------------------------------------------------------
+# Legend parsing
+# ---------------------------------------------------------------------------
+
+# Matches figure headings in full.md:
+#   "# Fig. 1 | Title"
+#   "# Extended Data Fig. 1 | Title"
+#   "## Fig. 10 | Title"
+_FIGURE_HEADING_RE = re.compile(
+    r"^#+\s*((?:Extended\s+Data\s+)?Fig(?:ure)?\.?\s*\d+[a-z]?)\s*\|?\s*(.*)",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+# Matches inline figure legends (no heading marker):
+#   "Fig. 2 | Title. a, Description..."
+#   "Extended Data Fig. 1 | Title. a, Description..."
+_INLINE_LEGEND_RE = re.compile(
+    r"^((?:Extended\s+Data\s+)?Fig(?:ure)?\.?\s*\d+[a-z]?)\s*\|\s*(.*)",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+
+def parse_figure_legends(full_md_text: str) -> dict[str, str]:
+    """Extract figure legends from full.md text.
+
+    Returns:
+        {figure_label: legend_text}
+        e.g. {"Fig. 1": "ScRNA-seq and spatial profiling...",
+              "Extended Data Fig. 1": "..."}
+
+    Handles both heading-based legends (# Fig. 1 | ...) and inline legends
+    (Fig. 2 | ...).
+    """
+    legends: dict[str, str] = {}
+
+    # Split by markdown headings to get sections
+    lines = full_md_text.split("\n")
+    current_figure: str | None = None
+    current_legend_lines: list[str] = []
+
+    for line in lines:
+        # Check if this line is a figure heading
+        heading_match = _FIGURE_HEADING_RE.match(line)
+        if heading_match:
+            # Save previous figure's legend
+            if current_figure and current_legend_lines:
+                legends[current_figure] = "\n".join(current_legend_lines).strip()
+
+            current_figure = _normalize_figure_label(heading_match.group(1))
+            # Start collecting legend from the title part
+            title_part = heading_match.group(2).strip()
+            current_legend_lines = [title_part] if title_part else []
+            continue
+
+        # Check if this is a new heading (non-figure) — stop collecting
+        if line.startswith("#"):
+            if current_figure and current_legend_lines:
+                legends[current_figure] = "\n".join(current_legend_lines).strip()
+                current_figure = None
+                current_legend_lines = []
+            continue
+
+        # If we're collecting a figure legend, add this line
+        if current_figure is not None:
+            current_legend_lines.append(line)
+
+    # Save last figure if file doesn't end with a heading
+    if current_figure and current_legend_lines:
+        legends[current_figure] = "\n".join(current_legend_lines).strip()
+
+    # Also scan for inline legends (not under headings)
+    for match in _INLINE_LEGEND_RE.finditer(full_md_text):
+        label = _normalize_figure_label(match.group(1))
+        if label not in legends:
+            # Collect text until next blank line or figure reference
+            start = match.start()
+            end = match.end()
+            # Find the end of this paragraph (double newline or next figure)
+            remaining = full_md_text[end:]
+            para_end = re.search(r"\n\n|\n(?=(?:Extended\s+Data\s+)?Fig)", remaining)
+            if para_end:
+                legend_text = match.group(2) + remaining[:para_end.start()]
+            else:
+                legend_text = match.group(2) + remaining[:500]  # limit
+            legends[label] = legend_text.strip()
+
+    return legends
+
+
+def _normalize_figure_label(label: str) -> str:
+    """Normalize figure label to canonical form: 'Fig. N' or 'Extended Data Fig. N'."""
+    # Remove extra whitespace
+    label = re.sub(r"\s+", " ", label.strip())
+    # Ensure consistent format
+    label = re.sub(r"Figure\.?", "Fig.", label, flags=re.IGNORECASE)
+    label = re.sub(r"Fig\.\s*", "Fig. ", label)
+    return label
+
+
+# ---------------------------------------------------------------------------
+# LLM classification
+# ---------------------------------------------------------------------------
+
+_CLASSIFICATION_PROMPT_TEMPLATE = """You are analyzing a scientific paper's figure legend to classify each panel.
+
+Figure: {figure_label}
+Legend:
+{legend_text}
+
+Classify each panel based on its description:
+
+Classification rules:
+- wet_lab: Real photographic images (blot, microscopy, IHC/IF, gel, flow cytometry scatter plots, tissue/animal photos, histology)
+- bioinformatics: Code-generated visualizations (UMAP/t-SNE, heatmap, volcano plot, survival curve, bar/line/scatter chart, pseudotime graph, bubble chart)
+- mixed: Figure contains both wet_lab and bioinformatics panels
+- other: Schematic diagrams, flowcharts, 3D renders, cartoons, illustrations
+
+Return JSON with panel descriptions and classifications:
+{{
+  "a": {{"description": "Brief description from legend", "classification": "wet_lab|bioinformatics|mixed|other"}},
+  "b": {{"description": "...", "classification": "..."}},
+  ...
+}}
+
+If the figure has no panel structure (single image), use "figure" as the key.
+If the legend is unclear or malformed, return empty {{}}.
+Return ONLY valid JSON, no explanations."""
+
+
+def classify_figure(
+    figure_label: str,
+    legend_text: str,
+    llm_client: Any,
+) -> dict[str, dict[str, str]]:
+    """Call LLM to classify panels in a single figure.
+
+    Args:
+        figure_label: e.g. "Fig. 1", "Extended Data Fig. 2"
+        legend_text: The full legend text for this figure
+        llm_client: VeritasLLMClient instance
+
+    Returns:
+        {panel_label: {"description": str, "classification": str}}
+        e.g. {"a": {"description": "UMAP plot...", "classification": "bioinformatics"},
+              "b": {"description": "Western blot...", "classification": "wet_lab"}}
+        Returns empty dict if LLM fails or legend is unparseable.
+    """
+    if not legend_text.strip():
+        logger.warning("Empty legend for %s, skipping classification", figure_label)
+        return {}
+
+    prompt = _CLASSIFICATION_PROMPT_TEMPLATE.format(
+        figure_label=figure_label,
+        legend_text=legend_text[:3000],  # Limit to avoid token overflow
+    )
+
+    try:
+        result = llm_client.chat_json(prompt)
+        if not isinstance(result, dict):
+            logger.warning(
+                "LLM returned non-dict for %s: %r", figure_label, type(result)
+            )
+            return {}
+        return result
+    except Exception as e:
+        logger.warning("LLM classification failed for %s: %s", figure_label, e)
+        return {}
+
+
+def classify_all_figures(
+    legends: dict[str, str],
+    llm_client: Any,
+) -> dict[str, dict[str, dict[str, str]]]:
+    """Classify all figures in the paper.
+
+    Args:
+        legends: {figure_label: legend_text} from parse_figure_legends()
+        llm_client: VeritasLLMClient instance
+
+    Returns:
+        {figure_label: {panel_label: {"description": str, "classification": str}}}
+    """
+    results: dict[str, dict[str, dict[str, str]]] = {}
+    for label, legend in legends.items():
+        results[label] = classify_figure(label, legend, llm_client)
+    return results
+
+
+# ---------------------------------------------------------------------------
+# Panel classification (combines YOLO + LLM)
+# ---------------------------------------------------------------------------
+
+# YOLO panel types that are definitely wet-lab
+_YOLO_WET_LAB_TYPES = {"Microscopy", "Blots", "Body Imaging", "Flow Cytometry"}
+# YOLO panel types that are definitely bioinformatics
+_YOLO_BIOINFO_TYPES = {"Graph", "Graphs"}
+
+
+def classify_panel_with_yolo_priority(
+    panel: dict[str, Any],
+    llm_classifications: dict[str, dict[str, str]],
+) -> str:
+    """Classify a single panel using YOLO panel_type with LLM fallback.
+
+    Priority:
+        1. YOLO panel_type is recognized -> map directly
+        2. YOLO unknown/missing -> use LLM classification for this panel label
+        3. Both fail -> return 'unknown' (conservative: will run visual forensics)
+
+    Args:
+        panel: Panel dict with 'panel_type', 'label', 'parent_figure_id'
+        llm_classifications: {figure_label: {panel_label: {"classification": str}}}
+
+    Returns:
+        Classification string: 'wet_lab', 'bioinformatics', 'mixed', 'other', 'unknown'
+    """
+    # Priority 1: YOLO already classified
+    yolo_type = panel.get("panel_type") or ""
+    if yolo_type in _YOLO_WET_LAB_TYPES:
+        return "wet_lab"
+    if yolo_type in _YOLO_BIOINFO_TYPES:
+        return "bioinformatics"
+
+    # Priority 2: LLM fallback
+    # Need to map parent_figure_id -> figure_label, but panel_evidence doesn't
+    # have figure_label directly. We'll use the figure_id to look up in
+    # classifications by matching the panel's figure context.
+    # For now, we look up by panel label across all figures.
+    panel_label = panel.get("label") or ""
+    if panel_label:
+        for fig_label, panels in llm_classifications.items():
+            if isinstance(panels, dict) and panel_label in panels:
+                panel_info = panels[panel_label]
+                if isinstance(panel_info, dict):
+                    classification = panel_info.get("classification")
+                    if classification in {"wet_lab", "bioinformatics", "mixed", "other"}:
+                        return classification
+
+    # Priority 3: Unknown (conservative)
+    return "unknown"
+
+
+# ---------------------------------------------------------------------------
+# Pipeline step
+# ---------------------------------------------------------------------------
+
+
+def run_figure_classification_step(
+    *,
+    workdir: Path,
+    force: bool = False,
+    llm_client: Any = None,
+    progress: ProgressCallback | None = None,
+) -> tuple[list[StepResult], dict[str, Any]]:
+    """Run figure classification pipeline step.
+
+    Args:
+        workdir: Audit working directory
+        force: Re-run even if artifact exists
+        llm_client: VeritasLLMClient instance (if None, will try to create one)
+        progress: Progress callback
+
+    Returns:
+        (steps, manifest) where manifest contains classification results
+    """
+    steps: list[StepResult] = []
+    output_path = resolve_artifact_path(workdir, "figure_classification.json")
+
+    # Check if artifact already exists
+    if output_path.exists() and not force:
+        record_step(
+            steps,
+            StepResult(
+                "figure_classification",
+                "LLM 图注分类",
+                "reused",
+                "Existing figure_classification.json found.",
+            ),
+            progress,
+        )
+        classification_data = json.loads(output_path.read_text(encoding="utf-8"))
+        return steps, {"figure_classification": classification_data}
+
+    # Check for full.md
+    full_md = existing_artifact_path(workdir, "full.md")
+    if full_md is None:
+        record_step(
+            steps,
+            StepResult(
+                "figure_classification",
+                "LLM 图注分类",
+                "skipped",
+                "full.md missing (MinerU output required).",
+            ),
+            progress,
+        )
+        return steps, {
+            "figure_classification": {
+                "status": "skipped",
+                "detail": "full.md missing",
+            }
+        }
+
+    emit_step_start(
+        progress,
+        "figure_classification",
+        "LLM 图注分类",
+        "Classifying figure panels from legends using LLM.",
+    )
+
+    # Initialize LLM client if not provided
+    if llm_client is None:
+        try:
+            from engine.llm.client import VeritasLLMClient
+
+            llm_client = VeritasLLMClient()
+        except Exception as e:
+            logger.warning("Failed to initialize LLM client: %s", e)
+            record_step(
+                steps,
+                StepResult(
+                    "figure_classification",
+                    "LLM 图注分类",
+                    "failed",
+                    f"LLM client initialization failed: {e}",
+                ),
+                progress,
+            )
+            return steps, {
+                "figure_classification": {
+                    "status": "failed",
+                    "detail": f"LLM client init failed: {e}",
+                }
+            }
+
+    # Parse legends from full.md
+    full_md_text = full_md.read_text(encoding="utf-8")
+    legends = parse_figure_legends(full_md_text)
+
+    if not legends:
+        record_step(
+            steps,
+            StepResult(
+                "figure_classification",
+                "LLM 图注分类",
+                "skipped",
+                "No figure legends found in full.md.",
+            ),
+            progress,
+        )
+        return steps, {
+            "figure_classification": {
+                "status": "skipped",
+                "detail": "no figure legends found",
+            }
+        }
+
+    # Classify all figures
+    classifications = classify_all_figures(legends, llm_client)
+
+    # Count classifications by type
+    type_counts: dict[str, int] = {}
+    for fig_label, panels in classifications.items():
+        for panel_label, panel_info in panels.items():
+            if isinstance(panel_info, dict):
+                cls = panel_info.get("classification", "unknown")
+                type_counts[cls] = type_counts.get(cls, 0) + 1
+
+    # Build output artifact
+    artifact = {
+        "schema_version": "1.0",
+        "status": "ran",
+        "figure_count": len(legends),
+        "classified_panel_count": sum(type_counts.values()),
+        "type_counts": type_counts,
+        "legends_extracted": list(legends.keys()),
+        "classifications": classifications,
+        "errors": [],
+    }
+
+    write_json_artifact(output_path, artifact)
+
+    detail = (
+        f"figures={len(legends)} "
+        f"panels={sum(type_counts.values())} "
+        f"types={type_counts}"
+    )
+    record_step(
+        steps,
+        StepResult("figure_classification", "LLM 图注分类", "ran", detail),
+        progress,
+    )
+
+    return steps, {"figure_classification": artifact}

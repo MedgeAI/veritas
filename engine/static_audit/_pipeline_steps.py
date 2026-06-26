@@ -228,6 +228,44 @@ def _run_source_data_steps(
             progress=progress,
         )
     )
+    # Cross-sheet LLM filter (metadata column removal)
+    cross_sheet_path = resolve_artifact_path(workdir, "source_data_cross_sheet.json")
+    if cross_sheet_path.exists():
+        emit_step_start(progress, "cross_sheet_filter", "Cross-sheet LLM metadata filter")
+        try:
+            from engine.llm.client import VeritasLLMClient
+            from engine.static_audit._shared import run_cross_sheet_filter
+
+            cross_sheet_data = json.loads(cross_sheet_path.read_text(encoding="utf-8"))
+            findings = cross_sheet_data.get("findings", cross_sheet_data.get("cross_sheet_findings", []))
+
+            if findings:
+                llm_client = VeritasLLMClient()
+                filtered_findings = run_cross_sheet_filter(workdir, findings, llm_client)
+
+                # Write filtered findings back
+                cross_sheet_data["findings"] = filtered_findings
+                cross_sheet_data["filter_metadata"] = {
+                    "original_count": len(findings),
+                    "filtered_count": len(filtered_findings),
+                    "filter_applied": True,
+                }
+                cross_sheet_path.write_text(
+                    json.dumps(cross_sheet_data, indent=2, ensure_ascii=False),
+                    encoding="utf-8",
+                )
+                filter_status = "ran"
+                filter_detail = f"filtered={len(findings) - len(filtered_findings)}"
+            else:
+                filter_status = "skipped"
+                filter_detail = "no findings to filter"
+        except Exception as e:
+            logger.warning("cross_sheet_filter failed: %s", e)
+            filter_status = "warning"
+            filter_detail = f"filter failed: {e}"
+        steps.append(StepResult("cross_sheet_filter", "Cross-sheet LLM metadata filter", filter_status, filter_detail))
+    else:
+        steps.append(StepResult("cross_sheet_filter", "Cross-sheet LLM metadata filter", "skipped", "cross_sheet.json missing"))
     # paperconan GRIM/GRIMMER scan
     num_dir = resolve_artifact_path(workdir, "numeric")
     steps.append(
@@ -329,8 +367,13 @@ def _run_investigation_fallbacks(
     env: dict[str, str],
     args: argparse.Namespace,
     progress: ProgressCallback | None,
+    figure_classification: dict[str, Any] | None = None,
 ) -> list[StepResult]:
-    """Run deterministic fallback for Agent-selectable investigation tools."""
+    """Run deterministic fallback for Agent-selectable investigation tools.
+
+    If figure_classification is provided, copy_move fallback will only process
+    wet_lab panels, reducing computation on code-generated visualizations.
+    """
     steps: list[StepResult] = []
     inv_dir = resolve_artifact_path(workdir, "investigation")
     sim_outs = (
@@ -423,6 +466,35 @@ def _run_investigation_fallbacks(
     elif planner_failed and pe_path.exists():
         fb.mkdir(parents=True, exist_ok=True)
         out = fb / "visual_copy_move.json"
+
+        # If figure_classification is available, filter panels to wet_lab only
+        filtered_pe_path = pe_path
+        if figure_classification:
+            from engine.static_audit._shared import WET_LAB_TYPES, read_json
+            import json
+
+            panel_data = read_json(pe_path) or {}
+            all_panels = panel_data.get("panels", [])
+            filtered_panels = [
+                p for p in all_panels
+                if isinstance(p, dict) and (
+                    p.get("panel_classification") in WET_LAB_TYPES
+                    or p.get("panel_classification") == "unknown"
+                )
+            ]
+            if len(filtered_panels) < len(all_panels):
+                filtered_panel_data = {**panel_data, "panels": filtered_panels}
+                filtered_pe_path = fb / "panel_evidence_wetlab.json"
+                filtered_pe_path.write_text(
+                    json.dumps(filtered_panel_data, ensure_ascii=False, indent=2),
+                    encoding="utf-8",
+                )
+                logger.info(
+                    "Copy-move fallback: filtered %d panels -> %d wet_lab panels",
+                    len(all_panels),
+                    len(filtered_panels),
+                )
+
         steps.append(
             run_command(
                 "visual_copy_move",
@@ -431,7 +503,7 @@ def _run_investigation_fallbacks(
                     sys.executable,
                     "-m",
                     "engine.static_audit.tools.copy_move_detection",
-                    str(pe_path),
+                    str(filtered_pe_path),
                     "--figure-json",
                     str(resolve_artifact_path(workdir, "visual_evidence.json")),
                     "--output",
