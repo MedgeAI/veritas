@@ -578,15 +578,7 @@ def _extend_unique_strings(target: list[str], values: Any) -> None:
             target.append(value)
 
 
-def _lazy_filter_judge_input(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
-    """Lazy import wrapper to avoid circular dependency.
-
-    Imports filter_judge_input from engine.static_audit._shared at runtime
-    to break the circular import chain:
-    context_pack → _shared → opencode_agent → _shared (investigation) → context_pack
-    """
-    from engine.static_audit._shared import filter_judge_input
-    return filter_judge_input(findings)
+from engine.shared import filter_judge_input
 
 
 def _build_judge_context_summary(workdir: Path) -> dict[str, Any]:
@@ -787,7 +779,7 @@ def _build_judge_context_summary(workdir: Path) -> dict[str, Any]:
             "image_relationships": _artifact_summary_value(image_relationships),
         },
         # PRD2-T6: Filter Judge input to only Layer 1 + Layer 2 findings
-        "top_n_findings": _lazy_filter_judge_input(_extract_top_n_findings(workdir, n=12)),
+        "top_n_findings": filter_judge_input(_extract_top_n_findings(workdir, n=12)),
         "limitations": limitations[:12],
     }
 
@@ -871,7 +863,7 @@ def build_context_pack_for_role(
     limitations = _collect_limitations(workdir)
     if role == "judge":
         # PRD2-T6: Filter Judge input to only Layer 1 + Layer 2 findings
-        top_n_findings = _lazy_filter_judge_input(top_n_findings)
+        top_n_findings = filter_judge_input(top_n_findings)
         bounded_excerpts = {
             _JUDGE_CONTEXT_SUMMARY_ARTIFACT: _json_excerpt(
                 _build_judge_context_summary(workdir),
