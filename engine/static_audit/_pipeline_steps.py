@@ -976,6 +976,18 @@ def _run_bundle_and_report(
         progress,
     )
 
+    # LLM text enrichment: generate data-grounded review text for top findings
+    try:
+        from engine.llm.client import VeritasLLMClient
+        from engine.reporting.text_generator import enrich_bundle_with_llm_text
+
+        llm_client = VeritasLLMClient()
+        bundle = enrich_bundle_with_llm_text(bundle, workdir, llm_client, max_findings=10)
+        bundle.write_json(bundle_path)  # re-write with enriched text
+        logger.info("LLM text enrichment completed for bundle %s", case_id)
+    except Exception as e:
+        logger.warning("LLM text enrichment skipped: %s", e)
+
     report_path = generate_report(
         paper_dir=paper_dir,
         paper_pdf=paper_pdf,

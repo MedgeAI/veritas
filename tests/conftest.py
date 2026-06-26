@@ -80,3 +80,36 @@ def _terminate_other_connections(engine, db_url: str) -> None:
             conn.commit()
     except Exception:
         pass  # best-effort
+
+
+# ---------------------------------------------------------------------------
+# Shared MockLLMClient for testing LLM-dependent code
+# ---------------------------------------------------------------------------
+
+class MockLLMClient:
+    """Mock LLM client for testing. Supports chat() and chat_json()."""
+
+    def __init__(
+        self,
+        response: dict | None = None,
+        raise_error: bool = False,
+    ) -> None:
+        self.response = response or {}
+        self.raise_error = raise_error
+        self.call_count = 0
+        self.last_prompt: str | None = None
+
+    def chat(self, prompt: str, **kwargs) -> str:
+        import json
+        self.call_count += 1
+        self.last_prompt = prompt
+        if self.raise_error:
+            raise RuntimeError("LLM API failure")
+        return json.dumps(self.response)
+
+    def chat_json(self, prompt: str, **kwargs) -> dict:
+        self.call_count += 1
+        self.last_prompt = prompt
+        if self.raise_error:
+            raise RuntimeError("LLM API failure")
+        return self.response

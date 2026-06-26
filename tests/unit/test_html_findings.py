@@ -73,52 +73,21 @@ class TestSourceArtifactForFinding:
 
 
 class TestRelationText:
-    def test_fixed_difference(self) -> None:
-        finding = {
-            "category": "fixed_difference",
-            "relationship_value": "0.3",
-            "column_pair": ["D", "E"],
-        }
+    def test_reads_llm_text(self) -> None:
+        finding = {"llm_text": {"relation_text": "固定差 0.3，列 D、E，覆盖 35 行。"}}
         result = relation_text(finding)
-        assert "固定差关系" in result
-        assert "0.3" in result
-        assert "D, E" in result
+        assert result == "固定差 0.3，列 D、E，覆盖 35 行。"
 
-    def test_duplicate_numeric_columns(self) -> None:
-        finding = {"category": "duplicate_numeric_columns", "column_pair": ["B", "C"]}
+    def test_fallback_no_llm_text(self) -> None:
+        finding = {"category": "fixed_difference"}
         result = relation_text(finding)
-        assert "数值列完全重复" in result
-        assert "B, C" in result
+        assert "fixed_difference" in result
+        assert "LLM" in result
 
-    def test_row_offset_scalar_multiple(self) -> None:
-        finding = {
-            "category": "row_offset_scalar_multiple",
-            "row_offset": 12,
-            "columns": ["value"],
-        }
-        result = relation_text(finding)
-        assert "固定行偏移" in result
-        assert "12" in result
-
-    def test_long_format_paired_ratio_reuse(self) -> None:
-        finding = {
-            "category": "long_format_paired_ratio_reuse",
-            "pair_id_offset": 6,
-            "columns": ["group_a", "group_b"],
-        }
-        result = relation_text(finding)
-        assert "配对两组比例复用" in result
-        assert "6" in result
-
-    def test_duplicate_row_vector(self) -> None:
-        finding = {"category": "duplicate_row_vector", "duplicate_row_count": 4}
-        result = relation_text(finding)
-        assert "行向量重复" in result
-        assert "4" in result
-
-    def test_unknown_category(self) -> None:
+    def test_fallback_unknown_category(self) -> None:
         finding = {"category": "some_unknown"}
-        assert relation_text(finding) == "some_unknown"
+        result = relation_text(finding)
+        assert "some_unknown" in result
 
 
 # ---------------------------------------------------------------------------
@@ -450,25 +419,21 @@ class TestFirstClaim:
 
 
 class TestReviewQuestion:
-    def test_risk_requires_human_review(self) -> None:
-        risk = {"requires_human_review": True, "reason": "Check data integrity"}
-        result = review_question({}, risk, {})
-        assert "Check data integrity" in result
-
-    def test_workbook_sheet_review(self) -> None:
-        finding = {"workbook": "source.xlsx", "sheet": "Sheet1"}
+    def test_reads_llm_review_question(self) -> None:
+        finding = {"llm_text": {"review_question": "核对 Sheet1 列 D、E 的固定差关系"}}
         result = review_question({}, None, finding)
-        assert "workbook/sheet" in result
+        assert result == "核对 Sheet1 列 D、E 的固定差关系"
 
-    def test_generic_review(self) -> None:
+    def test_llm_error_fallback(self) -> None:
+        finding = {"llm_text": {"error": "timeout"}}
+        result = review_question({}, None, finding)
+        assert "LLM" in result
+        assert "失败" in result
+
+    def test_no_llm_text_fallback(self) -> None:
         result = review_question({}, None, {})
-        assert "原始 artifact" in result
-
-    def test_linked_claims_in_review(self) -> None:
-        source_review = {"evidence_refs": {"linked_claims": ["AC-001", "AC-002"]}}
-        result = review_question(source_review, None, {})
-        assert "AC-001" in result
-        assert "AC-002" in result
+        assert "LLM" in result
+        assert "未生成" in result
 
 
 class TestMappingGranularityNote:

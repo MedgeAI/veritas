@@ -437,12 +437,11 @@ def test_static_audit_html_report_keeps_rule_fallback_out_of_top_patterns(
 
     html = render_static_audit_html(tmp_path, "case-rule-fallback")
 
-    assert "未形成重点摘要" in html
+    assert "LLM" in html  # LLM fallback text replaces old hardcoded templates
     assert "执行证据与 claim 对账候选" not in html
     assert "运行命令、日志或结果文件与论文 claim" not in html
     assert "规则定义" not in html
     assert "RUN-001" in html
-    assert "execution_status：1 条原始记录" in html
 
 
 def test_static_audit_html_report_keeps_duplicate_row_vector_out_of_top_patterns(

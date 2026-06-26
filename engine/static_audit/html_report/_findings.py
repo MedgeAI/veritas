@@ -58,17 +58,10 @@ def source_artifact_for_findings(findings: list[dict[str, Any]]) -> str:
 
 
 def relation_text(finding: dict[str, Any]) -> str:
-    if finding.get("category") == "fixed_difference":
-        return f"固定差关系：{finding.get('relationship_value')}，列 {', '.join(finding.get('column_pair') or [])}。"
-    if finding.get("category") == "duplicate_numeric_columns":
-        return f"数值列完全重复：列 {', '.join(finding.get('column_pair') or [])}。"
-    if finding.get("category") == "row_offset_scalar_multiple":
-        return f"固定行偏移 {finding.get('row_offset', '-')} 后存在标量关系，列 {', '.join(str(i) for i in (finding.get('columns') or [])) or '-'}。"
-    if finding.get("category") == "long_format_paired_ratio_reuse":
-        return f"pair_id 偏移 {finding.get('pair_id_offset', '-')} 后出现配对两组比例复用，列 {', '.join(str(i) for i in (finding.get('columns') or [])) or '-'}。"
-    if finding.get("category") == "duplicate_row_vector":
-        return f"低宽度行向量重复，重复行数 {finding.get('duplicate_row_count', '-')}。"
-    return str(finding.get("category", "-"))
+    llm_text = finding.get("llm_text") or {}
+    if llm_text.get("relation_text"):
+        return llm_text["relation_text"]
+    return f"{finding.get('category', '未知模式')}（LLM 描述未生成）"
 
 
 def default_finding_summary(finding: dict[str, Any]) -> str:
@@ -310,20 +303,12 @@ def first_claim(mappings: list[dict[str, Any]]) -> str:
 def review_question(
     source_review: dict[str, Any], risk: dict[str, Any] | None, finding: dict[str, Any]
 ) -> str:
-    if risk and risk.get("requires_human_review"):
-        return str(
-            risk.get("reason", "请人工复核该记录的证据定位、论文表述影响和良性解释。")
-        )
-    refs = (
-        source_review.get("evidence_refs")
-        if isinstance(source_review.get("evidence_refs"), dict)
-        else {}
-    )
-    linked = refs.get("linked_claims") if refs else None
-    linked_text = f"关联论文表述: {', '.join(linked)}。" if linked else ""
-    if finding.get("workbook") or finding.get("sheet"):
-        return f"请核对 workbook/sheet/column header、merged cells、figure panel 和原始实验语义。{linked_text}"
-    return f"请核对原始 artifact、locator、论文表述影响、工具输出参数和最强良性解释。{linked_text}"
+    llm_text = finding.get("llm_text") or {}
+    if llm_text.get("review_question"):
+        return llm_text["review_question"]
+    if llm_text.get("error"):
+        return "LLM 审查问题生成失败，请人工核对原始证据。"
+    return "LLM 审查问题未生成，请人工核对原始证据。"
 
 
 def mapping_granularity_note(finding: dict[str, Any]) -> str:

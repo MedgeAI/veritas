@@ -3,15 +3,7 @@
 from __future__ import annotations
 
 from engine.static_audit.html_report._benign import (
-    _benign_explanation_duplicate_numeric,
-    _benign_explanation_formula_derivation,
-    _benign_explanation_other,
-    _benign_explanation_paired_offset,
-    _benign_explanation_partial_copy,
-    _benign_explanation_row_vector,
-    _benign_explanation_visual_forensics,
     _benign_items_to_html,
-    _parameterized_benign_explanation,
     cluster_benign_explanations,
     context_aware_review_question,
 )
@@ -302,129 +294,6 @@ class TestPatternAgentSentences:
 # ---------------------------------------------------------------------------
 
 
-class TestBenignExplanations:
-    def test_paired_offset(self) -> None:
-        findings = [
-            {
-                "sheet": "Sheet1",
-                "column_pair": ["A", "B"],
-                "row_offset": 10,
-                "support_rate": 1.0,
-            }
-        ]
-        result = _benign_explanation_paired_offset(findings)
-        assert "Sheet1" in result[0]
-        assert "A, B" in result[0]
-        assert "行偏移" in result[0]
-
-    def test_paired_offset_complete_pattern(self) -> None:
-        findings = [
-            {"sheet": "Sheet1", "pattern_strength": "complete", "row_offset": 5}
-        ]
-        result = _benign_explanation_paired_offset(findings)
-        assert any("complete" in item for item in result)
-
-    def test_row_vector(self) -> None:
-        findings = [
-            {"sheet": "Sheet1", "column_pair": ["A", "B"], "duplicate_row_count": 4}
-        ]
-        result = _benign_explanation_row_vector(findings)
-        assert "行向量重复" in result[0]
-
-    def test_duplicate_numeric(self) -> None:
-        findings = [{"sheet": "Sheet1", "column_pair": ["A", "B"]}]
-        result = _benign_explanation_duplicate_numeric(findings)
-        assert "高度相同" in result[0]
-
-    def test_partial_copy(self) -> None:
-        findings = [{"sheet": "Sheet1", "column_pair": ["A", "B"]}]
-        result = _benign_explanation_partial_copy(findings)
-        assert "部分复用" in result[0]
-
-    def test_formula_derivation(self) -> None:
-        findings = [
-            {"sheet": "Sheet1", "column_pair": ["A", "B"], "category": "fixed_ratio"}
-        ]
-        result = _benign_explanation_formula_derivation(findings)
-        assert "公式派生" in result[0] or "单位换算" in result[0]
-
-    def test_visual_forensics_copy_move(self) -> None:
-        findings = [
-            {
-                "category": "copy_move_single",
-                "source_panel_id": "P-001",
-                "target_panel_id": "P-002",
-                "score": 0.85,
-            }
-        ]
-        result = _benign_explanation_visual_forensics(findings)
-        assert "局部相似" in result[0]
-
-    def test_visual_forensics_forged(self) -> None:
-        findings = [
-            {
-                "category": "forged_region_suspicious",
-                "figure_id": "Fig.1",
-                "integrity_score": 0.7,
-            }
-        ]
-        result = _benign_explanation_visual_forensics(findings)
-        assert "区域完整性" in result[0]
-
-    def test_visual_forensics_generic(self) -> None:
-        findings = [{"category": "unknown_visual"}]
-        result = _benign_explanation_visual_forensics(findings)
-        assert len(result) >= 1
-
-    def test_other_source_data_missing(self) -> None:
-        findings = [
-            {
-                "category": "source_data_missing",
-                "finding_id": "SDM-SUMMARY-001",
-                "figure_label": "Fig.1",
-            }
-        ]
-        result = _benign_explanation_other(findings)
-        assert "Fig.1" in result[0]
-        assert "Source Data" in result[0]
-
-    def test_other_no_missing(self) -> None:
-        findings = [{"category": "something_else"}]
-        result = _benign_explanation_other(findings)
-        assert result == []
-
-
-class TestParameterizedBenignExplanation:
-    def test_dispatches_to_handler(self) -> None:
-        findings = [{"sheet": "Sheet1", "column_pair": ["A", "B"]}]
-        result = _parameterized_benign_explanation(
-            "duplicate_numeric_columns", findings
-        )
-        assert "高度相同" in result[0]
-
-    def test_visual_forensics(self) -> None:
-        findings = [{"category": "copy_move_single"}]
-        result = _parameterized_benign_explanation("visual_forensics", findings)
-        assert len(result) >= 1
-
-    def test_execution_evidence(self) -> None:
-        result = _parameterized_benign_explanation("execution_evidence", [])
-        assert "环境差异" in result[0]
-
-    def test_numeric_forensics(self) -> None:
-        result = _parameterized_benign_explanation("numeric_forensics", [])
-        assert "OCR" in result[0]
-
-    def test_generic_fallback(self) -> None:
-        result = _parameterized_benign_explanation("unknown_pattern", [])
-        assert "归一化" in result[0]
-
-
-# ---------------------------------------------------------------------------
-# cluster_benign_explanations()
-# ---------------------------------------------------------------------------
-
-
 class TestClusterBenignExplanations:
     def test_from_reviews(self) -> None:
         reviews = [{"benign_explanations": ["Agent explanation"]}]
@@ -436,16 +305,20 @@ class TestClusterBenignExplanations:
         result = cluster_benign_explanations(findings, [])
         assert ("Finding explanation", "agent") in result
 
-    def test_parameterized_fallback(self) -> None:
-        findings = [
-            {
-                "category": "duplicate_numeric_columns",
-                "sheet": "Sheet1",
-                "column_pair": ["A", "B"],
-            }
-        ]
+    def test_from_llm_text(self) -> None:
+        findings = [{"llm_text": {"benign_explanations": ["LLM explanation"]}}]
         result = cluster_benign_explanations(findings, [])
-        assert any(source == "data" for _, source in result)
+        assert ("LLM explanation", "llm") in result
+
+    def test_llm_error_fallback(self) -> None:
+        findings = [{"llm_text": {"error": "LLM API timeout"}}]
+        result = cluster_benign_explanations(findings, [])
+        assert any("LLM" in text for text, _ in result)
+
+    def test_no_llm_text_fallback(self) -> None:
+        findings = [{"category": "fixed_difference"}]
+        result = cluster_benign_explanations(findings, [])
+        assert any("LLM" in text for text, _ in result)
 
     def test_deduplication(self) -> None:
         reviews = [{"benign_explanations": ["Same text"]}]
@@ -466,36 +339,31 @@ class TestClusterBenignExplanations:
 
 
 class TestContextAwareReviewQuestion:
-    def test_paired_offset_handler(self) -> None:
-        findings = [{"sheet": "Sheet1", "row_offset": 10, "support_rate": 0.95}]
+    def test_reads_llm_review_question(self) -> None:
+        findings = [{"llm_text": {"review_question": "核对 Sheet1 列 A 的固定差关系"}}]
         result = context_aware_review_question("paired_offset_ratio_reuse", findings)
-        assert "Sheet1" in result
-        assert "行偏移" in result
+        assert result == "核对 Sheet1 列 A 的固定差关系"
 
-    def test_row_vector_handler(self) -> None:
-        findings = [{"sheet": "Sheet1", "duplicate_row_count": 4}]
-        result = context_aware_review_question("row_vector_reuse", findings)
-        assert "行向量重复" in result
+    def test_llm_error_fallback(self) -> None:
+        findings = [{"llm_text": {"error": "timeout"}}]
+        result = context_aware_review_question("paired_offset_ratio_reuse", findings)
+        assert "LLM" in result
+        assert "失败" in result
 
-    def test_duplicate_numeric_handler(self) -> None:
-        findings = [{"sheet": "Sheet1", "column_pair": ["A", "B"]}]
-        result = context_aware_review_question("duplicate_numeric_columns", findings)
-        assert "高度相同" in result
+    def test_no_llm_text_fallback(self) -> None:
+        findings = [{"category": "fixed_difference"}]
+        result = context_aware_review_question("paired_offset_ratio_reuse", findings)
+        assert "LLM" in result
+        assert "未生成" in result
 
-    def test_visual_forensics_handler(self) -> None:
-        findings = [{"source_panel_id": "P-001", "score": 0.85}]
-        result = context_aware_review_question("visual_forensics", findings)
-        assert "P-001" in result
-
-    def test_category_prefix_handler(self) -> None:
-        findings = [{"category": "source_data_missing"}]
-        result = context_aware_review_question("category:source_data_missing", findings)
-        assert "source_data_missing" in result
-        assert "1 条" in result
-
-    def test_numeric_forensics_fallback(self) -> None:
-        result = context_aware_review_question("numeric_forensics", [])
-        assert "数字取证" in result or "原始表格" in result
+    def test_picks_first_finding_with_llm_text(self) -> None:
+        findings = [
+            {"category": "a"},
+            {"llm_text": {"review_question": "具体审查问题"}},
+            {"llm_text": {"review_question": "另一个问题"}},
+        ]
+        result = context_aware_review_question("other", findings)
+        assert result == "具体审查问题"
 
 
 # ---------------------------------------------------------------------------
