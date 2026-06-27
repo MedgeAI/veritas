@@ -439,3 +439,11 @@ export async function getCurrentUser() {
 export async function verifyReport(reportId) {
   return request(`/api/verify/${encodeURIComponent(reportId)}`);
 }
+
+// ---------------------------------------------------------------------------
+// Certainty layer data (fact / inference / suggestion)
+// ---------------------------------------------------------------------------
+
+export async function fetchCertaintyData(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/artifacts/certainty_data`);
+}

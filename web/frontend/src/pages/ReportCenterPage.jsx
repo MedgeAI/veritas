@@ -1,12 +1,14 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FiExternalLink, FiEye, FiEyeOff, FiRefreshCw } from 'react-icons/fi';
+import GradeBadge from '../components/GradeBadge.jsx';
 import StatusPill from '../components/StatusPill.jsx';
-import { listArtifacts, reportHtmlUrl } from '../services/api.js';
+import { getRun, listArtifacts, reportHtmlUrl } from '../services/api.js';
 import { friendlyError } from '../utils/piLabels.js';
 
 function ReportCenterPage({ selectedCase }) {
   const [artifacts, setArtifacts] = useState([]);
   const [previewReloadKey, setPreviewReloadKey] = useState(0);
+  const [gradeData, setGradeData] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [viewMode, setViewMode] = useState('author');
@@ -59,6 +61,7 @@ function ReportCenterPage({ selectedCase }) {
     if (!selectedCase) {
       setArtifacts([]);
       setError('');
+      setGradeData(null);
       return undefined;
     }
 
@@ -67,10 +70,15 @@ function ReportCenterPage({ selectedCase }) {
     async function refreshArtifacts() {
       setIsRefreshing(true);
       try {
-        const payload = await listArtifacts(selectedCase.case_id);
+        const runId = selectedCase.latest_run_id;
+        const [payload, runData] = await Promise.all([
+          listArtifacts(selectedCase.case_id),
+          runId ? getRun(selectedCase.case_id, runId).catch(() => null) : null,
+        ]);
         if (cancelled) return;
         startTransition(() => {
           setArtifacts(payload.artifacts || []);
+          setGradeData(runData?.summary?.certification_grade || null);
           setError('');
         });
       } catch (nextError) {
@@ -115,6 +123,7 @@ function ReportCenterPage({ selectedCase }) {
     <div className="space-y-6">
       <ReportHero
         artifact={htmlArtifact}
+        gradeData={gradeData}
         isRefreshing={isRefreshing}
         ready={ready}
         reportUrl={reportUrl}
@@ -134,6 +143,7 @@ function ReportCenterPage({ selectedCase }) {
             iframeRef={iframeRef}
             onIframeLoad={handleIframeLoad}
           />
+          <VersionHistorySection selectedCase={selectedCase} gradeData={gradeData} />
         </>
       ) : (
         <WaitingReportPreview />
@@ -151,7 +161,7 @@ function ReportCaseRequired() {
   );
 }
 
-function ReportHero({ artifact, isRefreshing, ready, reportUrl, onRefreshStatus, onReloadPreview, error }) {
+function ReportHero({ artifact, gradeData, isRefreshing, ready, reportUrl, onRefreshStatus, onReloadPreview, error }) {
   return (
     <section className="dossier-panel rounded-[2rem] p-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
@@ -161,6 +171,11 @@ function ReportHero({ artifact, isRefreshing, ready, reportUrl, onRefreshStatus,
             <h2 className="section-title">最终审查报告</h2>
             <StatusPill tone={ready ? 'ok' : 'neutral'}>{ready ? '已就绪' : '等待生成'}</StatusPill>
           </div>
+          {gradeData ? (
+            <div className="mt-4">
+              <GradeBadge grade={gradeData.grade} dimensions={gradeData.dimensions} size="lg" />
+            </div>
+          ) : null}
           <ReportMetadata artifact={artifact} />
         </div>
 
@@ -285,6 +300,38 @@ function formatBytes(value) {
   if (value < 1024) return `${value} B`;
   if (value < 1024 * 1024) return `${formatter.format(value / 1024)} KB`;
   return `${formatter.format(value / 1024 / 1024)} MB`;
+}
+
+function VersionHistorySection({ selectedCase, gradeData }) {
+  const currentVersion = selectedCase?.report_version || 1;
+  const parentReportId = selectedCase?.parent_report_id;
+
+  if (!currentVersion || currentVersion <= 1) return null;
+
+  return (
+    <section className="dossier-panel rounded-[2rem] p-6">
+      <p className="metric-label">版本历史</p>
+      <div className="mt-4 flex items-center gap-3">
+        <div className="flex items-center gap-2 rounded-xl bg-accent-100/60 px-3 py-2 text-sm font-medium text-accent-700">
+          <span className="font-mono">v{currentVersion}</span>
+          <span>（修订版）</span>
+        </div>
+        {gradeData && (
+          <span className="mono-chip">
+            grade: {gradeData.grade || '?'}
+          </span>
+        )}
+      </div>
+      {parentReportId && (
+        <p className="mt-3 text-xs text-ink-500">
+          原版本编号：<span className="font-mono">{parentReportId}</span>（仍可查证）
+        </p>
+      )}
+      <p className="mt-3 text-xs leading-5 text-ink-500">
+        修订生成新版本，旧版本永久存档可查。编号可在 verify.veritas.science 验证。
+      </p>
+    </section>
+  );
 }
 
 export default ReportCenterPage;

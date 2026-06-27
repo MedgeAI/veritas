@@ -43,6 +43,7 @@ KNOWN_ARTIFACTS = (
     ),
     ("visual_overlap_reuse", "json", "Visual Overlap/Reuse", "overlap_reuse.json"),
     ("provenance_graph", "json", "Provenance Graph (MST)", "provenance_graph.json"),
+    ("certainty_data", "json", "Certainty Layer Data", "certainty_data.json"),
 )
 
 

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FiExternalLink, FiRefreshCw } from 'react-icons/fi';
 import FollowUpDisplay from '../components/FollowUpDisplay.jsx';
+import GradeBadge from '../components/GradeBadge.jsx';
 import MaterialChecklist from '../components/MaterialChecklist.jsx';
 import ProgressTracker from '../components/ProgressTracker.jsx';
 import RiskTrafficLight from '../components/RiskTrafficLight.jsx';
@@ -107,6 +108,17 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
       {/* Risk Summary — only shown after run completes */}
       {isFinished && riskSummary ? (
         <section className="xl:col-span-2 dossier-panel rounded-[2rem] p-6">
+          {/* Certification Grade */}
+          {run?.summary?.certification_grade ? (
+            <div className="mb-5">
+              <p className="metric-label mb-3">认证评级</p>
+              <GradeBadge
+                grade={run.summary.certification_grade.grade}
+                dimensions={run.summary.certification_grade.dimensions}
+                size="lg"
+              />
+            </div>
+          ) : null}
           <p className="metric-label">风险评估</p>
           <div className="mt-4">
             <RiskTrafficLight riskLevel={riskSummary.overall_risk} riskCounts={riskSummary.risk_counts} />

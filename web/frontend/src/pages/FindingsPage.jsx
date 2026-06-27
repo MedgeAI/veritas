@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { FiArrowRight } from 'react-icons/fi';
+import { FiArrowRight, FiChevronDown, FiChevronUp } from 'react-icons/fi';
 import StatusPill from '../components/StatusPill.jsx';
 import RiskTrafficLight from '../components/RiskTrafficLight.jsx';
 import FollowUpDisplay from '../components/FollowUpDisplay.jsx';
 import LayerGroup from '../components/LayerGroup.jsx';
 import EmptyState from '../components/EmptyState.jsx';
-import { getRiskSummary, fetchVisualFindings } from '../services/api.js';
+import { getRiskSummary, fetchVisualFindings, fetchCertaintyData } from '../services/api.js';
 import { translateRiskLevel, translateIssueCategory } from '../utils/piLabels.js';
 import { groupFindingsByLayer } from '../utils/layers.js';
 
@@ -22,6 +22,7 @@ function sortFindings(findings) {
 function FindingsPage({ selectedCase, onNavigate }) {
   const [riskSummary, setRiskSummary] = useState(null);
   const [visualFindings, setVisualFindings] = useState(null);
+  const [certaintyById, setCertaintyById] = useState({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,10 +32,24 @@ function FindingsPage({ selectedCase, onNavigate }) {
     Promise.all([
       getRiskSummary(selectedCase.case_id).catch(() => null),
       fetchVisualFindings(selectedCase.case_id).catch(() => null),
-    ]).then(([rs, vf]) => {
+      fetchCertaintyData(selectedCase.case_id).catch(() => null),
+    ]).then(([rs, vf, cd]) => {
       if (!cancelled) {
         setRiskSummary(rs);
         setVisualFindings(vf);
+        // Build certainty lookup by finding_id
+        const lookup = {};
+        if (Array.isArray(cd)) {
+          for (const item of cd) {
+            if (item.finding_id) lookup[item.finding_id] = item;
+          }
+        } else if (cd && typeof cd === 'object') {
+          const items = cd.layers || cd.findings || [];
+          for (const item of items) {
+            if (item.finding_id) lookup[item.finding_id] = item;
+          }
+        }
+        setCertaintyById(lookup);
         setLoading(false);
       }
     });
@@ -117,6 +132,7 @@ function FindingsPage({ selectedCase, onNavigate }) {
                   {items.map((finding, idx) => {
                     const fId = finding.finding_id || '';
                     const followUps = riskSummary.follow_ups?.[fId] || [];
+                    const certainty = certaintyById[fId];
                     return (
                       <article key={fId || idx} className="rounded-xl border border-ink-900/8 bg-white/50 p-4">
                         <div className="flex flex-wrap items-center gap-2">
@@ -129,6 +145,9 @@ function FindingsPage({ selectedCase, onNavigate }) {
                           ) : null}
                         </div>
                         <p className="mt-1.5 text-sm leading-6 text-ink-700">{finding.summary}</p>
+                        {certainty ? (
+                          <CertaintyLayers fact={certainty.fact} inference={certainty.inference} suggestion={certainty.suggestion} />
+                        ) : null}
                         {followUps.length > 0 ? (
                           <div className="mt-3 border-t border-ink-900/5 pt-3">
                             <p className="mb-1.5 text-[11px] font-semibold text-ink-500">建议追问</p>
@@ -196,3 +215,47 @@ function FindingsPage({ selectedCase, onNavigate }) {
 }
 
 export default FindingsPage;
+
+/**
+ * CertaintyLayers — Fact / Inference / Suggestion three-layer display.
+ * Matches the prototype's core design: black for facts, purple for inferences, green for suggestions.
+ */
+function CertaintyLayers({ fact, inference, suggestion }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!fact && !inference && !suggestion) return null;
+
+  return (
+    <div className="mt-3">
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="flex items-center gap-1.5 text-[11px] font-semibold text-ink-500 transition hover:text-ink-700"
+      >
+        {expanded ? <FiChevronUp className="h-3 w-3" /> : <FiChevronDown className="h-3 w-3" />}
+        三层确定性：事实 · 推断 · 建议
+      </button>
+      {expanded && (
+        <div className="mt-2 space-y-2">
+          {fact && (
+            <div className="rounded-lg bg-ink-900 px-3 py-2 text-xs leading-5 text-paper-50 font-mono">
+              <span className="mr-2 inline-block rounded bg-paper-50/15 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider">事实</span>
+              {fact}
+            </div>
+          )}
+          {inference && (
+            <div className="rounded-lg bg-purple-50 px-3 py-2 text-xs leading-5 text-purple-800 italic">
+              <span className="mr-2 inline-block rounded bg-purple-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider not-italic">AI 推断</span>
+              {inference}
+            </div>
+          )}
+          {suggestion && (
+            <div className="rounded-lg bg-signal-50 px-3 py-2 text-xs leading-5 text-signal-800">
+              <span className="mr-2 inline-block rounded bg-signal-100 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider">建议</span>
+              {suggestion}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

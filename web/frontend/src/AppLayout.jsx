@@ -15,6 +15,7 @@ const EvidenceReviewPage = lazy(() => import('./pages/EvidenceReviewPage.jsx'));
 const ActionsPage = lazy(() => import('./pages/ActionsPage.jsx'));
 const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
 const ReverificationPage = lazy(() => import('./pages/ReverificationPage.jsx'));
+const VerifyPage = lazy(() => import('./pages/VerifyPage.jsx'));
 
 const PAGE_META = {
   cases: ['Dashboard', '按风险等级分组的审查看板，快速定位需要关注的 case。'],
@@ -25,6 +26,7 @@ const PAGE_META = {
   evidence: ['证据审查', '图像取证、相似 Panel 搜索与可视化证据分析。'],
   actions: ['行动项', '待复核发现、材料补交与追问清单。'],
   reverification: ['重新核查', '修订版增量复核，版本链路追踪。'],
+  verify: ['公开验证', '输入报告编号，查证认证真伪。'],
   admin: ['用户管理', '管理系统用户、角色和权限。'],
 };
 
@@ -296,6 +298,15 @@ function AppLayout() {
   }
 
   const [pageTitle, pageSubtitle] = PAGE_META[activePage] || PAGE_META.cases;
+
+  // Public verification page: no auth required, no sidebar/topbar
+  if (activePage === 'verify') {
+    return (
+      <Suspense fallback={<LoadingFallback />}>
+        <VerifyPage />
+      </Suspense>
+    );
+  }
 
   // Auth gate: show login page when not authenticated
   if (authChecking) {

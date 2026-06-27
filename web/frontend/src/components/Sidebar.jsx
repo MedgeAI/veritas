@@ -7,6 +7,7 @@ import {
   FiGrid,
   FiImage,
   FiPlusCircle,
+  FiRefreshCw,
 } from 'react-icons/fi';
 import { FaUsers } from 'react-icons/fa';
 
@@ -26,6 +27,12 @@ const GROUPS = [
       ['findings', '审查发现', FiAlertTriangle],
       ['evidence', '证据审查', FiImage],
       ['actions', '行动项', FiBookOpen],
+    ],
+  },
+  {
+    label: '认证服务',
+    items: [
+      ['reverification', '修订重核', FiRefreshCw],
     ],
   },
 ];

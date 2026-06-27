@@ -1024,6 +1024,35 @@ def _run_bundle_and_report(
             progress,
         )
 
+    # Certainty layer enrichment (fact/inference/suggestion per finding)
+    emit_step_start(progress, "certainty_enrichment", "确定性分层")
+    try:
+        from engine.static_audit.certainty_enrichment import save_certainty_data
+
+        certainty_path = save_certainty_data(bundle, workdir)
+        record_step(
+            steps,
+            StepResult(
+                "certainty_enrichment",
+                "确定性分层",
+                "ran",
+                f"enriched {len(bundle.findings)} findings → {certainty_path.name}",
+            ),
+            progress,
+        )
+    except Exception as e:
+        logger.warning("certainty_enrichment failed: %s", e)
+        record_step(
+            steps,
+            StepResult(
+                "certainty_enrichment",
+                "确定性分层",
+                "warning",
+                f"enrichment failed: {e}",
+            ),
+            progress,
+        )
+
     report_path = generate_report(
         paper_dir=paper_dir,
         paper_pdf=paper_pdf,
