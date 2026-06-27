@@ -52,6 +52,14 @@ RUN_STATUSES: set[str] = {"queued", "running", "completed", "failed", "interrupt
 
 STALE_RUN_THRESHOLD_SECONDS = 300  # 5 minutes — no heartbeat → stale
 
+# Reproducibility tiers determine the maximum certification grade a case can receive.
+REPRODUCIBILITY_TIERS: dict[str, str] = {
+    "full": "A",
+    "partial": "B",
+    "code_only": "C",
+    "static": "C-",
+}
+
 SAFE_NAME_RE = re.compile(r"[^A-Za-z0-9_.-]+")
 
 # ---------------------------------------------------------------------------
@@ -104,6 +112,7 @@ class CaseRecord:
     updated_at: str = field(default_factory=utc_now)
     latest_run_id: str | None = None
     input_count: int = 0
+    reproducibility_tier: str = "full"
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -131,6 +140,7 @@ class CaseRecord:
             updated_at=model.updated_at or utc_now(),
             latest_run_id=model.latest_run_id,
             input_count=model.input_count or 0,
+            reproducibility_tier=model.reproducibility_tier or "full",
         )
 
 
@@ -221,6 +231,7 @@ class CaseModel(Base):
     updated_at = Column(String(32), default=utc_now)
     latest_run_id = Column(String(128), nullable=True)
     input_count = Column(Integer, default=0)
+    reproducibility_tier = Column(String(32), default="full", nullable=True)
 
     runs = relationship("RunModel", back_populates="case", lazy="selectin")
     review_decisions = relationship(
@@ -242,6 +253,7 @@ class CaseModel(Base):
             "updated_at": self.updated_at,
             "latest_run_id": self.latest_run_id,
             "input_count": self.input_count,
+            "reproducibility_tier": self.reproducibility_tier or "full",
         }
 
 
@@ -465,6 +477,7 @@ class CloudflareUserModel(Base):
 class CaseCreate(BaseModel):
     paper_title: str = "Unknown until parsed"
     case_id: str | None = None
+    reproducibility_tier: str = "full"
 
 
 class CaseRead(BaseModel):
@@ -478,6 +491,7 @@ class CaseRead(BaseModel):
     updated_at: str = ""
     latest_run_id: str | None = None
     input_count: int = 0
+    reproducibility_tier: str = "full"
 
 
 class CaseUpdate(BaseModel):
