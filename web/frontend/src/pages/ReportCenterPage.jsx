@@ -1,5 +1,5 @@
-import { startTransition, useEffect, useMemo, useState } from 'react';
-import { FiExternalLink, FiRefreshCw } from 'react-icons/fi';
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { FiExternalLink, FiEye, FiEyeOff, FiRefreshCw } from 'react-icons/fi';
 import StatusPill from '../components/StatusPill.jsx';
 import { listArtifacts, reportHtmlUrl } from '../services/api.js';
 import { friendlyError } from '../utils/piLabels.js';
@@ -9,6 +9,44 @@ function ReportCenterPage({ selectedCase }) {
   const [previewReloadKey, setPreviewReloadKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState('');
+  const [viewMode, setViewMode] = useState('author');
+  const iframeRef = useRef(null);
+
+  const injectViewMode = useCallback(
+    (mode) => {
+      const iframe = iframeRef.current;
+      if (!iframe?.contentDocument) return;
+      const doc = iframe.contentDocument;
+
+      if (doc.body) {
+        doc.body.setAttribute('data-view', mode);
+      }
+
+      let styleEl = doc.getElementById('view-mode-style');
+      if (!styleEl) {
+        styleEl = doc.createElement('style');
+        styleEl.id = 'view-mode-style';
+        doc.head.appendChild(styleEl);
+      }
+
+      if (mode === 'gatekeeper') {
+        styleEl.textContent =
+          '.author-only { display: none !important; } .gatekeeper-only { display: block !important; }';
+      } else {
+        styleEl.textContent =
+          '.gatekeeper-only { display: none !important; } .author-only { display: block !important; }';
+      }
+    },
+    [],
+  );
+
+  const handleIframeLoad = useCallback(() => {
+    injectViewMode(viewMode);
+  }, [viewMode, injectViewMode]);
+
+  useEffect(() => {
+    injectViewMode(viewMode);
+  }, [viewMode, injectViewMode]);
 
   const htmlArtifact = useMemo(
     () => artifacts.find((item) => item.artifact_id === 'final_html_report'),
@@ -86,7 +124,17 @@ function ReportCenterPage({ selectedCase }) {
       />
 
       {ready ? (
-        <ReadyReportPreview caseId={selectedCase.case_id} reloadKey={previewReloadKey} reportUrl={reportUrl} />
+        <>
+          <ViewModeToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+          <ReadyReportPreview
+            caseId={selectedCase.case_id}
+            reloadKey={previewReloadKey}
+            reportUrl={reportUrl}
+            viewMode={viewMode}
+            iframeRef={iframeRef}
+            onIframeLoad={handleIframeLoad}
+          />
+        </>
       ) : (
         <WaitingReportPreview />
       )}
@@ -162,15 +210,56 @@ function ReportActions({ isRefreshing, ready, reportUrl, onRefreshStatus, onRelo
   );
 }
 
-function ReadyReportPreview({ caseId, reloadKey, reportUrl }) {
+function ViewModeToggle({ viewMode, onViewModeChange }) {
+  return (
+    <div className="flex items-center gap-1 rounded-xl bg-ink-100/60 p-1">
+      <button
+        type="button"
+        className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+          viewMode === 'author'
+            ? 'bg-white text-ink-900 shadow-sm'
+            : 'text-ink-500 hover:text-ink-700'
+        }`}
+        onClick={() => onViewModeChange('author')}
+        aria-pressed={viewMode === 'author'}
+      >
+        <FiEye aria-hidden="true" className="h-3.5 w-3.5" />
+        作者视图
+      </button>
+      <button
+        type="button"
+        className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
+          viewMode === 'gatekeeper'
+            ? 'bg-white text-ink-900 shadow-sm'
+            : 'text-ink-500 hover:text-ink-700'
+        }`}
+        onClick={() => onViewModeChange('gatekeeper')}
+        aria-pressed={viewMode === 'gatekeeper'}
+      >
+        <FiEyeOff aria-hidden="true" className="h-3.5 w-3.5" />
+        把关者视图
+      </button>
+    </div>
+  );
+}
+
+function ReadyReportPreview({ caseId, reloadKey, reportUrl, viewMode, iframeRef, onIframeLoad }) {
   return (
     <section className="dossier-panel overflow-hidden rounded-[2rem]">
+      {viewMode === 'gatekeeper' && (
+        <div className="flex items-center gap-2 border-b border-ink-200/60 bg-ink-50/80 px-4 py-2 text-xs font-medium text-ink-500">
+          <FiEyeOff aria-hidden="true" className="h-3.5 w-3.5" />
+          <span>只读模式 · Read-only</span>
+        </div>
+      )}
       <iframe
+        ref={iframeRef}
         key={`${caseId}-${reloadKey}`}
         title="Veritas final audit report"
         src={reportUrl}
         loading="lazy"
         sandbox="allow-same-origin allow-popups allow-top-navigation-by-user-activation"
+        onLoad={onIframeLoad}
         className="h-[78vh] w-full bg-white [content-visibility:auto] [contain-intrinsic-size:900px]"
       />
     </section>
