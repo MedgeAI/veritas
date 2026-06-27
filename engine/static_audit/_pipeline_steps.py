@@ -32,6 +32,7 @@ from engine.static_audit._shared import (
     resolve_artifact_path,
     run_command,
 )
+from engine.static_audit.certainty_enrichment import save_certainty_data
 
 logger = logging.getLogger(__name__)
 
@@ -1024,6 +1025,13 @@ def _run_bundle_and_report(
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+
+    # Generate certainty layer data for Three-Layer Certainty UI
+    try:
+        certainty_path = save_certainty_data(bundle, workdir)
+        logger.info("Certainty layer data saved to %s", certainty_path)
+    except Exception as e:
+        logger.warning("Certainty enrichment failed: %s", e)
 
     html_path = write_static_audit_html(workdir, case_id)
     record_step(

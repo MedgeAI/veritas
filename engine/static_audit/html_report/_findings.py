@@ -356,6 +356,26 @@ def sample_pairs_html(samples: list[dict[str, Any]]) -> str:
     )
 
 
+def certainty_layers_html(finding: dict[str, Any]) -> str:
+    """Render three-layer certainty UI if data is present."""
+    fact = finding.get("fact")
+    inference = finding.get("inference")
+    suggestion = finding.get("suggestion")
+
+    if not (fact or inference or suggestion):
+        return ""
+
+    layers = []
+    if fact:
+        layers.append(f"<div class='certainty-fact'>{h(fact)}</div>")
+    if inference:
+        layers.append(f"<div class='certainty-inference'>{h(inference)}</div>")
+    if suggestion:
+        layers.append(f"<div class='certainty-suggestion'>{h(suggestion)}</div>")
+
+    return f"<div class='certainty-layers'>{''.join(layers)}</div>"
+
+
 # ---------------------------------------------------------------------------
 # Finding card rendering
 # ---------------------------------------------------------------------------
@@ -401,6 +421,7 @@ def finding_card(
     mapping_note = mapping_granularity_note(finding)
     risk_badge = _confidence_badge("agent") if risk and risk_reason else ""
     anchor_id = f"finding-{finding_id.replace('.', '-').replace(' ', '-')}"
+    certainty_html = certainty_layers_html(finding)
     return f"""
 <article class="finding-card" id="{h(anchor_id)}">
   <div>
@@ -417,6 +438,7 @@ def finding_card(
     </div>
     <h3>人工复核动作</h3><p>{h(review_action)}</p>
     <details><summary>样本行</summary>{sample_rows}</details>
+    {certainty_html}
   </div>
   <aside class="lane">
     <h3>证据定位</h3>

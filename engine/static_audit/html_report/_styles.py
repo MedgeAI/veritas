@@ -541,4 +541,66 @@ REPORT_CSS = """
     .conf-rule { background: #e8e0d0; color: #5a5040; }
     .conf-data { background: #dfeee7; color: #1e5c4f; }
     .conf-agent { background: #e0e8f4; color: #2c4a7c; }
+    /* Three-Layer Certainty UI */
+    .certainty-layers {
+      display: grid;
+      gap: 12px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px dashed var(--line);
+    }
+    .certainty-fact {
+      background: #2a2f28;
+      color: #e8e4d8;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .certainty-fact::before {
+      content: "FACT";
+      display: block;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      color: #a8a090;
+      margin-bottom: 6px;
+    }
+    .certainty-inference {
+      background: rgba(139, 92, 246, .08);
+      border-left: 3px solid #8b5cf6;
+      padding: 12px 14px;
+      border-radius: 0 12px 12px 0;
+      font-style: italic;
+      color: #5b21b6;
+      font-size: 14px;
+    }
+    .certainty-inference::before {
+      content: "INFERENCE";
+      display: block;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      color: #8b5cf6;
+      margin-bottom: 6px;
+      font-style: normal;
+    }
+    .certainty-suggestion {
+      background: rgba(34, 197, 94, .08);
+      border-left: 3px solid #22c55e;
+      padding: 12px 14px;
+      border-radius: 0 12px 12px 0;
+      color: #166534;
+      font-size: 14px;
+    }
+    .certainty-suggestion::before {
+      content: "SUGGESTION";
+      display: block;
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .08em;
+      color: #22c55e;
+      margin-bottom: 6px;
+    }
 """

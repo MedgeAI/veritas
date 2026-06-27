@@ -107,6 +107,7 @@ def _load_report_artifacts(workdir: Path) -> dict[str, Any]:
         "source_auditor": _load("agent_source_data_auditor.json"),
         "claim_extractor": _load("agent_claim_extractor.json"),
         "verdict_data": _load("source_data_findings_verdict.json"),
+        "certainty_data": _load("certainty_data.json"),
         "investigation_records": read_investigation_records(workdir),
     }
 
@@ -120,6 +121,20 @@ def _build_verdict_index(verdict_data: dict[str, Any]) -> dict[str, dict[str, An
             if fid:
                 verdict_by_id[fid] = fv
     return verdict_by_id
+
+
+def _build_certainty_index(
+    certainty_data: list[dict[str, Any]] | dict[str, Any],
+) -> dict[str, dict[str, Any]]:
+    """Build a lookup dict of certainty layers by finding ID."""
+    certainty_by_id: dict[str, dict[str, Any]] = {}
+    # certainty_data can be a list or dict with 'layers' key
+    items = certainty_data if isinstance(certainty_data, list) else certainty_data.get("layers", [])
+    for item in items:
+        fid = item.get("finding_id")
+        if fid:
+            certainty_by_id[str(fid)] = item
+    return certainty_by_id
 
 
 def _process_findings_with_verdicts(
@@ -142,6 +157,20 @@ def _process_findings_with_verdicts(
         else:
             active_findings.append(f)
     return excluded_findings, active_findings
+
+
+def _merge_certainty_layers(
+    findings: list[dict[str, Any]],
+    certainty_by_id: dict[str, dict[str, Any]],
+) -> None:
+    """Merge certainty layer data into findings in-place."""
+    for f in findings:
+        fid = str(f.get("finding_id", ""))
+        certainty = certainty_by_id.get(fid)
+        if certainty:
+            f["fact"] = certainty.get("fact", "")
+            f["inference"] = certainty.get("inference", "")
+            f["suggestion"] = certainty.get("suggestion", "")
 
 
 def _build_report_data(
@@ -285,6 +314,12 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
     excluded_findings, active_findings = _process_findings_with_verdicts(
         primary_findings, verdict_by_id
     )
+
+    # Build certainty index and merge into findings
+    certainty_by_id = _build_certainty_index(artifacts["certainty_data"])
+    _merge_certainty_layers(active_findings, certainty_by_id)
+    _merge_certainty_layers(excluded_findings, certainty_by_id)
+
     verdict_summary = artifacts["verdict_data"].get("summary", {})
 
     # Build report data structures
