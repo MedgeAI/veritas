@@ -215,11 +215,37 @@ async def submit_audit(
             detail=f"audit queue full (max={max_queue_size})",
         )
 
+    # Save reproducibility_tier on case if provided
+    tier = payload.options.get("reproducibility_tier")
+    if tier and tier in ("full", "partial", "code_only", "static"):
+        store.update_case(case_id, {"reproducibility_tier": tier}, user_id=uid)
+
     # Create the run row.
     run = store.create_run(
         case_id,
         agent_mode=str(payload.options.get("agent_mode", "review")),
     )
+
+    # Version tracking: if this case has previous runs, increment version
+    # and link to the previous report.
+    all_runs = store.list_runs(case_id)
+    completed_runs = [r for r in all_runs if r.status == "completed" and r.run_id != run.run_id]
+    if completed_runs:
+        current_case = store.get_case(case_id, user_id=uid)
+        new_version = (current_case.report_version or 1) + 1
+        # Use the latest completed run's run_id as the parent report reference
+        latest_completed = max(
+            completed_runs,
+            key=lambda r: r.completed_at or "",
+        )
+        store.update_case(
+            case_id,
+            {
+                "report_version": new_version,
+                "parent_report_id": latest_completed.run_id,
+            },
+            user_id=uid,
+        )
 
     if _use_celery():
         run = runner._dispatch_celery_task(run, case_id, payload.options)

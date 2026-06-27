@@ -140,6 +140,7 @@ class CaseStore:
         *,
         paper_title: str | None = None,
         case_id: str | None = None,
+        reproducibility_tier: str = "full",
     ) -> CaseRecord:
         from .models import CaseModel
 
@@ -150,6 +151,7 @@ class CaseStore:
                     or f"case-{utc_now().replace(':', '').replace('-', '')}-{uuid4().hex[:8]}"
                 ),
                 paper_title=paper_title or "Unknown until parsed",
+                reproducibility_tier=reproducibility_tier,
             )
         case.owner = user_id
 

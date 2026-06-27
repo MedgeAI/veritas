@@ -307,6 +307,81 @@ def hero_action_list(tasks: list[dict[str, Any]]) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Grade badge & dimension summary
+# ---------------------------------------------------------------------------
+
+#: Grade letter -> (CSS class, Chinese label)
+_GRADE_META: dict[str, tuple[str, str]] = {
+    "A": ("grade-a", "完全通过"),
+    "B": ("grade-b", "有条件通过"),
+    "C": ("grade-c", "待修订"),
+    "D": ("grade-d", "未通过"),
+}
+
+#: Dimension status -> CSS class
+_DIM_STATUS_CLASS: dict[str, str] = {
+    "ok": "status-ok",
+    "pass": "status-ok",
+    "warn": "status-warn",
+    "warning": "status-warn",
+    "fail": "status-fail",
+    "info": "status-info",
+    "skipped": "status-info",
+}
+
+
+def grade_badge(grade: dict[str, Any] | None) -> str:
+    """Render the certification grade badge for the hero section.
+
+    Expects a dict with keys:
+      - grade: "A" | "B" | "C" | "D"
+      - label (optional): override Chinese label
+    Returns empty string if grade is None or missing.
+    """
+    if not grade or not isinstance(grade, dict):
+        return ""
+    letter = str(grade.get("grade", "")).upper().strip()
+    css_class, default_label = _GRADE_META.get(letter, ("", letter))
+    label = str(grade.get("label") or default_label)
+    if not css_class:
+        return ""
+    return (
+        f'<div class="grade-badge-wrap">'
+        f'<div class="grade-badge {css_class}">{h(letter)}</div>'
+        f'<div class="grade-label">{h(label)}</div>'
+        f"</div>"
+    )
+
+
+def dimension_summary(dimensions: list[dict[str, Any]] | None) -> str:
+    """Render four dimension cards in a grid.
+
+    Each dict should have: name (str), status (str), detail (str).
+    Returns empty string if dimensions is None or empty.
+    """
+    if not dimensions:
+        return ""
+    cards = []
+    for dim in dimensions[:4]:
+        if not isinstance(dim, dict):
+            continue
+        name = str(dim.get("name", ""))
+        status = str(dim.get("status", "info")).lower()
+        detail = str(dim.get("detail", ""))
+        status_class = _DIM_STATUS_CLASS.get(status, "status-info")
+        cards.append(
+            f'<div class="dim-card">'
+            f'<div class="dim-name">{h(name)}</div>'
+            f'<div class="dim-status {status_class}">{h(status.upper())}</div>'
+            f'<div class="dim-detail">{h(detail)}</div>'
+            f"</div>"
+        )
+    if not cards:
+        return ""
+    return f'<div class="dimension-grid">{"".join(cards)}</div>'
+
+
+# ---------------------------------------------------------------------------
 # Limitations
 # ---------------------------------------------------------------------------
 

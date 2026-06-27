@@ -18,7 +18,7 @@ from ..dependencies import (
 from ..auth import AuthContext
 from ..routers.audit_jobs import get_auth_context_sse
 from ..permissions import require_admin
-from ..models import CaseCreate, CaseRecord, InputUpload
+from ..models import CaseCreate, CaseRecord, InputUpload, REPRODUCIBILITY_TIERS
 from ..risk import summarize_findings
 from ..sse import sse_event_stream
 
@@ -47,10 +47,19 @@ async def create_case(
     auth: AuthContext = Depends(get_auth_context),
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> dict[str, Any]:
+    # Validate reproducibility_tier
+    if payload.reproducibility_tier not in REPRODUCIBILITY_TIERS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid reproducibility_tier: {payload.reproducibility_tier}. "
+                   f"Must be one of: {', '.join(REPRODUCIBILITY_TIERS.keys())}",
+        )
+
     case = deps.store.create_case(
         user_id=auth.user_id,
         paper_title=payload.paper_title,
         case_id=payload.case_id,
+        reproducibility_tier=payload.reproducibility_tier,
     )
     return case.to_dict()
 

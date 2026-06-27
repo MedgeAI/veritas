@@ -457,6 +457,7 @@ def _run_audit_impl(
             or get_env("OPENCODE_BIN", required=False, default="opencode"),
             agent_timeout_seconds=int(options.get("agent_timeout_seconds", 300)),
             agent_max_retries=int(options.get("agent_max_retries", 1)),
+            reproducibility_tier=options.get("reproducibility_tier", "full"),
             progress=_progress,
         )
         result["summary"] = summary

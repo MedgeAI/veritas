@@ -380,6 +380,7 @@ def _run_static_audit_from_args(
             ),
             optional_lanes=optional_lanes,
             progress=progress,
+            reproducibility_tier=getattr(args, "reproducibility_tier", "full"),
         )
 
     # Source data
@@ -551,6 +552,7 @@ def _run_static_audit_from_args(
         ),
         optional_lanes=optional_lanes,
         progress=progress,
+        reproducibility_tier=getattr(args, "reproducibility_tier", "full"),
     )
 
 
@@ -567,6 +569,7 @@ def run_static_audit(
     opencode_bin: str = "opencode",
     agent_timeout_seconds: int = 600,
     agent_max_retries: int = 1,
+    reproducibility_tier: str = "full",
     skip_unavailable_tools: bool = False,
     progress: ProgressCallback | None = None,
 ) -> dict[str, Any]:
@@ -582,6 +585,7 @@ def run_static_audit(
         opencode_bin=opencode_bin,
         agent_timeout_seconds=agent_timeout_seconds,
         agent_max_retries=agent_max_retries,
+        reproducibility_tier=reproducibility_tier,
         skip_unavailable_tools=skip_unavailable_tools,
     )
     return _run_static_audit_from_args(args, progress=progress)

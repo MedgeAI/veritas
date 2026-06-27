@@ -52,6 +52,7 @@ from .routers import (
     review,
     tools,
     users,
+    verify,
     visual,
 )
 from .tool_catalog import seed_tool_registry
@@ -211,6 +212,7 @@ def create_app(
     app.include_router(materials.router, prefix="/api")
     app.include_router(metrics.router, prefix="/api")
     app.include_router(users.router, prefix="/api")
+    app.include_router(verify.router, prefix="")  # verify router already has /api/verify prefix
 
     # --- Health endpoint -----------------------------------------------
     @app.get("/api/health")

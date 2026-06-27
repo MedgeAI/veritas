@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FiPlay, FiUploadCloud, FiX } from 'react-icons/fi';
 import { createCase, submitAudit, uploadInputsParallel } from '../services/api.js';
+import ReproducibilityTierPicker from '../components/ReproducibilityTierPicker.jsx';
 
 const ACCEPTED_EXTENSIONS = '.pdf,.xlsx,.xls,.csv,.zip,.txt,.md,.py,.r,.R';
 const ACCEPTED_EXT_SET = new Set(['pdf', 'xlsx', 'xls', 'csv', 'zip', 'txt', 'md', 'py', 'r']);
@@ -30,6 +31,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
     owner: 'operator',
   });
   const [params, setParams] = useState(DEFAULT_PARAMS);
+  const [reproducibilityTier, setReproducibilityTier] = useState('full');
   const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -238,7 +240,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
           agent_timeout_seconds: Number(params.agent_timeout_seconds || 600),
           agent_max_retries: Number(params.agent_max_retries || 1),
         },
-      });
+      }, reproducibilityTier);
       setHasUnsavedFiles(false);
       onRunStarted(job);
     } catch (nextError) {
@@ -488,6 +490,11 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
             />
           </label>
         </div>
+
+        <ReproducibilityTierPicker
+          value={reproducibilityTier}
+          onChange={setReproducibilityTier}
+        />
 
         {error ? (
           <div ref={errorRef} tabIndex={-1} className="mt-5 rounded-2xl border border-risk-300/45 bg-risk-100/70 p-4 text-sm text-risk-700" role="alert">

@@ -541,4 +541,188 @@ REPORT_CSS = """
     .conf-rule { background: #e8e0d0; color: #5a5040; }
     .conf-data { background: #dfeee7; color: #1e5c4f; }
     .conf-agent { background: #e0e8f4; color: #2c4a7c; }
+    /* Three-layer certainty model */
+    .certainty-fact {
+      background: #1a1a2e;
+      color: #f0ede6;
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      font-size: 13px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin: 10px 0;
+      line-height: 1.55;
+    }
+    .certainty-fact .layer-label {
+      display: inline-block;
+      color: #a8b4a0;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 4px;
+    }
+    .certainty-inference {
+      background: #f3e8ff;
+      color: #6b21a8;
+      font-style: italic;
+      font-size: 14px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin: 10px 0;
+      line-height: 1.55;
+      border-left: 3px solid #c084fc;
+    }
+    .certainty-inference .layer-label {
+      display: inline-block;
+      color: #7c3aed;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-style: normal;
+      margin-bottom: 4px;
+    }
+    .certainty-inference .layer-disclaimer {
+      display: block;
+      margin-top: 6px;
+      font-size: 11px;
+      color: #9333ea;
+      font-style: normal;
+      opacity: .75;
+    }
+    .certainty-suggestion {
+      background: #dcfce7;
+      color: #166534;
+      font-size: 14px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      margin: 10px 0;
+      line-height: 1.55;
+      border-left: 3px solid #4ade80;
+    }
+    .certainty-suggestion .layer-label {
+      display: inline-block;
+      color: #15803d;
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-bottom: 4px;
+    }
+    /* Grade badge */
+    .grade-badge-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      margin: 18px 0 6px;
+    }
+    .grade-badge {
+      display: grid;
+      place-items: center;
+      width: 84px;
+      height: 84px;
+      border-radius: 50%;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 44px;
+      font-weight: 900;
+      letter-spacing: -.04em;
+      color: #fffdf7;
+      border: 3px solid rgba(255, 250, 240, .32);
+    }
+    .grade-badge.grade-a { background: #2d6a4f; }
+    .grade-badge.grade-b { background: #1d4e89; }
+    .grade-badge.grade-c { background: #b45309; }
+    .grade-badge.grade-d { background: #9b2c2c; }
+    .grade-label {
+      color: rgba(255, 250, 240, .82);
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .04em;
+    }
+    /* Four-dimension summary grid */
+    .dimension-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin: 14px 0;
+    }
+    .dim-card {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: rgba(255, 253, 247, .82);
+    }
+    .dim-card .dim-name {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .dim-card .dim-status {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-bottom: 6px;
+    }
+    .dim-card .dim-status.status-ok { background: var(--green); color: #214d3e; }
+    .dim-card .dim-status.status-warn { background: var(--amber); color: #70430f; }
+    .dim-card .dim-status.status-fail { background: var(--red); color: #6b1e16; }
+    .dim-card .dim-status.status-info { background: #e8e0d0; color: #5a5040; }
+    .dim-card .dim-detail {
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+    /* View-mode toggle (author / gatekeeper) */
+    .view-gatekeeper .author-only { display: none; }
+    .view-author .gatekeeper-only { display: none; }
+    .gatekeeper-banner {
+      background: #f4f0e6;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 14px;
+      color: var(--muted);
+      font-size: 13px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .gatekeeper-footer {
+      margin-top: 24px;
+      padding: 14px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+      letter-spacing: .02em;
+    }
+    .finding-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .finding-actions a,
+    .finding-actions button {
+      font-size: 12px;
+      padding: 5px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--accent);
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .evidence-link {
+      font-size: 12px;
+      color: var(--accent);
+      font-weight: 700;
+    }
+    /* Formal document heading style */
+    h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; }
+    @media (max-width: 980px) {
+      .dimension-grid { grid-template-columns: 1fr 1fr; }
+    }
 """

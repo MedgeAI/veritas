@@ -278,6 +278,22 @@ class AuditRunner:
             case_record.review_needed_count = max(
                 finding_review_count, len(failed_steps)
             )
+            # Load certification grade if available
+            if run.workdir:
+                from pathlib import Path
+                import json
+                grade_path = (
+                    Path(run.workdir) / "reports" / "certification_grade.json"
+                )
+                if grade_path.exists():
+                    try:
+                        grade_data = json.loads(grade_path.read_text(encoding="utf-8"))
+                        if run.summary is None:
+                            run.summary = {}
+                        run.summary["certification_grade"] = grade_data
+                        self.store.save_run(run)
+                    except Exception:
+                        pass
         elif run.status == "failed":
             case_record.status = "Review Needed"
             case_record.review_needed_count = max(case_record.review_needed_count, 1)

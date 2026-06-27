@@ -202,6 +202,11 @@ STEP_LABELS: dict[str, dict[str, Any]] = {
         "phase": _PHASE_REPORT,
         "phase_order": _ORDER_REPORT,
     },
+    "certification_grade": {
+        "title": "认证评级计算",
+        "phase": _PHASE_REPORT,
+        "phase_order": _ORDER_REPORT,
+    },
     "report": {
         "title": "生成 Markdown 报告",
         "phase": _PHASE_REPORT,
