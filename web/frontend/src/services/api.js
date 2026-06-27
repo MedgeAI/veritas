@@ -431,3 +431,11 @@ export async function getCurrentUser() {
     throw e;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Public verification API (no auth required)
+// ---------------------------------------------------------------------------
+
+export async function verifyReport(reportId) {
+  return request(`/api/verify/${encodeURIComponent(reportId)}`);
+}

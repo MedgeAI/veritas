@@ -988,6 +988,42 @@ def _run_bundle_and_report(
     except Exception as e:
         logger.warning("LLM text enrichment skipped: %s", e)
 
+    # Certification grade (after bundle, before reports)
+    emit_step_start(progress, "certification_grade", "认证评级计算")
+    grade_data = None
+    try:
+        from engine.static_audit.grade_engine import compute_grade
+
+        grade = compute_grade(bundle)
+        grade_data = asdict(grade)
+        grade_path = resolve_artifact_path(workdir, "certification_grade.json")
+        grade_path.parent.mkdir(parents=True, exist_ok=True)
+        grade_path.write_text(
+            json.dumps(grade_data, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        record_step(
+            steps,
+            StepResult(
+                "certification_grade",
+                "认证评级计算",
+                "ran",
+                f"grade={grade_data.get('grade', '?')}",
+            ),
+            progress,
+        )
+    except Exception as e:
+        logger.warning("certification_grade failed: %s", e)
+        record_step(
+            steps,
+            StepResult(
+                "certification_grade",
+                "认证评级计算",
+                "warning",
+                f"grade computation failed: {e}",
+            ),
+            progress,
+        )
+
     report_path = generate_report(
         paper_dir=paper_dir,
         paper_pdf=paper_pdf,
@@ -1025,7 +1061,12 @@ def _run_bundle_and_report(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
-    html_path = write_static_audit_html(workdir, case_id)
+    html_path = write_static_audit_html(
+        workdir,
+        case_id,
+        grade=grade_data,
+        dimensions=grade_data.get("dimensions") if grade_data else None,
+    )
     record_step(
         steps,
         StepResult("html_report", "生成最终 HTML 报告", "ran", str(html_path)),
@@ -1036,6 +1077,24 @@ def _run_bundle_and_report(
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+
+    # Public verification: generate report_id and save verification summary
+    report_id = None
+    if grade_data and exit_code == 0:
+        try:
+            from engine.static_audit.report_id import generate_report_id
+            from engine.static_audit.verify_store import save_verification_summary
+
+            report_id = generate_report_id()
+            save_verification_summary(
+                case_id=case_id,
+                report_id=report_id,
+                paper_title=case_id,  # Use case_id as title for now
+                grade_data=grade_data,
+            )
+            logger.info("Public verification enabled: %s", report_id)
+        except Exception as e:
+            logger.warning("Verification summary save failed: %s", e)
 
     failed = [s.key for s in steps if s.status == "failed"]
     exit_code = (
@@ -1061,4 +1120,5 @@ def _run_bundle_and_report(
         "static_audit_bundle": str(bundle_path),
         "failed_steps": failed,
         "exit_code": exit_code,
+        "report_id": report_id,
     }
