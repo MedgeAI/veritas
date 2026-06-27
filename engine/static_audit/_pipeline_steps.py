@@ -988,6 +988,41 @@ def _run_bundle_and_report(
     except Exception as e:
         logger.warning("LLM text enrichment skipped: %s", e)
 
+    # Certification grade (after bundle, before reports)
+    emit_step_start(progress, "certification_grade", "认证评级计算")
+    try:
+        from engine.static_audit.grade_engine import compute_grade
+
+        grade = compute_grade(bundle)
+        grade_data = asdict(grade)
+        grade_path = resolve_artifact_path(workdir, "certification_grade.json")
+        grade_path.parent.mkdir(parents=True, exist_ok=True)
+        grade_path.write_text(
+            json.dumps(grade_data, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        record_step(
+            steps,
+            StepResult(
+                "certification_grade",
+                "认证评级计算",
+                "ran",
+                f"grade={grade_data.get('grade', '?')}",
+            ),
+            progress,
+        )
+    except Exception as e:
+        logger.warning("certification_grade failed: %s", e)
+        record_step(
+            steps,
+            StepResult(
+                "certification_grade",
+                "认证评级计算",
+                "warning",
+                f"grade computation failed: {e}",
+            ),
+            progress,
+        )
+
     report_path = generate_report(
         paper_dir=paper_dir,
         paper_pdf=paper_pdf,
