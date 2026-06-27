@@ -43,7 +43,9 @@ from engine.static_audit.html_report._clusters import (
 )
 from engine.static_audit.html_report._executive import (
     collect_limitations,
+    dimension_summary,
     executive_summary,
+    grade_badge,
     hero_action_list,
     hero_metric,
     hero_pattern_list,
@@ -273,7 +275,12 @@ def _build_card_views(
     }
 
 
-def render_static_audit_html(workdir: Path, case_id: str) -> str:
+def render_static_audit_html(
+    workdir: Path,
+    case_id: str,
+    grade: dict[str, Any] | None = None,
+    dimensions: list[dict[str, Any]] | None = None,
+) -> str:
     # Load all artifacts
     artifacts = _load_report_artifacts(workdir)
 
@@ -313,8 +320,12 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
     canonical_claims = report_data["canonical_claims"]
     canonical_mappings = report_data["canonical_mappings"]
 
+    # Render grade badge and dimension summary
+    grade_html = grade_badge(grade)
+    dimensions_html = dimension_summary(dimensions)
+
     return f"""<!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-view="author">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -324,6 +335,7 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
   </style>
 </head>
 <body>
+  <div class="gatekeeper-banner gatekeeper-only">只读模式 · Read-only — 本报告不可篡改</div>
   <main class="wrap">
     <section class="hero">
       <div class="panel hero-brief">
@@ -337,6 +349,8 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
           <span class="verdict-badge outline">非科研诚信定论</span>
           <span class="verdict-badge outline">{h(verdict["depth"])}</span>
         </div>
+        {grade_html}
+        {dimensions_html}
         <h1>投稿前技术复核：<br/>{h(verdict["headline"])}</h1>
         <p class="lead">{_confidence_badge("data")}{h(hero_summary)}</p>
         <div class="hero-stat-grid">
@@ -494,14 +508,23 @@ def render_static_audit_html(workdir: Path, case_id: str) -> str:
       </div>
     </section>
     <div class="footer">生成时间：{h(datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))}。报告只展示技术记录和复核入口，关键结论必须人工确认。</div>
+    <div class="gatekeeper-footer gatekeeper-only">本报告不可篡改 · Immutable Record — 所有证据链均来自确定性工具执行产物</div>
   </main>
 </body>
 </html>
 """
 
 
-def write_static_audit_html(workdir: Path, case_id: str) -> Path:
+def write_static_audit_html(
+    workdir: Path,
+    case_id: str,
+    grade: dict[str, Any] | None = None,
+    dimensions: list[dict[str, Any]] | None = None,
+) -> Path:
     path = resolve_artifact_path(workdir, "final_audit_report.html")
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(render_static_audit_html(workdir, case_id), encoding="utf-8")
+    path.write_text(
+        render_static_audit_html(workdir, case_id, grade=grade, dimensions=dimensions),
+        encoding="utf-8",
+    )
     return path

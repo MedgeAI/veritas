@@ -401,6 +401,10 @@ def finding_card(
     mapping_note = mapping_granularity_note(finding)
     risk_badge = _confidence_badge("agent") if risk and risk_reason else ""
     anchor_id = f"finding-{finding_id.replace('.', '-').replace(' ', '-')}"
+
+    # Three-layer certainty model
+    certainty_layers = _certainty_layers(finding)
+
     return f"""
 <article class="finding-card" id="{h(anchor_id)}">
   <div>
@@ -410,6 +414,7 @@ def finding_card(
       <h3>{h(finding_id)} · {h(category_label(category))}</h3>
     </div>
     <p><strong>复核摘要：</strong>{risk_badge}{h(clean_report_text(risk_reason or default_finding_summary(finding)))}</p>
+    {certainty_layers}
     <div class="quote"><strong>关联论文表述：</strong>{h(claim_text or "未自动抽取到论文表述，需人工补映射。")}</div>
     <div class="grid cols-2">
       <div><h3>为什么值得复核</h3><ul><li>{h(relation)}</li><li>{h(support)}</li><li>{h(mapping_note)}</li></ul></div>
@@ -417,6 +422,10 @@ def finding_card(
     </div>
     <h3>人工复核动作</h3><p>{h(review_action)}</p>
     <details><summary>样本行</summary>{sample_rows}</details>
+    <div class="finding-actions author-only">
+      <a href="#manual-review">查看建议与修复</a>
+      <button type="button">申诉 / 说明</button>
+    </div>
   </div>
   <aside class="lane">
     <h3>证据定位</h3>
@@ -430,9 +439,54 @@ def finding_card(
       <div>PDF 定位</div><div>{pdf_locator_html(first_ref)}</div>
       <div>artifact</div><div><code>{h(source_artifact)}</code></div>
     </div>
+    <div class="gatekeeper-only" style="margin-top:10px">
+      <a class="evidence-link" href="#noise-ledger">查看证据链 &rarr;</a>
+    </div>
   </aside>
 </article>
 """
+
+
+def _certainty_layers(finding: dict[str, Any]) -> str:
+    """Render the three-layer certainty model HTML for a finding.
+
+    Layers:
+      - Fact (always shown if fact text exists): dark background, monospace
+      - Inference (if text exists): purple background, italic, with disclaimer
+      - Suggestion (if text exists): green background
+    Returns empty string if no layer data is present.
+    """
+    fact = str(finding.get("fact") or "").strip()
+    inference = str(finding.get("inference") or "").strip()
+    suggestion = str(finding.get("suggestion") or "").strip()
+
+    if not fact and not inference and not suggestion:
+        return ""
+
+    parts: list[str] = []
+    if fact:
+        parts.append(
+            f'<div class="certainty-fact">'
+            f'<span class="layer-label">事实 · Fact</span>'
+            f"<div>{h(fact)}</div>"
+            f"</div>"
+        )
+    if inference:
+        parts.append(
+            f'<div class="certainty-inference">'
+            f'<span class="layer-label">AI 推断 · Inference</span>'
+            f"<div>{h(inference)}</div>"
+            f'<span class="layer-disclaimer">此为推断，不构成认证结论</span>'
+            f"</div>"
+        )
+    if suggestion:
+        parts.append(
+            f'<div class="certainty-suggestion">'
+            f'<span class="layer-label">建议 · Suggestion</span>'
+            f"<div>{h(suggestion)}</div>"
+            f"</div>"
+        )
+    return "".join(parts)
 
 
 def render_findings_by_category(
