@@ -391,10 +391,10 @@ export async function deleteCase(caseId) {
 // Audit job APIs
 // ---------------------------------------------------------------------------
 
-export async function submitAudit(caseId, options = {}) {
+export async function submitAudit(caseId, options = {}, reproducibilityTier = 'full') {
   return request(`/api/audit`, {
     method: 'POST',
-    body: { case_id: caseId, ...options },
+    body: { case_id: caseId, reproducibility_tier: reproducibilityTier, ...options },
     signal: options.signal,
   });
 }
