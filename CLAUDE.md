@@ -15,7 +15,7 @@ Current local operations are documented in `README.md` and the root `Makefile`. 
 
 For current module/data-flow orientation, read `CodeMAP.md` and `Dataflow.md` before making cross-module changes. Visual forensics is currently a first-party beta with ELIS adapters planned, not a fully replaced ELIS pipeline.
 
-** 代码探索优先使用 codebase-memory-mcp**：需要探索代码仓库、理解模块关系、追踪调用链、定位符号定义时，**优先使用 `codebase-memory-mcp` 工具**而非裸 Grep/Read。项目已启用 `auto_index`。常用操作：
+** 代码探索优先使用 codebase-memory-mcp工具**：需要探索代码仓库、理解模块关系、追踪调用链、定位符号定义时，**优先使用 `codebase-memory-mcp` 工具**而非裸 Grep/Read。项目已启用 `auto_index`。常用操作：
 - `search_graph` — 按名称/标签/语义搜索函数、类、路由
 - `trace_path` — 追踪调用链（calls）、数据流（data_flow）、跨服务路径（cross_service）
 - `get_code_snippet` — 用 qualified_name 精确取源码（带精确行号范围）

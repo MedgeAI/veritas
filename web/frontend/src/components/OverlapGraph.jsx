@@ -150,7 +150,7 @@ export default function OverlapGraph({
 
   if (!relationships.length) {
     return (
-      <div className="flex items-center justify-center h-48 text-gray-400 text-sm">
+      <div className="flex items-center justify-center h-48 text-ink-300 text-sm">
         无 overlap 关系可展示
       </div>
     );
@@ -175,7 +175,7 @@ export default function OverlapGraph({
     <div className="relative">
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        className="w-full bg-gray-50 rounded-lg border border-gray-200"
+        className="w-full bg-paper-100 rounded-lg border border-ink-900/10"
         style={{ height: Math.max(256, height * 0.6) }}
         role="img"
         aria-label="Overlap relationship graph"
@@ -217,7 +217,7 @@ export default function OverlapGraph({
                 x={midX}
                 y={midY - 4}
                 textAnchor="middle"
-                className="text-[8px] fill-gray-600 pointer-events-none select-none"
+                className="text-[8px] fill-ink-500 pointer-events-none select-none"
               >
                 {link.score.toFixed(2)}
               </text>
@@ -254,7 +254,7 @@ export default function OverlapGraph({
                 x={node.x}
                 y={node.y + r + 12}
                 textAnchor="middle"
-                className="text-[7px] fill-gray-700 pointer-events-none select-none"
+                className="text-[7px] fill-ink-700 pointer-events-none select-none"
               >
                 {displayLabel}
               </text>
@@ -265,14 +265,14 @@ export default function OverlapGraph({
 
       {/* Tooltip */}
       {hoveredNode && (
-        <div role="tooltip" className="absolute top-2 left-2 text-xs bg-white/95 border border-gray-200 shadow-sm rounded px-2 py-1 pointer-events-none max-w-[200px]">
-          <div className="font-medium text-gray-800 truncate">{hoveredNode.label}</div>
-          <div className="text-gray-500 text-[10px]">{hoveredNode.id}</div>
+        <div role="tooltip" className="absolute top-2 left-2 text-xs bg-white/95 border border-ink-900/10 shadow-sm rounded px-2 py-1 pointer-events-none max-w-[200px]">
+          <div className="font-medium text-ink-700 truncate">{hoveredNode.label}</div>
+          <div className="text-ink-500 text-[10px]">{hoveredNode.id}</div>
         </div>
       )}
 
       {/* Stats badge */}
-      <div className="absolute top-2 right-2 text-xs text-gray-500 bg-white/80 px-2 py-1 rounded">
+      <div className="absolute top-2 right-2 text-xs text-ink-500 bg-white/80 px-2 py-1 rounded">
         {nodes.length} panels · {links.length} overlap edges
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { FaTrash } from 'react-icons/fa';
 import { FiActivity, FiAlertCircle, FiArrowRight, FiCheckCircle, FiFilePlus, FiTrendingUp } from 'react-icons/fi';
 import StatusPill from '../components/StatusPill.jsx';
+import { GradeBadgeCompact } from '../components/GradeBadge.jsx';
 import { deleteCase } from '../services/api.js';
 import { translateStatus } from '../utils/piLabels.js';
 
@@ -14,7 +15,7 @@ function classifyCase(item) {
 }
 
 const GROUPS = [
-  { key: 'pending', label: '待处理', sub: '需要人工复核的 findings', icon: FiAlertCircle, border: 'border-red-500/30', bg: 'bg-red-500/5', chipBg: 'bg-red-500/10', chipText: 'text-red-700' },
+  { key: 'pending', label: '待处理', sub: '需要人工复核的发现', icon: FiAlertCircle, border: 'border-red-500/30', bg: 'bg-red-500/5', chipBg: 'bg-red-500/10', chipText: 'text-red-700' },
   { key: 'running', label: '进行中', sub: '正在执行审查流程', icon: FiActivity, border: 'border-amber-500/30', bg: 'bg-amber-500/5', chipBg: 'bg-amber-500/10', chipText: 'text-amber-700' },
   { key: 'done', label: '已完成', sub: '审查完毕，报告就绪', icon: FiCheckCircle, border: 'border-green-500/30', bg: 'bg-green-500/5', chipBg: 'bg-green-500/10', chipText: 'text-green-700' },
   { key: 'draft', label: '待上传', sub: '已创建但尚未提交材料', icon: FiFilePlus, border: 'border-ink-900/10', bg: 'bg-white/40', chipBg: 'bg-ink-900/8', chipText: 'text-ink-500' },
@@ -38,13 +39,16 @@ function CaseCard({ item, onSelect, isSelected, isAdmin, onDeleteCase }) {
             {item.paper_title || '未命名项目'}
           </span>
           <StatusPill>{translateStatus(item.status)}</StatusPill>
+          {item.certification_grade?.grade && (
+            <GradeBadgeCompact grade={item.certification_grade.grade} />
+          )}
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-ink-500">
           {item.review_needed_count > 0 && (
-            <span className="mono-chip">{item.review_needed_count} findings</span>
+            <span className="mono-chip">{item.review_needed_count} 条发现</span>
           )}
           {risk !== 'pending' && risk !== 'N/A' && (
-            <span className="mono-chip">risk: {risk}</span>
+            <span className="mono-chip">风险: {risk}</span>
           )}
           <span className="mono-chip">{new Intl.DateTimeFormat(navigator.languages ?? ['zh-CN'], { month: '2-digit', day: '2-digit' }).format(new Date(item.created_at))}</span>
         </div>
@@ -146,7 +150,14 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
     const pendingReview = cases.filter((c) => (c.review_needed_count || 0) > 0);
     const pendingFindings = pendingReview.reduce((sum, c) => sum + (c.review_needed_count || 0), 0);
 
-    return { totalCases, totalFindings, criticalCount, runningCount, riskDist, recentCount, pendingReview: pendingReview.length, pendingFindings };
+    // Grade distribution
+    const gradeDist = { A: 0, B: 0, C: 0, D: 0 };
+    for (const c of cases) {
+      const g = c.certification_grade?.grade;
+      if (g && g in gradeDist) gradeDist[g]++;
+    }
+
+    return { totalCases, totalFindings, criticalCount, runningCount, riskDist, recentCount, pendingReview: pendingReview.length, pendingFindings, gradeDist };
   }, [cases]);
 
   const grouped = useMemo(() => {
@@ -183,11 +194,11 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <div className="dossier-panel rounded-2xl p-5">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-500/10 text-blue-600">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-signal-500/10 text-signal-700">
               <FiActivity className="text-xl" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-ink-500">Total Cases</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-ink-500">审查总数</p>
               <p className="font-display text-2xl font-semibold text-ink-900">{stats.totalCases}</p>
             </div>
           </div>
@@ -195,14 +206,14 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
 
         <div className="dossier-panel rounded-2xl p-5">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-purple-500/10 text-purple-600">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-caution-500/10 text-caution-700">
               <FiTrendingUp className="text-xl" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-ink-500">Total Findings</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-ink-500">发现总数</p>
               <p className="font-display text-2xl font-semibold text-ink-900">{stats.totalFindings}</p>
               {stats.criticalCount > 0 && (
-                <p className="mt-1 text-xs text-red-600">{stats.criticalCount} cases at risk</p>
+                <p className="mt-1 text-xs text-risk-700">{stats.criticalCount} 个高风险 case</p>
               )}
             </div>
           </div>
@@ -210,11 +221,11 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
 
         <div className="dossier-panel rounded-2xl p-5">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-red-500/10 text-red-600">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-risk-500/10 text-risk-700">
               <FiAlertCircle className="text-xl" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-ink-500">Critical / High</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-ink-500">高风险</p>
               <p className="font-display text-2xl font-semibold text-ink-900">{stats.criticalCount}</p>
             </div>
           </div>
@@ -222,16 +233,43 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
 
         <div className="dossier-panel rounded-2xl p-5">
           <div className="flex items-center gap-3">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-orange-500/10 text-orange-600">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-accent-500/10 text-accent-700">
               <FiActivity className="text-xl" aria-hidden="true" />
             </div>
             <div>
-              <p className="text-xs font-medium uppercase tracking-wide text-ink-500">Running</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-ink-500">进行中</p>
               <p className="font-display text-2xl font-semibold text-ink-900">{stats.runningCount}</p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Grade distribution */}
+      {(stats.gradeDist.A + stats.gradeDist.B + stats.gradeDist.C + stats.gradeDist.D) > 0 && (
+        <div className="dossier-panel rounded-2xl p-5">
+          <p className="text-xs font-medium uppercase tracking-wide text-ink-500 mb-3">认证等级分布</p>
+          <div className="flex items-end gap-4">
+            {[
+              { key: 'A', label: '完全通过', color: 'bg-signal-500' },
+              { key: 'B', label: '有条件通过', color: 'bg-accent-500' },
+              { key: 'C', label: '待修订', color: 'bg-caution-500' },
+              { key: 'D', label: '未通过', color: 'bg-risk-500' },
+            ].map(({ key, label, color }) => {
+              const count = stats.gradeDist[key];
+              const maxCount = Math.max(...Object.values(stats.gradeDist), 1);
+              const heightPct = Math.max((count / maxCount) * 100, count > 0 ? 12 : 4);
+              return (
+                <div key={key} className="flex flex-col items-center gap-1">
+                  <span className="font-mono text-xs font-semibold text-ink-700">{count}</span>
+                  <div className={`w-10 rounded-t-lg ${color} transition-all duration-300`} style={{ height: `${heightPct}%`, minHeight: count > 0 ? '12px' : '4px' }} />
+                  <span className="font-display text-sm font-bold text-ink-900">{key}</span>
+                  <span className="font-mono text-[10px] text-ink-500">{label}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Aggregate summary strip */}
       {cases.length > 0 && (
@@ -245,36 +283,36 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
                   <div
                     className="bg-red-500 transition-all duration-300"
                     style={{ width: `${(stats.riskDist.critical / stats.totalCases) * 100}%` }}
-                    title={`Critical: ${stats.riskDist.critical}`}
+                    title={`严重: ${stats.riskDist.critical}`}
                   />
                 )}
                 {stats.riskDist.high > 0 && (
                   <div
                     className="bg-orange-500 transition-all duration-300"
                     style={{ width: `${(stats.riskDist.high / stats.totalCases) * 100}%` }}
-                    title={`High: ${stats.riskDist.high}`}
+                    title={`高: ${stats.riskDist.high}`}
                   />
                 )}
                 {stats.riskDist.medium > 0 && (
                   <div
                     className="bg-amber-400 transition-all duration-300"
                     style={{ width: `${(stats.riskDist.medium / stats.totalCases) * 100}%` }}
-                    title={`Medium: ${stats.riskDist.medium}`}
+                    title={`中: ${stats.riskDist.medium}`}
                   />
                 )}
                 {stats.riskDist.low > 0 && (
                   <div
                     className="bg-signal-500 transition-all duration-300"
                     style={{ width: `${(stats.riskDist.low / stats.totalCases) * 100}%` }}
-                    title={`Low: ${stats.riskDist.low}`}
+                    title={`低: ${stats.riskDist.low}`}
                   />
                 )}
               </div>
               <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-500">
-                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-red-500" />Critical {stats.riskDist.critical}</span>
-                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-orange-500" />High {stats.riskDist.high}</span>
-                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-amber-400" />Medium {stats.riskDist.medium}</span>
-                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-signal-500" />Low {stats.riskDist.low}</span>
+                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-red-500" />严重 {stats.riskDist.critical}</span>
+                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-orange-500" />高 {stats.riskDist.high}</span>
+                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-amber-400" />中 {stats.riskDist.medium}</span>
+                <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-signal-500" />低 {stats.riskDist.low}</span>
               </div>
             </div>
 
@@ -282,9 +320,9 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
             <div className="flex items-center gap-6 border-t border-ink-900/8 pt-4 md:border-l md:border-t-0 md:pl-6 md:pt-0">
               <div className="text-center">
                 <p className="font-display text-2xl font-semibold text-ink-900">{stats.pendingFindings}</p>
-                <p className="text-[11px] text-ink-500">待审阅 findings</p>
+                <p className="text-[11px] text-ink-500">待审阅发现</p>
                 {stats.pendingReview > 0 && (
-                  <p className="text-[10px] text-ink-500">分布在 {stats.pendingReview} 个 case</p>
+                  <p className="text-[10px] text-ink-500">分布在 {stats.pendingReview} 个审查</p>
                 )}
               </div>
               <div className="h-8 w-px bg-ink-900/10" aria-hidden="true" />

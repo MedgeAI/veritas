@@ -38,7 +38,20 @@ async def list_cases(
 ) -> dict[str, Any]:
     uid = None if auth.is_admin() else auth.user_id
     cases = deps.store.list_cases(user_id=uid)
-    return {"cases": [c.to_dict() for c in cases]}
+    result = []
+    for c in cases:
+        d = c.to_dict()
+        # Enrich with certification grade from latest run
+        if c.latest_run_id:
+            try:
+                run = deps.store.get_run(c.case_id, c.latest_run_id)
+                grade = (run.summary or {}).get("certification_grade")
+                if grade:
+                    d["certification_grade"] = grade
+            except Exception:
+                pass
+        result.append(d)
+    return {"cases": result}
 
 
 @router.post("/cases", status_code=HTTPStatus.CREATED)
@@ -352,4 +365,59 @@ async def get_risk_summary(
         "total_findings": summary["total_findings"],
         "high_quality_count": summary["high_quality_count"],
         "findings_by_layer": summary["findings_by_layer"],
+    }
+
+
+@router.get("/cases/{case_id}/version-history")
+async def get_version_history(
+    case_id: str,
+    case: CaseRecord = Depends(require_case_access),
+) -> dict[str, Any]:
+    """Return version history for a case from the verification store."""
+    from engine.static_audit.verify_store import list_version_history
+
+    versions = list_version_history(case_id)
+    # Derive current version from the number of stored versions (min 1)
+    current_version = len(versions) if versions else 1
+    return {
+        "versions": versions,
+        "current_version": current_version,
+    }
+
+
+@router.post("/cases/{case_id}/reverify")
+async def reverify_case(
+    case_id: str,
+    case: CaseRecord = Depends(require_case_access),
+    deps: AppDependencies = Depends(get_app_dependencies),
+) -> dict[str, Any]:
+    """Initiate re-verification for a revised submission.
+
+    MVP: increments the version counter in the verification store
+    and returns the new version info. A full implementation would
+    trigger a diff-based incremental audit.
+    """
+    from engine.static_audit.report_id import generate_report_id
+    from engine.static_audit.verify_store import list_version_history, save_verification_summary
+
+    versions = list_version_history(case_id)
+    new_version = len(versions) + 1
+    new_report_id = generate_report_id()
+
+    # Save a placeholder verification summary for the new version
+    # (In production this would be populated after the re-audit completes)
+    save_verification_summary(
+        case_id=case_id,
+        report_id=new_report_id,
+        paper_title=case.paper_title or case_id,
+        grade_data={"grade": "?", "label": "待评定", "dimensions": [], "summary": "", "total_findings": 0},
+        report_version=new_version,
+    )
+
+    return {
+        "case_id": case_id,
+        "new_version": new_version,
+        "new_report_id": new_report_id,
+        "status": "queued",
+        "message": f"重新核查已启动：v{new_version} ({new_report_id})",
     }

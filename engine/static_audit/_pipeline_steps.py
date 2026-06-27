@@ -1090,11 +1090,22 @@ def _run_bundle_and_report(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
+    # Generate report_id before HTML rendering so it can be embedded in the hero
+    report_id = None
+    if grade_data:
+        try:
+            from engine.static_audit.report_id import generate_report_id
+
+            report_id = generate_report_id()
+        except Exception as e:
+            logger.warning("Report ID generation failed: %s", e)
+
     html_path = write_static_audit_html(
         workdir,
         case_id,
         grade=grade_data,
         dimensions=grade_data.get("dimensions") if grade_data else None,
+        report_id=report_id,
     )
     record_step(
         steps,
@@ -1107,14 +1118,11 @@ def _run_bundle_and_report(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
 
-    # Public verification: generate report_id and save verification summary
-    report_id = None
-    if grade_data and exit_code == 0:
+    # Public verification: save verification summary
+    if report_id and grade_data:
         try:
-            from engine.static_audit.report_id import generate_report_id
             from engine.static_audit.verify_store import save_verification_summary
 
-            report_id = generate_report_id()
             save_verification_summary(
                 case_id=case_id,
                 report_id=report_id,

@@ -309,6 +309,7 @@ def render_static_audit_html(
     case_id: str,
     grade: dict[str, Any] | None = None,
     dimensions: list[dict[str, Any]] | None = None,
+    report_id: str | None = None,
 ) -> str:
     # Load all artifacts
     artifacts = _load_report_artifacts(workdir)
@@ -377,6 +378,7 @@ def render_static_audit_html(
         <div class="hero-meta">
           <span class="eyebrow">Veritas 投稿前技术复核</span>
           <span class="meta-chip">case_id: {h(case_id)}</span>
+          {f'<span class="meta-chip">报告编号: {h(report_id)}</span>' if report_id else ''}
           <span class="meta-chip">静态材料复核</span>
         </div>
         <div class="verdict-row">
@@ -542,8 +544,8 @@ def render_static_audit_html(
         </details>
       </div>
     </section>
-    <div class="footer">生成时间：{h(datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))}。报告只展示技术记录和复核入口，关键结论必须人工确认。</div>
-    <div class="gatekeeper-footer gatekeeper-only">本报告不可篡改 · Immutable Record — 所有证据链均来自确定性工具执行产物</div>
+    <div class="footer">生成时间：{h(datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))}。{f'报告编号：{h(report_id)}。' if report_id else ''}报告只展示技术记录和复核入口，关键结论必须人工确认。</div>
+    <div class="gatekeeper-footer gatekeeper-only">本报告由 Veritas 独立签发，不可篡改 · Immutable Record{f' — {h(report_id)}' if report_id else ''} — 所有证据链均来自确定性工具执行产物</div>
   </main>
 </body>
 </html>
@@ -555,11 +557,12 @@ def write_static_audit_html(
     case_id: str,
     grade: dict[str, Any] | None = None,
     dimensions: list[dict[str, Any]] | None = None,
+    report_id: str | None = None,
 ) -> Path:
     path = resolve_artifact_path(workdir, "final_audit_report.html")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        render_static_audit_html(workdir, case_id, grade=grade, dimensions=dimensions),
+        render_static_audit_html(workdir, case_id, grade=grade, dimensions=dimensions, report_id=report_id),
         encoding="utf-8",
     )
     return path

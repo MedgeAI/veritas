@@ -35,6 +35,18 @@ export default {
           500: '#227863',
           700: '#185847',
         },
+        // accent: semantic alias for brand emphasis (grade B, version highlight).
+        // Values aligned with signal — see GradeBadge.jsx, ReverificationPage.jsx.
+        accent: {
+          50: '#eefbf6',
+          100: '#d8efe8',
+          200: '#b3dfd1',
+          300: '#8fcdbc',
+          400: '#5aab93',
+          500: '#227863',
+          600: '#1e6b58',
+          700: '#185847',
+        },
         caution: {
           100: '#f8e6c6',
           300: '#dfa94b',

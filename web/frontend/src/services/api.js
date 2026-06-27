@@ -447,3 +447,21 @@ export async function verifyReport(reportId) {
 export async function fetchCertaintyData(caseId) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/artifacts/certainty_data`);
 }
+
+// ---------------------------------------------------------------------------
+// Version history (for ReverificationPage)
+// ---------------------------------------------------------------------------
+
+export async function getVersionHistory(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/version-history`);
+}
+
+// ---------------------------------------------------------------------------
+// Re-verification (revision re-audit)
+// ---------------------------------------------------------------------------
+
+export async function submitReverification(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/reverify`, {
+    method: 'POST',
+  });
+}

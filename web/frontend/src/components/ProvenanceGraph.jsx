@@ -334,7 +334,7 @@ export default function ProvenanceGraph({
         <svg
           ref={svgRef}
           viewBox={`0 0 ${width} ${height}`}
-          className="w-full bg-gray-50 rounded-xl border border-gray-200"
+          className="w-full bg-paper-100 rounded-xl border border-ink-900/10"
           style={{ height: Math.max(300, height * 0.65) }}
           role="img"
           aria-label="Evidence provenance graph"
@@ -443,7 +443,7 @@ export default function ProvenanceGraph({
 
         {/* Hover tooltip */}
         {hoveredNode && !selectedNode && (
-          <div className="absolute top-2 left-2 text-xs bg-white/95 border border-gray-200 shadow-sm rounded-lg px-3 py-2 pointer-events-none max-w-[240px]">
+          <div className="absolute top-2 left-2 text-xs bg-white/95 border border-ink-900/10 shadow-sm rounded-lg px-3 py-2 pointer-events-none max-w-[240px]">
             <div className="font-medium text-ink-700 truncate">{hoveredNode.label || hoveredNode.id}</div>
             <div className="text-ink-500 text-[10px] mt-0.5">{hoveredNode.id}</div>
             {hoveredNode.depth !== undefined && (
@@ -453,7 +453,7 @@ export default function ProvenanceGraph({
         )}
 
         {/* Legend */}
-        <div className="absolute bottom-2 left-2 flex flex-col gap-1 bg-white/90 rounded-lg px-2 py-1.5 text-[10px] shadow-sm border border-gray-100">
+        <div className="absolute bottom-2 left-2 flex flex-col gap-1 bg-white/90 rounded-lg px-2 py-1.5 text-[10px] shadow-sm border border-ink-900/5">
           <div className="flex items-center gap-1.5">
             <div className="w-3 h-3 rounded-full bg-emerald-500 border border-emerald-700" />
             <span className="text-ink-500">Query Figure</span>
@@ -463,11 +463,11 @@ export default function ProvenanceGraph({
             <span className="text-ink-500">Matched Figure</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-6 h-0.5 bg-gray-600 rounded" />
+            <div className="w-6 h-0.5 bg-ink-500 rounded" />
             <span className="text-ink-500">MST Edge</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-6 h-0.5 bg-gray-300 rounded" style={{ borderTop: '1px dashed #cbd5e1' }} />
+            <div className="w-6 h-0.5 bg-ink-300 rounded" style={{ borderTop: '1px dashed #cbd5e1' }} />
             <span className="text-ink-500">Non-MST Edge</span>
           </div>
         </div>
@@ -476,7 +476,7 @@ export default function ProvenanceGraph({
       {/* Node Detail Panel */}
       {selectedNode && (
         <div
-          className="mt-3 rounded-xl border border-gray-200 bg-white p-4"
+          className="mt-3 rounded-xl border border-ink-900/10 bg-white p-4"
           data-testid="node-detail-panel"
         >
           <div className="flex items-start justify-between">
@@ -507,7 +507,7 @@ export default function ProvenanceGraph({
               <img
                 src={visualImageUrl(caseId, selectedNode.image_path)}
                 alt={selectedNode.label || selectedNode.id}
-                className="max-h-40 rounded-lg border border-gray-200"
+                className="max-h-40 rounded-lg border border-ink-900/10"
                 loading="lazy"
                 width="320"
                 height="160"
@@ -530,7 +530,7 @@ export default function ProvenanceGraph({
                   return (
                     <div
                       key={`${srcId}--${tgtId}`}
-                      className="flex items-center justify-between rounded-lg bg-gray-50 px-2 py-1 text-xs"
+                      className="flex items-center justify-between rounded-lg bg-paper-100 px-2 py-1 text-xs"
                     >
                       <span className="font-mono text-ink-700 truncate">
                         {truncate(otherNode?.label || otherId, 20)}

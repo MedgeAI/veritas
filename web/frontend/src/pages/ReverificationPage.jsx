@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FiArrowRight, FiCheck, FiClock } from 'react-icons/fi';
-import { getVersionHistory } from '../services/api.js';
+import { getVersionHistory, submitReverification } from '../services/api.js';
 
 /**
  * ReverificationPage — shows what will be re-verified, version chain,
@@ -9,6 +9,8 @@ import { getVersionHistory } from '../services/api.js';
 export default function ReverificationPage({ selectedCase, onNavigate }) {
   const [versionHistory, setVersionHistory] = useState([]);
   const [confirmed, setConfirmed] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [newVersionInfo, setNewVersionInfo] = useState(null);
 
   useEffect(() => {
     if (!selectedCase?.case_id) return;
@@ -38,13 +40,17 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
   const currentVersion = selectedCase.report_version || 1;
   const nextVersion = currentVersion + 1;
 
-  function handleConfirm() {
-    // Mock payment — log the action for internal tool
-    console.log(
-      `[Reverification] Confirmed: case=${selectedCase.case_id}, ` +
-      `v${currentVersion} -> v${nextVersion}`
-    );
-    setConfirmed(true);
+  async function handleConfirm() {
+    setLoading(true);
+    try {
+      const result = await submitReverification(selectedCase.case_id);
+      setNewVersionInfo(result);
+      setConfirmed(true);
+    } catch (err) {
+      console.error('[Reverification] Failed:', err);
+    } finally {
+      setLoading(false);
+    }
   }
 
   function handleLater() {
@@ -161,14 +167,17 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
       <section className="dossier-panel rounded-[2rem] p-6">
         {confirmed ? (
           <div className="text-center py-4">
-            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-green-100 mb-3">
-              <FiCheck className="h-6 w-6 text-green-600" />
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-signal-100 mb-3">
+              <FiCheck className="h-6 w-6 text-signal-700" />
             </div>
-            <p className="font-display text-lg font-semibold text-green-800">
+            <p className="font-display text-lg font-semibold text-signal-700">
               已确认，开始重新核查
             </p>
             <p className="text-sm text-ink-500 mt-2">
-              v{nextVersion} 正在生成中，请稍后查看结果
+              {newVersionInfo
+                ? `v${newVersionInfo.new_version} (${newVersionInfo.new_report_id}) 正在生成中`
+                : `v${nextVersion} 正在生成中`}
+              ，请稍后查看结果
             </p>
             <button
               type="button"
@@ -192,8 +201,9 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
               type="button"
               className="btn-primary w-full sm:w-auto"
               onClick={handleConfirm}
+              disabled={loading}
             >
-              确认支付 · 开始重新核查
+              {loading ? '处理中…' : '确认支付 · 开始重新核查'}
             </button>
           </div>
         )}
