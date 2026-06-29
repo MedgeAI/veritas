@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -37,6 +38,49 @@ def _get_verify_dir(override: str | Path | None = None) -> Path:
         path = Path(verify_dir)
     path.mkdir(parents=True, exist_ok=True)
     return path
+
+
+def _load_case_index(directory: Path) -> dict[str, Any]:
+    """Load case_id -> metadata index. Returns empty dict if missing."""
+    index_path = directory / "case_index.json"
+    if not index_path.exists():
+        return {}
+    try:
+        data = json.loads(index_path.read_text(encoding="utf-8"))
+        return data.get("cases", {})
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def _update_case_index(
+    directory: Path, case_id: str, entry: dict[str, Any]
+) -> None:
+    """Add or update a case_id entry in the index. Atomic write."""
+    index_path = directory / "case_index.json"
+    index_data: dict[str, Any] = {"cases": {}}
+    if index_path.exists():
+        try:
+            index_data = json.loads(index_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            pass
+    cases = index_data.setdefault("cases", {})
+    entries: list[dict[str, Any]] = cases.get(case_id, [])
+    if not isinstance(entries, list):
+        entries = [entries]
+    entries = [e for e in entries if e.get("version") != entry.get("version")]
+    entries.append(entry)
+    entries.sort(key=lambda e: e.get("version", 0))
+    cases[case_id] = entries
+    tmp_path = index_path.with_suffix(".tmp")
+    try:
+        tmp_path.write_text(
+            json.dumps(index_data, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+        os.replace(str(tmp_path), str(index_path))
+    except OSError:
+        if tmp_path.exists():
+            tmp_path.unlink(missing_ok=True)
 
 
 def save_verification_summary(
@@ -111,6 +155,17 @@ def save_verification_summary(
         encoding="utf-8",
     )
 
+    # Update case index for fast lookups
+    index_entry = {
+        "version": report_version,
+        "report_id": report_id,
+        "grade": summary.get("grade", "?"),
+        "grade_label": summary.get("grade_label", ""),
+        "date": summary.get("created_at", ""),
+        "paper_title": paper_title,
+    }
+    _update_case_index(directory, case_id, index_entry)
+
     logger.info("Verification summary saved: %s -> %s", report_id, file_path)
     return file_path
 
@@ -126,6 +181,23 @@ def _collect_prior_versions(
     by version ascending, excluding the current version.
     """
     prior: list[dict[str, Any]] = []
+    # Fast path: use case index if available
+    index = _load_case_index(directory)
+    if case_id in index:
+        entries = index[case_id]
+        if not isinstance(entries, list):
+            entries = [entries]
+        for e in entries:
+            v = e.get("version")
+            if v is not None and isinstance(v, int) and v < current_version:
+                prior.append({
+                    "version": v,
+                    "report_id": e.get("report_id", ""),
+                })
+        prior.sort(key=lambda x: x["version"])
+        return prior
+
+    # Fallback: linear scan of VRT files
     for path in sorted(directory.glob("VRT-*.json")):
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
@@ -188,6 +260,29 @@ def list_version_history(
     directory = _get_verify_dir(verify_dir)
     versions: list[dict[str, Any]] = []
 
+    # Fast path: use case index if available
+    index = _load_case_index(directory)
+    if index:
+        entries = index.get(case_id, [])
+        if not isinstance(entries, list):
+            entries = [entries]
+        for e in entries:
+            v = e.get("version")
+            if v is None:
+                continue
+            versions.append({
+                "version": int(v),
+                "report_id": e.get("report_id", ""),
+                "grade": e.get("grade", "?"),
+                "grade_label": e.get("grade_label", ""),
+                "date": e.get("date", ""),
+                "paper_title": e.get("paper_title", ""),
+            })
+        versions.sort(key=lambda x: x["version"])
+        if versions:
+            return versions
+
+    # Fallback: linear scan of VRT files
     for path in sorted(directory.glob("VRT-*.json")):
         try:
             data = json.loads(path.read_text(encoding="utf-8"))

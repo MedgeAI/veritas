@@ -11,9 +11,10 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from engine.investigation.agent_models import AgentContextPack, TruncationConfig
+from engine.shared import filter_judge_input
 from engine.static_audit.paths import resolve_artifact_path
 
 TRUNCATION_MARKER = "\n[...truncated...]\n"
@@ -112,7 +113,11 @@ def _scan_artifact_finding_ids(
                     target.add(fid)
 
 
-def get_all_canonical_finding_ids(workdir: Path) -> set[str]:
+def get_all_canonical_finding_ids(
+    workdir: Path,
+    *,
+    _read: Callable[[Path, str], dict | None] | None = None,
+) -> set[str]:
     """Return the union of finding_ids across all canonical audit artifacts.
 
     Scans source_data_findings, source_data_pair_forensics, visual_findings,
@@ -123,9 +128,11 @@ def get_all_canonical_finding_ids(workdir: Path) -> set[str]:
     if workdir_str in _canonical_ids_cache:
         return set(_canonical_ids_cache[workdir_str])
 
+    _reader = _read or _read_json_artifact
+
     all_ids: set[str] = set()
     for artifact_name in _CANONICAL_FINDING_ARTIFACTS:
-        data = _read_json_artifact(workdir, artifact_name)
+        data = _reader(workdir, artifact_name)
         _scan_artifact_finding_ids(data, all_ids)
 
     # Investigation追加 artifacts (JSONL records)
@@ -142,8 +149,10 @@ def get_all_canonical_finding_ids(workdir: Path) -> set[str]:
                 if isinstance(record, dict):
                     _scan_artifact_finding_ids(record, all_ids)
                     for artifact_ref in record.get("output_artifacts") or []:
-                        if isinstance(artifact_ref, str) and artifact_ref.endswith(".json"):
-                            ref_data = _read_json_artifact(workdir, artifact_ref)
+                        if isinstance(artifact_ref, str) and artifact_ref.endswith(
+                            ".json"
+                        ):
+                            ref_data = _reader(workdir, artifact_ref)
                             _scan_artifact_finding_ids(ref_data, all_ids)
         except OSError:
             pass
@@ -152,23 +161,38 @@ def get_all_canonical_finding_ids(workdir: Path) -> set[str]:
     return set(all_ids)
 
 
-def get_artifact_backref(finding_id: str, workdir: Path) -> str | None:
+def get_artifact_backref(
+    finding_id: str,
+    workdir: Path,
+    *,
+    _read: Callable[[Path, str], dict | None] | None = None,
+) -> str | None:
     """Return the relative artifact path where *finding_id* was first found.
 
     Scans canonical artifacts in order and returns the first match.
     Returns None if the finding_id is not present in any artifact.
     """
+    _reader = _read or _read_json_artifact
     for artifact_name in _CANONICAL_FINDING_ARTIFACTS:
-        data = _read_json_artifact(workdir, artifact_name)
+        data = _reader(workdir, artifact_name)
         if not isinstance(data, dict):
             continue
-        for list_key in ("priority_findings", "findings", "review_queue", "relationships"):
+        for list_key in (
+            "priority_findings",
+            "findings",
+            "review_queue",
+            "relationships",
+        ):
             items = data.get(list_key) or []
             if not isinstance(items, list):
                 continue
             for item in items:
                 if isinstance(item, dict) and item.get("finding_id") == finding_id:
-                    return str(resolve_artifact_path(workdir, artifact_name).relative_to(workdir))
+                    return str(
+                        resolve_artifact_path(workdir, artifact_name).relative_to(
+                            workdir
+                        )
+                    )
     return None
 
 
@@ -303,29 +327,29 @@ def _extract_evidence_refs(workdir: Path) -> list[dict[str, Any]]:
 
     source_findings = _read_json_artifact(workdir, "source_data_findings.json")
     if isinstance(source_findings, dict):
-        for item in (source_findings.get("priority_findings") or [])[:10]:
-            if isinstance(item, dict):
-                refs.append(
-                    {
-                        "artifact_id": "source_data_findings.json",
-                        "finding_id": item.get("finding_id"),
-                        "risk_level": item.get("risk_level"),
-                        "category": item.get("category"),
-                    }
-                )
+        refs.extend(
+            {
+                "artifact_id": "source_data_findings.json",
+                "finding_id": item.get("finding_id"),
+                "risk_level": item.get("risk_level"),
+                "category": item.get("category"),
+            }
+            for item in (source_findings.get("priority_findings") or [])[:10]
+            if isinstance(item, dict)
+        )
 
     pair_forensics = _read_json_artifact(workdir, "source_data_pair_forensics.json")
     if isinstance(pair_forensics, dict):
-        for item in (pair_forensics.get("priority_findings") or [])[:10]:
-            if isinstance(item, dict):
-                refs.append(
-                    {
-                        "artifact_id": "source_data_pair_forensics.json",
-                        "finding_id": item.get("finding_id"),
-                        "risk_level": item.get("risk_level"),
-                        "category": item.get("category"),
-                    }
-                )
+        refs.extend(
+            {
+                "artifact_id": "source_data_pair_forensics.json",
+                "finding_id": item.get("finding_id"),
+                "risk_level": item.get("risk_level"),
+                "category": item.get("category"),
+            }
+            for item in (pair_forensics.get("priority_findings") or [])[:10]
+            if isinstance(item, dict)
+        )
 
     image_dups = _read_json_artifact(workdir, "exact_image_duplicates.json")
     if isinstance(image_dups, dict) and image_dups.get("duplicate_group_count", 0) > 0:
@@ -349,16 +373,20 @@ def _extract_top_n_findings(
 
     source_findings = _read_json_artifact(workdir, "source_data_findings.json")
     if isinstance(source_findings, dict):
-        for item in (source_findings.get("priority_findings") or [])[:n]:
-            if isinstance(item, dict):
-                findings.append(_compact_priority_finding(item))
+        findings.extend(
+            _compact_priority_finding(item)
+            for item in (source_findings.get("priority_findings") or [])[:n]
+            if isinstance(item, dict)
+        )
 
     pair_forensics = _read_json_artifact(workdir, "source_data_pair_forensics.json")
     if isinstance(pair_forensics, dict):
         remaining = n - len(findings)
-        for item in (pair_forensics.get("priority_findings") or [])[:remaining]:
-            if isinstance(item, dict):
-                findings.append(_compact_pair_forensics_finding(item))
+        findings.extend(
+            _compact_pair_forensics_finding(item)
+            for item in (pair_forensics.get("priority_findings") or [])[:remaining]
+            if isinstance(item, dict)
+        )
 
     numeric = _read_json_artifact(workdir, "numeric_forensics.json")
     if isinstance(numeric, dict):
@@ -409,8 +437,13 @@ def _compact_pair_forensics_finding(item: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _collect_limitations(workdir: Path) -> list[str]:
+def _collect_limitations(
+    workdir: Path,
+    *,
+    _read: Callable[[Path, str], dict | None] | None = None,
+) -> list[str]:
     """Collect limitation strings from all relevant artifacts."""
+    _reader = _read or _read_json_artifact
     limitations: list[str] = []
     for name in (
         "material_inventory.json",
@@ -419,7 +452,7 @@ def _collect_limitations(workdir: Path) -> list[str]:
         "source_data_pair_forensics.json",
         "numeric_forensics.json",
     ):
-        data = _read_json_artifact(workdir, name)
+        data = _reader(workdir, name)
         if not isinstance(data, dict):
             continue
         for lim in data.get("limitations", []):
@@ -578,9 +611,6 @@ def _extend_unique_strings(target: list[str], values: Any) -> None:
             target.append(value)
 
 
-from engine.shared import filter_judge_input
-
-
 def _load_judge_artifacts(workdir: Path) -> dict[str, Any]:
     """Load all artifacts needed for judge context summary."""
     return {
@@ -590,7 +620,9 @@ def _load_judge_artifacts(workdir: Path) -> dict[str, Any]:
         "material_plan": _read_json_artifact(workdir, "agent_material_plan.json"),
         "numeric": _read_json_artifact(workdir, "numeric_forensics.json"),
         "source_findings": _read_json_artifact(workdir, "source_data_findings.json"),
-        "pair_forensics": _read_json_artifact(workdir, "source_data_pair_forensics.json"),
+        "pair_forensics": _read_json_artifact(
+            workdir, "source_data_pair_forensics.json"
+        ),
         "visual_findings": _read_json_artifact(workdir, "visual_findings.json"),
         "image_relationships": _read_json_artifact(workdir, "image_relationships.json"),
     }
@@ -716,17 +748,15 @@ def _build_deterministic_summaries_section(
             else {},
         },
         "material_plan": {
-            "selected_optional_lanes": material_plan.get(
-                "selected_optional_lanes", []
-            )
+            "selected_optional_lanes": material_plan.get("selected_optional_lanes", [])
             if isinstance(material_plan, dict)
             else [],
             "missing_materials": material_plan.get("missing_materials", [])
             if isinstance(material_plan, dict)
             else [],
-            "unsupported_materials": (
-                material_plan.get("unsupported_materials") or []
-            )[:8]
+            "unsupported_materials": (material_plan.get("unsupported_materials") or [])[
+                :8
+            ]
             if isinstance(material_plan, dict)
             else [],
         },
@@ -818,7 +848,9 @@ def _build_judge_context_summary(workdir: Path) -> dict[str, Any]:
             artifacts["source_output"],
             limitations,
         ),
-        "deterministic_artifact_summaries": _build_deterministic_summaries_section(artifacts),
+        "deterministic_artifact_summaries": _build_deterministic_summaries_section(
+            artifacts
+        ),
         # PRD2-T6: Filter Judge input to only Layer 1 + Layer 2 findings
         "top_n_findings": filter_judge_input(_extract_top_n_findings(workdir, n=12)),
         "limitations": limitations[:12],
@@ -830,26 +862,183 @@ def _json_excerpt(data: dict[str, Any], config: TruncationConfig) -> str:
     return head_tail_truncate(text, config.max_tokens_per_excerpt)
 
 
+def _compact_source_data_findings(data: dict[str, Any]) -> dict[str, Any]:
+    """Compact source_data_findings for agent context packs.
+
+    Keeps claim_to_source_data but compacts it to only include mappings
+    relevant to current findings, with truncated paper references.
+    This preserves semantic context for the auditor to judge findings.
+    """
+    if not isinstance(data, dict):
+        return data
+
+    # Extract sheets mentioned in findings
+    finding_sheets: set[tuple[str, str]] = set()
+    for finding in data.get("findings", []):
+        if isinstance(finding, dict):
+            wb = finding.get("workbook", "")
+            sh = finding.get("sheet", "")
+            if wb and sh:
+                finding_sheets.add((wb, sh))
+
+    for finding in data.get("priority_findings", []):
+        if isinstance(finding, dict):
+            wb = finding.get("workbook", "")
+            sh = finding.get("sheet", "")
+            if wb and sh:
+                finding_sheets.add((wb, sh))
+
+    # Compact claim_to_source_data: keep only relevant mappings
+    original_mappings = data.get("claim_to_source_data", [])
+    compacted_mappings = []
+    for mapping in original_mappings:
+        if not isinstance(mapping, dict):
+            continue
+        wb = mapping.get("workbook", "")
+        sh = mapping.get("sheet", "")
+        # Keep mapping if it's relevant to findings, or if we have few findings
+        if (wb, sh) in finding_sheets or len(finding_sheets) == 0:
+            compacted_mappings.append(_compact_claim_mapping_for_auditor(mapping))
+
+    # Build compacted data
+    compacted = {k: v for k, v in data.items() if k != "claim_to_source_data"}
+    compacted["claim_to_source_data"] = compacted_mappings[:18]  # Limit to 18 mappings
+
+    return compacted
+
+
+def _compact_claim_mapping_for_auditor(mapping: dict[str, Any]) -> dict[str, Any]:
+    """Compact a single claim mapping for source_data_auditor context.
+
+    Keeps semantic context (figure ID, paper reference) but truncates
+    verbose fields to reduce size.
+    """
+    # Extract brief paper reference (first 200 chars of first match)
+    paper_refs = mapping.get("matched_paper_references", [])
+    brief_ref = ""
+    if paper_refs and isinstance(paper_refs, list):
+        first_ref = paper_refs[0]
+        if isinstance(first_ref, dict):
+            text = first_ref.get("text", "")
+            brief_ref = text[:200] + "..." if len(text) > 200 else text
+
+    return {
+        "mapping_id": mapping.get("mapping_id"),
+        "workbook": mapping.get("workbook"),
+        "sheet": mapping.get("sheet"),
+        "source_figure_id": mapping.get("source_figure_id"),
+        "source_figure_kind": mapping.get("source_figure_kind"),
+        "paper_context": brief_ref,  # Brief paper description for semantic context
+        "review_priority": mapping.get("review_priority"),
+        "mapping_confidence": mapping.get("mapping_confidence"),
+    }
+
+
+def _compact_pair_forensics(data: dict[str, Any]) -> dict[str, Any]:
+    """Compact source_data_pair_forensics for agent context packs.
+
+    Keeps findings and review tasks needed for auditing, but excludes
+    verbose per-finding data like raw_data_samples and detailed pair lists.
+    """
+    if not isinstance(data, dict):
+        return data
+
+    def _compact_finding(f: dict[str, Any]) -> dict[str, Any]:
+        """Compact a single finding, excluding verbose fields."""
+        if not isinstance(f, dict):
+            return f
+        return {
+            "finding_id": f.get("finding_id"),
+            "category": f.get("category"),
+            "risk_level": f.get("risk_level"),
+            "workbook": f.get("workbook"),
+            "sheet": f.get("sheet"),
+            "rows": f.get("rows", [])[:10],  # Limit rows list
+            "columns": f.get("columns", [])[:5],
+            "values": f.get("values", [])[:5],
+            "support_rate": f.get("support_rate"),
+            "benign_explanations": (f.get("benign_explanations") or [])[:3],
+            # Exclude: raw_data_samples, detailed_pairs, etc.
+        }
+
+    # Compact all finding lists
+    compacted = dict(data)
+
+    # Compact findings (main list)
+    if "findings" in compacted and isinstance(compacted["findings"], list):
+        compacted["findings"] = [
+            _compact_finding(f) for f in compacted["findings"][:20]
+        ]
+
+    # Compact priority_findings
+    if "priority_findings" in compacted and isinstance(
+        compacted["priority_findings"], list
+    ):
+        compacted["priority_findings"] = [
+            _compact_finding(f) for f in compacted["priority_findings"][:12]
+        ]
+
+    # Compact specialized finding lists (they're also verbose)
+    for key in [
+        "duplicate_row_vector_findings",
+        "row_offset_scalar_findings",
+        "long_format_paired_ratio_reuse_findings",
+        "long_format_within_pair_ratio_enrichment_findings",
+        "rounding_bias_findings",
+        "cross_block_paired_diff_too_narrow_findings",
+    ]:
+        if key in compacted and isinstance(compacted[key], list):
+            compacted[key] = [_compact_finding(f) for f in compacted[key][:8]]
+
+    # Keep review_tasks and finding_clusters (they're already compact)
+    if "review_tasks" in compacted and isinstance(compacted["review_tasks"], list):
+        compacted["review_tasks"] = compacted["review_tasks"][:12]
+
+    if "finding_clusters" in compacted and isinstance(
+        compacted["finding_clusters"], list
+    ):
+        compacted["finding_clusters"] = compacted["finding_clusters"][:8]
+
+    return compacted
+
+
 def _build_bounded_excerpts(
     workdir: Path,
     artifact_names: list[str],
     config: TruncationConfig,
+    role: str = "",
 ) -> dict[str, str]:
-    """Create bounded excerpts for large artifacts using head_tail_truncate."""
+    """Create bounded excerpts for large artifacts using head_tail_truncate.
+
+    For source_data_auditor role, compacts source data artifacts to exclude
+    large unnecessary fields like claim_to_source_data.
+    """
     excerpts: dict[str, str] = {}
     for name in artifact_names:
         path = _artifact_path(workdir, name)
         if not path.exists():
             continue
         try:
-            text = path.read_text(encoding="utf-8")
+            raw_text = path.read_text(encoding="utf-8")
         except UnicodeDecodeError:
             continue
 
+        # Apply role-specific compaction for JSON source data artifacts
+        if role == "source_data_auditor" and path.suffix.lower() == ".json":
+            try:
+                raw_data = json.loads(raw_text)
+                if name == "source_data_findings.json":
+                    raw_data = _compact_source_data_findings(raw_data)
+                elif name == "source_data_pair_forensics.json":
+                    raw_data = _compact_pair_forensics(raw_data)
+                raw_text = json.dumps(raw_data, ensure_ascii=False, indent=2)
+            except json.JSONDecodeError:
+                pass  # Keep original text if JSON parsing fails
+
         if name in _LARGE_ARTIFACT_KEYS:
-            excerpts[name] = head_tail_truncate(text, config.max_tokens_per_excerpt)
+            excerpts[name] = head_tail_truncate(raw_text, config.max_tokens_per_excerpt)
         else:
-            excerpts[name] = head_tail_truncate(text, config.max_tokens_per_excerpt)
+            excerpts[name] = head_tail_truncate(raw_text, config.max_tokens_per_excerpt)
     return excerpts
 
 
@@ -897,11 +1086,18 @@ def build_context_pack_for_role(
     if config is None:
         config = _default_truncation_config(role)
 
+    _artifact_cache: dict[str, dict | None] = {}
+
+    def _cached_read(wd: Path, name: str) -> dict | None:
+        if name not in _artifact_cache:
+            _artifact_cache[name] = _read_json_artifact(wd, name)
+        return _artifact_cache[name]
+
     artifact_names = _ROLE_ARTIFACTS.get(role, [])
     manifest = _scan_workdir_artifacts(workdir)
     evidence_refs = _extract_evidence_refs(workdir)
     top_n_findings = _extract_top_n_findings(workdir, n=12 if role == "judge" else 5)
-    limitations = _collect_limitations(workdir)
+    limitations = _collect_limitations(workdir, _read=_cached_read)
     if role == "judge":
         # PRD2-T6: Filter Judge input to only Layer 1 + Layer 2 findings
         top_n_findings = filter_judge_input(top_n_findings)
@@ -912,7 +1108,9 @@ def build_context_pack_for_role(
             ),
         }
     else:
-        bounded_excerpts = _build_bounded_excerpts(workdir, artifact_names, config)
+        bounded_excerpts = _build_bounded_excerpts(
+            workdir, artifact_names, config, role=role
+        )
 
     pack = AgentContextPack(
         artifact_manifest=manifest,
@@ -934,6 +1132,13 @@ def build_material_inventory_context_pack(
     if config is None:
         config = TruncationConfig()
 
+    _artifact_cache: dict[str, dict | None] = {}
+
+    def _cached_read(wd: Path, name: str) -> dict | None:
+        if name not in _artifact_cache:
+            _artifact_cache[name] = _read_json_artifact(wd, name)
+        return _artifact_cache[name]
+
     manifest = _scan_workdir_artifacts(workdir)
     bounded_excerpts: dict[str, str] = {}
 
@@ -948,7 +1153,7 @@ def build_material_inventory_context_pack(
         except UnicodeDecodeError:
             pass
 
-    limitations = _collect_limitations(workdir)
+    limitations = _collect_limitations(workdir, _read=_cached_read)
 
     pack = AgentContextPack(
         artifact_manifest=manifest,
@@ -970,14 +1175,22 @@ def build_review_context_pack(
     if config is None:
         config = TruncationConfig()
 
+    _artifact_cache: dict[str, dict | None] = {}
+
+    def _cached_read(wd: Path, name: str) -> dict | None:
+        if name not in _artifact_cache:
+            _artifact_cache[name] = _read_json_artifact(wd, name)
+        return _artifact_cache[name]
+
     manifest = _scan_workdir_artifacts(workdir)
     evidence_refs = _extract_evidence_refs(workdir)
     top_n_findings = _extract_top_n_findings(workdir)
-    limitations = _collect_limitations(workdir)
+    limitations = _collect_limitations(workdir, _read=_cached_read)
     bounded_excerpts = _build_bounded_excerpts(
         workdir,
         _ALL_DETERMINISTIC_ARTIFACTS,
         config,
+        role="review",
     )
 
     pack = AgentContextPack(
