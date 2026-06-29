@@ -1,10 +1,10 @@
 # audit-paper Pipeline 说明
 
-更新时间：2026-06-26
+更新时间：2026-06-29
 
 本文描述当前 `audit-paper` 的实际数据流、Agent 参与位置、真实 case 暴露的断点，以及下一版需要收敛的 pipeline contract。
 
-2026-06-26 校准：`orchestrator.py` 已重构为 backward-compat shim，实际 pipeline 逻辑归属 `pipeline.py`。Tool Registry 当前 30 个 ToolDefinition，按 `ExecutionPhase` 四层分类：`MANDATORY_BASELINE` / `CONDITIONAL_BASELINE` / `AGENT_SELECTABLE` / `REPORT_ONLY`。新增 `paths.py`（artifact 路径解析）、`ground_truth/`（标注管线）、`follow_up/`（行动生成）、`tasks/`（Celery 异步任务）。
+2026-06-29 校准：报告生成已重构为 `report/` 子包（`generator.py`、`claims.py`、`evidence.py`、`findings.py`、`sections.py`）。新增 `report_id.py`（报告 ID 生成，格式 `VRT-YYYYMM-XXXXXX`）和 `verify_store.py`（公开验证数据存储）。前端已演进为三入口架构（client/ops/verify）。`orchestrator.py` 仍是 backward-compat shim。Tool Registry 当前 30 个 ToolDefinition，按 `ExecutionPhase` 四层分类：`MANDATORY_BASELINE` / `CONDITIONAL_BASELINE` / `AGENT_SELECTABLE` / `REPORT_ONLY`。
 
 ## 输入
 
@@ -83,6 +83,8 @@ CLI / Web runner / Celery worker
        -> logs/*.log
 
   -> reports/static_audit_bundle.json
+  -> reports/report_id.txt  (VRT-YYYYMM-XXXXXX)
+  -> reports/verification_summary.json
   -> reports/audit_run_manifest.json
   -> reports/final_audit_report.md
   -> reports/final_audit_report.html
@@ -517,6 +519,8 @@ source_data.query  (AGENT_SELECTABLE)
 
 - `reports/audit_run_manifest.json`：本次运行步骤、状态、命令和产物路径。
 - `reports/static_audit_bundle.json`：结构化审查 bundle，后续报告和服务化入口应优先依赖它。
+- `reports/report_id.txt`：报告 ID（格式 `VRT-YYYYMM-XXXXXX`），由 `engine/static_audit/report_id.py` 生成。
+- `reports/verification_summary.json`：公开验证数据，由 `engine/static_audit/verify_store.py` 加载。
 - `investigation/investigation_rounds.jsonl`：AgentInvestigationPlanner 每个 action 的计划、校验、执行和产物记录。
 - `agents/context_pack_*.json`：AgentStepRunner 的 bounded input context。
 - `logs/*.log`：Agent 调用、错误分类、重试和 validation 记录。
@@ -552,7 +556,13 @@ completeness  材料缺失、代码/环境/原始数据未提供
 - 代码执行型 runtime 审查尚未并入 `audit-paper` 主链路。
 - `engine/ground_truth/` 提供标注解析（`parser.py`）、claim-finding 映射（`mapper.py`）、PRD gap 分析（`gap_analyzer.py`）和过拟合防护（`anti_overfit.py`），用于验证 pipeline 输出质量，不是审查主链路。
 - `engine/follow_up/` 生成 Follow-up 行动建议，通过 Web `ActionsPage` 展示。
-- `engine/tasks/` 提供 Celery 异步任务路径（`audit_task.py`、`embedding_task.py`），生产部署使用。
+- `engine/tasks/` 提供 Celery 异步任务路径（`audit_task.py`、`embedding_task.py`、`stale_run_watchdog.py`），生产部署使用。
+- `engine/static_audit/report/` 子包负责报告数据聚合和渲染：`generator.py`（主入口 `generate_report`）、`claims.py`（claim 数据）、`evidence.py`（evidence 数据）、`findings.py`（finding 数据）、`sections.py`（报告章节构建）。
+- `engine/static_audit/report_id.py` 生成报告 ID（格式 `VRT-YYYYMM-XXXXXX`）。
+- `engine/static_audit/verify_store.py` 提供公开验证数据加载和 report_id 校验。
+- 前端三入口架构通过 `utils/entrypoint.js` 分流：`client`（客户服务门户）、`ops`（运营后台）、`verify`（公开验证）。
+- Client Report BFF（`/api/cases/{case_id}/client-report`）聚合认证等级、风险摘要、certainty layers、复核项等数据供客户服务门户消费。
+- 公开验证接口（`/api/verify/{report_id}`）无需认证，外部用户可通过 report_id 查询认证状态。
 
 ## 下一版最低验收
 
