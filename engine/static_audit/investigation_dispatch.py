@@ -636,15 +636,20 @@ def _build_dependency_layers(roles_to_run: list[tuple]) -> list[list[tuple]]:
     # 构建角色名称到 role_data 的映射
     role_map = {rd[0].role_id: rd for rd in roles_to_run}
 
+    # 构建 artifact → 生产者 role_id 索引，将 O(R²×A) 降为 O(R×A)
+    artifact_producer: dict[str, str] = {}
+    for role, _, _ in roles_to_run:
+        if role.output_artifact:
+            artifact_producer[role.output_artifact] = role.role_id
+
     # 构建依赖图：role_id -> 依赖的 role_ids
     deps = {}
     for role, _, _ in roles_to_run:
         role_deps = []
         for artifact in role.input_artifacts:
-            # 检查 artifact 是否是其他角色的输出
-            for other_role, _, _ in roles_to_run:
-                if other_role.output_artifact == artifact:
-                    role_deps.append(other_role.role_id)
+            producer_id = artifact_producer.get(artifact)
+            if producer_id:
+                role_deps.append(producer_id)
         deps[role.role_id] = set(role_deps)
 
     # 分层：每次取出无依赖的角色组成一层，然后从依赖图中移除
