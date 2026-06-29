@@ -1,6 +1,6 @@
 function EmptyState({ title, message, children }) {
   return (
-    <section className="dossier-panel rounded-[2rem] p-8 text-center">
+    <section className="dossier-panel rounded-2xl p-8 text-center">
       {title ? (
         <p className="font-display text-2xl font-semibold">{title}</p>
       ) : null}

@@ -1,20 +1,21 @@
 import { lazy, Suspense } from 'react';
 import AppLayout from './AppLayout.jsx';
+import ClientLayout from './layouts/ClientLayout.jsx';
 import LoadingFallback from './components/LoadingFallback.jsx';
+import { detectEntry } from './utils/entrypoint.js';
 
 const VerifyPage = lazy(() => import('./pages/VerifyPage.jsx'));
+const ClientApp = lazy(() => import('./ClientApp.jsx'));
 
 function App() {
-  // Check if current path is /verify — render standalone page without AppLayout
-  if (window.location.pathname === '/verify') {
-    return (
-      <Suspense fallback={<LoadingFallback />}>
-        <VerifyPage />
-      </Suspense>
-    );
+  const entry = detectEntry();
+  if (entry === 'verify') {
+    return <Suspense fallback={<LoadingFallback />}><VerifyPage /></Suspense>;
   }
-
-  return <AppLayout />;
+  if (entry === 'ops') {
+    return <AppLayout />;
+  }
+  return <Suspense fallback={<LoadingFallback />}><ClientApp /></Suspense>;
 }
 
 export default App;

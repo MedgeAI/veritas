@@ -24,7 +24,7 @@ export default function CompletionSummary({
   const hasFailures = failedSteps > 0;
 
   return (
-    <div className="dossier-panel rounded-[2rem] p-8 text-center">
+    <div className="dossier-panel rounded-2xl p-8 text-center" role="status" aria-live="polite">
       <div className="flex flex-col items-center space-y-4">
         {/* Success / failure icon */}
         <div
@@ -33,9 +33,9 @@ export default function CompletionSummary({
           }`}
         >
           {hasFailures ? (
-            <FiX className="w-8 h-8 text-risk-600" />
+            <FiX className="w-8 h-8 text-risk-600" aria-hidden="true" />
           ) : (
-            <FiCheck className="w-8 h-8 text-signal-600" />
+            <FiCheck className="w-8 h-8 text-signal-600" aria-hidden="true" />
           )}
         </div>
 

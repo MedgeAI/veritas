@@ -465,3 +465,20 @@ export async function submitReverification(caseId) {
     method: 'POST',
   });
 }
+
+// ---------------------------------------------------------------------------
+// Reverification cost estimate
+// ---------------------------------------------------------------------------
+
+export async function getReverificationCost(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/reverification-cost`);
+}
+
+// ---------------------------------------------------------------------------
+// Client Report BFF (aggregated view model for customer-facing report)
+// ---------------------------------------------------------------------------
+
+export async function fetchClientReport(caseId) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}/client-report`);
+}
+

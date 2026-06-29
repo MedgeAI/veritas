@@ -303,7 +303,7 @@ export default function ProvenanceGraph({
             className="w-24 accent-emerald-600"
             data-testid="depth-slider"
           />
-          <span className="text-xs font-mono text-ink-700 w-8">
+          <span className="text-xs font-mono tabular-nums text-ink-700 w-8">
             {maxDepth >= CONFIG.DEPTH_SHOW_ALL ? 'All' : maxDepth}
           </span>
         </div>
@@ -312,7 +312,8 @@ export default function ProvenanceGraph({
         <button
           type="button"
           onClick={handleToggleSpanning}
-          className={`rounded-lg px-3 py-1 text-xs transition ${
+          aria-pressed={showSpanningOnly}
+          className={`rounded-lg px-3 py-1 text-xs transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 ${
             showSpanningOnly
               ? 'bg-emerald-600 text-white'
               : 'bg-ink-900/5 text-ink-700 hover:bg-ink-900/10'
@@ -373,7 +374,7 @@ export default function ProvenanceGraph({
                       x={midX}
                       y={midY - 5}
                       textAnchor="middle"
-                      className="text-[8px] fill-ink-500 pointer-events-none select-none"
+                      className="text-[8px] fill-ink-500 pointer-events-none select-none tabular-nums"
                     >
                       {link.weight.toFixed(2)}
                     </text>

@@ -477,7 +477,7 @@ function AdminPage() {
                       <div className="flex justify-end gap-2">
                         <button
                           type="button"
-                          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-ink-500 transition hover:bg-ink-900/5 hover:text-ink-700"
+                          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-ink-500 transition hover:bg-ink-900/5 hover:text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
                           onClick={() => setModal({ type: 'edit', user })}
                         >
                           <FaEdit aria-hidden="true" />
@@ -486,7 +486,7 @@ function AdminPage() {
                         {!isCloudflareMode ? (
                           <button
                             type="button"
-                            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-ink-500 transition hover:bg-ink-900/5 hover:text-ink-700"
+                            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-ink-500 transition hover:bg-ink-900/5 hover:text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
                             onClick={() => setModal({ type: 'password', user })}
                           >
                             <FaKey aria-hidden="true" />
@@ -495,7 +495,7 @@ function AdminPage() {
                         ) : null}
                         <button
                           type="button"
-                          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 hover:text-red-700"
+                          className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 transition hover:bg-red-50 hover:text-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
                           onClick={() => setModal({ type: 'delete', user })}
                         >
                           <FaTrash aria-hidden="true" />

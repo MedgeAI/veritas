@@ -98,7 +98,7 @@ function FindingsPage({ selectedCase, onNavigate }) {
   return (
     <div className="space-y-6">
       {/* Section 1: Risk Overview */}
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         <p className="metric-label">风险概览</p>
         <div className="mt-4">
           <RiskTrafficLight
@@ -119,7 +119,7 @@ function FindingsPage({ selectedCase, onNavigate }) {
       </section>
 
       {/* Section 2: Layered Findings (PRD2-T8) */}
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         <p className="metric-label">分层发现</p>
         <p className="mt-1 font-mono text-[11px] text-ink-500">
           {totalLayered} 条发现，按置信度分为三层
@@ -165,7 +165,7 @@ function FindingsPage({ selectedCase, onNavigate }) {
       </section>
 
       {/* Section 3: Visual Findings */}
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         <div className="flex flex-col gap-3 border-b border-ink-900/10 pb-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="metric-label">视觉发现</p>
@@ -229,9 +229,10 @@ function CertaintyLayers({ fact, inference, suggestion }) {
       <button
         type="button"
         onClick={() => setExpanded(!expanded)}
-        className="flex items-center gap-1.5 text-[11px] font-semibold text-ink-500 transition hover:text-ink-700"
+        aria-expanded={expanded}
+        className="flex items-center gap-1.5 text-[11px] font-semibold text-ink-500 transition hover:text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 rounded-sm"
       >
-        {expanded ? <FiChevronUp className="h-3 w-3" /> : <FiChevronDown className="h-3 w-3" />}
+        {expanded ? <FiChevronUp className="h-3 w-3" aria-hidden="true" /> : <FiChevronDown className="h-3 w-3" aria-hidden="true" />}
         三层确定性：事实 · 推断 · 建议
       </button>
       {expanded && (

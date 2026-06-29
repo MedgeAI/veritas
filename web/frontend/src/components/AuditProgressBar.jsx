@@ -70,7 +70,7 @@ function AuditProgressBar({ job, onCancel }) {
   const badgeClass = STATUS_BADGE[status] || STATUS_BADGE.queued;
 
   return (
-    <div className={`dossier-panel rounded-[2rem] border p-5 ${STATUS_STYLES[status] || STATUS_STYLES.queued}`}>
+    <div className={`dossier-panel rounded-2xl border p-5 ${STATUS_STYLES[status] || STATUS_STYLES.queued}`} role="status" aria-live="polite">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3">
           <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-bold ${badgeClass}`}>
@@ -120,7 +120,7 @@ function AuditProgressBar({ job, onCancel }) {
       </div>
 
       {/* Progress bar */}
-      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-ink-900/5" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
+      <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-ink-900/5" role="progressbar" aria-label="审计任务进度" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100}>
         <div
           className={`h-full rounded-full transition-[width] duration-500 ${
             status === 'completed' ? 'bg-green-500'

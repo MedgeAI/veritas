@@ -42,7 +42,7 @@ function PhaseHeroCard({ phase, stepDurations = {} }) {
   const totalCount = steps.length;
 
   return (
-    <div className="dossier-panel rounded-[2rem] p-6">
+    <div className="dossier-panel rounded-2xl p-6">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-3">

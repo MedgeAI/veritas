@@ -213,13 +213,13 @@ function EvidenceReviewPage({ selectedCase }) {
   return (
     <div className="space-y-6">
       {/* Summary Metrics */}
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         <div className="flex items-center justify-between">
           <div>
             <p className="metric-label">Evidence Review</p>
             <h2 className="mt-2 font-display text-2xl font-semibold">证据审查</h2>
           </div>
-          <button type="button" className="btn-ghost" onClick={loadData} disabled={loading}>
+          <button type="button" className="btn-ghost focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50" onClick={loadData} disabled={loading}>
             <FiRefreshCw aria-hidden="true" />
             {loading ? '加载中…' : '刷新'}
           </button>
@@ -255,7 +255,7 @@ function EvidenceReviewPage({ selectedCase }) {
 
       {/* Split View: Finding List + Evidence Detail */}
       {findings.length > 0 && (
-        <section className="dossier-panel rounded-[2rem] p-6">
+        <section className="dossier-panel rounded-2xl p-6">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-[380px_1fr]">
             {/* LEFT COLUMN - Finding List */}
             <div className="min-w-0">
@@ -318,7 +318,7 @@ function EvidenceReviewPage({ selectedCase }) {
 
       {/* Overlap Reuse Graph */}
       {overlapRelationships.length > 0 && (
-        <section className="dossier-panel rounded-[2rem] p-6">
+        <section className="dossier-panel rounded-2xl p-6">
           <h3 className="section-title">图像区域复用检测</h3>
           <p className="mt-2 text-sm text-ink-500">
             跨 panel 局部图像区域复用检测 — 点击 edge 查看详情。
@@ -347,7 +347,7 @@ function EvidenceReviewPage({ selectedCase }) {
 
       {/* Provenance Graph (MST) */}
       {provenanceGraph && provenanceGraph.nodes && provenanceGraph.nodes.length > 0 && (
-        <section className="dossier-panel rounded-[2rem] p-6">
+        <section className="dossier-panel rounded-2xl p-6">
           <h3 className="section-title">溯源图 (MST)</h3>
           <p className="mt-2 text-sm text-ink-500">
             基于 RootSIFT 描述子递归 BFS 匹配的 figure 级溯源图。MST 边表示最小生成树，
@@ -378,7 +378,7 @@ function EvidenceReviewPage({ selectedCase }) {
       <InvestigationResults results={investigationResults} caseId={selectedCase.case_id} />
 
       {/* Relationships Table */}
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         <h3 className="section-title">图像关系</h3>
         <p className="mt-2 text-sm text-ink-500">Panel 之间的相似或复用关系，按 score 排序。</p>
         {relationships.length === 0 ? (
@@ -413,7 +413,7 @@ function ManualInvestigationPanel({
   const disabled = selectedPanelList.length === 0 || running;
   const maxPanelsId = useId();
   return (
-    <section className="dossier-panel rounded-[2rem] p-6">
+    <section className="dossier-panel rounded-2xl p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="metric-label">Targeted Analysis</p>
@@ -479,7 +479,7 @@ function InvestigationResults({ results, caseId }) {
     return null;
   }
   return (
-    <section className="dossier-panel rounded-[2rem] p-6">
+    <section className="dossier-panel rounded-2xl p-6">
       <h3 className="section-title">定向分析结果</h3>
       <div className="mt-5 space-y-4">
         {results.slice(0, 6).map((entry, index) => {
@@ -679,8 +679,11 @@ function EvidenceDetailPanel({ finding, panels, caseId, activeTab, onTabChange, 
           <button
             key={tab.id}
             type="button"
+            role="tab"
+            aria-selected={activeTab === tab.id}
+            aria-controls={`tabpanel-${tab.id}`}
             onClick={() => onTabChange(tab.id)}
-            className={`px-4 py-3 text-sm font-medium transition ${
+            className={`px-4 py-3 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 ${
               activeTab === tab.id
                 ? 'border-b-2 border-signal-500 text-ink-900'
                 : 'text-ink-500 hover:text-ink-700'

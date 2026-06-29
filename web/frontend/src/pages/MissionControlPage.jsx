@@ -107,7 +107,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
 
       {/* Risk Summary — only shown after run completes */}
       {isFinished && riskSummary ? (
-        <section className="xl:col-span-2 dossier-panel rounded-[2rem] p-6">
+        <section className="xl:col-span-2 dossier-panel rounded-2xl p-6">
           {/* Certification Grade */}
           {run?.summary?.certification_grade ? (
             <div className="mb-5">
@@ -170,7 +170,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
         </section>
       ) : null}
 
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         <div className="flex flex-col gap-4 border-b border-ink-900/10 pb-5 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="metric-label">运行状态</p>
@@ -219,7 +219,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
           <MaterialChecklist caseId={selectedCaseId} materials={materials} />
         ) : null}
 
-        <section className="dossier-panel rounded-[2rem] p-6">
+        <section className="dossier-panel rounded-2xl p-6">
           <p className="metric-label">产物准备情况</p>
           <div className="mt-4 space-y-3" aria-live="polite">
             {artifacts.map((artifact) => (
@@ -233,7 +233,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
           </div>
         </section>
 
-        <section className="dossier-panel rounded-[2rem] p-6">
+        <section className="dossier-panel rounded-2xl p-6">
           <p className="metric-label">异常记录</p>
           <p className="mt-3 text-sm leading-6 text-ink-500">
             审查过程中遇到的错误会记录在此处。如果审查正常完成，此处为空。

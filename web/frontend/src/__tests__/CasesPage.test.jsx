@@ -33,7 +33,7 @@ describe('CasesPage', () => {
     );
 
     const pendingSection = screen.getByText('待处理').closest('section');
-    const doneSection = screen.getByText('已完成').closest('section');
+    const doneSection = screen.getByRole('heading', { name: '已完成' }).closest('section');
 
     expect(within(pendingSection).getByText('Needs Review')).toBeInTheDocument();
     expect(within(doneSection).getByText('Ready Case')).toBeInTheDocument();

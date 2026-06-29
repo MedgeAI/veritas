@@ -45,7 +45,7 @@ export default function GradeBadge({ grade, dimensions, size = 'md' }) {
                 }`}
               >
                 {d.label}
-                <span className="font-mono">
+                <span aria-hidden="true" className="font-mono">
                   {d.status === 'pass' ? '✓' : d.status === 'pass_with_notes' ? '≈' : d.status === 'warning' ? '!' : '✗'}
                 </span>
               </span>

@@ -154,7 +154,7 @@ function ReportCenterPage({ selectedCase }) {
 
 function ReportCaseRequired() {
   return (
-    <section className="dossier-panel rounded-[2rem] p-8 text-center">
+    <section className="dossier-panel rounded-2xl p-8 text-center">
       <p className="font-display text-2xl font-semibold">请先选择审查项目</p>
       <p className="mt-3 text-sm text-ink-500">报告预览依赖当前审查项目的最终报告</p>
     </section>
@@ -163,7 +163,7 @@ function ReportCaseRequired() {
 
 function ReportHero({ artifact, gradeData, isRefreshing, ready, reportUrl, onRefreshStatus, onReloadPreview, error }) {
   return (
-    <section className="dossier-panel rounded-[2rem] p-6">
+    <section className="dossier-panel rounded-2xl p-6">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <p className="metric-label">Final HTML Report</p>
@@ -260,7 +260,7 @@ function ViewModeToggle({ viewMode, onViewModeChange }) {
 
 function ReadyReportPreview({ caseId, reloadKey, reportUrl, viewMode, iframeRef, onIframeLoad }) {
   return (
-    <section className="dossier-panel overflow-hidden rounded-[2rem]">
+    <section className="dossier-panel overflow-hidden rounded-2xl">
       {viewMode === 'gatekeeper' && (
         <div className="flex items-center gap-2 border-b border-ink-200/60 bg-ink-50/80 px-4 py-2 text-xs font-medium text-ink-500">
           <FiEyeOff aria-hidden="true" className="h-3.5 w-3.5" />
@@ -283,7 +283,7 @@ function ReadyReportPreview({ caseId, reloadKey, reportUrl, viewMode, iframeRef,
 
 function WaitingReportPreview() {
   return (
-    <section className="dossier-panel overflow-hidden rounded-[2rem]">
+    <section className="dossier-panel overflow-hidden rounded-2xl">
       <div className="p-10 text-center">
         <p className="font-display text-2xl font-semibold">报告尚未生成</p>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-6 text-ink-500">
@@ -309,7 +309,7 @@ function VersionHistorySection({ selectedCase, gradeData }) {
   if (!currentVersion || currentVersion <= 1) return null;
 
   return (
-    <section className="dossier-panel rounded-[2rem] p-6">
+    <section className="dossier-panel rounded-2xl p-6">
       <p className="metric-label">版本历史</p>
       <div className="mt-4 flex items-center gap-3">
         <div className="flex items-center gap-2 rounded-xl bg-accent-100/60 px-3 py-2 text-sm font-medium text-accent-700">

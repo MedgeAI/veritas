@@ -24,14 +24,16 @@ export default function CollapsedPastPhases({ phases, stepDurations = {} }) {
 
   return (
     <div className="mt-4">
-      <div
-        className="h-11 flex items-center gap-2 px-4 rounded-xl hover:bg-ink-900/5 cursor-pointer"
+      <button
+        type="button"
+        className="h-11 flex items-center gap-2 px-4 rounded-xl hover:bg-ink-900/5 cursor-pointer w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50"
         onClick={() => setExpanded(!expanded)}
+        aria-expanded={expanded}
       >
         {expanded ? (
-          <FiChevronDown className="w-4 h-4 text-ink-600 transition-transform duration-200" />
+          <FiChevronDown className="w-4 h-4 text-ink-600 transition-transform duration-200" aria-hidden="true" />
         ) : (
-          <FiChevronRight className="w-4 h-4 text-ink-600 transition-transform duration-200" />
+          <FiChevronRight className="w-4 h-4 text-ink-600 transition-transform duration-200" aria-hidden="true" />
         )}
         <span className="text-sm font-medium text-ink-600">
           已完成阶段 ({phases.length})
@@ -43,7 +45,7 @@ export default function CollapsedPastPhases({ phases, stepDurations = {} }) {
             </span>
           </div>
         )}
-      </div>
+      </button>
 
       {expanded && (
         <div className="space-y-1 mt-1">

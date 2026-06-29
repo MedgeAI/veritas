@@ -46,6 +46,7 @@ from .routers import (
     artifacts,
     audit_jobs,
     cases,
+    client_report,
     investigations,
     materials,
     metrics,
@@ -212,7 +213,10 @@ def create_app(
     app.include_router(materials.router, prefix="/api")
     app.include_router(metrics.router, prefix="/api")
     app.include_router(users.router, prefix="/api")
-    app.include_router(verify.router, prefix="")  # verify router already has /api/verify prefix
+    app.include_router(
+        verify.router, prefix=""
+    )  # verify router already has /api/verify prefix
+    app.include_router(client_report.router, prefix="/api")
 
     # --- Health endpoint -----------------------------------------------
     @app.get("/api/health")

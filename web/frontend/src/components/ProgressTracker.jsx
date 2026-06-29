@@ -105,7 +105,7 @@ function ProgressTracker({ steps = [], runStatus, caseId }) {
   // Edge case: empty steps
   if (!steps || steps.length === 0) {
     return (
-      <div className="dossier-panel rounded-[2rem] p-6">
+      <div className="dossier-panel rounded-2xl p-6">
         <p className="metric-label">审查进度</p>
         <p className="text-sm text-ink-500 mt-4">等待审查开始…</p>
       </div>
@@ -138,7 +138,7 @@ function ProgressTracker({ steps = [], runStatus, caseId }) {
 
   // Running, queued, failed state
   return (
-    <div className="dossier-panel rounded-[2rem] p-6">
+    <div className="dossier-panel rounded-2xl p-6">
       <p className="metric-label">审查进度</p>
 
       <PhaseRail phases={phases} phaseStatuses={phaseStatuses} />

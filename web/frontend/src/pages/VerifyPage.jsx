@@ -54,7 +54,7 @@ export default function VerifyPage() {
         </div>
 
         {/* Input Form */}
-        <form onSubmit={handleSubmit} className="dossier-panel rounded-[2rem] p-6 mb-8">
+        <form onSubmit={handleSubmit} className="dossier-panel rounded-2xl p-6 mb-8">
           <label htmlFor="reportId" className="block text-sm font-medium text-ink-700 mb-2">
             Report ID / 报告编号
           </label>
@@ -93,7 +93,7 @@ export default function VerifyPage() {
 
         {/* Results */}
         {result && (
-          <div className="dossier-panel rounded-[2rem] p-6" aria-live="polite">
+          <div className="dossier-panel rounded-2xl p-6" aria-live="polite">
             {result.verified ? (
               <>
                 {/* Success Banner */}
@@ -152,7 +152,7 @@ export default function VerifyPage() {
                   <div className="grid grid-cols-2 gap-4 font-mono text-[11px] text-ink-500">
                     <div>
                       <span className="font-semibold text-ink-700">验证时间：</span>
-                      {result.created_at ? new Date(result.created_at).toLocaleString('zh-CN') : 'N/A'}
+                      {result.created_at ? new Date(result.created_at).toLocaleString(navigator.languages ?? ['zh-CN']) : 'N/A'}
                     </div>
                     <div>
                       <span className="font-semibold text-ink-700">协议版本：</span>

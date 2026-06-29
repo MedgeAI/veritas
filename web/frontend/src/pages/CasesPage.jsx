@@ -6,6 +6,19 @@ import { GradeBadgeCompact } from '../components/GradeBadge.jsx';
 import { deleteCase } from '../services/api.js';
 import { translateStatus } from '../utils/piLabels.js';
 
+let _dateFmt;
+const formatDate = (dateStr) => {
+  if (!_dateFmt) _dateFmt = new Intl.DateTimeFormat(navigator.languages ?? ['zh-CN'], { month: '2-digit', day: '2-digit' });
+  try { return _dateFmt.format(new Date(dateStr)); } catch { return dateStr; }
+};
+
+const REPRO_TIER_MAP = {
+  Full: { label: '完整复现', bg: 'bg-signal-100', text: 'text-signal-700' },
+  Partial: { label: '部分复现', bg: 'bg-accent-100', text: 'text-accent-700' },
+  'Code-only': { label: '仅代码', bg: 'bg-caution-100', text: 'text-caution-700' },
+  Static: { label: '仅静态', bg: 'bg-risk-100', text: 'text-risk-700' },
+};
+
 function classifyCase(item) {
   if (item.status === 'Review Needed' || (item.review_needed_count || 0) > 0) return 'pending';
   if (item.technical_risk === 'critical' || item.technical_risk === 'high') return 'pending';
@@ -25,14 +38,14 @@ function CaseCard({ item, onSelect, isSelected, isAdmin, onDeleteCase }) {
   const risk = item.technical_risk || 'pending';
   return (
     <div
-      className={`flow-list-item group grid w-full gap-3 px-4 py-4 text-left transition md:grid-cols-[minmax(0,1fr)_auto] md:items-center ${
+      className={`flow-list-item group grid w-full gap-3 px-4 py-4 text-left transition-[background-color] md:grid-cols-[minmax(0,1fr)_auto] md:items-center ${
         isSelected ? 'bg-signal-100/50' : 'hover:bg-white/45'
       }`}
     >
       <button
         type="button"
         onClick={() => onSelect(item.case_id)}
-        className="min-w-0 text-left"
+        className="min-w-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40 rounded-sm"
       >
         <div className="flex flex-wrap items-center gap-2">
           <span className="min-w-0 break-words font-display text-base font-semibold text-ink-900">
@@ -42,6 +55,11 @@ function CaseCard({ item, onSelect, isSelected, isAdmin, onDeleteCase }) {
           {item.certification_grade?.grade && (
             <GradeBadgeCompact grade={item.certification_grade.grade} />
           )}
+          {item.reproducibility_tier && REPRO_TIER_MAP[item.reproducibility_tier] && (
+            <span className={`rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold ${REPRO_TIER_MAP[item.reproducibility_tier].bg} ${REPRO_TIER_MAP[item.reproducibility_tier].text}`}>
+              {REPRO_TIER_MAP[item.reproducibility_tier].label}
+            </span>
+          )}
         </div>
         <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-ink-500">
           {item.review_needed_count > 0 && (
@@ -50,7 +68,7 @@ function CaseCard({ item, onSelect, isSelected, isAdmin, onDeleteCase }) {
           {risk !== 'pending' && risk !== 'N/A' && (
             <span className="mono-chip">风险: {risk}</span>
           )}
-          <span className="mono-chip">{new Intl.DateTimeFormat(navigator.languages ?? ['zh-CN'], { month: '2-digit', day: '2-digit' }).format(new Date(item.created_at))}</span>
+          <span className="mono-chip">{formatDate(item.created_at)}</span>
         </div>
       </button>
       <div className="flex items-center justify-end gap-2 text-sm font-semibold text-signal-700">
@@ -81,6 +99,36 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [gradeFilter, setGradeFilter] = useState('all');
+
+  const STATUS_FILTER_MAP = {
+    all: null,
+    running: ['Running', 'Planning'],
+    done: ['Report Ready', 'Archived'],
+    pending: ['Review Needed'],
+  };
+
+  const filteredCases = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return cases.filter((c) => {
+      if (q) {
+        const title = (c.paper_title || '').toLowerCase();
+        const caseId = (c.case_id || '').toLowerCase();
+        if (!title.includes(q) && !caseId.includes(q)) return false;
+      }
+      if (statusFilter !== 'all') {
+        const allowed = STATUS_FILTER_MAP[statusFilter];
+        if (allowed && !allowed.includes(c.status)) return false;
+      }
+      if (gradeFilter !== 'all') {
+        const g = c.certification_grade?.grade;
+        if (g !== gradeFilter) return false;
+      }
+      return true;
+    });
+  }, [cases, searchQuery, statusFilter, gradeFilter]);
 
   const dialogRef = useRef(null);
   const cancelBtnRef = useRef(null);
@@ -162,7 +210,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
 
   const grouped = useMemo(() => {
     const buckets = { pending: [], running: [], done: [], draft: [] };
-    for (const item of cases) {
+    for (const item of filteredCases) {
       buckets[classifyCase(item)].push(item);
     }
     // Sort pending by review_needed_count desc, others by created_at desc
@@ -171,7 +219,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
       buckets[key].sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     }
     return buckets;
-  }, [cases]);
+  }, [filteredCases]);
 
   async function handleConfirmDelete() {
     if (!deleteTarget) return;
@@ -248,7 +296,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
       {(stats.gradeDist.A + stats.gradeDist.B + stats.gradeDist.C + stats.gradeDist.D) > 0 && (
         <div className="dossier-panel rounded-2xl p-5">
           <p className="text-xs font-medium uppercase tracking-wide text-ink-500 mb-3">认证等级分布</p>
-          <div className="flex items-end gap-4">
+          <div className="flex items-end gap-4 h-32">
             {[
               { key: 'A', label: '完全通过', color: 'bg-signal-500' },
               { key: 'B', label: '有条件通过', color: 'bg-accent-500' },
@@ -257,11 +305,16 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
             ].map(({ key, label, color }) => {
               const count = stats.gradeDist[key];
               const maxCount = Math.max(...Object.values(stats.gradeDist), 1);
-              const heightPct = Math.max((count / maxCount) * 100, count > 0 ? 12 : 4);
+              const scaleY = Math.max(count / maxCount, count > 0 ? 0.12 : 0.04);
               return (
-                <div key={key} className="flex flex-col items-center gap-1">
+                <div key={key} className="flex flex-1 flex-col items-center gap-1">
                   <span className="font-mono text-xs font-semibold text-ink-700">{count}</span>
-                  <div className={`w-10 rounded-t-lg ${color} transition-all duration-300`} style={{ height: `${heightPct}%`, minHeight: count > 0 ? '12px' : '4px' }} />
+                  <div className="w-full flex-1 self-stretch">
+                    <div
+                      className={`w-full h-full rounded-t-lg ${color} transition-transform duration-300`}
+                      style={{ transform: `scaleY(${scaleY})`, transformOrigin: 'bottom' }}
+                    />
+                  </div>
                   <span className="font-display text-sm font-bold text-ink-900">{key}</span>
                   <span className="font-mono text-[10px] text-ink-500">{label}</span>
                 </div>
@@ -278,35 +331,41 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
             {/* Risk distribution mini bar */}
             <div className="flex-1">
               <p className="text-xs font-medium uppercase tracking-wide text-ink-500">风险分布</p>
-              <div className="mt-2 flex h-3 overflow-hidden rounded-full bg-ink-900/5">
+              <div
+                className="mt-2"
+                role="img"
+                aria-label={`风险分布：严重${stats.riskDist.critical}、高${stats.riskDist.high}、中${stats.riskDist.medium}、低${stats.riskDist.low}`}
+              >
+              <div className="flex h-3 overflow-hidden rounded-full bg-ink-900/5">
                 {stats.riskDist.critical > 0 && (
                   <div
-                    className="bg-red-500 transition-all duration-300"
+                    className="bg-red-500 transition-[width] duration-300"
                     style={{ width: `${(stats.riskDist.critical / stats.totalCases) * 100}%` }}
                     title={`严重: ${stats.riskDist.critical}`}
                   />
                 )}
                 {stats.riskDist.high > 0 && (
                   <div
-                    className="bg-orange-500 transition-all duration-300"
+                    className="bg-orange-500 transition-[width] duration-300"
                     style={{ width: `${(stats.riskDist.high / stats.totalCases) * 100}%` }}
                     title={`高: ${stats.riskDist.high}`}
                   />
                 )}
                 {stats.riskDist.medium > 0 && (
                   <div
-                    className="bg-amber-400 transition-all duration-300"
+                    className="bg-amber-400 transition-[width] duration-300"
                     style={{ width: `${(stats.riskDist.medium / stats.totalCases) * 100}%` }}
                     title={`中: ${stats.riskDist.medium}`}
                   />
                 )}
                 {stats.riskDist.low > 0 && (
                   <div
-                    className="bg-signal-500 transition-all duration-300"
+                    className="bg-signal-500 transition-[width] duration-300"
                     style={{ width: `${(stats.riskDist.low / stats.totalCases) * 100}%` }}
                     title={`低: ${stats.riskDist.low}`}
                   />
                 )}
+              </div>
               </div>
               <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-ink-500">
                 <span className="flex items-center gap-1"><span className="inline-block h-2 w-2 rounded-full bg-red-500" />严重 {stats.riskDist.critical}</span>
@@ -337,12 +396,48 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
 
       {/* Kanban board */}
       <div className="space-y-5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="font-display text-xl font-semibold text-ink-900">审查看板</h2>
-          <button type="button" className="btn-primary" onClick={() => onNavigate('newAudit')}>
-            <FiFilePlus aria-hidden="true" />
-            新建审查
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <input
+              type="text"
+              name="searchQuery"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="标题或编号…"
+              aria-label="搜索论文"
+              className="rounded-lg border border-ink-900/10 bg-paper-50 px-3 py-1.5 text-sm text-ink-900 placeholder:text-ink-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
+            />
+            <select
+              name="statusFilter"
+              aria-label="状态筛选"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="rounded-lg border border-ink-900/10 bg-paper-50 px-2 py-1.5 text-sm text-ink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
+            >
+              <option value="all">全部状态</option>
+              <option value="running">进行中</option>
+              <option value="done">已完成</option>
+              <option value="pending">待审核</option>
+            </select>
+            <select
+              name="gradeFilter"
+              aria-label="等级筛选"
+              value={gradeFilter}
+              onChange={(e) => setGradeFilter(e.target.value)}
+              className="rounded-lg border border-ink-900/10 bg-paper-50 px-2 py-1.5 text-sm text-ink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
+            >
+              <option value="all">全部等级</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+              <option value="C">C</option>
+              <option value="D">D</option>
+            </select>
+            <button type="button" className="btn-primary" onClick={() => onNavigate('newAudit')}>
+              <FiFilePlus aria-hidden="true" />
+              新建审查
+            </button>
+          </div>
         </div>
 
         {cases.length === 0 ? (
@@ -360,7 +455,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
               return (
                 <section
                   key={group.key}
-                  className={`dossier-panel rounded-[2rem] border ${group.border} ${group.bg} p-5`}
+                  className={`dossier-panel rounded-2xl border ${group.border} ${group.bg} p-5`}
                 >
                   <div className="flex items-center justify-between border-b border-ink-900/10 pb-3">
                     <div className="flex items-center gap-2">

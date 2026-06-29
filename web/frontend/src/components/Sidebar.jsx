@@ -37,14 +37,15 @@ const GROUPS = [
   },
 ];
 
+let _dateFmt;
 const formatCaseDate = (dateStr) => {
-  try {
-    return new Intl.DateTimeFormat(navigator.languages ?? ['zh-CN'], { month: '2-digit', day: '2-digit' }).format(new Date(dateStr));
-  } catch { return dateStr; }
+  if (!_dateFmt) _dateFmt = new Intl.DateTimeFormat(navigator.languages ?? ['zh-CN'], { month: '2-digit', day: '2-digit' });
+  try { return _dateFmt.format(new Date(dateStr)); } catch { return dateStr; }
 };
 
-function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, caseCount, isAdmin }) {
+function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, caseCount, isAdmin, alwaysAvailablePages }) {
   const hasSelectedCase = Boolean(selectedCaseId);
+  const alwaysAvail = alwaysAvailablePages ?? new Set(['cases', 'newAudit']);
 
   const recentCases = useMemo(
     () => [...(cases || [])]
@@ -78,14 +79,13 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
               {group.items.map(([page, label, Icon]) => {
                 const active = activePage === page;
                 // Cases and NewAudit are always available; others require selected case
-                const alwaysAvailable = gi === 0 && (page === 'cases' || page === 'newAudit');
+                const alwaysAvailable = alwaysAvail.has(page);
                 const disabled = !alwaysAvailable && !hasSelectedCase;
                 return (
                   <button
                     key={page}
                     type="button"
                     onClick={() => !disabled && onNavigate(page)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); !disabled && onNavigate(page); } }}
                     disabled={disabled}
                     aria-current={active ? 'page' : undefined}
                     className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm transition ${
@@ -116,7 +116,6 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
               <button
                 type="button"
                 onClick={() => onNavigate('admin')}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onNavigate('admin'); } }}
                 aria-current={activePage === 'admin' ? 'page' : undefined}
                 aria-label="用户管理"
                 className={`flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm transition ${
@@ -145,7 +144,6 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
                   key={item.case_id}
                   type="button"
                   onClick={() => onSelectCase && onSelectCase(item.case_id)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelectCase && onSelectCase(item.case_id); } }}
                   className={`flex w-full items-center gap-2 rounded-xl px-2 py-2 text-left text-xs transition ${
                     isSelected
                       ? 'bg-paper-50 text-ink-900'

@@ -4,10 +4,10 @@
 
 @layer base {
   :root {
-    --surface-paper: #fbf7ef;
-    --surface-dossier: #f2eadb;
-    --ink: #171611;
-    --accent: #227863;
+    --surface-paper: #fbfaf6;
+    --surface-dossier: #f0ebe0;
+    --ink: #3a3328;
+    --accent: #8a6b3a;
   }
 
   * {
@@ -17,20 +17,18 @@
   html {
     scroll-behavior: smooth;
     overflow-x: hidden;
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
     min-width: 320px;
     min-height: 100vh;
     margin: 0;
-    color: var(--ink);
-    background:
-      radial-gradient(circle at top left, rgba(34, 120, 99, 0.14), transparent 28rem),
-      linear-gradient(135deg, #fbf7ef 0%, #f5efe0 45%, #e9ddc5 100%);
-    font-family: "IBM Plex Sans", Verdana, sans-serif;
+    color: #3a3328;
+    background: #fbfaf6;
+    font-family: "Inter", -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
-    -webkit-tap-highlight-color: rgba(34, 120, 99, 0.18);
+    -webkit-tap-highlight-color: rgba(138, 107, 58, 0.18);
     touch-action: manipulation;
     overflow-x: hidden;
   }
@@ -43,21 +41,30 @@
   }
 
   :focus-visible {
-    outline: 3px solid rgba(34, 120, 99, 0.42);
-    outline-offset: 3px;
+    outline: 2px solid rgba(138, 107, 58, 0.5);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background: #f0ebe0;
+    color: #3a3328;
   }
 }
 
 @layer components {
   .audit-shell {
+    background:
+      radial-gradient(circle at top left, rgba(138, 107, 58, 0.08), transparent 28rem),
+      linear-gradient(135deg, #fbfaf6 0%, #f5f0e6 45%, #e8dfc7 100%);
     background-image:
-      linear-gradient(rgba(23, 22, 17, 0.035) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(23, 22, 17, 0.035) 1px, transparent 1px);
+      linear-gradient(rgba(58, 51, 40, 0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(58, 51, 40, 0.03) 1px, transparent 1px);
     background-size: 28px 28px;
   }
 
   .skip-link {
-    @apply fixed left-4 top-4 z-50 -translate-y-24 rounded-full bg-ink-900 px-4 py-2 text-sm font-semibold text-paper-50 shadow-dossier transition-transform;
+    @apply fixed left-4 top-4 z-50 -translate-y-24 rounded px-4 py-2 text-sm font-semibold text-paper-50 shadow transition-transform;
+    background: #3a3328;
   }
 
   .skip-link:focus-visible {
@@ -65,45 +72,126 @@
   }
 
   .dossier-panel {
-    @apply border border-ink-900/10 bg-paper-50/90 shadow-dossier shadow-insetline backdrop-blur;
+    @apply border bg-paper-50/90 shadow-sm backdrop-blur;
+    border-color: rgba(239, 232, 216, 0.8);
   }
 
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink-900 px-5 py-3 text-sm font-semibold text-paper-50 transition hover:-translate-y-0.5 hover:bg-signal-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
+    background: #3a3328;
+    color: #fbfaf6;
+    border: none;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: #2e2820;
+    transform: translateY(-1px);
+  }
+  .btn-primary:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .btn-primary:focus-visible {
+    outline: 2px solid rgba(138, 107, 58, 0.5);
+    outline-offset: 2px;
   }
 
   .btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-full border border-ink-900/15 bg-paper-50/80 px-5 py-3 text-sm font-semibold text-ink-900 transition hover:-translate-y-0.5 hover:border-signal-500/40 hover:text-signal-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
+    background: transparent;
+    color: #3a3328;
+    border: 1px solid #3a3328;
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: #f0ebe0;
+    transform: translateY(-1px);
+  }
+  .btn-secondary:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+  .btn-secondary:focus-visible {
+    outline: 2px solid rgba(138, 107, 58, 0.5);
+    outline-offset: 2px;
   }
 
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-ink-500 transition hover:bg-ink-900/5 hover:text-ink-900 disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
+    background: transparent;
+    color: #6f6657;
+    border: none;
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: rgba(58, 51, 40, 0.05);
+    color: #3a3328;
+  }
+  .btn-ghost:focus-visible {
+    outline: 2px solid rgba(138, 107, 58, 0.5);
+    outline-offset: 2px;
   }
 
   .btn-danger {
-    @apply inline-flex items-center justify-center gap-2 rounded-full bg-red-600 px-5 py-3 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0;
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm font-medium text-white transition disabled:cursor-not-allowed disabled:opacity-50;
+    background: #a8542a;
+    border: none;
+  }
+  .btn-danger:hover:not(:disabled) {
+    background: #8a4020;
+    transform: translateY(-1px);
+  }
+  .btn-danger:focus-visible {
+    outline: 2px solid rgba(138, 107, 58, 0.5);
+    outline-offset: 2px;
   }
 
   .input-field {
-    @apply w-full rounded-2xl border border-ink-900/10 bg-paper-50/80 px-4 py-3 text-sm text-ink-900 shadow-insetline transition placeholder:text-ink-300 focus-visible:border-signal-500 focus-visible:bg-white;
+    @apply w-full px-4 py-2.5 text-sm text-ink-900 transition placeholder:text-ink-300;
+    background: #fff;
+    border: 1px solid #efe8d8;
+  }
+  .input-field:focus-visible {
+    border-color: #8a6b3a;
+    outline: 2px solid rgba(138, 107, 58, 0.3);
+    outline-offset: -1px;
   }
 
   .metric-label {
-    @apply text-[11px] font-bold uppercase tracking-[0.18em] text-ink-500;
+    @apply font-mono text-[10px] font-medium uppercase tracking-[0.2em] text-ink-500;
   }
 
   .section-title {
-    @apply font-display text-2xl font-semibold tracking-tight text-ink-900;
+    @apply font-display text-2xl font-normal text-ink-900;
     text-wrap: balance;
   }
 
   .mono-chip {
-    @apply rounded-full border border-ink-900/10 bg-white/55 px-3 py-1 font-mono text-[11px] text-ink-500;
+    @apply font-mono text-[10px] text-ink-500;
+    background: rgba(240, 235, 224, 0.6);
+    border: 1px solid #efe8d8;
+    padding: 3px 10px;
   }
 
   .flow-list-item {
     content-visibility: auto;
     contain-intrinsic-size: 96px;
+  }
+
+  /* Data monospace utility */
+  .data-mono {
+    @apply font-mono tabular-nums;
+  }
+
+  /* Scale-in animation */
+  .animate-scale-in {
+    animation: scaleIn 300ms ease-out both;
+  }
+
+  @keyframes scaleIn {
+    from {
+      transform: scale(0.85);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
   }
 }
 

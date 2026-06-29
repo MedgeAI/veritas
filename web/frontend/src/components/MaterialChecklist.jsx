@@ -175,7 +175,7 @@ function MaterialChecklist({ caseId, materials }) {
   }
 
   return (
-    <section className="dossier-panel rounded-[2rem] p-5">
+    <section className="dossier-panel rounded-2xl p-5">
       <div className="flex items-center justify-between border-b border-ink-900/10 pb-4">
         <div>
           <p className="metric-label">材料完整性</p>

@@ -47,7 +47,7 @@ function AuditTaskList({ jobs, onRefresh, onView, onCancel, onViewReport }) {
 
   if (!jobs || jobs.length === 0) {
     return (
-      <div className="dossier-panel rounded-[2rem] border p-8 text-center">
+      <div className="dossier-panel rounded-2xl border p-8 text-center">
         <p className="text-sm text-ink-500">No audit jobs found</p>
         {onRefresh && (
           <button type="button" className="btn-ghost mt-3" onClick={onRefresh}>
@@ -59,7 +59,7 @@ function AuditTaskList({ jobs, onRefresh, onView, onCancel, onViewReport }) {
   }
 
   return (
-    <div className="dossier-panel overflow-hidden rounded-[2rem] border">
+    <div className="dossier-panel overflow-hidden rounded-2xl border">
       <div className="flex items-center justify-between border-b border-ink-900/10 bg-paper-100/60 px-5 py-3">
         <h3 className="text-sm font-semibold text-ink-900">Audit Tasks</h3>
         {onRefresh && (

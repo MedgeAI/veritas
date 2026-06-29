@@ -290,7 +290,7 @@ function ActionsPage({ selectedCase }) {
       )}
 
       {/* SECTION 1: Material Follow-up */}
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         <div className="flex items-center justify-between border-b border-ink-900/10 pb-4">
           <div>
             <h2 className="font-display text-lg font-semibold text-ink-900">材料补交</h2>
@@ -332,7 +332,7 @@ function ActionsPage({ selectedCase }) {
                   {!isOk && (
                     <button
                       type="button"
-                      className="btn-ghost shrink-0"
+                      className="btn-ghost shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
                       onClick={() => copyEmailTemplate({
                         key: config.key,
                         label: config.label,
@@ -370,7 +370,7 @@ function ActionsPage({ selectedCase }) {
       </section>
 
       {/* SECTION 2: Review Items */}
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         <header className="flex items-center justify-between border-b border-ink-900/10 pb-4">
           <div>
             <h2 className="font-display text-lg font-semibold text-ink-900">待复核发现</h2>
@@ -416,7 +416,7 @@ function ActionsPage({ selectedCase }) {
         </div>
 
         {filteredItems.length === 0 && !loadingReviews ? (
-          <div className="mt-4 rounded-[2rem] border border-dashed border-ink-900/20 bg-white/40 p-8 text-center">
+          <div className="mt-4 rounded-2xl border border-dashed border-ink-900/20 bg-white/40 p-8 text-center">
             <p className="text-sm text-ink-500">
               {reviewItems.length === 0 ? '暂无待复核发现。' : '当前筛选条件下没有匹配项。'}
             </p>
@@ -463,7 +463,7 @@ function ActionsPage({ selectedCase }) {
             {/* Right: Detail + Decision */}
             <div>
               {!selectedItem ? (
-                <div className="rounded-[2rem] border border-dashed border-ink-900/20 bg-white/40 p-8 text-center">
+                <div className="rounded-2xl border border-dashed border-ink-900/20 bg-white/40 p-8 text-center">
                   <p className="text-sm text-ink-500">选择一项查看详情并作出决定。</p>
                 </div>
               ) : (
@@ -535,7 +535,7 @@ function ActionsPage({ selectedCase }) {
                         onClick={() => handleDecision('resolved')}
                         disabled={saving}
                         aria-label="标记为已解决"
-                        className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800"
+                        className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-medium text-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
                       >
                         <FiCheckCircle aria-hidden="true" /> 已解决
                       </button>
@@ -544,7 +544,7 @@ function ActionsPage({ selectedCase }) {
                         onClick={() => handleDecision('dismissed')}
                         disabled={saving}
                         aria-label="标记为忽略"
-                        className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-600"
+                        className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-medium text-gray-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
                       >
                         <FiXCircle aria-hidden="true" /> 忽略
                       </button>
@@ -564,7 +564,7 @@ function ActionsPage({ selectedCase }) {
       </section>
 
       {/* SECTION 3: Follow-up Questions */}
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         <div className="border-b border-ink-900/10 pb-4">
           <h2 className="font-display text-lg font-semibold text-ink-900">追问清单</h2>
           <p className="mt-1 text-xs text-ink-500">
@@ -577,7 +577,7 @@ function ActionsPage({ selectedCase }) {
         </div>
 
         {allFollowUps.length === 0 && !loadingFollowUps ? (
-          <div className="mt-4 rounded-[2rem] border border-dashed border-ink-900/20 bg-white/40 p-6 text-center">
+          <div className="mt-4 rounded-2xl border border-dashed border-ink-900/20 bg-white/40 p-6 text-center">
             <p className="text-sm text-ink-500">审查完成后将生成追问建议。</p>
           </div>
         ) : (
@@ -592,7 +592,7 @@ function ActionsPage({ selectedCase }) {
                   type="button"
                   onClick={() => copyFollowUp(question)}
                   aria-label="复制追问"
-                  className="shrink-0 rounded p-0.5 text-ink-300 hover:bg-ink-900/5 hover:text-ink-700"
+                  className="shrink-0 rounded p-0.5 text-ink-300 hover:bg-ink-900/5 hover:text-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
                 >
                   <FiClipboard size={12} aria-hidden="true" />
                 </button>

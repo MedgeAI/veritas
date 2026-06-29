@@ -17,6 +17,8 @@ const AdminPage = lazy(() => import('./pages/AdminPage.jsx'));
 const ReverificationPage = lazy(() => import('./pages/ReverificationPage.jsx'));
 const VerifyPage = lazy(() => import('./pages/VerifyPage.jsx'));
 
+const ALWAYS_AVAILABLE_PAGES = new Set(['cases', 'newAudit']);
+
 const PAGE_META = {
   cases: ['Dashboard', '按风险等级分组的审查看板，快速定位需要关注的 case。'],
   newAudit: ['新建审查', '创建 case、上传论文材料、启动审查流程。'],
@@ -59,7 +61,7 @@ function writeWorkspaceUrl(value) {
     else url.searchParams.delete('case');
     if (value.runId) url.searchParams.set('run', value.runId);
     else url.searchParams.delete('run');
-    window.history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+    window.history.pushState(null, '', `${url.pathname}${url.search}${url.hash}`);
   } catch {
     return;
   }
@@ -311,7 +313,7 @@ function AppLayout() {
   // Auth gate: show login page when not authenticated
   if (authChecking) {
     return (
-      <div className="flex min-h-screen items-center justify-center" role="status" aria-live="polite">
+      <div className="flex min-h-screen items-center justify-center">
         <LoadingFallback />
       </div>
     );
@@ -327,9 +329,6 @@ function AppLayout() {
 
   return (
     <div className="audit-shell h-screen overflow-hidden lg:flex">
-      <a className="skip-link" href="#main-content">
-        跳到主内容
-      </a>
       <Sidebar
         activePage={activePage}
         onNavigate={navigate}
@@ -338,6 +337,7 @@ function AppLayout() {
         onSelectCase={selectCase}
         caseCount={cases.length}
         isAdmin={authState.isAdmin}
+        alwaysAvailablePages={ALWAYS_AVAILABLE_PAGES}
       />
 
       <main id="main-content" className="min-w-0 flex-1 overflow-y-auto px-4 py-4 sm:px-6 lg:px-8 lg:py-6">
@@ -350,7 +350,7 @@ function AppLayout() {
         />
 
         <div className="mb-5 flex flex-col gap-3 lg:hidden">
-          <select className="input-field" name="mobile_page" aria-label="切换页面" value={activePage} onChange={(event) => navigate(event.target.value)}>
+          <select className="input-field" name="mobile_page" aria-label={`当前页面：${pageTitle}，点击切换导航页面`} value={activePage} onChange={(event) => navigate(event.target.value)} autoComplete="off">
             {Object.entries(PAGE_META).filter(([key]) => key !== 'admin' || authState.isAdmin).map(([key, [label]]) => (
               <option key={key} value={key}>
                 {label}

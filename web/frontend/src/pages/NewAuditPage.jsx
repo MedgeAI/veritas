@@ -1,10 +1,21 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FiPlay, FiUploadCloud, FiX } from 'react-icons/fi';
+import { FiArrowRight, FiLock, FiPlay, FiShield, FiUploadCloud, FiX } from 'react-icons/fi';
 import { createCase, submitAudit, uploadInputsParallel } from '../services/api.js';
 import ReproducibilityTierPicker from '../components/ReproducibilityTierPicker.jsx';
+import SecurityTierPicker from '../components/SecurityTierPicker.jsx';
+import ServiceTierPicker from '../components/ServiceTierPicker.jsx';
 
-const ACCEPTED_EXTENSIONS = '.pdf,.xlsx,.xls,.csv,.zip,.txt,.md,.py,.r,.R';
-const ACCEPTED_EXT_SET = new Set(['pdf', 'xlsx', 'xls', 'csv', 'zip', 'txt', 'md', 'py', 'r']);
+function FileStatus({ status, progress }) {
+  if (status === 'done') return <span className="text-green-600">done</span>;
+  if (typeof status === 'string' && status.startsWith('error:')) return <span className="text-red-500" title={status}>failed</span>;
+  if (status === 'uploading') {
+    return progress != null ? <span className="text-signal-600">{progress}%</span> : <span className="text-signal-400">…</span>;
+  }
+  return null;
+}
+
+const ACCEPTED_EXTENSIONS = '.pdf,.xlsx,.xlsm,.csv,.tsv,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,.zip,.tar,.gz,.tgz';
+const ACCEPTED_EXT_SET = new Set(['pdf', 'xlsx', 'xlsm', 'csv', 'tsv', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'bmp', 'webp', 'zip', 'tar', 'gz', 'tgz']);
 const MAX_FILE_SIZE_BYTES = 200 * 1024 * 1024;
 
 function formatMB(bytes) {
@@ -32,6 +43,8 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
   });
   const [params, setParams] = useState(DEFAULT_PARAMS);
   const [reproducibilityTier, setReproducibilityTier] = useState('full');
+  const [securityTier, setSecurityTier] = useState('confidential');
+  const [serviceTier, setServiceTier] = useState('full');
   const [files, setFiles] = useState([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -40,6 +53,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
   const [isDragging, setIsDragging] = useState(false);
   const [fileErrors, setFileErrors] = useState(new Map());
   const [hasUnsavedFiles, setHasUnsavedFiles] = useState(false);
+  const [navGuardTarget, setNavGuardTarget] = useState(null);
   const [fileStatuses, setFileStatuses] = useState(new Map());
   const [overallProgress, setOverallProgress] = useState(-1);
   const abortRef = useRef(null);
@@ -88,7 +102,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
           name: file.name,
           size: file.size,
           reason: '不支持的文件类型',
-          detail: '允许的类型：PDF, XLSX, CSV, ZIP, TXT, MD, PY, R',
+          detail: '允许的类型：PDF, XLSX, CSV, TSV, 图片(PNG/JPG/TIFF/BMP/WEBP), ZIP/TAR.GZ',
         });
       } else if (file.size > MAX_FILE_SIZE_BYTES) {
         newErrors.set(file.name, {
@@ -149,7 +163,8 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
   }, []);
 
   function guardedNavigate(page) {
-    if (hasUnsavedFiles && !window.confirm('有未上传的文件，确定要离开吗？未保存的内容将丢失。')) {
+    if (hasUnsavedFiles) {
+      setNavGuardTarget(page);
       return;
     }
     onNavigate(page);
@@ -252,7 +267,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-5xl">
       {/* Header */}
       <div className="mb-6">
         <h1 className="font-display text-2xl font-semibold text-ink-900">
@@ -265,7 +280,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
         </p>
       </div>
 
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         {/* Existing case info */}
         {isExistingCase && (
           <div className="mb-6 rounded-2xl bg-paper-100/50 p-4">
@@ -317,7 +332,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
         <div className="mt-5">
           <span className="metric-label block">Input Materials</span>
           <div
-            className={`mt-2 rounded-[2rem] border-2 border-dashed p-6 transition-colors ${
+            className={`mt-2 rounded-2xl border-2 border-dashed p-6 transition-colors ${
               isDragging
                 ? 'border-signal-500 bg-signal-100/40 [user-select:none]'
                 : 'border-ink-900/15 bg-white/45 hover:border-ink-900/25'
@@ -360,7 +375,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
                     选择目录
                   </button>
                 </p>
-                <p className="mt-2 text-xs text-ink-500">PDF, XLSX, CSV, ZIP, TXT, MD, PY, R</p>
+                <p className="mt-2 text-xs text-ink-500">PDF、数据文件、图片、压缩包</p>
               </div>
             </div>
             <input
@@ -414,16 +429,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
                     <div key={`${file.name}-${file.size}-${file.lastModified}`} className="group flex items-center justify-between gap-4 rounded-lg px-2 py-1.5 font-mono text-xs transition hover:bg-white/50" role="listitem">
                       <span className="min-w-0 truncate text-ink-500">{fileKey}</span>
                       <span className="flex shrink-0 items-center gap-2 tabular-nums">
-                        {(() => {
-                          const status = fileStatuses.get(fileKey);
-                          if (status === 'done') return <span className="text-green-600">done</span>;
-                          if (typeof status === 'string' && status.startsWith('error:')) return <span className="text-red-500" title={status}>failed</span>;
-                          if (status === 'uploading') {
-                            const pct = uploadProgress[fileKey];
-                            return pct != null ? <span className="text-signal-600">{pct}%</span> : <span className="text-signal-400">…</span>;
-                          }
-                          return null;
-                        })()}
+                        <FileStatus status={fileStatuses.get(fileKey)} progress={uploadProgress[fileKey]} />
                         <span className="text-ink-500">{FILE_SIZE_FORMATTER.format(Math.ceil(file.size / 1024))} KB</span>
                         {!busy && (
                           <button
@@ -496,17 +502,65 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
           onChange={setReproducibilityTier}
         />
 
+        <div className="mt-8">
+          <ServiceTierPicker value={serviceTier} onChange={setServiceTier} />
+        </div>
+
+        <div className="mt-8">
+          <SecurityTierPicker value={securityTier} onChange={setSecurityTier} />
+        </div>
+
         {error ? (
-          <div ref={errorRef} tabIndex={-1} className="mt-5 rounded-2xl border border-risk-300/45 bg-risk-100/70 p-4 text-sm text-risk-700" role="alert">
+          <div ref={errorRef} tabIndex={-1} className="mt-5 rounded-2xl border border-risk-300/45 bg-risk-100/70 p-4 text-sm text-risk-700" role="alert" aria-live="polite">
             {error}
           </div>
         ) : null}
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button type="button" className="btn-primary" onClick={handleStart} disabled={busy || overallProgress >= 0}>
+        {/* 提交摘要栏 — 原型风格深色条 */}
+        <div className="mt-6 flex items-center gap-4 rounded-2xl bg-ink-900 px-5 py-4">
+          <div className="flex-1 min-w-0">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-paper-300">
+              即将提交
+            </div>
+            <div className="mt-0.5 font-display text-base text-paper-50 leading-snug">
+              {serviceTier === 'basic' ? '基础扫描' : serviceTier === 'full' ? '完整认证' : '认证 + 修复'}
+              <span className="mx-1.5 text-paper-300">·</span>
+              {securityTier === 'standard' ? '标准级' : securityTier === 'confidential' ? '加密级' : '私有级'}
+              <span className="mx-1.5 text-paper-300">·</span>
+              {reproducibilityTier === 'full' ? 'Full' : reproducibilityTier === 'partial' ? 'Partial' : reproducibilityTier === 'code_only' ? 'Code-only' : 'Static'} 复现等级
+            </div>
+            <div className="mt-1 flex items-center gap-1.5 text-[11px] text-paper-300">
+              {securityTier === 'standard' ? (
+                <>
+                  <FiShield aria-hidden="true" className="h-3 w-3 shrink-0" />
+                  云端 API 零数据保留 · 24h 自销
+                </>
+              ) : securityTier === 'confidential' ? (
+                <>
+                  <FiLock aria-hidden="true" className="h-3 w-3 shrink-0" />
+                  端到端加密 · 作者持有密钥
+                </>
+              ) : (
+                <>
+                  <FiLock aria-hidden="true" className="h-3 w-3 shrink-0" />
+                  私有 VPC 部署 · 数据不出网络
+                </>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            className="shrink-0 inline-flex items-center gap-2 rounded-full bg-paper-50 px-5 py-2.5 text-sm font-semibold text-ink-900 transition hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={handleStart}
+            disabled={busy || overallProgress >= 0}
+          >
             <FiPlay aria-hidden="true" />
-            {busy ? '上传中…' : isExistingCase ? '重新审查' : '上传并启动审查'}
+            {busy ? '上传中…' : serviceTier === 'basic' ? '启动扫描' : serviceTier === 'full_plus' ? '启动完整认证' : '开始核查'}
+            <FiArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
           </button>
+        </div>
+
+        <div className="mt-4 flex flex-wrap gap-3">
           {busy && abortRef.current && (
             <button type="button" className="btn-ghost text-red-600" onClick={handleCancelUpload}>
               取消上传
@@ -522,6 +576,32 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
           </button>
         </div>
       </section>
+
+      {navGuardTarget ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/40"
+            aria-label="关闭离开确认"
+            onClick={() => setNavGuardTarget(null)}
+            tabIndex={-1}
+          />
+          <div className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="nav-guard-title">
+            <h3 id="nav-guard-title" className="mb-3 font-display text-lg font-semibold text-ink-900">离开当前页面？</h3>
+            <p className="mb-4 text-sm text-ink-500">有未上传的文件，确定要离开吗？未保存的内容将丢失。</p>
+            <div className="flex justify-end gap-2">
+              <button type="button" className="btn-ghost" onClick={() => setNavGuardTarget(null)}>取消</button>
+              <button
+                type="button"
+                className="btn-danger"
+                onClick={() => { const target = navGuardTarget; setNavGuardTarget(null); onNavigate(target); }}
+              >
+                确定离开
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

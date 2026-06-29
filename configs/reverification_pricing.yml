@@ -1,0 +1,10 @@
+# Reverification pricing model
+base_fee: 200        # 基础费（¥）
+per_finding: 20      # 每条发现增量费
+per_version: 50      # 每个版本增量费
+max_fee: 1000        # 费用上限
+currency: "¥"
+
+# Optional add-on (reserved for future)
+optional_addon_label: "AI 代码修复（可选）"
+optional_addon_price: 120

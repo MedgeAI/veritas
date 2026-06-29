@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { FiArrowRight, FiCheck, FiClock } from 'react-icons/fi';
-import { getVersionHistory, submitReverification } from '../services/api.js';
+import { getReverificationCost, getVersionHistory, submitReverification } from '../services/api.js';
 
 /**
  * ReverificationPage — shows what will be re-verified, version chain,
@@ -11,6 +11,7 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
   const [confirmed, setConfirmed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [newVersionInfo, setNewVersionInfo] = useState(null);
+  const [costData, setCostData] = useState(null);
 
   useEffect(() => {
     if (!selectedCase?.case_id) return;
@@ -18,10 +19,15 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
 
     async function load() {
       try {
-        const data = await getVersionHistory(selectedCase.case_id);
-        if (!cancelled) setVersionHistory(data.versions || []);
+        const [histData, cost] = await Promise.all([
+          getVersionHistory(selectedCase.case_id).catch(() => null),
+          getReverificationCost(selectedCase.case_id).catch(() => null),
+        ]);
+        if (cancelled) return;
+        if (histData) setVersionHistory(histData.versions || []);
+        if (cost) setCostData(cost);
       } catch {
-        // ignore — version history is supplementary
+        // ignore — cost and version history are supplementary
       }
     }
 
@@ -31,7 +37,7 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
 
   if (!selectedCase) {
     return (
-      <section className="dossier-panel rounded-[2rem] p-8 text-center">
+      <section className="dossier-panel rounded-2xl p-8 text-center">
         <p className="font-display text-2xl font-semibold">请先选择审查项目</p>
       </section>
     );
@@ -60,10 +66,10 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         <div className="flex items-start gap-4">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-accent-100 text-accent-700">
-            <FiArrowRight className="h-6 w-6" />
+            <FiArrowRight className="h-6 w-6" aria-hidden="true" />
           </div>
           <div className="flex-1">
             <h2 className="section-title">修订版重新核查</h2>
@@ -75,7 +81,7 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
       </section>
 
       {/* Version Chain */}
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         <h3 className="font-display text-lg font-semibold mb-4">版本链路</h3>
         <div className="flex items-center gap-3 flex-wrap">
           {/* Previous versions */}
@@ -84,13 +90,13 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
               <div className="flex flex-col items-center rounded-xl border border-ink-200 bg-ink-50 px-4 py-3">
                 <span className="text-sm font-semibold text-ink-700">v{v.version}</span>
                 <span className="text-xs text-ink-500">
-                  {v.date ? new Date(v.date).toLocaleDateString('zh-CN') : '-'}
+                  {v.date ? new Date(v.date).toLocaleDateString(navigator.languages ?? ['zh-CN']) : '-'}
                 </span>
                 <span className="mt-1 inline-flex items-center rounded-full bg-ink-200 px-2 py-0.5 text-xs font-medium text-ink-700">
                   {v.grade || '?'}
                 </span>
               </div>
-              <FiArrowRight className="h-4 w-4 text-ink-400" />
+              <FiArrowRight className="h-4 w-4 text-ink-400" aria-hidden="true" />
             </div>
           ))}
 
@@ -98,11 +104,11 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
           <div className="flex flex-col items-center rounded-xl border-2 border-accent-400 bg-accent-50 px-4 py-3">
             <span className="text-sm font-semibold text-accent-700">v{currentVersion} (当前)</span>
             <span className="text-xs text-accent-600">
-              {selectedCase.updated_at ? new Date(selectedCase.updated_at).toLocaleDateString('zh-CN') : '-'}
+              {selectedCase.updated_at ? new Date(selectedCase.updated_at).toLocaleDateString(navigator.languages ?? ['zh-CN']) : '-'}
             </span>
           </div>
 
-          <FiArrowRight className="h-4 w-4 text-ink-400" />
+          <FiArrowRight className="h-4 w-4 text-ink-400" aria-hidden="true" />
 
           {/* Next version (pending) */}
           <div className="flex flex-col items-center rounded-xl border-2 border-dashed border-accent-300 bg-white px-4 py-3 opacity-70">
@@ -113,25 +119,25 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
       </section>
 
       {/* Scope */}
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         <h3 className="font-display text-lg font-semibold mb-4">复核范围</h3>
         <ul className="space-y-3 text-sm">
           <li className="flex items-start gap-3">
-            <FiCheck className="mt-0.5 h-4 w-4 text-green-600 shrink-0" />
+            <FiCheck className="mt-0.5 h-4 w-4 text-green-600 shrink-0" aria-hidden="true" />
             <div>
               <span className="font-medium text-ink-800">修订内容增量复核</span>
               <p className="text-xs text-ink-500 mt-0.5">仅检查作者修改的部分，不重复审查未变更内容</p>
             </div>
           </li>
           <li className="flex items-start gap-3">
-            <FiCheck className="mt-0.5 h-4 w-4 text-green-600 shrink-0" />
+            <FiCheck className="mt-0.5 h-4 w-4 text-green-600 shrink-0" aria-hidden="true" />
             <div>
               <span className="font-medium text-ink-800">逐项验证修复</span>
               <p className="text-xs text-ink-500 mt-0.5">确认每个 finding 的修复是否有效</p>
             </div>
           </li>
           <li className="flex items-start gap-3">
-            <FiCheck className="mt-0.5 h-4 w-4 text-green-600 shrink-0" />
+            <FiCheck className="mt-0.5 h-4 w-4 text-green-600 shrink-0" aria-hidden="true" />
             <div>
               <span className="font-medium text-ink-800">重新评定等级</span>
               <p className="text-xs text-ink-500 mt-0.5">基于修复结果重新计算认证等级</p>
@@ -140,35 +146,92 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
         </ul>
       </section>
 
-      {/* Cost Breakdown */}
-      <section className="dossier-panel rounded-[2rem] p-6">
-        <h3 className="font-display text-lg font-semibold mb-4">费用明细</h3>
-        <div className="space-y-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-ink-700">修订内容增量复核</span>
-            <span className="font-medium text-ink-900">¥320</span>
+      {/* Cost Breakdown — LineItem pattern from prototype */}
+      <section className="dossier-panel rounded-2xl p-6">
+        <h3 className="font-display text-lg font-semibold mb-4">核查清单</h3>
+        {costData ? (
+          <div>
+            {/* Included items */}
+            <div className="border-b border-ink-900/8 py-4 flex items-start gap-3">
+              <FiCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-900" aria-hidden="true" />
+              <div className="flex-1">
+                <div className="text-sm font-medium text-ink-900">修订内容增量复核</div>
+                <div className="text-xs text-ink-500 mt-0.5">仅核对修改部分，不重复审查未变更内容</div>
+              </div>
+              <div className="font-mono text-sm text-ink-900 whitespace-nowrap">
+                {costData.currency}{costData.base_fee}
+              </div>
+            </div>
+
+            <div className="border-b border-ink-900/8 py-4 flex items-start gap-3">
+              <FiCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-900" aria-hidden="true" />
+              <div className="flex-1">
+                <div className="text-sm font-medium text-ink-900">逐项验证修复</div>
+                <div className="text-xs text-ink-500 mt-0.5">确认每个 finding 的修复是否有效</div>
+              </div>
+              <div className="font-mono text-sm text-ink-500 whitespace-nowrap">已含</div>
+            </div>
+
+            <div className="border-b border-ink-900/8 py-4 flex items-start gap-3">
+              <FiCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-900" aria-hidden="true" />
+              <div className="flex-1">
+                <div className="text-sm font-medium text-ink-900">重新评定等级</div>
+                <div className="text-xs text-ink-500 mt-0.5">基于修复结果重新计算认证等级</div>
+              </div>
+              <div className="font-mono text-sm text-ink-500 whitespace-nowrap">已含</div>
+            </div>
+
+            <div className="border-b border-ink-900/8 py-4 flex items-start gap-3">
+              <FiCheck className="mt-0.5 h-3.5 w-3.5 shrink-0 text-ink-900" aria-hidden="true" />
+              <div className="flex-1">
+                <div className="text-sm font-medium text-ink-900">新版报告</div>
+                <div className="text-xs text-ink-500 mt-0.5">保留原编号链路，标注 v{costData.next_version}</div>
+              </div>
+              <div className="font-mono text-sm text-ink-500 whitespace-nowrap">已含</div>
+            </div>
+
+            {/* Optional add-on (reserved) */}
+            {costData.finding_count > 0 && (
+              <div className="border-b border-ink-900/8 py-4 flex items-start gap-3 opacity-60">
+                <div className="mt-0.5 h-3.5 w-3.5 shrink-0 rounded-full border border-ink-900/20" />
+                <div className="flex-1">
+                  <div className="text-sm text-ink-700">{costData.optional_addon_label}</div>
+                  <div className="text-xs text-ink-500 mt-0.5">自动修复代码层面的问题</div>
+                </div>
+                <div className="font-mono text-sm text-ink-500 whitespace-nowrap">+ {costData.currency} {costData.optional_addon_price}</div>
+              </div>
+            )}
+
+            {costData.total >= costData.max_fee && (
+              <div className="mt-2 text-xs text-ink-500 italic">
+                已应用费用上限 ({costData.currency}{costData.max_fee})
+              </div>
+            )}
+
+            {/* Total bar */}
+            <div className="mt-4 flex items-baseline justify-between border-t border-ink-900 pt-5">
+              <div>
+                <div className="font-mono text-[10px] uppercase tracking-widest text-ink-500">合计</div>
+                <div className="text-xs text-ink-500 mt-1 italic">
+                  已开通完整认证，本次为追加重核服务
+                </div>
+              </div>
+              <div className="font-display text-4xl font-semibold text-ink-900">
+                {costData.currency}{costData.total}
+              </div>
+            </div>
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-ink-700">逐项验证修复</span>
-            <span className="font-medium text-green-700">已含</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-ink-700">重新评定等级</span>
-            <span className="font-medium text-green-700">已含</span>
-          </div>
-          <div className="border-t border-ink-200 pt-3 flex items-center justify-between">
-            <span className="font-semibold text-ink-800">合计</span>
-            <span className="font-bold text-xl text-ink-900">¥320</span>
-          </div>
-        </div>
+        ) : (
+          <div className="text-sm text-ink-500">加载费用信息中…</div>
+        )}
       </section>
 
       {/* Actions */}
-      <section className="dossier-panel rounded-[2rem] p-6">
+      <section className="dossier-panel rounded-2xl p-6">
         {confirmed ? (
           <div className="text-center py-4">
             <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-signal-100 mb-3">
-              <FiCheck className="h-6 w-6 text-signal-700" />
+              <FiCheck className="h-6 w-6 text-signal-700" aria-hidden="true" />
             </div>
             <p className="font-display text-lg font-semibold text-signal-700">
               已确认，开始重新核查
@@ -194,7 +257,7 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
               className="btn-secondary w-full sm:w-auto"
               onClick={handleLater}
             >
-              <FiClock className="h-4 w-4" />
+              <FiClock className="h-4 w-4" aria-hidden="true" />
               稍后处理
             </button>
             <button
@@ -203,7 +266,7 @@ export default function ReverificationPage({ selectedCase, onNavigate }) {
               onClick={handleConfirm}
               disabled={loading}
             >
-              {loading ? '处理中…' : '确认支付 · 开始重新核查'}
+              {loading ? '处理中…' : `确认支付 · 开始重新核查${costData ? ` · ${costData.currency}${costData.total}` : ''}`}
             </button>
           </div>
         )}
