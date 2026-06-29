@@ -18,6 +18,7 @@ from typing import Any
 from engine.static_audit._shared import (
     ProgressCallback,
     StepResult,
+    WET_LAB_TYPES,
     emit_step_start,
     read_json,
     record_step,
@@ -172,7 +173,9 @@ def run_visual_panel_extraction(
             continue
         result_panels = batch_panels.get(fid, [])
         if not result_panels:
-            logger.debug("Figure %s: 0 panels detected; applying whole-figure fallback", fid)
+            logger.debug(
+                "Figure %s: 0 panels detected; applying whole-figure fallback", fid
+            )
             fallback_panel = whole_figure_panel(
                 figure, workdir=workdir, output_dir=workdir
             )
@@ -190,12 +193,20 @@ def run_visual_panel_extraction(
         # Annotate panels with LLM classification (if available)
         if figure_classification:
             from engine.static_audit.figure_classification import (
-                classify_panel_with_yolo_priority,
+                build_figure_id_to_paper_label_mapping,
+                classify_panel_with_llm_priority,
             )
 
+            # Extract the classifications sub-dict from the artifact
+            cls_dict = figure_classification.get("classifications", {})
+            # Build figure_id → paper_label mapping from full.md
+            fig_mapping = figure_classification.get(
+                "figure_id_to_paper_label"
+            ) or build_figure_id_to_paper_label_mapping(workdir)
+
             for panel in result_panels:
-                panel["panel_classification"] = classify_panel_with_yolo_priority(
-                    panel, figure_classification
+                panel["panel_classification"] = classify_panel_with_llm_priority(
+                    panel, cls_dict, fig_mapping
                 )
 
         panels.extend(result_panels)
@@ -357,7 +368,9 @@ def _read_image_similarity_outputs(workdir: Path) -> dict[str, Any]:
     return {"candidates": candidates, "source_paths": [str(path) for path in paths]}
 
 
-def _cleanup_unused_overlays(workdir: Path, finding_doc: dict[str, Any]) -> dict[str, Any]:
+def _cleanup_unused_overlays(
+    workdir: Path, finding_doc: dict[str, Any]
+) -> dict[str, Any]:
     """Delete overlay PNGs not referenced by review_queue entries.
 
     Scans ``copy_move_elis/single/`` and ``copy_move_elis/cross/`` for PNG
@@ -394,10 +407,14 @@ def _cleanup_unused_overlays(workdir: Path, finding_doc: dict[str, Any]) -> dict
                     png.unlink()
                     deleted += 1
                 except OSError as exc:
-                    logger.warning("Failed to remove unreferenced overlay %s: %s", png, exc)
+                    logger.warning(
+                        "Failed to remove unreferenced overlay %s: %s", png, exc
+                    )
 
     if deleted:
-        logger.info("Cleaned up %d unreferenced overlay(s) (scanned %d).", deleted, scanned)
+        logger.info(
+            "Cleaned up %d unreferenced overlay(s) (scanned %d).", deleted, scanned
+        )
 
     return {"deleted_count": deleted, "scanned_count": scanned}
 
@@ -487,14 +504,51 @@ def run_visual_finding_pipeline(
         "Aggregating visual relationships and findings.",
     )
     copy_move_result = _read_visual_copy_move_outputs(workdir)
-    exact_duplicates = (
-        read_json(resolve_artifact_path(workdir, "exact_image_duplicates.json")) or {}
-    )
     dhash_candidates = _read_image_similarity_outputs(workdir)
     overlap_reuse_result = _read_overlap_reuse_outputs(workdir)
+
+    # Build panel → classification lookup for wet-lab filtering
+    panel_cls_lookup: dict[str, str] = {}
+    for p in panels:
+        if isinstance(p, dict):
+            pid = p.get("panel_id", "")
+            cls = p.get("panel_classification", "unknown")
+            if pid:
+                panel_cls_lookup[pid] = cls
+
+    def _is_wet_lab_panel(panel_id: str) -> bool:
+        """Return True if panel is wet_lab, mixed, or unknown (unclassified)."""
+        cls = panel_cls_lookup.get(panel_id, "unknown")
+        return cls in WET_LAB_TYPES or cls == "unknown"
+
+    def _filter_wet_lab(rels: list[dict]) -> list[dict]:
+        """Keep only relationships where both panels are wet-lab relevant."""
+        return [
+            r
+            for r in rels
+            if _is_wet_lab_panel(r.get("source_panel_id", ""))
+            and _is_wet_lab_panel(r.get("target_panel_id", ""))
+        ]
+
+    # Filter copy-move, dhash, overlap_reuse to wet-lab panels only
+    if copy_move_result:
+        copy_move_result = dict(copy_move_result)
+        copy_move_result["relationships"] = _filter_wet_lab(
+            copy_move_result.get("relationships", [])
+        )
+    if dhash_candidates:
+        dhash_candidates = dict(dhash_candidates)
+        dhash_candidates["candidates"] = _filter_wet_lab(
+            dhash_candidates.get("candidates", [])
+        )
+    if overlap_reuse_result:
+        overlap_reuse_result = dict(overlap_reuse_result)
+        overlap_reuse_result["relationships"] = _filter_wet_lab(
+            overlap_reuse_result.get("relationships", [])
+        )
+
     relationships = build_relationships(
         copy_move_result=copy_move_result,
-        exact_duplicates=exact_duplicates,
         dhash_candidates=dhash_candidates,
         panel_evidence=panels,
         overlap_reuse_result=overlap_reuse_result,
@@ -1238,8 +1292,10 @@ def run_sila_dense_detection(
 
         original_count = len(panels)
         panels = [
-            p for p in panels
-            if isinstance(p, dict) and (
+            p
+            for p in panels
+            if isinstance(p, dict)
+            and (
                 p.get("panel_classification") in WET_LAB_TYPES
                 or p.get("panel_classification") == "unknown"
             )

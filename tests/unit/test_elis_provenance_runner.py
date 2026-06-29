@@ -8,6 +8,10 @@ Tests verify:
 5. _validate_output_graph parses output from disk
 6. run_provenance_analysis end-to-end with HTTP service mocked
 7. Failure isolation: service unavailable, HTTP error, insufficient figures
+
+Note: Tests in TestServiceAvailable and test_returns_failed_when_service_unreachable
+are integration tests — they require ELIS to be UNREACHABLE. When `make dev-up`
+is running ELIS on :8771, these tests are skipped.
 """
 
 from __future__ import annotations
@@ -19,7 +23,6 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 from engine.static_audit.tools._elis_provenance_runner import (
-    _SERVICE_URL,
     _convert_graph,
     _failed_result,
     _to_container_path,
@@ -27,6 +30,13 @@ from engine.static_audit.tools._elis_provenance_runner import (
     _validate_output_graph,
     _service_available,
     run_provenance_analysis,
+)
+
+# Skip integration tests when ELIS service is reachable (e.g. `make dev-up`)
+_ELIS_AVAILABLE = _service_available()
+_skip_if_elis_available = pytest.mark.skipif(
+    _ELIS_AVAILABLE,
+    reason="ELIS forensic service is reachable — integration test requires it to be down",
 )
 
 
@@ -37,7 +47,9 @@ from engine.static_audit.tools._elis_provenance_runner import (
 
 class TestPathTranslation:
     def test_to_container_path_replaces_project_root(self):
-        result = _to_container_path(Path("/mnt/disk1/LZJ/project/veritas/outputs/test.png"))
+        result = _to_container_path(
+            Path("/mnt/disk1/LZJ/project/veritas/outputs/test.png")
+        )
         assert result == "/data/outputs/test.png"
 
     def test_to_host_path_replaces_data(self):
@@ -61,8 +73,18 @@ class TestConvertGraph:
     def test_converts_nodes_and_edges(self, tmp_path: Path):
         elis_graph = {
             "nodes": [
-                {"id": "fig-1", "label": "Figure 1", "image_path": "/data/workdir/fig1.png", "is_query": True},
-                {"id": "fig-2", "label": "Figure 2", "image_path": "/data/workdir/fig2.png", "is_query": False},
+                {
+                    "id": "fig-1",
+                    "label": "Figure 1",
+                    "image_path": "/data/workdir/fig1.png",
+                    "is_query": True,
+                },
+                {
+                    "id": "fig-2",
+                    "label": "Figure 2",
+                    "image_path": "/data/workdir/fig2.png",
+                    "is_query": False,
+                },
             ],
             "edges": [
                 {
@@ -90,7 +112,9 @@ class TestConvertGraph:
 
         assert len(result["edges"]) == 1
         assert result["edges"][0]["weight"] == 0.85
-        assert result["edges"][0]["cosine_similarity"] == 0.0  # ELIS doesn't compute SSCD
+        assert (
+            result["edges"][0]["cosine_similarity"] == 0.0
+        )  # ELIS doesn't compute SSCD
 
         assert len(result["spanning_tree_edges"]) == 1
         assert result["connected_components"] == [["fig-1", "fig-2"]]
@@ -158,6 +182,7 @@ class TestValidateOutputGraph:
 
 
 class TestServiceAvailable:
+    @_skip_if_elis_available
     def test_returns_false_when_unreachable(self):
         assert _service_available() is False
 
@@ -180,6 +205,7 @@ class TestServiceAvailable:
 
 
 class TestRunProvenanceAnalysis:
+    @_skip_if_elis_available
     def test_returns_failed_when_service_unreachable(self, tmp_path: Path):
         figures = [
             {"figure_id": "fig-1", "source_image_path": "fig1.png"},
@@ -193,7 +219,10 @@ class TestRunProvenanceAnalysis:
 
         assert result["status"] == "failed"
         assert result["failure_category"] == "environment"
-        assert "unreachable" in result["error"].lower() or "service" in result["error"].lower()
+        assert (
+            "unreachable" in result["error"].lower()
+            or "service" in result["error"].lower()
+        )
 
     def test_returns_failed_with_insufficient_figures(self, tmp_path: Path):
         figures = [
@@ -202,15 +231,23 @@ class TestRunProvenanceAnalysis:
         (tmp_path / "fig1.png").write_bytes(b"fake")
 
         # Even if service were available, < 2 figures → dependency failure
-        with patch("engine.static_audit.tools._elis_provenance_runner._service_available", return_value=True):
+        with patch(
+            "engine.static_audit.tools._elis_provenance_runner._service_available",
+            return_value=True,
+        ):
             result = run_provenance_analysis(figures, workdir=tmp_path)
 
         assert result["status"] == "failed"
         assert result["failure_category"] == "dependency"
 
-    @patch("engine.static_audit.tools._elis_provenance_runner._service_available", return_value=True)
+    @patch(
+        "engine.static_audit.tools._elis_provenance_runner._service_available",
+        return_value=True,
+    )
     @patch("engine.static_audit.tools._elis_provenance_runner._client")
-    def test_end_to_end_success(self, mock_client_factory, mock_available, tmp_path: Path):
+    def test_end_to_end_success(
+        self, mock_client_factory, mock_available, tmp_path: Path
+    ):
         figures = [
             {"figure_id": "fig-1", "source_image_path": "fig1.png"},
             {"figure_id": "fig-2", "source_image_path": "fig2.png"},
@@ -228,8 +265,18 @@ class TestRunProvenanceAnalysis:
             "processing_time_seconds": 5.5,
             "graph": {
                 "nodes": [
-                    {"id": "fig-1", "label": "fig-1", "image_path": "/data/workdir/fig1.png", "is_query": True},
-                    {"id": "fig-2", "label": "fig-2", "image_path": "/data/workdir/fig2.png", "is_query": False},
+                    {
+                        "id": "fig-1",
+                        "label": "fig-1",
+                        "image_path": "/data/workdir/fig1.png",
+                        "is_query": True,
+                    },
+                    {
+                        "id": "fig-2",
+                        "label": "fig-2",
+                        "image_path": "/data/workdir/fig2.png",
+                        "is_query": False,
+                    },
                 ],
                 "edges": [
                     {

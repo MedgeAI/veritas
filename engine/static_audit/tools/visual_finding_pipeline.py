@@ -12,8 +12,6 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from itertools import combinations
-from pathlib import Path
 from typing import Any
 
 from engine.static_audit.visual_constants import (
@@ -62,38 +60,6 @@ def _optional_str(value: Any) -> str | None:
     return value if isinstance(value, str) and value else None
 
 
-def _normalize_path_key(value: Any) -> str:
-    text = str(value or "").replace("\\", "/").strip()
-    while text.startswith("./"):
-        text = text[2:]
-    return text
-
-
-def _panel_image_index(panel_evidence: list[dict] | None) -> dict[str, str]:
-    """Build image-path-to-panel-id index from canonical panel evidence."""
-    index: dict[str, str] = {}
-    if not panel_evidence:
-        return index
-    for panel in panel_evidence:
-        if not isinstance(panel, dict) or not panel.get("panel_id"):
-            continue
-        panel_id = str(panel["panel_id"])
-        candidates = [
-            panel.get("crop_path"),
-            panel.get("source_image_path"),
-        ]
-        metadata = (
-            panel.get("metadata") if isinstance(panel.get("metadata"), dict) else {}
-        )
-        candidates.append(metadata.get("source_image_path"))
-        for candidate in candidates:
-            key = _normalize_path_key(candidate)
-            if key:
-                index[key] = panel_id
-                index[Path(key).name] = panel_id
-    return index
-
-
 def _load_copy_move_relationships(
     copy_move_result: dict,
 ) -> list[dict]:
@@ -118,68 +84,6 @@ def _load_copy_move_relationships(
                 "flip_detected": bool(item.get("flip_detected", False)),
             }
         )
-    return out
-
-
-def _direct_lookup(value: Any, image_to_panel: dict[str, str]) -> str:
-    """Resolve a value to a panel ID via direct path lookup (no fuzzy suffix matching)."""
-    direct = _panel_id(value)
-    if direct and direct in set(image_to_panel.values()):
-        return direct
-    key = _normalize_path_key(value)
-    if not key:
-        return direct
-    if key in image_to_panel:
-        return image_to_panel[key]
-    return image_to_panel.get(Path(key).name, direct)
-
-
-def _load_exact_duplicate_relationships(
-    exact_duplicates: dict,
-    image_to_panel: dict[str, str] | None = None,
-) -> list[dict]:
-    """Extract relationship dicts from exact duplicates result."""
-    image_to_panel = image_to_panel or {}
-    raw = exact_duplicates.get("duplicates", [])
-    out: list[dict] = []
-    if isinstance(raw, list):
-        for item in raw:
-            if not isinstance(item, dict):
-                continue
-            out.append(
-                {
-                    "source_panel_id": _direct_lookup(
-                        item.get("source_panel_id"), image_to_panel
-                    ),
-                    "target_panel_id": _direct_lookup(
-                        item.get("target_panel_id"), image_to_panel
-                    ),
-                    "score": 1.0,
-                    "match_method": "byte_hash",
-                    "inlier_count": 0,
-                    "homography": None,
-                    "overlay_path": _optional_str(item.get("overlay_path")),
-                }
-            )
-    duplicate_groups = exact_duplicates.get("duplicate_groups", [])
-    if isinstance(duplicate_groups, list):
-        for group in duplicate_groups:
-            if not isinstance(group, list):
-                continue
-            panel_ids = [_direct_lookup(path, image_to_panel) for path in group]
-            panel_ids = [pid for pid in panel_ids if pid]
-            for src, tgt in combinations(panel_ids, 2):
-                out.append(
-                    {
-                        "source_panel_id": src,
-                        "target_panel_id": tgt,
-                        "score": 1.0,
-                        "match_method": "byte_hash",
-                        "inlier_count": 0,
-                        "homography": None,
-                        "overlay_path": None,
-                    }
-                )
     return out
 
 
@@ -260,43 +164,28 @@ def _load_overlap_reuse_relationships(
 
 def build_relationships(
     copy_move_result: dict | None = None,
-    exact_duplicates: dict | None = None,
     dhash_candidates: dict | None = None,
     panel_evidence: list[dict] | None = None,
     overlap_reuse_result: dict | None = None,
 ) -> list[dict]:
-    """Merge copy-move, exact duplicates, and dHash into unified relationships.
+    """Merge copy-move, dHash, and overlap-reuse into unified relationships.
 
     Deduplication priority:
-      1. Exact duplicates win (score forced to 1.0, match_method="byte_hash").
-      2. Copy-move relationships fill remaining pairs.
-      3. dHash candidates fill remaining pairs.
+      1. Copy-move relationships (RootSIFT/SILA).
+      2. dHash candidates fill remaining pairs.
+      3. Overlap-reuse relationships fill remaining pairs.
 
     Deduplication key is the unordered panel pair (frozenset of two IDs).
 
     Args:
         copy_move_result: Output from copy-move detection tool.
-            Expected shape: {"relationships": [{source_panel_id, target_panel_id,
-            score, match_method, inlier_count, homography?, overlay_path?}, ...]}
-        exact_duplicates: Output from exact duplicate detection.
-            Expected shape: {"duplicates": [{source_panel_id, target_panel_id,
-            overlay_path?}, ...]}
-        dhash_candidates: Output from dHash similarity detection (schema v2.0).
-            Expected shape: {"candidates": [{source_panel_id, target_panel_id,
-            score, overlay_path?}, ...]}
+        dhash_candidates: Output from dHash similarity detection.
+        panel_evidence: Panel evidence list for image-to-panel mapping.
+        overlap_reuse_result: Output from overlap-reuse detection.
 
     Returns:
-        List of relationship dicts matching ImageRelationship schema fields.
-        Each dict has: relationship_id, source_type, source_panel_id,
-        target_panel_id, score, match_method, inlier_count, homography,
-        overlay_path, metadata.
+        List of relationship dicts.
     """
-    image_to_panel = _panel_image_index(panel_evidence)
-    exact_rels = (
-        _load_exact_duplicate_relationships(exact_duplicates, image_to_panel)
-        if exact_duplicates
-        else []
-    )
     cm_rels = (
         _load_copy_move_relationships(copy_move_result) if copy_move_result else []
     )
@@ -342,27 +231,7 @@ def build_relationships(
             "metadata": {},
         }
 
-    # Pass 1: exact duplicates (highest priority, score forced to 1.0)
-    for rel in exact_rels:
-        src, tgt = rel["source_panel_id"], rel["target_panel_id"]
-        if not src or not tgt or src == tgt:
-            continue
-        pk = _pair_key(src, tgt)
-        if pk in seen_pairs:
-            continue
-        seen_pairs.add(pk)
-        result.append(
-            _make_rel(
-                src=src,
-                tgt=tgt,
-                score=1.0,
-                source_type="exact_duplicate",
-                match_method="byte_hash",
-                overlay_path=rel.get("overlay_path"),
-            )
-        )
-
-    # Pass 2: copy-move relationships
+    # Pass 1: copy-move relationships
     for rel in cm_rels:
         src, tgt = rel["source_panel_id"], rel["target_panel_id"]
         if not src or not tgt:
@@ -391,7 +260,7 @@ def build_relationships(
             )
         )
 
-    # Pass 3: dHash candidates
+    # Pass 2: dHash candidates
     for rel in dh_rels:
         src, tgt = rel["source_panel_id"], rel["target_panel_id"]
         if not src or not tgt or src == tgt:
@@ -411,7 +280,7 @@ def build_relationships(
             )
         )
 
-    # Pass 4: overlap_reuse relationships
+    # Pass 3: overlap_reuse relationships
     for rel in ov_rels:
         src, tgt = rel["source_panel_id"], rel["target_panel_id"]
         if not src or not tgt or src == tgt:
@@ -668,9 +537,7 @@ def _build_relationship_finding(
     # Flip detection: add review question if horizontal flip detected
     flip_detected = bool(rel.get("flip_detected", False))
     if flip_detected:
-        questions.append(
-            "检测到水平翻转复制 — 请核实是否为正常实验对称性或镜像操作。"
-        )
+        questions.append("检测到水平翻转复制 — 请核实是否为正常实验对称性或镜像操作。")
         summary += " [FLIP DETECTED]"
 
     # Language compliance: drop finding if any text violates
@@ -773,9 +640,7 @@ def _build_trufor_finding(
             if pt:
                 figure_panel_types.add(str(pt))
 
-    trufor_panel_type = (
-        next(iter(figure_panel_types)) if figure_panel_types else None
-    )
+    trufor_panel_type = next(iter(figure_panel_types)) if figure_panel_types else None
 
     _CODE_GENERATED_TYPES = {"Graphs", "Flow Cytometry"}
     if figure_panel_types and figure_panel_types <= _CODE_GENERATED_TYPES:
@@ -832,9 +697,7 @@ def _build_trufor_finding(
             ),
             "figure_id": figure_id,
             "integrity_score": integrity_score,
-            "confidence_map_path": _optional_str(
-                fre.get("confidence_map_path")
-            ),
+            "confidence_map_path": _optional_str(fre.get("confidence_map_path")),
             "panel_extraction_quality": "unknown",
             "panel_type": trufor_panel_type,
             "risk_cap_reason": "; ".join(confidence_adjustments) or None,

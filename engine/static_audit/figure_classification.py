@@ -114,13 +114,12 @@ def parse_figure_legends(full_md_text: str) -> dict[str, str]:
         label = _normalize_figure_label(match.group(1))
         if label not in legends:
             # Collect text until next blank line or figure reference
-            start = match.start()
             end = match.end()
             # Find the end of this paragraph (double newline or next figure)
             remaining = full_md_text[end:]
             para_end = re.search(r"\n\n|\n(?=(?:Extended\s+Data\s+)?Fig)", remaining)
             if para_end:
-                legend_text = match.group(2) + remaining[:para_end.start()]
+                legend_text = match.group(2) + remaining[: para_end.start()]
             else:
                 legend_text = match.group(2) + remaining[:500]  # limit
             legends[label] = legend_text.strip()
@@ -214,6 +213,9 @@ def classify_all_figures(
 ) -> dict[str, dict[str, dict[str, str]]]:
     """Classify all figures in the paper.
 
+    Attempts batch classification (1 LLM call) first.  If the batch call
+    fails for any reason, falls back to per-figure calls automatically.
+
     Args:
         legends: {figure_label: legend_text} from parse_figure_legends()
         llm_client: VeritasLLMClient instance
@@ -221,9 +223,138 @@ def classify_all_figures(
     Returns:
         {figure_label: {panel_label: {"description": str, "classification": str}}}
     """
+    if len(legends) > 1:
+        try:
+            return classify_all_figures_batch(legends, llm_client)
+        except Exception as e:
+            logger.warning(
+                "Batch classification failed, falling back to per-figure: %s", e
+            )
+
+    # Fallback: per-figure calls (original path)
     results: dict[str, dict[str, dict[str, str]]] = {}
     for label, legend in legends.items():
         results[label] = classify_figure(label, legend, llm_client)
+    return results
+
+
+# ---------------------------------------------------------------------------
+# Batch classification (18 calls → 1 call)
+# ---------------------------------------------------------------------------
+
+_BATCH_PROMPT_TEMPLATE = """You are analyzing a scientific paper's figure legends to classify each panel in every figure.
+
+Below are {figure_count} figures with their legends.
+
+{legend_block}
+
+Classification rules (apply to each panel):
+- wet_lab: Real photographic images (blot, microscopy, IHC/IF, gel, flow cytometry scatter plots, tissue/animal photos, histology)
+- bioinformatics: Code-generated visualizations (UMAP/t-SNE, heatmap, volcano plot, survival curve, bar/line/scatter chart, pseudotime graph, bubble chart)
+- mixed: Figure contains both wet_lab and bioinformatics panels
+- other: Schematic diagrams, flowcharts, 3D renders, cartoons, illustrations
+
+Return ONLY valid JSON in this exact structure (one key per figure, nested panel keys):
+{{
+  "{first_fig_id}": {{
+    "a": {{"description": "Brief description from legend", "classification": "wet_lab|bioinformatics|mixed|other"}},
+    "b": {{"description": "...", "classification": "..."}}
+  }},
+  "{second_fig_id}": {{
+    ...
+  }}
+}}
+
+Rules:
+1. Every figure listed above MUST appear as a top-level key.
+2. If a figure has no panel structure (single image), use "figure" as the panel key.
+3. If a legend is unclear, return empty {{}} for that figure.
+4. Return ONLY valid JSON, no explanations."""
+
+
+def build_batch_classification_prompt(legends: dict[str, str]) -> str:
+    """Build a single prompt that classifies all figures at once.
+
+    Each figure's legend is truncated to 1500 chars (vs 3000 for single calls)
+    to keep the combined prompt within reasonable token limits.
+    """
+    legend_parts: list[str] = []
+    for fig_id, legend in legends.items():
+        legend_parts.append(f"[{fig_id}]\n{legend[:1500]}")
+
+    legend_block = "\n\n".join(legend_parts)
+    fig_ids = list(legends.keys())
+
+    return _BATCH_PROMPT_TEMPLATE.format(
+        figure_count=len(legends),
+        legend_block=legend_block,
+        first_fig_id=fig_ids[0] if fig_ids else "Fig. 1",
+        second_fig_id=fig_ids[1] if len(fig_ids) > 1 else "Fig. 2",
+    )
+
+
+def parse_batch_response(
+    response: dict,
+    legends: dict[str, str],
+) -> dict[str, dict[str, dict[str, str]]]:
+    """Parse batch LLM response into per-figure classification dicts.
+
+    Validates that every expected figure label is present.  Missing figures
+    are returned as empty dicts (consistent with single-call behavior on
+    failure).
+    """
+    if not isinstance(response, dict):
+        logger.warning("Batch response is not a dict: %r", type(response))
+        return {label: {} for label in legends}
+
+    results: dict[str, dict[str, dict[str, str]]] = {}
+    for fig_id in legends:
+        fig_data = response.get(fig_id)
+        if isinstance(fig_data, dict):
+            results[fig_id] = fig_data
+        else:
+            logger.warning("Missing or invalid batch result for %s", fig_id)
+            results[fig_id] = {}
+
+    return results
+
+
+def classify_all_figures_batch(
+    legends: dict[str, str],
+    llm_client: Any,
+) -> dict[str, dict[str, dict[str, str]]]:
+    """Classify all figures in a single LLM call.
+
+    Raises on any failure so the caller (classify_all_figures) can fall back
+    to per-figure calls.
+
+    Args:
+        legends: {figure_label: legend_text}
+        llm_client: VeritasLLMClient instance
+
+    Returns:
+        {figure_label: {panel_label: {"description": str, "classification": str}}}
+    """
+    if not legends:
+        return {}
+
+    prompt = build_batch_classification_prompt(legends)
+
+    # Single call with larger token budget
+    response = llm_client.chat_json(
+        prompt,
+        model="qwen-plus",
+        max_tokens=8192,
+    )
+
+    results = parse_batch_response(response, legends)
+
+    # Validate: if ALL figures came back empty, treat as failure
+    if all(not v for v in results.values()):
+        raise RuntimeError(
+            "Batch classification returned empty results for all figures"
+        )
+
     return results
 
 
@@ -274,7 +405,12 @@ def classify_panel_with_yolo_priority(
                 panel_info = panels[panel_label]
                 if isinstance(panel_info, dict):
                     classification = panel_info.get("classification")
-                    if classification in {"wet_lab", "bioinformatics", "mixed", "other"}:
+                    if classification in {
+                        "wet_lab",
+                        "bioinformatics",
+                        "mixed",
+                        "other",
+                    }:
                         return classification
 
     # Priority 3: Unknown (conservative)
@@ -422,9 +558,7 @@ def run_figure_classification_step(
     write_json_artifact(output_path, artifact)
 
     detail = (
-        f"figures={len(legends)} "
-        f"panels={sum(type_counts.values())} "
-        f"types={type_counts}"
+        f"figures={len(legends)} panels={sum(type_counts.values())} types={type_counts}"
     )
     record_step(
         steps,

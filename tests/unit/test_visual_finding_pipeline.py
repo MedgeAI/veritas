@@ -22,7 +22,7 @@ class TestBuildRelationships:
     """Tests for build_relationships function."""
 
     def test_merge_all_sources(self):
-        """Merge from copy-move, exact duplicates, and dHash."""
+        """Merge from copy-move and dHash."""
         copy_move = {
             "relationships": [
                 {
@@ -31,14 +31,6 @@ class TestBuildRelationships:
                     "score": 0.85,
                     "match_method": "orb_ransac",
                     "inlier_count": 42,
-                },
-            ],
-        }
-        exact = {
-            "duplicates": [
-                {
-                    "source_panel_id": "PE-0002-01",
-                    "target_panel_id": "PE-0003-01",
                 },
             ],
         }
@@ -52,14 +44,14 @@ class TestBuildRelationships:
             ],
         }
 
-        rels = build_relationships(copy_move, exact, dhash)
-        assert len(rels) == 3
+        rels = build_relationships(copy_move, dhash_candidates=dhash)
+        assert len(rels) == 2
 
         types = {r["source_type"] for r in rels}
-        assert types == {"copy_move_single", "exact_duplicate", "dhash_similar"}
+        assert types == {"copy_move_single", "dhash_similar"}
 
-    def test_exact_duplicate_wins_over_copy_move(self):
-        """Exact duplicate takes priority over copy-move for same pair."""
+    def test_copy_move_wins_over_dhash(self):
+        """Copy-move takes priority over dHash for same pair (was: exact wins over copy-move)."""
         copy_move = {
             "relationships": [
                 {
@@ -71,20 +63,11 @@ class TestBuildRelationships:
                 },
             ],
         }
-        exact = {
-            "duplicates": [
-                {
-                    "source_panel_id": "PE-0001-01",
-                    "target_panel_id": "PE-0001-02",
-                },
-            ],
-        }
 
-        rels = build_relationships(copy_move, exact)
+        rels = build_relationships(copy_move)
         assert len(rels) == 1
-        assert rels[0]["source_type"] == "exact_duplicate"
-        assert rels[0]["score"] == 1.0
-        assert rels[0]["match_method"] == "byte_hash"
+        assert rels[0]["source_type"] == "copy_move_single"
+        assert rels[0]["score"] == 0.9
 
     def test_dhash_does_not_override_copy_move(self):
         """Copy-move takes priority over dHash for same pair."""
@@ -157,13 +140,25 @@ class TestBuildRelationships:
 
     def test_relationship_ids_are_sequential(self):
         """Relationship IDs follow IR-NNNN pattern."""
-        exact = {
-            "duplicates": [
-                {"source_panel_id": "A", "target_panel_id": "B"},
-                {"source_panel_id": "C", "target_panel_id": "D"},
+        copy_move = {
+            "relationships": [
+                {
+                    "source_panel_id": "A",
+                    "target_panel_id": "B",
+                    "score": 0.8,
+                    "match_method": "orb",
+                    "inlier_count": 10,
+                },
+                {
+                    "source_panel_id": "C",
+                    "target_panel_id": "D",
+                    "score": 0.7,
+                    "match_method": "orb",
+                    "inlier_count": 8,
+                },
             ],
         }
-        rels = build_relationships(exact_duplicates=exact)
+        rels = build_relationships(copy_move)
         assert rels[0]["relationship_id"] == "IR-0001"
         assert rels[1]["relationship_id"] == "IR-0002"
 
@@ -192,36 +187,26 @@ class TestBuildRelationships:
         errors = ir.validate()
         assert errors == [], f"Validation errors: {errors}"
 
-    def test_path_based_exact_duplicate_groups_map_to_panels(self):
-        exact = {
-            "duplicate_groups": [
-                [
-                    "/tmp/case/images/Figure1.png",
-                    "/tmp/case/images/Figure2.png",
-                ]
+    def test_copy_move_relationships_map_correctly(self):
+        """Copy-move relationships produce correct panel IDs."""
+        copy_move = {
+            "relationships": [
+                {
+                    "source_panel_id": "FE-0001-01",
+                    "target_panel_id": "FE-0002-01",
+                    "score": 0.85,
+                    "match_method": "rootsift",
+                    "inlier_count": 42,
+                }
             ]
         }
-        panels = [
-            {
-                "panel_id": "FE-0001-01",
-                "crop_path": "panels/FE-0001/a.png",
-                "metadata": {"source_image_path": "images/Figure1.png"},
-            },
-            {
-                "panel_id": "FE-0002-01",
-                "crop_path": "panels/FE-0002/a.png",
-                "metadata": {"source_image_path": "images/Figure2.png"},
-            },
-        ]
 
-        rels = build_relationships(exact_duplicates=exact, panel_evidence=panels)
+        rels = build_relationships(copy_move)
 
         assert len(rels) == 1
-        assert rels[0]["source_type"] == "exact_duplicate"
-        assert {rels[0]["source_panel_id"], rels[0]["target_panel_id"]} == {
-            "FE-0001-01",
-            "FE-0002-01",
-        }
+        assert rels[0]["source_type"] == "copy_move_single"
+        assert rels[0]["source_panel_id"] == "FE-0001-01"
+        assert rels[0]["target_panel_id"] == "FE-0002-01"
 
     def test_path_based_dhash_candidates_map_to_panels(self):
         dhash = {

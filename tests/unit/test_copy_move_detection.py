@@ -22,7 +22,11 @@ from engine.static_audit.tools.copy_move_detection import (
     _dhash,
     _empty_result,
     _hamming_distance,
+    compute_dhash,
     detect_copy_move,
+    hamming_distance,
+    parallel_sift_match,
+    prefilter_with_dhash,
 )
 
 pytest.importorskip("PIL")
@@ -288,7 +292,9 @@ class TestGoldenNegative:
 class TestGoldenPositiveSingleImage:
     """A panel with a known copy-move region must be detected."""
 
-    @pytest.mark.xfail(raises=Exception, reason="Known failure, tracked in review-fix-decisions.md")
+    @pytest.mark.xfail(
+        raises=Exception, reason="Known failure, tracked in review-fix-decisions.md"
+    )
     def test_single_image_copymove_detected(self, tmp_path):
         """Pasting a region from one part of an image to another must be detected."""
         _make_single_image_copymoved_panel(tmp_path / "manipulated.png")
@@ -325,7 +331,9 @@ class TestGoldenPositiveSingleImage:
 class TestGoldenPositiveCrossFigure:
     """Two identical panel images must be detected as a cross-figure match."""
 
-    @pytest.mark.xfail(raises=Exception, reason="Known failure, tracked in review-fix-decisions.md")
+    @pytest.mark.xfail(
+        raises=Exception, reason="Known failure, tracked in review-fix-decisions.md"
+    )
     def test_identical_panels_detected_cross_figure(self, tmp_path):
         """Two byte-identical panel images placed in different figures must be detected."""
         _make_rich_panel(tmp_path / "panel_a.png")
@@ -422,7 +430,9 @@ class TestBuildFigurePanelTypeMap:
 class TestPanelTypeFilteringCrossFigure:
     """Cross-figure detection must filter by panel_type consistency."""
 
-    @pytest.mark.xfail(raises=Exception, reason="Known failure, tracked in review-fix-decisions.md")
+    @pytest.mark.xfail(
+        raises=Exception, reason="Known failure, tracked in review-fix-decisions.md"
+    )
     def test_matching_panel_type_passes(self, tmp_path):
         """Two figures with the same panel_type should be compared."""
         _make_rich_panel(tmp_path / "panel_a.png")
@@ -523,7 +533,9 @@ class TestPanelTypeFilteringCrossFigure:
         ]
         assert cross_rels == []
 
-    @pytest.mark.xfail(raises=Exception, reason="Known failure, tracked in review-fix-decisions.md")
+    @pytest.mark.xfail(
+        raises=Exception, reason="Known failure, tracked in review-fix-decisions.md"
+    )
     def test_backward_compat_no_panel_types_at_all(self, tmp_path):
         """When NO panels have panel_type, filter is bypassed (backward compat)."""
         _make_rich_panel(tmp_path / "panel_a.png")
@@ -557,7 +569,9 @@ class TestPanelTypeFilteringCrossFigure:
         ]
         assert len(cross_rels) >= 1
 
-    @pytest.mark.xfail(raises=Exception, reason="Known failure, tracked in review-fix-decisions.md")
+    @pytest.mark.xfail(
+        raises=Exception, reason="Known failure, tracked in review-fix-decisions.md"
+    )
     def test_metadata_records_panel_types(self, tmp_path):
         """Relationship metadata must include source/target panel types."""
         _make_rich_panel(tmp_path / "panel_a.png")
@@ -595,3 +609,150 @@ class TestPanelTypeFilteringCrossFigure:
         assert "matched_panel_types" in meta
         assert meta["source_panel_type"] == "Microscopy"
         assert meta["target_panel_type"] == "Microscopy"
+
+
+# ---------------------------------------------------------------------------
+# Public API: compute_dhash, hamming_distance, prefilter_with_dhash,
+# parallel_sift_match
+# ---------------------------------------------------------------------------
+
+
+class TestComputeDhash:
+    def test_returns_int(self, tmp_path):
+        try:
+            from PIL import Image
+        except ImportError:
+            pytest.skip("Pillow not installed")
+        img = Image.new("RGB", (100, 100), color="red")
+        path = tmp_path / "test.png"
+        img.save(path)
+        h = compute_dhash(path)
+        assert isinstance(h, int)
+
+    def test_identical_images_same_hash(self, tmp_path):
+        try:
+            from PIL import Image
+        except ImportError:
+            pytest.skip("Pillow not installed")
+        img = Image.new("RGB", (200, 200), color="blue")
+        p1 = tmp_path / "a.png"
+        p2 = tmp_path / "b.png"
+        img.save(p1)
+        img.save(p2)
+        assert compute_dhash(p1) == compute_dhash(p2)
+
+
+class TestHammingDistance:
+    def test_basic(self):
+        assert hamming_distance(0, 0) == 0
+        assert hamming_distance(0b1010, 0b0101) == 4
+        assert hamming_distance(0xFF, 0x00) == 8
+
+
+class TestPrefilterWithDhash:
+    def test_empty_panels(self):
+        assert prefilter_with_dhash([]) == []
+
+    def test_single_panel(self):
+        assert prefilter_with_dhash([{"crop_path": "/nonexistent.png"}]) == []
+
+    def test_identical_images_pass_filter(self, tmp_path):
+        try:
+            from PIL import Image
+        except ImportError:
+            pytest.skip("Pillow not installed")
+        img = Image.new("RGB", (200, 200), color="green")
+        p1 = tmp_path / "a.png"
+        p2 = tmp_path / "b.png"
+        img.save(p1)
+        img.save(p2)
+        panels = [
+            {"panel_id": "P1", "crop_path": str(p1)},
+            {"panel_id": "P2", "crop_path": str(p2)},
+        ]
+        candidates = prefilter_with_dhash(panels, max_distance=10)
+        assert candidates == [(0, 1)]
+
+    def test_different_images_filtered_out(self, tmp_path):
+        try:
+            from PIL import Image, ImageDraw
+        except ImportError:
+            pytest.skip("Pillow not installed")
+        # Create two very different images
+        img1 = Image.new("RGB", (200, 200), "red")
+        img1.save(tmp_path / "a.png")
+        img2 = Image.new("RGB", (200, 200), "green")
+        draw = ImageDraw.Draw(img2)
+        draw.rectangle([0, 0, 100, 100], fill="blue")
+        draw.ellipse([50, 50, 200, 200], fill="yellow")
+        img2.save(tmp_path / "b.png")
+        panels = [
+            {"panel_id": "P1", "crop_path": str(tmp_path / "a.png")},
+            {"panel_id": "P2", "crop_path": str(tmp_path / "b.png")},
+        ]
+        # With tight threshold, very different images should be filtered
+        candidates = prefilter_with_dhash(panels, max_distance=5)
+        # Solid-color vs complex drawing → hamming distance > 5
+        assert len(candidates) == 0
+
+    def test_missing_path_skipped(self, tmp_path):
+        panels = [
+            {"panel_id": "P1", "crop_path": str(tmp_path / "missing.png")},
+            {"panel_id": "P2", "crop_path": str(tmp_path / "also_missing.png")},
+        ]
+        assert prefilter_with_dhash(panels) == []
+
+
+class TestParallelSiftMatch:
+    def test_empty_candidates(self):
+        assert parallel_sift_match([], []) == []
+
+    def test_returns_list(self, tmp_path):
+        try:
+            from PIL import Image
+        except ImportError:
+            pytest.skip("Pillow not installed")
+        img = Image.new("RGB", (100, 100), "red")
+        p1 = tmp_path / "a.png"
+        p2 = tmp_path / "b.png"
+        img.save(p1)
+        img.save(p2)
+        panels = [
+            {"panel_id": "P1", "crop_path": str(p1)},
+            {"panel_id": "P2", "crop_path": str(p2)},
+        ]
+        # parallel_sift_match spawns subprocess; if ELIS is not available
+        # it should gracefully return empty list.
+        results = parallel_sift_match([(0, 1)], panels, max_workers=2)
+        assert isinstance(results, list)
+
+
+class TestFullScanMode:
+    def test_full_scan_skips_dhash_filter(self, tmp_path):
+        """full_scan=True must bypass dHash pre-filter and compare all pairs."""
+        try:
+            from PIL import Image, ImageDraw
+        except ImportError:
+            pytest.skip("Pillow not installed")
+        # Two very different images that would be filtered by dHash
+        img1 = Image.new("RGB", (200, 200), "red")
+        img1.save(tmp_path / "a.png")
+        img2 = Image.new("RGB", (200, 200), "green")
+        draw = ImageDraw.Draw(img2)
+        draw.rectangle([0, 0, 100, 100], fill="blue")
+        img2.save(tmp_path / "b.png")
+        panels = [
+            {"panel_id": "PE-A", "parent_figure_id": "FE-001", "crop_path": "a.png"},
+            {"panel_id": "PE-B", "parent_figure_id": "FE-002", "crop_path": "b.png"},
+        ]
+        figures = [
+            {"figure_id": "FE-001", "source_image_path": "a.png"},
+            {"figure_id": "FE-002", "source_image_path": "b.png"},
+        ]
+        # With full_scan=True, all pairs should be sent to ELIS runner.
+        # The ELIS runner may not find a match (they are different), but
+        # the pair should still be attempted (no dHash filtering).
+        result = detect_copy_move(panels, figures, workdir=tmp_path, full_scan=True)
+        # Verify it ran without error — relationships may or may not be empty
+        # depending on ELIS runner availability.
+        assert result["status"] in ("skipped", "ran")

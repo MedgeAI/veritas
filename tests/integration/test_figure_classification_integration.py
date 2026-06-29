@@ -56,9 +56,12 @@ a, Gel electrophoresis confirming protein purity.
 """
         (tmp_path / "full.md").write_text(full_md)
 
-        # Mock LLM client — returns classifications for each figure's panels
+        # Mock LLM client — first call is the batch attempt which fails,
+        # triggering fallback to 3 per-figure calls.
         mock_client = MagicMock()
         mock_client.chat_json.side_effect = [
+            # Batch call: raise to trigger fallback
+            RuntimeError("batch disabled in test"),
             # Fig. 1: 3 panels (wet_lab, wet_lab, bioinformatics)
             {
                 "a": {"description": "Western blot", "classification": "wet_lab"},
@@ -111,8 +114,8 @@ a, Gel electrophoresis confirming protein purity.
         assert cls["Fig. 2"]["b"]["classification"] == "bioinformatics"
         assert cls["Extended Data Fig. 1"]["a"]["classification"] == "wet_lab"
 
-        # Verify LLM was called 3 times (once per figure)
-        assert mock_client.chat_json.call_count == 3
+        # Verify LLM was called 4 times: 1 batch + 3 per-figure (batch failed, fallback)
+        assert mock_client.chat_json.call_count == 4
 
     def test_skip_when_full_md_missing(self, tmp_path: Path):
         """Pipeline step skips gracefully when full.md is absent."""
@@ -175,9 +178,12 @@ c, Description of panel c. d, Description of panel d.
         assert "Fig. 1" in legends
         assert "Fig. 2" in legends
 
-        # Mock LLM client
+        # Mock LLM client — first call is the batch attempt which fails,
+        # triggering fallback to per-figure calls.
         mock_client = MagicMock()
         mock_client.chat_json.side_effect = [
+            # Batch call: raise to trigger fallback
+            RuntimeError("batch disabled in test"),
             {"a": {"description": "Blot", "classification": "wet_lab"},
              "b": {"description": "Plot", "classification": "bioinformatics"}},
             {"c": {"description": "Image", "classification": "wet_lab"},

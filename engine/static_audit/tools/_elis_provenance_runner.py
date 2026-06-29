@@ -45,7 +45,7 @@ _SERVICE_URL: str = get_env(
 # Project root — the bind mount maps this to /data inside the container.
 _PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
 
-_HTTP_TIMEOUT = 600.0  # provenance analysis can take a while
+_HTTP_TIMEOUT = 120.0  # provenance analysis can take a while
 
 
 def _client() -> httpx.Client:
@@ -163,19 +163,29 @@ def _convert_graph(
 # ---------------------------------------------------------------------------
 
 
-def _validate_output_graph(output_dir: Path) -> dict[str, Any] | None:
-    """Validate and parse provenance_graph.json from output directory."""
-    graph_file = output_dir / "provenance_graph.json"
-    if not graph_file.exists():
-        return None
-    try:
-        with open(graph_file) as f:
-            data = json.load(f)
-        if "nodes" in data and "edges" in data:
-            return data
-        return None
-    except (json.JSONDecodeError, OSError):
-        return None
+def _validate_output_graph(
+    output_dir: Path, workdir: Path | None = None
+) -> dict[str, Any] | None:
+    """Validate and parse provenance_graph.json from output directory.
+
+    Checks both the canonical path (output_dir/provenance_graph.json) and
+    the visual/ artifact path (workdir/visual/provenance_graph.json) since
+    the ELIS service may write to either location.
+    """
+    candidates = [output_dir / "provenance_graph.json"]
+    if workdir is not None:
+        candidates.append(workdir / "visual" / "provenance_graph.json")
+    for graph_file in candidates:
+        if not graph_file.exists():
+            continue
+        try:
+            with open(graph_file) as f:
+                data = json.load(f)
+            if "nodes" in data and "edges" in data:
+                return data
+        except (json.JSONDecodeError, OSError):
+            continue
+    return None
 
 
 # ---------------------------------------------------------------------------
@@ -193,7 +203,7 @@ def run_provenance_analysis(
     min_area: float = 0.01,
     check_flip: bool = True,
     max_workers: int = 4,
-    timeout: int = 600,
+    timeout: int = 120,
 ) -> dict[str, Any]:
     """Run ELIS provenance-analysis via the HTTP service.
 
@@ -305,6 +315,49 @@ def run_provenance_analysis(
             error=error_msg,
             limitations=limitations,
         )
+    except httpx.TimeoutException as exc:
+        error_msg = f"HTTP call timed out after {timeout}s: {exc}"
+        # Late artifact recovery: check if service wrote output before timeout
+        recovered = _validate_output_graph(output_dir, workdir=workdir)
+        if recovered:
+            limitations.append(
+                f"ELIS service timed out after {timeout}s, but partial results "
+                f"were recovered from output directory. Results may be incomplete."
+            )
+            # Treat as success with limitation note
+            graph = _convert_graph(recovered, workdir=workdir)
+            graph["status"] = "ran"
+            graph["elis_status"] = "completed_with_timeout"
+            graph["candidate_pairs_tested"] = 0
+            graph["edges_found"] = len(graph.get("edges", []))
+            graph["processing_time_seconds"] = timeout
+            graph["source"] = "elis_provenance_service"
+            graph["phase_telemetry"] = [
+                {
+                    "phase": "http_request",
+                    "status": "timeout_with_recovery",
+                    "duration_seconds": timeout,
+                }
+            ]
+            graph["service_diagnostics"] = {
+                "service_url": _SERVICE_URL,
+                "total_images": len(images_info),
+                "matched_pairs_count": 0,
+                "recovered_from_timeout": True,
+            }
+            if not graph.get("edges"):
+                limitations.append(
+                    "No provenance edges found. Figures do not share detectable content."
+                )
+            graph["limitations"] = limitations
+            return graph
+        # No recovery possible
+        limitations.append(f"ELIS forensic service error: {error_msg}")
+        return _failed_result(
+            failure_category="runtime",
+            error=error_msg,
+            limitations=limitations,
+        )
     except httpx.HTTPError as exc:
         error_msg = f"HTTP call failed: {exc}"
         limitations.append(f"ELIS forensic service error: {error_msg}")
@@ -327,7 +380,7 @@ def run_provenance_analysis(
     elis_graph = data.get("graph")
     if elis_graph is None:
         # Try to recover from output directory
-        recovered = _validate_output_graph(output_dir)
+        recovered = _validate_output_graph(output_dir, workdir=workdir)
         if recovered:
             elis_graph = recovered
         else:

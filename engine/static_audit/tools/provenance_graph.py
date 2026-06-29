@@ -33,7 +33,7 @@ def build_provenance_graph(
     max_depth: int = 3,
     check_flip: bool = True,
     max_workers: int = 4,
-    timeout: int = 600,
+    timeout: int = 120,
 ) -> dict[str, Any]:
     """Build a provenance graph from figure evidence using ELIS provenance-adapter.
 

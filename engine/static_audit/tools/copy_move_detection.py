@@ -25,6 +25,7 @@ import logging
 import shutil
 import subprocess
 import sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from itertools import combinations
 from pathlib import Path
 from typing import Any
@@ -59,6 +60,165 @@ def _dhash(path: Path, hash_size: int = 8) -> int:
 
 def _hamming_distance(a: int, b: int) -> int:
     return bin(a ^ b).count("1")
+
+
+# ---------------------------------------------------------------------------
+# Public API — dHash pre-filter and parallel SIFT matching
+# ---------------------------------------------------------------------------
+
+
+def compute_dhash(image: Path | str, hash_size: int = 8) -> int:
+    """Compute perceptual difference hash (dHash) for an image.
+
+    dHash encodes horizontal gradient direction: each bit represents whether
+    the left pixel is brighter than the right pixel in a downscaled grayscale
+    image.  Two images with similar visual content will have low Hamming
+    distance between their dHashes.
+
+    Args:
+        image: Path to an image file, or a PIL Image object.
+        hash_size: Grid size for hash computation (default 8 → 64-bit hash).
+
+    Returns:
+        Integer hash value.
+    """
+    return _dhash(Path(image) if not hasattr(image, "rotate") else image, hash_size)
+
+
+def hamming_distance(hash1: int, hash2: int) -> int:
+    """Compute Hamming distance between two integer hashes."""
+    return _hamming_distance(hash1, hash2)
+
+
+def prefilter_with_dhash(
+    panels: list[dict[str, Any]],
+    max_distance: int = 10,
+) -> list[tuple[int, int]]:
+    """Use dHash to quickly find candidate panel pairs for expensive matching.
+
+    Computes dHash for every panel image and returns all index pairs whose
+    Hamming distance is at most *max_distance*.  This avoids the O(n²)
+    full-comparison cost of running SIFT matching on every pair.
+
+    Args:
+        panels: List of panel dicts, each with at least ``"crop_path"``
+            pointing to an existing image file.
+        max_distance: Maximum Hamming distance to consider a pair as a
+            candidate.  Default 10 is intentionally permissive to maintain
+            high recall; the subsequent SIFT stage filters false positives.
+
+    Returns:
+        List of ``(i, j)`` index pairs into *panels* where ``i < j``.
+    """
+    hashes: list[int | None] = []
+    for panel in panels:
+        crop = panel.get("crop_path") or ""
+        if not crop:
+            hashes.append(None)
+            continue
+        p = Path(crop)
+        if not p.is_file():
+            hashes.append(None)
+            continue
+        try:
+            hashes.append(compute_dhash(p))
+        except OSError:
+            hashes.append(None)
+
+    candidates: list[tuple[int, int]] = []
+    for i, j in combinations(range(len(panels)), 2):
+        h_i, h_j = hashes[i], hashes[j]
+        if h_i is None or h_j is None:
+            continue
+        if hamming_distance(h_i, h_j) <= max_distance:
+            candidates.append((i, j))
+    return candidates
+
+
+def parallel_sift_match(
+    candidates: list[tuple[int, int]],
+    panels: list[dict[str, Any]],
+    max_workers: int = 8,
+) -> list[dict[str, Any]]:
+    """Run SIFT-based copy-move matching on candidate pairs in parallel.
+
+    Each candidate pair ``(i, j)`` is matched by spawning the ELIS keypoint
+    copy-move runner in cross-image mode.  Up to *max_workers* subprocesses
+    run concurrently via :class:`ThreadPoolExecutor`.
+
+    Args:
+        candidates: Index pairs from :func:`prefilter_with_dhash`.
+        panels: Panel dicts (must contain ``"panel_id"`` and ``"crop_path"``).
+        max_workers: Maximum number of concurrent subprocess workers.
+
+    Returns:
+        List of match result dicts.  Each dict contains ``pair_id``,
+        ``source_panel_id``, ``target_panel_id``, ``success``,
+        ``matched_keypoints``, and other fields from the ELIS runner.
+    """
+    if not candidates:
+        return []
+
+    # Build per-pair input data
+    pair_inputs: list[dict[str, Any]] = []
+    for i, j in candidates:
+        panel_i = panels[i]
+        panel_j = panels[j]
+        path_i = panel_i.get("crop_path", "")
+        path_j = panel_j.get("crop_path", "")
+        pair_inputs.append(
+            {
+                "pair_id": f"{panel_i.get('panel_id', i)}__{panel_j.get('panel_id', j)}",
+                "source": str(path_i),
+                "target": str(path_j),
+                "source_panel_id": str(panel_i.get("panel_id", i)),
+                "target_panel_id": str(panel_j.get("panel_id", j)),
+            }
+        )
+
+    # Determine output directory from first panel path's parent
+    workdir = Path(panels[0].get("crop_path", ".")).parent
+    output_dir = workdir / "copy_move_elis" / "parallel_sift"
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    # Run ELIS subprocess — single batched call for all pairs is more
+    # efficient than splitting, because subprocess startup overhead
+    # dominates for small pair counts.  For large pair counts, we chunk.
+    chunk_size = max(1, len(pair_inputs) // max_workers)
+    chunks = [
+        pair_inputs[k : k + chunk_size] for k in range(0, len(pair_inputs), chunk_size)
+    ]
+
+    all_results: list[dict[str, Any]] = []
+
+    def _run_chunk(chunk: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        result = _run_elis_runner(
+            {
+                "mode": "cross",
+                "pairs": chunk,
+                "output_dir": str(output_dir),
+                "min_keypoints": 20,
+                "min_area": 0.01,
+                "check_flip": True,
+            },
+            timeout=max(600, len(chunk) * 5),
+        )
+        if result is None:
+            return []
+        return result.get("results", [])
+
+    if len(chunks) <= 1:
+        all_results = _run_chunk(pair_inputs)
+    else:
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {executor.submit(_run_chunk, c): c for c in chunks}
+            for future in as_completed(futures):
+                try:
+                    all_results.extend(future.result())
+                except Exception:
+                    pass
+
+    return all_results
 
 
 def _resolve_panel_image_path(panel: dict, workdir: Path) -> Path | None:
@@ -239,6 +399,7 @@ def _run_cross_figure_detection(
     dhash_threshold: int = 20,
     max_pairs: int = 500,
     figure_panel_types: dict[str, set[str]] | None = None,
+    full_scan: bool = False,
 ) -> list[dict[str, Any]]:
     """Phase 2b: Cross-figure detection with dhash pre-filter.
 
@@ -279,11 +440,15 @@ def _run_cross_figure_detection(
 
     # Pre-filter pairs by rotation-invariant dhash distance (Plan C)
     # Additionally filter by panel_type consistency when available.
+    # When full_scan=True, skip the dhash distance check and compare all pairs.
     candidate_pairs = []
     for (fid_a, path_a, hash_a), (fid_b, path_b, hash_b) in combinations(hashes, 2):
-        dist, best_angle = min_hamming_rotations(hash_a, hash_b)
-        if dist > dhash_threshold:
-            continue
+        if full_scan:
+            dist, best_angle = 0, 0
+        else:
+            dist, best_angle = min_hamming_rotations(hash_a, hash_b)
+            if dist > dhash_threshold:
+                continue
 
         # panel_type consistency check: both sides must have at least one
         # classified panel, and their type sets must intersect.
@@ -464,7 +629,9 @@ def _run_rotation_detection(
                     logger.warning(f"Failed to load images for rotation pair {pair_id}")
                     continue
 
-                result = detect_copy_move_rotation(img_a, img_b, min_matches=min_matches)
+                result = detect_copy_move_rotation(
+                    img_a, img_b, min_matches=min_matches
+                )
 
                 if result is None:
                     continue
@@ -651,7 +818,13 @@ def _process_cross_figure_results(
     """Process all Phase 2b cross-figure detection results."""
     for r in cross_results:
         _process_cross_figure_result(
-            r, workdir, min_matches, min_score, figure_panel_types, relationships, errors
+            r,
+            workdir,
+            min_matches,
+            min_score,
+            figure_panel_types,
+            relationships,
+            errors,
         )
 
 
@@ -741,12 +914,17 @@ def detect_copy_move(
     min_score: float = COPY_MOVE_DEFAULTS["min_score"],
     max_relationships: int = COPY_MOVE_DEFAULTS["max_relationships"],
     figure_classification: dict[str, Any] | None = None,
+    full_scan: bool = False,
 ) -> dict[str, Any]:
     """Detect copy-move manipulation within and across panels.
 
     Phase 2a: single-image copy-move per panel (within-panel forgery).
     Phase 2b: cross-figure with dhash pre-filter (cross-figure reuse).
     Phase 2c: rotation/flip/scale detection using SIFT + affine transform (wet_lab only).
+
+    Args:
+        full_scan: When True, skip dHash pre-filtering and compare all figure
+            pairs.  Use as fallback when dHash pre-filter may miss matches.
     """
     panels_with_crops = [
         p for p in panel_evidence if _resolve_panel_image_path(p, workdir)
@@ -779,9 +957,16 @@ def detect_copy_move(
         min_keypoints=min_matches,
         min_area=0.01,
         figure_panel_types=figure_panel_types,
+        full_scan=full_scan,
     )
     _process_cross_figure_results(
-        cross_results, workdir, min_matches, min_score, figure_panel_types, relationships, errors
+        cross_results,
+        workdir,
+        min_matches,
+        min_score,
+        figure_panel_types,
+        relationships,
+        errors,
     )
 
     # --- Phase 2c: Rotation/flip/scale detection (wet_lab only) ---
@@ -794,7 +979,12 @@ def detect_copy_move(
         figure_classification=figure_classification,
     )
     _process_rotation_results(
-        rotation_results, min_matches, min_score, figure_panel_types, relationships, errors
+        rotation_results,
+        min_matches,
+        min_score,
+        figure_panel_types,
+        relationships,
+        errors,
     )
 
     # Sort by score descending, cap at max_relationships
@@ -861,6 +1051,12 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Path to figure_classification.json (for wet_lab filtering)",
     )
+    parser.add_argument(
+        "--full-scan",
+        action="store_true",
+        default=False,
+        help="Skip dHash pre-filter and compare all figure pairs (slower but higher recall)",
+    )
     return parser.parse_args()
 
 
@@ -900,6 +1096,7 @@ def main() -> int:
         min_score=args.min_score,
         max_relationships=args.max_relationships,
         figure_classification=figure_classification,
+        full_scan=args.full_scan,
     )
 
     output = Path(args.output).expanduser().resolve()

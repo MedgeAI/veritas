@@ -89,7 +89,9 @@ def _relocate_mineru_outputs(workdir: Path) -> None:
                 json.dumps(ledger, ensure_ascii=False, indent=2), encoding="utf-8"
             )
         except Exception:
-            logger.warning("Ledger image path update failed (non-critical)", exc_info=True)
+            logger.warning(
+                "Ledger image path update failed (non-critical)", exc_info=True
+            )
 
 
 def _update_ledger_image_paths(obj: Any, old: str, new: str) -> None:
@@ -231,17 +233,23 @@ def _run_source_data_steps(
     # Cross-sheet LLM filter (metadata column removal)
     cross_sheet_path = resolve_artifact_path(workdir, "source_data_cross_sheet.json")
     if cross_sheet_path.exists():
-        emit_step_start(progress, "cross_sheet_filter", "Cross-sheet LLM metadata filter")
+        emit_step_start(
+            progress, "cross_sheet_filter", "Cross-sheet LLM metadata filter"
+        )
         try:
             from engine.llm.client import VeritasLLMClient
             from engine.static_audit._shared import run_cross_sheet_filter
 
             cross_sheet_data = json.loads(cross_sheet_path.read_text(encoding="utf-8"))
-            findings = cross_sheet_data.get("findings", cross_sheet_data.get("cross_sheet_findings", []))
+            findings = cross_sheet_data.get(
+                "findings", cross_sheet_data.get("cross_sheet_findings", [])
+            )
 
             if findings:
                 llm_client = VeritasLLMClient()
-                filtered_findings = run_cross_sheet_filter(workdir, findings, llm_client)
+                filtered_findings = run_cross_sheet_filter(
+                    workdir, findings, llm_client
+                )
 
                 # Write filtered findings back
                 cross_sheet_data["findings"] = filtered_findings
@@ -263,9 +271,23 @@ def _run_source_data_steps(
             logger.warning("cross_sheet_filter failed: %s", e)
             filter_status = "warning"
             filter_detail = f"filter failed: {e}"
-        steps.append(StepResult("cross_sheet_filter", "Cross-sheet LLM metadata filter", filter_status, filter_detail))
+        steps.append(
+            StepResult(
+                "cross_sheet_filter",
+                "Cross-sheet LLM metadata filter",
+                filter_status,
+                filter_detail,
+            )
+        )
     else:
-        steps.append(StepResult("cross_sheet_filter", "Cross-sheet LLM metadata filter", "skipped", "cross_sheet.json missing"))
+        steps.append(
+            StepResult(
+                "cross_sheet_filter",
+                "Cross-sheet LLM metadata filter",
+                "skipped",
+                "cross_sheet.json missing",
+            )
+        )
     # paperconan GRIM/GRIMMER scan
     num_dir = resolve_artifact_path(workdir, "numeric")
     steps.append(
@@ -476,8 +498,10 @@ def _run_investigation_fallbacks(
             panel_data = read_json(pe_path) or {}
             all_panels = panel_data.get("panels", [])
             filtered_panels = [
-                p for p in all_panels
-                if isinstance(p, dict) and (
+                p
+                for p in all_panels
+                if isinstance(p, dict)
+                and (
                     p.get("panel_classification") in WET_LAB_TYPES
                     or p.get("panel_classification") == "unknown"
                 )
@@ -976,18 +1000,6 @@ def _run_bundle_and_report(
         progress,
     )
 
-    # LLM text enrichment: generate data-grounded review text for top findings
-    try:
-        from engine.llm.client import VeritasLLMClient
-        from engine.reporting.text_generator import enrich_bundle_with_llm_text
-
-        llm_client = VeritasLLMClient()
-        bundle = enrich_bundle_with_llm_text(bundle, workdir, llm_client, max_findings=10)
-        bundle.write_json(bundle_path)  # re-write with enriched text
-        logger.info("LLM text enrichment completed for bundle %s", case_id)
-    except Exception as e:
-        logger.warning("LLM text enrichment skipped: %s", e)
-
     # Certification grade (after bundle, before reports)
     emit_step_start(progress, "certification_grade", "认证评级计算")
     grade_data = None
@@ -1114,6 +1126,58 @@ def _run_bundle_and_report(
     )
     manifest["steps"] = [asdict(s) for s in steps]
     manifest["final_html_report"] = str(html_path)
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+    # LLM text enrichment (non-blocking, after report-first delivery)
+    emit_step_start(progress, "llm_enrichment", "LLM 文本充实")
+    llm_enriched = False
+    try:
+        from engine.llm.client import VeritasLLMClient
+        from engine.reporting.text_generator import enrich_bundle_with_llm_text
+
+        llm_client = VeritasLLMClient()
+        bundle = enrich_bundle_with_llm_text(
+            bundle, workdir, llm_client, max_findings=10
+        )
+        bundle.write_json(bundle_path)  # re-write with enriched text
+        llm_enriched = True
+        logger.info("LLM text enrichment completed for bundle %s", case_id)
+
+        # Re-generate HTML with enriched data
+        enriched_html_path = write_static_audit_html(
+            workdir,
+            case_id,
+            grade=grade_data,
+            dimensions=grade_data.get("dimensions") if grade_data else None,
+            report_id=report_id,
+        )
+        html_path = enriched_html_path
+        record_step(
+            steps,
+            StepResult(
+                "llm_enrichment", "LLM 文本充实", "ran", str(enriched_html_path)
+            ),
+            progress,
+        )
+    except Exception as e:
+        logger.warning("LLM text enrichment skipped: %s", e)
+        record_step(
+            steps,
+            StepResult(
+                "llm_enrichment", "LLM 文本充实", "warning", f"enrichment skipped: {e}"
+            ),
+            progress,
+        )
+
+    # Final manifest update with enrichment metadata
+    manifest["steps"] = [asdict(s) for s in steps]
+    manifest["final_html_report"] = str(html_path)
+    manifest["llm_enrichment"] = {
+        "applied": llm_enriched,
+        "findings_enriched": len(bundle.findings) if llm_enriched else 0,
+    }
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
