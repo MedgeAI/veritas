@@ -132,9 +132,10 @@ def _from_visual_findings(workdir: Path) -> list[dict[str, Any]]:
         finding_id = finding.get("finding_id") or finding.get("id") or "unknown"
         risk = finding.get("risk_level", "medium")
         category = finding.get("issue_category", "consistency")
+        source_ref = f"visual_findings:{finding_id}"
         items.append(
             {
-                "source_ref": f"visual_findings:{finding_id}",
+                "source_ref": source_ref,
                 "title": finding.get("title", f"Visual finding {finding_id}"),
                 "risk_level": risk,
                 "issue_category": category,
@@ -142,6 +143,7 @@ def _from_visual_findings(workdir: Path) -> list[dict[str, Any]]:
                 "evidence_refs": finding.get("evidence_refs", []),
                 "recommended_action": finding.get("recommended_action", ""),
                 "benign_explanation": finding.get("benign_explanation", ""),
+                "finding_id": finding_id,
             }
         )
     return items

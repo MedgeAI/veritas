@@ -48,7 +48,20 @@ CASE_STATUSES: set[str] = {
     "Archived",
 }
 
-RUN_STATUSES: set[str] = {"queued", "running", "completed", "failed", "interrupted", "cancelled"}
+RUN_STATUSES: set[str] = {
+    "queued",
+    "running",
+    "completed",
+    "failed",
+    "interrupted",
+    "cancelled",
+    "partial_available",
+    "enhancing",
+    "completed_with_warnings",
+    "failed_timeout",
+    "failed_dependency",
+    "failed_runtime",
+}
 
 STALE_RUN_THRESHOLD_SECONDS = 300  # 5 minutes — no heartbeat → stale
 
@@ -378,6 +391,7 @@ class ReviewDecisionModel(Base):
     note = Column(Text, default="")
     decided_by = Column(String(128), nullable=True)
     decided_at = Column(String(32), default=utc_now)
+    decision_type = Column(String(64), nullable=True)
 
     case = relationship("CaseModel", back_populates="review_decisions")
 
@@ -388,6 +402,7 @@ class ReviewDecisionModel(Base):
             "note": self.note,
             "decided_by": self.decided_by,
             "decided_at": self.decided_at,
+            "decision_type": self.decision_type,
         }
 
 
@@ -553,6 +568,9 @@ class InvestigationRunRequest(BaseModel):
 class ReviewDecisionCreate(BaseModel):
     status: Literal["open", "resolved", "dismissed", "needs_author_response"] = "open"
     note: str = ""
+    decision_type: (
+        Literal["apply_suggestion", "manual_edit", "re_execute", "appeal"] | None
+    ) = None
 
 
 class ReviewDecisionRead(BaseModel):
@@ -561,6 +579,7 @@ class ReviewDecisionRead(BaseModel):
     note: str = ""
     decided_by: str | None = None
     decided_at: str = ""
+    decision_type: str | None = None
 
 
 class ReviewItemRead(BaseModel):
@@ -572,6 +591,7 @@ class ReviewItemRead(BaseModel):
     evidence_refs: list[dict[str, Any]] = Field(default_factory=list)
     recommended_action: str = ""
     benign_explanation: str = ""
+    finding_id: str | None = None
     decision: ReviewDecisionRead | None = None
 
 

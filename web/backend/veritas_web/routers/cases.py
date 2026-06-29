@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import json
 from http import HTTPStatus
+from pathlib import Path
 from typing import Any
 
+import yaml
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from fastapi.responses import StreamingResponse
 
@@ -65,7 +67,7 @@ async def create_case(
         raise HTTPException(
             status_code=400,
             detail=f"Invalid reproducibility_tier: {payload.reproducibility_tier}. "
-                   f"Must be one of: {', '.join(REPRODUCIBILITY_TIERS.keys())}",
+            f"Must be one of: {', '.join(REPRODUCIBILITY_TIERS.keys())}",
         )
 
     case = deps.store.create_case(
@@ -199,9 +201,7 @@ async def upload_input(
                         "Use multipart/form-data upload instead."
                     ),
                 )
-            path = deps.store.write_input(
-                case_id, payload.filename, content_bytes
-            )
+            path = deps.store.write_input(case_id, payload.filename, content_bytes)
         else:
             raise HTTPException(
                 status_code=400,
@@ -385,6 +385,73 @@ async def get_version_history(
     }
 
 
+_PROJECT_ROOT = Path(__file__).resolve().parents[4]
+_PRICING_CONFIG_PATH = _PROJECT_ROOT / "configs" / "reverification_pricing.yml"
+
+
+def _load_pricing_config() -> dict[str, Any]:
+    with open(_PRICING_CONFIG_PATH, "r", encoding="utf-8") as f:
+        return yaml.safe_load(f)
+
+
+def _get_findings_count(deps: AppDependencies, case_id: str) -> int:
+    """Return the number of findings from the static_audit_bundle artifact."""
+    bundle_path = deps.artifacts.artifact_path(case_id, "static_audit_bundle")
+    if bundle_path is None or not bundle_path.exists():
+        return 0
+    try:
+        bundle = json.loads(bundle_path.read_text(encoding="utf-8"))
+        findings = bundle.get("findings", [])
+        return len(findings) if isinstance(findings, list) else 0
+    except Exception:
+        return 0
+
+
+def _get_next_version(case_id: str) -> int:
+    """Return the version number of the next reverification."""
+    from engine.static_audit.verify_store import list_version_history
+
+    versions = list_version_history(case_id)
+    return len(versions) + 1
+
+
+@router.get("/cases/{case_id}/reverification-cost")
+async def get_reverification_cost(
+    case_id: str,
+    case: CaseRecord = Depends(require_case_access),
+    deps: AppDependencies = Depends(get_app_dependencies),
+) -> dict[str, Any]:
+    """Return an itemized cost estimate for reverifying this case."""
+    pricing = _load_pricing_config()
+    base_fee: int = int(pricing["base_fee"])
+    per_finding: int = int(pricing["per_finding"])
+    per_version: int = int(pricing["per_version"])
+    max_fee: int = int(pricing["max_fee"])
+    currency: str = str(pricing["currency"])
+
+    finding_count = _get_findings_count(deps, case_id)
+    next_version = _get_next_version(case_id)
+
+    finding_fee = finding_count * per_finding
+    version_fee = next_version * per_version
+    total = min(base_fee + finding_fee + version_fee, max_fee)
+
+    return {
+        "base_fee": base_fee,
+        "finding_count": finding_count,
+        "finding_fee": finding_fee,
+        "next_version": next_version,
+        "version_fee": version_fee,
+        "total": total,
+        "max_fee": max_fee,
+        "currency": currency,
+        "optional_addon_label": str(
+            pricing.get("optional_addon_label", "AI 代码修复（可选）")
+        ),
+        "optional_addon_price": int(pricing.get("optional_addon_price", 120)),
+    }
+
+
 @router.post("/cases/{case_id}/reverify")
 async def reverify_case(
     case_id: str,
@@ -398,7 +465,10 @@ async def reverify_case(
     trigger a diff-based incremental audit.
     """
     from engine.static_audit.report_id import generate_report_id
-    from engine.static_audit.verify_store import list_version_history, save_verification_summary
+    from engine.static_audit.verify_store import (
+        list_version_history,
+        save_verification_summary,
+    )
 
     versions = list_version_history(case_id)
     new_version = len(versions) + 1
@@ -410,7 +480,13 @@ async def reverify_case(
         case_id=case_id,
         report_id=new_report_id,
         paper_title=case.paper_title or case_id,
-        grade_data={"grade": "?", "label": "待评定", "dimensions": [], "summary": "", "total_findings": 0},
+        grade_data={
+            "grade": "?",
+            "label": "待评定",
+            "dimensions": [],
+            "summary": "",
+            "total_findings": 0,
+        },
         report_version=new_version,
     )
 

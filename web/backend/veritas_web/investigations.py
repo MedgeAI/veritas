@@ -35,41 +35,50 @@ class WebInvestigationService:
         # Read records from DB (primary) with JSONL fallback for CLI-written records
         records = self._read_records(case_id, workdir)
 
-        results = []
-        artifact_errors = []
+        # Phase 1 — Collect all artifact paths (no I/O), deduplicate by key
+        all_artifact_paths: dict[str, Path] = {}
+        missing_keys: set[str] = set()
         for record in records:
             for artifact in record.get("output_artifacts") or []:
-                artifact_path = self._resolve_record_artifact(workdir, str(artifact))
-                if not artifact_path:
-                    error = {
-                        "artifact": str(artifact),
-                        "error": "artifact_missing",
-                        "detail": f"artifact file missing: {artifact}",
-                    }
-                    record.setdefault("artifact_errors", []).append(error)
-                    artifact_errors.append(
-                        {"action_id": record.get("action_id"), **error}
-                    )
+                key = str(artifact)
+                if key in all_artifact_paths or key in missing_keys:
                     continue
-                try:
-                    payload = json.loads(artifact_path.read_text(encoding="utf-8"))
-                except OSError as exc:
-                    error = {
-                        "artifact": str(artifact),
-                        "error": "artifact_unreadable",
-                        "detail": str(exc),
-                    }
-                    record.setdefault("artifact_errors", []).append(error)
-                    artifact_errors.append(
-                        {"action_id": record.get("action_id"), **error}
-                    )
-                    continue
-                except json.JSONDecodeError as exc:
-                    error = {
-                        "artifact": str(artifact),
-                        "error": "artifact_invalid_json",
-                        "detail": str(exc),
-                    }
+                resolved = self._resolve_record_artifact(workdir, key)
+                if resolved:
+                    all_artifact_paths[key] = resolved
+                else:
+                    missing_keys.add(key)
+
+        # Phase 2 — Batch load all payloads (I/O)
+        artifact_payloads: dict[str, Any] = {}
+        artifact_errors: list[dict] = []
+        for key, path in all_artifact_paths.items():
+            try:
+                artifact_payloads[key] = json.loads(path.read_text(encoding="utf-8"))
+            except OSError as exc:
+                artifact_errors.append(
+                    {"artifact": key, "error": "artifact_unreadable", "detail": str(exc)}
+                )
+            except json.JSONDecodeError as exc:
+                artifact_errors.append(
+                    {"artifact": key, "error": "artifact_invalid_json", "detail": str(exc)}
+                )
+
+        # Phase 3 — Assemble results (no I/O)
+        results: list[dict[str, Any]] = []
+        for record in records:
+            for artifact in record.get("output_artifacts") or []:
+                key = str(artifact)
+                if key not in artifact_payloads:
+                    if key in missing_keys:
+                        error = {
+                            "artifact": key,
+                            "error": "artifact_missing",
+                            "detail": f"artifact file missing: {key}",
+                        }
+                    else:
+                        # Read failed in Phase 2; error already in artifact_errors
+                        continue
                     record.setdefault("artifact_errors", []).append(error)
                     artifact_errors.append(
                         {"action_id": record.get("action_id"), **error}
@@ -78,8 +87,10 @@ class WebInvestigationService:
                 results.append(
                     {
                         "record": record,
-                        "artifact": str(artifact_path.relative_to(workdir)),
-                        "result": payload,
+                        "artifact": str(
+                            all_artifact_paths[key].relative_to(workdir)
+                        ),
+                        "result": artifact_payloads[key],
                     }
                 )
         return {
