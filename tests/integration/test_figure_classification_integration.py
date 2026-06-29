@@ -18,8 +18,6 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock
 
-import pytest
-
 from engine.static_audit._shared import WET_LAB_TYPES, filter_wet_lab_panels
 from engine.static_audit.figure_classification import (
     classify_all_figures,
@@ -250,7 +248,7 @@ class TestFilterWetLabPanelsIntegration:
     """filter_wet_lab_panels with realistic pipeline output."""
 
     def test_filter_pipeline_output(self):
-        """Filter panels from pipeline output, keeping wet_lab + mixed + unknown."""
+        """Filter panels from pipeline output, keeping only wet_lab + mixed."""
         panels = [
             {"panel_id": "fig1-a", "panel_classification": "wet_lab"},
             {"panel_id": "fig1-b", "panel_classification": "bioinformatics"},
@@ -262,11 +260,11 @@ class TestFilterWetLabPanelsIntegration:
 
         result = filter_wet_lab_panels(panels, {})
 
-        # WET_LAB_TYPES = {"wet_lab", "mixed"}; "unknown" is also included (conservative)
-        # So: fig1-a (wet_lab), fig1-c (mixed), fig2-a (wet_lab), fig2-c (unknown) = 4
-        assert len(result) == 4
+        # WET_LAB_TYPES = {"wet_lab", "mixed"}; unknown/bioinformatics/other excluded
+        # So: fig1-a (wet_lab), fig1-c (mixed), fig2-a (wet_lab) = 3
+        assert len(result) == 3
         result_ids = {p["panel_id"] for p in result}
-        assert result_ids == {"fig1-a", "fig1-c", "fig2-a", "fig2-c"}
+        assert result_ids == {"fig1-a", "fig1-c", "fig2-a"}
 
     def test_filter_with_llm_classifications(self):
         """When panel_classification not set, use LLM classifications dict."""

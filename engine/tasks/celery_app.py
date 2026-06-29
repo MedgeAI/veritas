@@ -1,8 +1,8 @@
 """Celery application for Veritas async audit tasks.
 
-Broker and result backend both use PostgreSQL via the sqlalchemy transport
-(no Redis required).  Configuration is driven by environment variables so
-the same module works in Docker, local dev and CI.
+Redis is used as the broker.  PostgreSQL remains the result backend and
+business database.  Configuration is driven by environment variables so the
+same module works in Docker, local dev and CI.
 
 Import this module as ``engine.tasks.celery_app`` to get the shared
 ``celery_app`` instance.  Celery workers are started with::
@@ -28,7 +28,9 @@ from celery import Celery
 # overwrite).
 # ---------------------------------------------------------------------------
 _PROJECT_ROOT = Path(__file__).resolve().parents[2]
-from engine.env import get_env, load_project_env  # noqa: E402
+from engine.env import get_env, load_project_env, strip_proxy_env_inplace  # noqa: E402
+
+strip_proxy_env_inplace(os.environ)
 
 for _k, _v in load_project_env(_PROJECT_ROOT).items():
     os.environ.setdefault(_k, _v)

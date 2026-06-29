@@ -55,6 +55,61 @@ def test_run_visual_panel_extraction_writes_canonical_artifacts(tmp_path) -> Non
     assert panel_evidence["panels"][0]["parent_figure_id"] == "FE-0001"
 
 
+def test_run_visual_panel_extraction_records_oversegmentation_fallback(
+    tmp_path, monkeypatch
+) -> None:
+    workdir = tmp_path / "work"
+    images_dir = resolve_artifact_path(workdir, "images")
+    images_dir.mkdir(parents=True)
+    shutil.copyfile(
+        Path("tests/fixtures/visual/synthetic_2x2_clean/images/Figure1.png"),
+        images_dir / "Figure1.png",
+    )
+
+    def fake_extract_panels_batch(figure_path_pairs, *, output_dir, **_kwargs):
+        batch_dir = output_dir / "yolov5_batch"
+        batch_dir.mkdir(parents=True, exist_ok=True)
+        rows = ["FIGNAME,X0,Y0,X1,Y1,LABEL,ID"]
+        for index in range(17):
+            rows.append(f"Figure1,0,0,10,10,Blots,{index + 1}")
+        (batch_dir / "PANELS.csv").write_text("\n".join(rows), encoding="utf-8")
+        return {fid: [] for fid, _ in figure_path_pairs}
+
+    monkeypatch.setattr(
+        "engine.static_audit.visual_pipeline.extract_panels_batch",
+        fake_extract_panels_batch,
+    )
+
+    _steps, manifest = run_visual_panel_extraction(
+        workdir=workdir,
+        images_dir=images_dir,
+        force=True,
+    )
+
+    panel_evidence = json.loads(
+        resolve_artifact_path(workdir, "panel_evidence.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    visual_evidence = json.loads(
+        resolve_artifact_path(workdir, "visual_evidence.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+    assert len(manifest["panel_extraction"]["limitations"]) == 1
+    assert (
+        "FE-0001: YOLOv5 over-segmented into 17 panels (max=16)"
+        in manifest["panel_extraction"]["limitations"][0]
+    )
+    panel_metadata = panel_evidence["panels"][0]["metadata"]
+    assert panel_metadata["fallback_reason"] == "yolov5_oversegmentation"
+    assert panel_metadata["yolov5_detected_panel_count"] == 17
+    assert visual_evidence["figures"][0]["metadata"][
+        "panel_extraction_fallback_reason"
+    ] == "yolov5_oversegmentation"
+
+
 def test_visual_finding_pipeline_and_bundle_include_visual_findings(tmp_path) -> None:
     workdir = tmp_path / "work"
     write_json(

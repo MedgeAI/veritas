@@ -2,11 +2,23 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import MutableMapping
 
 NO_ENV_FILE_MARKER = "VERITAS_NO_ENV_FILE"
 
 # Default log directory (repo-relative).  Override with VERITAS_LOG_DIR.
 DEFAULT_LOG_DIR = "logs/"
+
+PROXY_ENV_KEYS = (
+    "ALL_PROXY",
+    "all_proxy",
+    "HTTP_PROXY",
+    "http_proxy",
+    "HTTPS_PROXY",
+    "https_proxy",
+    "NO_PROXY",
+    "no_proxy",
+)
 
 
 def get_env(
@@ -42,6 +54,30 @@ def get_env(
     return default
 
 
+def _trust_proxy_env(env: dict[str, str]) -> bool:
+    return env.get("VERITAS_TRUST_PROXY_ENV", "").lower() in {"1", "true", "yes", "on"}
+
+
+def strip_proxy_env(env: dict[str, str]) -> dict[str, str]:
+    """Return a copy of ``env`` without process-wide proxy variables.
+
+    Project subprocesses and SDK clients should not inherit desktop proxy
+    settings by default because unsupported schemes such as ``socks5h://`` can
+    break unrelated HTTP clients.  Set ``VERITAS_TRUST_PROXY_ENV=1`` to opt in.
+    """
+    if _trust_proxy_env(env):
+        return dict(env)
+    return {key: value for key, value in env.items() if key not in PROXY_ENV_KEYS}
+
+
+def strip_proxy_env_inplace(env: MutableMapping[str, str]) -> None:
+    """Remove proxy variables from ``os.environ`` unless explicitly trusted."""
+    if _trust_proxy_env(dict(env)):
+        return
+    for key in PROXY_ENV_KEYS:
+        env.pop(key, None)
+
+
 def parse_env_file(env_file: Path) -> dict[str, str]:
     values: dict[str, str] = {}
     if not env_file.exists():
@@ -71,7 +107,7 @@ def load_project_env(
     include_env_file: bool = True,
     base_env: dict[str, str] | None = None,
 ) -> dict[str, str]:
-    env = dict(os.environ if base_env is None else base_env)
+    env = strip_proxy_env(dict(os.environ if base_env is None else base_env))
     if not include_env_file:
         env[NO_ENV_FILE_MARKER] = "1"
         return env
@@ -79,4 +115,4 @@ def load_project_env(
         return env
     for key, value in parse_env_file(Path(project_root) / ".env").items():
         env.setdefault(key, value)
-    return env
+    return strip_proxy_env(env)

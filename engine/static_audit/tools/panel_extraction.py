@@ -180,6 +180,33 @@ def extract_panels_batch(
     )
 
 
+def detect_oversegmented_figures(
+    csv_path: Path,
+    figure_paths: list[tuple[str, Path]],
+    *,
+    max_panels: int = MAX_PANELS_PER_FIGURE,
+) -> dict[str, int]:
+    """Return figures whose raw YOLOv5 row count exceeds ``max_panels``."""
+    if not csv_path.is_file():
+        return {}
+
+    stem_to_fid = {path.stem: fid for fid, path in figure_paths}
+    counts: dict[str, int] = {}
+
+    try:
+        content = csv_path.read_text(encoding="utf-8", errors="ignore")
+    except OSError:
+        return {}
+
+    reader = csv.DictReader(content.replace(", ", ",").splitlines())
+    for row in reader:
+        fid = stem_to_fid.get(row.get("FIGNAME", ""))
+        if fid:
+            counts[fid] = counts.get(fid, 0) + 1
+
+    return {fid: count for fid, count in counts.items() if count > max_panels}
+
+
 def _distribute_panels_from_csv(
     csv_path: Path,
     figure_paths: list[tuple[str, Path]],

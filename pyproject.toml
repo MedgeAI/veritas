@@ -23,7 +23,7 @@ web = [
     "python-multipart>=0.0.9",
     "PyJWT[crypto]>=2.8.0",
     "bcrypt>=4.0.0",
-    "celery[sqlalchemy]>=5.3.0",
+    "celery[redis,sqlalchemy]>=5.3.0",
 ]
 visual = [
     "opencv-python-headless>=4.8.0",
@@ -70,6 +70,7 @@ exclude = ["engine/static_audit/upstream"]
 "engine/static_audit/cli_driver.py" = ["E402"]
 "engine/static_audit/pipeline.py" = ["E402"]
 "scripts/build_tool_contract.py" = ["E402"]
+"web/backend/veritas_web/app.py" = ["E402"]
 
 [dependency-groups]
 dev = [

@@ -21,6 +21,9 @@ from engine.static_audit.figure_classification import (
     _normalize_figure_label,
     classify_all_figures,
     classify_figure,
+    build_figure_id_to_paper_label_mapping,
+    build_image_to_paper_label_mapping,
+    classify_panel_with_llm_priority,
     classify_panel_with_yolo_priority,
     parse_figure_legends,
     run_figure_classification_step,
@@ -112,6 +115,11 @@ class TestNormalizeFigureLabel:
     def test_extended_data(self) -> None:
         """Preserve Extended Data prefix."""
         assert _normalize_figure_label("Extended Data Figure 3") == "Extended Data Fig. 3"
+
+    def test_case_insensitive(self) -> None:
+        """Normalize mixed-case LLM labels."""
+        assert _normalize_figure_label("extended data figure 4") == "Extended Data Fig. 4"
+        assert _normalize_figure_label("fig 5") == "Fig. 5"
 
 
 # ---------------------------------------------------------------------------
@@ -222,6 +230,98 @@ class TestClassifyAllFigures:
 
 
 # ---------------------------------------------------------------------------
+# Image → paper label mapping
+# ---------------------------------------------------------------------------
+
+
+class TestImageToPaperLabelMapping:
+    """Test LLM mapping from markdown image refs to paper figure labels."""
+
+    def test_normalizes_llm_labels(self) -> None:
+        full_md = """
+![](images/toc.jpg)
+
+# Fig. 1 | First figure.
+![](images/fig1.jpg)
+
+# Extended Data Fig. 2 | Supplementary figure.
+![](images/ed2.jpg)
+"""
+        mock_client = MagicMock()
+        mock_client.chat_json.return_value = {
+            "toc.jpg": "Other",
+            "fig1.jpg": "figure 1",
+            "ed2.jpg": "extended data figure 2",
+        }
+
+        result = build_image_to_paper_label_mapping(full_md, mock_client)
+
+        assert result == {
+            "toc.jpg": "other",
+            "fig1.jpg": "Fig. 1",
+            "ed2.jpg": "Extended Data Fig. 2",
+        }
+
+    def test_figure_id_mapping_uses_supported_ledger_paths(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        mineru_dir = tmp_path / "mineru"
+        mineru_dir.mkdir()
+        (mineru_dir / "full.md").write_text(
+            """
+![](images/rel.jpg)
+# Fig. 1 | Relative path figure.
+
+![](images/raw.jpg)
+# Fig. 2 | Raw path figure.
+
+![](images/source.jpg)
+# Fig. 3 | Source image path figure.
+""",
+            encoding="utf-8",
+        )
+        (mineru_dir / "evidence_ledger.json").write_text(
+            json.dumps(
+                {
+                    "figures": [
+                        {
+                            "id": "figure-md-0001",
+                            "type": "figure",
+                            "image_ref": {"relative_path": "images/rel.jpg"},
+                        },
+                        {
+                            "id": "figure-md-0002",
+                            "type": "figure",
+                            "image_ref": {"raw": "images/raw.jpg?token=1"},
+                        },
+                        {
+                            "id": "figure-md-0003",
+                            "type": "figure",
+                            "source_image_path": "images/source.jpg",
+                        },
+                    ]
+                }
+            ),
+            encoding="utf-8",
+        )
+        mock_client = MagicMock()
+        mock_client.chat_json.return_value = {
+            "rel.jpg": "Figure 1",
+            "raw.jpg": "fig. 2",
+            "source.jpg": "Fig. 3",
+        }
+
+        result = build_figure_id_to_paper_label_mapping(tmp_path, mock_client)
+
+        assert result == {
+            "figure-md-0001": "Fig. 1",
+            "figure-md-0002": "Fig. 2",
+            "figure-md-0003": "Fig. 3",
+        }
+
+
+# ---------------------------------------------------------------------------
 # Panel classification with YOLO priority
 # ---------------------------------------------------------------------------
 
@@ -270,6 +370,28 @@ class TestClassifyPanelWithYoloPriority:
         assert result == "unknown"
 
 
+class TestClassifyPanelWithLlmPriority:
+    """Test figure-aware panel classification."""
+
+    def test_uses_figure_key_for_single_image_figure(self) -> None:
+        panel = {"panel_type": "", "label": "a", "parent_figure_id": "fig1"}
+        llm_cls = {"Fig. 1": {"figure": {"classification": "wet_lab"}}}
+        fig_mapping = {"fig1": "Fig. 1"}
+
+        result = classify_panel_with_llm_priority(panel, llm_cls, fig_mapping)
+
+        assert result == "wet_lab"
+
+    def test_llm_lookup_takes_priority_over_yolo_type(self) -> None:
+        panel = {"panel_type": "Graphs", "label": "a", "parent_figure_id": "fig1"}
+        llm_cls = {"Fig. 1": {"a": {"classification": "wet_lab"}}}
+        fig_mapping = {"fig1": "Fig. 1"}
+
+        result = classify_panel_with_llm_priority(panel, llm_cls, fig_mapping)
+
+        assert result == "wet_lab"
+
+
 # ---------------------------------------------------------------------------
 # Filter wet-lab panels
 # ---------------------------------------------------------------------------
@@ -291,25 +413,24 @@ class TestFilterWetLabPanels:
 
         result = filter_wet_lab_panels(panels, classifications)
 
-        # Should include wet_lab, mixed, and unknown
-        assert len(result) == 3
+        # Should include only wet_lab and mixed (unknown excluded)
+        assert len(result) == 2
         result_ids = [p["panel_id"] for p in result]
         assert "p1" in result_ids  # wet_lab
         assert "p3" in result_ids  # mixed
-        assert "p5" in result_ids  # unknown
+        assert "p5" not in result_ids  # unknown — excluded
         assert "p2" not in result_ids  # bioinformatics
         assert "p4" not in result_ids  # other
 
     def test_include_unknown_panels(self) -> None:
-        """Unknown panels are included (conservative)."""
+        """Unknown panels are excluded (only wet_lab + mixed analyzed)."""
         panels = [
             {"panel_id": "p1", "panel_classification": "unknown"},
         ]
         classifications = {}
 
         result = filter_wet_lab_panels(panels, classifications)
-        assert len(result) == 1
-        assert result[0]["panel_id"] == "p1"
+        assert len(result) == 0
 
     def test_empty_classifications(self) -> None:
         """When classifications is empty, filter by panel_classification only."""
@@ -344,7 +465,7 @@ class TestFilterWetLabPanels:
         assert result[0]["panel_id"] == "p1"
 
     def test_no_classification_found_defaults_to_unknown(self) -> None:
-        """When no classification found, default to unknown (include panel)."""
+        """When no classification found, default to unknown (exclude panel)."""
         panels = [
             {"panel_id": "p1", "label": "z"},  # Not in classifications
         ]
@@ -357,8 +478,8 @@ class TestFilterWetLabPanels:
         }
 
         result = filter_wet_lab_panels(panels, classifications)
-        # Panel with unknown classification should be included
-        assert len(result) == 1
+        # Panel with unknown classification should be excluded
+        assert len(result) == 0
 
     def test_wet_lab_types_constant(self) -> None:
         """Verify WET_LAB_TYPES includes expected values."""

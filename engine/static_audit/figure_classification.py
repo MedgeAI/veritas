@@ -133,7 +133,9 @@ def _normalize_figure_label(label: str) -> str:
     label = re.sub(r"\s+", " ", label.strip())
     # Ensure consistent format
     label = re.sub(r"Figure\.?", "Fig.", label, flags=re.IGNORECASE)
-    label = re.sub(r"Fig\.\s*", "Fig. ", label)
+    label = re.sub(r"Fig\.?\s*", "Fig. ", label, flags=re.IGNORECASE)
+    label = re.sub(r"^extended data\s+", "Extended Data ", label, flags=re.IGNORECASE)
+    label = re.sub(r"^fig\. ", "Fig. ", label, flags=re.IGNORECASE)
     return label
 
 
@@ -359,6 +361,261 @@ def classify_all_figures_batch(
 
 
 # ---------------------------------------------------------------------------
+# Image → Paper label mapping via LLM
+# ---------------------------------------------------------------------------
+
+_IMAGE_LABEL_PROMPT_TEMPLATE = """You are analyzing a scientific paper's markdown text to determine which figure each image belongs to.
+
+The text below is from full.md — a MinerU extraction of a scientific paper. It contains:
+- Inline image references: ![](images/HASH.jpg)
+- Figure legends: "Fig. N | Title. a, Description..." or "# Fig. N | Title"
+
+Your task: For each image reference, determine which figure label (Fig. 1, Fig. 2, Extended Data Fig. 1, etc.) it belongs to.
+
+Use these clues:
+1. Images usually appear near their figure legend (before or after)
+2. Panel labels (a, b, c...) may appear between images, matching the legend's panel descriptions
+3. Images between two figure legends typically belong to the closer one
+
+Images to classify:
+{image_list}
+
+Full text context (abbreviated):
+{text_context}
+
+Return ONLY valid JSON — a mapping from image filename to figure label:
+{{
+  "0b668c7706a9...b6.jpg": "Fig. 2",
+  "2392aed99ffb...80.jpg": "Fig. 2",
+  ...
+}}
+
+Rules:
+1. Use ONLY the filename (e.g. "0b668c...b6.jpg"), NOT the full path.
+2. Use canonical labels: "Fig. 1", "Fig. 2", "Extended Data Fig. 1", etc.
+3. If an image clearly doesn't belong to any numbered figure (e.g. graphical abstract, TOC), use "other".
+4. Return ONLY valid JSON, no explanations."""
+
+
+def build_image_to_paper_label_mapping(
+    full_md_text: str,
+    llm_client: Any,
+) -> dict[str, str]:
+    """Use LLM to map image filenames to paper labels from full.md context.
+
+    Parses all image references and figure legends from full.md, then asks
+    the LLM to determine which figure each image belongs to based on
+    spatial proximity and panel label context.
+
+    Args:
+        full_md_text: The full text of full.md
+        llm_client: VeritasLLMClient instance
+
+    Returns:
+        {image_filename: paper_label}
+        e.g. {"0b668c...b6.jpg": "Fig. 2", "acfaff...1f.jpg": "Fig. 3"}
+    """
+    # Extract all image references from full.md
+    image_refs: list[str] = []
+    for match in re.finditer(r"!\[.*?\]\(images/([^)]+)\)", full_md_text):
+        filename = match.group(1)
+        if filename not in image_refs:
+            image_refs.append(filename)
+
+    if not image_refs:
+        return {}
+
+    # Extract all figure labels from full.md for context
+    figure_labels: list[str] = []
+    for match in _FIGURE_HEADING_RE.finditer(full_md_text):
+        label = _normalize_figure_label(match.group(1))
+        if label not in figure_labels:
+            figure_labels.append(label)
+    for match in _INLINE_LEGEND_RE.finditer(full_md_text):
+        label = _normalize_figure_label(match.group(1))
+        if label not in figure_labels:
+            figure_labels.append(label)
+
+    if not figure_labels:
+        return {}
+
+    # Build the prompt
+    image_list = "\n".join(f"- {fn}" for fn in image_refs[:100])  # cap at 100
+    # Abbreviate text context: keep figure legends and nearby image refs
+    text_context = _abbreviate_md_for_mapping(full_md_text, max_chars=8000)
+
+    prompt = _IMAGE_LABEL_PROMPT_TEMPLATE.format(
+        image_list=image_list,
+        text_context=text_context,
+    )
+
+    try:
+        result = llm_client.chat_json(prompt)
+        if not isinstance(result, dict):
+            logger.warning(
+                "LLM image→label mapping returned non-dict: %r", type(result)
+            )
+            return {}
+
+        # Validate: only keep mappings with known figure labels
+        valid_labels = set(figure_labels) | {"other"}
+        validated: dict[str, str] = {}
+        for filename, label in result.items():
+            canonical_label = _normalize_mapping_label(label, valid_labels)
+            if canonical_label:
+                validated[str(filename)] = canonical_label
+
+        return validated
+
+    except Exception as e:
+        logger.warning("LLM image→label mapping failed: %s", e)
+        return {}
+
+
+def _normalize_mapping_label(label: Any, valid_labels: set[str]) -> str | None:
+    if not isinstance(label, str):
+        return None
+    if label.strip().lower() == "other":
+        return "other" if "other" in valid_labels else None
+
+    canonical = _normalize_figure_label(label)
+    if canonical in valid_labels:
+        return canonical
+    return None
+
+
+def _abbreviate_md_for_mapping(text: str, max_chars: int = 8000) -> str:
+    """Abbreviate full.md text to keep only figure-relevant content.
+
+    Keeps: figure headings, inline legends, image references, panel labels.
+    Removes: long body paragraphs that don't contain figure references.
+    """
+    lines = text.split("\n")
+    kept: list[str] = []
+    total = 0
+
+    for line in lines:
+        stripped = line.strip()
+        # Keep figure headings, image refs, short lines (panel labels),
+        # and lines mentioning "Fig."
+        is_relevant = (
+            not stripped
+            or re.match(r"^#+", stripped)
+            or re.match(r"^!\[", stripped)
+            or re.match(r"^[a-z]\s*$", stripped, re.IGNORECASE)
+            or "Fig." in stripped
+            or "Extended Data Fig" in stripped
+        )
+        if is_relevant:
+            kept.append(line)
+            total += len(line)
+            if total >= max_chars:
+                break
+
+    return "\n".join(kept)
+
+
+def _image_ref_to_filename(image_ref: Any) -> str:
+    """Extract image filename from evidence-ledger image_ref shapes."""
+    if isinstance(image_ref, dict):
+        image_path = str(
+            image_ref.get("relative_path")
+            or image_ref.get("path")
+            or image_ref.get("raw")
+            or ""
+        )
+    elif image_ref is None:
+        image_path = ""
+    else:
+        image_path = str(image_ref)
+
+    image_path = image_path.split("?", 1)[0].split("#", 1)[0].rstrip("/")
+    return image_path.rsplit("/", 1)[-1] if image_path else ""
+
+
+def _figure_item_image_filename(item: dict[str, Any]) -> str:
+    filename = _image_ref_to_filename(item.get("image_ref"))
+    if not filename:
+        filename = _image_ref_to_filename(item.get("source_image_path"))
+    return filename
+
+
+def _map_figure_ids_from_image_labels(
+    ledger: dict[str, Any],
+    image_to_label: dict[str, str],
+) -> dict[str, str]:
+    raw_figures = ledger.get("figures")
+    if not isinstance(raw_figures, list):
+        raw_figures = ledger.get("items", [])
+    if not isinstance(raw_figures, list):
+        return {}
+
+    mapping: dict[str, str] = {}
+    for item in raw_figures:
+        if not isinstance(item, dict) or item.get("type") != "figure":
+            continue
+        fid = str(item.get("id") or item.get("figure_id") or "")
+        if not fid:
+            continue
+        filename = _figure_item_image_filename(item)
+        label = image_to_label.get(filename)
+        if label and label != "other":
+            mapping[fid] = label
+    return mapping
+
+
+def build_figure_id_to_paper_label_mapping(
+    workdir: Path,
+    llm_client: Any | None = None,
+) -> dict[str, str]:
+    """Build a mapping from figure IDs to paper labels.
+
+    Uses LLM to map image filenames → paper labels from full.md context,
+    then maps figure IDs → image paths (from evidence_ledger) → paper labels.
+
+    Args:
+        workdir: Audit working directory
+        llm_client: VeritasLLMClient instance (if None, tries to create one)
+
+    Returns:
+        {figure_id: paper_label}
+        e.g. {"figure-md-0001": "Fig. 2", "figure-md-0002": "Fig. 3"}
+    """
+    full_md = existing_artifact_path(workdir, "full.md")
+    if full_md is None:
+        return {}
+
+    full_md_text = full_md.read_text(encoding="utf-8")
+
+    # Initialize LLM client if needed
+    if llm_client is None:
+        try:
+            from engine.llm.client import VeritasLLMClient
+
+            llm_client = VeritasLLMClient()
+        except Exception as e:
+            logger.warning("Failed to initialize LLM client for fig mapping: %s", e)
+            return {}
+
+    # Step 1: LLM maps image filenames → paper labels
+    image_to_label = build_image_to_paper_label_mapping(full_md_text, llm_client)
+    if not image_to_label:
+        return {}
+
+    # Step 2: Map figure_id → image_path → image_filename → paper_label
+    mapping: dict[str, str] = {}
+    evidence_ledger_path = existing_artifact_path(workdir, "evidence_ledger.json")
+    if evidence_ledger_path and evidence_ledger_path.exists():
+        try:
+            ledger = json.loads(evidence_ledger_path.read_text(encoding="utf-8"))
+            mapping = _map_figure_ids_from_image_labels(ledger, image_to_label)
+        except (OSError, json.JSONDecodeError) as e:
+            logger.warning("Failed to read evidence_ledger for fig mapping: %s", e)
+
+    return mapping
+
+
+# ---------------------------------------------------------------------------
 # Panel classification (combines YOLO + LLM)
 # ---------------------------------------------------------------------------
 
@@ -366,6 +623,62 @@ def classify_all_figures_batch(
 _YOLO_WET_LAB_TYPES = {"Microscopy", "Blots", "Body Imaging", "Flow Cytometry"}
 # YOLO panel types that are definitely bioinformatics
 _YOLO_BIOINFO_TYPES = {"Graph", "Graphs"}
+
+
+def classify_panel_with_llm_priority(
+    panel: dict[str, Any],
+    cls_dict: dict[str, dict[str, dict[str, str]]],
+    fig_mapping: dict[str, str],
+) -> str:
+    """Classify a single panel using figure-aware LLM lookup with YOLO fallback.
+
+    Priority:
+        1. Use fig_mapping to get paper label from panel's parent figure ID
+        2. Look up panel label in cls_dict[paper_label] for LLM classification
+        3. If LLM fails, fall back to YOLO panel_type
+        4. If both fail, return 'unknown'
+
+    Args:
+        panel: Panel dict with 'panel_type', 'label', 'parent_figure_id'
+        cls_dict: {paper_label: {panel_label: {"classification": str}}}
+                  e.g. {"Fig. 1": {"a": {"classification": "wet_lab"}}}
+        fig_mapping: {figure_id: paper_label}
+                     e.g. {"figure-md-0001": "Fig. 1"}
+
+    Returns:
+        Classification string: 'wet_lab', 'bioinformatics', 'mixed', 'other', 'unknown'
+    """
+    # Priority 1: Figure-aware LLM lookup
+    parent_fid = panel.get("parent_figure_id") or ""
+    paper_label = fig_mapping.get(parent_fid)
+
+    if paper_label and paper_label in cls_dict:
+        panel_label = panel.get("label") or ""
+        if panel_label:
+            panels_for_fig = cls_dict[paper_label]
+            if isinstance(panels_for_fig, dict):
+                panel_info = panels_for_fig.get(panel_label) or panels_for_fig.get(
+                    "figure"
+                )
+                if isinstance(panel_info, dict):
+                    classification = panel_info.get("classification")
+                    if classification in {
+                        "wet_lab",
+                        "bioinformatics",
+                        "mixed",
+                        "other",
+                    }:
+                        return classification
+
+    # Priority 2: YOLO fallback
+    yolo_type = panel.get("panel_type") or ""
+    if yolo_type in _YOLO_WET_LAB_TYPES:
+        return "wet_lab"
+    if yolo_type in _YOLO_BIOINFO_TYPES:
+        return "bioinformatics"
+
+    # Priority 3: Unknown (conservative)
+    return "unknown"
 
 
 def classify_panel_with_yolo_priority(
@@ -377,7 +690,7 @@ def classify_panel_with_yolo_priority(
     Priority:
         1. YOLO panel_type is recognized -> map directly
         2. YOLO unknown/missing -> use LLM classification for this panel label
-        3. Both fail -> return 'unknown' (conservative: will run visual forensics)
+        3. Both fail -> return 'unknown'
 
     Args:
         panel: Panel dict with 'panel_type', 'label', 'parent_figure_id'
@@ -543,6 +856,18 @@ def run_figure_classification_step(
                 cls = panel_info.get("classification", "unknown")
                 type_counts[cls] = type_counts.get(cls, 0) + 1
 
+    # Build figure_id → paper_label mapping using LLM
+    # This mapping is persisted in the artifact so visual_pipeline can use it
+    # without needing to call LLM again.
+    figure_id_to_paper_label: dict[str, str] = {}
+    try:
+        figure_id_to_paper_label = build_figure_id_to_paper_label_mapping(
+            workdir,
+            llm_client,
+        )
+    except Exception as e:
+        logger.warning("Failed to build figure_id→paper_label mapping: %s", e)
+
     # Build output artifact
     artifact = {
         "schema_version": "1.0",
@@ -552,6 +877,7 @@ def run_figure_classification_step(
         "type_counts": type_counts,
         "legends_extracted": list(legends.keys()),
         "classifications": classifications,
+        "figure_id_to_paper_label": figure_id_to_paper_label,
         "errors": [],
     }
 

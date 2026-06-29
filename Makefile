@@ -172,8 +172,8 @@ check-elis-provenance: ## Check if veritas-elis-provenance image exists
 
 # -- Database lifecycle --------------------------------------------------
 
-db-up: ## Start PostgreSQL with pgvector via Docker Compose
-	$(COMPOSE_DB) up -d postgres
+db-up: ## Start PostgreSQL + Redis for local development
+	$(COMPOSE_DB) up -d postgres redis
 	@echo "Waiting for PostgreSQL..."
 	@for i in $$(seq 1 15); do \
 		if $(COMPOSE_DB) exec -T postgres pg_isready -U veritas_dev -d veritas_dev >/dev/null 2>&1; then \
@@ -181,9 +181,16 @@ db-up: ## Start PostgreSQL with pgvector via Docker Compose
 		fi; \
 		sleep 1; \
 	done
+	@echo "Waiting for Redis..."
+	@for i in $$(seq 1 15); do \
+		if $(COMPOSE_DB) exec -T redis redis-cli ping >/dev/null 2>&1; then \
+			echo "Redis ready."; break; \
+		fi; \
+		sleep 1; \
+	done
 
-db-down: ## Stop PostgreSQL container
-	$(COMPOSE_DB) stop postgres
+db-down: ## Stop PostgreSQL and Redis containers
+	$(COMPOSE_DB) stop postgres redis
 
 db-init: db-up ## Initialise database tables (development only)
 	VERITAS_DATABASE_URL="$(LOCAL_DATABASE_URL)" $(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.database import init_db; init_db()"

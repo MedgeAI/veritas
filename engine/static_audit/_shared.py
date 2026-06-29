@@ -556,7 +556,7 @@ def filter_wet_lab_panels(
     Panel classification priority:
         1. panel['panel_classification'] if already set
         2. Look up by figure_id in classifications['classifications']
-        3. Default to 'unknown' (included in wet_lab filter)
+        3. Default to 'unknown' (excluded from wet_lab filter — not analyzed)
     """
     cls_data: dict[str, Any] = {}
     if classifications and isinstance(classifications, dict):
@@ -588,8 +588,8 @@ def filter_wet_lab_panels(
         if not panel_cls:
             panel_cls = "unknown"
 
-        # Include wet_lab, mixed, and unknown (conservative)
-        if panel_cls in WET_LAB_TYPES or panel_cls == "unknown":
+        # Include only wet_lab and mixed panels (skip unknown/bioinformatics/other)
+        if panel_cls in WET_LAB_TYPES:
             result.append(panel)
 
     return result

@@ -80,6 +80,7 @@ Runtime 负责执行命令和记录证据（command manifest、stdout/stderr、e
 | 维度 | 本地开发 | 生产部署 (Docker + Cloudflare) |
 |---|---|---|
 | 数据库 | PostgreSQL 16 + pgvector（`make db-up`，`veritas_dev@5433`） | PostgreSQL 16 + pgvector（`deploy/.env` 凭据，`5432` 内部） |
+| Celery broker | Redis 7（`make db-up`，`localhost:6379`） | Redis 7（compose 内部服务 `redis:6379`） |
 | 审计执行 | 线程池（同步） | Celery worker（异步） |
 | 前端 | Vite dev server（HMR）或 `npm run build` | Docker 构建阶段 `npm run build` |
 | Auth | `none` | `none`（可在 `.env` 中切换） |
@@ -88,7 +89,7 @@ Runtime 负责执行命令和记录证据（command manifest、stdout/stderr、e
 ### 本地开发工作流
 
 ```bash
-# 终端 0: 启动 PostgreSQL + pgvector（首次或重启后）
+# 终端 0: 启动 PostgreSQL + pgvector + Redis（首次或重启后）
 make db-up
 
 # 终端 1: 后端（auto-reload on code change, Docker PostgreSQL）
@@ -102,7 +103,7 @@ make celery-worker
 ```
 
 - Vite dev server 已配置 API proxy（`/api` → `http://127.0.0.1:8765`），改前端代码秒级 HMR
-- `make db-up` 启动 Docker PostgreSQL + pgvector（`veritas_dev@localhost:5433`）
+- `make db-up` 启动 Docker PostgreSQL + pgvector（`veritas_dev@localhost:5433`）和 Redis（`localhost:6379`）
 - `VERITAS_DATABASE_URL` 必须显式设置（无默认值），`Makefile` 中的 `db-init`/`db-reset` 已内置 dev URL
 - 生产凭据在 `deploy/.env`（gitignored），与开发凭据完全隔离
 
@@ -185,3 +186,4 @@ license review → adapter/tool wrapper → registry.py 注册 → 结构化 art
 - 真实论文、运行产物和密钥不写入 `docs/`
 - 新增 Agent 步骤时同时定义：context pack 输入、schema validator、retry/failed 语义、log artifact、manifest/report 暴露方式
 - 所有 `run_agent_*` 入口通过 `AgentStepRunner` + bounded context pack 调用 opencode
+- 定点验证优于全量测试

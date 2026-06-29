@@ -24,7 +24,9 @@ from typing import Any
 # overwrite).
 # ---------------------------------------------------------------------------
 _PROJECT_ROOT = Path(__file__).resolve().parents[3]
-from engine.env import get_env, load_project_env  # noqa: E402
+from engine.env import get_env, load_project_env, strip_proxy_env_inplace  # noqa: E402
+
+strip_proxy_env_inplace(os.environ)
 
 for _k, _v in load_project_env(_PROJECT_ROOT).items():
     os.environ.setdefault(_k, _v)

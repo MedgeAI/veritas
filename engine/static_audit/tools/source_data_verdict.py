@@ -307,6 +307,15 @@ def _build_sheet_context(
 # ── Schema validator ─────────────────────────────────────────────────
 
 
+def _infer_sheet_verdict_from_findings(findings: list[dict[str, Any]]) -> str:
+    verdicts = [str(finding.get("verdict") or "") for finding in findings]
+    if any(verdict == "true_positive" for verdict in verdicts):
+        return "mixed"
+    if verdicts and all(verdict == "false_positive" for verdict in verdicts):
+        return "mostly_false_positive"
+    return "mostly_uncertain"
+
+
 def _validate_verdict_output(data: Any) -> dict:
     """Validate LLM output against the verdict schema.
 
@@ -315,17 +324,6 @@ def _validate_verdict_output(data: Any) -> dict:
     """
     if not isinstance(data, dict):
         raise ValueError("output is not a JSON object")
-    if "sheet_verdict" not in data:
-        raise ValueError("missing 'sheet_verdict'")
-    if data["sheet_verdict"] not in (
-        "mostly_false_positive",
-        "mixed",
-        "mostly_uncertain",
-    ):
-        raise ValueError(
-            f"invalid sheet_verdict: {data['sheet_verdict']!r}; "
-            "must be mostly_false_positive | mixed | mostly_uncertain"
-        )
     if "findings" not in data:
         raise ValueError("missing 'findings'")
     if not isinstance(data["findings"], list):
@@ -350,6 +348,19 @@ def _validate_verdict_output(data: Any) -> dict:
         # Validate optional reason field (must be string if present)
         if "reason" in fv and not isinstance(fv["reason"], str):
             raise ValueError(f"invalid reason type for {fv.get('id')}; must be string")
+
+    if "sheet_verdict" not in data:
+        data["sheet_verdict"] = _infer_sheet_verdict_from_findings(data["findings"])
+        data["sheet_verdict_inferred"] = True
+    elif data["sheet_verdict"] not in (
+        "mostly_false_positive",
+        "mixed",
+        "mostly_uncertain",
+    ):
+        raise ValueError(
+            f"invalid sheet_verdict: {data['sheet_verdict']!r}; "
+            "must be mostly_false_positive | mixed | mostly_uncertain"
+        )
     return data
 
 

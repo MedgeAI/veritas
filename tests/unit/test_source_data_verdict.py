@@ -125,9 +125,43 @@ class TestValidateVerdictOutput:
         with pytest.raises(ValueError, match="not a JSON object"):
             _validate_verdict_output([])
 
-    def test_missing_sheet_verdict(self):
-        with pytest.raises(ValueError, match="missing 'sheet_verdict'"):
-            _validate_verdict_output({"findings": []})
+    def test_missing_sheet_verdict_is_inferred_from_findings(self):
+        result = _validate_verdict_output(
+            {
+                "findings": [
+                    {"id": "FR-0001", "verdict": "false_positive"},
+                    {"id": "DC-0001", "verdict": "false_positive"},
+                ]
+            }
+        )
+
+        assert result["sheet_verdict"] == "mostly_false_positive"
+        assert result["sheet_verdict_inferred"] is True
+
+    def test_missing_sheet_verdict_with_true_positive_infers_mixed(self):
+        result = _validate_verdict_output(
+            {
+                "findings": [
+                    {"id": "FR-0001", "verdict": "false_positive"},
+                    {"id": "DC-0001", "verdict": "true_positive"},
+                ]
+            }
+        )
+
+        assert result["sheet_verdict"] == "mixed"
+        assert result["sheet_verdict_inferred"] is True
+
+    def test_missing_sheet_verdict_with_uncertain_infers_uncertain(self):
+        result = _validate_verdict_output(
+            {
+                "findings": [
+                    {"id": "FR-0001", "verdict": "uncertain"},
+                ]
+            }
+        )
+
+        assert result["sheet_verdict"] == "mostly_uncertain"
+        assert result["sheet_verdict_inferred"] is True
 
     def test_invalid_sheet_verdict(self):
         with pytest.raises(ValueError, match="invalid sheet_verdict"):

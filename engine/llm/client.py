@@ -32,9 +32,18 @@ class VeritasLLMClient:
             ) from e
 
         api_key = get_env("DASHSCOPE_API_KEY")
+
+        # Bypass system proxy env vars (ALL_PROXY/HTTPS_PROXY etc.) to avoid
+        # "Unknown scheme for proxy URL" errors with unsupported schemes like
+        # socks5h://. LLM API calls should go direct.
+        import httpx
+
+        http_client = httpx.Client(trust_env=False)
+
         self.client = OpenAI(
             api_key=api_key,
             base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            http_client=http_client,
         )
 
     def chat(

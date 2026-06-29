@@ -429,18 +429,19 @@ JWT 使用 HS256 算法签名，issuer 默认为 `veritas`（可通过 `VERITAS_
 | 服务 | 容器名 | 职责 |
 |------|--------|------|
 | `postgres` | `veritas-postgres` | PostgreSQL 16 + pgvector，数据库持久化 |
+| `redis` | `veritas-redis` | Celery 消息代理 |
 | `veritas` | `veritas-web` | Web 服务（FastAPI + 静态审查引擎） |
 | `celery-worker` | `veritas-celery-worker` | 异步审计任务执行（Celery worker） |
 
 **celery-worker 说明**：
 
 - 与 `veritas-web` 共享同一 Dockerfile，以 `celery -A engine.tasks.celery_app worker` 启动
-- 使用 PostgreSQL 作为消息代理（`CELERY_BROKER_URL`）和结果后端（`CELERY_RESULT_BACKEND`）
+- 使用 Redis 作为消息代理（`CELERY_BROKER_URL`），PostgreSQL 作为结果后端（`CELERY_RESULT_BACKEND`）
 - 挂载 `/var/run/docker.sock` 以支持 ELIS Provenance Docker-in-Docker 调用
 - 审计任务提交后异步执行，Web 接口通过 SSE 推送进度
 
 > 如果不需要异步任务（如单用户本地使用），可以不启动 celery-worker：
-> `docker compose -f deploy/docker-compose.yml up -d postgres veritas`
+> `docker compose -f deploy/docker-compose.yml up -d postgres redis veritas`
 
 ---
 
