@@ -105,8 +105,9 @@ class AntiOverfitChecker:
             if stripped.startswith("#") or stripped.startswith("//"):
                 continue
             for pattern in _HARDCODED_PATTERNS:
-                if pattern.search(line):
-                    match_text = pattern.search(line).group(0)
+                m = pattern.search(line)
+                if m:
+                    match_text = m.group(0)
                     violations.append(
                         f"Rule 2 (无硬编码): line {line_no} contains hardcoded "
                         f"value '{match_text}'"
