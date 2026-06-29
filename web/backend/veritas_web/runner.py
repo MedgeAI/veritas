@@ -64,7 +64,9 @@ class AuditRunner:
             case_id, agent_mode=str(params.get("agent_mode", "review"))
         )
         if get_env("VERITAS_USE_CELERY", required=False, default="").lower() in (
-            "1", "true", "yes"
+            "1",
+            "true",
+            "yes",
         ):
             return self._dispatch_celery_task(run, case_id, params)
         self._executor.submit(self.run_sync, case_id, run.run_id, params)
@@ -104,6 +106,7 @@ class AuditRunner:
                 ),
                 agent_timeout_seconds=int(params.get("agent_timeout_seconds", 300)),
                 agent_max_retries=int(params.get("agent_max_retries", 1)),
+                audit_profile=str(params.get("audit_profile", "fast")),
                 progress=progress,
             )
             run.summary = summary
@@ -131,6 +134,14 @@ class AuditRunner:
             run.status = "failed"
             run.error = f"{type(exc).__name__}: {exc}"
             run.completed_at = utc_now()
+            # Infer workdir from default path if not set
+            from pathlib import Path
+
+            default_workdir = (
+                Path(self.output_root) / case_id / "research-integrity-audit"
+            )
+            if not run.workdir and default_workdir.exists():
+                run.workdir = str(default_workdir)
             self.store.append_event(
                 case_id,
                 run_id,
@@ -190,6 +201,7 @@ class AuditRunner:
             ),
             "agent_timeout_seconds": int(params.get("agent_timeout_seconds", 300)),
             "agent_max_retries": int(params.get("agent_max_retries", 1)),
+            "audit_profile": str(params.get("audit_profile", "fast")),
         }
 
         try:
@@ -282,9 +294,8 @@ class AuditRunner:
             if run.workdir:
                 from pathlib import Path
                 import json
-                grade_path = (
-                    Path(run.workdir) / "reports" / "certification_grade.json"
-                )
+
+                grade_path = Path(run.workdir) / "reports" / "certification_grade.json"
                 if grade_path.exists():
                     try:
                         grade_data = json.loads(grade_path.read_text(encoding="utf-8"))

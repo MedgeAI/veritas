@@ -198,6 +198,9 @@ db-reset: ## Reset database: drop all tables and recreate (DEVELOPMENT ONLY)
 		Base.metadata.create_all(bind=engine); \
 		print('✓ Database reset: all tables dropped and recreated')"
 
+migrate-decision-type: ## Add decision_type column to review_decisions table (PRD §8.4)
+	PGPASSWORD=veritas_dev psql -h localhost -p 5433 -U veritas_dev veritas -c "ALTER TABLE review_decisions ADD COLUMN IF NOT EXISTS decision_type VARCHAR(64);"
+
 # -- CLI audit flow ------------------------------------------------------
 
 precheck: ## Run deterministic precheck against MANIFEST

@@ -48,6 +48,62 @@ logger = logging.getLogger(__name__)
 
 
 # ---------------------------------------------------------------------------
+# Audit profiles — three preset configurations controlling pipeline depth.
+#
+# fast:     Web default. Minimal agent rounds, short ELIS timeout, no LLM
+#           enrichment. Suitable for quick triage.
+# standard: Balanced. Moderate agent rounds and timeouts.
+# full:     CLI default. Maximum agent rounds, long timeouts, full LLM
+#           enrichment. Suitable for thorough pre-submission review.
+# ---------------------------------------------------------------------------
+
+AUDIT_PROFILES: dict[str, dict[str, Any]] = {
+    "fast": {
+        "agent_timeout_seconds": 120,
+        "agent_max_retries": 0,
+        "agent_max_rounds": 2,
+        "agent_max_actions_per_round": 5,
+        "elis_timeout_seconds": 60,
+        "llm_enrichment": False,
+        "investigation_rounds": 1,
+    },
+    "standard": {
+        "agent_timeout_seconds": 300,
+        "agent_max_retries": 1,
+        "agent_max_rounds": 5,
+        "agent_max_actions_per_round": 10,
+        "elis_timeout_seconds": 180,
+        "llm_enrichment": True,
+        "investigation_rounds": 3,
+    },
+    "full": {
+        "agent_timeout_seconds": 600,
+        "agent_max_retries": 2,
+        "agent_max_rounds": 10,
+        "agent_max_actions_per_round": 20,
+        "elis_timeout_seconds": 300,
+        "llm_enrichment": True,
+        "investigation_rounds": 5,
+    },
+}
+
+
+def resolve_audit_profile(
+    profile_name: str | None,
+) -> dict[str, Any]:
+    """Return the profile dict for *profile_name*, defaulting to 'fast'.
+
+    Unknown names raise ValueError with the valid choices listed.
+    """
+    if not profile_name:
+        profile_name = "fast"
+    if profile_name not in AUDIT_PROFILES:
+        valid = ", ".join(sorted(AUDIT_PROFILES))
+        raise ValueError(f"Unknown audit profile {profile_name!r}. Valid: {valid}")
+    return dict(AUDIT_PROFILES[profile_name])
+
+
+# ---------------------------------------------------------------------------
 # Material planning helpers
 # ---------------------------------------------------------------------------
 
@@ -193,9 +249,10 @@ def _run_visual_baseline(
             "force": args.force,
             "progress": progress,
         }
+        if runner is run_tru_for_detection:
+            kw["figure_classification"] = figure_classification
         if runner is not run_image_quality_detection:
             kw["allow_env_skip"] = allow_env_skip
-            kw["figure_classification"] = figure_classification
         kw["panel_extraction_status"] = pe_status
         s, m = runner(**kw)
         steps.extend(s)
@@ -216,6 +273,24 @@ def _run_static_audit_from_args(
         run_investigation_rounds,
         run_agent_roles,
     )
+
+    # Resolve audit profile and apply to args.
+    # - From CLI: args.profile is a string ("fast"/"standard"/"full")
+    # - From run_static_audit(): args.profile is already a dict, args.audit_profile is set
+    if isinstance(getattr(args, "profile", None), str):
+        args.audit_profile = args.profile
+        args.profile = resolve_audit_profile(args.profile)
+    elif not hasattr(args, "profile") or not isinstance(args.profile, dict):
+        args.audit_profile = getattr(args, "audit_profile", "fast")
+        args.profile = resolve_audit_profile(args.audit_profile)
+
+    profile = args.profile
+
+    # Apply profile overrides to agent parameters.
+    args.agent_timeout_seconds = profile.get(
+        "agent_timeout_seconds", args.agent_timeout_seconds
+    )
+    args.agent_max_retries = profile.get("agent_max_retries", args.agent_max_retries)
 
     paper_dir = Path(args.paper_dir).expanduser().resolve()
     if not paper_dir.is_dir():
@@ -242,6 +317,7 @@ def _run_static_audit_from_args(
         paper_dir=str(paper_dir),
         workdir=workdir,
         agent_mode=args.agent_mode,
+        audit_profile=getattr(args, "audit_profile", "fast"),
     )
     record_step(
         steps,
@@ -285,6 +361,8 @@ def _run_static_audit_from_args(
         "registered_tool_ids": list(STATIC_AUDIT_V1_TOOL_IDS),
         "agent_plan_tool_ids": list(PAPER_STATIC_AUDIT_TOOL_IDS),
         "material_inventory": str(mi_path),
+        "audit_profile": getattr(args, "audit_profile", "fast"),
+        "profile_config": getattr(args, "profile", {}),
     }
 
     # Agent material plan
@@ -380,7 +458,6 @@ def _run_static_audit_from_args(
             ),
             optional_lanes=optional_lanes,
             progress=progress,
-            reproducibility_tier=getattr(args, "reproducibility_tier", "full"),
         )
 
     # Source data
@@ -506,7 +583,6 @@ def _run_static_audit_from_args(
         )
     )
 
-
     # Agent review
     steps.extend(
         _run_agent_review_section(
@@ -552,7 +628,6 @@ def _run_static_audit_from_args(
         ),
         optional_lanes=optional_lanes,
         progress=progress,
-        reproducibility_tier=getattr(args, "reproducibility_tier", "full"),
     )
 
 
@@ -571,8 +646,10 @@ def run_static_audit(
     agent_max_retries: int = 1,
     reproducibility_tier: str = "full",
     skip_unavailable_tools: bool = False,
+    audit_profile: str = "fast",
     progress: ProgressCallback | None = None,
 ) -> dict[str, Any]:
+    profile = resolve_audit_profile(audit_profile)
     args = argparse.Namespace(
         paper_dir=str(paper_dir),
         case_id=case_id,
@@ -587,5 +664,7 @@ def run_static_audit(
         agent_max_retries=agent_max_retries,
         reproducibility_tier=reproducibility_tier,
         skip_unavailable_tools=skip_unavailable_tools,
+        audit_profile=audit_profile,
+        profile=profile,
     )
     return _run_static_audit_from_args(args, progress=progress)

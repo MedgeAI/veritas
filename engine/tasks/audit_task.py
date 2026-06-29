@@ -27,11 +27,12 @@ wraps it with:
 
 from __future__ import annotations
 
+import json
 import logging
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import Column, JSON, String, Text, create_engine
+from sqlalchemy import Column, JSON, String, Text, create_engine, text
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
 
 from engine.env import get_env
@@ -92,9 +93,8 @@ def _get_session_factory() -> sessionmaker[Session]:
     if _session_factory is not None:
         return _session_factory
 
-    db_url = (
-        get_env("VERITAS_DATABASE_URL", required=False)
-        or get_env("DATABASE_URL", required=False)
+    db_url = get_env("VERITAS_DATABASE_URL", required=False) or get_env(
+        "DATABASE_URL", required=False
     )
     if not db_url:
         raise RuntimeError(
@@ -124,30 +124,63 @@ def _utc_now() -> str:
 
 
 # ---------------------------------------------------------------------------
-# SSE progress notification (best-effort, no-op if unavailable)
+# SSE progress notification — inline DB operations (no web-layer import).
 # ---------------------------------------------------------------------------
+
+_TERMINAL_STATUSES = frozenset({"completed", "failed", "cancelled"})
 
 
 def _notify_progress(run_id: str, event: dict[str, Any]) -> None:
-    """Push a progress event to SSE subscribers if the module is available.
+    """Persist a progress event and notify SSE listeners via pg_notify.
 
-    The web backend's SSE infrastructure is the primary consumer.  In the
-    Celery worker the SSE module may not be importable (different process,
-    different classpath).  We attempt a lazy import and log on failure —
-    the run row itself is always the source of truth.
+    This is a self-contained replacement for ``web.sse.notify_progress``
+    that avoids the forbidden Engine→Web import.  It uses the same raw SQL
+    operations as the web-layer function but skips the in-process SSE
+    buffer push (dead code in a Celery worker — no SSE consumers exist
+    in that process; cross-process consumers rely on pg_notify).
     """
+    event_type = event.get("event", "progress")
+    ts = _utc_now()
+    notify_payload = json.dumps(
+        {"run_id": run_id, "event_type": event_type, "data": event, "timestamp": ts}
+    )
+    session_factory = _get_session_factory()
+    session = session_factory()
     try:
-        from web.backend.veritas_web.sse import notify_progress  # type: ignore[import-not-found]
-
-        event_type = event.get("event", "progress")
-        notify_progress(run_id, event_type, event)
+        session.execute(
+            text(
+                "INSERT INTO run_events (run_id, event_type, payload, created_at) "
+                "VALUES (:run_id, :event_type, :payload, :ts)"
+            ),
+            {"run_id": run_id, "event_type": event_type, "payload": json.dumps(event), "ts": ts},
+        )
+        session.execute(
+            text("UPDATE runs SET last_event_at = :ts WHERE run_id = :run_id"),
+            {"ts": ts, "run_id": run_id},
+        )
+        if event_type in _TERMINAL_STATUSES:
+            session.execute(
+                text(
+                    "UPDATE runs SET status = :status, completed_at = :ts "
+                    "WHERE run_id = :run_id"
+                ),
+                {"status": event_type, "ts": ts, "run_id": run_id},
+            )
+        session.execute(
+            text("SELECT pg_notify('audit_progress', :payload)"),
+            {"payload": notify_payload},
+        )
+        session.commit()
     except Exception:
+        session.rollback()
         logger.debug(
-            "SSE notify_progress failed for run_id=%s event=%s",
+            "Progress notification failed for run_id=%s event=%s",
             run_id,
             event.get("key") or event.get("event") or "?",
             exc_info=True,
         )
+    finally:
+        session.close()
 
 
 # ---------------------------------------------------------------------------
@@ -237,9 +270,7 @@ def _compute_stages(
             {"id": "source_data", "label": "Source data analysis", "required": True}
         )
     if not options.get("skip_visual"):
-        stages.append(
-            {"id": "visual", "label": "Visual forensics", "required": False}
-        )
+        stages.append({"id": "visual", "label": "Visual forensics", "required": False})
     if not options.get("skip_agent"):
         stages.append(
             {"id": "agent", "label": "Agent investigation", "required": False}
@@ -401,7 +432,9 @@ def _run_audit_impl(
                     s.rollback()
                     logger.debug(
                         "stage commit failed for run_id=%s stage=%s",
-                        run_id, stage, exc_info=True,
+                        run_id,
+                        stage,
+                        exc_info=True,
                     )
                 finally:
                     s.close()
@@ -420,7 +453,8 @@ def _run_audit_impl(
                 s.rollback()
                 logger.debug(
                     "heartbeat commit failed for run_id=%s",
-                    run_id, exc_info=True,
+                    run_id,
+                    exc_info=True,
                 )
             finally:
                 s.close()
@@ -468,19 +502,22 @@ def _run_audit_impl(
         pipeline_failed = summary.get("failed_steps") or []
         if pipeline_failed:
             failed_steps = list(pipeline_failed)
-            exit_code = int(summary.get("exit_code", 1))
-            # Safety net: if reports exist despite non-zero exit, treat as
-            # completed with partial failure (same logic as runner.py).
-            if exit_code != 0:
-                report_path = summary.get("final_report", "")
-                html_path = summary.get("final_html_report", "")
-                if report_path and html_path:
-                    if Path(report_path).exists() and Path(html_path).exists():
-                        failed_steps = []  # partial success
+            # Safety net: if reports exist, treat as completed_with_warnings
+            # rather than failed — the failed steps were optional and the
+            # user should still be able to access the report.
+            report_path = summary.get("final_report", "")
+            html_path = summary.get("final_html_report", "")
+            if report_path and html_path:
+                if Path(report_path).exists() and Path(html_path).exists():
+                    failed_steps = []  # partial success — reports exist
 
         if failed_steps:
             result["status"] = "failed"
             result["error"] = f"failed_steps={failed_steps}"
+        elif pipeline_failed:
+            # Reports exist but some steps failed — completed_with_warnings
+            result["status"] = "completed"
+            result["error"] = f"partial: {pipeline_failed}"
 
     except Exception as exc:
         logger.exception(
@@ -495,9 +532,7 @@ def _run_audit_impl(
     # Finalise run record
     # ------------------------------------------------------------------
     try:
-        final_row = (
-            session.query(_RunRow).filter(_RunRow.run_id == run_id).first()
-        )
+        final_row = session.query(_RunRow).filter(_RunRow.run_id == run_id).first()
         if final_row is not None:
             # Guard: if the run was cancelled while the pipeline was
             # executing, do NOT overwrite the cancelled status.
@@ -512,15 +547,15 @@ def _run_audit_impl(
                 final_row.completed_at = now
                 final_row.last_event_at = now
                 final_row.current_stage = None  # clear — run is done
+                # Always save summary/workdir so reports remain accessible
+                # even when status is "failed" (partial pipeline failure).
+                final_row.summary = result.get("summary")
+                final_row.workdir = result.get("workdir")
+                final_row.final_html_report_url = result.get("final_html_report_url")
                 if result["status"] == "completed":
                     final_row.status = "completed"
-                    final_row.summary = result.get("summary")
-                    final_row.workdir = result.get("workdir")
-                    final_row.final_html_report_url = result.get(
-                        "final_html_report_url"
-                    )
-                    if failed_steps:
-                        final_row.error = f"partial: {failed_steps}"
+                    if result.get("error"):
+                        final_row.error = result["error"]
                 elif result["status"] == "cancelled":
                     final_row.status = "cancelled"
                 else:
@@ -546,9 +581,7 @@ def _run_audit_impl(
                 cleanup_result,
             )
         except Exception:
-            logger.exception(
-                "run_audit: cleanup failed for run_id=%s", run_id
-            )
+            logger.exception("run_audit: cleanup failed for run_id=%s", run_id)
 
     session.close()
 

@@ -77,6 +77,7 @@ def handle(
     agent_timeout_seconds: int,
     agent_max_retries: int,
     skip_unavailable_tools: bool = False,
+    profile: str = "full",
     progress_mode: str = "auto",
 ) -> int:
     summary = run_static_audit(
@@ -92,6 +93,7 @@ def handle(
         agent_timeout_seconds=agent_timeout_seconds,
         agent_max_retries=agent_max_retries,
         skip_unavailable_tools=skip_unavailable_tools,
+        audit_profile=profile,
         progress=make_progress_reporter(progress_mode),
     )
     exit_code = int(summary.pop("exit_code"))
