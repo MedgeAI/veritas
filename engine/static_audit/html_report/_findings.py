@@ -10,7 +10,6 @@ from typing import Any
 from engine.static_audit.html_report._html_utils import h
 from engine.static_audit.html_report._config import (
     MAX_SAMPLE_ROWS,
-    MAX_CLAIMS_PER_GROUP,
     MAX_CLAIM_TEXT_LENGTH,
     PAIR_FORENSICS_CATEGORIES,
 )
@@ -405,8 +404,12 @@ def finding_card(
     # Three-layer certainty model
     certainty_layers = _certainty_layers(finding)
 
+    # Risk-level color bar (W2-3)
+    risk_bar_class = f"risk-bar risk-bar-{h(risk_level)}"
+
     return f"""
-<article class="finding-card" id="{h(anchor_id)}">
+<article class="finding-card has-risk-bar" id="{h(anchor_id)}">
+  <div class="{risk_bar_class}"></div>
   <div>
     <div class="finding-title">
       <span class="badge {h(review_badge_class)}">{h(review_badge_label)}</span>

@@ -722,6 +722,108 @@ REPORT_CSS = """
     }
     /* Formal document heading style */
     h1, h2, h3 { font-family: Georgia, "Times New Roman", serif; }
+    /* ============================================
+     * Formal "legal opinion" Hero layout (W1-1)
+     * ============================================ */
+    .report-header-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      font-weight: 700;
+      color: rgba(255, 250, 240, 0.72);
+      font-family: "IBM Plex Sans", "Alegreya Sans", sans-serif;
+      margin-bottom: 10px;
+    }
+    .report-id-hero {
+      font-family: "IBM Plex Mono", "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+      font-size: 26px;
+      letter-spacing: 0.05em;
+      font-weight: 600;
+      color: #fffdf7;
+      line-height: 1.1;
+      margin-bottom: 18px;
+      word-break: break-all;
+    }
+    .hero-title-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+    .hero-title-row .grade-badge-wrap {
+      margin: 0;
+      flex-shrink: 0;
+    }
+    .hero-title-row .hero-title-text {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
+    .hero-title-row .hero-title-text h1 {
+      font-size: clamp(28px, 4vw, 48px);
+      letter-spacing: -.02em;
+      margin: 0;
+    }
+    .hero-title-row .hero-title-text .lead {
+      margin-top: 6px;
+      font-size: 15px;
+    }
+    .hero-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 14px;
+      color: rgba(255, 250, 240, 0.78);
+      font-family: "IBM Plex Mono", "JetBrains Mono", monospace;
+      font-size: 12px;
+    }
+    .hero-meta-row .meta-divider {
+      color: rgba(255, 250, 240, 0.36);
+    }
+    .immutable-statement {
+      font-style: italic;
+      color: rgba(255, 250, 240, 0.62);
+      border-top: 1px solid rgba(255, 250, 240, 0.18);
+      padding-top: 12px;
+      margin-top: 18px;
+      font-size: 13px;
+      line-height: 1.5;
+      text-align: center;
+      font-family: "Alegreya Sans", Georgia, serif;
+    }
+    /* ============================================
+     * Risk-level color bar (W2-3)
+     * ============================================ */
+    .has-risk-bar {
+      display: grid;
+      grid-template-columns: 5px minmax(0, 1fr);
+      gap: 14px;
+    }
+    .pattern-card.has-risk-bar {
+      grid-template-columns: 5px minmax(0, 1fr);
+    }
+    .finding-card.has-risk-bar {
+      grid-template-columns: 5px minmax(0, 1fr) 320px;
+    }
+    .risk-bar {
+      border-radius: 4px;
+      align-self: stretch;
+      min-height: 100%;
+    }
+    .risk-bar-critical { background: #6d2318; }
+    .risk-bar-high     { background: #a33a28; }
+    .risk-bar-medium   { background: #ad6f16; }
+    .risk-bar-low      { background: #227863; }
+    .risk-bar-info,
+    .risk-bar-context  { background: #918b7b; }
+    @media (max-width: 980px) {
+      .hero-title-row { flex-direction: column; align-items: flex-start; }
+      .report-id-hero { font-size: 20px; }
+      .has-risk-bar { grid-template-columns: 1fr; }
+      .finding-card.has-risk-bar { grid-template-columns: 1fr; }
+      .risk-bar { min-height: 5px; width: 100%; }
+    }
     @media (max-width: 980px) {
       .dimension-grid { grid-template-columns: 1fr 1fr; }
     }

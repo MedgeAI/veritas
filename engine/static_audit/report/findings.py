@@ -138,6 +138,14 @@ def find_missing_source_data_findings(workdir: Path) -> list[Finding]:
             panel = m.group(2)
             paper_panels.setdefault((kind, fig_num), set()).add(panel)
 
+    # Pre-group covered sheets by (kind, fig_num) for O(1) lookup
+    covered_by_key: dict[tuple[str, str], list[str]] = {}
+    for k in covered:
+        if k[2] is not None:
+            covered_by_key.setdefault((k[0], k[1]), []).append(
+                f"{k[1]}.{k[2]}"
+            )
+
     # Generate findings for paper panels not covered by source data.
     raw_findings: list[Finding] = []
     counter = 1
@@ -160,11 +168,7 @@ def find_missing_source_data_findings(workdir: Path) -> list[Finding]:
                             "kind": kind,
                             "figure_number": fig_num,
                             "panel": panel,
-                            "covered_sheets": sorted(
-                                f"{k[1]}.{k[2]}" if k[2] else k[1]
-                                for k in covered
-                                if k[0] == kind and k[1] == fig_num and k[2] is not None
-                            ),
+                            "covered_sheets": sorted(covered_by_key.get((kind, fig_num), [])),
                         },
                     )
                 )

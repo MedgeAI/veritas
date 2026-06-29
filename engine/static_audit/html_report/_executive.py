@@ -170,7 +170,9 @@ def executive_summary(
         for p in patterns
         if str(p.get("pattern_key", "")) in SOURCE_DATA_PATTERN_KEYS
     }
-    has_multiple_sd_patterns = len(source_data_pattern_keys) >= MIN_SOURCE_DATA_PATTERNS_FOR_MULTI_SUMMARY
+    has_multiple_sd_patterns = (
+        len(source_data_pattern_keys) >= MIN_SOURCE_DATA_PATTERNS_FOR_MULTI_SUMMARY
+    )
     has_source_data_findings = (
         _has_pattern_type(patterns, "paired_offset")
         or _has_pattern_type(patterns, "row_vector")
@@ -258,6 +260,39 @@ def executive_summary(
 # ---------------------------------------------------------------------------
 # Hero helpers
 # ---------------------------------------------------------------------------
+
+
+def hero_report_header_label() -> str:
+    """Render the formal 'VERITAS INDEPENDENT CERTIFICATION REPORT' label."""
+    return (
+        '<div class="report-header-label">'
+        "Veritas Independent Certification Report"
+        "</div>"
+    )
+
+
+def hero_report_id(report_id: str | None) -> str:
+    """Render the large monospace report ID as visual focal point.
+
+    Returns empty string if report_id is None/empty.
+    """
+    if not report_id:
+        return ""
+    return f'<div class="report-id-hero">{h(report_id)}</div>'
+
+
+def hero_immutable_statement(report_id: str | None) -> str:
+    """Render the immutable certification statement at the bottom of the hero.
+
+    This is the "notarization" line, set in italic serif font.
+    """
+    id_suffix = f" — {h(report_id)}" if report_id else ""
+    return (
+        '<div class="immutable-statement">'
+        "本认证由 Veritas 独立签发，不受任何利益方影响。"
+        f"Immutable Record{id_suffix}"
+        "</div>"
+    )
 
 
 def hero_metric(label: str, value: Any) -> str:
@@ -404,6 +439,12 @@ def collect_limitations(
         )
     if similarity.get("status") == "not_available":
         limitations.append("近似图像相似度未运行；只能说明 exact duplicate 未发现。")
-    limitations.extend(str(item) for item in (bundle.get("limitations") or [])[:MAX_LIMITATIONS_FROM_BUNDLE])
-    limitations.extend(str(item) for item in (agent_judge.get("limitations") or [])[:MAX_LIMITATIONS_FROM_JUDGE])
+    limitations.extend(
+        str(item)
+        for item in (bundle.get("limitations") or [])[:MAX_LIMITATIONS_FROM_BUNDLE]
+    )
+    limitations.extend(
+        str(item)
+        for item in (agent_judge.get("limitations") or [])[:MAX_LIMITATIONS_FROM_JUDGE]
+    )
     return dedupe(limitations)

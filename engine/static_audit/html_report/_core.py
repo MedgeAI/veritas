@@ -47,8 +47,11 @@ from engine.static_audit.html_report._executive import (
     executive_summary,
     grade_badge,
     hero_action_list,
+    hero_immutable_statement,
     hero_metric,
     hero_pattern_list,
+    hero_report_header_label,
+    hero_report_id,
     report_verdict,
     source_coverage_value,
 )
@@ -89,6 +92,7 @@ from engine.static_audit.paths import resolve_artifact_path
 
 def _load_report_artifacts(workdir: Path) -> dict[str, Any]:
     """Load all artifacts needed for HTML report rendering."""
+
     def _load(name: str) -> Any:
         return read_json(resolve_artifact_path(workdir, name)) or {}
 
@@ -131,7 +135,11 @@ def _build_certainty_index(
     """Build a lookup dict of certainty layers by finding ID."""
     certainty_by_id: dict[str, dict[str, Any]] = {}
     # certainty_data can be a list or dict with 'layers' key
-    items = certainty_data if isinstance(certainty_data, list) else certainty_data.get("layers", [])
+    items = (
+        certainty_data
+        if isinstance(certainty_data, list)
+        else certainty_data.get("layers", [])
+    )
     for item in items:
         fid = item.get("finding_id")
         if fid:
@@ -235,21 +243,28 @@ def _build_evidence_and_patterns(
     source_findings = artifacts["source_findings"]
 
     evidence_clusters = build_evidence_clusters(
-        active_findings, source_auditor.get("claim_to_source_data") or [],
-        claim_extractor.get("claims") or canonical_claims, manual_tasks,
-        source_reviews, judge_risks,
+        active_findings,
+        source_auditor.get("claim_to_source_data") or [],
+        claim_extractor.get("claims") or canonical_claims,
+        manual_tasks,
+        source_reviews,
+        judge_risks,
     )
     cluster_cards = evidence_cluster_cards(evidence_clusters)
     pattern_findings = dedupe_findings(
-        active_findings + annotate_findings(
+        active_findings
+        + annotate_findings(
             source_findings.get("formula_derived_columns") or [],
             SOURCE_DATA_FINDINGS_ARTIFACT,
         )
     )
     patterns = build_pattern_groups(
-        pattern_findings, source_auditor.get("claim_to_source_data") or [],
-        claim_extractor.get("claims") or canonical_claims, manual_tasks,
-        source_reviews, judge_risks,
+        pattern_findings,
+        source_auditor.get("claim_to_source_data") or [],
+        claim_extractor.get("claims") or canonical_claims,
+        manual_tasks,
+        source_reviews,
+        judge_risks,
     )
     summarized_patterns = displayable_patterns(patterns)
     primary_patterns, secondary_patterns = tier_patterns(summarized_patterns)
@@ -284,15 +299,22 @@ def _build_card_views(
     )
     card_title = (
         f"代表性证据卡（展示 {len(card_findings)} / {len(active_findings)} 条）"
-        if active_findings else "重点人工复核证据卡"
+        if active_findings
+        else "重点人工复核证据卡"
     )
     cards = render_findings_by_category(
-        card_findings, linked_mapping_by_finding, source_reviews, judge_risks,
+        card_findings,
+        linked_mapping_by_finding,
+        source_reviews,
+        judge_risks,
     )
 
     # PRD2-T7: Layer-grouped findings view
     layer_cards = render_findings_by_layer(
-        card_findings, linked_mapping_by_finding, source_reviews, judge_risks,
+        card_findings,
+        linked_mapping_by_finding,
+        source_reviews,
+        judge_risks,
     )
 
     return {
@@ -338,13 +360,17 @@ def render_static_audit_html(
         artifacts, active_findings, report_data
     )
     hero_summary = executive_summary(
-        evidence_patterns["summarized_patterns"], active_findings,
-        report_data["bundle_counts"], report_data["profile_summary"],
+        evidence_patterns["summarized_patterns"],
+        active_findings,
+        report_data["bundle_counts"],
+        report_data["profile_summary"],
         artifacts["exact_images"],
     )
     verdict = report_verdict(
-        active_findings, report_data["manual_tasks"],
-        report_data["tool_runs"], artifacts["bundle"],
+        active_findings,
+        report_data["manual_tasks"],
+        report_data["tool_runs"],
+        artifacts["bundle"],
     )
 
     # Build card views
@@ -375,27 +401,31 @@ def render_static_audit_html(
   <main class="wrap">
     <section class="hero">
       <div class="panel hero-brief">
-        <div class="hero-meta">
-          <span class="eyebrow">Veritas 投稿前技术复核</span>
-          <span class="meta-chip">case_id: {h(case_id)}</span>
-          {f'<span class="meta-chip">报告编号: {h(report_id)}</span>' if report_id else ''}
-          <span class="meta-chip">静态材料复核</span>
+        {hero_report_header_label()}
+        {hero_report_id(report_id)}
+        <div class="hero-title-row">
+          {grade_html}
+          <div class="hero-title-text">
+            <h1>{h(verdict["headline"])}</h1>
+            <p class="lead">{_confidence_badge("data")}{h(hero_summary)}</p>
+          </div>
         </div>
-        <div class="verdict-row">
+        <div class="hero-meta-row">
+          <span>case_id: {h(case_id)}</span>
+          <span class="meta-divider">│</span>
+          <span>{h(verdict["depth"])}</span>
+          <span class="meta-divider">│</span>
           <span class="verdict-badge">{h(verdict["label"])}</span>
           <span class="verdict-badge outline">非科研诚信定论</span>
-          <span class="verdict-badge outline">{h(verdict["depth"])}</span>
         </div>
-        {grade_html}
         {dimensions_html}
-        <h1>投稿前技术复核：<br/>{h(verdict["headline"])}</h1>
-        <p class="lead">{_confidence_badge("data")}{h(hero_summary)}</p>
         <div class="hero-stat-grid">
           {hero_metric("重点摘要", len(evidence_patterns["summarized_patterns"]))}
           {hero_metric("需优先复核记录", card_views["priority_record_count"])}
           {hero_metric("表述映射", report_data["bundle_counts"]["claim_mappings"])}
           {hero_metric("Source Data 覆盖", source_coverage_value(report_data["profile_summary"]))}
         </div>
+        {hero_immutable_statement(report_id)}
       </div>
       <aside class="panel action-panel">
         <div><div class="eyebrow">先看这里</div><h2>{h("重点事实" if evidence_patterns["summarized_patterns"] else "覆盖范围")}</h2>
@@ -544,8 +574,8 @@ def render_static_audit_html(
         </details>
       </div>
     </section>
-    <div class="footer">生成时间：{h(datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))}。{f'报告编号：{h(report_id)}。' if report_id else ''}报告只展示技术记录和复核入口，关键结论必须人工确认。</div>
-    <div class="gatekeeper-footer gatekeeper-only">本报告由 Veritas 独立签发，不可篡改 · Immutable Record{f' — {h(report_id)}' if report_id else ''} — 所有证据链均来自确定性工具执行产物</div>
+    <div class="footer">生成时间：{h(datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))}。{f"报告编号：{h(report_id)}。" if report_id else ""}报告只展示技术记录和复核入口，关键结论必须人工确认。</div>
+    <div class="gatekeeper-footer gatekeeper-only">本报告由 Veritas 独立签发，不可篡改 · Immutable Record{f" — {h(report_id)}" if report_id else ""} — 所有证据链均来自确定性工具执行产物</div>
   </main>
 </body>
 </html>
@@ -562,7 +592,9 @@ def write_static_audit_html(
     path = resolve_artifact_path(workdir, "final_audit_report.html")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(
-        render_static_audit_html(workdir, case_id, grade=grade, dimensions=dimensions, report_id=report_id),
+        render_static_audit_html(
+            workdir, case_id, grade=grade, dimensions=dimensions, report_id=report_id
+        ),
         encoding="utf-8",
     )
     return path

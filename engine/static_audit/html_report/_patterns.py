@@ -11,12 +11,9 @@ from engine.static_audit.html_report._html_utils import h
 from engine.static_audit.html_report._config import (
     PATTERN_DEFINITIONS,
     PATTERN_SORT_ORDER,
-    SOURCE_DATA_PATTERN_KEYS,
     MAX_PRIMARY_PATTERNS,
     MAX_PATTERN_TITLE_LENGTH,
     MAX_PATTERN_THESIS_LENGTH,
-    MAX_CLAIMS_PER_GROUP,
-    MAX_TASKS_PER_PATTERN,
 )
 from engine.static_audit.html_report._shared import (
     _confidence_badge,
@@ -125,14 +122,20 @@ def pattern_display_text(
     agent_sentences = pattern_agent_sentences(manual_tasks, risks, reviews)
     if agent_sentences:
         return {
-            "title": shorten(first_report_sentence(agent_sentences[0]), MAX_PATTERN_TITLE_LENGTH),
-            "thesis": shorten("；".join(agent_sentences[:3]), MAX_PATTERN_THESIS_LENGTH),
+            "title": shorten(
+                first_report_sentence(agent_sentences[0]), MAX_PATTERN_TITLE_LENGTH
+            ),
+            "thesis": shorten(
+                "；".join(agent_sentences[:3]), MAX_PATTERN_THESIS_LENGTH
+            ),
             "source": "agent",
         }
     data_sentence = context_aware_review_question(pattern_key, findings)
     if data_sentence and data_sentence != definition.get("review_question"):
         return {
-            "title": shorten(first_report_sentence(data_sentence), MAX_PATTERN_TITLE_LENGTH),
+            "title": shorten(
+                first_report_sentence(data_sentence), MAX_PATTERN_TITLE_LENGTH
+            ),
             "thesis": shorten(data_sentence, MAX_PATTERN_THESIS_LENGTH),
             "source": "data",
         }
@@ -299,8 +302,12 @@ def pattern_group_cards(patterns: list[dict[str, Any]]) -> str:
                 f"<li>{_confidence_badge('data')}{h(shorten(context_aware_review_question(pattern.get('pattern_key', 'other'), pattern.get('findings') or []), 260))}</li>"
             ]
         categories = pattern.get("categories") or Counter()
+        pattern_risk = str(pattern.get("risk_level") or "info")
+        risk_bar_class = f"risk-bar risk-bar-{h(pattern_risk)}"
         cards.append(f"""
-<article class="pattern-card" id="{h(pattern.get("pattern_id"))}">
+<article class="pattern-card has-risk-bar" id="{h(pattern.get("pattern_id"))}">
+  <div class="{risk_bar_class}"></div>
+  <div class="pattern-body">
   <div class="pattern-head">
     <div class="pattern-id">{h(pattern.get("pattern_id"))}</div>
     <div>
@@ -324,6 +331,7 @@ def pattern_group_cards(patterns: list[dict[str, Any]]) -> str:
   <details class="section"><summary>展开：关联的论文表述</summary><ul>{"".join(claim_items)}</ul></details>
   <details class="section"><summary>展开：可能良性解释</summary>{_benign_items_to_html(pattern.get("benign_explanations") or [])}</details>
   <details class="section"><summary>展开：不可约证据记录</summary>{_evidence_records_table_import()(pattern.get("findings") or [], compact=True)}</details>
+  </div>
 </article>
 """)
     return "\n".join(cards)
