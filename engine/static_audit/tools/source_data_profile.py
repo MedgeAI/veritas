@@ -222,7 +222,7 @@ def profile_workbook(path: Path) -> dict:
             shared = shared_strings(zf)
             for sheet in workbook_sheets(zf):
                 workbook["sheets"].append(profile_sheet(zf, sheet, shared))
-    except Exception as exc:  # keep profiling other workbooks
+    except Exception as exc:  # Deliberately broad: workbook parsing may raise InvalidFileException, XML errors, etc.
         workbook["error"] = f"{type(exc).__name__}: {exc}"
     return workbook
 

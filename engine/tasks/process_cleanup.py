@@ -84,7 +84,7 @@ def _kill_mineru_processes(case_id: str) -> tuple[list[int], list[str]]:
             proc.kill()
             killed.append(pid)
             logger.info("Killed MinerU process pid=%s for case_id=%s", pid, case_id)
-        except Exception as exc:
+        except (OSError, ProcessLookupError) as exc:
             msg = f"Failed to kill MinerU process (pid={proc.info.get('pid')}): {exc}"
             logger.warning(msg)
             errors.append(msg)
@@ -108,7 +108,7 @@ def _stop_docker_containers(run_id: str) -> tuple[list[str], list[str]]:
 
     try:
         client = docker.from_env()
-    except Exception as exc:
+    except Exception as exc:  # Deliberately broad: docker SDK raises docker.errors.DockerException hierarchy
         msg = f"Failed to connect to Docker daemon: {exc}"
         logger.warning(msg)
         errors.append(msg)
@@ -118,7 +118,7 @@ def _stop_docker_containers(run_id: str) -> tuple[list[str], list[str]]:
         containers = client.containers.list(
             filters={"label": f"veritas_run_id={run_id}"},
         )
-    except Exception as exc:
+    except Exception as exc:  # Deliberately broad: docker SDK raises docker.errors.DockerException hierarchy
         msg = f"Failed to list containers for run_id={run_id}: {exc}"
         logger.warning(msg)
         errors.append(msg)
@@ -131,7 +131,7 @@ def _stop_docker_containers(run_id: str) -> tuple[list[str], list[str]]:
             if cid:
                 stopped.append(cid)
             logger.info("Stopped container %s for run_id=%s", cid, run_id)
-        except Exception as exc:
+        except Exception as exc:  # Deliberately broad: docker SDK raises docker.errors.DockerException hierarchy
             msg = f"Failed to stop container {container.id}: {exc}"
             logger.warning(msg)
             errors.append(msg)
@@ -162,7 +162,7 @@ def _clean_temp_files(run_id: str) -> tuple[list[str], list[str]]:
             msg = f"Temp dir {tmp_dir} still exists after rmtree"
             logger.warning(msg)
             errors.append(msg)
-    except Exception as exc:
+    except OSError as exc:
         msg = f"Failed to remove temp dir {tmp_dir}: {exc}"
         logger.warning(msg)
         errors.append(msg)
@@ -190,7 +190,7 @@ def _clear_gpu_cache() -> tuple[bool, list[str]]:
         torch.cuda.empty_cache()
         logger.debug("Cleared CUDA cache")
         return True, errors
-    except Exception as exc:
+    except RuntimeError as exc:  # torch CUDA raises undocumented RuntimeError subclasses
         msg = f"Failed to clear CUDA cache: {exc}"
         logger.warning(msg)
         errors.append(msg)

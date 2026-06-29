@@ -150,7 +150,7 @@ class AgentStepRunner:
 
             try:
                 parsed = extract_json(last_stdout)
-            except Exception as exc:
+            except Exception as exc:  # Deliberately broad: JSON extraction from LLM output may raise various parse errors
                 last_error_category = "schema_validation"
                 last_detail = f"JSON extraction failed: {type(exc).__name__}: {exc}"
                 continue

@@ -22,18 +22,20 @@ from __future__ import annotations
 import argparse
 import json
 import logging
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
 from PIL import Image
 
+from engine.exceptions import ToolExecutionError
 from engine.static_audit.visual_constants import (
     dhash_rotations_from_image,
     min_hamming_rotations,
 )
 from engine.static_audit.visual_schemas import VISUAL_SCHEMA_VERSION
+from runtime.executors.base import ExecutionRequest
+from runtime.executors.subprocess_executor import execute_subprocess
 
 logger = logging.getLogger(__name__)
 
@@ -246,27 +248,29 @@ def _run_elis_cross_verification(
     output_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        proc = subprocess.run(
-            [sys.executable, "-m", "engine.static_audit.tools._elis_copy_move_runner"],
-            input=json.dumps(
-                {
-                    "mode": "cross",
-                    "pairs": pairs_for_elis,
-                    "output_dir": str(output_dir),
-                    "min_keypoints": min_inliers,
-                    "min_area": 0.0,
-                    "check_flip": True,
-                }
-            ),
-            capture_output=True,
-            text=True,
-            timeout=max(600, len(pairs_for_elis) * 10),
-            check=False,
+        result = execute_subprocess(
+            ExecutionRequest(
+                command=[
+                    sys.executable,
+                    "-m",
+                    "engine.static_audit.tools._elis_copy_move_runner",
+                ],
+                workdir=Path.cwd(),
+                timeout_seconds=max(600, len(pairs_for_elis) * 10),
+                stdin_data=json.dumps(
+                    {
+                        "mode": "cross",
+                        "pairs": pairs_for_elis,
+                        "output_dir": str(output_dir),
+                        "min_keypoints": min_inliers,
+                        "min_area": 0.0,
+                        "check_flip": True,
+                    }
+                ),
+            )
         )
-        if proc.returncode != 0:
-            return []
-        result = json.loads(proc.stdout)
-    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
+        return json.loads(result.stdout).get("results", [])
+    except (ToolExecutionError, json.JSONDecodeError):
         return []
 
     return result.get("results", [])
@@ -346,7 +350,7 @@ def _polygon_intersection_area(
             edge_end = poly_b[(i + 1) % len(poly_b)]
             clipped = _clip_polygon_by_edge(clipped, edge_start, edge_end)
         return _polygon_area(clipped)
-    except Exception:
+    except Exception:  # Deliberately broad: Sutherland-Hodgman clipping can fail on degenerate polygons; fall back to bbox overlap
         # Sutherland-Hodgman clipping can fail on degenerate polygons;
         # fall back to bbox overlap rather than crashing the pipeline.
         logger.debug("Polygon intersection clipping failed, falling back to bbox overlap", exc_info=True)

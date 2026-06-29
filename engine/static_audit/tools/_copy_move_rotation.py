@@ -293,7 +293,7 @@ def run_rotation_detection_on_pairs(
         try:
             img_a = cv2.imread(str(src_full))
             img_b = cv2.imread(str(tgt_full))
-        except Exception as e:
+        except OSError as e:
             logger.warning(f"Failed to load images for pair {pair_id}: {e}")
             continue
 

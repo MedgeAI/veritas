@@ -37,7 +37,7 @@ def get_database_url() -> str:
         raise RuntimeError(
             "VERITAS_DATABASE_URL is not set.\n"
             "  Dev:  export VERITAS_DATABASE_URL="
-            "postgresql://veritas_dev:veritas_dev_pass@localhost:5433/veritas_dev\n"
+            "postgresql://user:pass@host:port/dbname\n"
             "  Prod: set VERITAS_DATABASE_URL in deploy/.env"
         )
     if url.startswith("sqlite"):

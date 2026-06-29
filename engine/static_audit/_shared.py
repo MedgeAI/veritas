@@ -22,11 +22,14 @@ from __future__ import annotations
 
 import json
 import logging
-import subprocess
 import time
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
+
+from engine.exceptions import ToolExecutionError
+from runtime.executors.subprocess_executor import execute_subprocess
+from runtime.executors.base import ExecutionRequest
 
 # ---------------------------------------------------------------------------
 # Re-export from engine.shared for backward compatibility
@@ -110,6 +113,47 @@ def text_tail(value: str, limit: int = 1000) -> str:
     return value[-limit:]
 
 
+def _map_executor_event(
+    progress: ProgressCallback | None,
+    key: str,
+    title: str,
+    command: list[str],
+    executor_event: str,
+    *,
+    attempt: int = 0,
+    total_attempts: int = 0,
+    line: str = "",
+) -> None:
+    """Translate executor progress events into run_command progress events.
+
+    Executor events: step_start, step_output, step_result.
+    run_command events: step_attempt, command_output, step_result.
+
+    step_result is NOT re-emitted here; run_command emits its own step_result
+    via emit_step_result when the step completes or fails.
+    """
+    if executor_event == "step_start":
+        emit_progress(
+            progress,
+            "step_attempt",
+            key=key,
+            title=title,
+            attempt=attempt,
+            attempts=total_attempts,
+            command_preview=command_preview(command),
+        )
+    elif executor_event == "step_output":
+        emit_progress(
+            progress,
+            "command_output",
+            key=key,
+            title=title,
+            line=line[-500:],
+            command_preview=command_preview(command),
+        )
+    # step_result: not re-emitted; run_command emits its own via emit_step_result.
+
+
 def run_command(
     key: str,
     title: str,
@@ -124,6 +168,14 @@ def run_command(
     progress: ProgressCallback | None = None,
     stream_output: bool = False,
 ) -> StepResult:
+    """Run a command, delegating actual execution to the Runtime layer.
+
+    The external contract is preserved: returns StepResult with status
+    "reused" (cache hit), "ran" (success), or "failed" (all attempts
+    exhausted).  Progress events emitted: step_start, step_attempt,
+    command_output, step_result.
+    """
+    # Cache check: reuse existing outputs when not forced.
     if expected_outputs and exists_all(expected_outputs) and not force:
         result = StepResult(
             key=key,
@@ -135,63 +187,72 @@ def run_command(
         emit_step_result(progress, result)
         return result
 
-    last_detail = ""
     attempts = max(1, attempts)
     emit_step_start(progress, key, title, "Running deterministic command.", command)
+
+    last_detail = ""
+
     for attempt in range(1, attempts + 1):
-        emit_progress(
-            progress,
-            "step_attempt",
-            key=key,
-            title=title,
-            attempt=attempt,
-            attempts=attempts,
-            command_preview=command_preview(command),
+        # Progress callback: translates executor events into run_command events.
+        # Captures progress/key/title/command via default args (early binding).
+        def _on_progress(
+            event: str,
+            *,
+            step: str = "",
+            title: str = "",
+            attempt: int = 0,
+            total_attempts: int = 0,
+            line: str = "",
+            status: str = "",
+            exit_code: int = 0,
+            runtime_seconds: float = 0.0,
+            error: str = "",
+            _progress=progress,
+            _key=key,
+            _title=title,
+            _command=command,
+        ) -> None:
+            _map_executor_event(
+                _progress, _key, _title, _command,
+                event,
+                attempt=attempt,
+                total_attempts=total_attempts,
+                line=line,
+            )
+
+        request = ExecutionRequest(
+            command=list(command),
+            workdir=cwd,
+            timeout_seconds=300,
+            env=env,
+            expected_outputs=list(expected_outputs),
+            stream_output=stream_output,
+            progress_callback=_on_progress,
+            attempts=1,
+            step_key=key,
+            step_title=title,
         )
-        if stream_output and progress is not None:
-            completed = run_command_streaming(
-                key=key,
-                title=title,
-                command=command,
-                cwd=cwd,
-                env=env,
-                progress=progress,
-            )
-        else:
-            completed = subprocess.run(
-                command,
-                cwd=cwd,
-                env=env,
-                text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=False,
-            )
-        if completed.returncode != 0:
+
+        try:
+            exec_result = execute_subprocess(request)
+        except ToolExecutionError as exc:
             last_detail = (
-                f"attempt={attempt}/{attempts} exit_code={completed.returncode}"
+                f"attempt={attempt}/{attempts} exit_code={exc.exit_code}"
             )
-            if completed.stderr:
-                last_detail += f" stderr_tail={completed.stderr[-1000:]!r}"
-            stdout_tail = text_tail(completed.stdout)
-            if stdout_tail:
-                last_detail += f" stdout_tail={stdout_tail!r}"
-            if attempt < attempts and retry_delay_seconds > 0:
-                delay = retry_delay_seconds * attempt
-                emit_progress(
-                    progress,
-                    "command_output",
-                    key=key,
-                    title=title,
-                    line=f"retrying after {delay:.0f}s because previous attempt failed",
-                    command_preview=command_preview(command),
-                )
-                time.sleep(delay)
+            if exc.stderr_tail:
+                last_detail += f" stderr_tail={exc.stderr_tail!r}"
+            if exc.timed_out:
+                last_detail += " (timed out)"
             continue
+
+        # Executor returned (exit_code 0) -- check expected_outputs.
         if expected_outputs and not exists_all(expected_outputs):
-            missing = [str(path) for path in expected_outputs if not path.exists()]
-            last_detail = f"attempt={attempt}/{attempts} command succeeded but outputs missing: {missing}"
-            stdout_tail = text_tail(completed.stdout)
+            missing = [str(p) for p in expected_outputs if not p.exists()]
+            last_detail = (
+                f"attempt={attempt}/{attempts} command succeeded "
+                f"but outputs missing: {missing}"
+            )
+            stdout_tail = text_tail(exec_result.stdout)
             if stdout_tail:
                 last_detail += f" stdout_tail={stdout_tail!r}"
             if attempt < attempts and retry_delay_seconds > 0:
@@ -206,12 +267,16 @@ def run_command(
                 )
                 time.sleep(delay)
             continue
+
+        # Success
         detail = "Command completed successfully."
         if attempt > 1:
             detail = f"Command completed successfully after {attempt} attempts."
         result = StepResult(key, title, "ran", detail, command)
         emit_step_result(progress, result)
         return result
+
+    # All attempts exhausted
     result = StepResult(key, title, "failed", last_detail, command)
     emit_step_result(progress, result)
     return result
@@ -225,20 +290,18 @@ def run_command_streaming(
     cwd: Path,
     env: dict[str, str],
     progress: ProgressCallback,
-) -> subprocess.CompletedProcess[str]:
-    process = subprocess.Popen(
-        command,
-        cwd=cwd,
-        env=env,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        bufsize=1,
-    )
+) -> Any:
+    """Run a command with streaming output, delegating to Runtime executor.
+
+    Returns a subprocess.CompletedProcess for backward compatibility.
+    """
+    import subprocess as _subprocess
+
     output_lines: list[str] = []
-    if process.stdout is not None:
-        for raw_line in process.stdout:
-            line = raw_line.rstrip()
+
+    def _on_stream_progress(event: str, **kwargs: Any) -> None:
+        if event == "step_output":
+            line = kwargs.get("line", "")
             output_lines.append(line)
             emit_progress(
                 progress,
@@ -248,9 +311,27 @@ def run_command_streaming(
                 line=line[-500:],
                 command_preview=command_preview(command),
             )
-    return_code = process.wait()
-    return subprocess.CompletedProcess(
-        command, return_code, "\n".join(output_lines), ""
+
+    request = ExecutionRequest(
+        command=list(command),
+        workdir=cwd,
+        timeout_seconds=300,
+        env=env,
+        stream_output=True,
+        progress_callback=_on_stream_progress,
+        attempts=1,
+        step_key=key,
+        step_title=title,
+    )
+
+    exec_result = execute_subprocess(request)
+
+    # Convert ExecutionResult to CompletedProcess for backward compatibility.
+    return _subprocess.CompletedProcess(
+        command,
+        exec_result.exit_code,
+        exec_result.stdout,
+        exec_result.stderr,
     )
 
 
@@ -561,7 +642,7 @@ def classify_columns_with_llm(
             return {}
         # Normalize values to lowercase
         return {k: v.lower() for k, v in result.items() if isinstance(v, str)}
-    except Exception as e:
+    except Exception as e:  # Deliberately broad: LLM client can raise VeritasLLMParseError, network errors, etc.
         logger.warning("LLM column classification failed: %s", e)
         return {}
 

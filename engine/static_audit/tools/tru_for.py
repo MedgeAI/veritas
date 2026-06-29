@@ -14,15 +14,17 @@ Startup prerequisites are checked in three layers (D-5):
 from __future__ import annotations
 
 import json
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
+from engine.exceptions import ToolExecutionError
 from engine.static_audit.visual_schemas import (
     ForgedRegionEvidence,
     VISUAL_SCHEMA_VERSION,
 )
+from runtime.executors.base import ExecutionRequest
+from runtime.executors.subprocess_executor import execute_subprocess
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 DEFAULT_WEIGHTS = _REPO_ROOT / "models" / "trufor" / "weights" / "trufor.pth.tar"
@@ -130,23 +132,25 @@ def run_tru_for(
     }
 
     try:
-        proc = subprocess.run(
-            [sys.executable, "-m", "engine.static_audit.tools._elis_trufor_runner"],
-            input=json.dumps(input_data),
-            capture_output=True,
-            text=True,
-            timeout=max(600, len(figures) * 10),
-            check=False,
-        )
-        if proc.returncode != 0:
-            return _failed_result(
-                failure_category="runtime",
-                errors=[
-                    f"TruFor runner exited with code {proc.returncode}: {proc.stderr[:500]}"
+        result = execute_subprocess(
+            ExecutionRequest(
+                command=[
+                    sys.executable,
+                    "-m",
+                    "engine.static_audit.tools._elis_trufor_runner",
                 ],
+                workdir=Path.cwd(),
+                timeout_seconds=max(600, len(figures) * 10),
+                stdin_data=json.dumps(input_data),
             )
-        runner_output = json.loads(proc.stdout)
-    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError) as e:
+        )
+        runner_output = json.loads(result.stdout)
+    except ToolExecutionError as e:
+        return _failed_result(
+            failure_category="runtime",
+            errors=[f"TruFor runner failed: {e}"],
+        )
+    except (json.JSONDecodeError, OSError) as e:
         return _failed_result(
             failure_category="runtime", errors=[f"TruFor runner failed: {e}"]
         )

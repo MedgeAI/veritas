@@ -24,18 +24,20 @@ import csv
 import json
 import logging
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 from typing import Any
 
 from PIL import Image
 
+from engine.exceptions import ToolExecutionError
 from engine.static_audit.visual_schemas import (
     FigureEvidence,
     PanelEvidence,
     VISUAL_SCHEMA_VERSION,
 )
+from runtime.executors.base import ExecutionRequest
+from runtime.executors.subprocess_executor import execute_subprocess
 
 logger = logging.getLogger(__name__)
 
@@ -157,14 +159,14 @@ def extract_panels_batch(
     ]
 
     try:
-        subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            timeout=max(300, len(figure_paths) * 5),
-            check=False,
+        execute_subprocess(
+            ExecutionRequest(
+                command=cmd,
+                workdir=Path.cwd(),
+                timeout_seconds=max(300, len(figure_paths) * 5),
+            )
         )
-    except (subprocess.TimeoutExpired, OSError):
+    except ToolExecutionError:
         return {fid: [] for fid, _ in figure_paths}
 
     # Parse PANELS.csv and distribute to figures

@@ -3,6 +3,15 @@
 
 Owns the end-to-end flow: material planning, deterministic tool execution,
 Agent investigation rounds, visual forensics baseline, report generation.
+
+The heavy lifting is delegated to domain-specific stage modules under
+``engine.static_audit.stages``.  This file keeps:
+
+* The public API (``run_static_audit``).
+* The private orchestrator (``_run_static_audit_from_args``).
+* Audit-profile constants and resolution.
+* Backward-compatible re-exports of helpers that were physically moved to
+  ``stages/planning.py``.
 """
 
 from __future__ import annotations
@@ -18,30 +27,10 @@ if str(PROJECT_ROOT_PATH) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT_PATH))
 
 from engine.static_audit._shared import (
-    PROJECT_ROOT,
     ProgressCallback,
     StepResult,
-    emit_progress,
-    ensure_output_subdirs,
-    read_json,
     record_step,
     resolve_artifact_path,
-    run_command,
-)
-from engine.static_audit.cli_driver import (
-    discover_pdf,
-    load_env,
-    safe_remove_workdir,
-)
-from engine.static_audit.materials import (
-    build_material_inventory,
-    fallback_optional_lanes,
-    write_material_inventory,
-)
-from engine.investigation.opencode_agent import DEFAULT_SOURCE_FINDING_PARAMS
-from engine.tools.registry import (
-    PAPER_STATIC_AUDIT_TOOL_IDS,
-    STATIC_AUDIT_V1_TOOL_IDS,
 )
 
 logger = logging.getLogger(__name__)
@@ -104,316 +93,82 @@ def resolve_audit_profile(
 
 
 # ---------------------------------------------------------------------------
-# Material planning helpers
+# Backward-compatible re-exports — helpers moved to stages/planning.py.
 # ---------------------------------------------------------------------------
 
-
-def source_finding_params_from_lane(lane: dict[str, Any] | None) -> dict[str, Any]:
-    params = dict(DEFAULT_SOURCE_FINDING_PARAMS)
-    if not lane:
-        return params
-    lane_params = lane.get("params")
-    if not isinstance(lane_params, dict):
-        return params
-    source_params = lane_params.get("source_data_findings")
-    if isinstance(source_params, dict):
-        for key in params:
-            if key in source_params:
-                params[key] = source_params[key]
-    return params
-
-
-def selected_xlsx_source_lane(lanes: list[dict[str, Any]]) -> dict[str, Any] | None:
-    for lane in lanes:
-        if (
-            lane.get("lane_id") == "source_data_xlsx"
-            and lane.get("status") == "selected"
-            and lane.get("root")
-        ):
-            return lane
-    return None
-
-
-def material_plan_from_inventory(
-    *,
-    case_id: str,
-    inventory: dict[str, Any],
-    status: str,
-    detail: str,
-) -> dict[str, Any]:
-    lanes = fallback_optional_lanes(inventory)
-    unsupported = {"structured_table_text", "raw_data", "archive"}
-    return {
-        "schema_version": "1.0",
-        "case_id": case_id,
-        "status": status,
-        "detail": detail,
-        "selected_optional_lanes": lanes,
-        "missing_materials": []
-        if any(i.get("status") == "selected" for i in lanes)
-        else ["source_data_xlsx"],
-        "unsupported_materials": [
-            {
-                "path": i.get("relative_path") or i.get("path"),
-                "material_type": i.get("material_type"),
-                "reason": "Material type is inventoried but has no executable optional lane in static_audit_protocol.v1.",
-            }
-            for i in (inventory.get("files") or [])[:80]
-            if i.get("material_type") in unsupported
-        ],
-        "agent_rationale": [
-            "Deterministic fallback used material_inventory.json because Agent material planning was not available.",
-            "Only registry-supported XLSX/XLSM Source Data lanes are executable in this MVP.",
-        ],
-    }
-
-
-def optional_lanes_from_material_plan(
-    material_plan: dict[str, Any] | None,
-    inventory: dict[str, Any],
-) -> list[dict[str, Any]]:
-    if material_plan and isinstance(material_plan.get("selected_optional_lanes"), list):
-        return [
-            i for i in material_plan["selected_optional_lanes"] if isinstance(i, dict)
-        ]
-    return fallback_optional_lanes(inventory)
-
-
-def resolve_selected_source_root(
-    lane: dict[str, Any] | None, paper_dir: Path
-) -> Path | None:
-    if not lane or not lane.get("root"):
-        return None
-    root = Path(str(lane["root"])).expanduser()
-    if not root.is_absolute():
-        root = paper_dir / root
-    resolved = root.resolve()
-    if not resolved.is_dir() or not resolved.is_relative_to(paper_dir.resolve()):
-        return None
-    return resolved
-
-
-# ---------------------------------------------------------------------------
-# Section helpers — imported from _pipeline_steps to keep this file < 500 lines.
-# ---------------------------------------------------------------------------
-
-from engine.static_audit._pipeline_steps import (
-    _run_agent_plan_section,
-    _run_agent_review_section,
-    _run_bundle_and_report,
-    _run_investigation_fallbacks,
-    _run_material_plan_section,
-    _run_mineru_forensics_section,
-    _run_source_data_steps,
+from engine.static_audit.stages.planning import (  # noqa: E402
+    material_plan_from_inventory,
+    optional_lanes_from_material_plan,
+    resolve_selected_source_root,
+    selected_xlsx_source_lane,
+    source_finding_params_from_lane,
 )
 
+__all__ = [
+    "run_static_audit",
+    "resolve_audit_profile",
+    "AUDIT_PROFILES",
+    # Backward-compat re-exports
+    "material_plan_from_inventory",
+    "optional_lanes_from_material_plan",
+    "resolve_selected_source_root",
+    "selected_xlsx_source_lane",
+    "source_finding_params_from_lane",
+]
 
-def _run_visual_baseline(
-    *,
-    workdir: Path,
-    images_dir: Path,
-    args: argparse.Namespace,
-    progress: ProgressCallback | None,
-    figure_classification: dict[str, Any] | None = None,
-) -> tuple[list[StepResult], dict[str, Any]]:
-    from engine.static_audit.visual_pipeline import (
-        run_visual_panel_extraction,
-        run_tru_for_detection,
-        run_image_quality_detection,
-        run_provenance_graph,
-        run_visual_finding_pipeline,
-    )
 
-    steps: list[StepResult] = []
-    manifest: dict[str, Any] = {}
-    vs, vm = run_visual_panel_extraction(
-        workdir=workdir,
-        images_dir=images_dir,
-        force=args.force,
-        progress=progress,
-        figure_classification=figure_classification,
-    )
-    steps.extend(vs)
-    manifest["visual_forensics"] = vm
-    allow_env_skip = getattr(args, "skip_unavailable_tools", False)
-    pe_status = (
-        manifest.get("visual_forensics", {}).get("panel_extraction", {}).get("status")
-    )
-    for runner in (
-        run_tru_for_detection,
-        run_image_quality_detection,
-        run_provenance_graph,
-    ):
-        kw: dict[str, Any] = {
-            "workdir": workdir,
-            "force": args.force,
-            "progress": progress,
-        }
-        if runner is run_tru_for_detection:
-            kw["figure_classification"] = figure_classification
-        if runner is not run_image_quality_detection:
-            kw["allow_env_skip"] = allow_env_skip
-        kw["panel_extraction_status"] = pe_status
-        s, m = runner(**kw)
-        steps.extend(s)
-        manifest.setdefault("visual_forensics", {}).update(m)
-    fs, fm = run_visual_finding_pipeline(
-        workdir=workdir, force=args.force, progress=progress
-    )
-    steps.extend(fs)
-    manifest.setdefault("visual_forensics", {}).update(fm)
-    return steps, manifest
+# ---------------------------------------------------------------------------
+# Orchestrator
+# ---------------------------------------------------------------------------
 
 
 def _run_static_audit_from_args(
     args: argparse.Namespace,
     progress: ProgressCallback | None = None,
 ) -> dict[str, Any]:
-    from engine.static_audit.investigation_dispatch import (
-        run_investigation_rounds,
-        run_agent_roles,
+    """Execute the full static-audit pipeline."""
+    from engine.static_audit.stages import (
+        discovery,
+        investigation,
+        mineru,
+        planning,
+        report,
+        roles,
+        source_data,
+        visual,
     )
 
-    # Resolve audit profile and apply to args.
-    # - From CLI: args.profile is a string ("fast"/"standard"/"full")
-    # - From run_static_audit(): args.profile is already a dict, args.audit_profile is set
-    if isinstance(getattr(args, "profile", None), str):
-        args.audit_profile = args.profile
-        args.profile = resolve_audit_profile(args.profile)
-    elif not hasattr(args, "profile") or not isinstance(args.profile, dict):
-        args.audit_profile = getattr(args, "audit_profile", "fast")
-        args.profile = resolve_audit_profile(args.audit_profile)
+    # --- Phase 1: Discovery -----------------------------------------------
+    d = discovery.run(args, progress)
+    steps: list[StepResult] = list(d.steps)
 
-    profile = args.profile
-
-    # Apply profile overrides to agent parameters.
-    args.agent_timeout_seconds = profile.get(
-        "agent_timeout_seconds", args.agent_timeout_seconds
-    )
-    args.agent_max_retries = profile.get("agent_max_retries", args.agent_max_retries)
-
-    paper_dir = Path(args.paper_dir).expanduser().resolve()
-    if not paper_dir.is_dir():
-        raise NotADirectoryError(paper_dir)
-    case_id = args.case_id or paper_dir.name
-    output_root = (
-        (PROJECT_ROOT / args.output_root).resolve()
-        if not Path(args.output_root).is_absolute()
-        else Path(args.output_root)
-    )
-    workdir = output_root / case_id / "research-integrity-audit"
-    if args.fresh:
-        safe_remove_workdir(workdir, output_root)
-    workdir.mkdir(parents=True, exist_ok=True)
-    ensure_output_subdirs(workdir)
-
-    paper_pdf = discover_pdf(paper_dir)
-    env = load_env(not args.no_env_file)
-    steps: list[StepResult] = []
-    emit_progress(
-        progress,
-        "audit_start",
-        case_id=case_id,
-        paper_dir=str(paper_dir),
-        workdir=workdir,
-        agent_mode=args.agent_mode,
-        audit_profile=getattr(args, "audit_profile", "fast"),
-    )
-    record_step(
-        steps,
-        StepResult(
-            "discover",
-            "发现输入材料",
-            "ran",
-            f"PDF={paper_pdf}; optional data lanes will be selected from material_inventory.json",
-        ),
-        progress,
-    )
-
-    # Material inventory
-    mi_path = resolve_artifact_path(workdir, "material_inventory.json")
-    if mi_path.exists() and not args.force:
-        material_inventory = read_json(mi_path) or {}
-        record_step(
-            steps,
-            StepResult(
-                "material_inventory",
-                "材料清单扫描",
-                "reused",
-                "Existing material_inventory.json found.",
-            ),
-            progress,
-        )
-    else:
-        material_inventory = build_material_inventory(paper_dir, paper_pdf)
-        write_material_inventory(mi_path, material_inventory)
-        record_step(
-            steps,
-            StepResult("material_inventory", "材料清单扫描", "ran", str(mi_path)),
-            progress,
-        )
-
-    agent_manifest: dict[str, Any] = {
-        "mode": args.agent_mode,
-        "model": args.agent_model,
-        "opencode_bin": args.opencode_bin,
-        "tool_registry": "paper_static_audit.v1",
-        "registered_tool_ids": list(STATIC_AUDIT_V1_TOOL_IDS),
-        "agent_plan_tool_ids": list(PAPER_STATIC_AUDIT_TOOL_IDS),
-        "material_inventory": str(mi_path),
-        "audit_profile": getattr(args, "audit_profile", "fast"),
-        "profile_config": getattr(args, "profile", {}),
-    }
-
-    # Agent material plan
-    mp_steps, material_plan = _run_material_plan_section(
-        args=args,
-        workdir=workdir,
-        paper_dir=paper_dir,
-        paper_pdf=paper_pdf,
-        material_inventory=material_inventory,
-        env=env,
-        agent_manifest=agent_manifest,
+    # --- Phase 2: Planning ------------------------------------------------
+    p = planning.run(
+        args,
+        workdir=d.workdir,
+        paper_dir=d.paper_dir,
+        paper_pdf=d.paper_pdf,
+        material_inventory=d.material_inventory,
+        mi_path=d.mi_path,
+        env=d.env,
         progress=progress,
     )
-    steps.extend(mp_steps)
+    steps.extend(p.steps)
 
-    optional_lanes = optional_lanes_from_material_plan(
-        material_plan, material_inventory
-    )
-    source_lane = selected_xlsx_source_lane(optional_lanes)
-    source_data_dir = resolve_selected_source_root(source_lane, paper_dir)
-    agent_manifest["optional_lanes"] = optional_lanes
-    agent_manifest["selected_source_data_dir"] = (
-        str(source_data_dir) if source_data_dir else None
-    )
-    sfp = dict(DEFAULT_SOURCE_FINDING_PARAMS)
-    sfp.update(source_finding_params_from_lane(source_lane))
-
-    # Agent plan
-    ap_steps, sfp = _run_agent_plan_section(
-        args=args,
-        workdir=workdir,
-        paper_pdf=paper_pdf,
-        source_data_dir=source_data_dir,
-        source_finding_params=sfp,
-        env=env,
-        agent_manifest=agent_manifest,
+    # --- Phase 3: MinerU + forensics --------------------------------------
+    m = mineru.run(
+        args,
+        workdir=d.workdir,
+        paper_pdf=d.paper_pdf,
+        env=d.env,
         progress=progress,
     )
-    steps.extend(ap_steps)
+    steps.extend(m.steps)
 
-    # MinerU + forensics
-    mineru_steps, mineru_ok = _run_mineru_forensics_section(
-        args=args, workdir=workdir, paper_pdf=paper_pdf, env=env, progress=progress
-    )
-    steps.extend(mineru_steps)
-
-    if not mineru_ok:
+    if not m.mineru_ok:
         # Early termination: MinerU is the foundation of the audit pipeline.
-        # Without full.md (paper text) and images/ (extracted figures), every
-        # downstream step either fails silently or produces high-false-positive
-        # noise.  Fail fast instead of wasting resources on a blind audit.
+        # Without full.md, every downstream step either fails silently or
+        # produces high-false-positive noise.  Fail fast.
         _MINERU_FAIL_REASON = (
             "MinerU PDF 解析失败（full.md 未生成）。"
             "无论文全文上下文，后续步骤终止——"
@@ -441,194 +196,89 @@ def _run_static_audit_from_args(
             record_step(
                 steps, StepResult(key, title, "failed", _MINERU_FAIL_REASON), progress
             )
-        # Jump straight to bundle + report so the user gets a visible
-        # failure record instead of an empty / missing output directory.
-        return _run_bundle_and_report(
-            paper_dir=paper_dir,
-            paper_pdf=paper_pdf,
-            source_data_dir=source_data_dir,
-            workdir=workdir,
-            case_id=case_id,
-            agent_mode=args.agent_mode,
+        # Jump to bundle + report so the user gets a visible failure record.
+        return report.run(
+            args,
+            workdir=d.workdir,
+            paper_dir=d.paper_dir,
+            paper_pdf=d.paper_pdf,
+            source_data_dir=p.source_data_dir,
+            case_id=d.case_id,
             steps=steps,
-            agent_manifest=agent_manifest,
-            material_inventory_path=mi_path,
-            agent_material_plan_path=resolve_artifact_path(
-                workdir, "agent_material_plan.json"
-            ),
-            optional_lanes=optional_lanes,
+            agent_manifest=p.agent_manifest,
+            mi_path=d.mi_path,
+            optional_lanes=p.optional_lanes,
             progress=progress,
         )
 
-    # Source data
-    if source_lane and source_data_dir and source_data_dir.is_dir():
-        steps.extend(
-            _run_source_data_steps(
-                workdir=workdir,
-                source_data_dir=source_data_dir,
-                source_finding_params=sfp,
-                env=env,
-                args=args,
-                progress=progress,
-            )
-        )
-    else:
-        reason = (
-            f"Selected Source Data root is invalid or outside paper_dir: {source_lane.get('root')}"
-            if source_lane and source_lane.get("root")
-            else (source_lane or {}).get("reason")
-            or "No executable XLSX/XLSM Source Data optional lane was selected."
-        )
-        for k, t in [
-            ("source_data_profile", "Source Data profile"),
-            ("source_data_findings", "Source Data findings"),
-            ("source_data_pair_forensics", "Source Data pair forensics"),
-            ("source_data_cross_sheet", "Source Data cross-sheet duplicates"),
-            ("source_data_verdict", "Source Data LLM 语义裁决"),
-        ]:
-            record_step(steps, StepResult(k, t, "skipped", reason), progress)
-
-    # Image duplicates
-    images_dir = resolve_artifact_path(workdir, "images")
-    if images_dir.is_dir():
-        steps.append(
-            run_command(
-                "exact_image_duplicates",
-                "图片字节级重复检查",
-                [
-                    sys.executable,
-                    "-m",
-                    "engine.static_audit.tools.exact_image_duplicates",
-                    str(images_dir),
-                    "--output",
-                    str(resolve_artifact_path(workdir, "exact_image_duplicates.json")),
-                ],
-                [resolve_artifact_path(workdir, "exact_image_duplicates.json")],
-                cwd=PROJECT_ROOT,
-                env=env,
-                force=args.force,
-                progress=progress,
-            )
-        )
-    else:
-        for k, t in [
-            ("exact_image_duplicates", "图片字节级重复检查"),
-            ("image_similarity_candidates", "图片近似相似候选检查"),
-        ]:
-            record_step(
-                steps,
-                StepResult(k, t, "skipped", "images directory missing."),
-                progress,
-            )
-
-    # Figure classification (LLM legend analysis)
-    from engine.static_audit.figure_classification import (
-        run_figure_classification_step,
-    )
-
-    fc_steps, fc_manifest = run_figure_classification_step(
-        workdir=workdir,
-        force=args.force,
+    # --- Phase 4: Source data ---------------------------------------------
+    sd = source_data.run(
+        args,
+        workdir=d.workdir,
+        source_lane=p.source_lane,
+        source_data_dir=p.source_data_dir,
+        sfp=p.sfp,
+        env=d.env,
         progress=progress,
     )
-    steps.extend(fc_steps)
-    agent_manifest["figure_classification"] = fc_manifest.get("figure_classification")
+    steps.extend(sd.steps)
 
-    # Visual baseline
-    vb_steps, vb_manifest = _run_visual_baseline(
-        workdir=workdir,
+    # --- Phase 5: Visual --------------------------------------------------
+    images_dir = resolve_artifact_path(d.workdir, "images")
+    v = visual.run(
+        args,
+        workdir=d.workdir,
         images_dir=images_dir,
-        args=args,
-        progress=progress,
-        figure_classification=fc_manifest.get("figure_classification"),
-    )
-    steps.extend(vb_steps)
-    agent_manifest.setdefault("visual_forensics", {}).update(
-        {
-            k: v
-            for k, v in vb_manifest.get("visual_forensics", {}).items()
-            if k not in (agent_manifest.get("visual_forensics") or {})
-        }
-    )
-
-    # Investigation rounds
-    inv_steps, inv_manifest = run_investigation_rounds(
-        case_id=case_id,
-        workdir=workdir,
-        source_data_dir=source_data_dir,
-        agent_enabled=args.agent_mode in {"review", "full"},
-        agent_mode=args.agent_mode,
-        force=args.force,
-        project_root=PROJECT_ROOT,
-        env=env,
-        model=args.agent_model,
-        opencode_bin=args.opencode_bin,
-        timeout_seconds=args.agent_timeout_seconds,
-        max_retries=args.agent_max_retries,
+        env=d.env,
+        agent_manifest=p.agent_manifest,
         progress=progress,
     )
-    steps.extend(inv_steps)
-    agent_manifest["investigation"] = inv_manifest
+    steps.extend(v.steps)
 
-    # Investigation fallbacks
-    steps.extend(
-        _run_investigation_fallbacks(
-            workdir=workdir,
-            images_dir=images_dir,
-            investigation_manifest=inv_manifest,
-            env=env,
-            args=args,
-            progress=progress,
-            figure_classification=fc_manifest.get("figure_classification"),
-        )
-    )
-
-    # Agent review
-    steps.extend(
-        _run_agent_review_section(
-            args=args,
-            workdir=workdir,
-            env=env,
-            agent_manifest=agent_manifest,
-            progress=progress,
-        )
-    )
-
-    # Agent roles
-    role_steps, role_manifest = run_agent_roles(
-        case_id=case_id,
-        workdir=workdir,
-        agent_enabled=args.agent_mode in {"review", "full"},
-        agent_mode=args.agent_mode,
-        force=args.force,
-        project_root=PROJECT_ROOT,
-        env=env,
-        model=args.agent_model,
-        opencode_bin=args.opencode_bin,
-        timeout_seconds=args.agent_timeout_seconds,
-        max_retries=args.agent_max_retries,
+    # --- Phase 6: Investigation -------------------------------------------
+    inv = investigation.run(
+        args,
+        workdir=d.workdir,
+        case_id=d.case_id,
+        source_data_dir=p.source_data_dir,
+        images_dir=images_dir,
+        env=d.env,
+        agent_manifest=p.agent_manifest,
+        fc_manifest_data=v.figure_classification,
         progress=progress,
     )
-    steps.extend(role_steps)
-    agent_manifest["roles"] = role_manifest
+    steps.extend(inv.steps)
 
-    # Bundle + report
-    return _run_bundle_and_report(
-        paper_dir=paper_dir,
-        paper_pdf=paper_pdf,
-        source_data_dir=source_data_dir,
-        workdir=workdir,
-        case_id=case_id,
-        agent_mode=args.agent_mode,
+    # --- Phase 7: Roles ---------------------------------------------------
+    r = roles.run(
+        args,
+        workdir=d.workdir,
+        case_id=d.case_id,
+        env=d.env,
+        agent_manifest=p.agent_manifest,
+        progress=progress,
+    )
+    steps.extend(r.steps)
+
+    # --- Phase 8: Report --------------------------------------------------
+    return report.run(
+        args,
+        workdir=d.workdir,
+        paper_dir=d.paper_dir,
+        paper_pdf=d.paper_pdf,
+        source_data_dir=p.source_data_dir,
+        case_id=d.case_id,
         steps=steps,
-        agent_manifest=agent_manifest,
-        material_inventory_path=mi_path,
-        agent_material_plan_path=resolve_artifact_path(
-            workdir, "agent_material_plan.json"
-        ),
-        optional_lanes=optional_lanes,
+        agent_manifest=p.agent_manifest,
+        mi_path=d.mi_path,
+        optional_lanes=p.optional_lanes,
         progress=progress,
     )
+
+
+# ---------------------------------------------------------------------------
+# Public API
+# ---------------------------------------------------------------------------
 
 
 def run_static_audit(

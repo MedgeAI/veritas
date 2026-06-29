@@ -6,7 +6,10 @@ import json
 import re
 
 
-class VeritasLLMParseError(Exception):
+from engine.exceptions import VeritasError
+
+
+class VeritasLLMParseError(VeritasError):
     """Raised when LLM response cannot be parsed as JSON."""
 
     pass

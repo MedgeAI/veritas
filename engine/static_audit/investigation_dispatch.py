@@ -534,7 +534,7 @@ def run_investigation_tool_action(
                 max_relationships=int(params.get("max_relationships", 500)),
             )
             output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
-        except Exception as e:
+        except Exception as e:  # Deliberately broad: tool dispatch safety net; each tool may raise different exceptions
             result = {"status": "failed", "relationships": [], "errors": [str(e)]}
             output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
         status = result.get("status", "failed")
@@ -586,7 +586,7 @@ def run_investigation_tool_action(
                 max_relationships=int(params.get("max_relationships", 500)),
             )
             output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
-        except Exception as e:
+        except Exception as e:  # Deliberately broad: tool dispatch safety net; each tool may raise different exceptions
             result = {"status": "failed", "relationships": [], "errors": [str(e)]}
             output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
         status = result.get("status", "failed")

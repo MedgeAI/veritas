@@ -201,7 +201,7 @@ def _collect_prior_versions(
     for path in sorted(directory.glob("VRT-*.json")):
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
-        except Exception:
+        except (json.JSONDecodeError, ValueError, KeyError):
             continue
         if data.get("case_id") != case_id:
             continue
@@ -242,7 +242,7 @@ def load_verification_summary(
 
     try:
         return json.loads(file_path.read_text(encoding="utf-8"))
-    except Exception as e:
+    except (json.JSONDecodeError, ValueError, KeyError) as e:
         logger.warning("Failed to load verification summary %s: %s", report_id, e)
         return None
 
@@ -286,7 +286,7 @@ def list_version_history(
     for path in sorted(directory.glob("VRT-*.json")):
         try:
             data = json.loads(path.read_text(encoding="utf-8"))
-        except Exception:
+        except (json.JSONDecodeError, ValueError, KeyError):
             continue
         if data.get("case_id") != case_id:
             continue

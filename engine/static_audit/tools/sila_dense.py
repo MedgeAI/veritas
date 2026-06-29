@@ -241,7 +241,7 @@ def detect_sila_dense(
             mask_img = np.array(Image.open(mask_path).convert("L"))
             coverage = float(np.count_nonzero(mask_img)) / max(mask_img.size, 1)
             score = min(1.0, coverage * 5)  # Scale up for visibility
-        except Exception as exc:
+        except (OSError, ValueError, ImportError) as exc:
             logger.warning("SILA dense mask coverage failed for %s: %s", panel_id, exc)
             errors.append(f"SILA dense mask coverage failed for {panel_id}: {exc}")
             continue

@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from pathlib import Path
 import secrets
+import shlex
 
 from engine.claims.matchers import compare_claims, load_result_map
 from engine.ingest.manifest_loader import (
@@ -79,7 +80,7 @@ def run_verification(
     ):
         execution_result = execute_subprocess(
             ExecutionRequest(
-                command=str(artifacts["dry_run_command"]),
+                command=shlex.split(str(artifacts["dry_run_command"])),
                 workdir=repo_root,
                 timeout_seconds=timeout_seconds,
             )
@@ -318,7 +319,10 @@ def _report_id() -> str:
 
 
 def _runtime_detail(result: object) -> str:
-    summary = f"command='{result.command}' exit_code={result.exit_code} timeout={result.timed_out}"
+    cmd = result.command
+    if isinstance(cmd, list):
+        cmd = " ".join(cmd)
+    summary = f"command='{cmd}' exit_code={result.exit_code} timeout={result.timed_out}"
     if result.stdout_tail:
         return f"{summary} stdout_tail={result.stdout_tail!r}"
     if result.stderr_tail:

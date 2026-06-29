@@ -105,7 +105,7 @@ def load_knowledge_base() -> list[PaperFraudRule]:
                         enabled=rd.get("enabled", True),
                     )
                 )
-        except Exception as e:
+        except (OSError, ValueError) as e:
             logger.warning("[PaperFraud KB] failed to load %s: %s", yaml_file.name, e)
 
     return rules
@@ -121,7 +121,7 @@ def load_reporting_standards() -> dict[str, list[dict]]:
         try:
             raw = yaml.safe_load(yaml_file.read_text(encoding="utf-8")) or {}
             standards[yaml_file.stem] = raw.get("checklist", [])
-        except Exception:
+        except (OSError, ValueError):  # YAML parsing errors (yaml.YAMLError) and file I/O
             logger.warning("Failed to load reporting standards from %s", yaml_file.name, exc_info=True)
 
     return standards

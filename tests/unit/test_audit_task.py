@@ -19,6 +19,7 @@ from engine.tasks.audit_task import (  # noqa: E402
     _resolve_stage_from_event,
     _run_audit_impl,
 )
+from engine.exceptions import PipelineError  # noqa: E402
 
 
 def _make_mock_self(task_id: str = "celery-task-123") -> MagicMock:
@@ -269,14 +270,14 @@ class TestRunAuditImplStatusTransitions:
                 with patch("engine.tasks.audit_task._notify_progress"):
                     with patch(
                         "engine.static_audit.pipeline.run_static_audit",
-                        side_effect=RuntimeError("Pipeline crashed"),
+                        side_effect=PipelineError("Pipeline crashed"),
                     ):
                         result = _run_audit_impl(
                             mock_self, "run-200", "case-200", str(tmp_path)
                         )
 
         assert result["status"] == "failed"
-        assert "RuntimeError" in result["error"]
+        assert "PipelineError" in result["error"]
         assert "Pipeline crashed" in result["error"]
         assert mock_row.status == "failed"
         assert mock_row.error is not None
@@ -354,7 +355,7 @@ class TestRunAuditImplStatusTransitions:
                 with patch("engine.tasks.audit_task._notify_progress"):
                     with patch(
                         "engine.static_audit.pipeline.run_static_audit",
-                        side_effect=RuntimeError("fail"),
+                        side_effect=PipelineError("fail"),
                     ):
                         with patch(
                             "engine.tasks.process_cleanup.cleanup_audit_processes"

@@ -75,7 +75,7 @@ class LLMFollowUpGenerator(FollowUpGenerator):
             questions = result.get("questions", [])
             if questions and all(isinstance(q, str) for q in questions):
                 return questions[:2]
-        except Exception:
+        except Exception:  # Deliberately broad: LLM client can raise VeritasLLMParseError, network errors, etc.; always fall back to template
             log.debug(
                 "LLM follow-up generation failed for %s, falling back to template",
                 finding.get("finding_id", "?"),

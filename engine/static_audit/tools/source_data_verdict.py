@@ -34,6 +34,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
+from engine.exceptions import AgentError, VeritasError
 from engine.static_audit.paths import resolve_artifact_path
 from engine.static_audit.tools.source_data_sheet_briefing import build_sheet_briefing
 
@@ -173,7 +174,7 @@ def read_xlsx_column_context(
 
     try:
         wb = openpyxl.load_workbook(str(xlsx_path), read_only=True, data_only=True)
-    except Exception:
+    except Exception:  # Deliberately broad: openpyxl raises InvalidFileException, XML parsing errors, etc.
         logger.debug("Failed to open workbook for column context: %s", xlsx_path, exc_info=True)
         return None
 
@@ -235,13 +236,13 @@ def read_xlsx_column_context(
             "data_start_row": first_data_row,
             "columns": columns,
         }
-    except Exception:
+    except Exception:  # Deliberately broad: openpyxl cell access raises various undocumented exceptions
         logger.debug("Failed to read XLSX column context for %s/%s", xlsx_path.name, sheet_name, exc_info=True)
         return None
     finally:
         try:
             wb.close()
-        except Exception:
+        except OSError:
             logger.debug("Failed to close workbook after reading column context: %s", xlsx_path, exc_info=True)
 
 
@@ -397,7 +398,7 @@ def get_sheet_verdict(
             from engine.tools.registry import TOOLS
 
             has_query_tool = "source_data.query" in TOOLS
-        except Exception:
+        except (ImportError, AttributeError):
             logger.debug("Failed to check tool registry for source_data.query", exc_info=True)
             has_query_tool = False
 
@@ -447,7 +448,7 @@ def get_sheet_verdict(
     finally:
         try:
             ctx_path.unlink(missing_ok=True)
-        except Exception:
+        except OSError:
             logger.debug("Failed to clean up verdict context file: %s", ctx_path, exc_info=True)
 
     if result.status == "success" and result.output:
@@ -687,7 +688,7 @@ def run_source_data_verdict(
             logger.info(
                 "Loaded %d enriched claims for verdict context", len(enriched_claims)
             )
-        except Exception as e:
+        except (json.JSONDecodeError, ValueError, KeyError) as e:
             logger.warning("Failed to load enriched claims: %s", e)
 
     # Build sheet contexts
@@ -727,7 +728,7 @@ def run_source_data_verdict(
             ctx = future_to_ctx[future]
             try:
                 verdict = future.result()
-            except Exception as exc:
+            except (OSError, AgentError) as exc:
                 logger.warning(
                     "Verdict exception for %s/%s: %s",
                     ctx["workbook"],

@@ -41,7 +41,9 @@ HOST ?= 127.0.0.1
 PORT ?= 8765
 WEB_DATA_DIR ?= web_data
 FRONTEND_DIR := web/frontend
-LOCAL_DATABASE_URL ?= postgresql://veritas_dev:veritas_dev_pass@127.0.0.1:5433/veritas_dev
+# Set VERITAS_DEV_DB_URL in your .env or shell, e.g.:
+#   export VERITAS_DEV_DB_URL=postgresql://veritas_dev:CHANGEME@127.0.0.1:5433/veritas_dev
+LOCAL_DATABASE_URL ?= $(VERITAS_DEV_DB_URL)
 
 .PHONY: help show-config sync install setup \
 	up down rebuild restart logs ps shell health docker-health \

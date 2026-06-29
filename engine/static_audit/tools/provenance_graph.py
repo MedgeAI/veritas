@@ -97,7 +97,7 @@ def build_provenance_graph(
             max_workers=max_workers,
             timeout=timeout,
         )
-    except Exception as exc:
+    except Exception as exc:  # Deliberately broad: adapter wrapper safety net
         logger.exception("Provenance-adapter failed unexpectedly")
         return {
             "schema_version": "1.0",

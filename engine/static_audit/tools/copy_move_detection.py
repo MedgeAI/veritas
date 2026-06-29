@@ -23,7 +23,6 @@ import argparse
 import json
 import logging
 import shutil
-import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from itertools import combinations
@@ -32,12 +31,15 @@ from typing import Any
 
 logger = logging.getLogger(__name__)
 
+from engine.exceptions import ToolExecutionError
 from engine.static_audit.visual_constants import (
     COPY_MOVE_DEFAULTS,
     dhash_rotations_from_path,
     min_hamming_rotations,
 )
 from engine.static_audit.visual_schemas import VISUAL_SCHEMA_VERSION
+from runtime.executors.base import ExecutionRequest
+from runtime.executors.subprocess_executor import execute_subprocess
 
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".bmp", ".tif", ".tiff"}
 
@@ -215,7 +217,7 @@ def parallel_sift_match(
             for future in as_completed(futures):
                 try:
                     all_results.extend(future.result())
-                except Exception:
+                except (OSError, RuntimeError):
                     pass
 
     return all_results
@@ -314,18 +316,20 @@ def _run_elis_runner(
 ) -> dict[str, Any] | None:
     """Call the ELIS copy-move runner subprocess and parse its JSON output."""
     try:
-        proc = subprocess.run(
-            [sys.executable, "-m", "engine.static_audit.tools._elis_copy_move_runner"],
-            input=json.dumps(input_data),
-            capture_output=True,
-            text=True,
-            timeout=timeout,
-            check=False,
+        result = execute_subprocess(
+            ExecutionRequest(
+                command=[
+                    sys.executable,
+                    "-m",
+                    "engine.static_audit.tools._elis_copy_move_runner",
+                ],
+                workdir=Path.cwd(),
+                timeout_seconds=timeout,
+                stdin_data=json.dumps(input_data),
+            )
         )
-        if proc.returncode != 0:
-            return None
-        return json.loads(proc.stdout)
-    except (subprocess.TimeoutExpired, json.JSONDecodeError, OSError):
+        return json.loads(result.stdout)
+    except (ToolExecutionError, json.JSONDecodeError, OSError):
         return None
 
 
@@ -664,7 +668,7 @@ def _run_rotation_detection(
                     }
                 )
 
-            except Exception as e:
+            except Exception as e:  # Deliberately broad: rotation detection uses cv2 + custom algorithms that may raise various errors
                 logger.warning(f"Rotation detection failed for pair {pair_id}: {e}")
                 results.append(
                     {

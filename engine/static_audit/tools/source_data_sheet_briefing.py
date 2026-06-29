@@ -148,7 +148,7 @@ def _analyze_sheet_structure(
 
     try:
         wb = load_workbook(str(xlsx_path), read_only=True, data_only=True)
-    except Exception:
+    except Exception:  # Deliberately broad: openpyxl raises InvalidFileException, XML parsing errors, etc.
         logger.debug("Failed to open workbook for structure analysis: %s", xlsx_path, exc_info=True)
         return None
 
@@ -169,13 +169,13 @@ def _analyze_sheet_structure(
             "column_count": max_col,
             "column_blocks": column_blocks,
         }
-    except Exception:
+    except Exception:  # Deliberately broad: openpyxl cell access raises various undocumented exceptions
         logger.debug("Failed to analyze sheet structure for %s/%s", xlsx_path.name, sheet_name, exc_info=True)
         return None
     finally:
         try:
             wb.close()
-        except Exception:
+        except OSError:
             logger.debug("Failed to close workbook after analysis: %s", xlsx_path, exc_info=True)
 
 

@@ -163,7 +163,7 @@ def run_image_quality(
         figure_count += 1
         try:
             fig_anomalies = _analyze_image(fig_path)
-        except Exception as e:
+        except Exception as e:  # Deliberately broad: per-figure failure isolation; image analysis must not abort scan
             # Failure isolation: per-figure analysis must not abort the scan.
             logger.warning("Image quality analysis failed for %s: %s", figure_id, e)
             errors.append(f"Analysis failed for {figure_id}: {e}")
@@ -299,7 +299,7 @@ def run_background_comparison(
 
         try:
             lap_var, edge_dens = _background_texture_score(panel_path)
-        except Exception as e:
+        except (OSError, ValueError, ImportError) as e:
             logger.warning("Texture score failed for %s: %s", panel_id, e)
             errors.append(f"Texture score failed for {panel_id}: {e}")
             continue

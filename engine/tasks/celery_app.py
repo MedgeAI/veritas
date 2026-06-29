@@ -39,14 +39,8 @@ logger = logging.getLogger(__name__)
 # Broker / backend URLs
 # ---------------------------------------------------------------------------
 
-BROKER_URL: str = get_env(
-    "CELERY_BROKER_URL", required=False,
-    default="sqlalchemy+postgresql://veritas_dev:veritas_dev_pass@localhost:5433/veritas_dev",
-)
-RESULT_BACKEND: str = get_env(
-    "CELERY_RESULT_BACKEND", required=False,
-    default="db+postgresql://veritas_dev:veritas_dev_pass@localhost:5433/veritas_dev",
-)
+BROKER_URL: str = get_env("CELERY_BROKER_URL")
+RESULT_BACKEND: str = get_env("CELERY_RESULT_BACKEND")
 
 # ---------------------------------------------------------------------------
 # Concurrency and timeout knobs

@@ -5,12 +5,15 @@ from pathlib import Path
 
 import pytest
 
-# Default to Docker PostgreSQL (started by ``make db-up``).
-# Developers can override with VERITAS_DATABASE_URL for a different instance.
-os.environ.setdefault(
-    "VERITAS_DATABASE_URL",
-    "postgresql://veritas_dev:veritas_dev_pass@localhost:5433/veritas_dev",
-)
+# Default DB URL is set by the caller (e.g. Makefile, CI, deploy/.env).
+# Fail loudly if VERITAS_DATABASE_URL is not set rather than silently
+# falling back to hardcoded dev credentials.
+_database_url = os.environ.get("VERITAS_DATABASE_URL")
+if not _database_url:
+    raise RuntimeError(
+        "VERITAS_DATABASE_URL is not set. "
+        "Run 'make db-up' and export VERITAS_DATABASE_URL, or set it in tests/.env."
+    )
 
 # Tests run without a Celery worker — force synchronous thread-pool execution.
 # Overrides .env VERITAS_USE_CELERY=true so runner.start() takes the

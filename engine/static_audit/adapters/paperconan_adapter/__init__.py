@@ -42,7 +42,10 @@ _BULKY_ARTIFACT_KEYS = {
 }
 
 
-class PaperconanAdapterError(RuntimeError):
+from engine.exceptions import VeritasError
+
+
+class PaperconanAdapterError(VeritasError):
     """Raised when the paperconan adapter fails to run or transform results."""
 
 
@@ -150,7 +153,7 @@ def run_paperconan_scan(
         }
         _write_error_artifact(artifact_path, error_result)
         return error_result
-    except Exception as e:
+    except Exception as e:  # Deliberately broad: paperconan adapter wraps complex third-party tool
         # Unexpected failure — record as "error"
         error_result = {
             "tool": "paperconan",

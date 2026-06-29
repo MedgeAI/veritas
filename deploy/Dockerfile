@@ -38,7 +38,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
        || usermod -l $USERNAME -d /home/$USERNAME -m $(getent passwd $USER_UID | cut -d: -f1) 2>/dev/null \
        || true
 
-ARG OPENCODE_NPM_PACKAGE=opencode-ai@latest
+ARG OPENCODE_NPM_PACKAGE=opencode-ai@1.17.11
 RUN npm install -g "${OPENCODE_NPM_PACKAGE}"
 
 ENV VIRTUAL_ENV=/opt/venv

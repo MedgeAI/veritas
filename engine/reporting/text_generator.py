@@ -404,7 +404,7 @@ async def enrich_single_finding_async(
             },
             "error": None,
         }
-    except Exception as e:
+    except Exception as e:  # Deliberately broad: LLM enrichment can fail with VeritasLLMParseError, network errors, etc.
         logger.debug(
             "async enrichment failed for %s: %s",
             finding.finding_id,

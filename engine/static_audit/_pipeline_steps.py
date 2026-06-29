@@ -19,6 +19,7 @@ PROJECT_ROOT_PATH = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT_PATH) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT_PATH))
 
+from engine.exceptions import VeritasError
 from engine.static_audit._shared import (
     AUDITOR_ROOT,
     PROJECT_ROOT,
@@ -88,7 +89,7 @@ def _relocate_mineru_outputs(workdir: Path) -> None:
             ledger_path.write_text(
                 json.dumps(ledger, ensure_ascii=False, indent=2), encoding="utf-8"
             )
-        except Exception:
+        except (OSError, ValueError):  # JSON read/write + path manipulation
             logger.warning(
                 "Ledger image path update failed (non-critical)", exc_info=True
             )
@@ -267,7 +268,7 @@ def _run_source_data_steps(
             else:
                 filter_status = "skipped"
                 filter_detail = "no findings to filter"
-        except Exception as e:
+        except (VeritasError, OSError) as e:
             logger.warning("cross_sheet_filter failed: %s", e)
             filter_status = "warning"
             filter_detail = f"filter failed: {e}"
@@ -338,7 +339,7 @@ def _run_source_data_steps(
         )
         bs = briefings.get("sheet_count", 0)
         bst, bsd = "ran", f"sheets={bs}"
-    except Exception as e:
+    except (VeritasError, OSError) as e:
         bst, bsd = "warning", f"briefings step exception: {e}"
         logger.warning("source_data_briefings failed: %s", e)
     steps.append(
@@ -369,7 +370,7 @@ def _run_source_data_steps(
         vst = "ran" if vs.get("total_sheets", 0) > 0 else "skipped"
         if vs.get("failed_sheets", 0) > 0:
             vst, vd = "warning", vd + f" failed_sheets={vs['failed_sheets']}"
-    except Exception as e:
+    except (VeritasError, OSError) as e:
         vst, vd = "warning", f"verdict step exception: {e}"
         logger.warning("source_data_verdict failed: %s", e)
     steps.append(StepResult("source_data_verdict", "Source Data LLM 语义裁决", vst, vd))
@@ -600,7 +601,7 @@ def _run_material_plan_section(
         write_agent_result,
     )
     from engine.static_audit._shared import agent_step_status
-    from engine.static_audit.pipeline import material_plan_from_inventory
+    from engine.static_audit.stages.planning import material_plan_from_inventory
 
     steps: list[StepResult] = []
     amp_path = resolve_artifact_path(workdir, "agent_material_plan.json")
@@ -1023,7 +1024,7 @@ def _run_bundle_and_report(
             ),
             progress,
         )
-    except Exception as e:
+    except (ValueError, OSError) as e:
         logger.warning("certification_grade failed: %s", e)
         record_step(
             steps,
@@ -1052,7 +1053,7 @@ def _run_bundle_and_report(
             ),
             progress,
         )
-    except Exception as e:
+    except (VeritasError, OSError) as e:
         logger.warning("certainty_enrichment failed: %s", e)
         record_step(
             steps,
@@ -1109,7 +1110,7 @@ def _run_bundle_and_report(
             from engine.static_audit.report_id import generate_report_id
 
             report_id = generate_report_id()
-        except Exception as e:
+        except (ValueError, OSError) as e:
             logger.warning("Report ID generation failed: %s", e)
 
     html_path = write_static_audit_html(
@@ -1161,7 +1162,7 @@ def _run_bundle_and_report(
             ),
             progress,
         )
-    except Exception as e:
+    except (VeritasError, OSError) as e:
         logger.warning("LLM text enrichment skipped: %s", e)
         record_step(
             steps,
@@ -1194,7 +1195,7 @@ def _run_bundle_and_report(
                 grade_data=grade_data,
             )
             logger.info("Public verification enabled: %s", report_id)
-        except Exception as e:
+        except (OSError, ValueError) as e:
             logger.warning("Verification summary save failed: %s", e)
 
     failed = [s.key for s in steps if s.status == "failed"]

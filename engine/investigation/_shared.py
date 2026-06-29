@@ -222,7 +222,7 @@ def _run_opencode_json(
             return AgentRunResult(
                 "ok", data, f"opencode {expected} ok", command, runtime, attempt
             )
-        except Exception as exc:
+        except (json.JSONDecodeError, ValueError, KeyError) as exc:
             last_detail = f"{type(exc).__name__}: {exc}"
             if completed.stdout:
                 last_detail += f" stdout_tail={completed.stdout[-1000:]!r}"

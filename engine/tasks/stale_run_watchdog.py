@@ -20,90 +20,16 @@ import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
-from sqlalchemy import Column, Integer, String, Text, JSON, create_engine
-from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
-
-from engine.env import get_env
+from engine.tasks._task_orm import (
+    _RunEventRow,
+    _RunRow,
+    _get_session_factory,
+    _utc_now,
+)
 
 logger = logging.getLogger(__name__)
 
 STALE_THRESHOLD_SECONDS = 600
-
-# ---------------------------------------------------------------------------
-# Lightweight ORM layer — self-contained, no web-layer imports.
-# ---------------------------------------------------------------------------
-
-
-class _WatchdogBase(DeclarativeBase):
-    pass
-
-
-class _RunRow(_WatchdogBase):
-    """Minimal mirror of the ``runs`` table."""
-
-    __tablename__ = "runs"
-
-    run_id = Column(String(128), primary_key=True)
-    case_id = Column(String(128), nullable=False)
-    status = Column(String(32), default="queued")
-    completed_at = Column(String(32), nullable=True)
-    error = Column(Text, nullable=True)
-    last_event_at = Column(String(32), nullable=True)
-    workdir = Column(Text, nullable=True)
-
-
-class _RunEventRow(_WatchdogBase):
-    """Minimal mirror of the ``run_events`` table."""
-
-    __tablename__ = "run_events"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    run_id = Column(String(128), nullable=False)
-    event_type = Column(String(64), nullable=False)
-    payload = Column(JSON, nullable=True)
-    created_at = Column(String(32), nullable=True)
-
-
-# ---------------------------------------------------------------------------
-# Session factory — created lazily from DATABASE_URL
-# ---------------------------------------------------------------------------
-
-_session_factory: sessionmaker[Session] | None = None
-
-
-def _get_session_factory() -> sessionmaker[Session]:
-    """Return a cached session factory bound to the database URL."""
-    global _session_factory
-    if _session_factory is not None:
-        return _session_factory
-
-    db_url = get_env("VERITAS_DATABASE_URL", required=False) or get_env(
-        "DATABASE_URL", required=False
-    )
-    if not db_url:
-        raise RuntimeError(
-            "VERITAS_DATABASE_URL (or DATABASE_URL) must be set for the "
-            "stale run watchdog to connect to the runs table."
-        )
-
-    engine = create_engine(
-        db_url,
-        pool_pre_ping=True,
-        pool_size=2,
-        max_overflow=3,
-    )
-    _session_factory = sessionmaker(bind=engine, autoflush=False, autocommit=False)
-    return _session_factory
-
-
-def _utc_now() -> str:
-    return (
-        datetime.now(timezone.utc)
-        .replace(microsecond=0)
-        .isoformat()
-        .replace("+00:00", "Z")
-    )
-
 
 # ---------------------------------------------------------------------------
 # Stale detection
@@ -191,7 +117,7 @@ def scan_and_recover(threshold: int = STALE_THRESHOLD_SECONDS) -> list[dict]:
             session.commit()
 
         return recovered
-    except Exception:
+    except Exception:  # Deliberately broad: DB session rollback must catch any SQLAlchemy or connection error
         session.rollback()
         raise
     finally:

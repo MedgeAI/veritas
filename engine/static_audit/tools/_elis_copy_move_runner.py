@@ -171,7 +171,7 @@ def _run_single(
                     "error": str(result.get("error", "")),
                 }
             )
-        except Exception as e:
+        except Exception as e:  # Deliberately broad: per-panel failure isolation; detector errors must not abort batch
             # Failure isolation: per-panel detector errors must not abort the batch.
             logger.warning(
                 "Single-image copy-move failed for panel %s: %s", panel_id, e
@@ -264,7 +264,7 @@ def _run_cross(
                     "error": str(result.get("error", "")),
                 }
             )
-        except Exception as e:
+        except Exception as e:  # Deliberately broad: per-pair failure isolation; detector errors must not abort batch
             # Failure isolation: per-pair detector errors must not abort the batch.
             logger.warning("Cross-image copy-move failed for pair %s: %s", pair_id, e)
             results.append(

@@ -12,6 +12,7 @@ from pathlib import Path
 
 import pytest
 
+from engine.exceptions import AgentError
 from engine.static_audit.paths import resolve_artifact_path
 from engine.static_audit.tools.source_data_verdict import (
     _build_sheet_context,
@@ -454,7 +455,7 @@ def test_run_source_data_verdict_keeps_findings_uncertain_when_sheet_call_fails(
 
     def fake_get_sheet_verdict(sheet_context, **_kwargs):
         if sheet_context["sheet"] == "S2":
-            raise RuntimeError("opencode unavailable")
+            raise AgentError("opencode unavailable")
         return {
             "sheet_verdict": "mostly_uncertain",
             "sheet_pattern": "measurement_data",

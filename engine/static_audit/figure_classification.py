@@ -202,7 +202,7 @@ def classify_figure(
             )
             return {}
         return result
-    except Exception as e:
+    except Exception as e:  # Deliberately broad: LLM client can raise VeritasLLMParseError, network errors, etc.
         logger.warning("LLM classification failed for %s: %s", figure_label, e)
         return {}
 
@@ -226,7 +226,7 @@ def classify_all_figures(
     if len(legends) > 1:
         try:
             return classify_all_figures_batch(legends, llm_client)
-        except Exception as e:
+        except Exception as e:  # Deliberately broad: batch LLM call may raise VeritasLLMParseError, network errors, etc.
             logger.warning(
                 "Batch classification failed, falling back to per-figure: %s", e
             )
@@ -491,7 +491,7 @@ def run_figure_classification_step(
             from engine.llm.client import VeritasLLMClient
 
             llm_client = VeritasLLMClient()
-        except Exception as e:
+        except Exception as e:  # Deliberately broad: LLM client initialization may fail due to missing config, env vars, etc.
             logger.warning("Failed to initialize LLM client: %s", e)
             record_step(
                 steps,

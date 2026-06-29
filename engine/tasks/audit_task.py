@@ -32,96 +32,20 @@ import logging
 from pathlib import Path
 from typing import Any
 
-from sqlalchemy import Column, JSON, String, Text, create_engine, text
-from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy import text
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 
 from engine.env import get_env
+from engine.exceptions import PipelineError, ToolExecutionError
+from engine.tasks._task_orm import (
+    _RunRow,
+    _TaskBase,
+    _get_session_factory,
+    _utc_now,
+)
 
 logger = logging.getLogger(__name__)
-
-# ---------------------------------------------------------------------------
-# Lightweight ORM layer — self-contained for the Celery worker process.
-#
-# We cannot import web.backend ORM classes (they pull in FastAPI).
-# Instead we define a minimal mapping over the same ``runs`` / ``run_events``
-# tables.
-# ---------------------------------------------------------------------------
-
-
-class _TaskBase(DeclarativeBase):
-    pass
-
-
-class _RunRow(_TaskBase):
-    """Minimal mirror of the ``runs`` table for the Celery worker."""
-
-    __tablename__ = "runs"
-
-    run_id = Column(String(128), primary_key=True)
-    case_id = Column(String(128), nullable=False)
-    status = Column(String(32), default="queued")
-    agent_mode = Column(String(32), nullable=True)
-    started_at = Column(String(32), nullable=True)
-    completed_at = Column(String(32), nullable=True)
-    summary = Column(JSON, nullable=True)
-    workdir = Column(Text, nullable=True)
-    final_html_report_url = Column(Text, nullable=True)
-    error = Column(Text, nullable=True)
-    last_event_at = Column(String(32), nullable=True)
-    created_at = Column(String(32), nullable=True)
-    celery_task_id = Column(String(255), nullable=True)
-    stages = Column(JSON, nullable=True)
-    current_stage = Column(String(50), nullable=True)
-
-
-# ---------------------------------------------------------------------------
-# Session factory — created lazily from DATABASE_URL
-# ---------------------------------------------------------------------------
-
-_session_factory: sessionmaker[Session] | None = None
-
-
-def _get_session_factory() -> sessionmaker[Session]:
-    """Return a cached session factory bound to the database URL.
-
-    The Celery worker process must have ``VERITAS_DATABASE_URL`` (or
-    ``DATABASE_URL``) set.  We intentionally avoid importing the web
-    backend's ``get_database_url`` to keep this module free of FastAPI
-    dependencies.
-    """
-    global _session_factory
-    if _session_factory is not None:
-        return _session_factory
-
-    db_url = get_env("VERITAS_DATABASE_URL", required=False) or get_env(
-        "DATABASE_URL", required=False
-    )
-    if not db_url:
-        raise RuntimeError(
-            "VERITAS_DATABASE_URL (or DATABASE_URL) must be set for the "
-            "Celery worker to connect to the runs table."
-        )
-
-    engine = create_engine(
-        db_url,
-        pool_pre_ping=True,
-        pool_size=2,
-        max_overflow=3,
-    )
-    _session_factory = sessionmaker(bind=engine, autoflush=False, autocommit=False)
-    return _session_factory
-
-
-def _utc_now() -> str:
-    from datetime import datetime, timezone
-
-    return (
-        datetime.now(timezone.utc)
-        .replace(microsecond=0)
-        .isoformat()
-        .replace("+00:00", "Z")
-    )
-
 
 # ---------------------------------------------------------------------------
 # SSE progress notification — inline DB operations (no web-layer import).
@@ -171,7 +95,7 @@ def _notify_progress(run_id: str, event: dict[str, Any]) -> None:
             {"payload": notify_payload},
         )
         session.commit()
-    except Exception:
+    except Exception:  # Deliberately broad: progress callback must never crash the pipeline; catches SQLAlchemy and connection errors
         session.rollback()
         logger.debug(
             "Progress notification failed for run_id=%s event=%s",
@@ -405,7 +329,7 @@ def _run_audit_impl(
         row.stages = stages
 
         session.commit()
-    except Exception:
+    except Exception:  # Deliberately broad: session setup must catch any SQLAlchemy or connection error
         session.rollback()
         session.close()
         raise
@@ -428,7 +352,7 @@ def _run_audit_impl(
                         r.current_stage = stage
                         r.last_event_at = _utc_now()
                         s.commit()
-                except Exception:
+                except (SQLAlchemyError, OSError):
                     s.rollback()
                     logger.debug(
                         "stage commit failed for run_id=%s stage=%s",
@@ -438,7 +362,7 @@ def _run_audit_impl(
                     )
                 finally:
                     s.close()
-            except Exception:
+            except (SQLAlchemyError, OSError):
                 logger.debug("stage update skipped", exc_info=True)
 
         # Update heartbeat on every progress event
@@ -449,7 +373,7 @@ def _run_audit_impl(
                 if r is not None:
                     r.last_event_at = _utc_now()
                     s.commit()
-            except Exception:
+            except (SQLAlchemyError, OSError):
                 s.rollback()
                 logger.debug(
                     "heartbeat commit failed for run_id=%s",
@@ -458,7 +382,7 @@ def _run_audit_impl(
                 )
             finally:
                 s.close()
-        except Exception:
+        except (SQLAlchemyError, OSError):
             logger.debug("heartbeat update skipped", exc_info=True)
 
         # Forward event to SSE subscribers
@@ -519,7 +443,7 @@ def _run_audit_impl(
             result["status"] = "completed"
             result["error"] = f"partial: {pipeline_failed}"
 
-    except Exception as exc:
+    except (PipelineError, ToolExecutionError, OSError) as exc:
         logger.exception(
             "run_audit: pipeline failed for run_id=%s: %s",
             run_id,
@@ -562,7 +486,7 @@ def _run_audit_impl(
                     final_row.status = "failed"
                     final_row.error = result.get("error", "unknown error")
             session.commit()
-    except Exception:
+    except (SQLAlchemyError, OSError):
         session.rollback()
         logger.exception("run_audit: failed to finalise run_id=%s", run_id)
 
@@ -580,7 +504,7 @@ def _run_audit_impl(
                 run_id,
                 cleanup_result,
             )
-        except Exception:
+        except (OSError, RuntimeError):  # cleanup is best-effort; must never prevent run completion
             logger.exception("run_audit: cleanup failed for run_id=%s", run_id)
 
     session.close()
@@ -598,7 +522,7 @@ def _run_audit_impl(
 # ---------------------------------------------------------------------------
 try:
     _register_task()
-except Exception:
+except Exception:  # Deliberately broad: auto-registration may fail during testing or without Celery configured
     # During testing or if the celery app is not yet configured, the
     # registration may fail.  The task function is still importable.
     logger.debug("Could not auto-register run_audit task", exc_info=True)

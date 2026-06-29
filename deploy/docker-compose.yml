@@ -71,7 +71,6 @@ services:
     volumes:
       - ../web_data:/app/web_data
       - ../outputs:/app/outputs
-      - /var/run/docker.sock:/var/run/docker.sock
     env_file:
       - ../.env
       - path: .env

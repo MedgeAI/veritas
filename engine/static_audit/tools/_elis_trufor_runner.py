@@ -167,7 +167,7 @@ def run_batch(
     # Load model once
     try:
         model = _load_model(weights_path, device)
-    except Exception as e:
+    except Exception as e:  # Deliberately broad: model loading can fail in many ways (weights, CUDA, memory)
         # Failure isolation: model load failure should not crash the pipeline;
         # record skip_reason for every figure and return gracefully.
         logger.warning("TruFor model load failed: %s", e)
@@ -243,7 +243,7 @@ def run_batch(
                 }
             )
 
-        except Exception as e:
+        except Exception as e:  # Deliberately broad: per-figure failure isolation; inference errors must not abort batch
             elapsed = time.time() - t0
             results.append(
                 {
