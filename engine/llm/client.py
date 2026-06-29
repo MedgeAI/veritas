@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 
 
 class VeritasLLMParseError(Exception):
@@ -55,11 +56,18 @@ class VeritasLLMClient:
     def chat_json(self, prompt: str, **kwargs) -> dict:
         """Send a chat request and parse the response as JSON.
 
+        Strips markdown code fences (```json ... ```) before parsing,
+        since LLMs commonly wrap JSON responses in fenced blocks.
+
         Raises VeritasLLMParseError if the response is not valid JSON.
         """
         text = self.chat(prompt, **kwargs)
+        # Strip markdown code fences: ```json ... ``` or ``` ... ```
+        stripped = re.sub(r"^```(?:json)?\s*\n?", "", text.strip(), flags=re.MULTILINE)
+        stripped = re.sub(r"\n?```\s*$", "", stripped, flags=re.MULTILINE)
+        stripped = stripped.strip()
         try:
-            return json.loads(text)
+            return json.loads(stripped)
         except json.JSONDecodeError as e:
             raise VeritasLLMParseError(
                 f"Failed to parse JSON from LLM response: {text[:200]!r}"

@@ -18,6 +18,7 @@ the field is absent or contains an error.
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from dataclasses import dataclass, field
@@ -42,11 +43,35 @@ _RISK_PRIORITY: dict[str, int] = {
 # ---------------------------------------------------------------------------
 # LLM output schema
 # ---------------------------------------------------------------------------
-LLM_TEXT_FIELDS = ("review_question", "benign_explanations", "relation_text", "evidence_cited")
+LLM_TEXT_FIELDS = (
+    "review_question",
+    "benign_explanations",
+    "relation_text",
+    "evidence_cited",
+)
+
+# ---------------------------------------------------------------------------
+# Async enrichment result (internal)
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class _AsyncEnrichResult:
+    """Result of a single async LLM enrichment attempt."""
+
+    finding_id: str
+    data: dict[str, Any] | None = None
+    error: str | None = None
+
+    @property
+    def ok(self) -> bool:
+        return self.error is None
+
 
 # ---------------------------------------------------------------------------
 # Context dataclass
 # ---------------------------------------------------------------------------
+
 
 @dataclass(frozen=True)
 class FindingLLMContext:
@@ -119,9 +144,11 @@ class FindingLLMContext:
 # Context builder
 # ---------------------------------------------------------------------------
 
+
 def _read_json_artifact(workdir: Path, name: str) -> dict[str, Any]:
     """Read a JSON artifact from workdir, returning {} on any failure."""
     from engine.static_audit._shared import resolve_artifact_path, read_json
+
     path = resolve_artifact_path(workdir, name)
     return read_json(path) or {}
 
@@ -142,10 +169,12 @@ def _build_finding_context(
         if fid in (mapping.finding_refs or []):
             claim = claim_by_id.get(mapping.claim_id)
             if claim:
-                related_claims.append({
-                    "claim_id": claim.claim_id,
-                    "text": (claim.text or "")[:300],
-                })
+                related_claims.append(
+                    {
+                        "claim_id": claim.claim_id,
+                        "text": (claim.text or "")[:300],
+                    }
+                )
             if len(related_claims) >= 3:
                 break
 
@@ -154,28 +183,32 @@ def _build_finding_context(
         for cid in finding.claim_refs[:3]:
             claim = claim_by_id.get(cid)
             if claim:
-                related_claims.append({
-                    "claim_id": claim.claim_id,
-                    "text": (claim.text or "")[:300],
-                })
+                related_claims.append(
+                    {
+                        "claim_id": claim.claim_id,
+                        "text": (claim.text or "")[:300],
+                    }
+                )
 
     # Related evidence items
     evidence_items: list[dict[str, str]] = []
     evidence_ref_set = set(finding.evidence_refs or [])
     for ev in bundle.evidence_items:
         if ev.evidence_id in evidence_ref_set:
-            evidence_items.append({
-                "evidence_id": ev.evidence_id,
-                "kind": ev.kind,
-                "summary": (ev.summary or "")[:200],
-            })
+            evidence_items.append(
+                {
+                    "evidence_id": ev.evidence_id,
+                    "kind": ev.kind,
+                    "summary": (ev.summary or "")[:200],
+                }
+            )
         if len(evidence_items) >= 5:
             break
 
     # Agent source review (from workdir artifact)
     source_auditor = _read_json_artifact(workdir, "agent_source_data_auditor.json")
     agent_source_review = None
-    for review in (source_auditor.get("finding_reviews") or []):
+    for review in source_auditor.get("finding_reviews") or []:
         if review.get("finding_id") == fid:
             agent_source_review = {
                 "benign_explanations": (review.get("benign_explanations") or [])[:3],
@@ -186,7 +219,7 @@ def _build_finding_context(
     # Agent judge risk
     agent_judge = _read_json_artifact(workdir, "agent_judge.json")
     agent_judge_risk = None
-    for risk in (agent_judge.get("risk_suggestions") or []):
+    for risk in agent_judge.get("risk_suggestions") or []:
         risk_fids = risk.get("finding_ids") or []
         if fid in risk_fids or risk.get("finding_id") == fid:
             agent_judge_risk = {
@@ -198,7 +231,8 @@ def _build_finding_context(
 
     # Sibling count (same category)
     sibling_count = sum(
-        1 for f in bundle.findings
+        1
+        for f in bundle.findings
         if f.category == finding.category and f.finding_id != fid
     )
 
@@ -230,6 +264,7 @@ def _build_finding_context(
 # ---------------------------------------------------------------------------
 # Prompt builder
 # ---------------------------------------------------------------------------
+
 
 def _build_llm_prompt(context: FindingLLMContext) -> str:
     """Build the LLM prompt with constraints and serialized context."""
@@ -264,6 +299,7 @@ def _build_llm_prompt(context: FindingLLMContext) -> str:
 # Response validator
 # ---------------------------------------------------------------------------
 
+
 def _validate_response(response: dict[str, Any], context: FindingLLMContext) -> None:
     """Validate LLM response structure and evidence references.
 
@@ -290,7 +326,9 @@ def _validate_response(response: dict[str, Any], context: FindingLLMContext) -> 
         raise ValueError(f"evidence_cited is not a list: {type(cited)}")
     for ref in cited:
         if isinstance(ref, str) and ref and ref not in valid_ids:
-            logger.debug("evidence_cited contains unknown ref: %s (allowed: %s)", ref, valid_ids)
+            logger.debug(
+                "evidence_cited contains unknown ref: %s (allowed: %s)", ref, valid_ids
+            )
 
     # Validate benign_explanations is a list
     exp = response.get("benign_explanations")
@@ -299,8 +337,9 @@ def _validate_response(response: dict[str, Any], context: FindingLLMContext) -> 
 
 
 # ---------------------------------------------------------------------------
-# Main enrichment function
+# Finding selection
 # ---------------------------------------------------------------------------
+
 
 def _select_top_findings(
     findings: list[Any],
@@ -313,27 +352,106 @@ def _select_top_findings(
     )[:max_findings]
 
 
-def enrich_bundle_with_llm_text(
+# ---------------------------------------------------------------------------
+# Async enrichment (parallel LLM calls with semaphore-based rate limiting)
+# ---------------------------------------------------------------------------
+
+
+async def enrich_single_finding_async(
+    finding: Any,
+    llm_client: Any,
+    bundle: StaticAuditBundle | None = None,
+    workdir: Path | None = None,
+) -> dict[str, Any]:
+    """Asynchronously enrich a single finding with LLM-generated text.
+
+    The blocking ``chat_json`` call is dispatched to a thread pool via
+    ``asyncio.to_thread`` so that multiple enrichments can proceed in
+    parallel without blocking the event loop.
+
+    Args:
+        finding: Finding dataclass instance to enrich.
+        llm_client: VeritasLLMClient (or compatible mock) with ``chat_json``.
+        bundle: StaticAuditBundle for context building. If *None*, the finding
+            must already carry a ``_llm_context`` attribute (pre-built).
+        workdir: Workdir path for artifact reading.  Required when *bundle*
+            is given.
+
+    Returns:
+        A dict with keys ``finding_id``, ``data`` (on success), or ``error``
+        (on failure).
+    """
+    try:
+        if bundle is not None and workdir is not None:
+            context = _build_finding_context(finding, bundle, workdir)
+        else:
+            context = getattr(finding, "_llm_context")
+        prompt = _build_llm_prompt(context)
+        # Dispatch blocking network I/O to a worker thread.
+        response: dict[str, Any] = await asyncio.to_thread(
+            llm_client.chat_json, prompt, max_tokens=2000
+        )
+        _validate_response(response, context)
+        return {
+            "finding_id": finding.finding_id,
+            "data": {
+                "review_question": response.get("review_question"),
+                "benign_explanations": response.get("benign_explanations") or [],
+                "relation_text": response.get("relation_text"),
+                "evidence_cited": response.get("evidence_cited") or [],
+                "model": "qwen3.7-plus",
+                "generated_at": _utc_now(),
+            },
+            "error": None,
+        }
+    except Exception as e:
+        logger.debug(
+            "async enrichment failed for %s: %s",
+            finding.finding_id,
+            e,
+        )
+        return {"finding_id": finding.finding_id, "data": None, "error": str(e)}
+
+
+def _apply_enrichment_result(
+    finding: Any,
+    result: dict[str, Any],
+) -> bool:
+    """Apply an async enrichment result to a finding's metadata.
+
+    Returns True on success, False on failure.
+    """
+    if result.get("error") is not None:
+        logger.warning(
+            "LLM enrichment failed for %s: %s",
+            finding.finding_id,
+            result["error"],
+        )
+        finding.metadata["llm_text"] = {"error": result["error"]}
+        return False
+    finding.metadata["llm_text"] = result["data"]
+    return True
+
+
+async def enrich_bundle_with_llm_text_parallel(
     bundle: StaticAuditBundle,
     workdir: Path,
     llm_client: Any,
+    max_concurrent: int = 3,
     max_findings: int = 10,
 ) -> StaticAuditBundle:
-    """Enrich top findings with LLM-generated text.
+    """Enrich top findings with LLM-generated text in parallel.
 
-    For each of the top-N findings (by risk priority):
-    1. Build context from bundle + workdir artifacts
-    2. Call LLM with structured prompt
-    3. Validate response
-    4. Store in finding.metadata["llm_text"]
-
-    On failure for a single finding, stores {"error": "..."} and continues.
+    Uses ``asyncio.Semaphore`` to cap concurrent LLM requests and
+    ``asyncio.to_thread`` to dispatch blocking ``chat_json`` calls to a
+    thread pool.
 
     Args:
-        bundle: The StaticAuditBundle to enrich (mutated in place).
+        bundle: StaticAuditBundle to enrich (mutated in place).
         workdir: Path to the workdir containing JSON artifacts.
-        llm_client: VeritasLLMClient instance (must have chat_json method).
-        max_findings: Maximum number of findings to enrich (default 10).
+        llm_client: VeritasLLMClient (or compatible mock).
+        max_concurrent: Max simultaneous LLM calls (rate-limit guard).
+        max_findings: Max number of findings to enrich.
 
     Returns:
         The same bundle instance (for chaining).
@@ -348,43 +466,80 @@ def enrich_bundle_with_llm_text(
 
     top_findings = _select_top_findings(bundle.findings, max_findings)
     logger.info(
-        "LLM text enrichment: targeting %d/%d findings",
-        len(top_findings), len(bundle.findings),
+        "LLM text enrichment (parallel, max_concurrent=%d): targeting %d/%d findings",
+        max_concurrent,
+        len(top_findings),
+        len(bundle.findings),
     )
+
+    semaphore = asyncio.Semaphore(max_concurrent)
+
+    async def _enrich_with_limit(finding: Any) -> dict[str, Any]:
+        async with semaphore:
+            return await enrich_single_finding_async(
+                finding,
+                llm_client,
+                bundle,
+                workdir,
+            )
+
+    results = await asyncio.gather(*[_enrich_with_limit(f) for f in top_findings])
 
     enriched = 0
     failed = 0
-
-    for finding in top_findings:
-        try:
-            context = _build_finding_context(finding, bundle, workdir)
-            prompt = _build_llm_prompt(context)
-            response = llm_client.chat_json(prompt, max_tokens=2000)
-            _validate_response(response, context)
-            finding.metadata["llm_text"] = {
-                "review_question": response.get("review_question"),
-                "benign_explanations": response.get("benign_explanations") or [],
-                "relation_text": response.get("relation_text"),
-                "evidence_cited": response.get("evidence_cited") or [],
-                "model": "qwen3.7-plus",
-                "generated_at": _utc_now(),
-            }
+    for finding, result in zip(top_findings, results):
+        if _apply_enrichment_result(finding, result):
             enriched += 1
-        except Exception as e:
-            logger.warning(
-                "LLM enrichment failed for %s: %s",
-                finding.finding_id, e,
-            )
-            finding.metadata["llm_text"] = {"error": str(e)}
+        else:
             failed += 1
 
     logger.info(
         "LLM text enrichment complete: %d succeeded, %d failed",
-        enriched, failed,
+        enriched,
+        failed,
     )
     return bundle
 
 
+# ---------------------------------------------------------------------------
+# Sync wrapper (backward-compatible entry point)
+# ---------------------------------------------------------------------------
+
+
+def enrich_bundle_with_llm_text(
+    bundle: StaticAuditBundle,
+    workdir: Path,
+    llm_client: Any,
+    max_findings: int = 10,
+    max_concurrent: int = 3,
+) -> StaticAuditBundle:
+    """Enrich top findings with LLM-generated text (parallel via asyncio).
+
+    This is the synchronous entry point used by the pipeline.  It delegates
+    to :func:`enrich_bundle_with_llm_text_parallel` via ``asyncio.run``.
+
+    Args:
+        bundle: The StaticAuditBundle to enrich (mutated in place).
+        workdir: Path to the workdir containing JSON artifacts.
+        llm_client: VeritasLLMClient instance (must have chat_json method).
+        max_findings: Maximum number of findings to enrich (default 10).
+        max_concurrent: Max simultaneous LLM calls (default 3).
+
+    Returns:
+        The same bundle instance (for chaining).
+    """
+    return asyncio.run(
+        enrich_bundle_with_llm_text_parallel(
+            bundle,
+            workdir,
+            llm_client,
+            max_concurrent=max_concurrent,
+            max_findings=max_findings,
+        )
+    )
+
+
 def _utc_now() -> str:
     from datetime import UTC, datetime
+
     return datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
