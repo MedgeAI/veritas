@@ -45,12 +45,20 @@ _SERVICE_URL: str = get_env(
 # Project root — the bind mount maps this to /data inside the container.
 _PROJECT_ROOT: Path = Path(__file__).resolve().parents[3]
 
-_HTTP_TIMEOUT = 120.0  # provenance analysis can take a while
+_HTTP_TIMEOUT = 120.0  # default provenance analysis timeout
 
 
-def _client() -> httpx.Client:
-    """Return an httpx client that bypasses env proxy settings for local calls."""
-    return httpx.Client(base_url=_SERVICE_URL, timeout=_HTTP_TIMEOUT, trust_env=False)
+def _client(timeout: float | None = None) -> httpx.Client:
+    """Return an httpx client that bypasses env proxy settings for local calls.
+
+    Args:
+        timeout: HTTP request timeout in seconds. If None, uses _HTTP_TIMEOUT.
+    """
+    return httpx.Client(
+        base_url=_SERVICE_URL,
+        timeout=timeout if timeout is not None else _HTTP_TIMEOUT,
+        trust_env=False,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -303,7 +311,7 @@ def run_provenance_analysis(
 
     # Make HTTP call
     try:
-        with _client() as c:
+        with _client(timeout=float(timeout)) as c:
             resp = c.post("/provenance", json=payload)
         resp.raise_for_status()
         data = resp.json()

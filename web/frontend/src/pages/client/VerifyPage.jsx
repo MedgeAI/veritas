@@ -97,7 +97,7 @@ export default function VerifyPage({ onNavigate }) {
           type="text"
           value={reportId}
           onChange={(e) => setReportId(e.target.value)}
-          placeholder="输入报告编号，如 VRT-2026-05-A8F92C"
+          placeholder="输入报告编号，如 VRT-202606-A3F92C"
           className="flex-1 border-none bg-transparent font-mono text-sm tracking-wider text-ink-900 outline-none placeholder:text-ink-300"
         />
         <button

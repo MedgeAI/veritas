@@ -273,47 +273,29 @@ report-path: ## Print the expected final audit-paper HTML report path
 
 # -- Web P1 --------------------------------------------------------------
 
-web-backend: ## Start local web backend (requires Docker PostgreSQL — run 'make db-up' first)
+web-backend: ## Start local web backend in foreground (requires `make db-up` first)
 	VERITAS_DEV=1 VERITAS_LOG_DIR=logs $(PY_ENV) $(PYTHON) -c "from web.backend.veritas_web.app import serve; serve(host='$(HOST)', port=$(PORT), data_root='$(WEB_DATA_DIR)', output_root='$(OUTPUT_ROOT)')"
 
-web-backend-reload: ## Start web backend with auto-reload on code changes
+web-backend-reload: ## Start web backend in foreground with auto-reload on code changes
+	@mkdir -p logs/app
 	VERITAS_DEV=1 VERITAS_LOG_DIR=logs $(PY_ENV) $(PYTHON) -c "\
 from web.backend.veritas_web.app import create_app; \
 import uvicorn; \
 app = create_app(data_root='$(WEB_DATA_DIR)', output_root='$(OUTPUT_ROOT)'); \
 uvicorn.run(app, host='$(HOST)', port=$(PORT), reload=True, reload_dirs=['engine', 'web/backend'])"
 
-celery-worker: ## Start Celery worker for async audit tasks
+celery-worker: ## Start Celery worker in foreground for async audit tasks
+	@mkdir -p logs/worker
 	VERITAS_DEV=1 VERITAS_LOG_DIR=logs $(PY_ENV) celery -A engine.tasks.celery_app worker --loglevel=debug
 
 web-frontend: ## Start Vite frontend dev server (HMR + API proxy to backend:$(PORT))
 	cd $(FRONTEND_DIR) && npm run dev
 
-dev: ## Start full local dev environment in background (run 'make db-up' first for PostgreSQL)
-	@mkdir -p logs
-	@echo "Starting backend with auto-reload..."
-	VERITAS_DEV=1 VERITAS_LOG_DIR=logs $(PY_ENV) $(PYTHON) -c "\
-from web.backend.veritas_web.app import create_app; \
-import uvicorn; \
-app = create_app(data_root='$(WEB_DATA_DIR)', output_root='$(OUTPUT_ROOT)'); \
-uvicorn.run(app, host='$(HOST)', port=$(PORT), reload=True, reload_dirs=['engine', 'web/backend'])" > logs/dev-backend.log 2>&1 &
-	@echo "Backend PID=$$!"
-	@echo "Starting frontend..."
-	@cd $(FRONTEND_DIR) && nohup npm run dev > $(CURDIR)/logs/dev-frontend.log 2>&1 &
-	@echo "Frontend PID=$$!"
-	@echo "Starting celery worker..."
-	VERITAS_DEV=1 VERITAS_LOG_DIR=logs $(PY_ENV) nohup celery -A engine.tasks.celery_app worker --loglevel=debug > logs/dev-celery.log 2>&1 &
-	@echo "Celery PID=$$!"
-	@echo ""
-	@echo "Local dev stack (all services in background):"
-	@echo "  Backend:  http://$(HOST):$(PORT)  (auto-reload on code change)"
-	@echo "  Frontend: http://localhost:5173   (Vite HMR, API → backend:$(PORT))"
-	@echo "  DB:       PostgreSQL + pgvector   (make db-up)"
-	@echo "  Logs:     logs/dev-backend.log, logs/dev-frontend.log, logs/dev-celery.log, logs/veritas.log"
-	@echo "  Stop:     make dev-down"
+dev: ## Start full local dev environment in background (delegates to dev-up)
+	@$(MAKE) --no-print-directory dev-up
 
-dev-up: ## One-command start: DB + backend + frontend (all in background)
-	@$(COMPOSE_DB) up -d postgres 2>/dev/null || true
+dev-up: ## One-command start: DB (postgres + redis) + backend + frontend + celery + forensics
+	@$(COMPOSE_DB) up -d postgres redis
 	@for i in $$(seq 1 10); do \
 		if $(COMPOSE_DB) exec -T postgres pg_isready -U veritas_dev -d veritas_dev >/dev/null 2>&1; then \
 			echo "PostgreSQL ready."; break; \

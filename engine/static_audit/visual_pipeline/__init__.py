@@ -15,6 +15,7 @@ from engine.static_audit.visual_pipeline.finding_pipeline import (
     run_visual_finding_pipeline,
 )
 from engine.static_audit.visual_pipeline.panel_extraction import (
+    extract_panels_batch,
     run_visual_panel_extraction,
 )
 from engine.static_audit.visual_pipeline.sila_dense import (
@@ -25,6 +26,7 @@ from engine.static_audit.visual_pipeline.tru_for import (
 )
 
 __all__ = [
+    "extract_panels_batch",
     "run_image_quality_detection",
     "run_overlap_reuse_detection",
     "run_provenance_graph",

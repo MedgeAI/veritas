@@ -66,7 +66,7 @@ class LLMFollowUpGenerator(FollowUpGenerator):
             # Run blocking LLM call in a thread to avoid blocking the event loop
             response = await asyncio.to_thread(
                 self.llm_client.chat,
-                model="qwen-plus",
+                model="qwen3.6-flash",
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.7,
             )

@@ -628,15 +628,15 @@ def _artifact_summary(workdir: Path) -> dict[str, Any]:
         _read_json_artifact(workdir, "image_similarity_candidates.json") or {}
     )
     visual_findings = _read_json_artifact(workdir, "visual_findings.json") or {}
-    investigation_records = _read_investigation_records(workdir)
 
-    # Build sections
+    # Build sections (investigation_records intentionally excluded:
+    # build_investigation_plan_prompt injects previous_records separately,
+    # avoiding double injection of the same data into the prompt.)
     summary.update(_artifact_summary_material_section(material_inventory, material_plan))
     summary.update(_artifact_summary_evidence_section(ledger, numeric))
     summary.update(_artifact_summary_source_data_section(source_findings, pair_forensics))
     summary.update(_artifact_summary_briefings_section(workdir))
     summary.update(_artifact_summary_image_section(image_duplicates, image_similarity))
     summary.update(_artifact_summary_visual_section(visual_findings))
-    summary["investigation_records"] = investigation_records[-20:]
 
     return summary

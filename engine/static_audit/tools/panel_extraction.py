@@ -88,8 +88,8 @@ def extract_panels_batch(
     output_dir: Path,
     weights_path: Path = DEFAULT_WEIGHTS,
     device: str = "0",
-    conf_thres: float = 0.4,
-    iou_thres: float = 0.4,
+    conf_thres: float = 0.6,
+    iou_thres: float = 0.55,
     imgsz: int = 640,
     figure_labels: dict[str, str] | None = None,
 ) -> dict[str, list[dict[str, Any]]]:
@@ -100,8 +100,10 @@ def extract_panels_batch(
         output_dir: Working directory for panel output.
         weights_path: Path to YOLOv5 model weights.
         device: CUDA device ('0') or 'cpu'.
-        conf_thres: Confidence threshold.
-        iou_thres: NMS IoU threshold.
+        conf_thres: Confidence threshold (default 0.6, raised from 0.4 to
+            reduce over-segmentation of grid/montage images).
+        iou_thres: NMS IoU threshold (default 0.55, raised from 0.4 to
+            better suppress adjacent panel detections).
         imgsz: Inference image size.
         figure_labels: Optional mapping of figure_id → paper_figure_label
             (e.g. from evidence ledger caption). Used for crop filenames and

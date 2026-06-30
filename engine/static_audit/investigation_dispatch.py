@@ -7,7 +7,6 @@ All public names are re-exported via orchestrator for backward compatibility.
 from __future__ import annotations
 
 import json
-import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import asdict
 from pathlib import Path
@@ -22,29 +21,19 @@ from engine.static_audit.investigation import (
 )
 from engine.static_audit.roles import ROLE_DEFINITIONS, RoleDefinition, skipped_trace
 from engine.investigation.opencode_agent import (
-    DEFAULT_SOURCE_FINDING_PARAMS,
     AgentRunResult,
     result_metadata,
     run_agent_investigation_plan,
     run_agent_role,
     write_agent_result,
 )
-from engine.tools.registry import (
-    IMAGE_SIMILARITY_TOOL_ID,
-    SOURCE_DATA_CROSS_SHEET_TOOL_ID,
-    SOURCE_DATA_FINDINGS_TOOL_ID,
-    SOURCE_DATA_PAIR_FORENSICS_TOOL_ID,
-    TOOL_ID_COPY_MOVE,
-    TOOL_ID_OVERLAP_REUSE,
-    TOOL_ID_SILA_DENSE,
-)
+from engine.static_audit.investigation_tools import ADAPTERS, tool_output_filename
 
 # ---------------------------------------------------------------------------
 # Shared utilities (previously in orchestrator.py, now in _shared.py).
 # ---------------------------------------------------------------------------
 from engine.static_audit._shared import (
     MAX_INVESTIGATION_ROUNDS,
-    PROJECT_ROOT,
     ProgressCallback,
     StepResult,
     agent_step_status,
@@ -55,7 +44,6 @@ from engine.static_audit._shared import (
     read_json,
     record_step,
     resolve_artifact_path,
-    run_command,
     safe_action_dir_name,
 )
 
@@ -295,7 +283,7 @@ def run_investigation_rounds(
         else:
             results = [_run_action(action) for action in actions]
 
-        for record_base, record, artifact_count, findings_count in results:
+        for _record_base, record, artifact_count, findings_count in results:
             append_investigation_record(workdir, record)
             new_artifact_count += artifact_count
             new_findings_count += findings_count
@@ -324,6 +312,12 @@ def run_investigation_tool_action(
     force: bool,
     progress: ProgressCallback | None,
 ) -> tuple[StepResult, list[str]]:
+    """Dispatch an investigation tool action to its registered adapter.
+
+    Each tool_id maps to an adapter function in investigation_tools.ADAPTERS.
+    Adding a new tool = adding one adapter function + one registry entry.
+    No changes needed here.
+    """
     action_dir = (
         resolve_artifact_path(workdir, "investigation")
         / f"round_{action.round_id:02d}"
@@ -334,273 +328,8 @@ def run_investigation_tool_action(
         f"investigation_{action.round_id:02d}_{safe_action_dir_name(action.action_id)}"
     )
 
-    if action.tool_id in {
-        "source_data.profile",
-        SOURCE_DATA_FINDINGS_TOOL_ID,
-        SOURCE_DATA_PAIR_FORENSICS_TOOL_ID,
-    }:
-        if not source_data_dir or not source_data_dir.is_dir():
-            step = StepResult(
-                key,
-                "Agent Investigation Tool",
-                "skipped",
-                "No selected Source Data directory.",
-            )
-            emit_step_result(progress, step)
-            return step, []
-
-    if action.tool_id == "source_data.profile":
-        output = action_dir / "source_data_profile.json"
-        command = [
-            sys.executable,
-            "-m",
-            "engine.static_audit.tools.source_data_profile",
-            str(source_data_dir),
-            "--output",
-            str(output),
-        ]
-    elif action.tool_id == SOURCE_DATA_FINDINGS_TOOL_ID:
-        profile = resolve_artifact_path(workdir, "source_data_profile.json")
-        if not profile.exists():
-            step = StepResult(
-                key,
-                "Agent Investigation Tool",
-                "skipped",
-                "source_data_profile.json missing.",
-            )
-            emit_step_result(progress, step)
-            return step, []
-        output = action_dir / "source_data_findings.json"
-        params = dict(DEFAULT_SOURCE_FINDING_PARAMS)
-        params.update(action.params)
-        command = [
-            sys.executable,
-            "-m",
-            "engine.static_audit.tools.source_data_findings",
-            str(source_data_dir),
-            "--profile",
-            str(profile),
-            "--output",
-            str(output),
-            "--min-overlap",
-            str(params["min_overlap"]),
-            "--min-support",
-            str(params["min_support"]),
-            "--max-findings-per-category",
-            str(params["max_findings_per_category"]),
-        ]
-        if (resolve_artifact_path(workdir, "full.md")).exists():
-            command.extend(
-                ["--full-md", str(resolve_artifact_path(workdir, "full.md"))]
-            )
-    elif action.tool_id == SOURCE_DATA_PAIR_FORENSICS_TOOL_ID:
-        output = action_dir / "source_data_pair_forensics.json"
-        params = action.params
-        command = [
-            sys.executable,
-            "-m",
-            "engine.static_audit.tools.source_data_pair_forensics",
-            str(source_data_dir),
-            "--output",
-            str(output),
-            "--min-pairs",
-            str(params.get("min_pairs", 8)),
-            "--min-support",
-            str(params.get("min_support", 0.95)),
-            "--ratio-places",
-            str(params.get("ratio_places", 4)),
-            "--max-offset",
-            str(params.get("max_offset", 80)),
-            "--max-findings-per-category",
-            str(params.get("max_findings_per_category", 50)),
-            "--min-duplicate-row-width",
-            str(params.get("min_duplicate_row_width", 2)),
-        ]
-    elif action.tool_id == SOURCE_DATA_CROSS_SHEET_TOOL_ID:
-        output = action_dir / "source_data_cross_sheet.json"
-        params = action.params
-        command = [
-            sys.executable,
-            "-m",
-            "engine.static_audit.tools.source_data_cross_sheet",
-            str(source_data_dir),
-            "--output",
-            str(output),
-            "--min-overlap",
-            str(params.get("min_overlap", 10)),
-            "--min-support",
-            str(params.get("min_support", 0.95)),
-            "--max-findings",
-            str(params.get("max_findings", 50)),
-        ]
-    elif action.tool_id == IMAGE_SIMILARITY_TOOL_ID:
-        images_dir = resolve_artifact_path(workdir, "images")
-        if not images_dir.is_dir():
-            step = StepResult(
-                key, "Agent Investigation Tool", "skipped", "images directory missing."
-            )
-            emit_step_result(progress, step)
-            return step, []
-        output = action_dir / "image_similarity_candidates.json"
-        params = action.params
-        command = [
-            sys.executable,
-            "-m",
-            "engine.static_audit.tools.image_similarity",
-            str(images_dir),
-            "--output",
-            str(output),
-            "--max-distance",
-            str(params.get("max_distance", 8)),
-            "--max-candidates",
-            str(params.get("max_candidates", 200)),
-        ]
-        panel_evidence_json = resolve_artifact_path(workdir, "panel_evidence.json")
-        if panel_evidence_json.exists():
-            command.extend(["--panel-evidence", str(panel_evidence_json)])
-    elif action.tool_id == TOOL_ID_COPY_MOVE:
-        panel_json = resolve_artifact_path(workdir, "panel_evidence.json")
-        if not panel_json.exists():
-            step = StepResult(
-                key,
-                "Agent Investigation Tool",
-                "skipped",
-                "panel_evidence.json missing.",
-            )
-            emit_step_result(progress, step)
-            return step, []
-        output = action_dir / "visual_copy_move.json"
-        params = action.params
-        command = [
-            sys.executable,
-            "-m",
-            "engine.static_audit.tools.copy_move_detection",
-            str(panel_json),
-            "--figure-json",
-            str(resolve_artifact_path(workdir, "visual_evidence.json")),
-            "--output",
-            str(output),
-            "--workdir",
-            str(workdir),
-            "--method",
-            str(params.get("method", "rootsift_magsac")),
-            "--min-matches",
-            str(params.get("min_matches", 20)),
-            "--min-score",
-            str(params.get("min_score", 0.05)),
-            "--max-relationships",
-            str(params.get("max_relationships", 500)),
-        ]
-    elif action.tool_id == TOOL_ID_OVERLAP_REUSE:
-        panel_json = resolve_artifact_path(workdir, "panel_evidence.json")
-        if not panel_json.exists():
-            step = StepResult(
-                key,
-                "Agent Investigation Tool",
-                "skipped",
-                "panel_evidence.json missing.",
-            )
-            emit_step_result(progress, step)
-            return step, []
-        output = action_dir / "overlap_reuse.json"
-        try:
-            from engine.static_audit.tools.overlap_reuse import detect_overlap_reuse
-
-            panels_data = json.loads(panel_json.read_text())
-            panels_list = (
-                panels_data.get("panels", panels_data)
-                if isinstance(panels_data, dict)
-                else panels_data
-            )
-            figures = []
-            visual_path = resolve_artifact_path(workdir, "visual_evidence.json")
-            if visual_path.exists():
-                figures_data = json.loads(visual_path.read_text())
-                figures = (
-                    figures_data.get("figures", figures_data)
-                    if isinstance(figures_data, dict)
-                    else figures_data
-                )
-            params = action.params
-            result = detect_overlap_reuse(
-                panels_list,
-                figures,
-                workdir=workdir,
-                tile_size=int(params.get("tile_size", 128)),
-                tile_stride=int(params.get("tile_stride", 64)),
-                max_candidate_pairs=int(params.get("max_candidate_pairs", 500)),
-                min_inliers=int(params.get("min_inliers", 10)),
-                min_overlap_area=float(params.get("min_overlap_area", 0.01)),
-                max_relationships=int(params.get("max_relationships", 500)),
-            )
-            output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
-        except Exception as e:  # Deliberately broad: tool dispatch safety net; each tool may raise different exceptions
-            result = {"status": "failed", "relationships": [], "errors": [str(e)]}
-            output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
-        status = result.get("status", "failed")
-        detail = f"panels={result.get('panel_count', 0)} rels={result.get('relationship_count', 0)}"
-        step = StepResult(
-            key,
-            "Agent Investigation Tool",
-            "ran" if status == "ran" else "failed",
-            detail,
-        )
-        emit_step_result(progress, step)
-        return step, [str(output)]
-    elif action.tool_id == TOOL_ID_SILA_DENSE:
-        panel_json = resolve_artifact_path(workdir, "panel_evidence.json")
-        if not panel_json.exists():
-            step = StepResult(
-                key,
-                "Agent Investigation Tool",
-                "skipped",
-                "panel_evidence.json missing.",
-            )
-            emit_step_result(progress, step)
-            return step, []
-        output = action_dir / "visual_copy_move_dense.json"
-        try:
-            from engine.static_audit.tools.sila_dense import detect_sila_dense
-
-            panels_data = json.loads(panel_json.read_text())
-            panels_list = (
-                panels_data.get("panels", panels_data)
-                if isinstance(panels_data, dict)
-                else panels_data
-            )
-            figures = []
-            visual_path = resolve_artifact_path(workdir, "visual_evidence.json")
-            if visual_path.exists():
-                figures_data = json.loads(visual_path.read_text())
-                figures = (
-                    figures_data.get("figures", figures_data)
-                    if isinstance(figures_data, dict)
-                    else figures_data
-                )
-            params = action.params
-            result = detect_sila_dense(
-                panels_list,
-                figures,
-                workdir=workdir,
-                min_score=float(params.get("min_score", 0.05)),
-                max_relationships=int(params.get("max_relationships", 500)),
-            )
-            output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
-        except Exception as e:  # Deliberately broad: tool dispatch safety net; each tool may raise different exceptions
-            result = {"status": "failed", "relationships": [], "errors": [str(e)]}
-            output.write_text(json.dumps(result, indent=2, ensure_ascii=False))
-        status = result.get("status", "failed")
-        detail = f"panels={result.get('panel_count', 0)} rels={result.get('relationship_count', 0)}"
-        step = StepResult(
-            key,
-            "Agent Investigation Tool",
-            "ran" if status == "ran" else "failed",
-            detail,
-        )
-        emit_step_result(progress, step)
-        return step, [str(output)]
-    else:
-        # Tool is registered but implementation is not yet available
+    adapter = ADAPTERS.get(action.tool_id)
+    if adapter is None:
         step = StepResult(
             key,
             "Agent Investigation Tool",
@@ -610,17 +339,10 @@ def run_investigation_tool_action(
         emit_step_result(progress, step)
         return step, []
 
-    step = run_command(
-        key,
-        f"Agent Investigation Tool: {action.tool_id}",
-        command,
-        [output],
-        cwd=PROJECT_ROOT,
-        env=env,
-        force=force,
-        progress=progress,
+    output = action_dir / tool_output_filename(action.tool_id)
+    return adapter(
+        action, workdir, source_data_dir, env, force, progress, key, action_dir, output,
     )
-    return step, [str(output)]
 
 
 def _build_dependency_layers(roles_to_run: list[tuple]) -> list[list[tuple]]:
@@ -783,7 +505,7 @@ def run_agent_roles(
     if roles_to_run:
 
         def _run_single_role(role_data):
-            role, output_path, trace_path = role_data
+            role, output_path, _trace_path = role_data
             step_key = f"agent_role_{role.role_id}"
             emit_step_start(
                 progress,
@@ -831,7 +553,7 @@ def run_agent_roles(
 
 
 def collect_agent_traces(
-    workdir: Path, agent_manifest: dict[str, Any]
+    workdir: Path, _agent_manifest: dict[str, Any]
 ) -> list[AgentTrace]:
     traces: list[AgentTrace] = []
     for role in ROLE_DEFINITIONS:

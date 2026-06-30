@@ -34,7 +34,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
-from engine.exceptions import AgentError, VeritasError
+from engine.exceptions import AgentError
 from engine.static_audit.paths import resolve_artifact_path
 from engine.static_audit.tools.source_data_sheet_briefing import build_sheet_briefing
 
@@ -441,6 +441,7 @@ def get_sheet_verdict(
 
     prompt_parts.append(
         "\nRead the attached JSON file for full table structure and findings. "
+        f"Context path: {ctx_path}. "
         "Return your verdict JSON."
     )
 
@@ -453,7 +454,7 @@ def get_sheet_verdict(
             output_validator=_validate_verdict_output,
             timeout_seconds=timeout_seconds,
             max_retries=max_retries,
-            files=[ctx_path],
+            context_pack_path=ctx_path,
             log_dir=log_dir,
         )
     finally:

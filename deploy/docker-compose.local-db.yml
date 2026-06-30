@@ -4,7 +4,7 @@ services:
     container_name: veritas-postgres-dev
     restart: unless-stopped
     ports:
-      - "5433:5432"
+      - "0.0.0.0:5433:5432"
     environment:
       POSTGRES_DB: veritas_dev
       POSTGRES_USER: veritas_dev
@@ -19,7 +19,7 @@ services:
     container_name: veritas-redis-dev
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "0.0.0.0:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s

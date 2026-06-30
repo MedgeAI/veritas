@@ -409,6 +409,104 @@ def test_log_artifact_includes_prompt_preview_and_trace(
     assert "prompt_sha256" in trace["input"]
 
 
+def test_extract_token_usage_aggregates_multiple_step_finish(
+    tmp_path: Path,
+) -> None:
+    stdout = "\n".join(
+        [
+            json.dumps({"type": "text", "part": {"text": "ignored"}}),
+            json.dumps(
+                {
+                    "type": "step_finish",
+                    "part": {
+                        "reason": "tool-calls",
+                        "tokens": {
+                            "total": 100,
+                            "input": 40,
+                            "output": 10,
+                            "reasoning": 5,
+                            "cache": {"read": 45, "write": 0},
+                        },
+                    },
+                }
+            ),
+            json.dumps(
+                {
+                    "type": "step_finish",
+                    "part": {
+                        "reason": "stop",
+                        "tokens": {
+                            "total": 80,
+                            "input": 20,
+                            "output": 15,
+                            "reasoning": 5,
+                            "cache": {"read": 40, "write": 0},
+                        },
+                    },
+                }
+            ),
+        ]
+    )
+
+    runner = AgentStepRunner(project_root=tmp_path)
+    usage = runner._extract_token_usage(stdout)
+
+    assert usage["step_count"] == 2
+    assert usage["total"] == 180
+    assert usage["input"] == 60
+    assert usage["output"] == 25
+    assert usage["reasoning"] == 10
+    assert usage["cache"]["read"] == 85
+    assert usage["steps"][0]["reason"] == "tool-calls"
+    assert usage["steps"][1]["reason"] == "stop"
+
+
+def test_trace_includes_token_ledger(tmp_path: Path) -> None:
+    stdout = json.dumps(
+        {
+            "type": "step_finish",
+            "part": {
+                "reason": "stop",
+                "tokens": {
+                    "total": 100,
+                    "input": 40,
+                    "output": 10,
+                    "reasoning": 5,
+                    "cache": {"read": 45, "write": 0},
+                },
+            },
+        }
+    )
+    context_pack = tmp_path / "context_pack.json"
+    context_pack.write_text(json.dumps({"top_n_findings": []}), encoding="utf-8")
+
+    log_dir = tmp_path / "logs"
+    runner = AgentStepRunner(project_root=tmp_path)
+    runner._write_log_artifact(
+        log_dir=log_dir,
+        role="ledger_role",
+        command=["opencode"],
+        prompt_text="prompt text",
+        stdout=stdout,
+        stderr="",
+        error_category=None,
+        attempt=0,
+        context_pack_path=context_pack,
+        validated_output={"status": "ok"},
+    )
+
+    trace_file = next(log_dir.glob("step_trace_ledger_role_*.json"))
+    trace = json.loads(trace_file.read_text(encoding="utf-8"))
+
+    assert trace["token_usage"]["step_count"] == 1
+    assert trace["token_usage"]["cache"]["read"] == 45
+    assert trace["token_ledger"]["schema_version"] == "1.0"
+    assert trace["token_ledger"]["input_payload"]["prompt_chars"] == len("prompt text")
+    assert trace["token_ledger"]["input_payload"]["context_pack_bytes"] > 0
+    assert trace["token_ledger"]["token_classes"]["cache_read"] == 45
+    assert trace["token_ledger"]["billing_inputs"]["full_rate_input_tokens"] == 40
+
+
 @patch("engine.investigation.agent_step_runner.subprocess.run")
 def test_runner_loads_project_dotenv_for_subprocess(
     mock_run: MagicMock,

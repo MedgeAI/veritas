@@ -64,7 +64,7 @@ export default function VerifyPage() {
               type="text"
               value={reportId}
               onChange={(e) => setReportId(e.target.value)}
-              placeholder="VRT-YYYYMM-XXXXXX"
+              placeholder="输入报告编号，如 VRT-202606-A3F92C"
               spellCheck={false}
               autoComplete="off"
               className="flex-1 input-field font-mono text-sm tracking-wide"
@@ -80,7 +80,7 @@ export default function VerifyPage() {
             </button>
           </div>
           <p className="mt-2 font-mono text-[11px] text-ink-500">
-            格式：VRT-YYYYMM-XXXXXX（例如：VRT-202606-A3F9B2）
+            格式：VRT-YYYYMM-XXXXXX
           </p>
         </form>
 

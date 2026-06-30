@@ -58,6 +58,11 @@ def _run_visual_baseline(
     pe_status = (
         manifest.get("visual_forensics", {}).get("panel_extraction", {}).get("status")
     )
+
+    # Get elis_timeout from profile if available
+    profile = getattr(args, "profile", None) or {}
+    elis_timeout = profile.get("elis_timeout_seconds")
+
     for runner in (
         run_tru_for_detection,
         run_image_quality_detection,
@@ -73,6 +78,9 @@ def _run_visual_baseline(
         if runner is not run_image_quality_detection:
             kw["allow_env_skip"] = allow_env_skip
         kw["panel_extraction_status"] = pe_status
+        # Pass elis_timeout to provenance graph runner
+        if runner is run_provenance_graph and elis_timeout is not None:
+            kw["elis_timeout"] = elis_timeout
         s, m = runner(**kw)
         steps.extend(s)
         manifest.setdefault("visual_forensics", {}).update(m)

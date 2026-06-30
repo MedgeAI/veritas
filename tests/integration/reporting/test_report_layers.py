@@ -12,7 +12,7 @@ from __future__ import annotations
 import pytest
 
 from engine.reporting.layers import LAYER_METADATA, group_findings_by_layer
-from engine.reporting.models import Finding, VerificationReport, report_from_dict
+from engine.reporting.models import ReportFinding, VerificationReport, report_from_dict
 from engine.reporting.render_html import render_html
 from engine.static_audit._shared import classify_finding
 
@@ -373,7 +373,7 @@ class TestHtmlRendering:
             summary={"total_findings": 1, "critical": 1, "warning": 0, "claims_checked": 0},
             artifacts={},
             findings=[
-                Finding(
+                ReportFinding(
                     id="f1",
                     title="Test Finding",
                     severity="critical",

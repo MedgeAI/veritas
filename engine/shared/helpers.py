@@ -214,18 +214,33 @@ def emit_step_start(
     detail: str = "",
     command: list[str] | None = None,
     workdir: Path | None = None,
+    phase: str | None = None,
+    phase_order: int | None = None,
 ) -> None:
     """Emit a step_start progress event."""
-    emit_progress(
-        progress,
-        "step_start",
-        workdir=workdir,
-        key=key,
-        title=title,
-        status="running",
-        detail=detail,
-        command_preview=command_preview(command),
-    )
+    # Auto-populate phase from step_labels if not provided
+    if phase is None:
+        try:
+            from engine.static_audit.step_labels import get_step_label
+            label_info = get_step_label(key)
+            phase = label_info.get("phase")
+            phase_order = label_info.get("phase_order")
+        except ImportError:
+            pass  # step_labels not available, skip phase
+
+    payload: dict[str, Any] = {
+        "key": key,
+        "title": title,
+        "status": "running",
+        "detail": detail,
+        "command_preview": command_preview(command),
+    }
+    # Include phase info for real-time SSE updates
+    if phase is not None:
+        payload["phase"] = phase
+    if phase_order is not None:
+        payload["phase_order"] = phase_order
+    emit_progress(progress, "step_start", workdir=workdir, **payload)
 
 
 def emit_step_result(

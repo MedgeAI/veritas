@@ -1,937 +1,635 @@
 # 端到端测试 SOP (Standard Operating Procedure)
 
-> **目标**: 提供标准化的端到端测试流程，帮助 Agent 快速执行测试、发现问题、迭代优化  
-> **适用范围**: Pipeline 性能优化、质量检测、回归测试  
-> **最后更新**: 2026-06-29
+> **目标**: 提供标准化的端到端测试流程，帮助 Agent 快速执行测试、发现问题、迭代优化
+> **适用范围**: Web API 测试 + 浏览器 UI 测试
+> **最后更新**: 2026-06-30
+> **维护者**: Linus Torvalds (AI Agent)
 
 ---
 
 ## 目录
 
-1. [快速开始 (Quick Start)](#快速开始-quick-start)
-2. [测试目标](#测试目标)
-3. [前置条件](#前置条件)
-4. [完整测试流程](#完整测试流程)
-5. [性能验证](#性能验证)
-6. [质量验证](#质量验证)
-7. [常见问题和解决方案 (踩坑记录)](#常见问题和解决方案-踩坑记录)
-8. [快速迭代方法](#快速迭代方法)
-9. [检查清单](#检查清单)
+1. [快速开始 (Quick Start)](#1-快速开始-quick-start)
+2. [测试路径概览](#2-测试路径概览)
+3. [Phase 0: 环境与基础设施检查](#3-phase-0-环境与基础设施检查)
+4. [Phase 1: 单元测试（5 分钟）](#4-phase-1-单元测试5-分钟)
+5. [Phase 2: Web API + Browser E2E 测试（核心）](#5-phase-2-web-api--browser-e2e-测试核心)
+6. [Phase 3: CLI Pipeline 测试](#6-phase-3-cli-pipeline-测试)
+7. [Phase 4: 性能与质量验证](#7-phase-4-性能与质量验证)
+8. [已知问题模式与快速诊断](#8-已知问题模式与快速诊断)
+9. [截图基线与视觉回归](#9-截图基线与视觉回归)
+10. [检查清单](#10-检查清单)
+11. [附录](#11-附录)
 
 ---
 
-## 快速开始 (Quick Start)
+## 1. 快速开始 (Quick Start)
 
-### 30 秒快速测试
-
-```bash
-# 1. 运行 paper2 端到端测试（fast profile）
-uv run python cli/commands/audit_paper.py \
-  --paper-dir input/paper2 \
-  --profile fast \
-  --progress plain
-
-# 2. 查看结果
-ls -la outputs/*/verification_report.html
-```
-
-### 5 分钟完整验证
+### 2 分钟冒烟测试（推荐每次代码变更后执行）
 
 ```bash
-# 1. 运行单元测试（验证核心功能）
-uv run python -m pytest tests/unit/ -x --tb=short
+# 1. 健康检查
+curl -s --noproxy '*' http://127.0.0.1:8765/api/health/deep | jq .
 
-# 2. 运行 paper2 端到端测试
-uv run python cli/commands/audit_paper.py \
-  --paper-dir input/paper2 \
-  --profile fast \
-  --progress plain 2>&1 | tee /tmp/audit_paper2.log
-
-# 3. 提取性能数据
-grep -E "START|DONE|runtime_seconds" /tmp/audit_paper2.log
-
-# 4. 验证 findings 数量
-cat outputs/*/bundle.json | jq '.findings | length'
-```
-
----
-
-## 测试目标
-
-### 性能目标
-
-| 指标 | 基线 | 目标 | 验证方式 |
-|------|------|------|----------|
-| **总耗时** (paper2, fast profile) | 42m12s | **≤ 20min** | Wall time |
-| Figure classification | 8m30s | **≤ 2min** | 步骤耗时日志 |
-| Copy-move detection | 11m32s | **≤ 3min** | 步骤耗时日志 |
-| LLM enrichment | 9m48s | **≤ 5min** | 步骤耗时日志 |
-| HTML 报告可访问时间 | ~28min | **≤ 15min** | curl 测试 |
-
-### 质量目标
-
-| 指标 | 基线 | 目标 | 验证方式 |
-|------|------|------|----------|
-| **Findings 总数** | 54 | **≥ 54** | `jq '.findings \| length'` |
-| PubPeer 覆盖率 | 73% (8/11) | **≥ 73%** | Ground truth 对比 |
-| Source Data findings | 39 | **≥ 39** | 分类统计 |
-| Visual findings | 13 | **≥ 13** | 分类统计 |
-| Figure classification 准确率 | - | **≥ 95%** | Golden test |
-| Copy-move 检出率 | - | **100%** | Ground truth 对比 |
-
-### 不可修改的验收资产
-
-以下测试和数据集是**不可修改**的验收资产：
-
-- `tests/unit/test_figure_classification.py` — Figure classification 的 golden test
-- `tests/unit/test_copy_move_detection.py` — Copy-move 的检出率测试
-- `tests/unit/test_certainty_enrichment.py` — LLM enrichment 的质量测试
-- `tests/unit/test_visual_finding_pipeline.py` — Visual finding pipeline 的集成测试
-- `input/paper2/` — 端到端测试的输入数据
-- `ground_truth/paper2/annotations.yaml` — Ground truth 标注
-- Paper2 的 54 findings 基线 — 检出率的底线
-
-**任何修改如果导致这些测试失败，必须回退或修复实现。**
-
----
-
-## 前置条件
-
-### 环境检查
-
-```bash
-# 1. 检查 Python 版本（需要 ≥ 3.11）
-python --version  # 应该输出 Python 3.11+ 或 3.12+
-
-# 2. 检查 uv 环境
-uv --version
-uv run python --version
-
-# 3. 检查依赖
-uv run python -c "import openai; import dashscope; print('✓ LLM deps OK')"
-
-# 4. 检查环境变量
-uv run python -c "from engine.env import get_env; print('DASHSCOPE_API_KEY:', '✓' if get_env('DASHSCOPE_API_KEY') else '✗')"
-
-# 5. 检查 ELIS 服务（可选，用于视觉取证）
-curl -s http://localhost:8000/health || echo "ELIS 服务未启动（可选）"
-```
-
-### 测试数据检查
-
-```bash
-# 检查 paper2 输入数据
-ls -la input/paper2/
-# 应该包含：
-# - s41588-025-02253-8.pdf (论文 PDF)
-# - 41588_2025_2253_MOESM*.xlsx (Source Data Excel 文件)
-
-# 检查 ground truth
-ls -la ground_truth/paper2/
-# 应该包含：
-# - annotations.yaml (9 个已标注的 claims)
-```
-
-### 可选：启动 ELIS 服务
-
-```bash
-# 如果需要测试视觉取证功能（copy-move, provenance, TruFor）
-cd third_party/elis
-docker-compose up -d
-# 等待服务启动
-sleep 10
-curl http://localhost:8000/health
-```
-
----
-
-## 完整测试流程
-
-### Phase 1: 单元测试（5 分钟）
-
-```bash
-# 运行所有单元测试
-uv run python -m pytest tests/unit/ -v --tb=short
-
-# 只运行关键测试（快速验证）
+# 2. 关键单元测试
 uv run python -m pytest \
   tests/unit/test_figure_classification.py \
   tests/unit/test_copy_move_detection.py \
-  tests/unit/test_certainty_enrichment.py \
-  tests/unit/test_visual_finding_pipeline.py \
-  -v
+  -x --tb=short -q
 
-# 预期结果：
-# - 1300+ tests passed
-# - 0 failures
-# - 允许 skipped 和 xpassed
+# 3. 快速 Web API 冒烟
+curl -s --noproxy '*' http://127.0.0.1:8765/api/health | jq .status
+curl -s --noproxy '*' -o /dev/null -w "%{http_code}" http://127.0.0.1:5173
 ```
 
-### Phase 2: 端到端测试（40-45 分钟）
+### 30 分钟完整 E2E（Web + API + CLI）
 
 ```bash
-# 1. 清理之前的运行结果（可选）
+# 见 Phase 2 + Phase 3
+```
+
+---
+
+## 2. 测试路径概览
+
+Veritas 有三条独立的测试路径，**每条路径发现问题的类型不同**：
+
+| 路径 | 覆盖范围 | 典型问题 | 耗时 |
+|------|----------|----------|------|
+| **Web API** | FastAPI 路由、Celery 任务分发、数据库读写 | 接口契约不一致、超时、状态机错误 | 2 min |
+| **Browser UI** | 前端渲染、用户交互、实时进度 | Placeholder 不匹配、路由错误、控制台报错 | 5 min |
+| **CLI Pipeline** | 完整审计流水线（MinerU→分类→取证→报告） | LLM 解析失败、缓存缺失、步骤超时 | 30+ min |
+
+**关键原则**：先 Web API → 再 Browser UI → 最后 CLI Pipeline。越早发现问题，修复成本越低。
+
+---
+
+## 3. Phase 0: 环境与基础设施检查
+
+### 3.1 服务状态检查
+
+```bash
+# 后端（必须）
+curl -s --noproxy '*' --max-time 5 http://127.0.0.1:8765/api/health
+# 预期: {"status":"ok","runner_mode":"celery"}
+
+# 后端深度检查（必须）
+curl -s --noproxy '*' --max-time 5 http://127.0.0.1:8765/api/health/deep | jq '.checks | to_entries[] | "\(.key): \(if .value.ok then "✓" else "✗" end)"'
+
+# 前端 Vite（必须）
+curl -s --noproxy '*' -o /dev/null -w "Frontend: %{http_code}\n" http://127.0.0.1:5173
+# 预期: Frontend: 200
+
+# PostgreSQL（必须）
+docker ps --filter "name=postgres" --format "{{.Names}}: {{.Status}}"
+# 预期: healthy
+
+# Redis（必须，Celery broker）
+docker ps --filter "name=redis" --format "{{.Names}}: {{.Status}}"
+
+# Celery Worker（必须）
+ps aux | grep "celery.*worker" | grep -v grep | wc -l
+# 预期: ≥ 1
+
+# ELIS Forensic 服务（可选，:8771）
+curl -s --noproxy '*' --max-time 3 http://127.0.0.1:8771/health || echo "ELIS: 未启动（可选）"
+
+# SILA Service（可选，:8770）
+curl -s --noproxy '*' --max-time 3 http://127.0.0.1:8770/health || echo "SILA: 未启动（可选）"
+```
+
+### 3.2 常见环境问题
+
+| 症状 | 原因 | 解决方案 |
+|------|------|----------|
+| curl 卡住无输出 | `http_proxy` 环境变量代理了本地请求 | 加 `--noproxy '*'` 或 `unset http_proxy` |
+| 后端无响应但进程在 | uvicorn --reload 卡在 "Waiting for connections to close" | `kill -9 <pid>` 后重启 |
+| Celery 任务 queued 不执行 | Worker 未启动或已死 | `make celery-worker` |
+| 前端 502 | Vite dev server 未启动 | `cd web/frontend && npm run dev` |
+
+### 3.3 重启服务的正确方式
+
+```bash
+# 后端
+kill -9 $(pgrep -f "uvicorn.*8765") 2>/dev/null
+nohup uv run uvicorn web.backend.veritas_web.app:app \
+  --host 127.0.0.1 --port 8765 \
+  --reload --reload-dir engine --reload-dir web/backend \
+  > logs/app/backend.log 2>&1 &
+sleep 5
+curl -s --noproxy '*' http://127.0.0.1:8765/api/health
+
+# Celery Worker
+kill $(pgrep -f "celery.*worker") 2>/dev/null
+nohup uv run celery -A engine.tasks.celery_app worker \
+  --loglevel=info > logs/worker/celery.log 2>&1 &
+```
+
+---
+
+## 4. Phase 1: 单元测试（5 分钟）
+
+```bash
+# 关键测试（每次必跑）
+uv run python -m pytest \
+  tests/unit/test_figure_classification.py \
+  tests/unit/test_copy_move_detection.py \
+  -x --tb=short -q
+
+# 全量单元测试（提交前必跑）
+make test-fast
+# 预期: 1200+ passed, 0 failed
+```
+
+### 不可修改的验收资产
+
+以下测试和数据集**不允许修改**，只能修复实现：
+
+| 资产 | 用途 |
+|------|------|
+| `tests/unit/test_figure_classification.py` | Figure classification golden test |
+| `tests/unit/test_copy_move_detection.py` | Copy-move 检出率 |
+| `tests/unit/test_certainty_enrichment.py` | LLM enrichment 质量 |
+| `tests/unit/test_visual_finding_pipeline.py` | Visual pipeline 集成 |
+| `input/paper2/` | E2E 输入数据 |
+| `ground_truth/paper2/annotations.yaml` | 9 个已标注 claims |
+
+---
+
+## 5. Phase 2: Web API + Browser E2E 测试（核心）
+
+> 这是发现 UI/UX 问题和前后端集成问题的主要手段。使用 Chrome MCP 工具操作浏览器。
+
+### 5.1 Web API 冒烟测试
+
+```bash
+# 1. 创建 Case
+CASE_ID=$(curl -s --noproxy '*' -X POST http://127.0.0.1:8765/api/cases \
+  -H 'Content-Type: application/json' \
+  -d '{"paper_title":"E2E Smoke Test"}' | jq -r '.case_id')
+echo "Case: $CASE_ID"
+
+# 2. 上传文件（paper2 子集）
+cd /mnt/disk1/LZJ/project/veritas
+for f in input/paper2/s41588-025-02253-8.pdf input/paper2/41588_2025_2253_MOESM6_ESM.xlsx; do
+  curl -s --noproxy '*' -X POST "http://127.0.0.1:8765/api/cases/${CASE_ID}/inputs" \
+    -F "file=@$f" > /dev/null
+done
+
+# 3. 提交审计
+RUN_RESP=$(curl -s --noproxy '*' -X POST http://127.0.0.1:8765/api/audit \
+  -H 'Content-Type: application/json' \
+  -d "{\"case_id\":\"${CASE_ID}\",\"reproducibility_tier\":\"full\"}")
+RUN_ID=$(echo "$RUN_RESP" | jq -r '.job_id')
+echo "Run: $RUN_ID"
+
+# 4. 监控状态（每 30 秒）
+for i in $(seq 1 60); do
+  sleep 30
+  STATUS=$(curl -s --noproxy '*' "http://127.0.0.1:8765/api/audit/${RUN_ID}" \
+    | jq -r '"\(.status)|\(.current_stage // "none")"')
+  echo "$(date +%H:%M:%S) $STATUS"
+  echo "$STATUS" | grep -qE "^completed|^failed" && break
+done
+
+# 5. 验证报告生成
+curl -s --noproxy '*' -o /dev/null -w "HTML Report: %{http_code}\n" \
+  "http://127.0.0.1:8765/api/cases/${CASE_ID}/report/html"
+```
+
+### 5.2 Browser UI 测试（Chrome MCP）
+
+**Step 1: Client Workspace（默认入口 `localhost:5173`）**
+
+```
+导航到 http://localhost:5173
+截图: docs/demos/screenshots/01-client-home.png
+
+检查项:
+- [ ] 4-step 表单正常渲染（Reproducibility / Submission / Confidentiality / Service）
+- [ ] 6 个 Tab 可点击（提交/进度/报告/问题/重核/验证）
+- [ ] 无控制台 JS 错误
+- [ ] Verify Tab placeholder 格式: "VRT-YYYYMM-XXXXXX"（如 VRT-202606-A3F92C）
+```
+
+**Step 2: Ops Workspace（`localhost:5173/ops`）**
+
+```
+导航到 http://localhost:5173/ops
+截图: docs/demos/screenshots/02-ops-dashboard.png
+
+检查项:
+- [ ] Auth 自动登录（dev 模式 operator auto-login）
+- [ ] Dashboard 正确显示 case 数量
+- [ ] 侧边栏导航分组正确（CASE FLOW / 调查流程 / 认证服务 / 管理）
+- [ ] 无 case 选中时相关页面按钮 disabled
+- [ ] "运行监控" 和 "审查报告" 在未选中 case 时 disabled
+```
+
+**Step 3: Mission Control（选中 case 后）**
+
+```
+从侧边栏点击 case → 进入 Mission Control
+截图: docs/demos/screenshots/03-mission-control.png
+
+检查项:
+- [ ] 进度条正确显示（各阶段 X/Y 数字）
+- [ ] **无 "Unknown" 阶段名**（如果有，说明某步骤缺少 stage_name）
+- [ ] 实时事件流（SSE/WebSocket 连接正常）
+- [ ] 材料完整性面板（PDF/Source Data/代码/环境）
+- [ ] 产物准备清单（运行中 → 产物逐步出现）
+```
+
+**Step 4: Verify Page（`localhost:5173/verify`）**
+
+```
+导航到 http://localhost:5173/verify
+截图: docs/demos/screenshots/04-verify-page.png
+
+检查项:
+- [ ] Placeholder 格式: "输入报告编号，如 VRT-202606-A3F92C"
+- [ ] 格式校验: 输入 "INVALID" → 应触发 400 错误
+- [ ] 未找到: 输入 "VRT-202606-FFFFFF" → 应显示 "未找到报告"
+- [ ] 两个 VerifyPage 组件（standalone + client-embedded）placeholder 一致
+```
+
+**Step 5: 审计完成后的报告页**
+
+```
+审计完成后刷新 Mission Control
+截图: docs/demos/screenshots/05-mission-completed.png
+
+检查项:
+- [ ] 状态显示 "已完成"
+- [ ] HTML 报告链接可点击
+- [ ] Dashboard 上 case 状态已更新
+```
+
+### 5.3 控制台错误检查
+
+在每一步浏览器操作后，检查 JS 控制台：
+
+```javascript
+// 通过 Chrome MCP list_console_messages 检查
+// 预期: 无 error 级别的消息
+// 允许: warning（第三方库）、info
+```
+
+---
+
+## 6. Phase 3: CLI Pipeline 测试
+
+### 6.1 完整审计运行
+
+```bash
+# 清理旧产物（可选）
 rm -rf outputs/*
 
-# 2. 运行 paper2 端到端测试（fast profile）
+# 运行 paper2 端到端测试（fast profile）
 uv run python cli/commands/audit_paper.py \
   --paper-dir input/paper2 \
   --profile fast \
   --progress plain 2>&1 | tee /tmp/audit_paper2.log
 
-# 3. 监控进度
+# 监控进度
 tail -f /tmp/audit_paper2.log
 ```
 
-### Phase 3: 性能验证（2 分钟）
+### 6.2 日志分析
 
 ```bash
-# 1. 提取总耗时
-grep -E "AUDIT (start|completed)" /tmp/audit_paper2.log
+# 提取步骤耗时
+grep -E "pipeline step|runtime_seconds" /tmp/audit_paper2.log | \
+  awk -F'—' '{print $1, $3}'
 
-# 2. 提取每个步骤的耗时
-grep -E "START|DONE|runtime_seconds" /tmp/audit_paper2.log | \
-  awk '{print $1, $2, $3, $4}'
+# 检查错误
+grep -E "ERROR|WARNING|FAIL" /tmp/audit_paper2.log | \
+  grep -v "DEBUG" | tail -20
 
-# 3. 验证性能目标
-python3 << 'EOF'
-import json
-import re
-from datetime import datetime
+# 检查 LLM 相关错误
+grep -E "VeritasLLMParseError|JSON extraction failed|max_tokens" /tmp/audit_paper2.log
 
-with open('/tmp/audit_paper2.log') as f:
-    log = f.read()
-
-# 提取开始和结束时间
-start_match = re.search(r'\[(.*?)\] AUDIT start', log)
-end_match = re.search(r'\[(.*?)\] AUDIT completed', log)
-
-if start_match and end_match:
-    start = datetime.strptime(start_match.group(1), '%Y-%m-%d %H:%M:%S')
-    end = datetime.strptime(end_match.group(1), '%Y-%m-%d %H:%M:%S')
-    duration = (end - start).total_seconds() / 60
-    print(f"总耗时: {duration:.1f} 分钟")
-    print(f"目标: ≤ 20 分钟")
-    print(f"状态: {'✓ PASS' if duration <= 20 else '✗ FAIL'}")
-EOF
+# 检查 opencode Agent 错误
+grep "opencode.*failed\|schema_validation" /tmp/audit_paper2.log
 ```
 
-### Phase 4: 质量验证（3 分钟）
+### 6.3 Celery Worker 日志
 
 ```bash
-# 1. 找到最新的 bundle.json
+# 实时查看
+tail -f logs/worker/celery.log
+
+# 检查关键事件
+grep -E "pipeline step|ERROR|WARNING|Hard time limit" logs/worker/celery.log | tail -30
+
+# 检查 LLM 调用参数（验证 max_tokens 修复）
+grep "max_tokens" logs/worker/celery.log | tail -5
+```
+
+---
+
+## 7. Phase 4: 性能与质量验证
+
+### 7.1 性能基线
+
+| 指标 | 旧基线 | 目标 | 验证方式 |
+|------|--------|------|----------|
+| **总耗时** (paper2, CLI fast) | 42 min | **≤ 20 min** | Wall time |
+| **Web E2E 总耗时** (API→完成) | 60+ min | **≤ 35 min** | API 轮询 |
+| Figure classification | 8m30s (18×LLM) | **≤ 2 min** (1×LLM) | 日志 |
+| Visual 阶段 | 30+ min | **≤ 5 min** | 日志 |
+| HTML 报告生成 | ~28 min | **≤ 15 min** | curl |
+
+### 7.2 质量基线
+
+| 指标 | 基线 | 验证方式 |
+|------|------|----------|
+| **Findings 总数** | ≥ 54 | `jq '.findings \| length'` |
+| PubPeer 覆盖率 | ≥ 73% (8/11) | Ground truth 对比 |
+| Source Data findings | ≥ 39 | 分类统计 |
+| Visual findings | ≥ 13 | 分类统计 |
+| Figure classification 准确率 | ≥ 95% | Golden test |
+
+### 7.3 提取结果
+
+```bash
+# 找最新 bundle
 BUNDLE=$(ls -t outputs/*/bundle.json | head -1)
 
-# 2. 验证 findings 数量
-echo "Findings 总数: $(cat $BUNDLE | jq '.findings | length')"
-echo "目标: ≥ 54"
+# Findings 统计
+echo "Total: $(cat $BUNDLE | jq '.findings | length')"
+cat $BUNDLE | jq -r '.findings | group_by(.issue_category) | map("\(. [0].issue_category): \(length)") | .[]'
 
-# 3. 按类别统计
-cat $BUNDLE | jq -r '
-  .findings |
-  group_by(.issue_category) |
-  map({
-    category: .[0].issue_category,
-    count: length
-  }) |
-  .[] |
-  "\(.category): \(.count)"
-'
-
-# 4. 按风险等级统计
-cat $BUNDLE | jq -r '
-  .findings |
-  group_by(.risk_level) |
-  map({
-    level: .[0].risk_level,
-    count: length
-  }) |
-  .[] |
-  "\(.level): \(.count)"
-'
-
-# 5. 对比 ground truth
-python3 << 'EOF'
-import yaml
-import json
-from pathlib import Path
-
-# 加载 ground truth
-with open('ground_truth/paper2/annotations.yaml') as f:
-    gt = yaml.safe_load(f)
-
-# 加载 bundle
-bundle_path = sorted(Path('outputs').glob('*/bundle.json'))[-1]
-with open(bundle_path) as f:
-    bundle = json.load(f)
-
-# 统计 findings
-findings = bundle.get('findings', [])
-print(f"Ground truth claims: {len(gt['claims'])}")
-print(f"Detected findings: {len(findings)}")
-
-# 检查覆盖率（简化版）
-gt_types = {c['claim_type'] for c in gt['claims']}
-detected_types = {f.get('category', '') for f in findings}
-overlap = gt_types & detected_types
-coverage = len(overlap) / len(gt_types) * 100 if gt_types else 0
-
-print(f"覆盖率: {coverage:.1f}% ({len(overlap)}/{len(gt_types)})")
-print(f"目标: ≥ 73%")
-print(f"状态: {'✓ PASS' if coverage >= 73 else '✗ FAIL'}")
-EOF
-```
-
-### Phase 5: 生成测试报告
-
-```bash
-# 生成 Markdown 格式的测试报告
-cat > /tmp/test_report.md << 'EOF'
-# Paper2 端到端测试报告
-
-**测试时间**: $(date '+%Y-%m-%d %H:%M:%S')  
-**Profile**: fast  
-**Paper**: input/paper2
-
-## 性能结果
-
-$(grep -E "总耗时|目标|状态" /tmp/perf_check.txt 2>/dev/null || echo "性能数据未提取")
-
-## 质量结果
-
-$(cat $BUNDLE | jq -r '
-  "Findings 总数: \(.findings | length) (目标: ≥ 54)",
-  "Source Data: \(.findings | map(select(.evidence_source == "file")) | length)",
-  "Visual: \(.findings | map(select(.evidence_source == "figure")) | length)"
-')
-
-## 详细 findings
-
-$(cat $BUNDLE | jq -r '
-  .findings |
-  group_by(.issue_category) |
-  map("### \(.[0].issue_category) (\(length) findings)\n\n" + 
-      (map("- [\(.risk_level)] \(.summary)") | join("\n"))) |
-  join("\n\n")
-')
-EOF
-
-cat /tmp/test_report.md
+# 按风险等级
+cat $BUNDLE | jq -r '.findings | group_by(.risk_level) | map("\(. [0].risk_level): \(length)") | .[]'
 ```
 
 ---
 
-## 性能验证
+## 8. 已知问题模式与快速诊断
 
-### 提取步骤耗时
+> 这些是从实际 E2E 测试中沉淀出的问题模式。**遇到类似症状时，直接按诊断路径排查。**
 
-```bash
-# 从日志中提取每个步骤的耗时
-python3 << 'EOF'
-import re
-from datetime import datetime
+### 模式 A: LLM JSON 解析失败
 
-with open('/tmp/audit_paper2.log') as f:
-    lines = f.readlines()
+| 维度 | 内容 |
+|------|------|
+| **症状** | `VeritasLLMParseError: Failed to parse JSON from LLM response` |
+| **日志特征** | `max_tokens` 值偏小（如 1024），JSON 被截断 |
+| **根因** | `chat_json` 默认 `max_tokens` 不足，大 prompt 的响应被截断 |
+| **诊断** | `grep "max_tokens" logs/worker/celery.log` 检查每次 LLM 调用的 max_tokens |
+| **修复方向** | 增大 `chat_json` 默认 max_tokens；对大 prompt 显式传 `max_tokens` |
+| **验证** | `grep "VeritasLLMParseError" logs/worker/celery.log` 应为空 |
 
-steps = {}
-current_step = None
-start_time = None
+### 模式 B: 循环内重复 LLM 调用
 
-for line in lines:
-    # 匹配步骤开始
-    start_match = re.search(r'\[(.*?)\] START (\w+)', line)
-    if start_match:
-        current_step = start_match.group(2)
-        start_time = datetime.strptime(start_match.group(1), '%Y-%m-%d %H:%M:%S')
-    
-    # 匹配步骤完成
-    done_match = re.search(r'\[(.*?)\] (DONE|FAILED|SKIPPED)\s+(\w+)', line)
-    if done_match and current_step:
-        end_time = datetime.strptime(done_match.group(1), '%Y-%m-%d %H:%M:%S')
-        duration = (end_time - start_time).total_seconds()
-        steps[current_step] = duration
-        current_step = None
+| 维度 | 内容 |
+|------|------|
+| **症状** | 某阶段耗时异常长（30+ min），Mission Control 事件流停止 |
+| **日志特征** | 同一函数被重复调用 N 次，参数完全相同 |
+| **根因** | 循环内调用昂贵函数但无缓存，输入在循环期间不变 |
+| **诊断** | 对比循环次数 vs 唯一参数组合数 |
+| **修复方向** | 将循环内的纯函数结果缓存到循环外 |
+| **验证** | 日志中该函数只出现 1 次 |
 
-# 打印结果
-print("步骤耗时统计:")
-print("-" * 60)
-for step, duration in sorted(steps.items(), key=lambda x: -x[1]):
-    minutes = int(duration // 60)
-    seconds = int(duration % 60)
-    print(f"{step:<40} {minutes}m {seconds:02d}s")
-EOF
+### 模式 C: 前后端契约不一致
+
+| 维度 | 内容 |
+|------|------|
+| **症状** | 用户按 placeholder 输入 → 400 错误；或输入正确格式 → 前端不显示结果 |
+| **日志特征** | 后端 400 响应，前端 404 响应 |
+| **根因** | 前端 placeholder 格式与后端校验 regex 不一致 |
+| **诊断** | 对比 `placeholder="..."` 与后端 schema validation |
+| **修复方向** | 统一 placeholder 示例为后端期望格式 |
+| **验证** | 按 placeholder 输入 → 不触发 400 |
+
+### 模式 D: 阶段名 "Unknown"
+
+| 维度 | 内容 |
+|------|------|
+| **症状** | Mission Control 进度条出现 "Unknown" 阶段 |
+| **根因** | Pipeline step 的 `stage_name` 或 `stage` 字段未设置 |
+| **诊断** | 在 events API 中查找 `stage` 为空的步骤 |
+| **修复方向** | 为所有 pipeline step 设置明确的 `stage` |
+| **验证** | Mission Control 无 "Unknown" |
+
+### 模式 E: opencode Agent JSON 提取失败
+
+| 维度 | 内容 |
+|------|------|
+| **症状** | `opencode material plan failed: schema_validation: JSON extraction failed` |
+| **日志特征** | `ValueError: no JSON object found in opencode output` |
+| **根因** | opencode 返回的是 markdown 或其他非 JSON 格式 |
+| **诊断** | 检查 opencode 输出内容 |
+| **修复方向** | 增强 JSON 提取鲁棒性（strip markdown, fallback parser） |
+| **验证** | Agent 步骤不再报 warning |
+
+### 模式 F: Celery 硬超时 (Hard time limit exceeded)
+
+| 维度 | 内容 |
+|------|------|
+| **症状** | `Hard time limit (3600s) exceeded for run_audit`, worker SIGKILL |
+| **日志特征** | `Process 'ForkPoolWorker-N' exited with signal 9 (SIGKILL)` |
+| **根因** | 审计任务运行超过 1 小时（通常由缓存缺失或 LLM 重试风暴导致） |
+| **诊断** | 检查同 case 的前序日志是否有重复调用 |
+| **修复方向** | 修复根因（缓存、max_tokens）；必要时调整 `task_time_limit` |
+| **验证** | 审计在合理时间内完成 |
+
+### 模式 G: curl/HTTP 客户端走代理
+
+| 维度 | 内容 |
+|------|------|
+| **症状** | `curl` 卡住无输出，或连接到 `127.0.0.1:18808`（代理端口） |
+| **日志特征** | `Connected to 127.0.0.1 (127.0.0.1) port 18808` |
+| **根因** | `http_proxy` 环境变量导致本地请求被代理 |
+| **诊断** | `echo $http_proxy` |
+| **修复方向** | 加 `--noproxy '*'` 或 `unset http_proxy` |
+| **验证** | curl 直连 127.0.0.1 |
+
+### 快速诊断决策树
+
 ```
-
-### 性能基线对比
-
-```bash
-# 对比优化前后的性能
-python3 << 'EOF'
-# 基线数据（优化前）
-baseline = {
-    "figure_classification": 8.5,  # 分钟
-    "copy_move_detection": 11.5,
-    "llm_enrichment": 9.8,
-    "total": 42.2,
-}
-
-# 从日志中提取实际耗时
-import re
-from datetime import datetime
-
-with open('/tmp/audit_paper2.log') as f:
-    lines = f.readlines()
-
-# ... (提取逻辑同上)
-
-# 对比
-print("性能对比:")
-print("-" * 70)
-print(f"{'步骤':<30} {'基线':>10} {'实际':>10} {'改善':>10}")
-print("-" * 70)
-# ... (对比逻辑)
-EOF
-```
-
----
-
-## 质量验证
-
-### Ground Truth 对比
-
-```bash
-# 详细对比 ground truth
-python3 << 'EOF'
-import yaml
-import json
-from pathlib import Path
-
-# 加载 ground truth
-with open('ground_truth/paper2/annotations.yaml') as f:
-    gt = yaml.safe_load(f)
-
-# 加载 bundle
-bundle_path = sorted(Path('outputs').glob('*/bundle.json'))[-1]
-with open(bundle_path) as f:
-    bundle = json.load(f)
-
-findings = bundle.get('findings', [])
-
-# 逐个 claim 检查
-print("Ground Truth 覆盖情况:")
-print("-" * 70)
-
-for claim in gt['claims']:
-    claim_type = claim['claim_type']
-    target = claim['target']
-    desc = claim['description'][:50]
-    
-    # 简单匹配（实际应该更复杂）
-    matched = any(
-        claim_type in f.get('category', '') or
-        target in f.get('summary', '') or
-        target in f.get('evidence_refs', [])
-        for f in findings
-    )
-    
-    status = "✓" if matched else "✗"
-    print(f"{status} {claim_type:<40} {target}")
-    print(f"  {desc}...")
-    print()
-
-# 统计
-matched_count = sum(
-    1 for claim in gt['claims']
-    if any(
-        claim['claim_type'] in f.get('category', '') or
-        claim['target'] in f.get('summary', '')
-        for f in findings
-    )
-)
-
-print("-" * 70)
-print(f"覆盖率: {matched_count}/{len(gt['claims'])} ({matched_count/len(gt['claims'])*100:.1f}%)")
-print(f"目标: ≥ 73%")
-print(f"状态: {'✓ PASS' if matched_count/len(gt['claims']) >= 0.73 else '✗ FAIL'}")
-EOF
-```
-
-### Figure Classification 准确率
-
-```bash
-# 验证 figure classification 准确率
-uv run python -m pytest tests/unit/test_figure_classification.py -v
-
-# 预期结果：
-# - 28 passed (golden test)
-# - 准确率 ≥ 95%
-```
-
-### Copy-move 检出率
-
-```bash
-# 验证 copy-move 检出率
-uv run python -m pytest tests/unit/test_copy_move_detection.py::TestGoldenPositiveCrossFigure -v
-
-# 预期结果：
-# - test_identical_panels_detected_cross_figure: XPASS 或 PASS
-# - 已知 copy-move pair 必须被检出
+审计任务异常？
+├─ 卡在 visual 阶段 > 10 min？
+│  ├─ 日志有 VeritasLLMParseError → 模式 A (max_tokens)
+│  ├─ 同一 LLM 函数重复调用 → 模式 B (缓存)
+│  └─ 无日志输出 → 检查 LLM API 连通性
+│
+├─ Mission Control 显示 "Unknown"？
+│  └─ 模式 D (stage_name 缺失)
+│
+├─ Agent 步骤 warning？
+│  └─ 模式 E (opencode JSON 提取)
+│
+├─ Worker 进程被 SIGKILL？
+│  └─ 模式 F (硬超时，通常由 A/B 引发)
+│
+└─ 前端 API 调用 400？
+   └─ 模式 C (placeholder 格式) 或 curl 代理问题 (模式 G)
 ```
 
 ---
 
-## 常见问题和解决方案 (踩坑记录)
+## 9. 截图基线与视觉回归
 
-### 问题 1: ELIS 服务超时
+### 截图保存位置
 
-**症状**:
 ```
-ELIS provenance timeout: 120s HTTP 超时，服务未写完文件
-```
-
-**原因**:
-- ELIS provenance 服务对大量图片（215+ 张）的处理时间 > 120s
-- Late artifact recovery 在超时时检查文件，但文件还未写入
-
-**解决方案**:
-1. **临时方案**: 增大 timeout 到 300s
-   ```python
-   # engine/static_audit/tools/_elis_provenance_runner.py
-   timeout=300  # 从 120s 增加到 300s
-   ```
-
-2. **根本方案**: 异步化 provenance 执行（推迟到 Phase 3）
-
-3. **绕过方案**: 跳过 provenance 步骤
-   ```bash
-   # 在 pipeline 配置中禁用 provenance
-   export SKIP_PROVENANCE=1
-   ```
-
-### 问题 2: Agent Investigation 超时
-
-**症状**:
-```
-Agent investigation timeout: 120s timeout 对大 context pack 不够
+docs/demos/screenshots/
+├── 01-client-home.png        # Client 首页
+├── 02-ops-dashboard.png      # Ops Dashboard
+├── 03-mission-control.png    # Mission Control（运行中）
+├── 04-verify-page.png        # Verify 独立页面
+├── 05-mission-completed.png  # Mission Control（完成）
+├── 06-mission-agent-stage.png
+└── 07-mission-completed.png
 ```
 
-**原因**:
-- Context pack 过大（100KB+）
-- Agent 需要更多时间处理
+### 截图规范
 
-**解决方案**:
-1. **动态 timeout**: 根据 context pack 大小调整
-   ```python
-   # engine/static_audit/pipeline.py
-   def compute_agent_timeout(context_pack_size: int) -> int:
-       context_kb = context_pack_size / 1024
-       return int(120 + context_kb * 0.5)  # 100KB → 170s
-   ```
+- 文件名带序号，方便排序
+- 每次完整 E2E 测试后更新截图
+- 截图时确保页面已完全加载（`sleep 3` 或 `wait_for` 关键文本）
+- 使用 Chrome MCP `take_screenshot` 工具，指定 `filePath`
 
-2. **减少 context**: 限制 context pack 大小
-   ```python
-   # 在 context_pack 构建时限制大小
-   max_context_size = 50 * 1024  # 50KB
-   ```
+### 视觉回归检查
 
-### 问题 3: LLM Rate Limit
-
-**症状**:
-```
-Rate limit exceeded: 429 Too Many Requests
-```
-
-**原因**:
-- 并行调用触发阿里云 API 限流
-- 并发数过高
-
-**解决方案**:
-1. **降低并发数**:
-   ```python
-   # engine/reporting/text_generator.py
-   max_concurrent = 3  # 从 5 降低到 3
-   ```
-
-2. **渐进式增加**:
-   ```python
-   # 如果触发 rate limit，自动降低并发数
-   if "429" in error:
-       max_concurrent = max(1, max_concurrent // 2)
-   ```
-
-3. **添加重试**:
-   ```python
-   import time
-   for attempt in range(3):
-       try:
-           response = llm_client.chat_json(prompt)
-           break
-       except RateLimitError:
-           time.sleep(2 ** attempt)  # 指数退避
-   ```
-
-### 问题 4: Figure Classification JSON 解析失败
-
-**症状**:
-```
-VeritasLLMParseError: Failed to parse JSON from LLM response
-```
-
-**原因**:
-- 合并调用的 prompt 过长
-- LLM 返回的 JSON 格式不正确
-
-**解决方案**:
-1. **自动 fallback**: 合并调用失败时回退到逐个调用
-   ```python
-   # engine/static_audit/figure_classification.py
-   try:
-       return classify_all_figures_batch(legends, llm_client)
-   except Exception as e:
-       logger.warning("Batch classification failed, falling back: %s", e)
-       # Fallback to per-figure calls
-       return classify_all_figures_sequential(legends, llm_client)
-   ```
-
-2. **增大 max_tokens**:
-   ```python
-   response = llm_client.chat_json(
-       prompt,
-       max_tokens=8192,  # 从 4096 增加到 8192
-   )
-   ```
-
-3. **截断 legend**:
-   ```python
-   # 每个 legend 最多 1500 字符
-   legend = legend[:1500]
-   ```
-
-### 问题 5: Copy-move 漏检
-
-**症状**:
-```
-已知 copy-move pair 未被检出
-```
-
-**原因**:
-- dHash 预过滤距离阈值过低
-- Copy-move 经过旋转/裁剪
-
-**解决方案**:
-1. **增大 dHash 距离**:
-   ```python
-   # engine/static_audit/tools/copy_move_detection.py
-   max_distance = 10  # 从 8 增加到 10
-   ```
-
-2. **使用 full_scan 模式**:
-   ```bash
-   uv run python -m engine.static_audit.tools.copy_move_detection \
-     --full-scan \
-     --paper-dir input/paper2
-   ```
-
-3. **验证 ground truth**:
-   ```bash
-   # 检查 ground truth 中的 copy-move claims
-   grep "visual.copy_move" ground_truth/paper2/annotations.yaml
-   ```
-
-### 问题 6: Certainty Enrichment Layers 为空
-
-**症状**:
-```python
-bundle.metadata["certainty_layers"] == {}  # 空 dict
-```
-
-**原因**:
-- Certainty enrichment 数据以 flat list 存储，而非嵌套 layers 结构
-- 与测试预期不符
-
-**解决方案**:
-1. **检查实际结构**:
-   ```python
-   # 实际结构
-   bundle.metadata["certainty_data"]  # flat list
-   
-   # 预期结构
-   bundle.metadata["certainty_layers"]  # nested dict
-   ```
-
-2. **适配测试**:
-   ```python
-   # 修改测试以适配实际结构
-   certainty_data = bundle.metadata.get("certainty_data", [])
-   assert len(certainty_data) > 0
-   ```
-
-### 问题 7: 总耗时超过 20 分钟
-
-**症状**:
-```
-总耗时: 44.6 分钟 (超过 20 分钟目标)
-```
-
-**原因**:
-- Agent investigation 超时等待
-- Provenance 步骤阻塞
-- LLM enrichment 串行执行
-
-**解决方案**:
-1. **检查瓶颈**:
-   ```bash
-   # 提取每个步骤的耗时
-   grep -E "START|DONE" /tmp/audit_paper2.log | \
-     awk '{print $1, $2, $3}'
-   ```
-
-2. **跳过非关键步骤**:
-   ```bash
-   # 跳过 provenance（如果不需要）
-   export SKIP_PROVENANCE=1
-   
-   # 跳过 agent investigation（如果不需要）
-   export SKIP_AGENT_INVESTIGATION=1
-   ```
-
-3. **优化关键路径**:
-   - Figure classification: 合并调用（已实现）
-   - LLM enrichment: 并行化（已实现）
-   - Copy-move: dHash 预过滤（已实现）
-
-### 问题 8: 测试数据缺失
-
-**症状**:
-```
-FileNotFoundError: input/paper2/s41588-025-02253-8.pdf
-```
-
-**原因**:
-- 测试数据未下载
-- 路径不正确
-
-**解决方案**:
-```bash
-# 检查测试数据
-ls -la input/paper2/
-
-# 如果缺失，从备份恢复
-cp -r /backup/paper2/* input/paper2/
-
-# 或者从 git LFS 拉取
-git lfs pull input/paper2/
-```
+对比新旧截图，关注：
+- 布局是否错位
+- 文字是否截断
+- 颜色/主题是否一致
+- 按钮/Tab 状态是否正确
 
 ---
 
-## 快速迭代方法
+## 10. 检查清单
 
-### 方法 1: 增量测试
+### 测试前
 
-```bash
-# 只测试修改的模块
-uv run python -m pytest \
-  tests/unit/test_figure_classification.py \
-  -v --tb=short
-
-# 如果通过，运行快速端到端测试
-uv run python cli/commands/audit_paper.py \
-  --paper-dir input/paper2 \
-  --profile fast \
-  --force  # 强制重新运行
-```
-
-### 方法 2: 跳过慢速步骤
-
-```bash
-# 只测试关键路径（跳过 agent investigation）
-export SKIP_AGENT_INVESTIGATION=1
-
-uv run python cli/commands/audit_paper.py \
-  --paper-dir input/paper2 \
-  --profile fast
-```
-
-### 方法 3: 使用缓存
-
-```bash
-# 复用之前的运行结果（跳过已完成的步骤）
-uv run python cli/commands/audit_paper.py \
-  --paper-dir input/paper2 \
-  --profile fast \
-  --no-force  # 默认行为：复用已有结果
-```
-
-### 方法 4: 并行调试
-
-```bash
-# 终端 1: 运行端到端测试
-uv run python cli/commands/audit_paper.py \
-  --paper-dir input/paper2 \
-  --profile fast 2>&1 | tee /tmp/audit.log
-
-# 终端 2: 实时监控日志
-tail -f /tmp/audit.log
-
-# 终端 3: 检查中间产物
-watch -n 5 'ls -lh outputs/latest/'
-```
-
-### 方法 5: A/B 测试
-
-```bash
-# 运行优化前的版本
-git checkout master~1
-uv run python cli/commands/audit_paper.py \
-  --paper-dir input/paper2 \
-  --profile fast 2>&1 | tee /tmp/before.log
-
-# 运行优化后的版本
-git checkout master
-uv run python cli/commands/audit_paper.py \
-  --paper-dir input/paper2 \
-  --profile fast 2>&1 | tee /tmp/after.log
-
-# 对比性能
-diff /tmp/before.log /tmp/after.log
-```
-
----
-
-## 检查清单
-
-### 测试前检查
-
-- [ ] Python 版本 ≥ 3.11
-- [ ] uv 环境已配置
-- [ ] 环境变量已设置（`DASHSCOPE_API_KEY`）
+- [ ] 所有服务在线（backend :8765, frontend :5173, PostgreSQL, Redis, Celery）
+- [ ] `curl` 不走代理（`--noproxy '*'`）
+- [ ] 环境变量正确（`DASHSCOPE_API_KEY`）
 - [ ] 测试数据存在（`input/paper2/`）
-- [ ] Ground truth 存在（`ground_truth/paper2/annotations.yaml`）
-- [ ] ELIS 服务已启动（可选）
 
-### 测试中检查
+### 单元测试
 
-- [ ] 单元测试通过（`make test`）
-- [ ] 端到端测试运行（`audit_paper.py --profile fast`）
-- [ ] 总耗时 ≤ 20 分钟
-- [ ] Findings 数量 ≥ 54
-- [ ] 无严重错误（timeout、crash）
+- [ ] `test_figure_classification.py` 通过
+- [ ] `test_copy_move_detection.py` 通过
+- [ ] `make test-fast` 全通过（1200+ tests）
 
-### 测试后检查
+### Web API 测试
 
-- [ ] 性能数据已记录
-- [ ] 质量数据已记录
-- [ ] Ground truth 覆盖率 ≥ 73%
-- [ ] Figure classification 准确率 ≥ 95%
-- [ ] Copy-move 检出率 100%
-- [ ] 测试报告已生成
+- [ ] `/api/health` → 200
+- [ ] `/api/health/deep` → 所有检查 ok
+- [ ] 创建 Case → 返回 case_id
+- [ ] 上传文件 → 返回 200
+- [ ] 提交审计 → 返回 job_id
+- [ ] 监控进度 → 最终 completed
+- [ ] HTML 报告可访问
 
-### 提交前检查
+### Browser UI 测试
+
+- [ ] Client 首页 4-step 表单正常
+- [ ] Ops Dashboard 显示 case 列表
+- [ ] Mission Control 无 "Unknown" 阶段
+- [ ] 进度实时更新
+- [ ] Verify 页面 placeholder 格式正确
+- [ ] 无 JS 控制台错误
+
+
+### 提交前
 
 - [ ] 所有测试通过
-- [ ] 代码已 review
-- [ ] 文档已更新
+- [ ] 截图已更新
 - [ ] 风险清单已输出
 - [ ] 回滚方案已准备
 
 ---
 
-## 附录
+## 11. 附录
 
-### A. 性能基线数据
-
-**优化前 (2026-06-28)**:
-```
-总耗时: 42m12s
-- Figure classification: 8m30s
-- Copy-move detection: 11m32s
-- LLM enrichment: 9m48s
-- Provenance timeout: 2m00s (阻塞)
-- Agent investigation: 2m00s (timeout)
-- Bundle + report: 6m03s
-```
-
-**优化后 (预期)**:
-```
-总耗时: ~16min
-- Figure classification: ~1m (合并调用)
-- Copy-move detection: ~2m (dHash 预过滤)
-- LLM enrichment: ~4m (并行化)
-- Provenance: 0m (异步)
-- Agent investigation: ~3m (自适应 timeout)
-- Bundle + report: ~2m (部分并行化)
-```
-
-### B. Ground Truth 标注
-
-**Paper2 Ground Truth** (`ground_truth/paper2/annotations.yaml`):
-
-| # | Claim Type | Target | Status |
-|---|------------|--------|--------|
-| 1 | visual.copy_move_keypoint | Extended Data Fig. 4h | ✓ confirmed |
-| 2 | source_data.duplicate_columns | Fig. 5c | ✓ confirmed |
-| 3 | source_data.row_offset_exact_reuse | Fig. 8f (MOESM11) | ✓ confirmed |
-| 4 | source_data.row_offset_exact_reuse | Fig. 6i (MOESM9) | ✓ confirmed |
-| 5 | completeness.missing_source_data | Fig. 7i | ✓ confirmed |
-| 6 | source_data.duplicate_row_vector | Fig. 3f | ✓ confirmed |
-| 7 | source_data.fixed_ratio | Fig. 7d | ✓ confirmed |
-| 8 | visual.image_quality | Fig. 3j | ✓ confirmed |
-| 9 | source_data.paired_difference_spread | Extended Data Fig. 3g | ✓ confirmed |
-
-**总计**: 9 claims, 全部经人工确认
-
-### C. 关键文件路径
+### A. 关键文件路径
 
 | 文件 | 用途 |
 |------|------|
-| `cli/commands/audit_paper.py` | 端到端测试入口 |
+| `cli/commands/audit_paper.py` | CLI E2E 入口 |
 | `engine/static_audit/pipeline.py` | Pipeline 编排 |
 | `engine/static_audit/figure_classification.py` | Figure classification |
-| `engine/reporting/text_generator.py` | LLM enrichment |
-| `engine/static_audit/tools/copy_move_detection.py` | Copy-move detection |
+| `engine/llm/client.py` | LLM 客户端（`chat_json` max_tokens） |
+| `engine/static_audit/visual_pipeline/panel_extraction.py` | Panel extraction（缓存） |
+| `web/backend/veritas_web/app.py` | FastAPI 后端 |
+| `web/frontend/src/services/api.js` | 前端 API 层 |
+| `web/frontend/src/pages/VerifyPage.jsx` | Verify 独立页 |
+| `web/frontend/src/pages/client/VerifyPage.jsx` | Verify 嵌入页 |
+| `web/frontend/src/utils/entrypoint.js` | 入口检测逻辑 |
+| `logs/app/backend.log` | 后端日志 |
+| `logs/worker/celery.log` | Celery worker 日志 |
 | `input/paper2/` | 测试数据 |
 | `ground_truth/paper2/annotations.yaml` | Ground truth |
-| `outputs/*/bundle.json` | 测试结果 |
-| `outputs/*/verification_report.html` | HTML 报告 |
+| `outputs/*/bundle.json` | 审计结果 |
+| `docs/demos/screenshots/` | E2E 截图 |
 
-### D. 有用的命令
+### B. 常用 Chrome MCP 命令
 
-```bash
-# 运行所有测试
-make test
+| 操作 | 工具 |
+|------|------|
+| 导航 | `navigate_page(url)` |
+| 截图 | `take_screenshot(filePath)` |
+| 快照 | `take_snapshot()` |
+| 点击 | `click(uid)` |
+| 填表 | `fill(uid, value)` |
+| 检查控制台 | `list_console_messages(types=["error"])` |
+| 检查网络 | `list_network_requests()` |
 
-# 运行快速单元测试
-make test-fast
+### C. 常用 API 端点
 
-# Lint 检查
-make lint-python
+| 端点 | 方法 | 用途 |
+|------|------|------|
+| `/api/health` | GET | 健康检查 |
+| `/api/health/deep` | GET | 深度健康检查 |
+| `/api/cases` | GET/POST | 列表/创建 Case |
+| `/api/cases/{id}/inputs` | POST | 上传文件 |
+| `/api/audit` | POST | 提交审计 |
+| `/api/audit/{id}` | GET | 查询审计状态 |
+| `/api/cases/{id}/report/html` | GET | HTML 报告 |
+| `/api/verify/{report_id}` | GET | 公开验证 |
+| `/api/me` | GET | 当前用户信息 |
+| `/api/audit/queue` | GET | 队列状态 |
 
-# 运行 paper2 端到端测试
-uv run python cli/commands/audit_paper.py \
-  --paper-dir input/paper2 \
-  --profile fast
-
-# 查看最新测试结果
-cat $(ls -t outputs/*/bundle.json | head -1) | jq '.findings | length'
-
-# 清理测试产物
-rm -rf outputs/*
-
-# 重启 ELIS 服务
-cd third_party/elis && docker-compose restart
-```
-
----
-
-## 版本历史
+### D. 版本历史
 
 | 版本 | 日期 | 变更 |
 |------|------|------|
-| v1.0 | 2026-06-29 | 初始版本，基于 PRD Pipeline Performance Optimization |
+| v2.0 | 2026-06-30 | 新增 Web API + Browser E2E 测试路径；新增已知问题模式库；新增 Chrome MCP 操作指南；更新性能基线 |
+| v1.0 | 2026-06-29 | 初始版本，CLI Pipeline 测试 |
 
 ---
 
-**维护者**: Linus Torvalds (AI Agent)  
-**联系方式**: 通过 GitHub Issues 反馈问题
+## 快速参考卡片
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ E2E 测试快速参考                                         │
+├─────────────────────────────────────────────────────────┤
+│ 1. 健康检查:                                             │
+│    curl -s --noproxy '*' http://127.0.0.1:8765/api/health/deep │
+│                                                         │
+│ 2. 单元测试:                                             │
+│    uv run python -m pytest tests/unit/ -x --tb=short -q │
+│                                                         │
+│ 3. Web API 冒烟:                                        │
+│    POST /api/cases → POST /api/audit → GET /api/audit/{id} │
+│                                                         │
+│ 4. Browser UI:                                          │
+│    Chrome MCP → :5173 → :5173/ops → :5173/verify        │
+│                                                         │
+│ 5. CLI Pipeline:                                        │
+│    uv run python cli/commands/audit_paper.py --paper-dir input/paper2 │
+│                                                         │
+│ 6. 日志诊断:                                             │
+│    grep -E "ERROR|WARNING|ParseError" logs/worker/celery.log │
+│                                                         │
+│ 7. 截图保存:                                             │
+│    docs/demos/screenshots/01-xxx.png                     │
+└─────────────────────────────────────────────────────────┘
+```

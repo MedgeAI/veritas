@@ -397,11 +397,19 @@ class AgentStepRunner:
         inp = token_usage.get("input", 0)
         out = token_usage.get("output", 0)
         reason = token_usage.get("reasoning", 0)
+        step_count = token_usage.get("step_count", 0)
+        cache = token_usage.get("cache", {})
+        cache_read = cache.get("read", 0) if isinstance(cache, dict) else 0
         if total:
             lines.append(
                 f"Runtime: {runtime_seconds:.1f}s | "
                 f"Tokens: {total:,} (in={inp:,} out={out:,} reason={reason:,})"
             )
+            if step_count or cache_read:
+                lines.append(
+                    f"Token detail: steps={step_count:,} "
+                    f"cache_read={cache_read:,}"
+                )
 
         # Prompt summary (first 500 chars, not hashed)
         lines.append("")
@@ -435,7 +443,16 @@ class AgentStepRunner:
         return lines
 
     def _extract_token_usage(self, stdout: str) -> dict:
-        """Parse JSONL stdout for token usage from step_finish event."""
+        """Parse JSONL stdout for aggregate token usage from step_finish events."""
+        aggregate = {
+            "total": 0,
+            "input": 0,
+            "output": 0,
+            "reasoning": 0,
+            "cache": {"read": 0, "write": 0},
+            "step_count": 0,
+            "steps": [],
+        }
         for line in stdout.splitlines():
             line = line.strip()
             if not line:
@@ -448,13 +465,78 @@ class AgentStepRunner:
                 part = item.get("part", {})
                 tokens = part.get("tokens", {})
                 if isinstance(tokens, dict):
-                    return {
-                        "total": tokens.get("total", 0),
-                        "input": tokens.get("input", 0),
-                        "output": tokens.get("output", 0),
-                        "reasoning": tokens.get("reasoning", 0),
+                    cache = tokens.get("cache", {})
+                    cache_read = cache.get("read", 0) if isinstance(cache, dict) else 0
+                    cache_write = (
+                        cache.get("write", 0) if isinstance(cache, dict) else 0
+                    )
+                    step = {
+                        "reason": part.get("reason"),
+                        "total": tokens.get("total", 0) or 0,
+                        "input": tokens.get("input", 0) or 0,
+                        "output": tokens.get("output", 0) or 0,
+                        "reasoning": tokens.get("reasoning", 0) or 0,
+                        "cache_read": cache_read or 0,
+                        "cache_write": cache_write or 0,
                     }
-        return {}
+                    aggregate["step_count"] += 1
+                    aggregate["total"] += step["total"]
+                    aggregate["input"] += step["input"]
+                    aggregate["output"] += step["output"]
+                    aggregate["reasoning"] += step["reasoning"]
+                    aggregate["cache"]["read"] += step["cache_read"]
+                    aggregate["cache"]["write"] += step["cache_write"]
+                    aggregate["steps"].append(step)
+        if aggregate["step_count"] == 0:
+            return {}
+        return aggregate
+
+    def _build_token_ledger(
+        self,
+        *,
+        prompt_text: str,
+        context_pack_path: Path | None,
+        token_usage: dict,
+    ) -> dict[str, Any]:
+        """Build a non-invasive token observability ledger for this agent step."""
+        cache = token_usage.get("cache", {})
+        cache_read = cache.get("read", 0) if isinstance(cache, dict) else 0
+        cache_write = cache.get("write", 0) if isinstance(cache, dict) else 0
+
+        context_pack_bytes = 0
+        if context_pack_path and Path(context_pack_path).exists():
+            try:
+                context_pack_bytes = Path(context_pack_path).stat().st_size
+            except OSError:
+                context_pack_bytes = 0
+
+        return {
+            "schema_version": "1.0",
+            "step_count": token_usage.get("step_count", 0),
+            "model": self.model,
+            "input_payload": {
+                "prompt_chars": len(prompt_text),
+                "context_pack_path": str(context_pack_path)
+                if context_pack_path
+                else None,
+                "context_pack_bytes": context_pack_bytes,
+            },
+            "token_classes": {
+                "uncached_input": token_usage.get("input", 0),
+                "cache_read": cache_read,
+                "cache_write": cache_write,
+                "output": token_usage.get("output", 0),
+                "reasoning": token_usage.get("reasoning", 0),
+                "total": token_usage.get("total", 0),
+            },
+            "billing_inputs": {
+                "full_rate_input_tokens": token_usage.get("input", 0),
+                "cache_read_tokens": cache_read,
+                "cache_write_tokens": cache_write,
+                "output_tokens": token_usage.get("output", 0),
+                "reasoning_tokens": token_usage.get("reasoning", 0),
+            },
+        }
 
     def _extract_runtime(self, stdout: str) -> float:
         """Estimate runtime from JSONL timestamps."""
@@ -609,6 +691,11 @@ class AgentStepRunner:
         hallucination_checks = self._run_hallucination_checks(
             validated_output, context_pack_path
         )
+        token_ledger = self._build_token_ledger(
+            prompt_text=prompt_text,
+            context_pack_path=context_pack_path,
+            token_usage=token_usage,
+        )
 
         trace = {
             "role": role,
@@ -633,6 +720,7 @@ class AgentStepRunner:
                 "summary": out_summary,
             },
             "token_usage": token_usage,
+            "token_ledger": token_ledger,
             "hallucination_checks": hallucination_checks,
         }
 

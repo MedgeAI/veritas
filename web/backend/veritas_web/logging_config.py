@@ -29,7 +29,8 @@ _CONFIGURED = False
 _LOG_FORMAT = "%(asctime)s [%(levelname)-7s] %(name)s: %(message)s"
 
 _MAX_BYTES = 10 * 1024 * 1024  # 10 MB
-_BACKUP_COUNT = 5
+_BACKUP_COUNT_PROD = 5          # prod: 10 MB × (1 + 5) = 60 MB ceiling
+_BACKUP_COUNT_DEV = 1           # dev:  10 MB × (1 + 1) = 20 MB ceiling
 
 # HTTP paths that represent frontend polling — noisy at INFO during audit runs.
 POLLING_PATHS: tuple[str, ...] = (
@@ -158,6 +159,10 @@ def configure_logging(level: str | None = None) -> None:
     root.addHandler(stream_handler)
 
     # --- Rotating file handler (optional) ---
+    # Rotation policy is env-aware: prod keeps 60 MB ceiling (10 MB × 6 files),
+    # dev keeps 20 MB (10 MB × 2 files) — dev machines iterate faster and
+    # don't need long history; prod retains forensic trail.
+    backup_count = _BACKUP_COUNT_DEV if is_dev else _BACKUP_COUNT_PROD
     log_dir = get_env("VERITAS_LOG_DIR", required=False, default="logs/")
     if log_dir:
         try:
@@ -165,7 +170,7 @@ def configure_logging(level: str | None = None) -> None:
             file_handler = RotatingFileHandler(
                 os.path.join(log_dir, "veritas.log"),
                 maxBytes=_MAX_BYTES,
-                backupCount=_BACKUP_COUNT,
+                backupCount=backup_count,
                 encoding="utf-8",
             )
             file_handler.setFormatter(formatter)

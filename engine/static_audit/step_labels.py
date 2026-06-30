@@ -14,6 +14,7 @@ spaces, title-cased) so the front-end always has *something* to display.
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 # ---------------------------------------------------------------------------
@@ -114,6 +115,11 @@ STEP_LABELS: dict[str, dict[str, Any]] = {
         "phase": _PHASE_DATA_ANALYSIS,
         "phase_order": _ORDER_DATA_ANALYSIS,
     },
+    "cross_sheet_filter": {
+        "title": "Cross-sheet LLM 过滤",
+        "phase": _PHASE_DATA_ANALYSIS,
+        "phase_order": _ORDER_DATA_ANALYSIS,
+    },
     "source_data_briefings": {
         "title": "Sheet 简报",
         "phase": _PHASE_DATA_ANALYSIS,
@@ -207,6 +213,16 @@ STEP_LABELS: dict[str, dict[str, Any]] = {
         "phase": _PHASE_REPORT,
         "phase_order": _ORDER_REPORT,
     },
+    "certainty_enrichment": {
+        "title": "确定性分层",
+        "phase": _PHASE_REPORT,
+        "phase_order": _ORDER_REPORT,
+    },
+    "llm_enrichment": {
+        "title": "LLM 文本充实",
+        "phase": _PHASE_REPORT,
+        "phase_order": _ORDER_REPORT,
+    },
     "report": {
         "title": "生成 Markdown 报告",
         "phase": _PHASE_REPORT,
@@ -222,17 +238,57 @@ STEP_LABELS: dict[str, dict[str, Any]] = {
 _UNKNOWN_PHASE = "Unknown"
 _UNKNOWN_PHASE_ORDER = 99
 
+# ---------------------------------------------------------------------------
+# Dynamic key patterns for agent-generated step keys.
+# Each rule: (compiled_regex, handler_callable).
+# Handlers receive the match object and return a label dict.
+# ---------------------------------------------------------------------------
+
+_DYNAMIC_LABEL_RULES: list[tuple[re.Pattern, Any]] = [
+    (
+        re.compile(r"^agent_investigation_plan_round_(\d+)$"),
+        lambda m: {
+            "title": f"Agent 调查规划 (轮次 {m.group(1)})",
+            "phase": _PHASE_AGENT,
+            "phase_order": _ORDER_AGENT,
+        },
+    ),
+    (
+        re.compile(r"^agent_role_(\d+)$"),
+        lambda m: {
+            "title": f"Agent 角色层 ({m.group(1)})",
+            "phase": _PHASE_AGENT,
+            "phase_order": _ORDER_AGENT,
+        },
+    ),
+    (
+        re.compile(r"^investigation_(\d+)_(.+)$"),
+        lambda m: {
+            "title": f"调查动作 {m.group(2)} (轮次 {m.group(1)})",
+            "phase": _PHASE_AGENT,
+            "phase_order": _ORDER_AGENT,
+        },
+    ),
+]
+
 
 def get_step_label(key: str) -> dict[str, Any]:
     """Return a display label dict for the given step *key*.
 
     Returns a dict with ``title``, ``phase``, and ``phase_order`` keys.
-    If *key* is not in :data:`STEP_LABELS`, a fallback is generated:
+    If *key* is not in :data:`STEP_LABELS`, checks dynamic patterns for
+    agent investigation keys. If still no match, a fallback is generated:
     underscores are replaced with spaces and the result is title-cased,
     phase is ``"Unknown"``, and ``phase_order`` is ``99``.
     """
     if key in STEP_LABELS:
         return STEP_LABELS[key]
+
+    for pattern, handler in _DYNAMIC_LABEL_RULES:
+        match = pattern.match(key)
+        if match:
+            return handler(match)
+
     return {
         "title": key.replace("_", " ").title(),
         "phase": _UNKNOWN_PHASE,

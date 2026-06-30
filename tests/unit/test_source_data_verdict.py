@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -19,6 +20,7 @@ from engine.static_audit.tools.source_data_verdict import (
     _group_findings_by_sheet,
     _safe_value,
     _validate_verdict_output,
+    get_sheet_verdict,
     read_xlsx_column_context,
     run_source_data_verdict,
 )
@@ -301,6 +303,60 @@ class TestValidateVerdictOutput:
         )
         assert result["findings"][0]["priority"] == "critical"
         assert result["findings"][0]["reason"] == "Directly supports main conclusion"
+
+
+# ── get_sheet_verdict ─────────────────────────────────────────────────
+
+
+def test_get_sheet_verdict_routes_context_path_to_runner(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    captured: dict = {}
+
+    class FakeRunner:
+        def __init__(self, **kwargs):
+            captured["init"] = kwargs
+
+        def run(self, **kwargs):
+            captured["run"] = kwargs
+            context_pack_path = kwargs["context_pack_path"]
+            assert context_pack_path.exists()
+            assert str(context_pack_path) in kwargs["prompt"]
+            return SimpleNamespace(
+                status="success",
+                output={
+                    "sheet_verdict": "mostly_false_positive",
+                    "sheet_pattern": "measurement_data",
+                    "findings": [
+                        {"id": "FR-0001", "verdict": "false_positive"},
+                    ],
+                },
+                runtime_seconds=1.2,
+                metadata={},
+            )
+
+    monkeypatch.setattr(
+        "engine.investigation.agent_step_runner.AgentStepRunner", FakeRunner
+    )
+
+    result = get_sheet_verdict(
+        {
+            "workbook": "source.xlsx",
+            "sheet": "S1",
+            "briefing": {
+                "finding_count": 1,
+                "detected_patterns": [{"category": "fixed_ratio"}],
+            },
+        },
+        project_root=tmp_path,
+        env={},
+        log_dir=tmp_path / "logs",
+    )
+
+    assert result["verdict_status"] == "success"
+    assert captured["run"]["context_pack_path"].name.startswith("verdict_ctx_")
+    assert "files" not in captured["run"]
+    assert not captured["run"]["context_pack_path"].exists()
 
 
 # ── run_source_data_verdict ───────────────────────────────────────────

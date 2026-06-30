@@ -5,7 +5,13 @@ from typing import Any
 
 
 @dataclass
-class Finding:
+class ReportFinding:
+    """A finding in a VerificationReport (rendering layer).
+
+    Distinct from engine.static_audit.models.Finding which is the structured
+    audit-level finding serialized into StaticAuditBundle.
+    """
+
     id: str
     title: str
     severity: str
@@ -16,6 +22,10 @@ class Finding:
     suggestion: str
     source: str
     rerun_required: bool = False
+
+
+# Backward-compatible alias — prevents import breakage during migration.
+Finding = ReportFinding
 
 
 @dataclass
@@ -37,7 +47,7 @@ class VerificationReport:
     summary: dict[str, Any]
     artifacts: dict[str, Any]
     checks: list[CheckStep] = field(default_factory=list)
-    findings: list[Finding] = field(default_factory=list)
+    findings: list[ReportFinding] = field(default_factory=list)
     limitations: list[str] = field(default_factory=list)
     claim_table: list[dict[str, Any]] = field(default_factory=list)
     notes: list[str] = field(default_factory=list)
@@ -78,7 +88,7 @@ def report_from_dict(data: dict[str, Any]) -> VerificationReport:
         summary=data["summary"],
         artifacts=data["artifacts"],
         checks=[CheckStep(**item) for item in data.get("checks", [])],
-        findings=[Finding(**item) for item in data.get("findings", [])],
+        findings=[ReportFinding(**item) for item in data.get("findings", [])],
         limitations=data.get("limitations", []),
         claim_table=data.get("claim_table", []),
         notes=data.get("notes", []),

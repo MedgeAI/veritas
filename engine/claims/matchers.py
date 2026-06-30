@@ -4,7 +4,7 @@ import csv
 from pathlib import Path
 from typing import Any
 
-from engine.reporting.models import Finding
+from engine.reporting.models import ReportFinding
 
 
 def load_result_map(path: Path) -> dict[tuple[str, str], str]:
@@ -22,9 +22,9 @@ def load_result_map(path: Path) -> dict[tuple[str, str], str]:
 
 def compare_claims(
     claims: list[dict[str, Any]], result_map: dict[tuple[str, str], str]
-) -> tuple[list[dict[str, Any]], list[Finding]]:
+) -> tuple[list[dict[str, Any]], list[ReportFinding]]:
     rows: list[dict[str, Any]] = []
-    findings: list[Finding] = []
+    findings: list[ReportFinding] = []
 
     for index, claim in enumerate(claims, start=1):
         claim_id = claim.get("id", f"C-{index:03d}")
@@ -48,7 +48,7 @@ def compare_claims(
         if actual_raw is None:
             row["status"] = "missing"
             findings.append(
-                Finding(
+                ReportFinding(
                     id=f"F-{100 + index:03d}",
                     title=f"缺少结果证据: {dataset} / {metric}",
                     severity="warning",
@@ -68,7 +68,7 @@ def compare_claims(
         if expected is None or actual is None:
             row["status"] = "unparsed"
             findings.append(
-                Finding(
+                ReportFinding(
                     id=f"F-{100 + index:03d}",
                     title=f"无法解析数值: {dataset} / {metric}",
                     severity="warning",
@@ -88,7 +88,7 @@ def compare_claims(
         if diff > tolerance:
             row["status"] = "mismatched"
             findings.append(
-                Finding(
+                ReportFinding(
                     id=f"F-{100 + index:03d}",
                     title=f"数字不一致: {dataset} / {metric}",
                     severity="critical",

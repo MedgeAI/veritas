@@ -345,7 +345,7 @@ def classify_all_figures_batch(
     # Single call with larger token budget
     response = llm_client.chat_json(
         prompt,
-        model="qwen-plus",
+        model="qwen3.6-flash",
         max_tokens=8192,
     )
 

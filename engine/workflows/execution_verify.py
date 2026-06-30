@@ -13,7 +13,7 @@ from engine.ingest.manifest_loader import (
     resolve_path,
     resolve_repo_path,
 )
-from engine.reporting.models import CheckStep, Finding, VerificationReport
+from engine.reporting.models import CheckStep, ReportFinding, VerificationReport
 from runtime.executors.base import ExecutionRequest
 from runtime.executors.subprocess_executor import execute_subprocess
 
@@ -43,7 +43,7 @@ def run_verification(
     ]
 
     checks: list[CheckStep] = []
-    findings: list[Finding] = []
+    findings: list[ReportFinding] = []
     limitations: list[str] = []
 
     paper_ok = exists_file(paper_path)
@@ -95,7 +95,7 @@ def run_verification(
         )
         if not execution_result.success:
             findings.append(
-                Finding(
+                ReportFinding(
                     id="F-005",
                     title="dry-run 执行失败",
                     severity="critical",
@@ -160,7 +160,7 @@ def run_verification(
 
     if not paper_ok:
         findings.append(
-            Finding(
+            ReportFinding(
                 id="F-001",
                 title="缺少论文稿件",
                 severity="critical",
@@ -175,7 +175,7 @@ def run_verification(
 
     if not repo_ok:
         findings.append(
-            Finding(
+            ReportFinding(
                 id="F-002",
                 title="缺少代码仓库根目录",
                 severity="critical",
@@ -190,7 +190,7 @@ def run_verification(
 
     if not env_ok:
         findings.append(
-            Finding(
+            ReportFinding(
                 id="F-003",
                 title="缺少环境声明文件",
                 severity="warning",
@@ -208,7 +208,7 @@ def run_verification(
 
     if not entrypoint_ok:
         findings.append(
-            Finding(
+            ReportFinding(
                 id="F-004",
                 title="缺少可执行入口声明",
                 severity="warning",
@@ -305,7 +305,7 @@ def _verification_level(
     return "V1 Static"
 
 
-def _overall_status(findings: list[Finding]) -> str:
+def _overall_status(findings: list[ReportFinding]) -> str:
     if any(item.severity == "critical" for item in findings):
         return "warning"
     if any(item.severity == "warning" for item in findings):

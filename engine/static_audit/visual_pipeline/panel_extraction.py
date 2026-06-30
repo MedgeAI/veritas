@@ -149,6 +149,18 @@ def run_visual_panel_extraction(
     else:
         batch_panels = {}
 
+    # Pre-compute figure_id → paper_label mapping ONCE (expensive LLM call)
+    # Input (full.md + evidence_ledger.json) is fixed for this workdir,
+    # so caching avoids 18 redundant LLM calls (~30 min wasted).
+    fig_mapping_cache: dict[str, str] | None = None
+    if figure_classification:
+        from engine.static_audit.figure_classification import (
+            build_figure_id_to_paper_label_mapping,
+            classify_panel_with_llm_priority,
+        )
+        cls_dict = figure_classification.get("classifications", {})
+        fig_mapping_cache = figure_classification.get("figure_id_to_paper_label")
+
     # Distribute panels to figures; fallback for figures with zero panels
     fallback_count = 0
     for fid, source_path in figure_path_pairs:
@@ -175,22 +187,14 @@ def run_visual_panel_extraction(
                 )
 
         # Annotate panels with LLM classification (if available)
-        if figure_classification:
-            from engine.static_audit.figure_classification import (
-                build_figure_id_to_paper_label_mapping,
-                classify_panel_with_llm_priority,
-            )
-
-            # Extract the classifications sub-dict from the artifact
-            cls_dict = figure_classification.get("classifications", {})
-            # Build figure_id → paper_label mapping from full.md
-            fig_mapping = figure_classification.get(
-                "figure_id_to_paper_label"
-            ) or build_figure_id_to_paper_label_mapping(workdir)
+        if figure_classification and cls_dict:
+            # Lazily compute mapping on first use (cached for all figures)
+            if fig_mapping_cache is None:
+                fig_mapping_cache = build_figure_id_to_paper_label_mapping(workdir)
 
             for panel in result_panels:
                 panel["panel_classification"] = classify_panel_with_llm_priority(
-                    panel, cls_dict, fig_mapping
+                    panel, cls_dict, fig_mapping_cache
                 )
 
         panels.extend(result_panels)

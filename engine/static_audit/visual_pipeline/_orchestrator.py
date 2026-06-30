@@ -281,8 +281,14 @@ def run_provenance_graph(
     allow_env_skip: bool = False,
     panel_extraction_status: str | None = None,
     progress: ProgressCallback | None = None,
+    elis_timeout: int | None = None,
 ) -> tuple[list[StepResult], dict[str, Any]]:
-    """Build provenance graph from cross-figure content sharing."""
+    """Build provenance graph from cross-figure content sharing.
+
+    Args:
+        elis_timeout: HTTP timeout in seconds for ELIS service calls.
+            If None, uses the default (120s).
+    """
     steps: list[StepResult] = []
     output_path = resolve_artifact_path(workdir, "provenance_graph.json")
     if output_path.exists() and not force:
@@ -366,7 +372,11 @@ def run_provenance_graph(
     try:
         from engine.static_audit.tools.provenance_graph import build_provenance_graph
 
-        result = build_provenance_graph(figures, workdir=workdir)
+        # Build kwargs, passing elis_timeout if provided
+        kwargs: dict[str, Any] = {"workdir": workdir}
+        if elis_timeout is not None:
+            kwargs["timeout"] = elis_timeout
+        result = build_provenance_graph(figures, **kwargs)
     except (OSError, VeritasError) as e:
         result = {
             "status": "failed",
