@@ -127,7 +127,6 @@ function ProgressTracker({ steps = [], runStatus, caseId }) {
         totalSteps={totalSteps}
         completedSteps={completedStepCount}
         failedSteps={failedStepCount}
-        caseId={caseId}
         onViewReport={handleViewReport}
       />
     );

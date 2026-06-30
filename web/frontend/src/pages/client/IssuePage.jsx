@@ -15,6 +15,7 @@ import { FiChevronLeft, FiCheckCircle as CheckCircle2, FiEdit3 as Edit3, FiPlay 
 import { fetchClientReport, saveReviewDecision } from '../../services/api';
 import CertaintyLayer from '../../components/client/CertaintyLayer';
 import ResolutionChoice from '../../components/client/ResolutionChoice';
+import ClientEmptyState from '../../components/client/ClientEmptyState';
 
 const RISK_CONFIG = {
   critical: { label: '严重', en: 'Critical', color: 'text-risk-500' },
@@ -72,12 +73,20 @@ export default function IssuePage({ caseId, findingId, onNavigate }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
+  // Hook MUST be called unconditionally at the top — early returns BEFORE a
+  // hook break React's rule-of-hooks (hook ordering).  The guards go INSIDE
+  // the effect body instead; the effect becomes a no-op when context is missing.
+  useEffect(() => {
+    if (!caseId || !findingId) return;
+    setLoading(true);
+    fetchClientReport(caseId)
+      .then(setData)
+      .catch((e) => setError(e.message))
+      .finally(() => setLoading(false));
+  }, [caseId, findingId]);
+
   if (!caseId) {
-    return (
-      <div className="mx-auto max-w-[980px] px-14 py-16 pb-24 text-center">
-        <p className="font-display text-2xl text-ink-500">请选择一个项目以查看问题</p>
-      </div>
-    );
+    return <ClientEmptyState type="issue" onNavigate={onNavigate} />;
   }
 
   if (!findingId) {
@@ -87,14 +96,6 @@ export default function IssuePage({ caseId, findingId, onNavigate }) {
       </div>
     );
   }
-
-  useEffect(() => {
-    setLoading(true);
-    fetchClientReport(caseId)
-      .then(setData)
-      .catch((e) => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [caseId, findingId]);
 
   if (loading) {
     return (

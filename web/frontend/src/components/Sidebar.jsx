@@ -72,7 +72,7 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
       </div>
 
       <nav className="flex-1 space-y-6 overflow-y-auto px-4 py-5">
-        {GROUPS.map((group, gi) => (
+        {GROUPS.map((group) => (
           <section key={group.label}>
             <p className="px-3 text-[10px] font-bold uppercase tracking-[0.22em] text-paper-300">{group.label}</p>
             <div className="mt-2 space-y-1">

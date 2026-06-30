@@ -88,12 +88,16 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
     setParams((current) => ({ ...current, [key]: value }));
   }
 
-  function addFiles(newFiles) {
+  // addFiles uses functional state updater for setFileErrors so it doesn't
+  // close over fileErrors — rapid successive drops no longer clobber each
+  // other's validation state.  No dependency on state means identity is
+  // stable across renders, which also satisfies handleDrop's empty deps.
+  const addFiles = useCallback((newFiles) => {
     const incoming = Array.from(newFiles);
     if (!incoming.length) return;
 
     const validFiles = [];
-    const newErrors = new Map(fileErrors);
+    const newErrors = new Map();
 
     for (const file of incoming) {
       const ext = file.name.split('.').pop()?.toLowerCase();
@@ -125,8 +129,13 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
       });
       setHasUnsavedFiles(true);
     }
-    setFileErrors(newErrors);
-  }
+    setFileErrors((prev) => {
+      const next = new Map(prev);
+      for (const [k, v] of newErrors) next.set(k, v);
+      for (const f of validFiles) next.delete(f.name);
+      return next;
+    });
+  }, []);
 
   function removeFile(index) {
     setFiles((current) => current.filter((_, i) => i !== index));
@@ -160,7 +169,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
     dragCounter.current = 0;
     setIsDragging(false);
     if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
-  }, []);
+  }, [addFiles]);
 
   function guardedNavigate(page) {
     if (hasUnsavedFiles) {
@@ -423,8 +432,6 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
                 <div className="max-h-52 overflow-auto" role="list" aria-label="已选文件列表">
                 {files.map((file, index) => {
                   const fileKey = file.webkitRelativePath || file.name;
-                  const progress = uploadProgress[fileKey];
-                  const uploading = progress !== undefined && progress < 100;
                   return (
                     <div key={`${file.name}-${file.size}-${file.lastModified}`} className="group flex items-center justify-between gap-4 rounded-lg px-2 py-1.5 font-mono text-xs transition hover:bg-white/50" role="listitem">
                       <span className="min-w-0 truncate text-ink-500">{fileKey}</span>

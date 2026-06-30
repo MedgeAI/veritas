@@ -44,7 +44,6 @@ function mockFetchError(status) {
  * Creates a mock EventSource constructor that returns a controllable instance.
  */
 function createMockEventSource() {
-  const listeners = {};
   const instances = [];
 
   const MockEventSource = vi.fn(function (url) {
@@ -153,7 +152,7 @@ describe('useRunSteps', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
 
-    expect(global.fetch).toHaveBeenCalledWith(
+    expect(globalThis.fetch).toHaveBeenCalledWith(
       '/api/cases/case%20with%20space/runs/run%2F2/steps',
       expect.objectContaining({ credentials: 'same-origin' }),
     );
@@ -315,7 +314,7 @@ describe('useRunSteps', () => {
 
   it('falls back to polling after 3 SSE failures', async () => {
     vi.useRealTimers();
-    const { MockEventSource, triggerError, instances } = createMockEventSource();
+    const { MockEventSource, triggerError } = createMockEventSource();
     vi.stubGlobal('EventSource', MockEventSource);
 
     const { result } = renderHook(() => useRunSteps('c1', 'r1'));
@@ -429,7 +428,7 @@ describe('useRunSteps', () => {
   });
 
   it('re-fetches when caseId or runId changes', async () => {
-    const { MockEventSource, instances } = createMockEventSource();
+    const { MockEventSource } = createMockEventSource();
     vi.stubGlobal('EventSource', MockEventSource);
 
     const { rerender } = renderHook(
@@ -440,7 +439,7 @@ describe('useRunSteps', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
     });
-    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
 
     // Change runId
     rerender({ caseId: 'c1', runId: 'r2' });
@@ -449,8 +448,8 @@ describe('useRunSteps', () => {
       await vi.advanceTimersByTimeAsync(0);
     });
     // One call for the new runId
-    expect(global.fetch).toHaveBeenCalledTimes(2);
-    expect(global.fetch).toHaveBeenLastCalledWith(
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+    expect(globalThis.fetch).toHaveBeenLastCalledWith(
       '/api/cases/c1/runs/r2/steps',
       expect.any(Object),
     );

@@ -59,6 +59,16 @@ function formatMB(bytes) {
   return `${Math.round(bytes / (1024 * 1024))} MB`;
 }
 
+// Pure function: file → category bucket.  Lifted to module scope so its
+// identity is stable across renders — safe to include in useCallback deps.
+function categorizeFile(file) {
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.pdf')) return 'paper';
+  if (/\.(py|r|zip|tar\.gz)$/i.test(name)) return 'code';
+  if (/\.(xlsx|xls|csv)$/i.test(name)) return 'data';
+  return 'other';
+}
+
 /**
  * SubmitPage — client-facing submission page.
  *
@@ -66,7 +76,7 @@ function formatMB(bytes) {
  * but hides operational params (agent_mode, timeout, max_retries).
  * Visual layout matches prototype SubmitPage.
  */
-export default function SubmitPage({ caseId: existingCaseId, runId: _existingRunId, onNavigate, onCaseCreated, onRunStarted }) {
+export default function SubmitPage({ caseId: existingCaseId, runId: _existingRunId, onNavigate }) {
   const isExistingCase = Boolean(existingCaseId);
   const [paperTitle, setPaperTitle] = useState('');
   const [tier, setTier] = useState('full');
@@ -108,21 +118,17 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
 
   const pdfCount = useMemo(() => files.filter((file) => file.name.toLowerCase().endsWith('.pdf')).length, [files]);
 
-  function categorizeFile(file) {
-    const name = file.name.toLowerCase();
-    if (name.endsWith('.pdf')) return 'paper';
-    if (/\.(py|r|zip|tar\.gz)$/i.test(name)) return 'code';
-    if (/\.(xlsx|xls|csv)$/i.test(name)) return 'data';
-    return 'other';
-  }
-
+  // addFiles uses functional state updaters so the callback doesn't close
+  // over fileErrors / fileCategories — those become stale between renders,
+  // which used to cause file categories to be silently overwritten on
+  // rapid successive drops.  categorizeFile is pure and stable (module-scope)
+  // so including it in deps is free.
   const addFiles = useCallback((newFiles, defaultCategory) => {
     const incoming = Array.from(newFiles);
     if (!incoming.length) return;
 
     const validFiles = [];
-    const newErrors = new Map(fileErrors);
-    const newCategories = new Map(fileCategories);
+    const newErrors = new Map();
 
     for (const file of incoming) {
       const ext = file.name.split('.').pop()?.toLowerCase();
@@ -137,22 +143,37 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
     }
 
     if (validFiles.length) {
+      // Files + categories MUST be updated from the same `current` snapshot,
+      // otherwise a rapid second drop would compute start indices against a
+      // stale array length and mis-align categories.  setFiles updater gives
+      // us the LATEST files; we derive both the new array and the new
+      // categories Map inside it, then flush categories via setFileCategories.
       setFiles((current) => {
         const existingKeys = new Set(current.map((f) => f.webkitRelativePath || f.name));
         const unique = validFiles.filter((f) => !existingKeys.has(f.webkitRelativePath || f.name));
-        // Set categories for new unique files
+        if (!unique.length) return current;
         const startIndex = current.length;
-        unique.forEach((file, i) => {
-          const category = defaultCategory || categorizeFile(file);
-          newCategories.set(startIndex + i, category);
+        setFileCategories((prevCategories) => {
+          const next = new Map(prevCategories);
+          unique.forEach((file, i) => {
+            const category = defaultCategory || categorizeFile(file);
+            next.set(startIndex + i, category);
+          });
+          return next;
         });
-        setFileCategories(new Map(newCategories));
         return [...current, ...unique];
       });
       setHasUnsavedFiles(true);
     }
-    setFileErrors(newErrors);
-  }, [fileErrors]);
+    // Merge with latest errors rather than replacing — concurrent file ops
+    // (e.g. drop + file-picker) should not clobber each other's validation.
+    setFileErrors((prev) => {
+      const next = new Map(prev);
+      for (const [k, v] of newErrors) next.set(k, v);
+      for (const f of validFiles) next.delete(f.name);
+      return next;
+    });
+  }, []);
 
   function removeFile(index) {
     setFiles((current) => current.filter((_, i) => i !== index));
@@ -206,7 +227,6 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
         const payload = { paper_title: paperTitle || undefined, owner: 'operator' };
         const record = await createCase(payload);
         cid = record.case_id;
-        onCaseCreated?.(record);
       }
 
       if (!files.length) {
@@ -261,8 +281,7 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
 
       const job = await submitAudit(cid, { options: DEFAULT_PARAMS }, tier);
       setHasUnsavedFiles(false);
-      onRunStarted?.(job);
-      onNavigate?.('progress', { case: cid, run: job.run_id });
+      onNavigate?.('progress', { case: cid, run: job.job_id });
     } catch (nextError) {
       const msg = nextError.message || String(nextError);
       setError(msg.endsWith('重试') ? msg : `${msg}，请稍后重试`);
@@ -589,7 +608,7 @@ function SectionLabel({ num, title, sub }) {
   );
 }
 
-function UploadSlot({ icon: Icon, title, hint, files, category, isDragging, onDragEnter, onDragLeave, onDrop }) {
+function UploadSlot({ icon: Icon, title, hint, files, category: _category, isDragging, onDragEnter, onDragLeave, onDrop }) {
   const hasFiles = files && files.length > 0;
 
   function handleDragOver(e) {

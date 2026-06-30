@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FiCheck, FiCircle, FiClock, FiLoader, FiMinus, FiX } from 'react-icons/fi';
 
 const STATUS_STYLES = {
@@ -57,10 +57,20 @@ function AuditProgressBar({ job, onCancel }) {
   const stages = useMemo(() => (Array.isArray(job?.stages) ? job.stages : []), [job]);
   const canCancel = status === 'queued' || status === 'running';
 
+  // Keep a ref to the latest job so the setInterval callback always reads
+  // fresh fields without forcing the effect to restart on every job update.
+  // Parent typically pushes a new job object each SSE tick; listing `job`
+  // in deps would tear down + recreate the interval every second, which
+  // defeats the purpose of having a timer.
+  const jobRef = useRef(job);
+  useEffect(() => {
+    jobRef.current = job;
+  }, [job]);
+
   useEffect(() => {
     if (!job?.started_at && status !== 'running' && status !== 'queued') return;
-    setElapsed(computeElapsed(job));
-    const timer = setInterval(() => setElapsed(computeElapsed(job)), 1000);
+    setElapsed(computeElapsed(jobRef.current));
+    const timer = setInterval(() => setElapsed(computeElapsed(jobRef.current)), 1000);
     return () => clearInterval(timer);
   }, [job?.started_at, job?.finished_at, status]);
 

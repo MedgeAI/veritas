@@ -16,6 +16,7 @@ import { FiRefreshCw, FiShield, FiLock, FiDownload } from 'react-icons/fi';
 import { fetchClientReport } from '../../services/api';
 import GradeStrip from '../../components/client/GradeStrip';
 import FindingCard from '../../components/client/FindingCard';
+import ClientEmptyState from '../../components/client/ClientEmptyState';
 
 const STATUS_LABELS = {
   unavailable: '报告不可用',
@@ -48,16 +49,15 @@ export default function ReportPage({ caseId, onNavigate }) {
   }
 
   if (!data) {
-    return <EmptyState />;
+    return <ClientEmptyState type="report" caseId={caseId} onNavigate={onNavigate} />;
   }
 
   if (data.status !== 'ready') {
-    return <StatusState status={data.status} data={data} onNavigate={onNavigate} />;
+    return <StatusState status={data.status} onNavigate={onNavigate} />;
   }
 
   const { case: caseInfo, certification, risk } = data;
   const grade = certification?.grade || '?';
-  const gradeLabel = certification?.grade_label || '';
   const summary = certification?.summary || '';
   const dimensions = certification?.dimensions || [];
 
@@ -261,15 +261,7 @@ function ErrorState({ message }) {
   );
 }
 
-function EmptyState() {
-  return (
-    <div className="mx-auto max-w-[980px] px-14 py-16 pb-24 text-center">
-      <p className="font-display text-2xl text-ink-500">请选择一个项目以查看报告</p>
-    </div>
-  );
-}
-
-function StatusState({ status, data, onNavigate }) {
+function StatusState({ status, onNavigate }) {
   const label = STATUS_LABELS[status] || status;
 
   return (

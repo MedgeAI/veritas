@@ -19,6 +19,16 @@ const REPRO_TIER_MAP = {
   Static: { label: '仅静态', bg: 'bg-risk-100', text: 'text-risk-700' },
 };
 
+// Status filter bucket → canonical case statuses.  Module-scope so the
+// identity is stable — useMemo below depends on it implicitly; defining it
+// inside the component would silently defeat memoization on every render.
+const STATUS_FILTER_MAP = {
+  all: null,
+  running: ['Running', 'Planning'],
+  done: ['Report Ready', 'Archived'],
+  pending: ['Review Needed'],
+};
+
 function classifyCase(item) {
   if (item.status === 'Review Needed' || (item.review_needed_count || 0) > 0) return 'pending';
   if (item.technical_risk === 'critical' || item.technical_risk === 'high') return 'pending';
@@ -102,13 +112,6 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [gradeFilter, setGradeFilter] = useState('all');
-
-  const STATUS_FILTER_MAP = {
-    all: null,
-    running: ['Running', 'Planning'],
-    done: ['Report Ready', 'Archived'],
-    pending: ['Review Needed'],
-  };
 
   const filteredCases = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { FiChevronLeft, FiShield } from 'react-icons/fi';
 import { getReverificationCost, getVersionHistory, submitReverification } from '../../services/api.js';
 import LineItem from '../../components/client/LineItem.jsx';
+import ClientEmptyState from '../../components/client/ClientEmptyState.jsx';
 
 /**
  * ReverificationPage — client-facing reverification/payment page.
@@ -60,11 +61,7 @@ export default function ReverificationPage({ caseId, onNavigate }) {
   }
 
   if (!caseId) {
-    return (
-      <div className="mx-auto max-w-[980px] px-14 py-16 pb-24 text-center">
-        <p className="font-display text-2xl text-ink-500">请选择一个项目以查看重核</p>
-      </div>
-    );
+    return <ClientEmptyState type="reverification" onNavigate={onNavigate} />;
   }
 
   if (loading) {

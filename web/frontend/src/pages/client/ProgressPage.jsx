@@ -3,6 +3,7 @@ import { FiInfo } from 'react-icons/fi';
 import { useRunSteps } from '../../hooks/useRunSteps.js';
 import { getRun } from '../../services/api.js';
 import StepRow from '../../components/client/StepRow.jsx';
+import ClientEmptyState from '../../components/client/ClientEmptyState.jsx';
 
 /**
  * ProgressPage — client-facing progress page.
@@ -34,11 +35,7 @@ export default function ProgressPage({ caseId, runId, onNavigate }) {
   }, [progress]);
 
   if (!caseId || !runId) {
-    return (
-      <div className="mx-auto max-w-[980px] px-14 py-16 pb-24 text-center">
-        <p className="font-display text-2xl text-ink-500">请选择一个项目以查看进度</p>
-      </div>
-    );
+    return <ClientEmptyState type="progress" caseId={caseId} onNavigate={onNavigate} />;
   }
 
   if (loading) {

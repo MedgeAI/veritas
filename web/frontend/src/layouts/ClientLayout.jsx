@@ -31,7 +31,7 @@ export default function ClientLayout({ activeTab, onTabChange, children }) {
         if (mounted) {
           setUser(currentUser); // null = not logged in
         }
-      } catch (err) {
+      } catch {
         // Network error or server unavailable — treat as not logged in
         if (mounted) {
           setUser(null);

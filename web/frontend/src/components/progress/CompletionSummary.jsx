@@ -18,7 +18,6 @@ export default function CompletionSummary({
   totalSteps,
   completedSteps,
   failedSteps,
-  caseId,
   onViewReport,
 }) {
   const hasFailures = failedSteps > 0;
@@ -75,6 +74,5 @@ CompletionSummary.propTypes = {
   totalSteps: PropTypes.number,
   completedSteps: PropTypes.number,
   failedSteps: PropTypes.number,
-  caseId: PropTypes.string,
   onViewReport: PropTypes.func,
 };

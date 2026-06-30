@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import ClientLayout from './layouts/ClientLayout.jsx';
 import { parseClientWorkspace, writeClientWorkspace } from './utils/clientWorkspace.js';
 
@@ -12,7 +12,6 @@ import VerifyPage from './pages/client/VerifyPage.jsx';
 
 function ClientApp() {
   const [workspace, setWorkspace] = useState(parseClientWorkspace());
-  const mainRef = useRef(null);
 
   useEffect(() => {
     // Sync workspace state when URL changes

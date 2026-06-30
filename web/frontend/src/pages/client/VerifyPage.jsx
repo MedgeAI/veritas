@@ -8,7 +8,7 @@
  * Supports URL query param: ?report_id=XXX auto-fill and query.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FiSearch, FiShield } from 'react-icons/fi';
 import { verifyReport } from '../../services/api';
 import GradeBadge from '../../components/GradeBadge';
@@ -20,25 +20,18 @@ const GRADE_LABELS = {
   D: '未通过',
 };
 
-export default function VerifyPage({ onNavigate }) {
+export default function VerifyPage() {
   const [reportId, setReportId] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [verified, setVerified] = useState(false);
 
-  // Auto-fill from URL query param
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const rid = params.get('report_id');
-    if (rid) {
-      setReportId(rid);
-      // Auto-submit
-      handleVerify(rid);
-    }
-  }, []);
-
-  const handleVerify = async (id) => {
+  // handleVerify is memoized on reportId so the auto-submit effect below
+  // can depend on it without closing over a stale callback.  The effect
+  // re-fires when the URL changes (handleVerify identity changes with
+  // reportId), but the `if (rid)` guard keeps it idempotent.
+  const handleVerify = useCallback(async (id) => {
     const targetId = id || reportId;
     if (!targetId.trim()) return;
 
@@ -57,7 +50,17 @@ export default function VerifyPage({ onNavigate }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [reportId]);
+
+  // Auto-fill + auto-submit when opened with ?report_id=VRT-...
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const rid = params.get('report_id');
+    if (rid) {
+      setReportId(rid);
+      handleVerify(rid);
+    }
+  }, [handleVerify]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
