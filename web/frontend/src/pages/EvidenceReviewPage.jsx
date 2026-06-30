@@ -18,6 +18,8 @@ import { useVisualArtifacts } from '../hooks/useVisualArtifacts.js';
 import { useDenseInvestigation } from '../hooks/useDenseInvestigation.js';
 import { translateStatus, translateRiskLevel } from '../utils/piLabels.js';
 
+const overscrollContainStyle = { overscrollBehavior: 'contain' };
+
 function readEvidenceWorkspaceFromUrl() {
   try {
     const params = new URLSearchParams(window.location.search);
@@ -593,7 +595,7 @@ function DecisionStatusIcon({ status }) {
 
 function FindingList({ findings, decisions, selectedFindingId, onSelectFinding }) {
   return (
-    <div className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-240px)] lg:overflow-y-auto" style={{ overscrollBehavior: 'contain' }}>
+    <div className="lg:sticky lg:top-6 lg:max-h-[calc(100vh-240px)] lg:overflow-y-auto" style={overscrollContainStyle}>
       {findings.length === 0 ? (
         <p className="mt-2 text-sm text-ink-500">当前筛选无结果。</p>
       ) : (

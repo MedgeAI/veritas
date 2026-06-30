@@ -5,6 +5,8 @@ import { getRun } from '../../services/api.js';
 import StepRow from '../../components/client/StepRow.jsx';
 import ClientEmptyState from '../../components/client/ClientEmptyState.jsx';
 
+const italicStyle = { fontStyle: 'italic' };
+
 /**
  * ProgressPage — client-facing progress page.
  *
@@ -64,7 +66,7 @@ export default function ProgressPage({ caseId, runId, onNavigate }) {
         </div>
         <h1 className="font-display text-[56px] font-normal leading-[1.15] tracking-[-0.5px] text-ink-900">
           正在为您的稿件出具<br />
-          <em className="font-normal text-accent-500" style={{ fontStyle: 'italic' }}>独立核查报告</em>
+          <em className="font-normal text-accent-500" style={italicStyle}>独立核查报告</em>
         </h1>
       </div>
 

@@ -3,7 +3,7 @@ import { FiCheckCircle, FiXCircle, FiClipboard, FiCheck, FiMail } from 'react-ic
 import StatusPill from '../components/StatusPill.jsx';
 import EmptyState from '../components/EmptyState.jsx';
 import { translateStatus, translateRiskLevel, translateIssueCategory } from '../utils/piLabels.js';
-import { checkMaterials, fetchReviewItems, getRiskSummary } from '../services/api.js';
+import { checkMaterials, fetchReviewItems, getRiskSummary, saveReviewDecision } from '../services/api.js';
 
 const MATERIAL_CONFIG = [
   { key: 'pdf', label: '论文 PDF', okStatus: 'ok', weight: 30 },
@@ -58,6 +58,8 @@ function writeActionsWorkspaceUrl({ filterStatus, filterRisk, selectedItemRef })
     // URL state is progressive enhancement for deep-linking.
   }
 }
+
+const overscrollContainStyle = { overscrollBehavior: 'contain' };
 
 function buildEmailTemplate(caseId, missingItems) {
   const lines = missingItems.map(item => `- ${item.label}（${item.status}：${item.detail}）`);
@@ -212,7 +214,6 @@ function ActionsPage({ selectedCase }) {
     if (!selectedItem || !caseId) return;
     setSaving(true);
     try {
-      const { saveReviewDecision } = await import('../services/api.js');
       await saveReviewDecision(caseId, selectedItem.source_ref, {
         status,
         note: noteInput,
@@ -424,7 +425,7 @@ function ActionsPage({ selectedCase }) {
         ) : (
           <div className="mt-4 grid gap-4 lg:grid-cols-2">
             {/* Left: Item list */}
-            <div style={{ overscrollBehavior: 'contain' }} className="max-h-[500px] space-y-2 overflow-y-auto">
+            <div style={overscrollContainStyle} className="max-h-[500px] space-y-2 overflow-y-auto">
               {filteredItems.map(item => {
                 const isSelected = selectedItem?.source_ref === item.source_ref;
                 const status = item.decision?.status || 'open';

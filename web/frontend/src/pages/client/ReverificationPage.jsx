@@ -4,6 +4,9 @@ import { getReverificationCost, getVersionHistory, submitReverification } from '
 import LineItem from '../../components/client/LineItem.jsx';
 import ClientEmptyState from '../../components/client/ClientEmptyState.jsx';
 
+const italicStyle = { fontStyle: 'italic' };
+const subtitleStyle = { fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic' };
+
 /**
  * ReverificationPage — client-facing reverification/payment page.
  *
@@ -102,9 +105,9 @@ export default function ReverificationPage({ caseId, onNavigate }) {
         </div>
         <h1 className="font-display text-[56px] font-normal leading-[1.15] tracking-[-0.5px] text-ink-900">
           修订完成后的<br />
-          <em className="font-normal text-accent-500" style={{ fontStyle: 'italic' }}>重新核查</em>
+          <em className="font-normal text-accent-500" style={italicStyle}>重新核查</em>
         </h1>
-        <p className="mt-6 max-w-[540px] font-display text-[16px] leading-[1.7] text-ink-700" style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic' }}>
+        <p className="mt-6 max-w-[540px] font-display text-[16px] leading-[1.7] text-ink-700" style={subtitleStyle}>
           上传修订后的稿件与代码，系统将对修改部分增量复核，并出具新版报告。<br />
           新版本保留原编号链路，标注为 v{costData?.next_version || '?' }。旧版本仍可查证。
         </p>

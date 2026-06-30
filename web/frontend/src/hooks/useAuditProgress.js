@@ -55,8 +55,14 @@ export function useAuditProgress(jobId) {
   const usePolling = useRef(false);
   const terminated = useRef(false);
   const pollTimer = useRef(null);
+  const reconnectTimerRef = useRef(null);
 
   const cleanup = useCallback(() => {
+    terminated.current = true;
+    if (reconnectTimerRef.current) {
+      clearTimeout(reconnectTimerRef.current);
+      reconnectTimerRef.current = null;
+    }
     if (pollTimer.current) {
       clearInterval(pollTimer.current);
       pollTimer.current = null;
@@ -142,6 +148,10 @@ export function useAuditProgress(jobId) {
       setConnected(true);
       reconnectAttempt.current = 0;
       sseFailCount.current = 0;
+      if (reconnectTimerRef.current) {
+        clearTimeout(reconnectTimerRef.current);
+        reconnectTimerRef.current = null;
+      }
     };
 
     es.onerror = () => {
@@ -168,7 +178,7 @@ export function useAuditProgress(jobId) {
         INITIAL_BACKOFF_MS * 2 ** (reconnectAttempt.current - 1),
         MAX_BACKOFF_MS,
       );
-      setTimeout(connectSSE, backoff);
+      reconnectTimerRef.current = setTimeout(connectSSE, backoff);
     };
 
     const makeHandler = (eventType) => (event) => {

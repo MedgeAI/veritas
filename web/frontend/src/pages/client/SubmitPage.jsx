@@ -18,6 +18,9 @@ const DEFAULT_PARAMS = {
 
 const FILE_SIZE_FORMATTER = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
 
+const italicStyle = { fontStyle: 'italic' };
+const subtitleStyle = { fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic' };
+
 const TIERS = [
   { value: 'full', badge: 'A', name: 'Full', desc: '数据 + 代码 + 环境 + 完整 run 历史' },
   { value: 'partial', badge: 'B', name: 'Partial', desc: '数据 + 代码 + 环境，无 run 历史' },
@@ -303,9 +306,9 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
         </div>
         <h1 className="font-display text-[56px] font-normal leading-[1.15] tracking-[-0.5px] text-ink-900">
           为您的研究<br />
-          <em className="font-normal not-italic text-accent-500" style={{ fontStyle: 'italic' }}>开具一份可信证明</em>
+          <em className="font-normal not-italic text-accent-500" style={italicStyle}>开具一份可信证明</em>
         </h1>
-        <p className="mt-6 max-w-[540px] font-display text-[16px] leading-[1.7] text-ink-700" style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic' }}>
+        <p className="mt-6 max-w-[540px] font-display text-[16px] leading-[1.7] text-ink-700" style={subtitleStyle}>
           我们不评价您的研究有多好，<br />
           我们只证明您说的是真的。
         </p>
