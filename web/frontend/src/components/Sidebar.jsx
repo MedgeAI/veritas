@@ -55,7 +55,10 @@ function Sidebar({ activePage, onNavigate, cases, selectedCaseId, onSelectCase, 
   );
 
   return (
-    <aside className="hidden sticky top-0 h-screen w-[292px] shrink-0 overflow-y-auto border-r border-ink-900/10 bg-ink-900 text-paper-50 lg:flex lg:flex-col">
+    <aside
+      className="hidden sticky top-0 h-screen w-[292px] shrink-0 overflow-y-auto border-r border-ink-900/10 bg-ink-900 text-paper-50 lg:flex lg:flex-col"
+      style={{ viewTransitionName: 'persistent-sidebar' }}
+    >
       <div className="border-b border-paper-50/10 p-6">
         <div className="flex items-center gap-3">
           <div className="grid h-11 w-11 place-items-center rounded-2xl bg-paper-50 text-ink-900">

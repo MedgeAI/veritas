@@ -415,21 +415,29 @@ export async function getAuditQueue() {
 // Current user info
 // ---------------------------------------------------------------------------
 
+let _inflightGetUser = null;
+
 export async function getCurrentUser() {
-  try {
-    const me = await request('/api/me');
-    return {
-      email: me.email,
-      roles: me.roles || [],
-      isAdmin: me.is_admin || false,
-    };
-  } catch (e) {
-    if (e.status === 401) {
-      clearAuthCredentials();
-      return null;
+  if (_inflightGetUser) return _inflightGetUser;
+  _inflightGetUser = (async () => {
+    try {
+      const me = await request('/api/me');
+      return {
+        email: me.email,
+        roles: me.roles || [],
+        isAdmin: me.is_admin || false,
+      };
+    } catch (e) {
+      if (e.status === 401) {
+        clearAuthCredentials();
+        return null;
+      }
+      throw e;
     }
-    throw e;
-  }
+  })();
+  return _inflightGetUser.finally(() => {
+    queueMicrotask(() => { _inflightGetUser = null; });
+  });
 }
 
 // ---------------------------------------------------------------------------

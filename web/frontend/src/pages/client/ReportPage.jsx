@@ -116,13 +116,13 @@ export default function ReportPage({ caseId, onNavigate }) {
             Verification Report · 独立核查报告
           </div>
           <div className="font-mono text-xs tracking-wider text-ink-900">
-            {certification?.report_id || '生成中...'}
+            {certification?.report_id || '生成中…'}
           </div>
         </div>
 
-        <h2 className="mt-6 font-display text-5xl font-normal text-ink-900">
+        <h1 className="mt-6 font-display text-5xl font-normal text-ink-900">
           {caseInfo?.paper_title || '未命名稿件'}
-        </h2>
+        </h1>
 
         <div className="mt-4 font-display text-lg italic text-ink-700">
           {caseInfo?.paper_title || ''}
@@ -162,7 +162,7 @@ export default function ReportPage({ caseId, onNavigate }) {
       <div className="mt-16">
         <div className="mb-6 flex items-end justify-between">
           <div>
-            <div className="font-display text-[28px] font-normal text-ink-900">Findings</div>
+            <h2 className="font-display text-[28px] font-normal text-ink-900">Findings</h2>
             <div className="mt-1 text-[11px] italic text-ink-500">
               核查发现 · {allFindings.length} 项
             </div>
@@ -271,9 +271,10 @@ function StatusState({ status, onNavigate }) {
         {status === 'running' && (
           <>
             <div className="mt-4 text-sm text-ink-700">
-              核查正在进行中，请稍候...
+              核查正在进行中，请稍候…
             </div>
             <button
+              type="button"
               className="mt-6 rounded-sm border border-ink-900 px-5 py-2 text-xs text-ink-900 hover:bg-paper-100"
               onClick={() => onNavigate?.('progress')}
             >

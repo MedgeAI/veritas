@@ -146,7 +146,7 @@ function ProgressTracker({ steps = [], runStatus, caseId }) {
       <div className="mt-6 mb-2">
         <div className="h-2 rounded-full bg-ink-900/5 overflow-hidden">
           <div
-            className="h-full bg-signal-500 transition-all duration-500"
+            className="h-full bg-signal-500 transition-[width] duration-500"
             style={{ width: `${progressPct}%` }}
           />
         </div>

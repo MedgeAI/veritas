@@ -5,6 +5,9 @@
  * Displays: finding_id, severity tag, category, summary, location, action buttons.
  */
 
+import { ViewTransition } from 'react';
+import { viewTransitionName } from '../../utils/viewTransitions.js';
+
 const RISK_CONFIG = {
   critical: { label: '严重', borderColor: 'border-risk-500', textColor: 'text-risk-500' },
   high:     { label: '高',    borderColor: 'border-risk-500', textColor: 'text-risk-500' },
@@ -49,9 +52,11 @@ export default function FindingCard({ finding, onViewDetails, role = 'author' })
           </div>
 
           {/* Summary */}
-          <div className="mt-2.5 text-sm leading-relaxed text-ink-900 font-medium">
-            {finding.summary}
-          </div>
+          <ViewTransition name={viewTransitionName('client-finding-title', finding.finding_id)} share="text-morph" default="none">
+            <div className="mt-2.5 text-sm leading-relaxed text-ink-900 font-medium">
+              {finding.summary}
+            </div>
+          </ViewTransition>
 
           {/* Location */}
           {finding.location && (
@@ -79,6 +84,7 @@ export default function FindingCard({ finding, onViewDetails, role = 'author' })
           {/* Action buttons */}
           <div className="mt-3.5 flex items-center gap-3">
             <button
+              type="button"
               className={`rounded-sm px-3 py-1.5 text-[11.5px] transition-colors ${
                 role === 'author' && hasSourceRef
                   ? 'bg-ink-900 text-paper-50 hover:bg-ink-700'
@@ -90,6 +96,7 @@ export default function FindingCard({ finding, onViewDetails, role = 'author' })
             </button>
             {role === 'author' && hasSourceRef && (
               <button
+                type="button"
                 className="rounded-sm border border-paper-300 px-3 py-1.5 text-[11.5px] text-ink-700 hover:bg-paper-100"
                 onClick={() => onViewDetails?.(finding)}
               >

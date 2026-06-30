@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FaTrash } from 'react-icons/fa';
 import { FiActivity, FiAlertCircle, FiArrowRight, FiCheckCircle, FiFilePlus, FiTrendingUp } from 'react-icons/fi';
 import StatusPill from '../components/StatusPill.jsx';
 import { GradeBadgeCompact } from '../components/GradeBadge.jsx';
+import { ListItemTransition, ScaleTransition } from '../components/ViewTransitions.jsx';
 import { deleteCase } from '../services/api.js';
 import { translateStatus } from '../utils/piLabels.js';
 
@@ -105,13 +106,77 @@ function CaseCard({ item, onSelect, isSelected, isAdmin, onDeleteCase }) {
   );
 }
 
+const VALID_STATUSES = new Set(['all', 'running', 'done', 'pending']);
+const VALID_GRADES = new Set(['all', 'A', 'B', 'C', 'D']);
+
+function parseFiltersFromURL() {
+  const params = new URLSearchParams(window.location.search);
+  const search = params.get('search') || '';
+  const status = VALID_STATUSES.has(params.get('status')) ? params.get('status') : 'all';
+  const grade = VALID_GRADES.has(params.get('grade')) ? params.get('grade') : 'all';
+  return { search, status, grade };
+}
+
 function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, onRefreshCases }) {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [deleteError, setDeleteError] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [gradeFilter, setGradeFilter] = useState('all');
+  const initialFilters = useMemo(() => parseFiltersFromURL(), []);
+  const [searchQuery, setSearchQuery] = useState(initialFilters.search);
+  const [statusFilter, setStatusFilter] = useState(initialFilters.status);
+  const [gradeFilter, setGradeFilter] = useState(initialFilters.grade);
+
+  // ---- URL sync: reflect filter state in URL query params ----
+  const searchQueryRef = useRef(searchQuery);
+  const statusFilterRef = useRef(statusFilter);
+  const gradeFilterRef = useRef(gradeFilter);
+  useEffect(() => { searchQueryRef.current = searchQuery; }, [searchQuery]);
+  useEffect(() => { statusFilterRef.current = statusFilter; }, [statusFilter]);
+  useEffect(() => { gradeFilterRef.current = gradeFilter; }, [gradeFilter]);
+
+  const writeFilters = useCallback(
+    (sq, sf, gf) => {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        if (sq) params.set('search', sq); else params.delete('search');
+        if (sf !== 'all') params.set('status', sf); else params.delete('status');
+        if (gf !== 'all') params.set('grade', gf); else params.delete('grade');
+        const qs = params.toString();
+        const newUrl = `${window.location.pathname}${qs ? `?${qs}` : ''}${window.location.hash}`;
+        window.history.replaceState(null, '', newUrl);
+      } catch { /* ignore in restricted environments */ }
+    },
+    [],
+  );
+
+  // Write filters to URL whenever they change
+  useEffect(() => {
+    writeFilters(searchQuery, statusFilter, gradeFilter);
+  }, [searchQuery, statusFilter, gradeFilter, writeFilters]);
+
+  // Sync state back from URL on browser forward/back navigation
+  useEffect(() => {
+    function handlePopState() {
+      const params = new URLSearchParams(window.location.search);
+      const sq = params.get('search') || '';
+      const sf = VALID_STATUSES.has(params.get('status')) ? params.get('status') : 'all';
+      const gf = VALID_GRADES.has(params.get('grade')) ? params.get('grade') : 'all';
+      // Skip write-back if URL already matches current state (avoids redundant replaceState)
+      if (sq === searchQueryRef.current && sf === statusFilterRef.current && gf === gradeFilterRef.current) {
+        return;
+      }
+      setSearchQuery(sq);
+      setStatusFilter(sf);
+      setGradeFilter(gf);
+      // The writeFilters effect above will fire after these state updates and
+      // update the refs, keeping them in sync.
+    }
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  const openDeleteDialog = (item) => startTransition(() => setDeleteTarget(item));
+  const closeDeleteDialog = () => startTransition(() => setDeleteTarget(null));
 
   const filteredCases = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -149,7 +214,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
 
     function handleKeyDown(event) {
       if (event.key === 'Escape') {
-        if (!deleteLoading) setDeleteTarget(null);
+        if (!deleteLoading) closeDeleteDialog();
         return;
       }
       if (event.key === 'Tab') {
@@ -230,7 +295,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
     setDeleteError('');
     try {
       await deleteCase(deleteTarget.case_id);
-      setDeleteTarget(null);
+      closeDeleteDialog();
       if (onRefreshCases) onRefreshCases();
     } catch (err) {
       setDeleteError(err.message || '删除失败，请稍后重试');
@@ -415,7 +480,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
               name="statusFilter"
               aria-label="状态筛选"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => startTransition(() => setStatusFilter(e.target.value))}
               className="rounded-lg border border-ink-900/10 bg-paper-50 px-2 py-1.5 text-sm text-ink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
             >
               <option value="all">全部状态</option>
@@ -427,7 +492,7 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
               name="gradeFilter"
               aria-label="等级筛选"
               value={gradeFilter}
-              onChange={(e) => setGradeFilter(e.target.value)}
+              onChange={(e) => startTransition(() => setGradeFilter(e.target.value))}
               className="rounded-lg border border-ink-900/10 bg-paper-50 px-2 py-1.5 text-sm text-ink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40"
             >
               <option value="all">全部等级</option>
@@ -478,14 +543,15 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
                   ) : (
                     <div className="mt-2 divide-y divide-ink-900/8">
                       {items.map((item) => (
-                        <CaseCard
-                          key={item.case_id}
-                          item={item}
-                          onSelect={onSelectCase}
-                          isSelected={selectedCaseId === item.case_id}
-                          isAdmin={isAdmin}
-                          onDeleteCase={setDeleteTarget}
-                        />
+                        <ListItemTransition key={item.case_id}>
+                          <CaseCard
+                            item={item}
+                            onSelect={onSelectCase}
+                            isSelected={selectedCaseId === item.case_id}
+                            isAdmin={isAdmin}
+                            onDeleteCase={openDeleteDialog}
+                          />
+                        </ListItemTransition>
                       ))}
                     </div>
                   )}
@@ -498,31 +564,33 @@ function CasesPage({ cases, selectedCaseId, onSelectCase, onNavigate, isAdmin, o
 
       {/* Delete confirmation dialog */}
       {deleteTarget ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/40"
-            aria-label="关闭删除确认"
-            onClick={() => !deleteLoading && setDeleteTarget(null)}
-            disabled={deleteLoading}
-            tabIndex={-1}
-          />
-          <div ref={dialogRef} className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="delete-case-title">
-            <h3 id="delete-case-title" className="mb-3 font-display text-lg font-semibold text-ink-900">确认删除</h3>
-            <p className="mb-4 text-sm text-ink-500">
-              确定要删除 case <strong className="text-ink-900">{deleteTarget.case_id}</strong>（{deleteTarget.paper_title || '未命名项目'}）吗？此操作不可撤销。
-            </p>
-            {deleteError ? (
-              <div className="mb-4 rounded-xl border border-red-300/50 bg-red-50/70 px-3 py-2 text-sm text-red-700" role="alert" aria-live="polite">{deleteError}</div>
-            ) : null}
-            <div className="flex justify-end gap-2">
-              <button ref={cancelBtnRef} type="button" className="btn-ghost" onClick={() => setDeleteTarget(null)} disabled={deleteLoading}>取消</button>
-              <button type="button" className="btn-danger" onClick={handleConfirmDelete} disabled={deleteLoading}>
-                {deleteLoading ? '删除中…' : '删除'}
-              </button>
+        <ScaleTransition>
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+            <button
+              type="button"
+              className="absolute inset-0 bg-black/40"
+              aria-label="关闭删除确认"
+              onClick={() => !deleteLoading && closeDeleteDialog()}
+              disabled={deleteLoading}
+              tabIndex={-1}
+            />
+            <div ref={dialogRef} className="relative w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl" role="dialog" aria-modal="true" aria-labelledby="delete-case-title">
+              <h3 id="delete-case-title" className="mb-3 font-display text-lg font-semibold text-ink-900">确认删除</h3>
+              <p className="mb-4 text-sm text-ink-500">
+                确定要删除 case <strong className="text-ink-900">{deleteTarget.case_id}</strong>（{deleteTarget.paper_title || '未命名项目'}）吗？此操作不可撤销。
+              </p>
+              {deleteError ? (
+                <div className="mb-4 rounded-xl border border-red-300/50 bg-red-50/70 px-3 py-2 text-sm text-red-700" role="alert" aria-live="polite">{deleteError}</div>
+              ) : null}
+              <div className="flex justify-end gap-2">
+                <button ref={cancelBtnRef} type="button" className="btn-ghost" onClick={closeDeleteDialog} disabled={deleteLoading}>取消</button>
+                <button type="button" className="btn-danger" onClick={handleConfirmDelete} disabled={deleteLoading}>
+                  {deleteLoading ? '删除中…' : '删除'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ScaleTransition>
       ) : null}
     </div>
   );

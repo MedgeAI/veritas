@@ -341,7 +341,7 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
         <SectionLabel num="02" title="提交材料" sub="Submission" />
         <div
           className={`mt-5 rounded-sm border-2 border-dashed p-8 transition-colors ${
-            isDragging ? 'border-accent-500 bg-accent-50' : 'border-ink-900/15 bg-white/45 hover:border-ink-900/25'
+            isDragging ? 'border-accent-500 bg-accent-50 [user-select:none]' : 'border-ink-900/15 bg-white/45 hover:border-ink-900/25'
           }`}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}

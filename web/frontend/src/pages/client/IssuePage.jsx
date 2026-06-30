@@ -10,12 +10,13 @@
  *     - 4 choice cards
  */
 
-import { useState, useEffect } from 'react';
+import { ViewTransition, useState, useEffect } from 'react';
 import { FiChevronLeft, FiCheckCircle as CheckCircle2, FiEdit3 as Edit3, FiPlay as Play, FiMessageSquare as MessageSquare } from 'react-icons/fi';
 import { fetchClientReport, saveReviewDecision } from '../../services/api';
 import CertaintyLayer from '../../components/client/CertaintyLayer';
 import ResolutionChoice from '../../components/client/ResolutionChoice';
 import ClientEmptyState from '../../components/client/ClientEmptyState';
+import { viewTransitionName } from '../../utils/viewTransitions';
 
 const RISK_CONFIG = {
   critical: { label: '严重', en: 'Critical', color: 'text-risk-500' },
@@ -102,7 +103,7 @@ export default function IssuePage({ caseId, findingId, onNavigate }) {
       <div className="mx-auto max-w-[980px] px-14 py-16">
         <div className="py-24 text-center">
           <div className="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-ink-200 border-t-ink-900" />
-          <div className="mt-4 text-sm text-ink-500">加载中...</div>
+          <div className="mt-4 text-sm text-ink-500">加载中…</div>
         </div>
       </div>
     );
@@ -181,9 +182,11 @@ export default function IssuePage({ caseId, findingId, onNavigate }) {
         <div className={`text-[10px] font-medium uppercase tracking-[0.25em] ${cfg.color}`}>
           {cfg.label} · {cfg.en} · {finding.finding_id}
         </div>
-        <h2 className="mt-3.5 font-display text-[38px] font-normal leading-tight text-ink-900">
-          {finding.summary}
-        </h2>
+        <ViewTransition name={viewTransitionName('client-finding-title', finding.finding_id)} share="text-morph" default="none">
+          <h1 className="mt-3.5 font-display text-[38px] font-normal leading-tight text-ink-900">
+            {finding.summary}
+          </h1>
+        </ViewTransition>
         {finding.location && (
           <div className="mt-4 font-mono text-xs text-ink-500">
             {finding.location}

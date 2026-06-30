@@ -18,8 +18,8 @@
   "dependencies": {
     "d3-force": "^3.0.0",
     "prop-types": "^15.8.1",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
+    "react": "^19.3.0-canary-92f4fda3-20260629",
+    "react-dom": "^19.3.0-canary-92f4fda3-20260629",
     "react-icons": "^5.5.0"
   },
   "devDependencies": {
