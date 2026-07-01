@@ -63,6 +63,27 @@ def test_metrics_reflects_cases_and_runs(tmp_path: Path) -> None:
     assert data["runs_total"] == 1
 
 
+def test_metrics_uses_aggregate_store_method(tmp_path: Path) -> None:
+    """Metrics should not materialize all cases/runs in Python."""
+    app = create_app(
+        data_root=tmp_path / "web_data", output_root=tmp_path / "outputs"
+    )
+    client = TestClient(app)
+    deps = app.state.dependencies
+
+    client.post("/api/cases", json={"case_id": "m1", "paper_title": "Paper 1"})
+
+    def fail_if_called(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("metrics endpoint should use SQL aggregates")
+
+    deps.store.list_cases = fail_if_called
+    deps.store.list_all_runs = fail_if_called
+
+    resp = client.get("/api/metrics")
+    assert resp.status_code == 200
+    assert resp.json()["cases_total"] == 1
+
+
 def test_metrics_no_auth_required(tmp_path: Path) -> None:
     """The metrics endpoint does not require Authorization header."""
     app = create_app(

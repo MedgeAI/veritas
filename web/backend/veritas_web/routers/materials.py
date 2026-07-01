@@ -7,6 +7,7 @@ and an overall completeness score.
 
 from __future__ import annotations
 
+import asyncio
 from pathlib import Path
 from typing import Any
 
@@ -61,23 +62,26 @@ def _format_size(size_bytes: int) -> str:
     return f"{size_bytes / (1024 * 1024):.1f} MB"
 
 
-def _count_files(
-    directory: Path, extensions: set[str] | None = None
-) -> tuple[int, int]:
-    """Return (file_count, total_bytes) for files under *directory*.
-
-    *extensions* filters by suffix (lower-cased).  ``None`` means all files.
-    Returns ``(0, 0)`` if the directory does not exist.
-    """
+def _scan_files(directory: Path) -> list[tuple[Path, int]]:
     if not directory.is_dir():
-        return 0, 0
-    files = [
-        f
-        for f in directory.rglob("*")
-        if f.is_file() and _matches_extension(f, extensions)
+        return []
+    return [
+        (path, path.stat().st_size)
+        for path in directory.rglob("*")
+        if path.is_file()
     ]
-    total_size = sum(f.stat().st_size for f in files)
-    return len(files), total_size
+
+
+def _count_scanned_files(
+    files: list[tuple[Path, int]], extensions: set[str] | None = None
+) -> tuple[int, int]:
+    count = 0
+    total_size = 0
+    for path, size in files:
+        if _matches_extension(path, extensions):
+            count += 1
+            total_size += size
+    return count, total_size
 
 
 def _matches_extension(path: Path, extensions: set[str] | None) -> bool:
@@ -87,29 +91,28 @@ def _matches_extension(path: Path, extensions: set[str] | None) -> bool:
     return any(name.endswith(extension) for extension in extensions)
 
 
-def _find_named_files(directories: list[Path], names: set[str]) -> list[Path]:
+def _find_named_files(
+    scanned_files: list[tuple[Path, int]], names: set[str]
+) -> list[Path]:
     found: dict[Path, Path] = {}
     lowered = {name.lower() for name in names}
-    for directory in directories:
-        if not directory.is_dir():
-            continue
-        for path in directory.rglob("*"):
-            if path.is_file() and path.name.lower() in lowered:
-                found[path.resolve()] = path
+    for path, _size in scanned_files:
+        if path.name.lower() in lowered:
+            found[path.resolve()] = path
     return sorted(found.values(), key=lambda item: str(item))
 
 
-@router.get("/cases/{case_id}/materials")
-async def check_materials(
-    case_id: str,
-    case: CaseRecord = Depends(require_case_access),
-    deps: AppDependencies = Depends(get_app_dependencies),
-) -> dict[str, Any]:
-    case_dir = deps.store.case_dir(case_id)
+def _build_materials_response(case_dir: Path) -> dict[str, Any]:
     inputs_dir = case_dir / "inputs"
+    source_data_dir = case_dir / "source_data"
+    code_dir = case_dir / "code"
+
+    input_files = _scan_files(inputs_dir)
+    source_data_files = _scan_files(source_data_dir)
+    code_files = _scan_files(code_dir)
 
     # --- PDF -----------------------------------------------------------
-    pdf_count, pdf_size = _count_files(inputs_dir, _PDF_EXTS)
+    pdf_count, pdf_size = _count_scanned_files(input_files, _PDF_EXTS)
     pdf_status = "ok" if pdf_count > 0 else "missing"
     pdf_detail = (
         f"{pdf_count} 个 PDF 文件 ({_format_size(pdf_size)})"
@@ -119,8 +122,8 @@ async def check_materials(
 
     # --- Source Data ---------------------------------------------------
     # Scan both inputs/ (flat uploads) and source_data/ (organised dirs).
-    sd_count_in, sd_size_in = _count_files(inputs_dir, _DATA_EXTS)
-    sd_count_sd, sd_size_sd = _count_files(case_dir / "source_data", _DATA_EXTS)
+    sd_count_in, sd_size_in = _count_scanned_files(input_files, _DATA_EXTS)
+    sd_count_sd, sd_size_sd = _count_scanned_files(source_data_files, _DATA_EXTS)
     sd_count = sd_count_in + sd_count_sd
     sd_size = sd_size_in + sd_size_sd
     sd_status = "ok" if sd_count > 0 else "missing"
@@ -131,9 +134,9 @@ async def check_materials(
     )
 
     # --- Code ----------------------------------------------------------
-    code_count, code_size = _count_files(case_dir / "code", _CODE_EXTS)
+    code_count, code_size = _count_scanned_files(code_files, _CODE_EXTS)
     # Also check code files uploaded to inputs/
-    code_count_in, code_size_in = _count_files(inputs_dir, _CODE_EXTS)
+    code_count_in, code_size_in = _count_scanned_files(input_files, _CODE_EXTS)
     code_count += code_count_in
     code_size += code_size_in
     code_status = "provided" if code_count > 0 else "missing"
@@ -145,7 +148,7 @@ async def check_materials(
 
     # --- Environment ---------------------------------------------------
     env_paths = _find_named_files(
-        [inputs_dir, case_dir / "source_data", case_dir / "code"], _ENV_FILENAMES
+        input_files + source_data_files + code_files, _ENV_FILENAMES
     )
     for name in sorted(_ENV_FILENAMES):
         root_file = case_dir / name
@@ -200,3 +203,15 @@ async def check_materials(
         },
         "completeness_score": completeness_score,
     }
+
+
+@router.get("/cases/{case_id}/materials")
+async def check_materials(
+    case_id: str,
+    case: CaseRecord = Depends(require_case_access),
+    deps: AppDependencies = Depends(get_app_dependencies),
+) -> dict[str, Any]:
+    case_dir = deps.store.case_dir(case_id)
+    return await asyncio.get_event_loop().run_in_executor(
+        None, lambda: _build_materials_response(case_dir)
+    )

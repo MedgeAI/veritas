@@ -70,6 +70,7 @@ def notify_progress(
     data: dict[str, Any] | None = None,
     *,
     database_url: str | None = None,
+    engine: Any | None = None,
 ) -> None:
     """Persist a progress event and notify listeners via ``pg_notify``.
 
@@ -94,11 +95,14 @@ def notify_progress(
     database_url:
         Override for testing.  Defaults to the standard
         ``VERITAS_DATABASE_URL`` resolution.
+    engine:
+        SQLAlchemy engine to reuse.  If ``None``, a new engine is created
+        and disposed when the function completes.
     """
     data = data or {}
-    db_url = database_url or get_database_url()
-    engine = create_db_engine(db_url)
-    session_factory = create_session_factory(engine)
+    own_engine = engine is None
+    eng = engine if engine is not None else create_db_engine(database_url or get_database_url())
+    session_factory = create_session_factory(eng)
     session = session_factory()
     ts = utc_now()
     notify_payload = json.dumps(
@@ -158,7 +162,8 @@ def notify_progress(
         raise
     finally:
         session.close()
-        engine.dispose()
+        if own_engine:
+            eng.dispose()
 
 
 # ---------------------------------------------------------------------------

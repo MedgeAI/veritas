@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
-from sqlalchemy import text
+from sqlalchemy import func, text
 
 from .models import AuditRunRecord, CaseRecord, utc_now
 
@@ -43,6 +43,7 @@ class CaseStore:
         root: str | Path = "web_data",
         *,
         database_url: str | None = None,
+        engine: Any | None = None,
     ) -> None:
         self.root = Path(root)
         self.cases_root = self.root / "cases"
@@ -51,18 +52,21 @@ class CaseStore:
         from .database import get_database_url
 
         self._db_url = database_url or get_database_url()
-        self._init_sql(self._db_url)
+        self._init_sql(self._db_url, engine=engine)
 
     # ------------------------------------------------------------------
     # SQL initialisation
     # ------------------------------------------------------------------
 
-    def _init_sql(self, database_url: str) -> None:
+    def _init_sql(self, database_url: str, *, engine: Any | None = None) -> None:
         from sqlalchemy.orm import sessionmaker
 
         from .database import create_db_engine
 
-        self._engine = create_db_engine(database_url)
+        if engine is not None:
+            self._engine = engine
+        else:
+            self._engine = create_db_engine(database_url)
         self._session_factory = sessionmaker(bind=self._engine, autoflush=False)
 
         from .database import Base
@@ -71,11 +75,14 @@ class CaseStore:
 
         # Ensure owner column is wide enough for email addresses (RFC 5321: up to 320).
         # This is a no-op on PostgreSQL when the column is already VARCHAR(320)+.
-        with self._engine.connect() as conn:
-            conn.execute(
-                text("ALTER TABLE cases ALTER COLUMN owner TYPE VARCHAR(320)")
-            )
-            conn.commit()
+        try:
+            with self._engine.connect() as conn:
+                conn.execute(
+                    text("ALTER TABLE cases ALTER COLUMN owner TYPE VARCHAR(320)")
+                )
+                conn.commit()
+        except Exception:
+            pass  # column already correct type - safe to ignore
 
     def _session(self):
         return self._session_factory()
@@ -104,7 +111,13 @@ class CaseStore:
     # Case CRUD
     # ------------------------------------------------------------------
 
-    def list_cases(self, user_id: str | None = None) -> list[CaseRecord]:
+    def list_cases(
+        self,
+        user_id: str | None = None,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> list[CaseRecord]:
         from .models import CaseModel
 
         session = self._session()
@@ -112,10 +125,68 @@ class CaseStore:
             query = session.query(CaseModel)
             if user_id is not None:
                 query = query.filter(CaseModel.owner == user_id)
+            query = query.order_by(CaseModel.created_at)
+            if limit is not None:
+                query = query.limit(limit)
+            if offset is not None:
+                query = query.offset(offset)
             return [
                 self._to_case_record(m)
-                for m in query.order_by(CaseModel.created_at).all()
+                for m in query.all()
             ]
+        finally:
+            session.close()
+
+    def count_cases(self, user_id: str | None = None) -> int:
+        """Return the number of cases, optionally filtered by owner."""
+        from .models import CaseModel
+
+        session = self._session()
+        try:
+            query = session.query(CaseModel)
+            if user_id is not None:
+                query = query.filter(CaseModel.owner == user_id)
+            return query.count()
+        finally:
+            session.close()
+
+    def list_cases_with_latest_run(
+        self,
+        user_id: str | None = None,
+        *,
+        limit: int | None = None,
+        offset: int | None = None,
+    ) -> list[tuple[Any, Any | None]]:
+        """Return cases with their latest run loaded in one JOIN query.
+
+        Eliminates the N+1 pattern where list_cases() is followed by a
+        get_run() call for each case's latest_run_id.
+        """
+        from .models import CaseModel, RunModel
+
+        session = self._session()
+        try:
+            query = (
+                session.query(CaseModel, RunModel)
+                .outerjoin(
+                    RunModel,
+                    (RunModel.case_id == CaseModel.case_id)
+                    & (RunModel.run_id == CaseModel.latest_run_id),
+                )
+            )
+            if user_id is not None:
+                query = query.filter(CaseModel.owner == user_id)
+            query = query.order_by(CaseModel.created_at)
+            if limit is not None:
+                query = query.limit(limit)
+            if offset is not None:
+                query = query.offset(offset)
+            results = []
+            for case_model, run_model in query.all():
+                case_record = self._to_case_record(case_model)
+                run_record = self._to_run_record(run_model) if run_model else None
+                results.append((case_record, run_record))
+            return results
         finally:
             session.close()
 
@@ -223,6 +294,7 @@ class CaseStore:
             session.query(CaseModel).filter(CaseModel.case_id == case_id).delete(
                 synchronize_session=False
             )
+            session.flush()
             session.commit()
         except Exception:
             session.rollback()
@@ -291,21 +363,34 @@ class CaseStore:
         content: bytes,
         relative_path: str | None = None,
     ) -> Path:
-        case_record = self.get_case(case_id)
+        target = self.prepare_input_target(case_id, filename, relative_path)
+        target.write_bytes(content)
+        self.record_input_uploaded(case_id)
+        return target
+
+    def prepare_input_target(
+        self,
+        case_id: str,
+        filename: str,
+        relative_path: str | None = None,
+    ) -> Path:
+        """Return the safe on-disk target path for an uploaded input file."""
+        self.get_case(case_id)
         target = self.inputs_dir(case_id) / self._safe_input_relative_path(
             relative_path or filename, filename
         )
         if not target.name:
             raise ValueError("input filename is required")
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_bytes(content)
-        case_record.input_count = len(
-            [p for p in self.inputs_dir(case_id).rglob("*") if p.is_file()]
-        )
+        return target
+
+    def record_input_uploaded(self, case_id: str) -> None:
+        """Update case metadata after an input file has been written."""
+        case_record = self.get_case(case_id)
+        case_record.input_count = (case_record.input_count or 0) + 1
         if case_record.status == "Draft":
             case_record.status = "Uploaded"
         self._save_case(case_record)
-        return target
 
     def write_input_base64(
         self, case_id: str, filename: str, content_base64: str
@@ -365,6 +450,48 @@ class CaseStore:
         finally:
             session.close()
         return record
+
+    def try_start_run(
+        self, case_id: str, agent_mode: str, max_concurrent: int
+    ) -> AuditRunRecord:
+        """Create a run only if active run count is below max_concurrent.
+
+        Uses a PostgreSQL advisory lock (key=0xAUD17) held for the
+        duration of the check+insert transaction to prevent concurrent
+        over-subscription (TOCTOU race).
+
+        Raises:
+            RuntimeError: if active run count is already at the limit.
+        """
+        from .models import CaseModel, RunModel
+
+        session = self._session()
+        try:
+            # Acquire session-level advisory lock - held until commit/rollback.
+            # Key 10493207 (0xA01D17) is a mnemonic for "AUDIT" lock.
+            session.execute(text("SELECT pg_advisory_xact_lock(10493207)"))
+            active_count = (
+                session.query(RunModel)
+                .filter(RunModel.status == "running")
+                .count()
+            )
+            if active_count >= max_concurrent:
+                raise RuntimeError(
+                    f"Too many concurrent audits (active={active_count}, max={max_concurrent})"
+                )
+            run_id = f"run-{utc_now().replace(':', '').replace('-', '')}-{uuid4().hex[:8]}"
+            record = AuditRunRecord(run_id=run_id, case_id=case_id, agent_mode=agent_mode)
+            session.add(RunModel(**record.to_dict()))
+            case_model = session.get(CaseModel, case_id)
+            if case_model:
+                case_model.latest_run_id = run_id
+            session.commit()
+            return record
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
 
     def get_run(self, case_id: str, run_id: str) -> AuditRunRecord:
         from .models import RunModel
@@ -538,6 +665,39 @@ class CaseStore:
         finally:
             session.close()
 
+    def metrics_summary(self) -> dict[str, Any]:
+        """Return aggregate case/run metrics without materializing all rows."""
+        from .models import CaseModel, RunModel
+
+        session = self._session()
+        try:
+            case_status_rows = (
+                session.query(CaseModel.status, func.count(CaseModel.case_id))
+                .group_by(CaseModel.status)
+                .all()
+            )
+            run_status_rows = (
+                session.query(RunModel.status, func.count(RunModel.run_id))
+                .group_by(RunModel.status)
+                .all()
+            )
+            cases_by_status = {
+                str(status or ""): int(count) for status, count in case_status_rows
+            }
+            runs_by_status = {
+                str(status or ""): int(count) for status, count in run_status_rows
+            }
+            return {
+                "cases_total": sum(cases_by_status.values()),
+                "cases_by_status": cases_by_status,
+                "runs_total": sum(runs_by_status.values()),
+                "runs_active": runs_by_status.get("running", 0),
+                "runs_completed": runs_by_status.get("completed", 0),
+                "runs_failed": runs_by_status.get("failed", 0),
+                "runs_interrupted": runs_by_status.get("interrupted", 0),
+            }
+        finally:
+            session.close()
 
     def update_run_stage(
         self,

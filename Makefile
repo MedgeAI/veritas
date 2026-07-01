@@ -47,7 +47,7 @@ LOCAL_DATABASE_URL ?= $(VERITAS_DEV_DB_URL)
 
 .PHONY: help show-config sync install setup \
 	up down rebuild restart logs ps shell health docker-health \
-	deploy-up deploy-down deploy-rebuild deploy-logs \
+	deploy-preflight deploy-up deploy-down deploy-rebuild deploy-logs \
 	db-up db-down db-init db-migrate db-reset \
 	precheck run report demo audit audit-off audit-fresh report-path \
 	web-backend web-backend-reload celery-worker web-frontend web-install web-build web-preview dev dev-up dev-down \
@@ -129,13 +129,40 @@ docker-health: ## Check Docker web service health via container exec
 
 # -- Cloudflare Tunnel Deploy --------------------------------------------
 
-deploy-up: ## Start all services with Cloudflare Tunnel
+deploy-preflight: ## Check required environment variables for deployment
+	@echo "━━━ Deploy pre-flight check ━━━"
+	@missing=0; \
+	for var in CLOUDFLARE_TUNNEL_TOKEN MINERU_API_TOKEN; do \
+		val=$$(grep -E "^$$var=" $(CURDIR)/.env 2>/dev/null | head -1 | cut -d= -f2-); \
+		if [ -z "$$val" ]; then \
+			echo "  ✗ $$var is empty or missing in .env"; \
+			missing=1; \
+		else \
+			echo "  ✓ $$var is set"; \
+		fi; \
+	done; \
+	pg_val=$$(grep -E "^POSTGRES_PASSWORD=" $(CURDIR)/deploy/.env 2>/dev/null | head -1 | cut -d= -f2-); \
+	if [ -z "$$pg_val" ]; then \
+		echo "  ✗ POSTGRES_PASSWORD is empty or missing in deploy/.env"; \
+		missing=1; \
+	else \
+		echo "  ✓ POSTGRES_PASSWORD is set (in deploy/.env)"; \
+	fi; \
+	if [ "$$missing" = "1" ]; then \
+		echo ""; \
+		echo "  ⚠ Missing required variables. Fix before deploying."; \
+		echo "  See .env.example and deploy/cloudflare.md for reference."; \
+		exit 2; \
+	fi
+	@echo "  ✓ All required variables present"
+
+deploy-up: deploy-preflight ## Start all services with Cloudflare Tunnel
 	$(COMPOSE_DEPLOY) up --build -d
 
 deploy-down: ## Stop all services including Cloudflare Tunnel
 	$(COMPOSE_DEPLOY) down
 
-deploy-rebuild: ## Rebuild and restart all services with Cloudflare Tunnel
+deploy-rebuild: deploy-preflight ## Rebuild and restart all services with Cloudflare Tunnel
 	$(COMPOSE_DEPLOY) up --build -d --force-recreate
 	@echo ""
 	@echo "Waiting for services to be healthy..."
@@ -354,7 +381,7 @@ test-model: ## Model tests: TruFor/SSCD/SILA/Docker/GPU (not in CI fast gate)
 lint: lint-python lint-web ## Run Python and frontend lint checks
 
 lint-python: ## Run ruff checks
-	$(PY_ENV) $(RUFF) check cli engine runtime protocols web/backend tests scripts
+	$(PY_ENV) $(RUFF) check cli engine runtime web/backend tests scripts
 
 lint-web: ## Run frontend eslint
 	cd $(FRONTEND_DIR) && npm run lint
@@ -367,13 +394,13 @@ deslop: ## Full entropy control: Ruff fix/format + Vulture + import-linter + Bio
 	@echo "━━━ Layer 2: Python surface entropy ━━━"
 	@echo ""
 	@echo "▸ Ruff: auto-fix unused imports + lint"
-	-$(PY_ENV) $(RUFF) check --fix cli engine runtime protocols web/backend tests scripts
+	-$(PY_ENV) $(RUFF) check --fix cli engine runtime web/backend tests scripts
 	@echo ""
 	@echo "▸ Ruff: format"
-	-$(PY_ENV) $(RUFF) format cli engine runtime protocols web/backend tests scripts
+	-$(PY_ENV) $(RUFF) format cli engine runtime web/backend tests scripts
 	@echo ""
 	@echo "▸ Vulture: dead code scan (80%+ confidence)"
-	-uv run vulture cli/ engine/ runtime/ protocols/ web/backend/ scripts/ \
+	-uv run vulture cli/ engine/ runtime/ web/backend/ scripts/ \
 		--exclude engine/static_audit/upstream/ \
 		--min-confidence 80 --sort-by-size
 	@echo ""
@@ -408,7 +435,7 @@ deslop: ## Full entropy control: Ruff fix/format + Vulture + import-linter + Bio
 	@echo "━━━ Verification ━━━"
 	@echo ""
 	@echo "▸ Pyright: type check (errors only)"
-	-uv run pyright cli/ engine/ runtime/ protocols/ web/backend/ 2>&1 | grep -E '(error|Error)' | head -20 || true
+	-uv run pyright cli/ engine/ runtime/ web/backend/ 2>&1 | grep -E '(error|Error)' | head -20 || true
 	@echo ""
 	@echo "╔══════════════════════════════════════════════════════╗"
 	@echo "║  Deslop complete. Review [needs-human] items above. ║"

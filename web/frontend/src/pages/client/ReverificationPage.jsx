@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { FiChevronLeft, FiShield } from 'react-icons/fi';
 import { getReverificationCost, getVersionHistory, submitReverification } from '../../services/api.js';
-import LineItem from '../../components/client/LineItem.jsx';
+import { IncludedLineItem, OptionalLineItem, PrimaryLineItem } from '../../components/client/LineItem.jsx';
 import ClientEmptyState from '../../components/client/ClientEmptyState.jsx';
 
 const italicStyle = { fontStyle: 'italic' };
@@ -119,34 +119,28 @@ export default function ReverificationPage({ caseId, onNavigate }) {
       <section className="mb-16">
         <SectionLabel num="—" title="核查清单" sub="Items" />
         <div className="border-t border-ink-100">
-          <LineItem
-            included
-            isMain
+          <PrimaryLineItem
             label="修订内容增量复核"
             detail={`仅核对修改部分，约 ${costData?.finding_count || 0} 处变更`}
             price={`${currency} ${costData?.base_fee || 0}`}
           />
-          <LineItem
-            included
+          <IncludedLineItem
             label="逐项验证修复"
             detail="确认每项已正确解决"
             price="已含"
           />
-          <LineItem
-            included
+          <IncludedLineItem
             label="重新评定等级"
             detail="基于修复结果重新计算认证等级"
             price="已含"
           />
-          <LineItem
-            included
+          <IncludedLineItem
             label="新版 PDF 证书"
             detail={`保留原编号链路，标注 v${costData?.next_version || '?'}`}
             price="已含"
           />
           {costData?.optional_addon_label && (
-            <LineItem
-              included={false}
+            <OptionalLineItem
               label={costData.optional_addon_label}
               detail="自动修复代码层面的问题（可选）"
               price={`+ ${currency} ${costData.optional_addon_price}`}

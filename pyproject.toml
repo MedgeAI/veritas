@@ -55,7 +55,7 @@ veritas = "cli.main:main"
 py-modules = []
 
 [tool.setuptools.packages.find]
-include = ["cli*", "engine*", "runtime*", "protocols*", "web*"]
+include = ["cli*", "engine*", "runtime*", "web*"]
 where = ["."]
 
 [tool.pytest.ini_options]

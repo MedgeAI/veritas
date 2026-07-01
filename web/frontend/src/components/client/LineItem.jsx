@@ -1,8 +1,8 @@
 /**
  * LineItem — Cost breakdown item for reverification.
  *
- * Props: { included: boolean, label, detail, price, main? }
- * Check icon (filled if included, outline if optional). Label + detail. Price right.
+ * Explicit cost-row variants for reverification.
+ * Included rows use a filled check; optional rows use an outline check.
  * Reference: prototype LineItem component
  */
 
@@ -23,29 +23,54 @@ function CheckOutline() {
   );
 }
 
-export default function LineItem({ included, label, detail, price, main = false }) {
+function LineItemFrame({ icon, label, detail, price, labelClassName, priceClassName }) {
   return (
     <div className="flex items-start border-b border-ink-900/5 py-4">
-      <div className="ml-0">
-        {included ? <CheckFilled /> : <CheckOutline />}
-      </div>
+      <div className="ml-0">{icon}</div>
 
       <div className="ml-3 flex-1 min-w-0">
-        <div className={`text-[13px] ${included ? 'text-ink-900' : 'text-ink-500'}`}>
-          {label}
-        </div>
+        <div className={`text-[13px] ${labelClassName}`}>{label}</div>
         {detail && (
           <div className="mt-0.5 text-[11px] text-ink-500">{detail}</div>
         )}
       </div>
 
-      <div
-        className={`shrink-0 font-mono text-[13px] tabular-nums ${
-          main ? 'font-medium text-ink-900' : included ? 'text-ink-900' : 'text-ink-500'
-        }`}
-      >
+      <div className={`shrink-0 font-mono text-[13px] tabular-nums ${priceClassName}`}>
         {price}
       </div>
     </div>
+  );
+}
+
+export function PrimaryLineItem(props) {
+  return (
+    <LineItemFrame
+      {...props}
+      icon={<CheckFilled />}
+      labelClassName="text-ink-900"
+      priceClassName="font-medium text-ink-900"
+    />
+  );
+}
+
+export function IncludedLineItem(props) {
+  return (
+    <LineItemFrame
+      {...props}
+      icon={<CheckFilled />}
+      labelClassName="text-ink-900"
+      priceClassName="text-ink-900"
+    />
+  );
+}
+
+export function OptionalLineItem(props) {
+  return (
+    <LineItemFrame
+      {...props}
+      icon={<CheckOutline />}
+      labelClassName="text-ink-500"
+      priceClassName="text-ink-500"
+    />
   );
 }

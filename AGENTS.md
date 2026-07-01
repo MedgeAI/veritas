@@ -137,7 +137,6 @@ engine/
 ├── follow_up/        Follow-up 行动生成
 └── tools/registry.py Tool Registry（核心契约）
 runtime/              本地执行后端
-protocols/            垂直领域规则
 configs/              opencode 上下文、methodology、运行配置
 web/
 ├── backend/          FastAPI backend + routers

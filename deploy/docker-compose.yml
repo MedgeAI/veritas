@@ -21,6 +21,11 @@ services:
     image: redis:7-alpine
     container_name: veritas-redis
     restart: unless-stopped
+    # AOF persistence: 防止 Redis 重启时丢失 Celery 排队中的任务
+    # appendfsync everysec: 最多丢失 1 秒数据，IO 开销可接受
+    command: redis-server --appendonly yes --appendfsync everysec
+    volumes:
+      - redisdata:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -110,3 +115,4 @@ services:
 
 volumes:
   pgdata:
+  redisdata:

@@ -15,6 +15,7 @@ Logs are written to stderr and optionally to a rotating file at
 
 from __future__ import annotations
 
+import contextvars
 import logging
 import os
 import re
@@ -26,11 +27,15 @@ from engine.env import get_env
 
 _CONFIGURED = False
 
-_LOG_FORMAT = "%(asctime)s [%(levelname)-7s] %(name)s: %(message)s"
+_LOG_FORMAT = "%(asctime)s [%(levelname)-7s] %(name)s [%(request_id)s]: %(message)s"
 
 _MAX_BYTES = 10 * 1024 * 1024  # 10 MB
 _BACKUP_COUNT_PROD = 5          # prod: 10 MB × (1 + 5) = 60 MB ceiling
 _BACKUP_COUNT_DEV = 1           # dev:  10 MB × (1 + 1) = 20 MB ceiling
+
+_request_id_var: contextvars.ContextVar[str | None] = contextvars.ContextVar(
+    "request_id", default=None
+)
 
 # HTTP paths that represent frontend polling — noisy at INFO during audit runs.
 POLLING_PATHS: tuple[str, ...] = (
@@ -72,6 +77,33 @@ class PollingRequestFilter(logging.Filter):
         # Drop if message references a polling path.
         if _POLLING_PATH_RE.search(msg):
             return False
+        return True
+
+
+class _RequestIdFormatter(logging.Formatter):
+    """Formatter that tolerates missing ``request_id`` on log records.
+
+    When a log record is emitted outside a request context (e.g. in tests
+    or background threads), ``RequestIdFilter`` may not have run.  This
+    formatter falls back to ``"-"`` instead of raising ``KeyError``.
+    """
+
+    def format(self, record: logging.LogRecord) -> str:
+        if not hasattr(record, "request_id"):
+            record.request_id = "-"
+        return super().format(record)
+
+
+class RequestIdFilter(logging.Filter):
+    """Inject request_id into log records from contextvars.
+
+    When set by the request-ID middleware, every log record emitted during
+    that request carries the same identifier, making it possible to trace
+    a single request through the log stream.
+    """
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        record.request_id = _request_id_var.get() or "-"
         return True
 
 
@@ -151,7 +183,7 @@ def configure_logging(level: str | None = None) -> None:
     root = logging.getLogger()  # ROOT logger — catches all module loggers
     root.setLevel(getattr(logging, effective_level, logging.INFO))
 
-    formatter = logging.Formatter(_LOG_FORMAT)
+    formatter = _RequestIdFormatter(_LOG_FORMAT)
 
     # --- Stream handler (stderr) ---
     stream_handler = logging.StreamHandler(sys.stderr)
@@ -187,6 +219,8 @@ def configure_logging(level: str | None = None) -> None:
         logging.getLogger(name).setLevel(lvl)
 
     # --- Install noise-reduction filters ---
+    # RequestIdFilter on root ensures every log record carries the trace id.
+    root.addFilter(RequestIdFilter())
     # DuplicateDBConnectFilter on root catches all "Database connecting" repeats
     # regardless of which module emits them.
     root.addFilter(DuplicateDBConnectFilter())

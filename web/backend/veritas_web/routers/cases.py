@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
+import logging
 from http import HTTPStatus
 from pathlib import Path
 from typing import Any
@@ -24,6 +26,8 @@ from ..models import CaseCreate, CaseRecord, InputUpload, REPRODUCIBILITY_TIERS
 from ..risk import summarize_findings
 from ..sse import sse_event_stream
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter(tags=["cases"])
 
 # Maximum allowed upload size for input files (200 MB).
@@ -33,25 +37,48 @@ MAX_UPLOAD_SIZE_BYTES = 200 * 1024 * 1024
 LEGACY_JSON_UPLOAD_LIMIT_BYTES = 50 * 1024 * 1024
 
 
+async def _write_multipart_upload_stream(upload: Any, target: Path) -> None:
+    total_size = 0
+    chunk_size = 1024 * 1024  # 1 MB
+    try:
+        with target.open("wb") as output:
+            while True:
+                chunk = await upload.read(chunk_size)
+                if not chunk:
+                    break
+                total_size += len(chunk)
+                if total_size > MAX_UPLOAD_SIZE_BYTES:
+                    raise HTTPException(
+                        status_code=413, detail="File size exceeds 200MB limit"
+                    )
+                await asyncio.to_thread(output.write, chunk)
+    except Exception:
+        await asyncio.to_thread(target.unlink, missing_ok=True)
+        raise
+
+
 @router.get("/cases")
 async def list_cases(
     auth: AuthContext = Depends(get_auth_context),
     deps: AppDependencies = Depends(get_app_dependencies),
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
 ) -> dict[str, Any]:
     uid = None if auth.is_admin() else auth.user_id
-    cases = deps.store.list_cases(user_id=uid)
+    loop = asyncio.get_event_loop()
+    cases_with_runs = await loop.run_in_executor(
+        None,
+        lambda: deps.store.list_cases_with_latest_run(
+            user_id=uid, limit=limit, offset=offset
+        ),
+    )
     result = []
-    for c in cases:
-        d = c.to_dict()
-        # Enrich with certification grade from latest run
-        if c.latest_run_id:
-            try:
-                run = deps.store.get_run(c.case_id, c.latest_run_id)
-                grade = (run.summary or {}).get("certification_grade")
-                if grade:
-                    d["certification_grade"] = grade
-            except Exception:
-                pass
+    for case_record, run_record in cases_with_runs:
+        d = case_record.to_dict()
+        if run_record is not None:
+            grade = (run_record.summary or {}).get("certification_grade")
+            if grade:
+                d["certification_grade"] = grade
         result.append(d)
     return {"cases": result}
 
@@ -70,11 +97,14 @@ async def create_case(
             f"Must be one of: {', '.join(REPRODUCIBILITY_TIERS.keys())}",
         )
 
-    case = deps.store.create_case(
-        user_id=auth.user_id,
-        paper_title=payload.paper_title,
-        case_id=payload.case_id,
-        reproducibility_tier=payload.reproducibility_tier,
+    case = await asyncio.get_event_loop().run_in_executor(
+        None,
+        lambda: deps.store.create_case(
+            user_id=auth.user_id,
+            paper_title=payload.paper_title,
+            case_id=payload.case_id,
+            reproducibility_tier=payload.reproducibility_tier,
+        ),
     )
     return case.to_dict()
 
@@ -85,7 +115,10 @@ async def get_case_stats(
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> dict[str, Any]:
     uid = None if auth.is_admin() else auth.user_id
-    cases = deps.store.list_cases(user_id=uid)
+    cases = await asyncio.get_event_loop().run_in_executor(
+        None,
+        lambda: deps.store.list_cases(user_id=uid),
+    )
     return {
         "total_cases": len(cases),
         "total_findings": sum(c.review_needed_count for c in cases),
@@ -113,7 +146,10 @@ async def delete_case(
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> None:
     require_admin(auth)
-    deps.store.delete_case(case_id)
+    await asyncio.get_event_loop().run_in_executor(
+        None,
+        lambda: deps.store.delete_case(case_id),
+    )
 
 
 @router.post("/cases/{case_id}/inputs")
@@ -142,29 +178,20 @@ async def upload_input(
                     status_code=413, detail="File size exceeds 200MB limit"
                 )
 
-        # Stream the upload in chunks to bound peak memory usage.
         filename = getattr(upload, "filename", None) or "upload"
-        total_size = 0
-        chunks: list[bytes] = []
-        chunk_size = 1024 * 1024  # 1 MB
-        while True:
-            chunk = await upload.read(chunk_size)
-            if not chunk:
-                break
-            total_size += len(chunk)
-            if total_size > MAX_UPLOAD_SIZE_BYTES:
-                raise HTTPException(
-                    status_code=413, detail="File size exceeds 200MB limit"
-                )
-            chunks.append(chunk)
-        content = b"".join(chunks)
-
         relative_path = form.get("relative_path")
-        path = deps.store.write_input(
-            case_id,
-            filename,
-            content,
-            relative_path=str(relative_path) if relative_path else None,
+        loop = asyncio.get_event_loop()
+        path = await loop.run_in_executor(
+            None,
+            lambda: deps.store.prepare_input_target(
+                case_id,
+                filename,
+                relative_path=str(relative_path) if relative_path else None,
+            ),
+        )
+        await _write_multipart_upload_stream(upload, path)
+        await loop.run_in_executor(
+            None, lambda: deps.store.record_input_uploaded(case_id)
         )
     else:
         # Legacy JSON path (backward compatible, deprecated)
@@ -188,8 +215,11 @@ async def upload_input(
                         "Use multipart/form-data upload instead."
                     ),
                 )
-            path = deps.store.write_input_base64(
-                case_id, payload.filename, payload.content_base64
+            path = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: deps.store.write_input_base64(
+                    case_id, payload.filename, payload.content_base64
+                ),
             )
         elif payload.content is not None:
             content_bytes = payload.content.encode("utf-8")
@@ -201,14 +231,20 @@ async def upload_input(
                         "Use multipart/form-data upload instead."
                     ),
                 )
-            path = deps.store.write_input(case_id, payload.filename, content_bytes)
+            path = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: deps.store.write_input(case_id, payload.filename, content_bytes),
+            )
         else:
             raise HTTPException(
                 status_code=400,
                 detail="input upload requires content_base64 or content",
             )
 
-    updated_case = deps.store.get_case(case_id, user_id=case.owner)
+    updated_case = await asyncio.get_event_loop().run_in_executor(
+        None,
+        lambda: deps.store.get_case(case_id, user_id=case.owner),
+    )
 
     # 自动提取 paper_title：如果是 PDF 文件且 title 为空或默认值，用文件名更新
     if filename.lower().endswith(".pdf"):
@@ -216,10 +252,13 @@ async def upload_input(
         if not current_title or current_title == "Unknown until parsed":
             # 用文件名（去掉 .pdf 后缀）作为 paper_title
             extracted_title = filename[:-4]  # 去掉 ".pdf"
-            updated_case = deps.store.update_case(
-                case_id,
-                {"paper_title": extracted_title},
-                user_id=case.owner,
+            updated_case = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: deps.store.update_case(
+                    case_id,
+                    {"paper_title": extracted_title},
+                    user_id=case.owner,
+                ),
             )
 
     return {"path": str(path), "case": updated_case.to_dict()}
@@ -232,7 +271,10 @@ async def get_run(
     case: CaseRecord = Depends(require_case_access),
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> dict[str, Any]:
-    run = deps.store.get_run(case_id, run_id)
+    run = await asyncio.get_event_loop().run_in_executor(
+        None,
+        lambda: deps.store.get_run(case_id, run_id),
+    )
     return run.to_dict()
 
 
@@ -243,7 +285,11 @@ async def list_events(
     case: CaseRecord = Depends(require_case_access),
     deps: AppDependencies = Depends(get_app_dependencies),
 ) -> dict[str, Any]:
-    return {"events": deps.store.list_events(case_id, run_id)}
+    events = await asyncio.get_event_loop().run_in_executor(
+        None,
+        lambda: deps.store.list_events(case_id, run_id),
+    )
+    return {"events": events}
 
 
 @router.get("/cases/{case_id}/runs/{run_id}/steps")
@@ -260,7 +306,10 @@ async def get_run_steps(
     """
     from engine.static_audit.run_steps import build_steps_list, summarise_steps
 
-    events = deps.store.list_events(case_id, run_id)
+    events = await asyncio.get_event_loop().run_in_executor(
+        None,
+        lambda: deps.store.list_events(case_id, run_id),
+    )
     steps = build_steps_list(events)
     summary = summarise_steps(steps)
     return {"steps": steps, **summary}
@@ -286,7 +335,10 @@ async def stream_run_progress(
     """
     uid = None if auth.is_admin() else auth.user_id
     try:
-        deps.store.get_case(case_id, user_id=uid)
+        await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: deps.store.get_case(case_id, user_id=uid),
+        )
     except PermissionError:
         raise HTTPException(status_code=403, detail=f"not the owner of case {case_id}")
     except FileNotFoundError:

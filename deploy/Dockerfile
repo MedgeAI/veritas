@@ -41,6 +41,16 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ARG OPENCODE_NPM_PACKAGE=opencode-ai@1.17.11
 RUN npm install -g "${OPENCODE_NPM_PACKAGE}"
 
+# Install uv for deterministic dependency resolution from uv.lock
+# Pinned version prevents surprise breakages on image rebuild
+# Binary placed in /usr/local/bin (in PATH for all users including non-root)
+ARG UV_VERSION=0.6.14
+RUN curl -LsSf "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-x86_64-unknown-linux-gnu.tar.gz" \
+    | tar xz -C /tmp \
+    && mv /tmp/uv-x86_64-unknown-linux-gnu/uv /usr/local/bin/uv \
+    && chmod +x /usr/local/bin/uv \
+    && rm -rf /tmp/uv-*
+
 ENV VIRTUAL_ENV=/opt/venv
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 ENV VERITAS_HOST=0.0.0.0
@@ -52,8 +62,9 @@ ENV VERITAS_LOG_DIR=/app/logs
 
 WORKDIR /app
 
-# Install Python dependencies (from pyproject.toml)
+# Install Python dependencies (from pyproject.toml + uv.lock)
 COPY pyproject.toml .
+COPY uv.lock .
 COPY cli/ ./cli/
 COPY engine/ ./engine/
 COPY protocols/ ./protocols/
@@ -71,9 +82,10 @@ COPY third_party/paperconan/ ./third_party/paperconan/
 COPY opencode.json .
 COPY .opencode/skills/ ./.opencode/skills/
 COPY README.md .
-RUN python3 -m venv "${VIRTUAL_ENV}" \
-    && pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -e ".[web,pg]"
+# uv sync --frozen: install exactly what uv.lock specifies, no resolution drift
+# --no-cache: skip uv's cache to keep image layers lean
+RUN uv venv "${VIRTUAL_ENV}" \
+    && uv sync --frozen --extra web --extra pg --no-cache
 
 # Copy frontend build artifacts from stage 1
 COPY --from=frontend-builder /build/dist ./web/frontend/dist

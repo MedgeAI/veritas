@@ -108,39 +108,6 @@ def test_env_var_sets_max_concurrent_when_no_explicit_workers(
 
 
 # ------------------------------------------------------------------
-# AuditRunner: _active_runs_count
-# ------------------------------------------------------------------
-
-
-def test_active_runs_count_zero_when_no_running(tmp_path: Path) -> None:
-    store = _make_store_with_cases(tmp_path, 3)
-    runner = AuditRunner(store, audit_func=_noop_audit_func, max_workers=5)
-    # Fresh runs default to non-running status
-    assert runner._active_runs_count() == 0
-
-
-def test_active_runs_count_counts_only_running(tmp_path: Path) -> None:
-    store = _make_store_with_cases(tmp_path, 4)
-    runner = AuditRunner(store, audit_func=_noop_audit_func, max_workers=5)
-
-    all_runs = store.list_all_runs()
-
-    # Mark 2 as running
-    all_runs[0].status = "running"
-    store.save_run(all_runs[0])
-    all_runs[2].status = "running"
-    store.save_run(all_runs[2])
-    assert runner._active_runs_count() == 2
-
-    # Mark others as terminal states — should not affect count
-    all_runs[1].status = "completed"
-    store.save_run(all_runs[1])
-    all_runs[3].status = "failed"
-    store.save_run(all_runs[3])
-    assert runner._active_runs_count() == 2
-
-
-# ------------------------------------------------------------------
 # AuditRunner: start() concurrency guard
 # ------------------------------------------------------------------
 
@@ -150,7 +117,6 @@ def test_start_raises_429_when_at_capacity(tmp_path: Path) -> None:
     runner = AuditRunner(store, audit_func=_noop_audit_func, max_workers=2)
 
     _set_runs_running(store, [0, 1])
-    assert runner._active_runs_count() == 2
 
     all_runs = store.list_all_runs()
     with pytest.raises(HTTPException) as exc_info:
@@ -172,7 +138,6 @@ def test_start_succeeds_when_below_capacity(tmp_path: Path) -> None:
 
     # Only 1 running — below capacity of 2
     _set_runs_running(store, [0])
-    assert runner._active_runs_count() == 1
 
     all_runs = store.list_all_runs()
     new_run = runner.start(all_runs[2].case_id)
@@ -187,8 +152,6 @@ def test_start_succeeds_when_no_running_runs(tmp_path: Path) -> None:
         output_root=tmp_path / "outputs",
         max_workers=2,
     )
-
-    assert runner._active_runs_count() == 0
 
     all_runs = store.list_all_runs()
     new_run = runner.start(all_runs[0].case_id)
@@ -212,8 +175,6 @@ def test_completed_runs_do_not_block_new_starts(tmp_path: Path) -> None:
     all_runs[1].status = "failed"
     store.save_run(all_runs[1])
 
-    assert runner._active_runs_count() == 0
-
     new_run = runner.start(all_runs[2].case_id)
     assert new_run.run_id.startswith("run-")
 
@@ -236,7 +197,6 @@ def test_env_var_controls_limit_end_to_end(tmp_path: Path) -> None:
     assert runner._max_concurrent == 3
 
     _set_runs_running(store, [0, 1, 2])
-    assert runner._active_runs_count() == 3
 
     all_runs = store.list_all_runs()
     with pytest.raises(HTTPException) as exc_info:

@@ -8,18 +8,65 @@
 #
 # 网络拓扑：
 #   内网用户 -> Cloudflare Edge -> cloudflared -> veritas:8765
+#
+# ═══════════════════════════════════════════════════════════════════════════
+# Cloudflare Dashboard 侧必须配置（本文件无法声明）：
+# ═══════════════════════════════════════════════════════════════════════════
+#
+# 1. Public Hostname → Service 类型: HTTP，服务地址: http://veritas:8765
+#    注意：不是 localhost:8765，cloudflared 通过 compose default network 解析 veritas
+#
+# 2. Additional HTTP Settings（对 SSE 长连接至关重要）：
+#    - HTTP Transport:
+#      - Connect timeout:     30s
+#      - TCP keepalive:       ON（防止 NAT/防火墙切断空闲连接）
+#      - Keep connection timeout: 3600s
+#    - Application Settings:
+#      - HTTP Response Buffering: OFF（Veritas 重度依赖 SSE 推送审计进度，
+#        开启 buffering 会导致事件被攒批发送，前端延迟数秒才能看到更新）
+#      - WebSocket:            ON（SSE 在 HTTP/2 下以 stream 形式传输，
+#        但 Cloudflare 对 long-poll 也需要此选项）
+#      - No TLS Verify:        OFF（veritas:8765 是内网 HTTP，无需验证）
+#
+# 3. Cloudflare Access（认证）：
+#    本部署使用 VERITAS_AUTH_MODE=none，依赖 Cloudflare Access 邮箱白名单
+#    做访问控制。必须在 Zero Trust Dashboard → Access → Applications 中配置：
+#    - 添加 Application → Self-hosted，域名与 Public Hostname 相同
+#    - 添加 Policy → 只允许 @your-lab-domain.com 邮箱
+#    否则任何拿到域名的人都能无认证访问系统
+#
+# ═══════════════════════════════════════════════════════════════════════════
+# cloudflared 镜像版本：
+# 通过 CLOUDFLARED_IMAGE 环境变量控制，默认锁定版本，不使用 :latest
+# 更新版本时手动修改此处或 .env 中的 CLOUDFLARED_IMAGE
+# ═══════════════════════════════════════════════════════════════════════════
 
 services:
   cloudflared:
-    image: cloudflare/cloudflared:latest
+    image: ${CLOUDFLARED_IMAGE:-cloudflare/cloudflared:2025.4.0}
     container_name: veritas-cloudflared
     restart: unless-stopped
-    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    # --protocol http2: 强制 HTTP/2，对 SSE 流式传输更友好
+    # --metrics 0.0.0.0:2000: 暴露 Prometheus 指标端口，供 healthcheck 和监控使用
+    command: >
+      tunnel --no-autoupdate run
+      --protocol http2
+      --metrics 0.0.0.0:2000
+      --token ${CLOUDFLARE_TUNNEL_TOKEN}
     env_file:
       - ../.env
     depends_on:
       veritas:
         condition: service_healthy
+    # healthcheck: 通过 metrics 端口验证 cloudflared 进程存活
+    # 注：这只能证明进程在跑，不能证明 tunnel 到 Cloudflare 边缘的链路正常
+    # 完整链路监控需在 Cloudflare Zero Trust Dashboard → Tunnels 页面查看
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:2000/metrics > /dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s  # tunnel 握手需要时间，给足够启动期
     logging:
       driver: "json-file"
       options:

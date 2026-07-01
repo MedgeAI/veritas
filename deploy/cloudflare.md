@@ -49,13 +49,42 @@ git --version
    ```text
    http://veritas:8765
    ```
-4. 复制 tunnel token，写入服务器 `.env`
+4. 复制 tunnel token，写入根目录 `.env` 的 `CLOUDFLARE_TUNNEL_TOKEN`
 
 注意：
 
 - Cloudflare Tunnel public hostname 的 service 必须是 `http://veritas:8765`，不是 `localhost:8765`
 - 不要提交 tunnel token 到 Git
-- 建议用 Cloudflare Access 做团队邮箱白名单，限制访问范围
+
+### 3.1 HTTP Transport 设置（对 SSE 进度推送至关重要）
+
+在 Public Hostname 的 **Additional HTTP Settings** 中配置：
+
+| 设置 | 推荐值 | 原因 |
+|---|---|---|
+| Connect timeout | 30s | 避免握手超时 |
+| TCP keepalive | ON | 防止 NAT/防火墙切断空闲连接 |
+| Keep connection timeout | 3600s | Veritas 审计最长 1 小时，SSE 需要保持连接 |
+
+### 3.2 Application Settings（防止 SSE 被攒批）
+
+在 **Application Settings** 中配置：
+
+| 设置 | 推荐值 | 原因 |
+|---|---|---|
+| HTTP Response Buffering | **OFF** | Veritas 前端通过 SSE 实时推送审计进度。开启 buffering 会导致事件被 Cloudflare 攒批发送，前端延迟数秒才能看到更新 |
+| WebSocket | ON | SSE 在 HTTP/2 下以 stream 形式传输，但 Cloudflare 对 long-poll 也需要此选项 |
+
+### 3.3 Cloudflare Access（访问控制）
+
+本部署使用 `VERITAS_AUTH_MODE=none`（Veritas 应用层不做认证），依赖 Cloudflare Access 邮箱白名单做访问控制：
+
+1. Zero Trust Dashboard → Access → Applications → 添加 Application
+2. 类型 Self-hosted，域名填 Public Hostname 相同域名
+3. 添加 Policy → Allow → 限制 `@your-lab-domain.com` 邮箱后缀
+4. 无白名单内的人访问域名会被 Cloudflare 拦截在认证页
+
+> ⚠️ 不配置 Access = 任何拿到域名的人无认证访问整个系统
 
 ## 4. 拉取代码
 
@@ -70,12 +99,24 @@ git checkout master
 
 ## 5. 配置 `.env`
 
+项目有两层 `.env`：
+
+| 文件 | 位置 | 内容 |
+|---|---|---|
+| 根目录 `.env` | `/opt/veritas/.env` | API tokens、Tunnel token、auth mode |
+| 生产凭据 `.env` | `/opt/veritas/deploy/.env` | PostgreSQL 密码 |
+
 ```bash
+# 根目录：API tokens 和 Tunnel token
 cp .env.example .env
 chmod 600 .env
+
+# deploy 目录：PostgreSQL 密码
+cp deploy/.env.example deploy/.env 2>/dev/null || touch deploy/.env
+chmod 600 deploy/.env
 ```
 
-至少填写：
+根目录 `.env` 至少填写：
 
 ```bash
 # MinerU PDF 解析 API token
@@ -86,17 +127,20 @@ DASHSCOPE_API_KEY=sk-your-dashscope-key
 
 # Cloudflare Tunnel token
 CLOUDFLARE_TUNNEL_TOKEN=your-cloudflare-tunnel-token
+
+# 可选：cloudflared 镜像版本（默认 cloudflare/cloudflared:2025.4.0）
+# CLOUDFLARED_IMAGE=cloudflare/cloudflared:2025.4.0
 ```
 
-可选：
+`deploy/.env` 至少填写：
 
 ```bash
-# 认证模式（basic = 内置 users.db 用户名密码；none = 无认证）
-VERITAS_AUTH_MODE=basic
-
-# 日志级别
-VERITAS_LOG_LEVEL=INFO
+POSTGRES_DB=veritas_prod
+POSTGRES_USER=veritas_prod
+POSTGRES_PASSWORD=<strong-password-here>
 ```
+
+> `make deploy-preflight` 会在构建前自动检查这些变量是否存在，缺任何一个都会报错退出。
 
 ## 6. 首次启动
 
@@ -223,9 +267,10 @@ make db-reset
 
 - `.env` 没有提交到 Git（已在 `.gitignore`）
 - `CLOUDFLARE_TUNNEL_TOKEN` 没有出现在日志、commit diff 中
-- Cloudflare Access 已配置团队访问白名单
+- **Cloudflare Access 已配置团队邮箱白名单**（无 Access = 无认证裸奔）
 - 服务器防火墙不对公网开放 `5432`
 - 不直接对公网开放 `8765`，所有公网流量走 Cloudflare Tunnel
+- `deploy/.env` 的 `POSTGRES_PASSWORD` 权限为 600，仅部署用户可读
 
 ## 13. 常见问题
 
@@ -266,12 +311,21 @@ docker compose --env-file .env \
 ```bash
 git clone <repo-url> /opt/veritas
 cd /opt/veritas
+
+# 根目录 .env：API tokens + Tunnel token
 cp .env.example .env
 chmod 600 .env
 vim .env   # 填 MINERU_API_TOKEN、DASHSCOPE_API_KEY、CLOUDFLARE_TUNNEL_TOKEN
 
-make rebuild
-make docker-health
+# deploy/.env：PostgreSQL 密码
+vim deploy/.env   # 填 POSTGRES_PASSWORD（文件不存在则创建）
+chmod 600 deploy/.env
+
+# 前置检查（验证环境变量是否齐全）
+make deploy-preflight
+
+# 构建 + 启动 + 自动冒烟测试
+make deploy-rebuild
 
 # 确认公网
 curl -sf https://veritas.internal.example.com/api/health | python3 -m json.tool

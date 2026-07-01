@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## 2026-07-01
+
+- **审计档案（Audit Profiles）**：新增 fast/standard/full 三档审计档案，控制工具执行深度和范围。通过 `pipeline.py` 的 profile 参数传递，影响 Tool Registry 中哪些工具被执行。
+- **Stale Run Watchdog**：新增 `engine/tasks/stale_run_watchdog.py`，监控长时间无心跳的审计运行，自动恢复或标记失败。
+- **Investigation 性能优化**：`investigation_dispatch.py` 中依赖层叠从 O(R²×A) 降至 O(R×A)——预先构建 artifact→producer 索引，避免对每个 input_artifact 扫描所有角色。
+- **LLM markdown fence 剥离**：`engine/llm/client.py` 新增 markdown 代码块围栏自动剥离，避免 LLM 返回 JSON 时包裹 ```json``` 导致解析失败。
+- **LLM async enrichment**：`engine/reporting/text_generator.py` 重构为 dataclass 驱动的并发 LLM 调用，提升报告生成中上下文构建的吞吐。
+- **Verify Store case index**：`verify_store.py` 新增 case index 支持版本化查询，`context_pack.py` 重构以支持可注入的 `_read` callable 提升可测试性。
+- **扩展运行状态与决策类型**：Web 后端新增扩展的 run status 枚举和 decision type 模型，`routers/cases.py` 增强 case 查询接口。
+- **视觉取证 pipeline 重构**：`visual_pipeline.py` 和 figure classification 大规模重构，强化 copy-move 检测测试和 provenance runner 覆盖。
+- **HTML 报告 hero header + certainty layers**：报告头部重设计，新增 certainty layers 视觉样式，`_styles.py` 和 `_patterns.py` 增强。
+- **Client Workspace 三入口路由**：前端实现 client/ops/verify 三入口分流（`entrypoint.js`），client 端独立工作台、主题刷新、ClientFooter/ClientHeader 组件。
+- **Redis broker 迁移**：Celery broker 从文件/内存迁移到 Redis，`app.py` 更新 broker URL 配置。
+- **Proxy stripping**：图片处理链路中代理路径自动剥离，确保 canonical artifact 路径一致性。
+- **前端 SSE 重连内存泄漏修复**：SSE 重连时旧 EventSource 未正确关闭导致内存泄漏，已修复。
+- **React 视图过渡**：前端实现 `viewTransitions.js` 工具模块，页面切换使用 View Transitions API。
+- **前端内联样式提取与懒加载优化**：将内联 style 对象提取到独立常量，组件 lazy import 统一优化。
+- **前端空状态统一**：所有页面空态组件统一为 `EmptyState`，消除散落的状态展示逻辑。
+- **anti_overfit 双正则修复**：`anti_overfit.py` 修复每行双重正则搜索的性能问题。
+- **代码审查 PRD 修复（Phases 1-6）**：安全、架构、重构三方面的全量代码审查修复，涉及 93 个文件。
+
 ## 2026-06-25
 
 - **MinerU 早失败机制**：MinerU PDF 解析失败后立即终止审计流水线，标记所有 17 个后续步骤为 `failed`，而非跳过 dependent 步骤后继续盲跑。

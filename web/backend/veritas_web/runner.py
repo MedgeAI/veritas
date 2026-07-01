@@ -35,10 +35,12 @@ class AuditRunner:
         audit_func: AuditFunction = run_static_audit,
         output_root: str | Path = "outputs",
         max_workers: int | None = None,
+        engine: Any | None = None,
     ) -> None:
         self.store = store
         self.audit_func = audit_func
         self.output_root = str(output_root)
+        self._engine = engine  # shared engine; None = create per-operation
         resolved_workers = (
             max_workers if max_workers is not None else _resolve_max_concurrent()
         )
@@ -47,22 +49,18 @@ class AuditRunner:
             max_workers=resolved_workers, thread_name_prefix="audit"
         )
 
-    def _active_runs_count(self) -> int:
-        """Count runs with status='running' across all cases."""
-        return sum(1 for run in self.store.list_all_runs() if run.status == "running")
-
     def start(
         self, case_id: str, params: dict[str, Any] | None = None
     ) -> AuditRunRecord:
-        if self._active_runs_count() >= self._max_concurrent:
-            raise HTTPException(
-                status_code=429,
-                detail=(f"Too many concurrent audits (max={self._max_concurrent})"),
-            )
         params = params or {}
-        run = self.store.create_run(
-            case_id, agent_mode=str(params.get("agent_mode", "review"))
-        )
+        try:
+            run = self.store.try_start_run(
+                case_id,
+                agent_mode=str(params.get("agent_mode", "review")),
+                max_concurrent=self._max_concurrent,
+            )
+        except RuntimeError as exc:
+            raise HTTPException(status_code=429, detail=str(exc)) from exc
         if get_env("VERITAS_USE_CELERY", required=False, default="").lower() in (
             "1",
             "true",

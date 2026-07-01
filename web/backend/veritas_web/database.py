@@ -162,3 +162,48 @@ def check_db_or_raise(engine: Engine | None = None) -> None:
             "  make db-up\n"
             "Or set VERITAS_DATABASE_URL to point at your database."
         ) from exc
+
+
+_global_engine: Engine | None = None
+
+
+def get_or_create_engine(database_url: str | None = None) -> Engine:
+    """Return a process-wide shared engine, creating it on first call.
+
+    Used by the web app to ensure CaseStore and AppDependencies share
+    the same connection pool.  Also usable by SSE/celery code paths
+    that need an engine without creating a new pool per call.
+    """
+    global _global_engine
+    if _global_engine is None:
+        _global_engine = create_db_engine(database_url)
+    return _global_engine
+
+
+def setup_pgvector(engine: Engine) -> None:
+    """Register the pgvector extension on engine.
+
+    Called at app startup to ensure the extension is available before
+    any model that uses vector columns is queried.  Safe to call
+    multiple times (CREATE EXTENSION IF NOT EXISTS is idempotent).
+    """
+    with engine.connect() as conn:
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        conn.commit()
+
+
+def check_db(engine: Engine | None = None) -> bool:
+    """Return True if the database is reachable, False otherwise.
+
+    Non-raising version of check_db_or_raise.  Use for health-check
+    endpoints that should return 200 with status='degraded' rather
+    than 500 when the DB is unreachable.
+    """
+    eng = engine or create_db_engine()
+    try:
+        with eng.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except Exception:
+        return False
+

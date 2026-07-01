@@ -44,7 +44,7 @@ def app_and_client(tmp_path, monkeypatch):
 
 def test_multipart_upload_rejects_oversized_file(app_and_client):
     """Multipart upload exceeding the limit returns HTTP 413."""
-    _, client = app_and_client
+    app, client = app_and_client
     oversized = b"x" * 101  # 101 bytes > patched limit of 100
     resp = client.post(
         "/api/cases/size-case/inputs",
@@ -52,6 +52,8 @@ def test_multipart_upload_rejects_oversized_file(app_and_client):
     )
     assert resp.status_code == 413
     assert "200MB" in resp.json()["detail"]
+    inputs_dir = app.state.dependencies.store.inputs_dir("size-case")
+    assert not (inputs_dir / "big.pdf").exists()
 
 
 def test_multipart_upload_accepts_file_at_limit(app_and_client):

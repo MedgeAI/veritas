@@ -1,869 +1,636 @@
 # Veritas 部署指南
 
-本文档面向实验室运维人员，覆盖 Veritas 系统的完整部署、配置、运维和故障排查。
+本文档按当前仓库实现编写，面向实验室运维人员。核心部署形态是 Docker Compose：
+
+- `deploy/docker-compose.yml`：PostgreSQL 16 + pgvector、Redis、FastAPI Web、Celery worker
+- `deploy/docker-compose.cloudflare.yml`：Cloudflare Tunnel overlay
+- `deploy/Dockerfile`：前端构建 + Python 运行时 + 审计核心 third_party 子目录
+- `Makefile`：封装本地开发、Docker 生命周期和 Cloudflare 部署命令
+
+当前代码是 fail-loud 设计：`VERITAS_DATABASE_URL`、Celery broker/backend、关键 API key 缺失时不会静默回退。
 
 ---
 
 ## 1. 系统要求
 
-### 1.1 硬件要求
+### 1.1 硬件
 
-| 资源 | 最低要求 | 说明 |
-|------|---------|------|
-| CPU | 4+ 核 | 审计任务 CPU 密集（MinerU PDF 解析、数值取证） |
-| 内存 | 16GB+ | MinerU + YOLOv5 panel 提取 + copy-move 检测同时运行时内存占用高 |
-| 磁盘 | 100GB+ | 论文产物、视觉产物、数据库、备份；建议独立数据盘 |
-| GPU | 可选，强烈推荐 | TruFor 伪造检测、SSCD embedding、SILA dense copy-move 需要 CUDA |
+| 资源 | 建议 | 说明 |
+|---|---:|---|
+| CPU | 4 核以上 | MinerU PDF 解析、数值取证、图像检测会消耗 CPU |
+| 内存 | 16 GB 以上 | panel 提取、copy-move、TruFor/SSCD 相关流程内存占用较高 |
+| 磁盘 | 100 GB 以上 | 存放上传论文、审计产物、PostgreSQL volume、备份 |
+| GPU | 可选 | TruFor、SSCD、SILA dense 等视觉能力使用 CUDA 时收益明显 |
 
-### 1.2 软件要求
+### 1.2 软件
 
-| 软件 | 版本要求 | 说明 |
-|------|---------|------|
-| Docker | 20.10+ | 容器运行时 |
-| Docker Compose | 2.0+ | 服务编排（已内置于 Docker Desktop / docker-compose-plugin） |
-| Git | 2.20+ | 需要支持 `--recursive` 克隆子模块 |
-| 网络 | 内网部署 | 无需公网访问；需要访问 MinerU API 和 DashScope API 的内网出口 |
+| 软件 | 要求 |
+|---|---|
+| Docker Engine | 20.10+ |
+| Docker Compose | v2 |
+| Git | 支持 submodule |
+| Python/uv | 仅本地执行脚本、测试或用户 CLI 时需要 |
 
-### 1.3 端口需求
+### 1.3 端口
 
-| 端口 | 用途 | 方向 |
-|------|------|------|
-| 8765 | Web 界面 HTTP（容器内 `VERITAS_PORT`） | 入站（局域网或 Cloudflare Tunnel） |
-| 5432 | PostgreSQL | 仅容器间通信，生产环境不对外暴露 |
-| 5433 | PostgreSQL（本地开发） | 仅 `docker-compose.local-db.yml` 开发场景 |
+| 端口 | 当前 compose 默认行为 |
+|---|---|
+| `8765` | 容器内 Web 端口。`deploy/docker-compose.yml` 默认没有发布到宿主机 |
+| `5432` | PostgreSQL 容器内端口，不对外暴露 |
+| `6379` | Redis 容器内端口，不对外暴露 |
+| `5433` | 仅本地开发 `deploy/docker-compose.local-db.yml` 发布 |
+
+如需本机或反向代理访问 Web，请使用 Cloudflare overlay，或添加本地 compose override 发布 `8765:8765`。不要对公网直接暴露 PostgreSQL/Redis。
 
 ---
 
-## 2. 快速部署
+## 2. 获取代码
 
-### 2.1 克隆仓库
-
-Veritas 使用 git submodule 跟踪第三方依赖（MinerU、ELIS 等），必须使用 `--recursive`：
+Veritas 依赖 git submodule：
 
 ```bash
 git clone --recursive <repo-url> veritas
 cd veritas
 ```
 
-如果已经克隆但缺少子模块：
+如果已克隆但缺少子模块：
 
 ```bash
 git submodule update --init --recursive
 ```
 
-### 2.2 配置环境变量
+Dockerfile 当前只复制运行时必需的 third_party 子目录：
+
+- `third_party/research-integrity-auditor/`
+- `third_party/elis/system_modules/`
+- `third_party/paperconan/`
+
+新增进入主链路的 third_party 依赖时，需要同步检查 `.dockerignore` 和 `deploy/Dockerfile`。
+
+---
+
+## 3. 环境文件
+
+当前部署同时使用两个 env 文件：
+
+| 文件 | 用途 |
+|---|---|
+| `.env` | API key、应用开关、本地开发默认值 |
+| `deploy/.env` | 生产 PostgreSQL 凭据；已 gitignore，不应提交真实值 |
+
+### 3.1 根目录 `.env`
 
 ```bash
 cp .env.example .env
-vim .env
+chmod 600 .env
 ```
 
-`.env` 文件最小内容：
+至少填写：
 
 ```bash
-# MinerU PDF 解析 API token（必需）
-MINERU_API_TOKEN=your_mineru_token_here
-
-# 阿里云 DashScope API key，用于 LLM Agent（必需）
-DASHSCOPE_API_KEY=your_dashscope_key_here
+MINERU_API_TOKEN=<mineru-token>
+DASHSCOPE_API_KEY=<dashscope-api-key>
 ```
 
-### 2.3 设置文件权限
-
-`.env` 包含 API 密钥，必须限制访问权限：
+如果使用 Cloudflare Tunnel：
 
 ```bash
-./scripts/setup_env_permissions.sh
+CLOUDFLARE_TUNNEL_TOKEN=<cloudflare-tunnel-token>
 ```
 
-该脚本将 `.env` 权限设为 `600`（仅所有者可读写），如果系统存在 `veritas` 用户则同时修正所有者。
+### 3.2 `deploy/.env`
 
-### 2.4 创建数据目录
-
-生产环境数据存储在 `/data/veritas/`，需要预先创建并设置权限：
+创建或更新：
 
 ```bash
-sudo mkdir -p /data/veritas/web_data
-sudo mkdir -p /data/veritas/outputs
-sudo mkdir -p /data/veritas/backups
-sudo chown -R 1000:1000 /data/veritas
+cat > deploy/.env <<'EOF'
+POSTGRES_DB=veritas_prod
+POSTGRES_USER=veritas_prod
+POSTGRES_PASSWORD=<strong-password>
+EOF
+chmod 600 deploy/.env
 ```
 
-> `1000:1000` 是容器内 `veritas` 用户的默认 UID/GID。如果构建时通过 `USER_UID`/`USER_GID` 指定了其他值，请对应调整。
+`POSTGRES_PASSWORD` 是 compose 里的必填项，未设置会直接启动失败。
 
-### 2.5 启动服务
+### 3.3 认证模式注意
 
-推荐使用 Makefile 封装命令（包含构建 + 健康检查冒烟测试）：
+当前 `deploy/docker-compose.yml` 在 `veritas.environment` 中硬编码：
+
+```yaml
+- VERITAS_AUTH_MODE=none
+```
+
+因此，仅在 `.env` 或 `deploy/.env` 写 `VERITAS_AUTH_MODE=basic` 不会覆盖它。要启用认证，必须修改 compose 中这一行，或新增本地 overlay 并用 `docker compose config` 确认最终环境变量已覆盖。
+
+---
+
+## 4. 数据目录
+
+当前 `deploy/docker-compose.yml` 默认把仓库根目录下的相对目录挂载进容器：
+
+| 宿主机路径 | 容器路径 | 用途 |
+|---|---|---|
+| `./web_data` | `/app/web_data` | case 元数据、上传文件、`users.db` |
+| `./outputs` | `/app/outputs` | 审计报告和中间产物 |
+| Docker volume `pgdata` | `/var/lib/postgresql/data` | PostgreSQL 数据 |
+
+创建目录：
+
+```bash
+mkdir -p web_data outputs
+```
+
+通过 Makefile 构建时，镜像用户 UID/GID 会匹配当前宿主机用户，通常不需要手动 `chown`。如果手动 compose 并使用默认 UID/GID，则确保这些目录可由 UID/GID `1000:1000` 写入。
+
+`scripts/backup.sh` 目前假设数据根目录是 `/data/veritas`。如果生产仓库不放在 `/data/veritas`，请使用第 9 节的手动备份命令，或先调整备份脚本路径。
+
+---
+
+## 5. 启动部署
+
+### 5.1 Cloudflare Tunnel 部署
+
+`make deploy-rebuild` 使用 base compose + Cloudflare overlay：
 
 ```bash
 make deploy-rebuild
 ```
 
-该命令等效于：
+该命令会：
+
+1. 读取 `.env` 和 `deploy/.env`
+2. 使用 compose project `vdeploy`
+3. 构建并重启 `postgres`、`redis`、`veritas`、`celery-worker`、`cloudflared`
+4. 等待容器健康
+5. 在容器内执行 `/api/health`、`/api/health/deep`、`/api/cases` 冒烟检查
+
+注意：如果启用了非 `none` 认证，`/api/cases` 的无认证冒烟检查会返回 401；Makefile 会打印 warning，但不会中断部署。此时以 `/api/health` 和 `/api/health/deep` 为基础健康判断。
+
+Cloudflare public hostname 的 origin service 应配置为：
+
+```text
+http://veritas:8765
+```
+
+### 5.2 不使用 Cloudflare
+
+启动 base compose：
 
 ```bash
-docker compose --env-file deploy/.env \
+make rebuild
+```
+
+当前 base compose 不发布宿主机端口。健康检查可通过容器内执行：
+
+```bash
+make docker-health
+```
+
+如需宿主机访问，添加本地 overlay，例如 `deploy/docker-compose.local-port.yml`：
+
+```yaml
+services:
+  veritas:
+    ports:
+      - "127.0.0.1:8765:8765"
+```
+
+然后手动启动：
+
+```bash
+docker compose --env-file "$PWD/.env" --env-file "$PWD/deploy/.env" \
+  -p vdeploy \
   -f deploy/docker-compose.yml \
-  -f deploy/docker-compose.cloudflare.yml \
-  up --build -d --force-recreate
-# + 30s 健康等待 + 自动冒烟测试（/api/health、/api/health/deep、/api/cases）
+  -f deploy/docker-compose.local-port.yml \
+  up --build -d
 ```
 
-> Cloudflare Tunnel overlay 需要 `CLOUDFLARE_TUNNEL_TOKEN`。如果不需要 Tunnel，
-> 直接使用：`docker compose -f deploy/docker-compose.yml up -d`
+---
 
-首次启动会构建镜像（约 5–10 分钟），后续启动秒级完成。
+## 6. 服务架构
 
-服务启动后：
+| 服务 | 容器名 | 职责 |
+|---|---|---|
+| `postgres` | `veritas-postgres` | PostgreSQL 16 + pgvector |
+| `redis` | `veritas-redis` | Celery broker |
+| `veritas` | `veritas-web` | FastAPI API + 前端静态资源 + 审计编排 |
+| `celery-worker` | `veritas-celery-worker` | Celery 异步审计 worker |
+| `cloudflared` | `veritas-cloudflared` | Cloudflare Tunnel，仅 overlay 启动 |
 
-| 服务 | 地址 |
-|------|------|
-| Web 界面 | http://localhost:8765 |
-| 健康检查 | http://localhost:8765/api/health |
-| PostgreSQL | localhost:5432（容器间通信，不对外暴露） |
+Web 容器是否把审计任务派发给 Celery 由 `VERITAS_USE_CELERY` 控制：
 
-验证服务状态：
+| 值 | `/api/health.runner_mode` | 行为 |
+|---|---|---|
+| 未设置、空、`false` | `thread_pool` | Web 进程线程池执行审计；worker 即使启动也不会接收任务 |
+| `1`、`true`、`yes` | `celery` | Web 将任务发送到 Redis，Celery worker 执行 |
+
+生产异步执行建议在 `.env` 中设置：
 
 ```bash
-# 检查容器状态（veritas-web、veritas-postgres、veritas-celery-worker、veritas-cloudflared）
-docker compose -f deploy/docker-compose.yml ps
-
-# 检查健康端点
-curl http://localhost:8765/api/health
+VERITAS_USE_CELERY=true
 ```
 
-### 2.6 初始化管理员
+相关并发开关：
 
-> **注意**：`deploy/docker-compose.yml` 默认 `VERITAS_AUTH_MODE=none`（无认证），
-> 适用于内网隔离环境。若需启用认证，在 `deploy/.env` 中覆盖：
->
-> ```bash
-> VERITAS_AUTH_MODE=basic
-> ```
->
-> 然后重启服务：`docker compose -f deploy/docker-compose.yml restart`
+| 变量 | 默认 | 说明 |
+|---|---:|---|
+| `VERITAS_MAX_CONCURRENT_AUDITS` | `5` | Web/API 层同时 running 的审计上限 |
+| `AUDIT_MAX_QUEUE_SIZE` | `10` | queued run 上限 |
+| `AUDIT_MAX_CONCURRENT_JOBS` | `2` | Celery worker concurrency |
+| `AUDIT_TASK_TIMEOUT_SECONDS` | `3600` | Celery 单任务 hard time limit |
 
-启用 `basic` 认证模式后，必须创建管理员账户：
+---
+
+## 7. 认证
+
+代码支持 `none`、`basic`、`bearer`、`cloudflare` 四种模式。当前生产 compose 默认硬编码为 `none`。
+
+### 7.1 `none`
+
+无认证。后端把所有请求视为 `operator` 且带 `admin` role。只适用于可信内网或上游网关已经完成访问控制的环境。
+
+### 7.2 `basic`
+
+内置 HTTP Basic 认证，用户存储在 SQLite `users.db`。
+
+启用步骤：
+
+1. 将 `deploy/docker-compose.yml` 中 `VERITAS_AUTH_MODE=none` 改为 `VERITAS_AUTH_MODE=basic`，或用本地 overlay 覆盖。
+2. 确保容器环境有 `VERITAS_USERS_DB=/app/web_data/users.db`；base compose 已设置。
+3. 重启服务。
+4. 在仓库根目录创建管理员：
 
 ```bash
-./scripts/init_admin.sh admin your_password admin@lab.edu admin
+./scripts/init_admin.sh admin '<password>' admin@lab.edu admin
 ```
 
-参数说明：`<用户名> <密码> [邮箱] [角色]`
-
-角色取值：
-- `admin` — 管理员：管理用户、删除 case、查看所有 case
-- `operator` — 普通用户：只能查看和操作自己的 case
-
-### 2.7 部署验证
-
-部署完成后，按以下步骤验证所有功能是否正常。
-
-#### 自动化验证
-
-运行测试套件，验证所有新增功能：
+用户管理：
 
 ```bash
-# 运行 54 个部署相关测试（上传限制、并发限制、日志、metrics、用户 API、case 删除）
-uv run pytest tests/ -v -k "upload_size or concurrency or logging_config or metrics_endpoint or users_api or case_delete"
-```
-
-预期输出：`54 passed`
-
-验证前端构建：
-
-```bash
-cd web/frontend && npm run build
-```
-
-预期输出：`LoginPage-*.js` 和 `AdminPage-*.js` 已编译。
-
-#### 手动验证
-
-**1. 检查文件权限**
-
-```bash
-# .env 文件权限应为 600
-ls -la .env
-# 预期：-rw------- 1 veritas veritas ...
-
-# 脚本应有可执行权限
-ls -la scripts/setup_env_permissions.sh scripts/init_admin.sh
-# 预期：-rwxr-xr-x
-```
-
-**2. 检查 Docker 配置**
-
-```bash
-# 确认认证模式
-grep VERITAS_AUTH_MODE deploy/docker-compose.yml
-# 预期：VERITAS_AUTH_MODE=none（默认），生产推荐改为 basic
-```
-
-**3. 验证 API 端点**
-
-```bash
-# 健康检查（无需认证）
-curl -s http://localhost:8765/api/health | python3 -m json.tool
-# 预期：{"status": "ok", "runner_mode": "thread_pool", ...}
-
-# 深度健康检查（验证 MinerU、opencode、Python imports、数据目录权限）
-curl -s http://localhost:8765/api/health/deep | python3 -m json.tool
-# 预期：{"status": "ok", ...}
-
-# 未认证请求应返回 401（basic 模式下）
-curl -s http://localhost:8765/api/users
-# 预期：401 Unauthorized
-
-# 管理员访问用户列表（basic 模式下）
-curl -s -u admin:your_password http://localhost:8765/api/users | python3 -m json.tool
-# 预期：返回用户列表 JSON
-
-# 查看运行指标（无需认证）
-curl -s http://localhost:8765/api/metrics | python3 -m json.tool
-# 预期：{"cases_total": 0, "runs_active": 0, ...}
-```
-
-**4. 验证 Web 界面**
-
-浏览器访问 http://localhost:8765，验证：
-
-| 验证项 | 预期 |
-|--------|------|
-| 登录页面 | 显示用户名 + 密码表单 |
-| 登录 | 用 admin/your_password 登录成功 |
-| Dashboard | 显示 case 列表（可能为空） |
-| 侧边栏 | 底部有"用户管理"导航项 |
-| 顶部栏 | 显示当前用户名 + 登出按钮 |
-| 用户管理 | 可创建/编辑/删除用户 |
-
-**5. 验证上传限制（200MB）**
-
-```bash
-# 创建 250MB 测试文件
-dd if=/dev/zero of=/tmp/large_file.pdf bs=1M count=250
-
-# 尝试上传（应返回 413）
-curl -s -u admin:your_password -F "file=@/tmp/large_file.pdf" \
-  http://localhost:8765/api/cases/test-case/inputs
-# 预期：HTTP 413，detail 包含 "File size exceeds 200MB limit"
-
-# 清理
-rm /tmp/large_file.pdf
-```
-
-**6. 验证权限控制**
-
-```bash
-# 创建普通用户
-./scripts/init_admin.sh alice alice_password alice@lab.edu operator
-
-# 用 alice 登录 Web 界面，验证：
-# - 侧边栏没有"用户管理"导航
-# - case 卡片上没有删除按钮
-
-# 用 alice 访问管理 API（应返回 403）
-curl -s -u alice:alice_password http://localhost:8765/api/users
-# 预期：403 Forbidden
-
-# 清理
+PYTHONPATH=. uv run python -m web.backend.veritas_web.cli list-users
+PYTHONPATH=. uv run python -m web.backend.veritas_web.cli change-password admin
 PYTHONPATH=. uv run python -m web.backend.veritas_web.cli delete-user alice
 ```
 
-**7. 验证日志**
+### 7.3 `bearer`
+
+用于上游系统集成。要求：
 
 ```bash
-# 检查日志文件存在
-docker exec veritas-web ls -lh /app/logs/veritas.log
-
-# 查看最近日志
-docker exec veritas-web tail -20 /app/logs/veritas.log
-# 预期：格式为 [时间] [级别] 模块: 消息
-```
-
-#### 验证结果汇总
-
-| 验证项 | 通过标准 |
-|--------|---------|
-| 自动化测试 | 54/54 passed |
-| 前端构建 | LoginPage + AdminPage 已编译 |
-| .env 权限 | 600 |
-| Docker 配置 | VERITAS_AUTH_MODE=basic |
-| /api/health | 返回 200 + JSON |
-| /api/users（未认证） | 返回 401 |
-| /api/users（admin） | 返回用户列表 |
-| /api/metrics | 返回 JSON 指标 |
-| Web 登录 | 登录成功，跳转 Dashboard |
-| 用户管理 | CRUD 操作正常 |
-| 上传限制 | >200MB 返回 413 |
-| 权限控制 | operator 无法访问管理功能 |
-| 日志 | /app/logs/veritas.log 存在 |
-
-全部通过后，部署验证完成。如有失败项，参考第 8 章"常见问题排查"。
-
----
-
-## 3. 环境变量说明
-
-### 3.1 API 密钥（必需）
-
-| 变量 | 必需 | 说明 |
-|------|------|------|
-| `MINERU_API_TOKEN` | 是 | MinerU PDF 解析服务 API token |
-| `DASHSCOPE_API_KEY` | 是 | 阿里云 DashScope API key，用于 opencode Agent LLM 调用 |
-
-### 3.2 服务配置
-
-| 变量 | 默认值 | 说明 |
-|------|--------|------|
-| `VERITAS_HOST` | `0.0.0.0` | 监听地址（Docker 内必须为 `0.0.0.0`） |
-| `VERITAS_PORT` | `8765` | 容器内监听端口 |
-| `VERITAS_DATA_ROOT` | `/app/web_data` | Web 数据根目录（case 元数据、用户上传） |
-| `VERITAS_OUTPUT_ROOT` | `/app/outputs` | 审计产物根目录（报告、视觉产物） |
-| `VERITAS_DATABASE_URL` | `postgresql://veritas_prod:<pw>@postgres:5432/veritas_prod` | PostgreSQL 连接 URL（由 docker-compose 通过环境变量注入） |
-| `VERITAS_LOG_DIR` | `/app/logs` | 日志输出目录（Dockerfile 中设置） |
-
-### 3.3 认证配置
-
-| 变量 | 默认值 | 说明 |
-|------|--------|------|
-| `VERITAS_AUTH_MODE` | `none` | 认证模式：`none` / `basic` / `bearer`（生产建议 `basic`，内网隔离可用 `none`） |
-| `VERITAS_USERS_DB` | `/app/web_data/users.db` | 用户数据库路径（`basic` 模式） |
-| `VERITAS_JWT_SECRET` | — | JWT 签名密钥（`bearer` 模式必需） |
-| `VERITAS_JWT_ISSUER` | `veritas` | JWT issuer 字段（`bearer` 模式） |
-
-### 3.4 运维配置
-
-| 变量 | 默认值 | 说明 |
-|------|--------|------|
-| `VERITAS_LOG_LEVEL` | `INFO` | 日志级别：`DEBUG` / `INFO` / `WARNING` / `ERROR` |
-| `VERITAS_LOG_DIR` | `/app/logs` | 日志输出目录 |
-
----
-
-## 4. 认证配置
-
-Veritas 支持三种认证模式，通过 `VERITAS_AUTH_MODE` 环境变量切换。
-
-### 4.1 None 模式（默认 / 内网隔离）
-
-无认证，所有 API 公开访问。`deploy/docker-compose.yml` 默认使用此模式。
-
-```bash
-# deploy/.env 中设置（或不设置，默认即为 none）
-VERITAS_AUTH_MODE=none
-
-docker compose -f deploy/docker-compose.yml restart
-```
-
-> **警告**：不要在可访问公网或不受信任的网络中使用 `none` 模式。
-> 若服务通过 Cloudflare Tunnel 或反向代理暴露，必须切换到 `basic` 或 `bearer` 模式。
-
-### 4.2 Basic 模式（生产推荐）
-
-用户名密码认证，用户数据存储在 SQLite（`users.db`）。
-
-```bash
-# deploy/.env 中设置
-VERITAS_AUTH_MODE=basic
-
-# 重启服务
-docker compose -f deploy/docker-compose.yml restart
-
-# 创建管理员账户
-./scripts/init_admin.sh admin your_password admin@lab.edu admin
-```
-
-用户管理命令：
-
-```bash
-# 添加用户
-./scripts/init_admin.sh <username> <password> [email] [role]
-
-# 列出所有用户
-PYTHONPATH=. uv run python -m web.backend.veritas_web.cli list-users
-
-# 修改密码
-PYTHONPATH=. uv run python -m web.backend.veritas_web.cli change-password <username>
-
-# 删除用户
-PYTHONPATH=. uv run python -m web.backend.veritas_web.cli delete-user <username>
-```
-
-### 4.3 Bearer 模式（系统集成）
-
-JWT Bearer Token 认证，适用于与主产品系统集成。
-
-```bash
-# .env 中设置
 VERITAS_AUTH_MODE=bearer
-VERITAS_JWT_SECRET=your_shared_secret_here
-
-docker compose restart
+VERITAS_JWT_SECRET=<at-least-32-chars>
+VERITAS_JWT_ISSUER=veritas
 ```
 
-客户端请求需在 `Authorization` 头携带 JWT token：
+JWT 使用 HS256，payload 需要包含 `exp`、`iss`、`userId`。
 
-```
-Authorization: Bearer <jwt_token>
-```
+### 7.4 `cloudflare`
 
-JWT 使用 HS256 算法签名，issuer 默认为 `veritas`（可通过 `VERITAS_JWT_ISSUER` 修改）。
-
----
-
-## 5. 数据目录
-
-| 目录 | 容器路径 | 用途 | 是否必须备份 |
-|------|---------|------|------------|
-| `/data/veritas/web_data/` | `/app/web_data` | Web 数据：case 元数据、用户上传文件、用户数据库 | 是 |
-| `/data/veritas/outputs/` | `/app/outputs` | 审计产物：报告、视觉取证产物、日志 | 建议 |
-| PostgreSQL volume `pgdata` | `/var/lib/postgresql/data` | 数据库：run 记录、工具注册 | 是 |
-
-> 数据目录通过 Docker volume 挂载，容器重建不会丢失数据。删除 volume（`docker compose down -v`）会丢失数据库数据。
-
-## 5.1 服务架构
-
-`deploy/docker-compose.yml` 包含以下服务：
-
-| 服务 | 容器名 | 职责 |
-|------|--------|------|
-| `postgres` | `veritas-postgres` | PostgreSQL 16 + pgvector，数据库持久化 |
-| `redis` | `veritas-redis` | Celery 消息代理 |
-| `veritas` | `veritas-web` | Web 服务（FastAPI + 静态审查引擎） |
-| `celery-worker` | `veritas-celery-worker` | 异步审计任务执行（Celery worker） |
-
-**celery-worker 说明**：
-
-- 与 `veritas-web` 共享同一 Dockerfile，以 `celery -A engine.tasks.celery_app worker` 启动
-- 使用 Redis 作为消息代理（`CELERY_BROKER_URL`），PostgreSQL 作为结果后端（`CELERY_RESULT_BACKEND`）
-- 挂载 `/var/run/docker.sock` 以支持 ELIS Provenance Docker-in-Docker 调用
-- 审计任务提交后异步执行，Web 接口通过 SSE 推送进度
-
-> 如果不需要异步任务（如单用户本地使用），可以不启动 celery-worker：
-> `docker compose -f deploy/docker-compose.yml up -d postgres redis veritas`
-
----
-
-## 6. 备份和恢复
-
-### 6.1 自动备份
-
-使用内置备份脚本：
+用于 Cloudflare Access。要求 Cloudflare Access 向 origin 注入 `cf-access-jwt-assertion` header，并设置：
 
 ```bash
-# 手动执行备份
+VERITAS_AUTH_MODE=cloudflare
+VERITAS_CF_TEAM_NAME=<team-name>
+VERITAS_CF_AUDIENCE_TAG=<access-application-aud>
+VERITAS_BOOTSTRAP_ADMIN_EMAILS=pi@example.edu,admin@example.edu
+```
+
+首次访问时用户会自动登记；邮箱命中 bootstrap 列表的用户会获得 `admin` role，否则为 `operator`。
+
+---
+
+## 8. 验证
+
+### 8.1 容器状态
+
+```bash
+make ps
+docker ps --filter "name=veritas-"
+```
+
+期望：
+
+- `veritas-postgres` healthy
+- `veritas-redis` healthy
+- `veritas-web` healthy
+- `veritas-celery-worker` running
+- 使用 Cloudflare overlay 时，`docker ps` 能看到 `veritas-cloudflared` running
+
+### 8.2 健康检查
+
+容器内检查：
+
+```bash
+make docker-health
+```
+
+如果发布了宿主机端口：
+
+```bash
+curl -s http://127.0.0.1:8765/api/health | python3 -m json.tool
+curl -s http://127.0.0.1:8765/api/health/deep | python3 -m json.tool
+```
+
+`/api/health` 返回：
+
+```json
+{
+  "status": "ok",
+  "runner_mode": "thread_pool",
+  "recovered_interrupted_runs": 0
+}
+```
+
+`runner_mode` 会在 `VERITAS_USE_CELERY=true` 时变为 `celery`。
+
+`/api/health/deep` 会检查：
+
+- MinerU 脚本目录和 `mineru_convert.py`
+- `opencode` 是否在 `PATH`
+- `/app/web_data` 和 `/app/outputs` 是否可写
+- 审计关键 Python import 是否可用
+
+### 8.3 API 验证
+
+以下 `curl` 命令假设已经按第 5.2 节发布宿主机端口；如果使用 Cloudflare Tunnel，请把 base URL 替换为 Cloudflare 域名。
+
+`none` 模式下：
+
+```bash
+curl -s http://127.0.0.1:8765/api/cases | python3 -m json.tool
+curl -s http://127.0.0.1:8765/api/metrics | python3 -m json.tool
+```
+
+`basic` 模式下：
+
+```bash
+curl -s -u admin:'<password>' http://127.0.0.1:8765/api/cases | python3 -m json.tool
+curl -s -u admin:'<password>' http://127.0.0.1:8765/api/metrics | python3 -m json.tool
+```
+
+`/api/metrics` 是 admin-only，返回字段包括 `cases_total`、`runs_total`、`runs_active`、`runs_failed`、`runs_interrupted`、`uptime_seconds`、`timestamp`。
+
+### 8.4 上传限制
+
+当前上传限制：
+
+| 上传方式 | 限制 |
+|---|---:|
+| multipart/form-data | 200 MB |
+| legacy JSON/base64 | 50 MB |
+
+超过限制时返回 HTTP 413。
+
+---
+
+## 9. 备份和恢复
+
+### 9.1 文件备份
+
+如果仓库根目录就是 `/data/veritas`，可直接使用：
+
+```bash
 ./scripts/backup.sh
 ```
 
-备份脚本行为：
-- 备份 `/data/veritas/web_data` 和 `/data/veritas/outputs` 到 `/data/veritas/backups/veritas_YYYYMMDD_HHMMSS.tar.gz`
-- 默认保留 7 天，通过 `BACKUP_RETENTION_DAYS` 环境变量调整
-- 自动清理过期备份
-
-配置定时任务（每天凌晨 2 点执行）：
+否则手动备份当前 compose 默认目录：
 
 ```bash
-# 编辑 crontab
-crontab -e
-
-# 添加以下行
-0 2 * * * /opt/veritas/scripts/backup.sh >> /var/log/veritas-backup.log 2>&1
+mkdir -p backups
+tar -czf "backups/veritas_files_$(date +%Y%m%d_%H%M%S).tar.gz" web_data outputs
 ```
 
-### 6.2 手动备份
+### 9.2 PostgreSQL 备份
 
 ```bash
-# 备份 Web 数据
-tar -czf web_data_$(date +%Y%m%d).tar.gz -C / data/veritas/web_data
-
-# 备份 PostgreSQL 数据库
-docker exec veritas-postgres pg_dump -U veritas veritas > db_$(date +%Y%m%d).sql
+docker exec veritas-postgres sh -lc 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' \
+  > "backups/veritas_db_$(date +%Y%m%d_%H%M%S).sql"
 ```
 
-### 6.3 恢复
+### 9.3 恢复
+
+文件恢复：
 
 ```bash
-# 恢复 Web 数据
-tar -xzf web_data_YYYYMMDD.tar.gz -C /
+tar -xzf backups/veritas_files_YYYYMMDD_HHMMSS.tar.gz
+```
 
-# 恢复 PostgreSQL 数据库
-docker exec -i veritas-postgres psql -U veritas veritas < db_YYYYMMDD.sql
+数据库恢复：
 
-# 重启服务
-docker compose restart
+```bash
+docker exec -i veritas-postgres sh -lc 'psql -U "$POSTGRES_USER" "$POSTGRES_DB"' \
+  < backups/veritas_db_YYYYMMDD_HHMMSS.sql
+```
+
+恢复后重启：
+
+```bash
+make restart
 ```
 
 ---
 
-## 7. 日志管理
+## 10. 日志
 
-### 7.1 查看日志
+### 10.1 Docker 日志
 
 ```bash
-# 查看 Veritas 服务实时日志
-docker compose logs -f veritas
-
-# 查看最近 100 行
-docker compose logs --tail=100 veritas
-
-# 查看 PostgreSQL 日志
-docker compose logs -f postgres
-
-# 查看所有服务日志
-docker compose logs -f
+make logs
+docker logs --tail=100 -f veritas-celery-worker
+docker logs --tail=100 -f veritas-postgres
 ```
 
-### 7.2 日志配置
+### 10.2 应用日志
 
-日志输出路径和轮转策略：
+`web/backend/veritas_web/logging_config.py` 会把日志写到 stderr，并在 `VERITAS_LOG_DIR` 非空时写入轮转文件：
 
-| 位置 | 配置 |
-|------|------|
-| 容器内应用日志 | `/app/logs/veritas.log`（10MB/文件，保留 5 个） |
-| Docker 容器日志 | `json-file` driver（**50MB/文件，保留 5 个**） |
+| 环境 | 默认目录 | 轮转 |
+|---|---|---|
+| Docker | `/app/logs/veritas.log` | 10 MB，保留 5 个备份 |
+| 本地 dev | `logs/veritas.log` | 10 MB，保留 1 个备份 |
+
+Docker compose 还配置了 `json-file` 日志轮转：50 MB，保留 5 个文件。
 
 修改日志级别：
 
 ```bash
-# 在 deploy/.env 中添加或修改
 VERITAS_LOG_LEVEL=DEBUG
-
-docker compose -f deploy/docker-compose.yml restart
 ```
 
-> 生产环境建议使用 `INFO` 或 `WARNING`，避免日志量过大。排查问题时临时切换到 `DEBUG`。
+生产建议使用 `INFO` 或 `WARNING`，排查问题时临时改为 `DEBUG`。
 
 ---
 
-## 8. 常见问题排查
+## 11. 常见问题
 
-### 8.1 服务无法启动
-
-**症状**：`docker compose ps` 显示 veritas 容器状态为 `Restarting` 或 `Exited`。
+### 11.1 服务启动失败
 
 ```bash
-# 1. 查看容器日志
-docker compose logs veritas
-
-# 2. 检查端口占用
-sudo lsof -i :80
-sudo lsof -i :5432
-
-# 3. 检查磁盘空间
-df -h /data/veritas
-
-# 4. 检查数据目录权限
-ls -la /data/veritas/
-
-# 5. 检查 .env 文件是否存在
-ls -la .env
+make ps
+make logs
+docker logs --tail=100 veritas-postgres
 ```
 
-常见原因：
-- 端口 8765 被其他服务占用
-- `/data/veritas` 目录不存在或权限不正确
-- `.env` 文件缺失（`deploy/.env` 或仓库根目录 `.env`）
+优先检查：
 
-### 8.2 认证失败
+- `deploy/.env` 是否设置了 `POSTGRES_PASSWORD`
+- `.env` 是否设置了 `MINERU_API_TOKEN`、`DASHSCOPE_API_KEY`
+- `web_data`、`outputs` 是否可写
+- 如果使用 Cloudflare overlay，`CLOUDFLARE_TUNNEL_TOKEN` 是否有效
 
-**症状**：访问 Web 界面提示 401 Unauthorized。
+### 11.2 数据库连接失败
 
-```bash
-# 1. 确认当前认证模式
-docker exec veritas-web env | grep VERITAS_AUTH_MODE
+当前代码要求 PostgreSQL，不支持 SQLite 作为 Web 主库。compose 会注入：
 
-# 2. basic 模式下检查用户数据库
-ls -la /data/veritas/web_data/users.db
-
-# 3. 列出已创建的用户
-PYTHONPATH=. uv run python -m web.backend.veritas_web.cli list-users
-
-# 4. 重置管理员密码
-./scripts/init_admin.sh admin new_password
+```text
+VERITAS_DATABASE_URL=postgresql://<user>:<password>@postgres:5432/<db>
 ```
 
-### 8.3 审计任务卡住
-
-**症状**：case 状态持续显示 "Running"，长时间无进展。
+排查：
 
 ```bash
-# 1. 查看活跃任务数
-curl -s http://localhost:8765/api/metrics | python3 -m json.tool
-
-# 2. 查看任务相关日志（替换 <case_id>）
-docker exec veritas-web grep "<case_id>" /app/logs/veritas.log
-
-# 3. 检查 MinerU API 连通性
-docker exec veritas-web curl -v https://mineru-api.example.com/health
-
-# 4. 重启服务
-# 重启后会自动将遗留的 "Running" 任务标记为 "interrupted"
-docker compose restart veritas
+docker exec veritas-postgres sh -lc 'pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"'
+docker logs --tail=100 veritas-postgres
 ```
 
-### 8.4 磁盘空间不足
+### 11.3 `/api/health` 显示 `thread_pool`
 
-**症状**：上传失败或审计任务中途失败，日志中出现 `No space left on device`。
+这是默认行为。要让 Web 把审计任务派发给 Celery，在 `.env` 中设置：
 
 ```bash
-# 1. 查看各目录占用
-du -sh /data/veritas/web_data
-du -sh /data/veritas/outputs
-du -sh /data/veritas/backups
-
-# 2. 清理旧审计产物（谨慎！确认后再执行）
-find /data/veritas/outputs -maxdepth 1 -type d -mtime +90
-
-# 3. 清理过期备份
-find /data/veritas/backups -type f -mtime +30 -delete
-
-# 4. 清理 Docker 悬空镜像和构建缓存
-docker system prune -f
-docker builder prune -f
+VERITAS_USE_CELERY=true
 ```
 
-### 8.5 GPU 不可用
-
-**症状**：TruFor 或 SSCD 相关任务失败，日志提示 CUDA 不可用。
+然后重启：
 
 ```bash
-# 1. 检查宿主机 GPU 状态
-nvidia-smi
-
-# 2. 检查容器内 GPU 可见性
-docker exec veritas-web nvidia-smi
-
-# 3. 检查 Docker GPU 配置
-docker inspect veritas-web | grep -A 10 DeviceRequests
-
-# 4. 确认 NVIDIA Container Toolkit 已安装
-dpkg -l | grep nvidia-container-toolkit
+make restart
 ```
 
-> 生产 Dockerfile 基于 CPU 镜像构建。如需 GPU 支持，修改生产 Dockerfile 基础镜像为 PyTorch CUDA 镜像（如 `pytorch/pytorch:2.5.1-cuda12.1-cudnn9-runtime`）。
-
-### 8.6 数据库连接失败
-
-**症状**：服务启动失败，日志中出现 `connection refused` 或 `database "veritas" does not exist`。
+确认：
 
 ```bash
-# 1. 检查 PostgreSQL 容器状态
-docker compose ps postgres
+make docker-health
+docker logs --tail=100 -f veritas-celery-worker
+```
 
-# 2. 检查 PostgreSQL 是否就绪
-docker exec veritas-postgres pg_isready -U veritas
+### 11.4 认证没有生效
 
-# 3. 查看 PostgreSQL 日志
-docker compose logs postgres
+检查 compose 最终配置：
 
-# 4. 如果数据库损坏，可以从备份恢复
-# 警告：这会丢失所有现有数据
-docker compose down
-docker volume rm veritas_pgdata
-docker compose up -d
+```bash
+docker compose --env-file "$PWD/.env" --env-file "$PWD/deploy/.env" \
+  -p vdeploy -f deploy/docker-compose.yml config | grep VERITAS_AUTH_MODE
+```
+
+如果仍是 `VERITAS_AUTH_MODE=none`，说明 base compose 的硬编码环境变量仍在生效。
+
+### 11.5 审计任务卡住
+
+```bash
+docker exec veritas-web curl -s http://localhost:8765/api/audit/queue
+docker logs --tail=200 veritas-web
+docker logs --tail=200 veritas-celery-worker
+```
+
+重启 Web 时，启动恢复逻辑会把遗留的 running run 标记为 interrupted。
+
+### 11.6 Cloudflare 域名无法访问
+
+检查：
+
+- Tunnel token 是否正确
+- Public hostname service 是否是 `http://veritas:8765`
+- Cloudflare Access 是否已放行当前用户
+
+日志：
+
+```bash
+make deploy-logs
 ```
 
 ---
 
-## 9. 性能调优
+## 12. 升级和回滚
 
-### 9.1 并发控制
-
-审计任务包含 CPU 密集的数值取证和图像分析步骤。并发任务数需要根据硬件能力合理配置，避免资源争抢导致任务超时。
-
-当前并发控制通过系统资源自然限制（线程池），无需额外配置。如果服务器资源有限，建议：
-
-- 4 核 CPU / 16GB 内存：同时运行不超过 2 个审计任务
-- 8 核 CPU / 32GB 内存：同时运行不超过 4 个审计任务
-- 16 核 CPU / 64GB 内存：同时运行不超过 6 个审计任务
-
-### 9.2 日志级别
-
-生产环境建议使用 `INFO` 或 `WARNING`：
+### 12.1 升级
 
 ```bash
-# .env
-VERITAS_LOG_LEVEL=WARNING
-
-docker compose restart
-```
-
-`DEBUG` 级别会产生大量日志，仅在排查问题时临时启用。
-
-### 9.3 磁盘 IO
-
-审计任务会产生大量小文件（panel 图像、中间产物）。建议：
-- 数据目录使用 SSD
-- 如果数据目录在网络存储（NFS/SMB）上，确保 IO 性能满足要求
-- 定期清理过期产物
-
----
-
-## 10. 升级
-
-### 10.1 升级步骤
-
-```bash
-# 1. 备份当前数据
-./scripts/backup.sh
-
-# 2. 拉取新代码
-git pull origin master
-git submodule update --recursive
-
-# 3. 重建并重启（包含健康检查冒烟测试）
+./scripts/backup.sh || true
+git fetch origin
+git pull --ff-only origin master
+git submodule update --init --recursive
 make deploy-rebuild
-
-# 4. 检查服务状态和日志
-docker compose -f deploy/docker-compose.yml ps
-docker compose -f deploy/docker-compose.yml logs -f veritas
 ```
 
-`make deploy-rebuild` 会自动执行构建、重启和冒烟测试（验证 `/api/health`、`/api/health/deep`、`/api/cases`）。
+如果没有使用 Cloudflare overlay，用 `make rebuild` 替代 `make deploy-rebuild`。
 
-### 10.2 回滚
+### 12.2 回滚
 
 ```bash
-# 1. 停止当前服务
-docker compose down
-
-# 2. 切换到旧版本
+git log --oneline -10
 git checkout <old-commit>
-git submodule update --recursive
-
-# 3. 重建镜像
-docker compose build
-
-# 4. 如果数据 schema 有变更，恢复备份数据
-tar -xzf web_data_YYYYMMDD.tar.gz -C /
-docker exec -i veritas-postgres psql -U veritas veritas < db_YYYYMMDD.sql
-
-# 5. 启动服务
-docker compose up -d
+git submodule update --init --recursive
+make deploy-rebuild
 ```
+
+如果数据库 schema 已变更且需要数据回滚，先恢复第 9 节的数据库备份，再启动服务。
 
 ---
 
-## 11. 监控
+## 13. 安全建议
 
-### 11.1 健康检查
-
-```bash
-# 服务整体健康
-curl -s http://localhost:8765/api/health | python3 -m json.tool
-
-# 预期返回：
-# {"status": "ok", "runner_mode": "thread_pool", "recovered_interrupted_runs": 0}
-```
-
-Docker Compose 已配置自动健康检查（每 60 秒），不健康的容器会自动重启（`restart: unless-stopped` 策略）。
-
-### 11.2 运行指标
-
-```bash
-# 查看运行指标
-curl -s http://localhost:8765/api/metrics | python3 -m json.tool
-```
-
-指标字段说明：
-
-| 字段 | 说明 |
-|------|------|
-| `cases_total` | 总 case 数 |
-| `cases_by_status` | 各状态 case 数量 |
-| `runs_total` | 总 run 数 |
-| `runs_active` | 当前活跃 run 数 |
-| `runs_completed` | 已完成 run 数 |
-| `runs_failed` | 失败 run 数 |
-| `uptime_seconds` | 服务运行时长（秒） |
-
-### 11.3 建议监控项
-
-如果使用监控系统（Prometheus / Zabbix 等），建议采集以下指标：
-
-| 指标 | 采集方式 | 告警阈值 |
-|------|---------|---------|
-| 服务健康 | `GET /api/health` | 连续 3 次失败 |
-| 磁盘使用率 | 系统指标 | > 85% |
-| 内存使用率 | 系统指标 | > 90% |
-| 活跃 run 数 | `/api/metrics` | > 预期并发上限 |
-| 失败 run 数 | `/api/metrics` | 持续增长 |
-| 容器状态 | `docker compose ps` | 非 running |
+1. 不要提交 `.env`、`deploy/.env`、真实论文、审计产物或密钥。
+2. `deploy/.env` 中的 `POSTGRES_PASSWORD` 必须使用强密码。
+3. 当前 compose 默认 `VERITAS_AUTH_MODE=none`。如果通过 Cloudflare Tunnel 或反向代理暴露给多人使用，应启用 `basic`、`bearer` 或 `cloudflare`，或确保上游访问控制等价可靠。
+4. 不要对公网开放 PostgreSQL、Redis 或未认证的 8765 端口。
+5. 定期备份 `web_data`、`outputs` 和 PostgreSQL。
+6. 监控磁盘使用率；审计任务会产生大量中间文件。
+7. 轮换 `MINERU_API_TOKEN`、`DASHSCOPE_API_KEY`、`CLOUDFLARE_TUNNEL_TOKEN`。
 
 ---
 
-## 12. 安全建议
-
-1. **认证模式**：`deploy/docker-compose.yml` 默认 `none`（适用于内网隔离）。
-   通过 Cloudflare Tunnel 或反向代理暴露时，**必须**在 `deploy/.env` 中设置 `VERITAS_AUTH_MODE=basic` 或 `bearer`。
-2. **API 密钥管理**：定期轮换 `MINERU_API_TOKEN` 和 `DASHSCOPE_API_KEY`；`.env` 文件权限保持 `600`。
-3. **网络访问控制**：使用防火墙或 iptables 限制 8765 端口的访问 IP 范围；推荐通过 Cloudflare Tunnel 统一入口。
-4. **数据库安全**：PostgreSQL 凭据通过 `deploy/.env` 中的 `POSTGRES_PASSWORD` 设置（**必须设置**，compose 会 fail-loud）；5432 端口不对外暴露。
-5. **定期备份**：每天自动备份，保留至少 7 天；定期验证备份可恢复性。
-6. **磁盘监控**：设置磁盘空间告警，避免审计任务因磁盘满而失败。
-7. **HTTPS**：如需通过反向代理对外暴露，配置 TLS 证书（Let's Encrypt 或内部 CA）。
-8. **日志审计**：保留操作日志，定期审查异常访问模式。
-
----
-
-## 附录：常用运维命令速查
+## 14. 常用命令
 
 ```bash
-# 一键部署/重建（推荐，含冒烟测试）
+# Cloudflare overlay 部署/重建
 make deploy-rebuild
 
-# 手动启动服务（不含 Cloudflare Tunnel）
-docker compose -f deploy/docker-compose.yml up -d
+# Base compose 重建，不含 Cloudflare
+make rebuild
 
-# 启动含 Cloudflare Tunnel
-docker compose --env-file deploy/.env \
-  -f deploy/docker-compose.yml \
-  -f deploy/docker-compose.cloudflare.yml \
-  up -d
+# 服务状态
+make ps
 
-# 停止服务（保留数据卷）
-docker compose -f deploy/docker-compose.yml down
+# Web 日志
+make logs
 
-# 重启服务
-docker compose -f deploy/docker-compose.yml restart
+# Cloudflare 日志
+make deploy-logs
 
-# 查看服务状态（含 celery-worker）
-docker compose -f deploy/docker-compose.yml ps
+# 容器内健康检查
+make docker-health
 
-# 查看实时日志
-docker compose -f deploy/docker-compose.yml logs -f veritas
+# 停止 base compose
+make down
 
-# 查看 celery-worker 日志
-docker compose -f deploy/docker-compose.yml logs -f celery-worker
+# 停止 Cloudflare overlay
+make deploy-down
 
-# 进入容器 shell
-docker exec -it veritas-web /bin/bash
+# 进入 Web 容器
+make shell
 
-# 检查健康状态
-curl http://localhost:8765/api/health
-
-# 深度健康检查（MinerU、opencode、imports、目录权限）
-curl http://localhost:8765/api/health/deep
-
-# 查看运行指标
-curl http://localhost:8765/api/metrics
-
-# 手动备份
-./scripts/backup.sh
-
-# 添加用户（basic 认证模式下）
+# 本地用户管理，basic 模式
 ./scripts/init_admin.sh <username> <password> [email] [role]
-
-# 列出用户
 PYTHONPATH=. uv run python -m web.backend.veritas_web.cli list-users
 
-# 重建镜像（代码更新后）
-make deploy-rebuild
+# 手动检查深度健康
+docker exec veritas-web curl -sf http://localhost:8765/api/health/deep
 ```
 
 ---
 
-**文档版本**：1.2
-**最后更新**：2026-06-26
+**文档版本**：1.3
+**最后更新**：2026-07-01
 **维护者**：Veritas 开发团队
