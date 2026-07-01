@@ -71,12 +71,10 @@ WORKDIR /app
 # /app/outputs/         — audit artifacts (veritas-writable, bind mount target)
 # /app/logs/            — log files (veritas-writable)
 #
-# chmod 777 /app: allows veritas to create project-local directories
-#   (e.g. .opencode/ for opencode session data). The code COPY'd into
-#   /app/ is root:root 755 — readable but not writable by veritas.
-# This is a tiny layer (just the directory entry, not recursive).
+# Runtime writes must stay under explicit data/log roots. The code copied into
+# /app remains root-owned and read-only for the non-root runtime user.
 RUN mkdir -p /app/web_data /app/outputs /app/logs \
-    && chmod 777 /app /app/logs
+    && chown -R $USERNAME:$USERNAME /app/web_data /app/outputs /app/logs
 
 # Install Python dependencies (from pyproject.toml + uv.lock)
 # Dependency files are copied BEFORE source code: if only source changes,
@@ -109,14 +107,13 @@ COPY README.md .
 #   /app/.opencode/data -> symlink  — points to /app/web_data/.opencode/data
 #   /app/web_data/.opencode/data/   — veritas:veritas (runtime data volume)
 RUN mkdir -p /app/web_data/.opencode/data /app/outputs \
-    && chown -R $USERNAME:$USERNAME /app/web_data /app/outputs \
-    && chown $USERNAME:$USERNAME /app/.opencode \
+    && chown -R $USERNAME:$USERNAME /app/web_data /app/outputs /app/logs \
     && ln -s /app/web_data/.opencode/data /app/.opencode/data
 # uv sync --frozen: install exactly what uv.lock specifies, no resolution drift
 # --no-cache: skip uv's cache to keep image layers lean
 # UV_PROJECT_ENVIRONMENT (set above) tells uv to install into /opt/venv,
 # preventing it from creating its own .venv in the project directory
-RUN uv sync --frozen --extra web --extra pg --extra visual --no-cache
+RUN uv sync --frozen --extra web --extra pg --extra visual --extra models --no-cache
 
 # Copy frontend build artifacts from stage 1
 COPY --from=frontend-builder /build/dist ./web/frontend/dist

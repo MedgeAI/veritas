@@ -22,7 +22,13 @@ from ..dependencies import (
 from ..auth import AuthContext
 from ..routers.audit_jobs import get_auth_context_sse
 from ..permissions import require_admin
-from ..models import CaseCreate, CaseRecord, InputUpload, REPRODUCIBILITY_TIERS
+from ..models import (
+    STALE_RUN_THRESHOLD_SECONDS,
+    CaseCreate,
+    CaseRecord,
+    InputUpload,
+    REPRODUCIBILITY_TIERS,
+)
 from ..risk import summarize_findings
 from ..sse import sse_event_stream
 
@@ -293,7 +299,7 @@ async def list_events(
 
 
 @router.get("/cases/{case_id}/runs/{run_id}/steps")
-async def get_run_steps(
+def get_run_steps(
     case_id: str,
     run_id: str,
     case: CaseRecord = Depends(require_case_access),
@@ -302,17 +308,28 @@ async def get_run_steps(
     """Return structured step list with progress aggregates.
 
     Builds the step list from step_start/step_result events for this run.
-    Returns ``{steps, total, completed, running, failed, skipped, progress_pct}``.
+    Returns ``{steps, total, completed, running, failed, skipped, progress_pct,
+    current_step, elapsed_seconds, last_event_at, is_stale, ...}``.
     """
-    from engine.static_audit.run_steps import build_steps_list, summarise_steps
-
-    events = await asyncio.get_event_loop().run_in_executor(
-        None,
-        lambda: deps.store.list_events(case_id, run_id),
+    from engine.static_audit.run_steps import (
+        build_steps_list,
+        summarise_run_timing,
+        summarise_steps,
     )
-    steps = build_steps_list(events)
+
+    events = deps.store.list_events(case_id, run_id)
+    run = deps.store.get_run(case_id, run_id)
+    steps = build_steps_list(events, run_status=run.status)
     summary = summarise_steps(steps)
-    return {"steps": steps, **summary}
+    timing = summarise_run_timing(
+        steps,
+        run_status=run.status,
+        started_at=run.started_at,
+        completed_at=run.completed_at,
+        last_event_at=run.last_event_at,
+        stale_after_seconds=STALE_RUN_THRESHOLD_SECONDS,
+    )
+    return {"steps": steps, **summary, **timing}
 
 
 @router.get("/cases/{case_id}/runs/{run_id}/stream")

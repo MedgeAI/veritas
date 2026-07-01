@@ -71,6 +71,9 @@ class CertificationGrade:
     critical_count: int
     high_count: int
     medium_count: int
+    reproducibility_tier: str = "full"
+    grade_cap: str = "A"
+    raw_grade: str | None = None
 
 
 # ---------------------------------------------------------------------------
@@ -260,6 +263,20 @@ _GRADE_LABELS: dict[str, str] = {
     "D": "未通过",
 }
 
+_GRADE_RANK: dict[str, int] = {
+    "A": 0,
+    "B": 1,
+    "C": 2,
+    "D": 3,
+}
+
+_REPRODUCIBILITY_TIER_CAPS: dict[str, str] = {
+    "full": "A",
+    "partial": "B",
+    "code_only": "C",
+    "static": "C",
+}
+
 
 def _worst_status(dimensions: list[DimensionScore]) -> DimensionStatus:
     """Return the worst status across all dimensions."""
@@ -269,7 +286,25 @@ def _worst_status(dimensions: list[DimensionScore]) -> DimensionStatus:
     )
 
 
-def compute_grade(bundle: StaticAuditBundle) -> CertificationGrade:
+def _cap_grade(raw_grade: str, reproducibility_tier: str) -> tuple[str, str]:
+    """Apply the reproducibility-tier ceiling without improving worse grades."""
+    cap = _REPRODUCIBILITY_TIER_CAPS.get(reproducibility_tier)
+    if cap is None:
+        raise ValueError(
+            "Invalid reproducibility_tier: "
+            f"{reproducibility_tier}. Must be one of: "
+            f"{', '.join(_REPRODUCIBILITY_TIER_CAPS.keys())}"
+        )
+    if _GRADE_RANK[raw_grade] < _GRADE_RANK[cap]:
+        return cap, cap
+    return raw_grade, cap
+
+
+def compute_grade(
+    bundle: StaticAuditBundle,
+    *,
+    reproducibility_tier: str = "full",
+) -> CertificationGrade:
     """Compute certification grade from audit bundle.
 
     The function evaluates four independent dimensions and derives an
@@ -291,20 +326,24 @@ def compute_grade(bundle: StaticAuditBundle) -> CertificationGrade:
 
     if worst == "fail":
         if reproducibility.status == "fail":
-            grade = "D"
+            raw_grade = "D"
         else:
-            grade = "C"
+            raw_grade = "C"
     elif worst == "warning":
-        grade = "B"
+        raw_grade = "B"
     else:
-        grade = "A"
+        raw_grade = "A"
+
+    grade, grade_cap = _cap_grade(raw_grade, reproducibility_tier)
 
     total = len(findings)
     critical_count = sum(1 for f in findings if f.risk_level == "critical")
     high_count = sum(1 for f in findings if f.risk_level == "high")
     medium_count = sum(1 for f in findings if f.risk_level == "medium")
 
-    summary = _build_summary(grade, total)
+    summary = _build_summary(raw_grade, total)
+    if grade != raw_grade:
+        summary = f"{summary}；受材料可复现等级限制，最高评级为 {grade_cap}"
 
     return CertificationGrade(
         grade=grade,
@@ -315,6 +354,9 @@ def compute_grade(bundle: StaticAuditBundle) -> CertificationGrade:
         critical_count=critical_count,
         high_count=high_count,
         medium_count=medium_count,
+        reproducibility_tier=reproducibility_tier,
+        grade_cap=grade_cap,
+        raw_grade=raw_grade,
     )
 
 

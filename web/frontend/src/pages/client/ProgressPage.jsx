@@ -24,9 +24,17 @@ export default function ProgressPage({ caseId, runId, onNavigate }) {
   const pageState = useMemo(() => {
     if (loading) return 'loading';
     if (error) return 'failed';
+    if (progress.timing_status === 'complete') return 'completed';
+    if (['failed', 'cancelled'].includes(progress.timing_status)) return 'failed';
+    if (['completed', 'completed_with_warnings', 'partial_available'].includes(progress.run_status)) {
+      return 'completed';
+    }
+    if (progress.run_status?.startsWith('failed') || progress.run_status === 'interrupted') {
+      return 'failed';
+    }
     if (progress.progress_pct >= 100) return 'completed';
     return 'running';
-  }, [loading, error, progress.progress_pct]);
+  }, [loading, error, progress.progress_pct, progress.run_status, progress.timing_status]);
 
   // ── Run metadata ───────────────────────────────────────────────────
   useEffect(() => {
@@ -58,21 +66,13 @@ export default function ProgressPage({ caseId, runId, onNavigate }) {
     return () => clearTimeout(timer);
   }, [pageState, caseId, runId, onNavigate]);
 
-  // ── Estimated remaining time ───────────────────────────────────────
-  const estimatedTime = useMemo(() => {
-    if (pageState === 'completed') return '已完成';
-    if (pageState === 'failed') return '已中止';
-    if (!progress.total) return '—';
-    const completed = progress.completed || 0;
-    const remaining = progress.total - completed;
-    if (remaining <= 0) return '即将完成';
-    const mins = Math.max(5, remaining * 8);
-    return `约 ${Math.ceil(mins / 60)} 小时 ${mins % 60} 分`;
-  }, [progress, pageState]);
+  const runtimeStatus = useMemo(
+    () => buildRuntimeStatus(progress, pageState),
+    [progress, pageState],
+  );
 
   // ── Completed steps count for summary ──────────────────────────────
   const completedCount = steps.filter((s) => s.status === 'done' || s.status === 'completed').length;
-  const failedCount = steps.filter((s) => s.status === 'failed').length;
   const totalSteps = steps.length || progress.total || 0;
 
   if (!caseId || !runId) {
@@ -113,7 +113,7 @@ export default function ProgressPage({ caseId, runId, onNavigate }) {
       <div className="mb-16 grid grid-cols-1 gap-8 md:grid-cols-3">
         <MetaCol label="稿件" value={paperTitle} />
         <MetaCol label="核查编号" value={runId} mono />
-        <MetaCol label={pageState === 'completed' ? '状态' : pageState === 'failed' ? '状态' : '预计剩余'} value={estimatedTime} />
+        <MetaCol label={pageState === 'running' ? '运行状态' : '状态'} value={<RuntimeStatus status={runtimeStatus} />} />
       </div>
 
       <div className="my-16 h-px bg-ink-100" />
@@ -148,7 +148,7 @@ export default function ProgressPage({ caseId, runId, onNavigate }) {
         <div className="mt-12 flex items-start gap-3 rounded-sm border border-ink-100 bg-paper-100/40 px-5 py-4">
           <FiInfo size={14} strokeWidth={1.5} className="mt-0.5 shrink-0 text-ink-500" aria-hidden="true" />
           <span className="text-[13px] leading-relaxed text-ink-700">
-            核查需要数小时是设计的诚实承诺——我们真的在重跑您的代码，而不是仅扫描文本。
+            Agent 驱动核查会分支、重试或等待外部工具，耗时波动较大；当前显示为运行事实，不做精确剩余时间承诺。
           </span>
         </div>
       )}
@@ -167,14 +167,130 @@ function formatStepTime(step) {
     return '';
   }
   if (step.status === 'running') return '处理中…';
+  if (step.status === 'warning') return '需复核';
   if (step.status === 'failed') return '失败';
   if (step.status === 'skipped') return '跳过';
   return '';
 }
 
+function buildRuntimeStatus(progress, pageState) {
+  const elapsed = formatRuntimeDuration(progress.elapsed_seconds);
+  const eventAge = formatEventAge(progress.seconds_since_last_event);
+  const currentStep = progress.current_step;
+  const latestStep = progress.latest_step;
+  const commonDetail = [
+    elapsed ? `已运行 ${elapsed}` : null,
+    eventAge ? `最近事件 ${eventAge}` : null,
+  ].filter(Boolean).join(' · ');
+
+  if (pageState === 'completed') {
+    return {
+      tone: 'success',
+      title: '已完成',
+      detail: elapsed ? `总运行 ${elapsed}` : '报告已就绪',
+    };
+  }
+
+  if (pageState === 'failed') {
+    return {
+      tone: 'danger',
+      title: '已中止',
+      detail: commonDetail || '流水线异常终止',
+    };
+  }
+
+  if (progress.timing_status === 'stale') {
+    return {
+      tone: 'warning',
+      title: '等待新事件',
+      detail: commonDetail || '任务仍未进入终态',
+    };
+  }
+
+  if (progress.timing_status === 'queued') {
+    return {
+      tone: 'muted',
+      title: '排队中',
+      detail: commonDetail || '等待执行资源',
+    };
+  }
+
+  if (progress.timing_status === 'waiting') {
+    const latest = latestStep?.title ? `上一阶段：${latestStep.title}` : null;
+    return {
+      tone: 'muted',
+      title: '等待下一步',
+      detail: [latest, commonDetail].filter(Boolean).join(' · ') || '任务仍在运行',
+    };
+  }
+
+  if (currentStep?.title) {
+    return {
+      tone: 'active',
+      title: `正在处理：${currentStep.title}`,
+      detail: [currentStep.detail, currentStep.phase, commonDetail].filter(Boolean).join(' · '),
+    };
+  }
+
+  return {
+    tone: 'active',
+    title: '运行中',
+    detail: commonDetail || '正在接收运行事件',
+  };
+}
+
+function RuntimeStatus({ status }) {
+  const toneClass = {
+    active: 'text-ink-900',
+    success: 'text-[#5a6b46]',
+    danger: 'text-risk-700',
+    warning: 'text-[#8a5a00]',
+    muted: 'text-ink-700',
+  }[status.tone] || 'text-ink-900';
+
+  return (
+    <div className="space-y-1">
+      <div className={`break-words font-medium leading-snug ${toneClass}`}>
+        {status.title}
+      </div>
+      {status.detail && (
+        <div className="break-words text-[12px] leading-relaxed text-ink-500">
+          {status.detail}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function formatRuntimeDuration(seconds) {
+  if (seconds == null || Number.isNaN(Number(seconds))) return null;
+  const safeSeconds = Math.max(0, Math.floor(Number(seconds)));
+  if (safeSeconds < 60) return `${safeSeconds} 秒`;
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = safeSeconds % 60;
+  if (minutes < 60) {
+    return remainingSeconds > 0 ? `${minutes} 分 ${remainingSeconds} 秒` : `${minutes} 分`;
+  }
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return remainingMinutes > 0 ? `${hours} 小时 ${remainingMinutes} 分` : `${hours} 小时`;
+}
+
+function formatEventAge(seconds) {
+  if (seconds == null || Number.isNaN(Number(seconds))) return null;
+  const safeSeconds = Math.max(0, Math.floor(Number(seconds)));
+  if (safeSeconds <= 5) return '刚刚';
+  if (safeSeconds < 60) return `${safeSeconds} 秒前`;
+  const minutes = Math.floor(safeSeconds / 60);
+  if (minutes < 60) return `${minutes} 分钟前`;
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return remainingMinutes > 0 ? `${hours} 小时 ${remainingMinutes} 分钟前` : `${hours} 小时前`;
+}
+
 // ── Hero components (state-driven) ───────────────────────────────────
 
-function RunningHero({ paperTitle, progress }) {
+function RunningHero({ progress }) {
   return (
     <div className="mb-16">
       <div className="mb-5 text-[10px] font-medium uppercase tracking-[2.5px] text-ink-500">
@@ -203,7 +319,7 @@ function RunningHero({ paperTitle, progress }) {
   );
 }
 
-function CompletedHero({ paperTitle, completedCount, totalSteps, onNavigate }) {
+function CompletedHero({ completedCount, totalSteps, onNavigate }) {
   return (
     <div className="mb-16">
       <div className="mb-5 text-[10px] font-medium uppercase tracking-[2.5px] text-[#5a6b46]">
@@ -230,7 +346,7 @@ function CompletedHero({ paperTitle, completedCount, totalSteps, onNavigate }) {
   );
 }
 
-function FailedHero({ paperTitle, error, onRetry }) {
+function FailedHero({ error, onRetry }) {
   return (
     <div className="mb-16">
       <div className="mb-5 text-[10px] font-medium uppercase tracking-[2.5px] text-risk-500">

@@ -360,6 +360,28 @@ make download-models   # 下载模型权重（YOLOv5 + TruFor）
 </details>
 
 <details>
+<summary><b>生产诊断与 Agent 交接</b></summary>
+
+生产环境出现异常时，先生成结构化现场包，而不是手动翻 `docker compose logs`：
+
+```bash
+make prod-diagnose
+```
+
+输出位置：
+
+```text
+web_data/diagnostics/latest.json
+web_data/diagnostics/latest.md
+```
+
+把 `latest.json` 交给 Agent，可直接获得：容器状态、deep health、最近错误日志、host bind mount、模型权重、最新 audit manifest 和失败节点。该命令只读生产容器，不会重启或修改服务。
+
+生产视觉取证长驻服务已纳入主 compose 网络：`sila-dense:8770` 负责 SILA dense copy-move，`elis-forensic:8771` 负责 ELIS provenance graph。生产容器必须通过 `SILA_DENSE_URL=http://sila-dense:8770` 和 `ELIS_FORENSIC_URL=http://elis-forensic:8771` 访问，不要使用容器内 `localhost:8770/8771`。
+
+</details>
+
+<details>
 <summary><b>测试</b></summary>
 
 ```bash

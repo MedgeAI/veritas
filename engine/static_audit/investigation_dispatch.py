@@ -546,7 +546,7 @@ def run_agent_roles(
                 futures = {executor.submit(_run_single_role, rd): rd[0] for rd in layer}
                 for future in as_completed(futures):
                     step, metadata = future.result()
-                    steps.append(step)
+                    record_step(steps, step, progress)
                     role_manifest.append(metadata)
 
     return steps, role_manifest

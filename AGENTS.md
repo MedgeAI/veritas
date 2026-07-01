@@ -82,6 +82,7 @@ Runtime 负责执行命令和记录证据（command manifest、stdout/stderr、e
 | 数据库 | PostgreSQL 16 + pgvector（`make db-up`，`veritas_dev@5433`） | PostgreSQL 16 + pgvector（`deploy/.env` 凭据，`5432` 内部） |
 | Celery broker | Redis 7（`make db-up`，`localhost:6379`） | Redis 7（compose 内部服务 `redis:6379`） |
 | 审计执行 | 线程池（同步） | Celery worker（异步） |
+| 视觉取证长驻服务 | `make forensics-up`（本地 `sila-dense:8770`、`elis-forensic:8771`） | 主生产 compose 内部服务 `sila-dense:8770`、`elis-forensic:8771` |
 | 前端 | Vite dev server（HMR）或 `npm run build` | Docker 构建阶段 `npm run build` |
 | Auth | `none` | `none`（可在 `.env` 中切换） |
 | 文件路径 | 相对路径 `web_data/`、`outputs/` | 容器内绝对路径 `/app/web_data/` |
@@ -117,6 +118,25 @@ make deploy-rebuild    # 构建 + 启动 + 自动冒烟测试
 1. `/api/health` — 服务可达
 2. `/api/health/deep` — MinerU 脚本、opencode 二进制、Python imports、数据目录权限
 3. `/api/cases` — API 路由正常
+
+### 生产诊断与 Agent 反馈闭环
+
+生产环境报错或审计结果异常时，先生成诊断包，再分析修复：
+
+```bash
+make prod-diagnose
+```
+
+输出固定位置：
+
+```text
+web_data/diagnostics/latest.json
+web_data/diagnostics/latest.md
+```
+
+Agent 应优先读取 `latest.json`，再决定是否需要补充 `docker compose logs`。诊断包包含 compose 状态、`/api/health/deep`、最近错误日志、host bind mount、模型权重、最新 audit manifest 和失败节点；命令只读生产容器，不重启、不修改服务。
+
+生产视觉取证服务必须通过 compose service name 访问：`SILA_DENSE_URL=http://sila-dense:8770`、`ELIS_FORENSIC_URL=http://elis-forensic:8771`。不要在生产容器里使用 `localhost:8770/8771` 指向这些服务；容器内 `localhost` 只表示当前容器自身。
 
 **关键约束**：`.dockerignore` 放行 `third_party/research-integrity-auditor/`、`third_party/elis/system_modules/`、`third_party/paperconan/`（审计核心依赖）；排除 `AsyncReview/` 和 `deepwiki-open/`（参考仓库，运行时不需要）。`Dockerfile` 有对应的 `COPY` 行。新增 third_party 依赖时必须同步更新这两处。
 

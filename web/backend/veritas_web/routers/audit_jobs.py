@@ -33,6 +33,7 @@ from ..dependencies import (
     get_app_dependencies,
     get_auth_context,
 )
+from ..models import REPRODUCIBILITY_TIERS
 from ..runner import AuditRunner
 from ..sse import sse_event_stream
 
@@ -49,6 +50,9 @@ router = APIRouter(prefix="/audit", tags=["audit-jobs"])
 class AuditSubmitRequest(BaseModel):
     case_id: str
     options: dict[str, Any] = Field(default_factory=dict)
+    # Backward compatibility for older clients that sent the tier at the top
+    # level instead of inside options.
+    reproducibility_tier: str | None = None
 
 
 class AuditJobResponse(BaseModel):
@@ -161,7 +165,7 @@ def _submit_audit_sync(
     """Synchronous business logic for submit_audit (runs in executor)."""
     # Verify case exists and is owned by the caller (admin bypasses check).
     try:
-        store.get_case(case_id, user_id=uid)
+        case_record = store.get_case(case_id, user_id=uid)
     except PermissionError:
         raise HTTPException(status_code=403, detail=f"not the owner of case {case_id}")
     except FileNotFoundError:
@@ -206,8 +210,19 @@ def _submit_audit_sync(
         )
 
     # Save reproducibility_tier on case if provided
-    tier = options.get("reproducibility_tier")
-    if tier and tier in ("full", "partial", "code_only", "static"):
+    tier = options.get("reproducibility_tier") or getattr(
+        case_record, "reproducibility_tier", "full"
+    )
+    if not isinstance(tier, str) or tier not in REPRODUCIBILITY_TIERS:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Invalid reproducibility_tier: {tier}. "
+                f"Must be one of: {', '.join(REPRODUCIBILITY_TIERS.keys())}"
+            ),
+        )
+    options["reproducibility_tier"] = tier
+    if tier != getattr(case_record, "reproducibility_tier", "full"):
         store.update_case(case_id, {"reproducibility_tier": tier}, user_id=uid)
 
     # Create the run row.
@@ -269,12 +284,13 @@ async def submit_audit(
     uid = None if auth.is_admin() else auth.user_id
     store = deps.store
     runner = _get_runner(deps)
+    options = dict(payload.options)
+    if payload.reproducibility_tier:
+        options.setdefault("reproducibility_tier", payload.reproducibility_tier)
 
     return await asyncio.get_event_loop().run_in_executor(
         None,
-        lambda: _submit_audit_sync(
-            payload.case_id, uid, store, runner, payload.options
-        ),
+        lambda: _submit_audit_sync(payload.case_id, uid, store, runner, options),
     )
 
 

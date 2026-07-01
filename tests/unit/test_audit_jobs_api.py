@@ -19,7 +19,7 @@ from tests.helpers.asgi_client import LocalASGITestClient as TestClient  # noqa:
 from web.backend.veritas_web.auth import NoAuthProvider  # noqa: E402
 from web.backend.veritas_web.dependencies import AppDependencies, get_app_dependencies  # noqa: E402
 from web.backend.veritas_web.models import AuditRunRecord, CaseRecord  # noqa: E402
-from web.backend.veritas_web.routers.audit_jobs import router  # noqa: E402
+from web.backend.veritas_web.routers.audit_jobs import _submit_audit_sync, router  # noqa: E402
 
 
 def _build_app(store: MagicMock, runner: MagicMock) -> Any:
@@ -159,6 +159,49 @@ class TestSubmitAudit:
         assert data["job_id"] == "run-1"
         assert data["case_id"] == "case-1"
         assert data["status"] == "queued"
+
+    def test_submit_saves_tier_and_passes_options_to_runner(self, tmp_path: Path):
+        """Verify reproducibility_tier is stored and passed to the runner."""
+        store = MagicMock()
+        runner = MagicMock()
+        runner._max_concurrent = 5
+        runner._executor = MagicMock()
+
+        inputs = tmp_path / "inputs"
+        inputs.mkdir()
+        (inputs / "paper.pdf").write_text("fake pdf")
+
+        store.get_case.return_value = _make_case_record()
+        store.inputs_dir.return_value = inputs
+        store.get_active_runs_by_case.return_value = []
+        store.count_running_runs.return_value = 0
+        store.count_queued_runs.return_value = 0
+        store.list_runs.return_value = []
+
+        run_record = _make_run_record()
+        store.create_run.return_value = run_record
+        store.get_run_celery_task_id.return_value = None
+        orm_mock = _make_orm_run_mock(stages=[], current_stage=None)
+        mock_session = MagicMock()
+        mock_session.get.return_value = orm_mock
+        store._session.return_value = mock_session
+
+        data = _submit_audit_sync(
+            "case-1",
+            None,
+            store,
+            runner,
+            {"agent_mode": "full", "reproducibility_tier": "static"},
+        )
+
+        assert data["job_id"] == "run-1"
+        store.update_case.assert_called_with(
+            "case-1", {"reproducibility_tier": "static"}, user_id=None
+        )
+        store.create_run.assert_called_with("case-1", agent_mode="full")
+        submitted_options = runner._executor.submit.call_args.args[3]
+        assert submitted_options["reproducibility_tier"] == "static"
+        assert submitted_options["agent_mode"] == "full"
 
     def test_submit_no_pdf(self, tmp_path: Path):
         """Verify submission fails with 400 when no PDF exists."""

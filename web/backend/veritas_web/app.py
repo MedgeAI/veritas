@@ -64,6 +64,63 @@ from .tool_catalog import seed_tool_registry
 logger = logging.getLogger(__name__)
 
 
+def _opencode_data_dir_health(repo_root: Path) -> tuple[bool, dict[str, Any]]:
+    opencode_data = repo_root / ".opencode" / "data"
+    exists = opencode_data.exists()
+    is_dir = opencode_data.is_dir()
+    writable = is_dir and os.access(str(opencode_data), os.W_OK | os.X_OK)
+
+    if exists and is_dir and writable:
+        detail = "ok"
+    elif not exists and opencode_data.is_symlink():
+        detail = (
+            "missing symlink target — create web_data/.opencode/data before "
+            "starting containers"
+        )
+    elif not exists:
+        detail = "missing directory — create web_data/.opencode/data"
+    elif not is_dir:
+        detail = "not a directory"
+    else:
+        detail = "not writable by runtime user"
+
+    check = {
+        "ok": exists and is_dir and writable,
+        "path": str(opencode_data),
+        "resolved_path": str(opencode_data.resolve(strict=False)),
+        "detail": detail,
+    }
+    return bool(check["ok"]), check
+
+
+def _http_service_health(name: str, url: str) -> tuple[bool, dict[str, Any]]:
+    """Check a local-network HTTP dependency without using proxy env vars."""
+    endpoint = url.rstrip("/") + "/health"
+    try:
+        import httpx
+
+        with httpx.Client(timeout=3.0, trust_env=False) as client:
+            response = client.get(endpoint)
+    except Exception as exc:
+        check = {
+            "ok": False,
+            "url": url,
+            "endpoint": endpoint,
+            "detail": f"{name} unreachable: {exc}",
+        }
+        return False, check
+
+    ok = response.status_code == 200
+    check = {
+        "ok": ok,
+        "url": url,
+        "endpoint": endpoint,
+        "status_code": response.status_code,
+        "detail": "ok" if ok else f"{name} /health returned {response.status_code}",
+    }
+    return ok, check
+
+
 class VeritasWebApp:
     """DEPRECATED — kept only for backward compat with modules that import this class.
 
@@ -340,6 +397,9 @@ def create_app(
             # Fail-loud: cv2 is required for visual forensics (texture scores,
             # panel extraction, copy-move). Missing cv2 must not silently degrade.
             importlib.import_module("cv2")
+            # Fail-loud: TruFor checks timm before loading weights; missing timm
+            # causes the step to be skipped after the audit has already started.
+            importlib.import_module("timm")
         except (AttributeError, ImportError) as exc:
             import_ok = False
             checks["python_imports"] = {"ok": False, "detail": str(exc)}
@@ -361,23 +421,31 @@ def create_app(
             checks[name] = {
                 "ok": ok,
                 "path": str(p),
-                "detail": "ok" if ok else f"missing — run `make download-models`",
+                "detail": "ok" if ok else "missing — run `make download-models`",
             }
             if not ok:
                 all_ok = False
 
-        # 6. opencode runtime directory writable
-        # opencode creates .opencode/data at runtime. COPY creates the parent
-        # as root; the Dockerfile must chmod it for the non-root user.
-        _opencode = _repo / ".opencode"
-        if _opencode.exists():
-            oc_writable = os.access(str(_opencode), os.W_OK)
-            checks["opencode_writable"] = {
-                "ok": oc_writable,
-                "path": str(_opencode),
-                "detail": "ok" if oc_writable else "not writable — check Dockerfile chmod",
-            }
-            if not oc_writable:
+        # 6. opencode runtime data directory writable
+        # opencode writes under .opencode/data/opencode. In Docker this path is
+        # a symlink into the bind-mounted data root, so health must verify the
+        # symlink target exists and is writable after volumes are mounted.
+        opencode_data_ok, checks["opencode_data_dir"] = _opencode_data_dir_health(
+            _repo
+        )
+        if not opencode_data_ok:
+            all_ok = False
+
+        # 7. Long-running visual forensics services
+        # These are separate compose services in production. Catch network/DNS
+        # mistakes here instead of failing halfway through an audit.
+        for check_name, display_name, env_name in [
+            ("sila_dense_service", "SILA dense service", "SILA_DENSE_URL"),
+            ("elis_forensic_service", "ELIS forensic service", "ELIS_FORENSIC_URL"),
+        ]:
+            url = get_env(env_name, required=False, default="")
+            ok, checks[check_name] = _http_service_health(display_name, url)
+            if not ok:
                 all_ok = False
 
         return {

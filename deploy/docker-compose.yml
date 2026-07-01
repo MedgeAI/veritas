@@ -47,6 +47,7 @@ services:
     volumes:
       - ../web_data:/app/web_data
       - ../outputs:/app/outputs
+      - ../models:/app/models:ro
     env_file:
       - ../.env
       - path: .env
@@ -58,6 +59,8 @@ services:
       - VERITAS_PORT=8765
       - VERITAS_DATA_ROOT=/app/web_data
       - VERITAS_OUTPUT_ROOT=/app/outputs
+      - SILA_DENSE_URL=http://sila-dense:8770
+      - ELIS_FORENSIC_URL=http://elis-forensic:8771
       - VERITAS_DATABASE_URL=postgresql://${POSTGRES_USER:-veritas_prod}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-veritas_prod}
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=db+postgresql://${POSTGRES_USER:-veritas_prod}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-veritas_prod}
@@ -77,6 +80,10 @@ services:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      sila-dense:
+        condition: service_healthy
+      elis-forensic:
         condition: service_healthy
 
   celery-worker:
@@ -100,6 +107,7 @@ services:
     volumes:
       - ../web_data:/app/web_data
       - ../outputs:/app/outputs
+      - ../models:/app/models:ro
     env_file:
       - ../.env
       - path: .env
@@ -109,6 +117,8 @@ services:
       - VERITAS_LOG_LEVEL=INFO
       - VERITAS_DATA_ROOT=/app/web_data
       - VERITAS_OUTPUT_ROOT=/app/outputs
+      - SILA_DENSE_URL=http://sila-dense:8770
+      - ELIS_FORENSIC_URL=http://elis-forensic:8771
       - VERITAS_DATABASE_URL=postgresql://${POSTGRES_USER:-veritas_prod}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-veritas_prod}
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=db+postgresql://${POSTGRES_USER:-veritas_prod}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-veritas_prod}
@@ -117,6 +127,50 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      sila-dense:
+        condition: service_healthy
+      elis-forensic:
+        condition: service_healthy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  sila-dense:
+    build:
+      context: ./forensics/sila-dense
+    image: veritas-sila-service:latest
+    container_name: vprod-sila-dense
+    restart: unless-stopped
+    volumes:
+      - ..:/data:rw
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8770/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  elis-forensic:
+    build:
+      context: ./forensics/elis-forensic
+    image: veritas-elis-forensic-service:latest
+    container_name: vprod-elis-forensic
+    restart: unless-stopped
+    volumes:
+      - ..:/data:rw
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8771/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
     logging:
       driver: "json-file"
       options:

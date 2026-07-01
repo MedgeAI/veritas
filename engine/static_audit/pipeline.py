@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Audit profiles — three preset configurations controlling pipeline depth.
 #
-# fast:     Web default. Minimal agent rounds, short ELIS timeout, no LLM
+# fast:     Web default. Minimal agent rounds, bounded ELIS timeout, no LLM
 #           enrichment. Suitable for quick triage.
 # standard: Balanced. Moderate agent rounds and timeouts.
 # full:     CLI default. Maximum agent rounds, long timeouts, full LLM
@@ -52,7 +52,7 @@ AUDIT_PROFILES: dict[str, dict[str, Any]] = {
         "agent_max_retries": 0,
         "agent_max_rounds": 2,
         "agent_max_actions_per_round": 5,
-        "elis_timeout_seconds": 60,
+        "elis_timeout_seconds": 180,
         "llm_enrichment": False,
         "investigation_rounds": 1,
     },

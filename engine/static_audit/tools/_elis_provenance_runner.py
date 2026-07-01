@@ -250,8 +250,9 @@ def run_provenance_analysis(
     if not _service_available():
         limitations.append(
             f"ELIS forensic service unreachable at {_SERVICE_URL}. "
-            f"Start with: docker compose -p vdev "
-            f"-f deploy/docker-compose.forensics.yml up -d --build"
+            "Production uses compose service DNS "
+            "ELIS_FORENSIC_URL=http://elis-forensic:8771; "
+            "for local development run: make forensics-up."
         )
         return _failed_result(
             failure_category="environment",

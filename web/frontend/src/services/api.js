@@ -392,10 +392,15 @@ export async function deleteCase(caseId) {
 // ---------------------------------------------------------------------------
 
 export async function submitAudit(caseId, options = {}, reproducibilityTier = 'full') {
+  const { signal, options: nestedOptions, ...directOptions } = options || {};
+  const auditOptions = {
+    ...(nestedOptions || directOptions),
+    reproducibility_tier: reproducibilityTier,
+  };
   return request(`/api/audit`, {
     method: 'POST',
-    body: { case_id: caseId, reproducibility_tier: reproducibilityTier, ...options },
-    signal: options.signal,
+    body: { case_id: caseId, options: auditOptions },
+    signal,
   });
 }
 
@@ -404,7 +409,7 @@ export async function getAuditJob(jobId) {
 }
 
 export async function cancelAuditJob(jobId) {
-  return request(`/api/audit/${encodeURIComponent(jobId)}/cancel`, { method: 'POST' });
+  return request(`/api/audit/${encodeURIComponent(jobId)}`, { method: 'DELETE' });
 }
 
 export async function getAuditQueue() {
@@ -489,4 +494,3 @@ export async function getReverificationCost(caseId) {
 export async function fetchClientReport(caseId) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/client-report`);
 }
-

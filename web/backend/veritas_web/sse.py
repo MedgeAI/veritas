@@ -59,6 +59,39 @@ _LEGACY_LIFECYCLE_TYPES = frozenset(
 )
 
 
+def _normalise_step_payload(data: dict[str, Any]) -> dict[str, Any]:
+    """Return step payload fields expected by browser SSE consumers."""
+    step_key = data.get("step_key") or data.get("key") or data.get("step")
+    normalised = dict(data)
+    if step_key is not None:
+        normalised["step_key"] = step_key
+    return normalised
+
+
+def _canonical_stream_event(
+    event_type: str, data: dict[str, Any]
+) -> tuple[str, dict[str, Any]]:
+    """Map stored internal progress events to public SSE event names."""
+    if event_type == "step_start":
+        return "step.start", _normalise_step_payload(data)
+    if event_type == "step_progress":
+        return "step.progress", _normalise_step_payload(data)
+    if event_type == "step_result":
+        normalised = _normalise_step_payload(data)
+        status = str(normalised.get("status") or "")
+        if status in {"ran", "reused"}:
+            normalised["status"] = "success"
+            return "step.complete", normalised
+        if status in {"failed", "error"}:
+            normalised["error"] = normalised.get("error") or normalised.get("detail")
+            return "step.failed", normalised
+        if status.startswith("skipped"):
+            normalised["reason"] = normalised.get("reason") or normalised.get("detail")
+            return "step.skipped", normalised
+        return "step.complete", normalised
+    return event_type, data
+
+
 # ---------------------------------------------------------------------------
 # Sync: called from Celery worker process
 # ---------------------------------------------------------------------------
@@ -207,8 +240,9 @@ def _format_sse(
 def _format_buffered_sse(event: dict[str, Any]) -> str:
     """Format a buffered event dict as an SSE frame."""
     event_id = event.get("id")
-    event_type = event.get("type", "progress")
-    data = event.get("data", {})
+    event_type, data = _canonical_stream_event(
+        event.get("type", "progress"), event.get("data", {})
+    )
     # Add timestamp to data if not present.
     if "timestamp" not in data:
         data = {"timestamp": event.get("timestamp"), **data}
@@ -274,10 +308,13 @@ async def sse_event_stream(
         # Fast path: replay buffered events that the client missed.
         buffered_events = event_buffer.get_since(run_id, str(last_id))
         for ev in buffered_events:
-            if _matches_level(ev.get("type", "progress"), level):
+            event_type, _event_payload = _canonical_stream_event(
+                ev.get("type", "progress"), ev.get("data", {})
+            )
+            if _matches_level(event_type, level):
                 last_id = int(ev["id"])
                 yield _format_buffered_sse(ev)
-                if ev.get("type") in _TERMINAL_STATUSES:
+                if event_type in _TERMINAL_STATUSES:
                     return
 
         while True:
@@ -330,13 +367,15 @@ async def sse_event_stream(
             # Yield any new events.
             for ev in events:
                 last_id = ev["id"]
-                event_type = ev["event_type"]
+                event_type, event_payload = _canonical_stream_event(
+                    ev["event_type"], ev["payload"]
+                )
                 # Filter events by level.
                 if not _matches_level(event_type, level):
                     continue
                 frame_data: dict[str, Any] = {
                     "timestamp": ev["timestamp"],
-                    **ev["payload"],
+                    **event_payload,
                 }
                 yield _format_sse(event_type, frame_data, event_id=ev["id"])
                 # Update heartbeat timestamp whenever we send data.

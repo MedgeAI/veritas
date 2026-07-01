@@ -174,8 +174,9 @@ def detect_sila_dense(
             "environment",
             [
                 f"SILA dense service unreachable at {_SERVICE_URL}. "
-                f"Start with: docker compose -p vdev "
-                f"-f deploy/docker-compose.forensics.yml up -d --build"
+                "Production uses compose service DNS "
+                "SILA_DENSE_URL=http://sila-dense:8770; "
+                "for local development run: make forensics-up."
             ],
             method=method,
         )

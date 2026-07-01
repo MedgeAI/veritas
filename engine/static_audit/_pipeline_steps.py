@@ -272,22 +272,26 @@ def _run_source_data_steps(
             logger.warning("cross_sheet_filter failed: %s", e)
             filter_status = "warning"
             filter_detail = f"filter failed: {e}"
-        steps.append(
+        record_step(
+            steps,
             StepResult(
                 "cross_sheet_filter",
                 "Cross-sheet LLM metadata filter",
                 filter_status,
                 filter_detail,
-            )
+            ),
+            progress,
         )
     else:
-        steps.append(
+        record_step(
+            steps,
             StepResult(
                 "cross_sheet_filter",
                 "Cross-sheet LLM metadata filter",
                 "skipped",
                 "cross_sheet.json missing",
-            )
+            ),
+            progress,
         )
     # paperconan GRIM/GRIMMER scan
     num_dir = resolve_artifact_path(workdir, "numeric")
@@ -342,8 +346,10 @@ def _run_source_data_steps(
     except (VeritasError, OSError) as e:
         bst, bsd = "warning", f"briefings step exception: {e}"
         logger.warning("source_data_briefings failed: %s", e)
-    steps.append(
-        StepResult("source_data_briefings", "Source Data sheet briefings", bst, bsd)
+    record_step(
+        steps,
+        StepResult("source_data_briefings", "Source Data sheet briefings", bst, bsd),
+        progress,
     )
     # LLM verdict
     emit_step_start(progress, "source_data_verdict", "Source Data LLM 语义裁决")
@@ -373,7 +379,11 @@ def _run_source_data_steps(
     except (VeritasError, OSError) as e:
         vst, vd = "warning", f"verdict step exception: {e}"
         logger.warning("source_data_verdict failed: %s", e)
-    steps.append(StepResult("source_data_verdict", "Source Data LLM 语义裁决", vst, vd))
+    record_step(
+        steps,
+        StepResult("source_data_verdict", "Source Data LLM 语义裁决", vst, vd),
+        progress,
+    )
     return steps
 
 
@@ -975,6 +985,7 @@ def _run_bundle_and_report(
     agent_material_plan_path: Path,
     optional_lanes: list[dict[str, Any]],
     progress: ProgressCallback | None,
+    reproducibility_tier: str = "full",
 ) -> dict[str, Any]:
     """Build bundle, markdown report, HTML report, manifest. Returns summary dict."""
     from dataclasses import asdict
@@ -1007,7 +1018,7 @@ def _run_bundle_and_report(
     try:
         from engine.static_audit.grade_engine import compute_grade
 
-        grade = compute_grade(bundle)
+        grade = compute_grade(bundle, reproducibility_tier=reproducibility_tier)
         grade_data = asdict(grade)
         grade_path = resolve_artifact_path(workdir, "certification_grade.json")
         grade_path.parent.mkdir(parents=True, exist_ok=True)

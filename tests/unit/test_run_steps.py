@@ -8,8 +8,13 @@ Covers:
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 
-from engine.static_audit.run_steps import build_steps_list, summarise_steps
+from engine.static_audit.run_steps import (
+    build_steps_list,
+    summarise_run_timing,
+    summarise_steps,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -131,6 +136,26 @@ class TestBuildStepsListBasic:
         ]
         steps = build_steps_list(events)
         assert steps[0]["status"] == "skipped"
+
+    def test_step_result_warning_status(self) -> None:
+        """step_result with status='warning' maps to 'warning'."""
+        events = [
+            {
+                "event": "step_start",
+                "key": "agent_review",
+                "timestamp": "2026-06-26T00:00:00Z",
+            },
+            {
+                "event": "step_result",
+                "key": "agent_review",
+                "status": "warning",
+                "detail": "schema validation warning",
+                "timestamp": "2026-06-26T00:00:30Z",
+            },
+        ]
+        steps = build_steps_list(events)
+        assert steps[0]["status"] == "warning"
+        assert steps[0]["detail"] == "schema validation warning"
 
     def test_step_result_without_start_has_no_started_at(self) -> None:
         """A step_result without a preceding step_start has started_at=None."""
@@ -423,6 +448,35 @@ class TestBuildStepsListEdgeCases:
         assert steps[0]["duration_seconds"] == 60.0
         assert steps[0]["started_at"] == "2026-06-26T00:00:00Z"
 
+    def test_orphan_started_step_stays_running_while_run_active(self) -> None:
+        """A start without result is still running while the run is active."""
+        events = [
+            {
+                "event": "step_start",
+                "key": "source_data_verdict",
+                "timestamp": "2026-06-26T00:00:00Z",
+            }
+        ]
+
+        steps = build_steps_list(events, run_status="running")
+
+        assert steps[0]["status"] == "running"
+
+    def test_orphan_started_step_warns_after_run_completed(self) -> None:
+        """A terminal run should not display orphan starts as still running."""
+        events = [
+            {
+                "event": "step_start",
+                "key": "source_data_verdict",
+                "timestamp": "2026-06-26T00:00:00Z",
+            }
+        ]
+
+        steps = build_steps_list(events, run_status="completed")
+
+        assert steps[0]["status"] == "warning"
+        assert "terminal status" in steps[0]["detail"]
+
 
 # ---------------------------------------------------------------------------
 # summarise_steps
@@ -441,6 +495,7 @@ class TestSummariseSteps:
             "running": 0,
             "failed": 0,
             "skipped": 0,
+            "warnings": 0,
             "progress_pct": 0,
         }
 
@@ -465,15 +520,17 @@ class TestSummariseSteps:
             {"key": "d", "status": "failed"},
             {"key": "e", "status": "skipped"},
             {"key": "f", "status": "pending"},
+            {"key": "g", "status": "warning"},
         ]
         summary = summarise_steps(steps)
-        assert summary["total"] == 6
+        assert summary["total"] == 7
         assert summary["completed"] == 2
         assert summary["running"] == 1
         assert summary["failed"] == 1
         assert summary["skipped"] == 1
-        # 2/6 = 33%
-        assert summary["progress_pct"] == 33
+        assert summary["warnings"] == 1
+        # 2/7 = 28%
+        assert summary["progress_pct"] == 28
 
     def test_progress_pct_integer_truncation(self) -> None:
         """progress_pct is truncated to an integer."""
@@ -485,6 +542,102 @@ class TestSummariseSteps:
         summary = summarise_steps(steps)
         # 1/3 = 33.33... -> truncated to 33
         assert summary["progress_pct"] == 33
+
+
+# ---------------------------------------------------------------------------
+# summarise_run_timing
+# ---------------------------------------------------------------------------
+
+
+class TestSummariseRunTiming:
+    """Tests for factual timing metadata without ETA estimation."""
+
+    def test_active_run_reports_current_step_and_elapsed_time(self) -> None:
+        now = datetime(2026, 6, 26, 0, 10, tzinfo=UTC)
+        steps = [
+            {"key": "discover", "title": "发现输入", "phase": "准备", "status": "completed"},
+            {
+                "key": "agent_review",
+                "title": "Agent 审查",
+                "phase": "Agent 审查",
+                "status": "running",
+                "started_at": "2026-06-26T00:09:00Z",
+            },
+        ]
+
+        summary = summarise_run_timing(
+            steps,
+            run_status="running",
+            started_at="2026-06-26T00:00:00Z",
+            completed_at=None,
+            last_event_at="2026-06-26T00:09:00Z",
+            stale_after_seconds=300,
+            now=now,
+        )
+
+        assert summary["timing_status"] == "active"
+        assert summary["current_step"]["key"] == "agent_review"
+        assert summary["latest_step"]["key"] == "agent_review"
+        assert summary["elapsed_seconds"] == 600
+        assert summary["seconds_since_last_event"] == 60
+        assert summary["is_stale"] is False
+        assert summary["eta"] is None
+
+    def test_stale_active_run_reports_waiting_for_new_event(self) -> None:
+        now = datetime(2026, 6, 26, 0, 10, tzinfo=UTC)
+        steps = [
+            {
+                "key": "mineru",
+                "title": "PDF 解析",
+                "phase": "文档解析",
+                "status": "running",
+                "started_at": "2026-06-26T00:00:00Z",
+            }
+        ]
+
+        summary = summarise_run_timing(
+            steps,
+            run_status="running",
+            started_at="2026-06-26T00:00:00Z",
+            completed_at=None,
+            last_event_at="2026-06-26T00:00:30Z",
+            stale_after_seconds=300,
+            now=now,
+        )
+
+        assert summary["timing_status"] == "stale"
+        assert summary["current_step"]["key"] == "mineru"
+        assert summary["seconds_since_last_event"] == 570
+        assert summary["is_stale"] is True
+        assert summary["eta"] is None
+
+    def test_completed_run_uses_completed_at_for_elapsed_time(self) -> None:
+        now = datetime(2026, 6, 26, 1, 0, tzinfo=UTC)
+        steps = [
+            {
+                "key": "report",
+                "title": "报告生成",
+                "phase": "报告",
+                "status": "completed",
+            }
+        ]
+
+        summary = summarise_run_timing(
+            steps,
+            run_status="completed",
+            started_at="2026-06-26T00:00:00Z",
+            completed_at="2026-06-26T00:12:00Z",
+            last_event_at="2026-06-26T00:12:00Z",
+            stale_after_seconds=300,
+            now=now,
+        )
+
+        assert summary["timing_status"] == "complete"
+        assert summary["current_step"] is None
+        assert summary["latest_step"]["key"] == "report"
+        assert summary["elapsed_seconds"] == 720
+        assert summary["is_stale"] is False
+        assert summary["eta"] is None
 
 
 # ---------------------------------------------------------------------------

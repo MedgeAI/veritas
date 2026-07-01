@@ -104,6 +104,7 @@ class AuditRunner:
                 ),
                 agent_timeout_seconds=int(params.get("agent_timeout_seconds", 300)),
                 agent_max_retries=int(params.get("agent_max_retries", 1)),
+                reproducibility_tier=str(params.get("reproducibility_tier", "full")),
                 audit_profile=str(params.get("audit_profile", "fast")),
                 progress=progress,
             )
@@ -199,6 +200,7 @@ class AuditRunner:
             ),
             "agent_timeout_seconds": int(params.get("agent_timeout_seconds", 300)),
             "agent_max_retries": int(params.get("agent_max_retries", 1)),
+            "reproducibility_tier": str(params.get("reproducibility_tier", "full")),
             "audit_profile": str(params.get("audit_profile", "fast")),
         }
 

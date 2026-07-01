@@ -47,7 +47,7 @@ LOCAL_DATABASE_URL ?= $(VERITAS_DEV_DB_URL)
 
 .PHONY: help show-config sync install setup \
 	up down rebuild restart logs ps shell health docker-health \
-	deploy-preflight deploy-up deploy-down deploy-rebuild deploy-logs \
+	deploy-runtime-dirs deploy-models deploy-forensics-images deploy-preflight deploy-up deploy-down deploy-rebuild deploy-logs prod-diagnose \
 	db-up db-down db-init db-migrate db-reset \
 	precheck run report demo audit audit-off audit-fresh report-path \
 	web-backend web-backend-reload celery-worker web-frontend web-install web-build web-preview dev dev-up dev-down \
@@ -129,6 +129,59 @@ docker-health: ## Check Docker web service health via container exec
 
 # -- Cloudflare Tunnel Deploy --------------------------------------------
 
+deploy-runtime-dirs: ## Prepare host bind-mount directories used by runtime containers
+	@echo "━━━ Runtime directory check ━━━"
+	@mkdir -p "$(CURDIR)/web_data/.opencode/data" "$(CURDIR)/outputs"
+	@chmod 775 "$(CURDIR)/web_data" "$(CURDIR)/web_data/.opencode" "$(CURDIR)/web_data/.opencode/data" "$(CURDIR)/outputs"
+	@for dir in "$(CURDIR)/web_data" "$(CURDIR)/web_data/.opencode/data" "$(CURDIR)/outputs"; do \
+		if [ ! -w "$$dir" ]; then \
+			echo "  ✗ $$dir is not writable by UID:GID $$(id -u):$$(id -g)"; \
+			echo "    Fix: sudo chown -R $$(id -u):$$(id -g) $(CURDIR)/web_data $(CURDIR)/outputs"; \
+			exit 2; \
+		fi; \
+	done
+	@echo "  ✓ Runtime bind-mount directories are writable"
+
+deploy-models: ## Verify host model weights mounted into runtime containers
+	@echo "━━━ Model weight check ━━━"
+	@missing=0; \
+	for file in \
+		"$(CURDIR)/models/panel_extraction/model_5_class.pt" \
+		"$(CURDIR)/models/trufor/weights/trufor.pth.tar"; do \
+		if [ ! -r "$$file" ]; then \
+			echo "  ✗ $$file missing or not readable"; \
+			missing=1; \
+		else \
+			echo "  ✓ $$file"; \
+		fi; \
+	done; \
+	if [ "$$missing" = "1" ]; then \
+		echo ""; \
+		echo "  Run: make download-models"; \
+		exit 2; \
+	fi
+
+deploy-forensics-images: ## Verify visual forensics base images required by production services
+	@echo "━━━ Forensics image check ━━━"
+	@missing=0; \
+	if docker image inspect veritas-sila-dense:latest >/dev/null 2>&1; then \
+		echo "  ✓ veritas-sila-dense:latest"; \
+	else \
+		echo "  ✗ veritas-sila-dense:latest missing"; \
+		echo "    Build: docker build -t veritas-sila-dense:latest third_party/elis/system_modules/copy-move-detection/"; \
+		missing=1; \
+	fi; \
+	if docker image inspect veritas-elis-provenance:latest >/dev/null 2>&1; then \
+		echo "  ✓ veritas-elis-provenance:latest"; \
+	else \
+		echo "  ✗ veritas-elis-provenance:latest missing"; \
+		echo "    Build: make build-elis-provenance"; \
+		missing=1; \
+	fi; \
+	if [ "$$missing" = "1" ]; then \
+		exit 2; \
+	fi
+
 deploy-preflight: ## Check required environment variables for deployment
 	@echo "━━━ Deploy pre-flight check ━━━"
 	@missing=0; \
@@ -155,6 +208,9 @@ deploy-preflight: ## Check required environment variables for deployment
 		exit 2; \
 	fi
 	@echo "  ✓ All required variables present"
+	@$(MAKE) --no-print-directory deploy-runtime-dirs
+	@$(MAKE) --no-print-directory deploy-models
+	@$(MAKE) --no-print-directory deploy-forensics-images
 
 deploy-up: deploy-preflight ## Start all services with Cloudflare Tunnel
 	$(COMPOSE_DEPLOY) up --build -d
@@ -179,8 +235,11 @@ deploy-rebuild: deploy-preflight ## Rebuild and restart all services with Cloudf
 	@echo ""
 	@echo "Deploy complete. Check cloudflared logs: make deploy-logs"
 
-deploy-logs: ## Show cloudflared container logs
-	$(COMPOSE_DEPLOY) logs --tail=100 -f cloudflared
+deploy-logs: ## Show production service logs
+	$(COMPOSE_DEPLOY) logs --tail=100 -f veritas celery-worker sila-dense elis-forensic cloudflared
+
+prod-diagnose: ## Collect an agent-friendly production diagnostic bundle
+	$(PYTHON) scripts/prod_diagnose.py $(PROD_DIAG_ARGS)
 
 # -- ELIS Provenance Container -------------------------------------------
 

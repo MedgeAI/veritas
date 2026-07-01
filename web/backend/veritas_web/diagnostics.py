@@ -197,6 +197,7 @@ def _check_python_deps(report: DiagReport) -> None:
         "matplotlib": ("warning", "TruFor 可视化输出需要 matplotlib"),
         "torch": ("critical", "TruFor 推理需要 PyTorch"),
         "torchvision": ("critical", "TruFor 图像预处理需要 torchvision"),
+        "timm": ("critical", "TruFor 模型代码需要 timm"),
         "PIL": ("critical", "图像处理需要 Pillow"),
         "numpy": ("critical", "数值计算需要 numpy"),
         "sqlalchemy": ("critical", "Web 后端数据层需要 SQLAlchemy"),
@@ -218,19 +219,30 @@ def _check_python_deps(report: DiagReport) -> None:
 
 def _check_model_weights(report: DiagReport) -> None:
     """Check model weight files."""
-    trufor_path = _APP_ROOT / "models" / "trufor" / "weights" / "trufor.pth.tar"
-
-    if trufor_path.is_file():
-        size_mb = trufor_path.stat().st_size / (1024 * 1024)
-        report.add("model:trufor", True, f"{trufor_path.name} ({size_mb:.0f}MB)")
-    else:
-        report.add(
-            "model:trufor",
-            False,
-            "weights not found",
-            severity="critical",
-            fix_hint="TruFor 伪造检测需要模型权重; make download-models 或手动下载",
-        )
+    weights = [
+        (
+            "panel_extraction",
+            _APP_ROOT / "models" / "panel_extraction" / "model_5_class.pt",
+            "Panel extraction needs YOLOv5 weights; make download-models",
+        ),
+        (
+            "trufor",
+            _APP_ROOT / "models" / "trufor" / "weights" / "trufor.pth.tar",
+            "TruFor forgery detection needs weights; make download-models",
+        ),
+    ]
+    for name, path, hint in weights:
+        if path.is_file():
+            size_mb = path.stat().st_size / (1024 * 1024)
+            report.add(f"model:{name}", True, f"{path.name} ({size_mb:.0f}MB)")
+        else:
+            report.add(
+                f"model:{name}",
+                False,
+                "weights not found",
+                severity="critical",
+                fix_hint=hint,
+            )
 
 
 def _check_docker_images(report: DiagReport) -> None:
@@ -240,11 +252,29 @@ def _check_docker_images(report: DiagReport) -> None:
         return
     images = [
         (
-            "sila_dense",
+            "sila_dense_base",
             "veritas-sila-dense:latest",
             "warning",
             "docker build -t veritas-sila-dense:latest "
             "third_party/elis/system_modules/copy-move-detection/",
+        ),
+        (
+            "sila_dense_service",
+            "veritas-sila-service:latest",
+            "warning",
+            "docker compose -p vdeploy -f deploy/docker-compose.yml build sila-dense",
+        ),
+        (
+            "elis_provenance_base",
+            "veritas-elis-provenance:latest",
+            "warning",
+            "make build-elis-provenance",
+        ),
+        (
+            "elis_forensic_service",
+            "veritas-elis-forensic-service:latest",
+            "warning",
+            "docker compose -p vdeploy -f deploy/docker-compose.yml build elis-forensic",
         ),
         ("pgvector", "pgvector/pgvector:pg16", "info", ""),
     ]

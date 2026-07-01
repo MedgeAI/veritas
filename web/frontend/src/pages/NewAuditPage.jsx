@@ -199,6 +199,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
           case_id: form.case_id || undefined,
           paper_title: form.paper_title || undefined,
           owner: form.owner || 'operator',
+          reproducibility_tier: reproducibilityTier,
         };
         const record = await createCase(payload);
         caseId = record.case_id;

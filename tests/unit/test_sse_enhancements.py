@@ -6,9 +6,8 @@ event verbosity levels, and SSE frame formatting.
 
 from __future__ import annotations
 
-import pytest
-
 from web.backend.veritas_web.sse import (
+    _canonical_stream_event,
     _format_buffered_sse,
     _format_sse,
     _matches_level,
@@ -107,6 +106,74 @@ class TestSSEFormatting:
         assert '"step_key": "mineru"' in frame
         # timestamp should be in data
         assert '"timestamp"' in frame
+
+    def test_format_buffered_sse_canonicalises_internal_step_events(self):
+        """Buffered same-process events use the same public names as DB events."""
+        event = {
+            "id": "5",
+            "type": "step_result",
+            "timestamp": "2026-06-26T12:00:00Z",
+            "data": {"key": "visual_tru_for", "status": "ran"},
+        }
+
+        frame = _format_buffered_sse(event)
+
+        assert "event: step.complete\n" in frame
+        assert '"step_key": "visual_tru_for"' in frame
+        assert '"status": "success"' in frame
+
+
+class TestCanonicalStreamEvents:
+    """Tests for internal event names exposed as browser-facing SSE events."""
+
+    def test_step_start_maps_to_public_step_start(self):
+        event_type, data = _canonical_stream_event(
+            "step_start",
+            {"key": "visual_provenance_graph", "title": "溯源图构建"},
+        )
+
+        assert event_type == "step.start"
+        assert data["step_key"] == "visual_provenance_graph"
+
+    def test_step_result_success_maps_to_public_step_complete(self):
+        event_type, data = _canonical_stream_event(
+            "step_result",
+            {"key": "visual_tru_for", "status": "ran", "detail": "ok"},
+        )
+
+        assert event_type == "step.complete"
+        assert data["step_key"] == "visual_tru_for"
+        assert data["status"] == "success"
+
+    def test_step_result_failure_maps_to_public_step_failed(self):
+        event_type, data = _canonical_stream_event(
+            "step_result",
+            {"key": "visual_provenance_graph", "status": "failed", "detail": "timeout"},
+        )
+
+        assert event_type == "step.failed"
+        assert data["step_key"] == "visual_provenance_graph"
+        assert data["error"] == "timeout"
+
+    def test_step_result_warning_maps_to_public_step_complete(self):
+        event_type, data = _canonical_stream_event(
+            "step_result",
+            {"key": "agent_review", "status": "warning", "detail": "schema warning"},
+        )
+
+        assert event_type == "step.complete"
+        assert data["step_key"] == "agent_review"
+        assert data["status"] == "warning"
+
+    def test_step_progress_maps_to_public_step_progress(self):
+        event_type, data = _canonical_stream_event(
+            "step_progress",
+            {"key": "visual_provenance_graph", "pair_count": 5253},
+        )
+
+        assert event_type == "step.progress"
+        assert data["step_key"] == "visual_provenance_graph"
+        assert data["pair_count"] == 5253
 
     def test_format_buffered_sse_adds_timestamp_to_data(self):
         """_format_buffered_sse adds timestamp to data if not present."""

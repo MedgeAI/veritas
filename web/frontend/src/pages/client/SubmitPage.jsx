@@ -227,7 +227,11 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
       if (isExistingCase) {
         cid = existingCaseId;
       } else {
-        const payload = { paper_title: paperTitle || undefined, owner: 'operator' };
+        const payload = {
+          paper_title: paperTitle || undefined,
+          owner: 'operator',
+          reproducibility_tier: tier,
+        };
         const record = await createCase(payload);
         cid = record.case_id;
       }
