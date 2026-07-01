@@ -337,6 +337,9 @@ def create_app(
                 "engine.static_audit.adapters.paperconan_adapter"
             )
             getattr(paperconan_adapter, "run_paperconan_scan")
+            # Fail-loud: cv2 is required for visual forensics (texture scores,
+            # panel extraction, copy-move). Missing cv2 must not silently degrade.
+            importlib.import_module("cv2")
         except (AttributeError, ImportError) as exc:
             import_ok = False
             checks["python_imports"] = {"ok": False, "detail": str(exc)}

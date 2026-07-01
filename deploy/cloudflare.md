@@ -176,9 +176,9 @@ make ps
 
 期望看到：
 
-- `veritas-postgres` 为 healthy
-- `veritas-web` 为 healthy
-- `veritas-cloudflared` 为 running
+- `vprod-postgres` 为 healthy
+- `vprod-web` 为 healthy
+- `vprod-cloudflared` 为 running
 
 ### 7.2 本机健康检查
 

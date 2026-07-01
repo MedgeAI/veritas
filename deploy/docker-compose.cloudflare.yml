@@ -44,29 +44,25 @@
 services:
   cloudflared:
     image: ${CLOUDFLARED_IMAGE:-cloudflare/cloudflared:2025.4.0}
-    container_name: veritas-cloudflared
+    container_name: vprod-cloudflared
     restart: unless-stopped
-    # --protocol http2: 强制 HTTP/2，对 SSE 流式传输更友好
     # --metrics 0.0.0.0:2000: 暴露 Prometheus 指标端口，供 healthcheck 和监控使用
+    # 注：--protocol 和 SSE buffering 配置在 Cloudflare Dashboard 侧设置，
+    # cloudflared CLI 不支持这些 flag
     command: >
-      tunnel --no-autoupdate run
-      --protocol http2
+      tunnel
       --metrics 0.0.0.0:2000
+      --no-autoupdate
+      run
       --token ${CLOUDFLARE_TUNNEL_TOKEN}
     env_file:
       - ../.env
     depends_on:
       veritas:
         condition: service_healthy
-    # healthcheck: 通过 metrics 端口验证 cloudflared 进程存活
-    # 注：这只能证明进程在跑，不能证明 tunnel 到 Cloudflare 边缘的链路正常
-    # 完整链路监控需在 Cloudflare Zero Trust Dashboard → Tunnels 页面查看
-    healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:2000/metrics > /dev/null || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s  # tunnel 握手需要时间，给足够启动期
+    # healthcheck: cloudflare/cloudflared 是纯 Go static binary，无 curl/wget/shell
+    # 无法在容器内做 healthcheck。依赖 restart: unless-stopped 自动恢复。
+    # Tunnel 链路监控在 Cloudflare Zero Trust Dashboard → Tunnels 页面查看。
     logging:
       driver: "json-file"
       options:

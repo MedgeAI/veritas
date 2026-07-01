@@ -1,17 +1,16 @@
 /**
  * IssuePage.jsx — Finding detail with three certainty layers (PRD Phase 5).
  *
- * Fetches ClientReportView to get certainty_by_finding_id[findingId].
- * Renders:
- *   - Back link
- *   - Header: severity tag + title + location
- *   - Three certainty layers (fact / inference / suggestion)
- *   - Resolution section (only if review_decision_allowed)
- *     - 4 choice cards
+ * Single-page queue: PI processes findings one by one without returning to
+ * the report. Prev/next buttons + keyboard shortcuts (← →).
+ *
+ * Two modes:
+ *   1. With findingId: show finding detail + queue navigation
+ *   2. Without findingId: show findings list grouped by layer for selection
  */
 
-import { ViewTransition, useState, useEffect } from 'react';
-import { FiChevronLeft, FiCheckCircle as CheckCircle2, FiEdit3 as Edit3, FiPlay as Play, FiMessageSquare as MessageSquare } from 'react-icons/fi';
+import { ViewTransition, useState, useEffect, useCallback, useMemo } from 'react';
+import { FiChevronLeft, FiChevronRight, FiCheckCircle as CheckCircle2, FiEdit3 as Edit3, FiPlay as Play, FiMessageSquare as MessageSquare } from 'react-icons/fi';
 import { fetchClientReport, saveReviewDecision } from '../../services/api';
 import CertaintyLayer from '../../components/client/CertaintyLayer';
 import ResolutionChoice from '../../components/client/ResolutionChoice';
@@ -78,24 +77,17 @@ export default function IssuePage({ caseId, findingId, onNavigate }) {
   // hook break React's rule-of-hooks (hook ordering).  The guards go INSIDE
   // the effect body instead; the effect becomes a no-op when context is missing.
   useEffect(() => {
-    if (!caseId || !findingId) return;
+    if (!caseId) return;
+    // Fetch report even without findingId — needed for the findings list
     setLoading(true);
     fetchClientReport(caseId)
       .then(setData)
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [caseId, findingId]);
+  }, [caseId]);
 
   if (!caseId) {
     return <ClientEmptyState type="issue" onNavigate={onNavigate} />;
-  }
-
-  if (!findingId) {
-    return (
-      <div className="mx-auto max-w-[980px] px-14 py-16 pb-24 text-center">
-        <p className="font-display text-2xl text-ink-500">请先从报告的问题列表中选择一项</p>
-      </div>
-    );
   }
 
   if (loading) {
@@ -119,20 +111,92 @@ export default function IssuePage({ caseId, findingId, onNavigate }) {
     );
   }
 
-  if (!data) {
+  if (!data || data.status !== 'ready') {
     return (
       <div className="mx-auto max-w-[980px] px-14 py-16 pb-24 text-center">
-        <p className="font-display text-2xl text-ink-500">未找到该问题的数据</p>
+        <p className="font-display text-2xl text-ink-500">报告尚未就绪</p>
       </div>
     );
   }
 
-  // Find the target finding across all layers
-  const allFindings = [
+  // Compute findings list once — shared by both list view and detail view
+  const allFindings = useMemo(() => [
     ...(data.risk?.findings_by_layer?.layer_1 || []),
     ...(data.risk?.findings_by_layer?.layer_2 || []),
     ...(data.risk?.findings_by_layer?.layer_3 || []),
-  ];
+  ], [data]);
+
+  // No findingId — show findings list for selection
+  if (!findingId) {
+    const layer1 = (data.risk?.findings_by_layer?.layer_1 || []).map((f) => ({ ...f, _layer: 1 }));
+    const layer2 = (data.risk?.findings_by_layer?.layer_2 || []).map((f) => ({ ...f, _layer: 2 }));
+    const layer3 = (data.risk?.findings_by_layer?.layer_3 || []).map((f) => ({ ...f, _layer: 3 }));
+    const findingsWithLayer = [...layer1, ...layer2, ...layer3];
+    const layerLabels = { 1: '确定性高', 2: '需人工复核', 3: '信息补充' };
+
+    return (
+      <div className="mx-auto max-w-[980px] px-14 py-16 pb-24">
+        <h1 className="font-display text-[32px] font-normal text-ink-900">
+          选择需要复核的发现
+        </h1>
+        <p className="mt-3 text-sm text-ink-500">
+          共 {findingsWithLayer.length} 项发现，点击查看详情并选择处理方式
+        </p>
+        {findingsWithLayer.length === 0 ? (
+          <div className="mt-16 py-12 text-center text-sm text-ink-400">
+            暂无发现项
+          </div>
+        ) : (
+          [1, 2, 3].map((layer) => {
+            const layerFindings = findingsWithLayer.filter((f) => f._layer === layer);
+            if (layerFindings.length === 0) return null;
+            return (
+              <div key={layer} className="mt-10">
+                <div className="mb-4 flex items-baseline gap-3 border-b border-ink-900/10 pb-2">
+                  <span className="font-mono text-[10px] tracking-[0.2em] text-paper-300">Layer {layer}</span>
+                  <span className="text-xs text-ink-500">{layerLabels[layer]}</span>
+                  <span className="ml-auto text-xs text-ink-400">{layerFindings.length} 项</span>
+                </div>
+                <ul className="space-y-2">
+                  {layerFindings.map((f) => {
+                    const fCfg = RISK_CONFIG[f.risk_level] || RISK_CONFIG.info;
+                    return (
+                      <li key={f.finding_id}>
+                        <button
+                          type="button"
+                          className="w-full rounded-sm border border-ink-900/8 bg-paper-50 px-5 py-4 text-left transition-colors hover:border-ink-900/20 hover:bg-paper-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50"
+                          onClick={() => onNavigate?.('issue', { finding: f.finding_id })}
+                        >
+                          <div className="flex items-start gap-3">
+                            <span className={`mt-0.5 shrink-0 text-[10px] font-medium uppercase tracking-wider ${fCfg.color}`}>
+                              {fCfg.label}
+                            </span>
+                            <span className="min-w-0 flex-1 text-sm text-ink-800">
+                              {f.summary || f.finding_id}
+                            </span>
+                            <span className="shrink-0 font-mono text-[10px] text-ink-400">
+                              {f.finding_id}
+                            </span>
+                          </div>
+                          {f.location && (
+                            <div className="mt-1.5 pl-12 font-mono text-[11px] text-ink-400">
+                              {f.location}
+                            </div>
+                          )}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            );
+          })
+        )}
+      </div>
+    );
+  }
+
+  // Find the target finding
   const finding = allFindings.find((f) => f.finding_id === findingId);
 
   if (!finding) {
@@ -145,9 +209,34 @@ export default function IssuePage({ caseId, findingId, onNavigate }) {
     );
   }
 
-  const certainty = data.certainty_by_finding_id?.[findingId] || {};
+  const certainty = finding.certainty || {};
   const cfg = RISK_CONFIG[finding.risk_level] || RISK_CONFIG.info;
   const canDecide = finding.review_decision_allowed && finding.source_ref;
+
+  // Queue navigation: index into allFindings for prev/next
+  const currentIndex = allFindings.findIndex((f) => f.finding_id === findingId);
+  const prevFinding = currentIndex > 0 ? allFindings[currentIndex - 1] : null;
+  const nextFinding = currentIndex < allFindings.length - 1 ? allFindings[currentIndex + 1] : null;
+  const totalFindings = allFindings.length;
+
+  const goPrev = useCallback(() => {
+    if (prevFinding) onNavigate?.('issue', { finding: prevFinding.finding_id });
+  }, [prevFinding, onNavigate]);
+
+  const goNext = useCallback(() => {
+    if (nextFinding) onNavigate?.('issue', { finding: nextFinding.finding_id });
+  }, [nextFinding, onNavigate]);
+
+  // Keyboard shortcuts: ← prev, → next
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowLeft') goPrev();
+      if (e.key === 'ArrowRight') goNext();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [goPrev, goNext]);
 
   const handleSubmitDecision = async () => {
     if (!selectedChoice || !canDecide) return;
@@ -168,14 +257,38 @@ export default function IssuePage({ caseId, findingId, onNavigate }) {
 
   return (
     <div className="mx-auto max-w-[980px] px-14 py-16 pb-24">
-      {/* Back link */}
-      <button
-        type="button"
-        className="inline-flex items-center gap-1 text-xs text-ink-700 hover:text-ink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 rounded-sm"
-        onClick={() => onNavigate?.('report')}
-      >
-        <FiChevronLeft size={13} strokeWidth={1.5} /> 返回报告
-      </button>
+      {/* Queue navigation bar */}
+      <div className="flex items-center gap-3 border-b border-ink-900/10 pb-4">
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 text-xs text-ink-700 hover:text-ink-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 rounded-sm"
+          onClick={() => onNavigate?.('report')}
+        >
+          <FiChevronLeft size={13} strokeWidth={1.5} /> 返回报告
+        </button>
+        <span className="text-ink-900/20">|</span>
+        <span className="font-mono text-[11px] text-ink-400">
+          {currentIndex + 1} / {totalFindings}
+        </span>
+        <div className="ml-auto flex items-center gap-2">
+          <button
+            type="button"
+            disabled={!prevFinding}
+            className="inline-flex items-center gap-1 rounded-sm border border-paper-300 px-3 py-1.5 text-xs text-ink-700 transition-colors hover:bg-paper-100 disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50"
+            onClick={goPrev}
+          >
+            <FiChevronLeft size={13} strokeWidth={1.5} /> 上一项
+          </button>
+          <button
+            type="button"
+            disabled={!nextFinding}
+            className="inline-flex items-center gap-1 rounded-sm border border-paper-300 px-3 py-1.5 text-xs text-ink-700 transition-colors hover:bg-paper-100 disabled:opacity-30 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50"
+            onClick={goNext}
+          >
+            下一项 <FiChevronRight size={13} strokeWidth={1.5} />
+          </button>
+        </div>
+      </div>
 
       {/* Header */}
       <div className="mt-8">

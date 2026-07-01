@@ -6,7 +6,9 @@ ARG BUILD_VERSION=dev
 
 WORKDIR /build
 COPY web/frontend/package*.json ./
-RUN npm ci --silent
+# --legacy-peer-deps: 允许 @testing-library/react peer dep 与 react 18/19 的松散匹配
+# lockfile 在本地 npm 宽松模式下生成，Docker 的 npm 10 默认更严格
+RUN npm ci --silent --legacy-peer-deps
 
 COPY web/frontend/ ./
 RUN npm run build && echo "Built version: ${BUILD_VERSION}"
@@ -52,6 +54,7 @@ RUN curl -LsSf "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/
     && rm -rf /tmp/uv-*
 
 ENV VIRTUAL_ENV=/opt/venv
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 ENV VERITAS_HOST=0.0.0.0
 ENV VERITAS_PORT=8765
@@ -62,12 +65,19 @@ ENV VERITAS_LOG_DIR=/app/logs
 
 WORKDIR /app
 
+# Create directories. Bind mount permissions match via compose build.args (UID/GID).
+# chmod 777 /app: allows veritas user to create subdirectories (e.g. .opencode/).
+# This is a tiny layer (just the directory entry, not recursive).
+# The 237MB layer we eliminated was chown -R, not chmod.
+RUN mkdir -p /app/web_data /app/outputs /app/logs \
+    && chmod 777 /app /app/logs
+
 # Install Python dependencies (from pyproject.toml + uv.lock)
-COPY pyproject.toml .
-COPY uv.lock .
+# Dependency files are copied BEFORE source code: if only source changes,
+# the uv sync layer stays cached (the most expensive layer ~309MB).
+COPY pyproject.toml uv.lock ./
 COPY cli/ ./cli/
 COPY engine/ ./engine/
-COPY protocols/ ./protocols/
 COPY runtime/ ./runtime/
 COPY configs/ ./configs/
 COPY web/backend/ ./web/backend/
@@ -84,15 +94,12 @@ COPY .opencode/skills/ ./.opencode/skills/
 COPY README.md .
 # uv sync --frozen: install exactly what uv.lock specifies, no resolution drift
 # --no-cache: skip uv's cache to keep image layers lean
-RUN uv venv "${VIRTUAL_ENV}" \
-    && uv sync --frozen --extra web --extra pg --no-cache
+# UV_PROJECT_ENVIRONMENT (set above) tells uv to install into /opt/venv,
+# preventing it from creating its own .venv in the project directory
+RUN uv sync --frozen --extra web --extra pg --extra visual --no-cache
 
 # Copy frontend build artifacts from stage 1
 COPY --from=frontend-builder /build/dist ./web/frontend/dist
-
-# Create data directories and set ownership
-RUN mkdir -p /app/web_data /app/outputs \
-    && chown -R $USERNAME:$USERNAME /app
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1

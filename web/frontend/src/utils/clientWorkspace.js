@@ -74,5 +74,5 @@ export function writeClientWorkspace({ tab, case: caseId, run: runId, finding: f
   const newSearch = params.toString();
   const newUrl = newSearch ? `?${newSearch}` : '';
 
-  window.history.replaceState({}, '', `${window.location.pathname}${newUrl}`);
+  window.history.pushState({}, '', `${window.location.pathname}${newUrl}`);
 }

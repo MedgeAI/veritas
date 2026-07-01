@@ -204,7 +204,10 @@ export default function ReportPage({ caseId, onNavigate }) {
           <button
             type="button"
             className="rounded-sm border border-ink-900 px-4 py-2 text-xs text-ink-900 hover:bg-paper-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50"
-            onClick={() => onNavigate?.('issue')}
+            onClick={() => {
+              const first = allFindings[0];
+              if (first) onNavigate?.('issue', { finding: first.finding_id });
+            }}
           >
             逐项处理
           </button>
