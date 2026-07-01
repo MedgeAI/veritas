@@ -347,6 +347,39 @@ def create_app(
         if import_ok:
             checks["python_imports"] = {"ok": True}
 
+        # 5. Visual forensics model weights
+        # Fail-loud: missing weights cause silent step-level failures deep in
+        # the pipeline. Catching them here means deploy smoke tests reject the
+        # image before any audit runs with degraded capabilities.
+        _repo = Path(__file__).resolve().parents[3]
+        for name, rel in [
+            ("panel_extraction_weights", "models/panel_extraction/model_5_class.pt"),
+            ("trufor_weights", "models/trufor/weights/trufor.pth.tar"),
+        ]:
+            p = _repo / rel
+            ok = p.is_file()
+            checks[name] = {
+                "ok": ok,
+                "path": str(p),
+                "detail": "ok" if ok else f"missing — run `make download-models`",
+            }
+            if not ok:
+                all_ok = False
+
+        # 6. opencode runtime directory writable
+        # opencode creates .opencode/data at runtime. COPY creates the parent
+        # as root; the Dockerfile must chmod it for the non-root user.
+        _opencode = _repo / ".opencode"
+        if _opencode.exists():
+            oc_writable = os.access(str(_opencode), os.W_OK)
+            checks["opencode_writable"] = {
+                "ok": oc_writable,
+                "path": str(_opencode),
+                "detail": "ok" if oc_writable else "not writable — check Dockerfile chmod",
+            }
+            if not oc_writable:
+                all_ok = False
+
         return {
             "status": "ok" if all_ok else "degraded",
             "checks": checks,

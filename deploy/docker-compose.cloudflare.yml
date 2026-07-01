@@ -29,11 +29,13 @@
 #      - No TLS Verify:        OFF（veritas:8765 是内网 HTTP，无需验证）
 #
 # 3. Cloudflare Access（认证）：
-#    本部署使用 VERITAS_AUTH_MODE=none，依赖 Cloudflare Access 邮箱白名单
-#    做访问控制。必须在 Zero Trust Dashboard → Access → Applications 中配置：
+#    VERITAS_AUTH_MODE=cloudflare（在 deploy/.env 中设置），后端验证
+#    cloudflared 注入的 cf-access-jwt-assertion JWT。
+#    必须在 Zero Trust Dashboard → Access → Applications 中配置：
 #    - 添加 Application → Self-hosted，域名与 Public Hostname 相同
-#    - 添加 Policy → 只允许 @your-lab-domain.com 邮箱
-#    否则任何拿到域名的人都能无认证访问系统
+#    - 添加 Policy → 只允许白名单邮箱
+#    deploy/.env 中的 VERITAS_BOOTSTRAP_ADMIN_EMAILS 自动提升为 admin。
+#    开发环境（make dev）仍用 VERITAS_AUTH_MODE=none，无认证。
 #
 # ═══════════════════════════════════════════════════════════════════════════
 # cloudflared 镜像版本：

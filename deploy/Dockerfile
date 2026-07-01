@@ -65,10 +65,16 @@ ENV VERITAS_LOG_DIR=/app/logs
 
 WORKDIR /app
 
-# Create directories. Bind mount permissions match via compose build.args (UID/GID).
-# chmod 777 /app: allows veritas user to create subdirectories (e.g. .opencode/).
+# ── Directory layout: code vs data boundary ─────────────────────────
+# /app/                 — application code (read-only for veritas)
+# /app/web_data/        — runtime data root (veritas-writable, bind mount target)
+# /app/outputs/         — audit artifacts (veritas-writable, bind mount target)
+# /app/logs/            — log files (veritas-writable)
+#
+# chmod 777 /app: allows veritas to create project-local directories
+#   (e.g. .opencode/ for opencode session data). The code COPY'd into
+#   /app/ is root:root 755 — readable but not writable by veritas.
 # This is a tiny layer (just the directory entry, not recursive).
-# The 237MB layer we eliminated was chown -R, not chmod.
 RUN mkdir -p /app/web_data /app/outputs /app/logs \
     && chmod 777 /app /app/logs
 
@@ -92,6 +98,20 @@ COPY third_party/paperconan/ ./third_party/paperconan/
 COPY opencode.json .
 COPY .opencode/skills/ ./.opencode/skills/
 COPY README.md .
+
+# ── Runtime data: code vs data separation ───────────────────────────
+# .opencode/ is created by COPY above (root:root). opencode writes session
+# data to .opencode/data/ at runtime. We redirect this to web_data/ via symlink
+# so all runtime-writable state lives under the data volume.
+#
+# Layout:
+#   /app/.opencode/skills/          — read-only, root:root (image code)
+#   /app/.opencode/data -> symlink  — points to /app/web_data/.opencode/data
+#   /app/web_data/.opencode/data/   — veritas:veritas (runtime data volume)
+RUN mkdir -p /app/web_data/.opencode/data /app/outputs \
+    && chown -R $USERNAME:$USERNAME /app/web_data /app/outputs \
+    && chown $USERNAME:$USERNAME /app/.opencode \
+    && ln -s /app/web_data/.opencode/data /app/.opencode/data
 # uv sync --frozen: install exactly what uv.lock specifies, no resolution drift
 # --no-cache: skip uv's cache to keep image layers lean
 # UV_PROJECT_ENVIRONMENT (set above) tells uv to install into /opt/venv,

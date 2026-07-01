@@ -175,7 +175,7 @@ deploy-rebuild: deploy-preflight ## Rebuild and restart all services with Cloudf
 	@echo "Running post-deploy smoke tests..."
 	@$(COMPOSE_DEPLOY) exec -T veritas curl -sf http://localhost:8765/api/health | $(PYTHON) -m json.tool || echo "⚠ /api/health failed"
 	@$(COMPOSE_DEPLOY) exec -T veritas curl -sf http://localhost:8765/api/health/deep | $(PYTHON) -m json.tool || echo "⚠ /api/health/deep failed"
-	@$(COMPOSE_DEPLOY) exec -T veritas curl -sf http://localhost:8765/api/cases | $(PYTHON) -c "import sys,json; d=json.load(sys.stdin); print(f'✓ /api/cases OK ({len(d.get(\"cases\",[]))} cases)')" || echo "⚠ /api/cases failed"
+	@$(COMPOSE_DEPLOY) exec -T veritas sh -c 'code=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8765/api/cases); if [ "$$code" = "401" ]; then echo "✓ Auth enforced (401 without JWT)"; elif [ "$$code" = "200" ]; then echo "✓ /api/cases OK (no auth)"; else echo "⚠ /api/cases unexpected: $$code"; fi'
 	@echo ""
 	@echo "Deploy complete. Check cloudflared logs: make deploy-logs"
 

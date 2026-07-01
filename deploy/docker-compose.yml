@@ -61,7 +61,6 @@ services:
       - VERITAS_DATABASE_URL=postgresql://${POSTGRES_USER:-veritas_prod}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-veritas_prod}
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=db+postgresql://${POSTGRES_USER:-veritas_prod}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-veritas_prod}
-      - VERITAS_AUTH_MODE=none
       - VERITAS_USERS_DB=/app/web_data/users.db
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8765/api/health"]
