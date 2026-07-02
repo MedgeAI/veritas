@@ -7,11 +7,14 @@ review queue, and verification store to build a single ClientReportView dict.
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
 from .artifacts import artifact_file_path
 from .risk import summarize_findings
+
+logger = logging.getLogger(__name__)
 
 
 def build_client_report(deps: Any, case_id: str) -> dict[str, Any]:
@@ -198,9 +201,11 @@ def _find_report_id_for_case(case_id: str) -> str | None:
         elif isinstance(entries, dict):
             return entries.get("report_id")
         return None
-    except Exception:
-        pass
-    return None
+    except (FileNotFoundError, KeyError):
+        return None
+    except Exception as e:
+        logger.warning("Failed to search verify_store for report_id: %s", e)
+        return None
 
 
 def _load_certainty_map(workdir: Path) -> dict[str, dict]:
