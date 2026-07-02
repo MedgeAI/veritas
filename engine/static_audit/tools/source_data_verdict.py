@@ -35,6 +35,7 @@ from pathlib import Path
 from typing import Any
 
 from engine.exceptions import AgentError
+from engine.llm.config import DEFAULT_LLM_MODEL
 from engine.static_audit.audit_config import priority_scoring_config
 from engine.static_audit.paths import resolve_artifact_path
 from engine.static_audit.tools.source_data_sheet_briefing import build_sheet_briefing
@@ -383,7 +384,7 @@ def get_sheet_verdict(
     *,
     project_root: Path,
     env: dict[str, str],
-    model: str = "dashscope/qwen3.7-plus",
+    model: str = DEFAULT_LLM_MODEL,
     opencode_bin: str = "opencode",
     timeout_seconds: int = 300,
     max_retries: int = 2,
@@ -711,7 +712,7 @@ def run_source_data_verdict(
     source_data_dir: Path,
     project_root: Path,
     env: dict[str, str],
-    model: str = "dashscope/qwen3.7-plus",
+    model: str = DEFAULT_LLM_MODEL,
     opencode_bin: str = "opencode",
     force: bool = False,
     progress: Any = None,

@@ -14,6 +14,7 @@ if str(PROJECT_ROOT_PATH) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT_PATH))
 
 from engine.env import load_project_env
+from engine.llm.config import DEFAULT_LLM_MODEL
 from engine.static_audit._shared import PROJECT_ROOT
 
 
@@ -51,7 +52,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--agent-model",
-        default="dashscope/qwen3.7-plus",
+        default=DEFAULT_LLM_MODEL,
         help="opencode model id used for Agent plan/review.",
     )
     parser.add_argument(

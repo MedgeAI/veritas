@@ -26,6 +26,7 @@ PROJECT_ROOT_PATH = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT_PATH) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT_PATH))
 
+from engine.llm.config import DEFAULT_LLM_MODEL
 from engine.static_audit._shared import (
     ProgressCallback,
     StepResult,
@@ -301,7 +302,7 @@ def run_static_audit(
     force: bool = False,
     no_env_file: bool = False,
     agent_mode: str = "full",
-    agent_model: str = "dashscope/qwen3.7-plus",
+    agent_model: str = DEFAULT_LLM_MODEL,
     opencode_bin: str = "opencode",
     agent_timeout_seconds: int = 600,
     agent_max_retries: int = 1,

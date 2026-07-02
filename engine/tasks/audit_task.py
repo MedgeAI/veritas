@@ -38,6 +38,7 @@ from sqlalchemy.orm import Session
 
 from engine.env import get_env
 from engine.exceptions import PipelineError, ToolExecutionError
+from engine.llm.config import DEFAULT_LLM_MODEL
 from engine.tasks._task_orm import (
     _RunRow,
     _TaskBase,
@@ -412,7 +413,7 @@ def _run_audit_impl(
                 force=options.get("force", True),
                 no_env_file=options.get("no_env_file", False),
                 agent_mode=options.get("agent_mode", "review"),
-                agent_model=options.get("agent_model", "dashscope/qwen3.7-plus"),
+                agent_model=options.get("agent_model", DEFAULT_LLM_MODEL),
                 opencode_bin=options.get("opencode_bin")
                 or get_env("OPENCODE_BIN", required=False, default="opencode"),
                 agent_timeout_seconds=int(options.get("agent_timeout_seconds", 300)),
