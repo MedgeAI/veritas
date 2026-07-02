@@ -2,6 +2,10 @@
 
 Reads from case store, run artifacts, risk summaries, certainty enrichment,
 review queue, and verification store to build a single ClientReportView dict.
+
+Pure finding-detail extraction lives in :mod:`engine.reporting.finding_details`.
+This module handles HTTP/BFF orchestration (case store, run status, artifact
+loading).
 """
 
 from __future__ import annotations
@@ -9,6 +13,13 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any
+
+from engine.reporting.finding_details import (
+    extract_location,
+    source_data_detail,
+    visual_copy_move_detail,
+    visual_relationship_detail,
+)
 
 from .artifacts import artifact_file_path
 from .risk import summarize_findings
@@ -135,8 +146,8 @@ def build_client_report(deps: Any, case_id: str) -> dict[str, Any]:
             finding["source_ref"] = ""
             finding["review_decision_allowed"] = False
 
-        # Location from metadata (PRD §7.3)
-        finding["location"] = _extract_location(finding.get("metadata", {}))
+        # Location from metadata (PRD S7.3)
+        finding["location"] = extract_location(finding.get("metadata", {}))
         finding["detail"] = detail_index.get(fid)
 
         enriched_findings.append(finding)
@@ -152,7 +163,7 @@ def build_client_report(deps: Any, case_id: str) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Internal helpers
+# Internal helpers (BFF orchestration — not pure domain logic)
 # ---------------------------------------------------------------------------
 
 
@@ -235,9 +246,7 @@ def _load_json_artifact(workdir: Path, artifact_name: str) -> dict[str, Any]:
 def _build_finding_detail_index(workdir: Path) -> dict[str, dict[str, Any]]:
     """Build per-finding detail by joining multiple artifacts.
 
-    Each artifact is loaded independently — if one is missing or corrupted,
-    the others still contribute. Per-finding detail extraction is also
-    isolated: a malformed finding does not prevent siblings from loading.
+    Delegates pure-data extraction to engine functions.
     """
     details: dict[str, dict[str, Any]] = {}
     for artifact_name in (
@@ -250,7 +259,7 @@ def _build_finding_detail_index(workdir: Path) -> dict[str, dict[str, Any]]:
                 if not isinstance(finding, dict) or not finding.get("finding_id"):
                     continue
                 try:
-                    details[str(finding["finding_id"])] = _source_data_detail(finding)
+                    details[str(finding["finding_id"])] = source_data_detail(finding)
                 except (KeyError, TypeError, ValueError):
                     continue
         except Exception:
@@ -263,81 +272,18 @@ def _build_finding_detail_index(workdir: Path) -> dict[str, dict[str, Any]]:
                 continue
             try:
                 if finding.get("category") == "visual_provenance_relationship":
-                    details[str(finding["finding_id"])] = _visual_relationship_detail(finding)
+                    details[str(finding["finding_id"])] = visual_relationship_detail(
+                        finding
+                    )
                 else:
-                    details[str(finding["finding_id"])] = _visual_copy_move_detail(finding)
+                    details[str(finding["finding_id"])] = visual_copy_move_detail(
+                        finding
+                    )
             except (KeyError, TypeError, ValueError):
                 continue
     except Exception:
         pass
     return details
-
-
-def _source_data_detail(finding: dict[str, Any]) -> dict[str, Any]:
-    columns = (
-        finding.get("columns")
-        or finding.get("column_pair")
-        or finding.get("column")
-        or []
-    )
-    if isinstance(columns, str):
-        columns = [columns]
-    support_rows = (
-        finding.get("support_rows")
-        or finding.get("matched_pairs")
-        or finding.get("sample_rows")
-        or finding.get("equal_rows")
-        or []
-    )
-    samples = (
-        finding.get("sample_pairs")
-        or finding.get("sample_exact_pairs")
-        or finding.get("raw_data_samples")
-        or []
-    )
-    return {
-        "type": "source_data",
-        "category": finding.get("category"),
-        "workbook": finding.get("workbook"),
-        "sheet": finding.get("sheet"),
-        "columns": columns,
-        "support_rows": support_rows,
-        "sample_values": samples[:8] if isinstance(samples, list) else [],
-        "pattern_description": finding.get("summary")
-        or finding.get("description")
-        or finding.get("pattern_signature"),
-        "benign_explanations": finding.get("benign_explanations")
-        or [
-            "rounding or truncation",
-            "unit conversion or normalization",
-            "shared control/reference value",
-        ],
-        "related_finding_ids": finding.get("related_finding_ids") or [],
-    }
-
-
-def _visual_relationship_detail(finding: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "type": "visual_relationship",
-        "source_figure": finding.get("source_figure"),
-        "target_figure": finding.get("target_figure"),
-        "score": finding.get("score"),
-        "relationship_type": finding.get("relationship_type"),
-        "overlay_path": finding.get("overlay_path"),
-        "benign_explanations": finding.get("benign_explanations") or [],
-    }
-
-
-def _visual_copy_move_detail(finding: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "type": "visual_copy_move",
-        "source_panel": finding.get("source_panel_id"),
-        "target_panel": finding.get("target_panel_id"),
-        "overlap_ratio": finding.get("overlap_ratio"),
-        "score": finding.get("score"),
-        "overlay_path": finding.get("overlay_path"),
-        "benign_explanations": finding.get("benign_explanations") or [],
-    }
 
 
 def _load_review_items(
@@ -357,25 +303,3 @@ def _load_review_items(
             session.close()
     except Exception:
         return []
-
-
-def _extract_location(metadata: dict | None) -> str:
-    """Extract human-readable location from finding metadata (PRD §7.3).
-
-    Priority: sheet_name + cell_ref > file_name > pattern description.
-    """
-    if not metadata or not isinstance(metadata, dict):
-        return ""
-    sheet = metadata.get("sheet_name", "")
-    cell = metadata.get("cell_ref", "")
-    if sheet and cell:
-        return f"{sheet}!{cell}"
-    if sheet:
-        return sheet
-    file_name = metadata.get("file_name", "")
-    if file_name:
-        return file_name
-    pattern = metadata.get("pattern", "")
-    if pattern:
-        return pattern
-    return ""

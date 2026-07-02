@@ -1,31 +1,37 @@
+"""Thin HTTP adapter for risk-related endpoints.
+
+All domain logic (risk ranking, bundle loading, finding summarization)
+lives in :mod:`engine.reporting.risk`.  This module re-exports pure
+functions and wraps the path-resolving functions so that HTTP callers
+can keep their original signatures.
+"""
+
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
-from engine.reporting.layers import group_findings_by_layer
-from engine.static_audit.paths import resolve_artifact_path
+from engine.reporting.risk import (
+    ISSUE_CATEGORY_ORDER,
+    RISK_LEVELS,
+    RISK_ORDER,
+    issue_category_rank,
+    normalize_risk_level,
+    risk_rank,
+    summarize_findings,
+)
+from engine.reporting.risk import (
+    load_static_audit_bundle as _engine_load_bundle,
+)
+from engine.reporting.risk import (
+    static_audit_bundle_path as _engine_bundle_path,
+)
 
 from .path_mapping import normalize_workdir_path
 
-
-RISK_ORDER = {"info": 0, "low": 1, "medium": 2, "high": 3, "critical": 4}
-RISK_LEVELS = ("critical", "high", "medium", "low", "info")
-ISSUE_CATEGORY_ORDER = {"completeness": 1, "matching": 2, "consistency": 3}
-
-
-def risk_rank(value: str | None) -> int:
-    return RISK_ORDER.get(str(value or "info").lower(), 0)
-
-
-def issue_category_rank(value: str | None) -> int:
-    return ISSUE_CATEGORY_ORDER.get(str(value or "").lower(), 0)
-
-
-def normalize_risk_level(value: Any) -> str:
-    level = str(value or "info").lower()
-    return level if level in RISK_ORDER else "info"
+# ---------------------------------------------------------------------------
+# Path-resolving wrappers (HTTP-layer adapters)
+# ---------------------------------------------------------------------------
 
 
 def static_audit_bundle_path(
@@ -34,63 +40,26 @@ def static_audit_bundle_path(
     if not workdir:
         return None
     root = normalize_workdir_path(workdir, output_root=output_root)
-    mapped = resolve_artifact_path(root, "static_audit_bundle.json")
-    if mapped.exists():
-        return mapped
-    legacy = root / "static_audit_bundle.json"
-    if legacy.exists():
-        return legacy
-    return None
+    return _engine_bundle_path(root)
 
 
 def load_static_audit_bundle(
     workdir: str | Path | None, *, output_root: str | Path | None = None
 ) -> dict[str, Any] | None:
-    path = static_audit_bundle_path(workdir, output_root=output_root)
-    if path is None:
+    if not workdir:
         return None
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
-        return None
-    return data if isinstance(data, dict) else None
+    root = normalize_workdir_path(workdir, output_root=output_root)
+    return _engine_load_bundle(root)
 
 
-def summarize_findings(findings: list[Any], *, top_limit: int = 5) -> dict[str, Any]:
-    valid_findings = [f for f in findings if isinstance(f, dict)]
-    risk_counts = {level: 0 for level in RISK_LEVELS}
-    for finding in valid_findings:
-        risk_counts[normalize_risk_level(finding.get("risk_level"))] += 1
-
-    overall_risk = "info"
-    for level in RISK_LEVELS:
-        if risk_counts[level] > 0:
-            overall_risk = level
-            break
-
-    high_quality_findings = [
-        finding
-        for finding in valid_findings
-        if risk_rank(finding.get("risk_level")) >= risk_rank("medium")
-    ]
-    top_findings = sorted(
-        high_quality_findings,
-        key=lambda finding: (
-            issue_category_rank(finding.get("issue_category")),
-            risk_rank(finding.get("risk_level")),
-        ),
-        reverse=True,
-    )[:top_limit]
-
-    # Group all findings by layer for frontend layered display (PRD2-T8)
-    findings_by_layer = group_findings_by_layer(valid_findings)
-
-    return {
-        "status": "ok",
-        "overall_risk": overall_risk,
-        "risk_counts": risk_counts,
-        "top_findings": top_findings,
-        "total_findings": len(valid_findings),
-        "high_quality_count": len(high_quality_findings),
-        "findings_by_layer": findings_by_layer,
-    }
+__all__ = [
+    "ISSUE_CATEGORY_ORDER",
+    "RISK_LEVELS",
+    "RISK_ORDER",
+    "issue_category_rank",
+    "load_static_audit_bundle",
+    "normalize_risk_level",
+    "risk_rank",
+    "static_audit_bundle_path",
+    "summarize_findings",
+]
