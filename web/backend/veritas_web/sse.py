@@ -31,7 +31,7 @@ from typing import Any, AsyncIterator, Literal
 from sqlalchemy import text
 
 from .database import create_db_engine, create_session_factory, get_database_url
-from .models import utc_now
+from .models import to_iso_timestamp, utc_now
 from .sse_buffer import SSEEventBuffer, get_event_buffer
 
 logger = logging.getLogger(__name__)
@@ -151,7 +151,7 @@ def notify_progress(
         session.execute(
             text(
                 "INSERT INTO run_events (run_id, event_type, payload, created_at) "
-                "VALUES (:run_id, :event_type, :payload, :ts)"
+                "VALUES (:run_id, :event_type, CAST(:payload AS jsonb), :ts)"
             ),
             {
                 "run_id": run_id,
@@ -347,7 +347,7 @@ async def sse_event_stream(
                                 "id": row[0],
                                 "event_type": row[1],
                                 "payload": payload,
-                                "timestamp": row[3],
+                                "timestamp": to_iso_timestamp(row[3]),
                             }
                         )
                     # Read current run status to detect terminal state.

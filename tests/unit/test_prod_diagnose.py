@@ -45,6 +45,19 @@ def test_extract_error_lines_keeps_recent_matching_lines() -> None:
     ]
 
 
+def test_extract_error_lines_ignores_benign_runtime_context() -> None:
+    raw = "\n".join(
+        [
+            "/app/web/backend/veritas_web/app.py:207: DeprecationWarning:",
+            "on_event is deprecated, use lifespan event handlers instead.",
+            "INFO Veritas Web backend listening (auth: CloudflareAccessProvider)",
+            "ERROR actual failure",
+        ]
+    )
+
+    assert extract_error_lines(raw) == ["ERROR actual failure"]
+
+
 def test_default_services_include_production_forensics() -> None:
     assert "sila-dense" in DEFAULT_SERVICES
     assert "elis-forensic" in DEFAULT_SERVICES
@@ -105,3 +118,27 @@ def test_summarize_expands_health_deep_failed_checks() -> None:
     assert summary["status"] == "needs_attention"
     assert "api_health_deep reports degraded" in summary["signals"]
     assert "api_health_deep.trufor_weights failed: missing" in summary["signals"]
+
+
+def test_summarize_keeps_latest_audit_artifacts_as_context() -> None:
+    bundle = {
+        "host_readiness": {},
+        "compose": {"health": {}, "logs": {}},
+        "artifacts": {
+            "latest_manifests": [
+                {
+                    "run_diagnostics": {"quality_flags": [{"id": "slow_agent"}]},
+                    "problem_nodes": [{"path": "steps[0]"}],
+                }
+            ]
+        },
+    }
+
+    summary = summarize(bundle)
+
+    assert summary["status"] == "ok"
+    assert summary["signals"] == []
+    assert summary["audit_signals"] == [
+        "latest run diagnostics contains 1 quality flag(s)",
+        "latest audit manifest contains 1 problem nodes",
+    ]

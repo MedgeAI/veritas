@@ -33,7 +33,12 @@ DEFAULT_SERVICES = (
 
 ERROR_RE = re.compile(
     r"(traceback|exception|error|warning|warn|wrn|failed|failure|fatal|panic|"
-    r"eacces|enoent|permission denied|segmentation|degraded| 5\d\d | 4\d\d )",
+    r"\b(?:eacces|enoent)\b|permission denied|segmentation|degraded| 5\d\d | 4\d\d )",
+    re.IGNORECASE,
+)
+
+BENIGN_LOG_RE = re.compile(
+    r"(DeprecationWarning|on_event is deprecated|FastAPI docs for Lifespan Events)",
     re.IGNORECASE,
 )
 
@@ -160,7 +165,11 @@ def parse_json_object(raw: str) -> dict[str, Any] | None:
 
 
 def extract_error_lines(raw: str, *, max_lines: int = MAX_LOG_LINES) -> list[str]:
-    matches = [line for line in raw.splitlines() if ERROR_RE.search(line)]
+    matches = [
+        line
+        for line in raw.splitlines()
+        if ERROR_RE.search(line) and not BENIGN_LOG_RE.search(line)
+    ]
     return matches[-max_lines:]
 
 
@@ -353,6 +362,7 @@ def collect_compose(root: Path, *, tail: int, services: tuple[str, ...], skip_do
 
 def summarize(bundle: dict[str, Any]) -> dict[str, Any]:
     signals: list[str] = []
+    audit_signals: list[str] = []
     compose = bundle.get("compose", {})
     host = bundle.get("host_readiness", {})
 
@@ -401,16 +411,19 @@ def summarize(bundle: dict[str, Any]) -> dict[str, Any]:
         run_diag = item.get("run_diagnostics") or {}
         quality_flags = run_diag.get("quality_flags") or []
         if quality_flags:
-            signals.append(
+            audit_signals.append(
                 f"latest run diagnostics contains {len(quality_flags)} quality flag(s)"
             )
         problem_count = len(item.get("problem_nodes") or [])
         if problem_count:
-            signals.append(f"latest audit manifest contains {problem_count} problem nodes")
+            audit_signals.append(
+                f"latest audit manifest contains {problem_count} problem nodes"
+            )
 
     return {
         "status": "needs_attention" if signals else "ok",
         "signals": signals[:30],
+        "audit_signals": audit_signals[:30],
     }
 
 
@@ -443,6 +456,11 @@ def render_markdown(bundle: dict[str, Any]) -> str:
         lines.extend(f"- {signal}" for signal in signals)
     else:
         lines.append("- No critical signals detected in the collected surface.")
+
+    audit_signals = summary.get("audit_signals") or []
+    if audit_signals:
+        lines.extend(["", "## Latest Audit Context", ""])
+        lines.extend(f"- {signal}" for signal in audit_signals)
 
     lines.extend(["", "## Host Readiness", ""])
     for name, info in bundle.get("host_readiness", {}).items():
@@ -552,6 +570,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"Status: {bundle['summary']['status']}")
         for signal in bundle["summary"].get("signals", [])[:10]:
             print(f"- {signal}")
+        for signal in bundle["summary"].get("audit_signals", [])[:10]:
+            print(f"- audit context: {signal}")
 
     if args.fail_on_attention and bundle["summary"]["status"] != "ok":
         return 2

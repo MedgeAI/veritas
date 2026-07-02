@@ -64,3 +64,4 @@ tests/fixtures/*
 
 # Dev logs
 logs/
+.understand-anything/

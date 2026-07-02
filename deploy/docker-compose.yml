@@ -3,8 +3,8 @@ services:
     image: pgvector/pgvector:pg16
     container_name: vprod-postgres
     restart: unless-stopped
-    # ports:
-    #   - "5432:5432"
+    ports:
+      - "${POSTGRES_BIND_IP:-127.0.0.1}:${POSTGRES_HOST_PORT:-15432}:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-veritas_prod}
       POSTGRES_USER: ${POSTGRES_USER:-veritas_prod}

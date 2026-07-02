@@ -73,17 +73,6 @@ class CaseStore:
 
         Base.metadata.create_all(bind=self._engine)
 
-        # Ensure owner column is wide enough for email addresses (RFC 5321: up to 320).
-        # This is a no-op on PostgreSQL when the column is already VARCHAR(320)+.
-        try:
-            with self._engine.connect() as conn:
-                conn.execute(
-                    text("ALTER TABLE cases ALTER COLUMN owner TYPE VARCHAR(320)")
-                )
-                conn.commit()
-        except Exception:
-            pass  # column already correct type - safe to ignore
-
     def _session(self):
         return self._session_factory()
 
@@ -440,6 +429,7 @@ class CaseStore:
         session = self._session()
         try:
             session.add(RunModel(**record.to_dict()))
+            session.flush()
             case_model = session.get(CaseModel, case_id)
             if case_model:
                 case_model.latest_run_id = run_id
@@ -482,6 +472,7 @@ class CaseStore:
             run_id = f"run-{utc_now().replace(':', '').replace('-', '')}-{uuid4().hex[:8]}"
             record = AuditRunRecord(run_id=run_id, case_id=case_id, agent_mode=agent_mode)
             session.add(RunModel(**record.to_dict()))
+            session.flush()
             case_model = session.get(CaseModel, case_id)
             if case_model:
                 case_model.latest_run_id = run_id

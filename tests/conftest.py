@@ -30,6 +30,7 @@ WEB_DB_TEST_PATHS = (
     "tests/unit/test_concurrency_limit.py",
     "tests/unit/test_metrics_endpoint.py",
     "tests/unit/test_users_api.py",
+    "tests/unit/test_database_schema_contract.py",
     "tests/integration/test_auth_flow.py",
 )
 
@@ -58,7 +59,7 @@ def web_database_env(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyP
     engine = create_db_engine(db_url)
     # Terminate other connections to avoid deadlocks during table drops.
     _terminate_other_connections(engine, db_url)
-    Base.metadata.drop_all(bind=engine)
+    _reset_public_schema(engine)
     Base.metadata.create_all(bind=engine)
     engine.dispose()
     try:
@@ -66,7 +67,7 @@ def web_database_env(request: pytest.FixtureRequest, monkeypatch: pytest.MonkeyP
     finally:
         engine = create_db_engine(db_url)
         _terminate_other_connections(engine, db_url)
-        Base.metadata.drop_all(bind=engine)
+        _reset_public_schema(engine)
         engine.dispose()
 
 
@@ -88,6 +89,17 @@ def _terminate_other_connections(engine, db_url: str) -> None:
             conn.commit()
     except Exception:
         pass  # best-effort
+
+
+def _reset_public_schema(engine) -> None:
+    """Drop all web DB objects, including old schemas that no longer match metadata."""
+    from sqlalchemy import text
+
+    with engine.connect() as conn:
+        conn.execute(text("DROP SCHEMA IF EXISTS public CASCADE"))
+        conn.execute(text("CREATE SCHEMA public"))
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        conn.commit()
 
 
 # ---------------------------------------------------------------------------

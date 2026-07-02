@@ -97,6 +97,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 
 # ── Source code (changes here do NOT invalidate the uv sync layer) ────
 COPY cli/ ./cli/
+COPY common/ ./common/
 COPY engine/ ./engine/
 COPY runtime/ ./runtime/
 COPY configs/ ./configs/

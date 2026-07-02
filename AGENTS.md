@@ -142,7 +142,19 @@ web_data/diagnostics/latest.json
 web_data/diagnostics/latest.md
 ```
 
-Agent 应优先读取 `latest.json`，再决定是否需要补充 `docker compose logs`。诊断包包含 compose 状态、`/api/health/deep`、最近错误日志、host bind mount、模型权重、最新 audit manifest 和失败节点；命令只读生产容器，不重启、不修改服务。
+Agent 观测生产问题的最佳顺序：
+
+```text
+先看 per-run diagnostics
+→ 再看 make prod-diagnose
+→ 最后才 tail docker compose logs
+```
+
+1. **per-run diagnostics**：优先读取最新 run 的 `outputs/{case_id}/research-integrity-audit/diagnostics/latest.json`，以及同目录下的 `agent_debug.json`、`run_quality.json`、`artifact_summary.json`、`performance.json`、`model_calls.json`。这是审计质量和 Agent 失败分析的第一入口。
+2. **`make prod-diagnose`**：当 run diagnostics 不足以解释问题，或需要容器状态、health、模型、mount 权限等生产环境上下文时运行。输出固定在 `web_data/diagnostics/latest.json` 和 `web_data/diagnostics/latest.md`。
+3. **原始日志**：只有需要实时观察或诊断包无法覆盖时，再使用 `make deploy-logs` / `docker compose logs` / `docker logs` tail 原始日志。
+
+原始日志适合实时观察；真正给 Agent 修 bug，应优先喂结构化 diagnostics。`make prod-diagnose` 诊断包包含 compose 状态、`/api/health/deep`、最近错误日志、host bind mount、模型权重、最新 audit manifest 和失败节点；命令只读生产容器，不重启、不修改服务。
 
 生产视觉取证服务必须通过 compose service name 访问：`SILA_DENSE_URL=http://sila-dense:8770`、`ELIS_FORENSIC_URL=http://elis-forensic:8771`。不要在生产容器里使用 `localhost:8770/8771` 指向这些服务；容器内 `localhost` 只表示当前容器自身。
 

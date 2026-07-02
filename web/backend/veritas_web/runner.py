@@ -4,6 +4,7 @@ import logging
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from inspect import signature
 from pathlib import Path
 from typing import Any, Callable
 
@@ -20,6 +21,45 @@ from .risk import load_static_audit_bundle, risk_rank, summarize_findings
 logger = logging.getLogger(__name__)
 
 AuditFunction = Callable[..., dict[str, Any]]
+
+
+def _expects_audit_config(audit_func: AuditFunction) -> bool:
+    if audit_func is run_static_audit:
+        return True
+    try:
+        params = list(signature(audit_func).parameters.values())
+    except (TypeError, ValueError):
+        return True
+    if not params:
+        return True
+    first = params[0]
+    return first.name == "config" or first.annotation is AuditConfig
+
+
+def _call_audit_func(
+    audit_func: AuditFunction,
+    config: AuditConfig,
+    *,
+    progress: Callable[[dict[str, Any]], None],
+) -> dict[str, Any]:
+    if _expects_audit_config(audit_func):
+        return audit_func(config, progress=progress)
+    return audit_func(
+        config.paper_dir,
+        case_id=config.case_id,
+        output_root=config.output_root,
+        fresh=config.fresh,
+        force=config.force,
+        no_env_file=config.no_env_file,
+        agent_mode=config.agent_mode,
+        agent_model=config.agent_model,
+        opencode_bin=config.opencode_bin,
+        agent_timeout_seconds=config.agent_timeout_seconds,
+        agent_max_retries=config.agent_max_retries,
+        reproducibility_tier=config.reproducibility_tier,
+        audit_profile=config.audit_profile,
+        progress=progress,
+    )
 
 
 def _resolve_max_concurrent() -> int:
@@ -93,25 +133,27 @@ class AuditRunner:
             self.store.append_event(case_id, run_id, event)
 
         try:
-            summary = self.audit_func(
-                AuditConfig(
-                    paper_dir=self.store.inputs_dir(case_id),
-                    case_id=case_id,
-                    output_root=str(params.get("output_root", self.output_root)),
-                    fresh=bool(params.get("fresh", True)),
-                    force=bool(params.get("force", True)),
-                    no_env_file=bool(params.get("no_env_file", False)),
-                    agent_mode=str(params.get("agent_mode", "review")),
-                    agent_model=str(params.get("agent_model", DEFAULT_LLM_MODEL)),
-                    opencode_bin=str(
-                        params.get("opencode_bin")
-                        or get_env("OPENCODE_BIN", required=False, default="opencode")
-                    ),
-                    agent_timeout_seconds=int(params.get("agent_timeout_seconds", 300)),
-                    agent_max_retries=int(params.get("agent_max_retries", 1)),
-                    reproducibility_tier=str(params.get("reproducibility_tier", "full")),
-                    audit_profile=str(params.get("audit_profile", "fast")),
+            config = AuditConfig(
+                paper_dir=self.store.inputs_dir(case_id),
+                case_id=case_id,
+                output_root=str(params.get("output_root", self.output_root)),
+                fresh=bool(params.get("fresh", True)),
+                force=bool(params.get("force", True)),
+                no_env_file=bool(params.get("no_env_file", False)),
+                agent_mode=str(params.get("agent_mode", "review")),
+                agent_model=str(params.get("agent_model", DEFAULT_LLM_MODEL)),
+                opencode_bin=str(
+                    params.get("opencode_bin")
+                    or get_env("OPENCODE_BIN", required=False, default="opencode")
                 ),
+                agent_timeout_seconds=int(params.get("agent_timeout_seconds", 300)),
+                agent_max_retries=int(params.get("agent_max_retries", 1)),
+                reproducibility_tier=str(params.get("reproducibility_tier", "full")),
+                audit_profile=str(params.get("audit_profile", "fast")),
+            )
+            summary = _call_audit_func(
+                self.audit_func,
+                config,
                 progress=progress,
             )
             run.summary = summary
