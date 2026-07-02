@@ -400,22 +400,25 @@ def _run_audit_impl(
     failed_steps: list[str] = []
 
     try:
+        from engine.static_audit.config import AuditConfig
         from engine.static_audit.pipeline import run_static_audit
 
         summary = run_static_audit(
-            paper_dir,
-            case_id=case_id,
-            output_root=options.get("output_root", "outputs"),
-            fresh=options.get("fresh", True),
-            force=options.get("force", True),
-            no_env_file=options.get("no_env_file", False),
-            agent_mode=options.get("agent_mode", "review"),
-            agent_model=options.get("agent_model", "dashscope/qwen3.7-plus"),
-            opencode_bin=options.get("opencode_bin")
-            or get_env("OPENCODE_BIN", required=False, default="opencode"),
-            agent_timeout_seconds=int(options.get("agent_timeout_seconds", 300)),
-            agent_max_retries=int(options.get("agent_max_retries", 1)),
-            reproducibility_tier=options.get("reproducibility_tier", "full"),
+            AuditConfig(
+                paper_dir=paper_dir,
+                case_id=case_id,
+                output_root=options.get("output_root", "outputs"),
+                fresh=options.get("fresh", True),
+                force=options.get("force", True),
+                no_env_file=options.get("no_env_file", False),
+                agent_mode=options.get("agent_mode", "review"),
+                agent_model=options.get("agent_model", "dashscope/qwen3.7-plus"),
+                opencode_bin=options.get("opencode_bin")
+                or get_env("OPENCODE_BIN", required=False, default="opencode"),
+                agent_timeout_seconds=int(options.get("agent_timeout_seconds", 300)),
+                agent_max_retries=int(options.get("agent_max_retries", 1)),
+                reproducibility_tier=options.get("reproducibility_tier", "full"),
+            ),
             progress=_progress,
         )
         result["summary"] = summary
