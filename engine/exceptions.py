@@ -1,43 +1,28 @@
 """Veritas 异常层次结构。
 
 所有领域异常继承 VeritasError，调用方可以按粒度捕获。
+
+跨层共享的异常（VeritasError, ToolExecutionError）定义在
+``common.exceptions``，本模块 re-export 以保持向后兼容。
 """
 from __future__ import annotations
 
+from common.exceptions import ToolExecutionError, VeritasError
 
-class VeritasError(Exception):
-    """Veritas 系统级基类。"""
+__all__ = [
+    "VeritasError",
+    "ConfigError",
+    "ToolExecutionError",
+    "PipelineError",
+    "EarlyTerminationError",
+    "StageTimeoutError",
+    "AgentError",
+    "DataIntegrityError",
+]
 
 
 class ConfigError(VeritasError):
     """配置/环境变量缺失或无效。"""
-
-
-class ToolExecutionError(VeritasError):
-    """Tool subprocess 执行失败。
-
-    Attributes:
-        tool_id: 注册在 Tool Registry 中的工具标识。
-        exit_code: 进程退出码。None 表示未启动。
-        stderr_tail: stderr 尾部（最多 2000 字符）。
-        timed_out: 是否因超时终止。
-    """
-
-    def __init__(
-        self,
-        message: str,
-        *,
-        tool_id: str | None = None,
-        exit_code: int | None = None,
-        stderr_tail: str = "",
-        timed_out: bool = False,
-    ):
-        self.tool_id = tool_id
-        self.exit_code = exit_code
-        self.stderr_tail = stderr_tail
-        self.timed_out = timed_out
-        super().__init__(message)
-
 
 class PipelineError(VeritasError):
     """流水线编排级失败。"""
