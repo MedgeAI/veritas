@@ -36,8 +36,7 @@ from engine.static_audit.visual_schemas import (
     PanelEvidence,
     VISUAL_SCHEMA_VERSION,
 )
-from runtime.executors.base import ExecutionRequest
-from runtime.executors.subprocess_executor import execute_subprocess
+from engine.tools.executor import ExecutionRequest, execute_subprocess
 
 logger = logging.getLogger(__name__)
 
