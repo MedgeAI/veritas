@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import subprocess
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -19,6 +18,7 @@ from typing import Any, Callable
 
 from engine.env import load_project_env
 from engine.investigation.agent_models import AgentErrorCategory, AgentRunResult
+from runtime.executors.subprocess_executor import run_simple_command
 
 
 def extract_json(text: str) -> dict:
@@ -130,28 +130,23 @@ class AgentStepRunner:
                 )
                 command[2] = attempt_prompt
 
-            try:
-                completed = subprocess.run(
-                    command,
-                    cwd=self.project_root,
-                    env=env,
-                    text=True,
-                    encoding="utf-8",
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    timeout=timeout_seconds,
-                    check=False,
-                )
-            except subprocess.TimeoutExpired:
+            completed = run_simple_command(
+                command,
+                cwd=self.project_root,
+                env=env,
+                timeout=timeout_seconds,
+            )
+
+            if completed.returncode == 124:
                 last_error_category = "timeout"
                 last_detail = f"opencode timed out after {timeout_seconds}s"
                 last_stdout = ""
                 last_stderr = ""
                 _record_failure(attempt, last_error_category, last_detail)
                 continue
-            except OSError as exc:
+            if completed.returncode == 127:
                 last_error_category = "non_zero_exit"
-                last_detail = f"opencode launch failed: {exc}"
+                last_detail = f"opencode launch failed: {completed.stderr}"
                 last_stdout = ""
                 last_stderr = ""
                 _record_failure(attempt, last_error_category, last_detail)

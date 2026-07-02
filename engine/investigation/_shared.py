@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -14,6 +13,7 @@ from engine.investigation.agent_step_runner import AgentStepRunner
 from engine.investigation.context_pack import AgentContextPack
 from engine.investigation.validators import extract_json
 from engine.shared import resolve_artifact_path
+from runtime.executors.subprocess_executor import run_simple_command
 
 
 @dataclass
@@ -201,22 +201,17 @@ def _run_opencode_json(
             )
             command[2] = attempt_prompt
         start = time.monotonic()
-        try:
-            completed = subprocess.run(
-                command,
-                cwd=project_root,
-                env=env,
-                text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                timeout=timeout_seconds,
-                check=False,
-            )
-        except subprocess.TimeoutExpired:
+        completed = run_simple_command(
+            command,
+            cwd=project_root,
+            env=env,
+            timeout=timeout_seconds,
+        )
+        if completed.returncode == 124:
             last_detail = f"opencode {expected} timed out after {timeout_seconds}s"
             continue
-        except OSError as exc:
-            last_detail = f"opencode launch failed: {exc}"
+        if completed.returncode == 127:
+            last_detail = f"opencode launch failed: {completed.stderr}"
             break
         runtime = time.monotonic() - start
         if completed.returncode != 0:
