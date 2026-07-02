@@ -35,6 +35,7 @@ from pathlib import Path
 from typing import Any
 
 from engine.exceptions import AgentError
+from engine.static_audit.audit_config import priority_scoring_config
 from engine.static_audit.paths import resolve_artifact_path
 from engine.static_audit.tools.source_data_sheet_briefing import build_sheet_briefing
 
@@ -76,6 +77,16 @@ available context is insufficient to make a confident verdict.
 **true_positive** — ONLY for clear structural artifacts that ARE suspicious:
 - Two measurement columns (not index/stats) with 100% identical values across all rows
 - Ratio reuse in independently measured value columns (not descriptive stats)
+
+## New Source Data Categories
+
+Treat these newer deterministic categories with category-specific reasoning:
+
+- `cross_sheet_fractional_tail_reuse`: high-priority review when independent sheets/cohorts share long decimal tails across consecutive values. Check whether the values could come from the same rounded/truncated source, unit conversion, or reused source table.
+- `repeated_measurement_value`: high-priority review when three or more independent measurement rows repeat the same high-precision value. Downgrade integers, reference values such as 1.0, control constants, or low-information discrete counts.
+- `fractional_tail_reuse`: medium-priority review when long decimal suffixes repeat within a sheet; evaluate whether rounding/truncation or instrument precision explains it.
+- `small_n_fixed_difference` / `small_n_fixed_ratio`: review whether the relationship is a legitimate unit conversion, normalization, or paired design before marking suspicious.
+- `low_information_numeric`: do not escalate to high priority; it is usually a context or filtering signal.
 
 ## Priority Assignment
 
@@ -514,23 +525,39 @@ def _expand_cluster_verdicts(
 
     # If the LLM returned individual finding verdicts (not cluster-level),
     # pass them through unchanged
-    if len(cluster_verdicts) == finding_count:
-        return cluster_verdicts
+    pattern_categories = {str(pattern.get("category") or "") for pattern in patterns}
+    if len(cluster_verdicts) == finding_count and not any(
+        str(item.get("id") or "") in pattern_categories for item in cluster_verdicts
+    ):
+        return [
+            {
+                **item,
+                "finding_id": item.get("finding_id") or item.get("id"),
+            }
+            for item in cluster_verdicts
+        ]
 
     # If no briefing patterns, return cluster verdicts as-is
     if not patterns:
         return cluster_verdicts
 
-    # Expand: each finding in a cluster gets the cluster's verdict
+    # Expand: each finding in a cluster gets the cluster's verdict while
+    # preserving real detector IDs such as CFT-0001/RMV-0001.
     expanded: list[dict[str, Any]] = []
     for pattern in patterns:
         cat = pattern.get("category", "unknown")
         count = pattern.get("count", 1)
+        finding_ids = [
+            str(fid) for fid in (pattern.get("finding_ids") or []) if str(fid)
+        ]
+        while len(finding_ids) < count:
+            finding_ids.append(f"{cat}-{len(finding_ids) + 1:04d}")
         cv = verdict_by_category.get(cat, {})
-        for i in range(count):
+        for fid in finding_ids[:count]:
             expanded.append(
                 {
-                    "id": f"{cat}-{i + 1:04d}",
+                    "id": fid,
+                    "finding_id": fid,
                     "category": cat,
                     "verdict": cv.get("verdict", "uncertain"),
                     "confidence": cv.get("confidence", 0.0),
@@ -541,6 +568,67 @@ def _expand_cluster_verdicts(
                 }
             )
     return expanded
+
+
+def _priority_for_category(category: str, fallback: str = "medium") -> str:
+    rules = priority_scoring_config().get(category) or {}
+    priority = str(rules.get("review_priority") or fallback)
+    return priority if priority in {"critical", "high", "medium", "low"} else fallback
+
+
+def _apply_priority_scoring(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    scored: list[dict[str, Any]] = []
+    for finding in findings:
+        item = dict(finding)
+        category = str(item.get("category") or "")
+        current = str(item.get("priority") or "medium")
+        item["priority"] = _priority_for_category(category, current)
+        scored.append(item)
+    return scored
+
+
+def _category_verdict_summary(
+    sheet_verdicts: list[dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    summary: dict[str, dict[str, Any]] = {}
+    for sheet in sheet_verdicts:
+        for finding in sheet.get("findings") or []:
+            if not isinstance(finding, dict):
+                continue
+            category = str(finding.get("category") or "unknown")
+            verdict = str(finding.get("verdict") or "uncertain")
+            entry = summary.setdefault(
+                category,
+                {
+                    "true_positive": 0,
+                    "false_positive": 0,
+                    "uncertain": 0,
+                    "review_priority": _priority_for_category(category),
+                },
+            )
+            if verdict in {"true_positive", "false_positive", "uncertain"}:
+                entry[verdict] += 1
+            else:
+                entry["uncertain"] += 1
+    return summary
+
+
+def _verdict_grounding(sheet_verdicts: list[dict[str, Any]]) -> list[dict[str, str]]:
+    grounding: list[dict[str, str]] = []
+    for sheet in sheet_verdicts:
+        for finding in sheet.get("findings") or []:
+            if not isinstance(finding, dict):
+                continue
+            fid = str(finding.get("finding_id") or finding.get("id") or "")
+            if not fid:
+                continue
+            reason = str(
+                finding.get("reason")
+                or finding.get("explanation")
+                or f"{finding.get('category', 'source_data')} requires review"
+            )
+            grounding.append({"finding_id": fid, "reason": reason[:500]})
+    return grounding
 
 
 # ── Grouping logic ───────────────────────────────────────────────────
@@ -778,6 +866,7 @@ def run_source_data_verdict(
                 verdict.get("findings", []),
                 ctx.get("briefing", {}),
             )
+            verdict["findings"] = _apply_priority_scoring(verdict["findings"])
             sheet_verdicts.append(verdict)
 
     # Stable ordering by (workbook, sheet)
@@ -800,6 +889,9 @@ def run_source_data_verdict(
         "created_by": "engine/static_audit/tools/source_data_verdict.py",
         "model": model,
         "sheets": sheet_verdicts,
+        "category_verdicts": _category_verdict_summary(sheet_verdicts),
+        "priority_scoring_config": "configs/audit_roles.yaml:priority_scoring",
+        "grounding": _verdict_grounding(sheet_verdicts),
         "summary": {
             "total_sheets": len(sheet_verdicts),
             "total_findings": tp + fp + un,

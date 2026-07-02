@@ -33,6 +33,12 @@ KNOWN_ARTIFACTS = (
     ),
     ("visual_evidence", "json", "Visual Evidence (Figures)", "visual_evidence.json"),
     ("panel_evidence", "json", "Panel Evidence", "panel_evidence.json"),
+    (
+        "panel_extraction_quality",
+        "json",
+        "Panel Extraction Quality",
+        "panel_extraction_quality.json",
+    ),
     ("image_relationships", "json", "Image Relationships", "image_relationships.json"),
     ("visual_findings", "json", "Visual Findings", "visual_findings.json"),
     (
@@ -43,6 +49,12 @@ KNOWN_ARTIFACTS = (
     ),
     ("visual_overlap_reuse", "json", "Visual Overlap/Reuse", "overlap_reuse.json"),
     ("provenance_graph", "json", "Provenance Graph (MST)", "provenance_graph.json"),
+    (
+        "run_diagnostics",
+        "json",
+        "Run Diagnostics",
+        "run_diagnostics.json",
+    ),
     ("certainty_data", "json", "Certainty Layer Data", "certainty_data.json"),
 )
 

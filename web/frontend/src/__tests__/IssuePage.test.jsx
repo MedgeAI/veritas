@@ -26,6 +26,16 @@ const READY_REPORT = {
           },
           review_decision_allowed: true,
           source_ref: 'source-1',
+          detail: {
+            type: 'source_data',
+            workbook: 'source.xlsx',
+            sheet: 'Fig. 2e',
+            columns: ['BV/TV'],
+            support_rows: [12, 13],
+            pattern_description: '连续数值共享小数尾部',
+            benign_explanations: ['rounding'],
+            sample_values: [{ row: 12, value: 0.12345 }],
+          },
         },
         {
           finding_id: 'finding-2',
@@ -77,6 +87,8 @@ describe('IssuePage', () => {
 
     expect(await screen.findByRole('heading', { name: '第一项发现' })).toBeInTheDocument();
     expect(screen.getByText('事实 A')).toBeInTheDocument();
+    expect(screen.getByText('证据细节')).toBeInTheDocument();
+    expect(screen.getByText('source.xlsx')).toBeInTheDocument();
     expect(screen.getByText('1 / 2')).toBeInTheDocument();
   });
 

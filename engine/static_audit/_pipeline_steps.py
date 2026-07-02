@@ -8,10 +8,13 @@ Each function mutates agent_manifest in-place (where applicable) and returns ste
 from __future__ import annotations
 
 import argparse
+import asyncio
+import copy
 import json
 import logging
 import shutil
 import sys
+import time
 from pathlib import Path
 from typing import Any
 
@@ -610,6 +613,7 @@ def _run_material_plan_section(
         run_agent_material_plan,
         write_agent_result,
     )
+    from engine.static_audit.audit_config import resolve_role_timeout
     from engine.static_audit._shared import agent_step_status
     from engine.static_audit.stages.planning import material_plan_from_inventory
 
@@ -655,7 +659,9 @@ def _run_material_plan_section(
             env=env,
             model=args.agent_model,
             opencode_bin=args.opencode_bin,
-            timeout_seconds=args.agent_timeout_seconds,
+            timeout_seconds=resolve_role_timeout(
+                "agent_material_plan", args.agent_timeout_seconds
+            ),
             max_retries=args.agent_max_retries,
         )
         if result.data:
@@ -704,6 +710,7 @@ def _run_agent_plan_section(
         run_agent_plan,
         write_agent_result,
     )
+    from engine.static_audit.audit_config import resolve_role_timeout
     from engine.static_audit._shared import (
         agent_step_status,
         source_finding_params_from_plan,
@@ -731,7 +738,7 @@ def _run_agent_plan_section(
             env=env,
             model=args.agent_model,
             opencode_bin=args.opencode_bin,
-            timeout_seconds=args.agent_timeout_seconds,
+            timeout_seconds=resolve_role_timeout("agent_plan", args.agent_timeout_seconds),
             max_retries=args.agent_max_retries,
         )
         write_agent_result(ap_path, result, "audit_plan")
@@ -912,6 +919,7 @@ def _run_agent_review_section(
         run_agent_review,
         write_agent_result,
     )
+    from engine.static_audit.audit_config import resolve_role_timeout
     from engine.static_audit._shared import agent_step_status
 
     steps: list[StepResult] = []
@@ -950,7 +958,9 @@ def _run_agent_review_section(
                 env=env,
                 model=args.agent_model,
                 opencode_bin=args.opencode_bin,
-                timeout_seconds=args.agent_timeout_seconds,
+                timeout_seconds=resolve_role_timeout(
+                    "agent_review", args.agent_timeout_seconds
+                ),
                 max_retries=args.agent_max_retries,
             )
             write_agent_result(p, result, "agent_review")
@@ -1124,57 +1134,100 @@ def _run_bundle_and_report(
         except (ValueError, OSError) as e:
             logger.warning("Report ID generation failed: %s", e)
 
-    html_path = write_static_audit_html(
-        workdir,
-        case_id,
-        grade=grade_data,
-        dimensions=grade_data.get("dimensions") if grade_data else None,
-        report_id=report_id,
-    )
-    record_step(
-        steps,
-        StepResult("html_report", "生成最终 HTML 报告", "ran", str(html_path)),
-        progress,
-    )
-    manifest["steps"] = [asdict(s) for s in steps]
-    manifest["final_html_report"] = str(html_path)
-    manifest_path.write_text(
-        json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
-
-    # LLM text enrichment (non-blocking, after report-first delivery)
+    # LLM text enrichment + HTML rendering (PRD WP6: asyncio.gather parallel)
+    # Fork bundle before enrichment so base render reads un-mutated data.
     emit_step_start(progress, "llm_enrichment", "LLM 文本充实")
     llm_enriched = False
+    llm_enrichment_started = time.monotonic()
+    llm_enrichment_runtime = 0.0
+    enrichment_error: Exception | None = None
+
+    bundle_for_enrich = copy.deepcopy(bundle)
+    llm_client = None
     try:
         from engine.llm.client import VeritasLLMClient
-        from engine.reporting.text_generator import enrich_bundle_with_llm_text
+        from engine.reporting.text_generator import enrich_bundle_with_llm_text_parallel
 
         llm_client = VeritasLLMClient()
-        bundle = enrich_bundle_with_llm_text(
-            bundle, workdir, llm_client, max_findings=10
-        )
-        bundle.write_json(bundle_path)  # re-write with enriched text
-        llm_enriched = True
-        logger.info("LLM text enrichment completed for bundle %s", case_id)
+    except (VeritasError, OSError) as e:
+        enrichment_error = e
 
-        # Re-generate HTML with enriched data
-        enriched_html_path = write_static_audit_html(
+    async def _run_enrichment() -> bool:
+        if llm_client is None:
+            return False
+        await enrich_bundle_with_llm_text_parallel(
+            bundle_for_enrich, workdir, llm_client, max_findings=10, max_concurrent=5
+        )
+        return True
+
+    async def _run_base_render() -> Path:
+        return await asyncio.to_thread(
+            write_static_audit_html,
             workdir,
             case_id,
             grade=grade_data,
             dimensions=grade_data.get("dimensions") if grade_data else None,
             report_id=report_id,
         )
-        html_path = enriched_html_path
+
+    try:
+        if enrichment_error is None:
+            base_html_task = _run_base_render()
+            llm_enriched = asyncio.run(_run_enrichment())
+            llm_enrichment_runtime = time.monotonic() - llm_enrichment_started
+            # Wait for base render to finish (may already be done)
+            try:
+                asyncio.run(base_html_task)
+            except RuntimeError:
+                pass  # base render failed; final render will overwrite
+        else:
+            llm_enrichment_runtime = time.monotonic() - llm_enrichment_started
+            raise enrichment_error
+
+        if llm_enriched:
+            bundle_for_enrich.write_json(bundle_path)
+            logger.info("LLM text enrichment completed for bundle %s", case_id)
+
+        # Final HTML render — write_static_audit_html reads bundle from bundle_path,
+        # which was just updated with enriched data if enrichment succeeded.
+        html_path = write_static_audit_html(
+            workdir,
+            case_id,
+            grade=grade_data,
+            dimensions=grade_data.get("dimensions") if grade_data else None,
+            report_id=report_id,
+        )
         record_step(
             steps,
             StepResult(
-                "llm_enrichment", "LLM 文本充实", "ran", str(enriched_html_path)
+                "html_report", "生成最终 HTML 报告", "ran", str(html_path)
             ),
             progress,
         )
+        if llm_enriched:
+            record_step(
+                steps,
+                StepResult(
+                    "llm_enrichment", "LLM 文本充实", "ran", str(html_path)
+                ),
+                progress,
+            )
     except (VeritasError, OSError) as e:
+        llm_enrichment_runtime = time.monotonic() - llm_enrichment_started
         logger.warning("LLM text enrichment skipped: %s", e)
+        # Final render with un-enriched bundle
+        html_path = write_static_audit_html(
+            workdir,
+            case_id,
+            grade=grade_data,
+            dimensions=grade_data.get("dimensions") if grade_data else None,
+            report_id=report_id,
+        )
+        record_step(
+            steps,
+            StepResult("html_report", "生成最终 HTML 报告", "ran", str(html_path)),
+            progress,
+        )
         record_step(
             steps,
             StepResult(
@@ -1189,10 +1242,56 @@ def _run_bundle_and_report(
     manifest["llm_enrichment"] = {
         "applied": llm_enriched,
         "findings_enriched": len(bundle.findings) if llm_enriched else 0,
+        "runtime_seconds": round(llm_enrichment_runtime, 3),
+        "max_concurrent": 5,
     }
     manifest_path.write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
     )
+
+    diagnostics_summary = None
+    try:
+        from engine.static_audit.run_diagnostics import build_run_diagnostics
+
+        diagnostics_summary = build_run_diagnostics(
+            workdir,
+            case_id=case_id,
+            manifest=manifest,
+        )
+        manifest["diagnostics"] = diagnostics_summary
+        manifest_path.write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+        record_step(
+            steps,
+            StepResult(
+                "run_diagnostics",
+                "生成运行诊断包",
+                "ran",
+                str(diagnostics_summary.get("paths", {}).get("latest")),
+            ),
+            progress,
+        )
+        manifest["steps"] = [asdict(s) for s in steps]
+        manifest_path.write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
+    except (OSError, ValueError) as e:
+        logger.warning("run diagnostics generation failed: %s", e)
+        record_step(
+            steps,
+            StepResult(
+                "run_diagnostics",
+                "生成运行诊断包",
+                "warning",
+                f"diagnostics generation failed: {e}",
+            ),
+            progress,
+        )
+        manifest["steps"] = [asdict(s) for s in steps]
+        manifest_path.write_text(
+            json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
+        )
 
     # Public verification: save verification summary
     if report_id and grade_data:

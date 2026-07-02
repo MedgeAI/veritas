@@ -24,6 +24,7 @@ class AgentRunResult:
     command: list[str]
     runtime_seconds: float
     retries: int = 0
+    metadata: dict[str, Any] | None = None
 
 
 def write_agent_result(path: Path, result: AgentRunResult, fallback_kind: str) -> None:
@@ -42,7 +43,7 @@ def write_agent_result(path: Path, result: AgentRunResult, fallback_kind: str) -
 
 
 def result_metadata(result: AgentRunResult, output_path: Path) -> dict[str, Any]:
-    return {
+    metadata = {
         "status": result.status,
         "detail": result.detail,
         "runtime_seconds": round(result.runtime_seconds, 3),
@@ -50,6 +51,9 @@ def result_metadata(result: AgentRunResult, output_path: Path) -> dict[str, Any]
         "command": result.command,
         "output": str(output_path),
     }
+    if result.metadata:
+        metadata["metadata"] = result.metadata
+    return metadata
 
 
 def _convert_runner_result(
@@ -90,6 +94,7 @@ def _convert_runner_result(
             command=[],
             runtime_seconds=new_result.runtime_seconds,
             retries=max(new_result.metadata.get("attempts", 1) - 1, 0),
+            metadata=new_result.metadata,
         )
 
     if status == "ok":
@@ -106,6 +111,7 @@ def _convert_runner_result(
         command=[],
         runtime_seconds=new_result.runtime_seconds,
         retries=max(new_result.metadata.get("attempts", 1) - 1, 0),
+        metadata=new_result.metadata,
     )
 
 

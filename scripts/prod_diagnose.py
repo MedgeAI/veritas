@@ -254,6 +254,22 @@ def collect_latest_artifacts(root: Path) -> dict[str, Any]:
             "final_html_report": path_info(report_dir / "final_audit_report.html"),
             "static_audit_bundle": path_info(report_dir / "static_audit_bundle.json"),
         }
+        diagnostics_path = workdir / "diagnostics" / "latest.json"
+        if diagnostics_path.exists():
+            diagnostics = safe_load_json(diagnostics_path)
+            item["run_diagnostics"] = {
+                "path": path_info(diagnostics_path),
+                "summary": {
+                    key: diagnostics.get(key)
+                    for key in ("schema_version", "case_id", "run_id", "status")
+                    if isinstance(diagnostics, dict) and key in diagnostics
+                }
+                if isinstance(diagnostics, dict)
+                else {},
+                "quality_flags": (diagnostics.get("quality_flags") or [])[:20]
+                if isinstance(diagnostics, dict)
+                else [],
+            }
         if isinstance(manifest, dict):
             item["manifest_top_level"] = {
                 key: manifest.get(key)
@@ -382,6 +398,12 @@ def summarize(bundle: dict[str, Any]) -> dict[str, Any]:
 
     artifacts = bundle.get("artifacts", {})
     for item in artifacts.get("latest_manifests", [])[:1]:
+        run_diag = item.get("run_diagnostics") or {}
+        quality_flags = run_diag.get("quality_flags") or []
+        if quality_flags:
+            signals.append(
+                f"latest run diagnostics contains {len(quality_flags)} quality flag(s)"
+            )
         problem_count = len(item.get("problem_nodes") or [])
         if problem_count:
             signals.append(f"latest audit manifest contains {problem_count} problem nodes")

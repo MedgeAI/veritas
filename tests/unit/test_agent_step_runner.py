@@ -107,6 +107,31 @@ def test_schema_validation_error_category(
     assert result.error_category == "schema_validation"
 
 
+@patch("engine.investigation.agent_step_runner.extract_json")
+@patch("engine.investigation.agent_step_runner.subprocess.run")
+def test_schema_failure_writes_raw_output_and_repair_history(
+    mock_run: MagicMock,
+    mock_extract: MagicMock,
+    tmp_path: Path,
+) -> None:
+    mock_run.return_value = _make_completed(stdout="not json")
+    mock_extract.side_effect = ValueError("no JSON object found")
+
+    runner = AgentStepRunner(project_root=tmp_path)
+    result = runner.run(
+        role="test_role",
+        prompt="test prompt",
+        output_validator=_identity_validator,
+        max_retries=0,
+        log_dir=tmp_path / "logs",
+    )
+
+    assert result.status == "failed"
+    assert result.metadata["raw_output_path"]
+    assert result.metadata["validation_error_path"]
+    assert result.metadata["repair_history"][0]["failure_type"] == "schema_validation"
+
+
 # -----------------------------------------------------------------------
 # 4. permission_rejected_error_category
 # -----------------------------------------------------------------------

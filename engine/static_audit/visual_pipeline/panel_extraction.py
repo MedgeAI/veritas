@@ -19,6 +19,7 @@ from engine.static_audit.tools.panel_extraction import (
     _classify_fallback_panels,
     build_figure_evidence_from_images,
     build_figure_evidence_from_ledger,
+    detect_oversegmented_figures,
     extract_panels_batch,
     whole_figure_panel,
 )
@@ -72,7 +73,9 @@ def run_visual_panel_extraction(
     steps: list[StepResult] = []
     figure_output = resolve_artifact_path(workdir, "visual_evidence.json")
     panel_output = resolve_artifact_path(workdir, "panel_evidence.json")
+    quality_output = resolve_artifact_path(workdir, "panel_extraction_quality.json")
     if figure_output.exists() and panel_output.exists() and not force:
+        quality_data = read_json(quality_output) if quality_output.exists() else None
         step = StepResult(
             "visual_panel_extraction",
             "图片 Panel 拆分",
@@ -85,6 +88,8 @@ def run_visual_panel_extraction(
                 "status": "reused",
                 "figures_output": str(figure_output),
                 "panels_output": str(panel_output),
+                "quality_output": str(quality_output) if quality_output.exists() else None,
+                "quality": quality_data,
             }
         }
 
@@ -145,9 +150,14 @@ def run_visual_panel_extraction(
         if panels_dir.is_dir():
             shutil.rmtree(str(panels_dir), ignore_errors=True)
         batch_panels = extract_panels_batch(figure_path_pairs, output_dir=workdir)
+        oversegmented = detect_oversegmented_figures(
+            workdir / "yolov5_batch" / "PANELS.csv",
+            figure_path_pairs,
+        )
         extraction_statuses.append("ran" if any(batch_panels.values()) else "skipped")
     else:
         batch_panels = {}
+        oversegmented = {}
 
     # Pre-compute figure_id → paper_label mapping ONCE (expensive LLM call)
     # Input (full.md + evidence_ledger.json) is fixed for this workdir,
@@ -163,11 +173,14 @@ def run_visual_panel_extraction(
 
     # Distribute panels to figures; fallback for figures with zero panels
     fallback_count = 0
+    quality_figures: list[dict[str, Any]] = []
     for fid, source_path in figure_path_pairs:
         figure = figure_by_id.get(fid)
         if figure is None:
             continue
         result_panels = batch_panels.get(fid, [])
+        fallback = False
+        failure_reason = None
         if not result_panels:
             logger.debug(
                 "Figure %s: 0 panels detected; applying whole-figure fallback", fid
@@ -176,15 +189,29 @@ def run_visual_panel_extraction(
                 figure, workdir=workdir, output_dir=workdir
             )
             if fallback_panel:
+                if fid in oversegmented:
+                    metadata = fallback_panel.setdefault("metadata", {})
+                    metadata["fallback_reason"] = "yolov5_oversegmentation"
+                    metadata["yolov5_detected_panel_count"] = oversegmented[fid]
                 result_panels = [fallback_panel]
                 fallback_count += 1
+                fallback = True
+                failure_reason = (
+                    (fallback_panel.get("metadata") or {}).get("fallback_reason")
+                    or "no_panel_boundaries_detected"
+                )
                 # Post-hoc heuristic typing: infer panel_type from image
                 # shape/color so downstream forensics routing can make
                 # informed decisions even when YOLOv5 detected nothing.
                 _classify_fallback_panels(result_panels, workdir=workdir)
-                limitations.append(
-                    f"{fid}: YOLOv5 panel extraction did not detect panels; whole-figure fallback panel was created."
-                )
+                if fid in oversegmented:
+                    limitations.append(
+                        f"{fid}: YOLOv5 over-segmented into {oversegmented[fid]} panels (max=16); whole-figure fallback panel was created."
+                    )
+                else:
+                    limitations.append(
+                        f"{fid}: YOLOv5 panel extraction did not detect panels; whole-figure fallback panel was created."
+                    )
 
         # Annotate panels with LLM classification (if available)
         if figure_classification and cls_dict:
@@ -202,16 +229,40 @@ def run_visual_panel_extraction(
         metadata = (
             figure.get("metadata") if isinstance(figure.get("metadata"), dict) else {}
         )
+        if fallback:
+            metadata["panel_extraction_fallback_reason"] = failure_reason
         figure["metadata"] = {
             **metadata,
             "panel_extraction_status": "ran" if result_panels else "skipped",
         }
+        quality_figures.append(
+            {
+                "figure_id": fid,
+                "panel_count": len(result_panels),
+                "fallback": fallback,
+                "failure_reason": failure_reason,
+            }
+        )
 
     status = "ran" if figures else "skipped"
     if figures and not panels:
         status = _visual_status(extraction_statuses)
         if status == "ran":
             status = "warning"
+    fallback_rate = (fallback_count / len(figures)) if figures else 0.0
+    quality_status = "ok"
+    if fallback_rate >= 1.0 and figures:
+        quality_status = "degraded"
+    elif fallback_rate > 0.8:
+        quality_status = "degraded"
+    elif fallback_rate > 0:
+        quality_status = "partial"
+    if quality_status == "degraded" and status == "ran":
+        status = "warning"
+    if fallback_rate >= 1.0 and figures:
+        limitations.append(
+            "Panel extraction fell back to one whole-figure panel for every figure; visual relationship evidence is degraded."
+        )
 
     elapsed_s = time.monotonic() - start_time
     logger.info(
@@ -243,10 +294,25 @@ def run_visual_panel_extraction(
         "errors": errors,
         "limitations": limitations,
     }
+    quality_data = {
+        "schema_version": "panel_extraction_quality.v1",
+        "summary": {
+            "figures": len(figures),
+            "panels": len(panels),
+            "fallbacks": fallback_count,
+            "fallback_rate": round(fallback_rate, 4),
+            "status": quality_status,
+        },
+        "figures": quality_figures,
+    }
     write_json_artifact(figure_output, visual_evidence)
     write_json_artifact(panel_output, panel_evidence)
+    write_json_artifact(quality_output, quality_data)
 
-    detail = f"figures={len(figures)} panels={len(panels)}"
+    detail = (
+        f"figures={len(figures)} panels={len(panels)} "
+        f"fallbacks={fallback_count} fallback_rate={fallback_rate:.0%}"
+    )
     if limitations:
         detail += f" limitations={len(limitations)}"
     step_status = (
@@ -263,8 +329,12 @@ def run_visual_panel_extraction(
             "status": status,
             "figures_output": str(figure_output),
             "panels_output": str(panel_output),
+            "quality_output": str(quality_output),
             "figure_count": len(figures),
             "panel_count": len(panels),
+            "fallback_count": fallback_count,
+            "fallback_rate": round(fallback_rate, 4),
+            "quality_status": quality_status,
             "errors": errors,
             "limitations": limitations,
         }

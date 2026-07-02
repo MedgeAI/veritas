@@ -20,6 +20,9 @@ from engine.static_audit.tools.visual_finding_pipeline import (
     build_visual_findings,
     visual_review_queue,
 )
+from engine.static_audit.visual_pipeline.provenance_relationships import (
+    write_provenance_relationship_artifacts,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -328,6 +331,44 @@ def run_visual_finding_pipeline(
     limitations = [
         "Visual relationships are screening signals and require manual review before escalation.",
     ]
+    provenance_graph = (
+        read_json(resolve_artifact_path(workdir, "provenance_graph.json")) or {}
+    )
+    relationship_findings: list[dict[str, Any]] = []
+    provenance_filtered: dict[str, Any] = {}
+    if provenance_graph:
+        (
+            relationship_findings,
+            _relationship_doc,
+            provenance_filtered,
+        ) = write_provenance_relationship_artifacts(workdir, provenance_graph)
+        findings.extend(relationship_findings)
+        if relationship_findings:
+            start_index = len(review_queue) + 1
+            for index, finding in enumerate(relationship_findings, start=start_index):
+                review_queue.append(
+                    {
+                        "task_id": f"VRT-{index:03d}",
+                        "priority": finding.get("risk_level", "medium"),
+                        "cluster_id": None,
+                        "category": finding.get("category"),
+                        "scope": "cross_figure",
+                        "figure_ids": [
+                            finding.get("source_figure"),
+                            finding.get("target_figure"),
+                        ],
+                        "finding_count": 1,
+                        "relationship_count": 1,
+                        "panel_extraction_quality": "figure_level",
+                        "question": finding.get("review_question"),
+                        "evidence_refs": finding.get("evidence_refs") or [],
+                        "representative_finding_ids": [finding.get("finding_id")],
+                    }
+                )
+        elif provenance_filtered.get("total_edges", 0) > 0:
+            limitations.append(
+                "Provenance graph produced edges, but none passed the configured relationship threshold."
+            )
     if len(skipped_panels) > 0:
         limitations.append(
             f"{len(skipped_panels)} panels skipped due to code-generated modality (Graphs/Flow Cytometry); "
@@ -378,9 +419,11 @@ def run_visual_finding_pipeline(
         "finding_count": len(findings),
         "finding_cluster_count": len(finding_clusters),
         "review_queue_count": len(review_queue),
+        "visual_relationship_finding_count": len(relationship_findings),
         "findings": findings,
         "finding_clusters": finding_clusters,
         "review_queue": review_queue,
+        "provenance_edge_filter": provenance_filtered,
         "errors": errors,
         "limitations": limitations,
     }
@@ -413,6 +456,8 @@ def run_visual_finding_pipeline(
             "finding_count": len(findings),
             "finding_cluster_count": len(finding_clusters),
             "review_queue_count": len(review_queue),
+            "visual_relationship_finding_count": len(relationship_findings),
+            "provenance_edge_filter": provenance_filtered,
             "copy_move_status": copy_move_result.get("status"),
             "overlay_cleanup": cleanup_stats,
         }

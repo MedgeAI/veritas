@@ -233,6 +233,11 @@ STEP_LABELS: dict[str, dict[str, Any]] = {
         "phase": _PHASE_REPORT,
         "phase_order": _ORDER_REPORT,
     },
+    "run_diagnostics": {
+        "title": "生成运行诊断包",
+        "phase": _PHASE_REPORT,
+        "phase_order": _ORDER_REPORT,
+    },
 }
 
 _UNKNOWN_PHASE = "Unknown"

@@ -28,6 +28,7 @@ from engine.investigation.opencode_agent import (
     write_agent_result,
 )
 from engine.static_audit.investigation_tools import ADAPTERS, tool_output_filename
+from engine.static_audit.audit_config import resolve_role_timeout
 
 # ---------------------------------------------------------------------------
 # Shared utilities (previously in orchestrator.py, now in _shared.py).
@@ -521,7 +522,7 @@ def run_agent_roles(
                 env=env,
                 model=model,
                 opencode_bin=opencode_bin,
-                timeout_seconds=timeout_seconds,
+                timeout_seconds=resolve_role_timeout(role.role_id, timeout_seconds),
                 max_retries=max_retries,
             )
             payload = write_role_agent_result(output_path, role, case_id, result)

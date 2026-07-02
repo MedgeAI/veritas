@@ -209,6 +209,79 @@ function IssueListView({ data, onNavigate }) {
   );
 }
 
+function DetailValue({ label, value }) {
+  if (value === undefined || value === null || value === '' || (Array.isArray(value) && value.length === 0)) {
+    return null;
+  }
+  const display = Array.isArray(value) ? value.join(', ') : String(value);
+  return (
+    <div className="grid grid-cols-[132px_1fr] gap-4 border-b border-paper-200 py-2.5 last:border-b-0">
+      <div className="font-mono text-[11px] text-ink-400">{label}</div>
+      <div className="min-w-0 break-words text-sm text-ink-800">{display}</div>
+    </div>
+  );
+}
+
+function FindingDetailCard({ detail }) {
+  if (!detail) {
+    return (
+      <div className="mt-10 border-t border-ink-900/10 pt-6">
+        <div className="mb-4 flex items-baseline gap-3">
+          <span className="font-display text-[20px] text-ink-900">证据细节</span>
+        </div>
+        <p className="text-sm text-ink-400">
+          该发现的详细证据数据暂不可用。可能原因：原始 artifact 缺失或解析失败。
+        </p>
+      </div>
+    );
+  }
+  const samples = Array.isArray(detail.sample_values) ? detail.sample_values.slice(0, 5) : [];
+  return (
+    <div className="mt-10 border-t border-ink-900/10 pt-6">
+      <div className="mb-4 flex items-baseline gap-3">
+        <span className="font-display text-[20px] text-ink-900">证据细节</span>
+        <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-ink-400">{detail.type}</span>
+      </div>
+
+      {detail.type === 'source_data' && (
+        <div>
+          <DetailValue label="Workbook" value={detail.workbook} />
+          <DetailValue label="Sheet" value={detail.sheet} />
+          <DetailValue label="Columns" value={detail.columns} />
+          <DetailValue label="Rows" value={detail.support_rows} />
+          <DetailValue label="Pattern" value={detail.pattern_description} />
+          <DetailValue label="Benign" value={detail.benign_explanations} />
+          {samples.length > 0 && (
+            <pre className="mt-4 max-h-52 overflow-auto rounded-sm bg-paper-100 p-3 text-[11px] leading-relaxed text-ink-700">
+              {JSON.stringify(samples, null, 2)}
+            </pre>
+          )}
+        </div>
+      )}
+
+      {detail.type === 'visual_relationship' && (
+        <div>
+          <DetailValue label="Source" value={detail.source_figure} />
+          <DetailValue label="Target" value={detail.target_figure} />
+          <DetailValue label="Score" value={detail.score} />
+          <DetailValue label="Type" value={detail.relationship_type} />
+          <DetailValue label="Benign" value={detail.benign_explanations} />
+        </div>
+      )}
+
+      {detail.type === 'visual_copy_move' && (
+        <div>
+          <DetailValue label="Source" value={detail.source_panel} />
+          <DetailValue label="Target" value={detail.target_panel} />
+          <DetailValue label="Score" value={detail.score || detail.overlap_ratio} />
+          <DetailValue label="Overlay" value={detail.overlay_path} />
+          <DetailValue label="Benign" value={detail.benign_explanations} />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function IssueDetailView({ caseId, data, findingId, onNavigate }) {
   const [selectedChoice, setSelectedChoice] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -345,6 +418,8 @@ function IssueDetailView({ caseId, data, findingId, onNavigate }) {
           suggestion={certainty.suggestion}
         />
       </div>
+
+      <FindingDetailCard detail={finding.detail} />
 
       {/* Resolution section */}
       {canDecide && (

@@ -17,6 +17,8 @@ from engine.exceptions import AgentError
 from engine.static_audit.paths import resolve_artifact_path
 from engine.static_audit.tools.source_data_verdict import (
     _build_sheet_context,
+    _apply_priority_scoring,
+    _expand_cluster_verdicts,
     _group_findings_by_sheet,
     _safe_value,
     _validate_verdict_output,
@@ -510,6 +512,32 @@ def test_run_source_data_verdict_writes_summary_and_artifact(
     briefing = s1_context["briefing"]
     assert briefing["finding_count"] >= 1
     assert len(briefing["detected_patterns"]) >= 1
+
+
+def test_cluster_expansion_preserves_real_ids_and_scores_priority() -> None:
+    expanded = _expand_cluster_verdicts(
+        [
+            {
+                "id": "cross_sheet_fractional_tail_reuse",
+                "verdict": "uncertain",
+                "confidence": 0.7,
+            }
+        ],
+        {
+            "finding_count": 1,
+            "detected_patterns": [
+                {
+                    "category": "cross_sheet_fractional_tail_reuse",
+                    "count": 1,
+                    "finding_ids": ["CFT-0001"],
+                }
+            ],
+        },
+    )
+
+    scored = _apply_priority_scoring(expanded)
+    assert scored[0]["id"] == "CFT-0001"
+    assert scored[0]["priority"] == "high"
 
 
 def test_run_source_data_verdict_keeps_findings_uncertain_when_sheet_call_fails(

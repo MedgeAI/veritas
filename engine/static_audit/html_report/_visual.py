@@ -341,6 +341,8 @@ def _visual_finding_cards(
 
         source_panel_id = str(finding.get("source_panel_id") or "-")
         target_panel_id = str(finding.get("target_panel_id") or "-")
+        source_figure = str(finding.get("source_figure") or "")
+        target_figure = str(finding.get("target_figure") or "")
         score = finding.get("score", 0)
         overlay_path = finding.get("overlay_path")
         metadata = (
@@ -357,6 +359,10 @@ def _visual_finding_cards(
         target_panel = _resolve_panel(target_panel_id, panels_by_id)
         source_crop = str(source_panel.get("crop_path") or "")
         target_crop = str(target_panel.get("crop_path") or "")
+        if category == "visual_provenance_relationship":
+            source_panel_id = source_figure or source_panel_id
+            target_panel_id = target_figure or target_panel_id
+            quality_note = "figure-level provenance graph"
 
         benign = finding.get("benign_explanations") or []
         benign_items = []

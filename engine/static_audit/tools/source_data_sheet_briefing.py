@@ -204,6 +204,11 @@ def _cluster_findings(findings: list[dict]) -> list[dict[str, Any]]:
             "count": len(items),
             "max_risk": _max_risk(risks),
             "analysis_scope": "within-sheet",
+            "finding_ids": [
+                str(item.get("finding_id"))
+                for item in items
+                if item.get("finding_id")
+            ][:50],
         }
         if row_pairs:
             cluster["representative_row_pairs"] = row_pairs[:5]

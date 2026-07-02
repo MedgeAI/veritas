@@ -109,6 +109,7 @@ def build_client_report(deps: Any, case_id: str) -> dict[str, Any]:
         fid = item.get("finding_id")
         if fid:
             review_by_finding_id[fid] = item
+    detail_index = _build_finding_detail_index(workdir)
 
     # 11. Enrich findings with certainty layers, review data, and location
     enriched_findings = []
@@ -136,6 +137,7 @@ def build_client_report(deps: Any, case_id: str) -> dict[str, Any]:
 
         # Location from metadata (PRD §7.3)
         finding["location"] = _extract_location(finding.get("metadata", {}))
+        finding["detail"] = detail_index.get(fid)
 
         enriched_findings.append(finding)
 
@@ -217,6 +219,125 @@ def _load_certainty_map(workdir: Path) -> dict[str, dict]:
         if isinstance(entry, dict) and "finding_id" in entry:
             result[entry["finding_id"]] = entry
     return result
+
+
+def _load_json_artifact(workdir: Path, artifact_name: str) -> dict[str, Any]:
+    path = artifact_file_path(workdir, artifact_name)
+    if path is None or not path.exists():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _build_finding_detail_index(workdir: Path) -> dict[str, dict[str, Any]]:
+    """Build per-finding detail by joining multiple artifacts.
+
+    Each artifact is loaded independently — if one is missing or corrupted,
+    the others still contribute. Per-finding detail extraction is also
+    isolated: a malformed finding does not prevent siblings from loading.
+    """
+    details: dict[str, dict[str, Any]] = {}
+    for artifact_name in (
+        "source_data_findings.json",
+        "source_data_pair_forensics.json",
+    ):
+        try:
+            data = _load_json_artifact(workdir, artifact_name)
+            for finding in data.get("findings") or []:
+                if not isinstance(finding, dict) or not finding.get("finding_id"):
+                    continue
+                try:
+                    details[str(finding["finding_id"])] = _source_data_detail(finding)
+                except (KeyError, TypeError, ValueError):
+                    continue
+        except Exception:
+            continue
+
+    try:
+        visual = _load_json_artifact(workdir, "visual_findings.json")
+        for finding in visual.get("findings") or []:
+            if not isinstance(finding, dict) or not finding.get("finding_id"):
+                continue
+            try:
+                if finding.get("category") == "visual_provenance_relationship":
+                    details[str(finding["finding_id"])] = _visual_relationship_detail(finding)
+                else:
+                    details[str(finding["finding_id"])] = _visual_copy_move_detail(finding)
+            except (KeyError, TypeError, ValueError):
+                continue
+    except Exception:
+        pass
+    return details
+
+
+def _source_data_detail(finding: dict[str, Any]) -> dict[str, Any]:
+    columns = (
+        finding.get("columns")
+        or finding.get("column_pair")
+        or finding.get("column")
+        or []
+    )
+    if isinstance(columns, str):
+        columns = [columns]
+    support_rows = (
+        finding.get("support_rows")
+        or finding.get("matched_pairs")
+        or finding.get("sample_rows")
+        or finding.get("equal_rows")
+        or []
+    )
+    samples = (
+        finding.get("sample_pairs")
+        or finding.get("sample_exact_pairs")
+        or finding.get("raw_data_samples")
+        or []
+    )
+    return {
+        "type": "source_data",
+        "category": finding.get("category"),
+        "workbook": finding.get("workbook"),
+        "sheet": finding.get("sheet"),
+        "columns": columns,
+        "support_rows": support_rows,
+        "sample_values": samples[:8] if isinstance(samples, list) else [],
+        "pattern_description": finding.get("summary")
+        or finding.get("description")
+        or finding.get("pattern_signature"),
+        "benign_explanations": finding.get("benign_explanations")
+        or [
+            "rounding or truncation",
+            "unit conversion or normalization",
+            "shared control/reference value",
+        ],
+        "related_finding_ids": finding.get("related_finding_ids") or [],
+    }
+
+
+def _visual_relationship_detail(finding: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "type": "visual_relationship",
+        "source_figure": finding.get("source_figure"),
+        "target_figure": finding.get("target_figure"),
+        "score": finding.get("score"),
+        "relationship_type": finding.get("relationship_type"),
+        "overlay_path": finding.get("overlay_path"),
+        "benign_explanations": finding.get("benign_explanations") or [],
+    }
+
+
+def _visual_copy_move_detail(finding: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "type": "visual_copy_move",
+        "source_panel": finding.get("source_panel_id"),
+        "target_panel": finding.get("target_panel_id"),
+        "overlap_ratio": finding.get("overlap_ratio"),
+        "score": finding.get("score"),
+        "overlay_path": finding.get("overlay_path"),
+        "benign_explanations": finding.get("benign_explanations") or [],
+    }
 
 
 def _load_review_items(

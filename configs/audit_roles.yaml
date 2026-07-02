@@ -1,0 +1,30 @@
+# Agent/runtime tuning shared by static-audit pipeline steps.
+role_timeouts:
+  agent_material_plan: 120
+  agent_plan: 180
+  source_data_auditor: 300
+  judge: 180
+  agent_review: 180
+
+provenance_edge_threshold: 0.85
+provenance_max_relationships: 30
+
+priority_scoring:
+  cross_sheet_fractional_tail_reuse:
+    min_consecutive_matches: 5
+    min_decimal_places: 5
+    review_priority: high
+  repeated_measurement_value:
+    min_repeats: 3
+    min_decimal_places: 4
+    review_priority: high
+  fractional_tail_reuse:
+    min_decimal_places: 5
+    review_priority: medium
+  small_n_fixed_difference:
+    review_priority: medium
+  small_n_fixed_ratio:
+    review_priority: medium
+  low_information_numeric:
+    review_priority: low
+    filter: true

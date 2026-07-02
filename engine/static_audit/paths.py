@@ -20,6 +20,7 @@ OUTPUT_DIRS = {
     "numeric": "numeric",  # Numeric forensics tool outputs
     "agents": "agents",  # Agent outputs, traces, context packs, logs
     "reports": "reports",  # Final deliverables (HTML/MD reports, bundle, manifest)
+    "diagnostics": "diagnostics",  # Per-run diagnostics for agent feedback loops
 }
 
 
@@ -70,8 +71,12 @@ ARTIFACT_PATH_MAP = {
     "paperconan_scan.json": "numeric/paperconan_scan.json",
     # Visual forensics outputs
     "visual_evidence.json": "visual/evidence.json",
+    "figure_legend_extraction.json": "visual/figure_legend_extraction.json",
     "panel_evidence.json": "visual/panel_evidence.json",
+    "panel_extraction_quality.json": "visual/panel_extraction_quality.json",
     "visual_findings.json": "visual/findings.json",
+    "visual_relationship_findings.json": "visual/relationship_findings.json",
+    "provenance_edge_filtered.json": "visual/provenance_edge_filtered.json",
     "image_relationships.json": "visual/relationships.json",
     "visual_copy_move.json": "visual/copy_move.json",
     "exact_image_duplicates.json": "visual/exact_duplicates.json",
@@ -112,6 +117,14 @@ ARTIFACT_PATH_MAP = {
     "final_audit_report.md": "reports/final_audit_report.md",
     "final_audit_report.html": "reports/final_audit_report.html",
     "audit_run_manifest.json": "reports/audit_run_manifest.json",
+    # Per-run diagnostics
+    "run_diagnostics.json": "diagnostics/latest.json",
+    "agent_debug.json": "diagnostics/agent_debug.json",
+    "run_quality.json": "diagnostics/run_quality.json",
+    "artifact_summary.json": "diagnostics/artifact_summary.json",
+    "performance.json": "diagnostics/performance.json",
+    "model_calls.json": "diagnostics/model_calls.json",
+    "recommended_next_actions.md": "diagnostics/recommended_next_actions.md",
     # Investigation rounds (kept at root for backward compatibility)
     "investigation": "investigation",
     "investigation_rounds.jsonl": "investigation/investigation_rounds.jsonl",

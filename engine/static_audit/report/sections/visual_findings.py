@@ -32,7 +32,11 @@ def collect_visual_findings(
             if panel_id in evidence_by_panel
         ]
         category = str(item.get("category") or "visual_finding")
-        if category == "forged_region_suspicious":
+        if category == "visual_provenance_relationship":
+            provenance_artifact = evidence_by_artifact.get("provenance_graph.json")
+            if provenance_artifact:
+                evidence_refs.append(provenance_artifact)
+        elif category == "forged_region_suspicious":
             tru_for_artifact = evidence_by_artifact.get("forged_region_evidence.json")
             if tru_for_artifact:
                 evidence_refs.append(tru_for_artifact)
