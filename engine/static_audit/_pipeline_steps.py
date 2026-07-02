@@ -273,7 +273,7 @@ def _run_source_data_steps(
                 filter_detail = "no findings to filter"
         except (VeritasError, OSError) as e:
             logger.warning("cross_sheet_filter failed: %s", e)
-            filter_status = "warning"
+            filter_status = "failed"
             filter_detail = f"filter failed: {e}"
         record_step(
             steps,
@@ -347,7 +347,7 @@ def _run_source_data_steps(
         bs = briefings.get("sheet_count", 0)
         bst, bsd = "ran", f"sheets={bs}"
     except (VeritasError, OSError) as e:
-        bst, bsd = "warning", f"briefings step exception: {e}"
+        bst, bsd = "failed", f"briefings step exception: {e}"
         logger.warning("source_data_briefings failed: %s", e)
     record_step(
         steps,
@@ -378,9 +378,9 @@ def _run_source_data_steps(
         )
         vst = "ran" if vs.get("total_sheets", 0) > 0 else "skipped"
         if vs.get("failed_sheets", 0) > 0:
-            vst, vd = "warning", vd + f" failed_sheets={vs['failed_sheets']}"
+            vst, vd = "failed", vd + f" failed_sheets={vs['failed_sheets']}"
     except (VeritasError, OSError) as e:
-        vst, vd = "warning", f"verdict step exception: {e}"
+        vst, vd = "failed", f"verdict step exception: {e}"
         logger.warning("source_data_verdict failed: %s", e)
     record_step(
         steps,
@@ -1052,7 +1052,7 @@ def _run_bundle_and_report(
             StepResult(
                 "certification_grade",
                 "认证评级计算",
-                "warning",
+                "failed",
                 f"grade computation failed: {e}",
             ),
             progress,
