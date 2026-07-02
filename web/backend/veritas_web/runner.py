@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
@@ -14,6 +15,8 @@ from engine.static_audit.orchestrator import run_static_audit
 from .case_store import CaseStore
 from .models import STALE_RUN_THRESHOLD_SECONDS, AuditRunRecord, utc_now
 from .risk import load_static_audit_bundle, risk_rank, summarize_findings
+
+logger = logging.getLogger(__name__)
 
 AuditFunction = Callable[..., dict[str, Any]]
 
@@ -247,8 +250,8 @@ class AuditRunner:
                 from engine.tasks.celery_app import celery_app
 
                 celery_app.control.revoke(celery_task_id, terminate=True)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("Celery revoke failed: %s", e)
 
         run.status = "cancelled"
         run.completed_at = utc_now()
@@ -259,8 +262,8 @@ class AuditRunner:
                 from engine.tasks.process_cleanup import cleanup_audit_processes
 
                 cleanup_audit_processes(run_id, case_id)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("Process cleanup failed: %s", e)
 
         self._update_case_after_run(run)
         return run
@@ -303,8 +306,8 @@ class AuditRunner:
                             run.summary = {}
                         run.summary["certification_grade"] = grade_data
                         self.store.save_run(run)
-                    except Exception:
-                        pass
+                    except (OSError, json.JSONDecodeError) as e:
+                        logger.warning("Failed to load certification grade: %s", e)
         elif run.status == "failed":
             case_record.status = "Review Needed"
             case_record.review_needed_count = max(case_record.review_needed_count, 1)
