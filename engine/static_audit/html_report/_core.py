@@ -336,6 +336,16 @@ def render_static_audit_html(
     # Load all artifacts
     artifacts = _load_report_artifacts(workdir)
 
+    # Load typed numeric forensics artifact for safe field access
+    from engine.static_audit.typed_adapters import NumericForensicsArtifact
+
+    _numeric_raw = artifacts["numeric"]
+    _numeric_typed = (
+        NumericForensicsArtifact.from_dict(_numeric_raw)
+        if isinstance(_numeric_raw, dict)
+        else None
+    )
+
     # Build verdict index and process findings
     verdict_by_id = _build_verdict_index(artifacts["verdict_data"])
     primary_findings = collect_report_findings(
@@ -550,10 +560,10 @@ def render_static_audit_html(
               <div>错误数</div><div>{h(report_data["source_summary"].get("errors", "-"))}</div>
             </div></div>
             <div class="lane"><h3>PDF 数字取证</h3><div class="kv">
-              <div>提取数字数</div><div>{h(artifacts["numeric"].get("all_number_count", "-"))}</div>
-              <div>有效数字数</div><div>{h(artifacts["numeric"].get("number_count", "-"))}</div>
-              <div>表格数</div><div>{h(artifacts["numeric"].get("table_count", "-"))}</div>
-              <div>Benford MAD</div><div>{h((artifacts["numeric"].get("benford") or {}).get("mad", (artifacts["numeric"].get("benford") or {}).get("mean_absolute_deviation", "-")))}</div>
+              <div>提取数字数</div><div>{h(_numeric_typed.all_number_count if _numeric_typed else "-")}</div>
+              <div>有效数字数</div><div>{h(_numeric_typed.number_count if _numeric_typed else "-")}</div>
+              <div>表格数</div><div>{h(_numeric_typed.table_count if _numeric_typed else "-")}</div>
+              <div>Benford MAD</div><div>{h(_numeric_typed.benford_mad if _numeric_typed else "-")}</div>
             </div></div>
             <div class="lane"><h3>图像检查</h3><div class="kv">
               <div>图片数</div><div>{h(report_data["exact_images"].get("image_count", "-"))}</div>

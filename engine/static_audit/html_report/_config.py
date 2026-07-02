@@ -9,6 +9,8 @@ Phase 2 (XSS escaping) comes after.
 
 from __future__ import annotations
 
+from engine.static_audit.finding_categories import all_definitions
+
 # =============================================================================
 # Display Limits (How many items to show in various sections)
 # =============================================================================
@@ -229,37 +231,9 @@ STATUS_LABELS = {
     "not_available": "不可用",
 }
 
-#: Category labels for finding types
-CATEGORY_LABELS = {
-    "duplicate_numeric_columns": "数值列重复",
-    "fixed_difference": "固定差关系",
-    "fixed_ratio": "固定比例关系",
-    "formula_derived_columns": "公式派生列",
-    "row_offset_scalar_multiple": "固定行偏移标量关系",
-    "long_format_paired_ratio_reuse": "配对比例复用",
-    "duplicate_row_vector": "行向量重复",
-    "long_format_within_pair_ratio_enrichment": "配对内部比例富集",
-    "row_offset_partial_copy_rounding_bias": "行偏移复制/舍入偏差",
-    "repeated_measurement_value": "重复展示数值",
-    "fractional_tail_reuse": "小数尾部复用",
-    "small_n_fixed_difference": "小样本固定差关系",
-    "small_n_fixed_ratio": "小样本固定倍率关系",
-    "cross_sheet_fractional_tail_reuse": "跨 Sheet 小数尾部复用",
-    "binary_arithmetic_relation": "三列乘除关系",
-    "shifted_paste": "行错位粘贴候选",
-    "copy_paste_modify": "保留小数改写候选",
-    "internal_sequence_relation": "列内序列关系",
-    "decimal_tail_match_shifted": "小数窗口错位匹配",
-    "strict_linear_relation": "严格线性关系",
-    "copy_move_single": "单图内局部相似",
-    "copy_move_cross": "跨图局部相似",
-    "exact_duplicate": "字节级完全重复",
-    "dhash_similar": "感知哈希相似",
-    "overlap_reuse_cross_panel": "跨 Panel 局部重叠",
-    "forged_region_suspicious": "区域完整性记录",
-    "paperfraud.methodology_review": "方法学提示",
-    "paperfraud.fraud_detection": "数值取证提示",
-}
+#: Category labels for finding types (derived from registry).
+#: New code should use finding_categories.get(category).label.
+CATEGORY_LABELS = {d.category: d.label for d in all_definitions()}
 
 #: Confidence badge HTML for source type indicators
 CONFIDENCE_BADGES = {
@@ -364,27 +338,12 @@ PATTERN_SORT_ORDER = {
 }
 
 #: Categories that trigger context-only display (lower priority)
+#: @deprecated: New code should use finding_categories.get(category).context_only.
 CONTEXT_ONLY_CATEGORIES = {"duplicate_row_vector"}
 
-#: Pair forensics categories that belong to pair analysis
-PAIR_FORENSICS_CATEGORIES = {
-    "row_offset_scalar_multiple",
-    "long_format_paired_ratio_reuse",
-    "duplicate_row_vector",
-    "long_format_within_pair_ratio_enrichment",
-    "row_offset_partial_copy_rounding_bias",
-    "repeated_measurement_value",
-    "fractional_tail_reuse",
-    "small_n_fixed_difference",
-    "small_n_fixed_ratio",
-    "cross_sheet_fractional_tail_reuse",
-    "binary_arithmetic_relation",
-    "shifted_paste",
-    "copy_paste_modify",
-    "internal_sequence_relation",
-    "decimal_tail_match_shifted",
-    "strict_linear_relation",
-}
+#: Pair forensics categories that belong to pair analysis (derived from registry).
+#: New code should use finding_categories.pair_forensics_categories().
+PAIR_FORENSICS_CATEGORIES = {d.category for d in all_definitions() if d.is_pair_forensics}
 
 # =============================================================================
 # Text Replacement Rules (for cleaning report text)

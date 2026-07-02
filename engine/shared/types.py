@@ -7,17 +7,43 @@ engine.static_audit and engine.investigation modules.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from enum import Enum
 from typing import Any, Callable
+
+
+class StepStatus(str, Enum):
+    """Status of a pipeline step execution.
+
+    Values are preserved as lowercase strings for backward compatibility
+    with existing status checks (e.g., step.status == "ran").
+    """
+
+    RAN = "ran"
+    REUSED = "reused"
+    SKIPPED = "skipped"
+    FAILED = "failed"
+    WARNING = "warning"
 
 
 @dataclass
 class StepResult:
-    """Result of a pipeline step execution."""
+    """Result of a pipeline step execution.
+
+    Backward compatible: old constructor StepResult(key, title, status, detail, command)
+    still works. New observability fields are optional with sensible defaults.
+    """
+
     key: str
     title: str
-    status: str
+    status: StepStatus | str
     detail: str
     command: list[str] | None = None
+    # WP6: Modern pipeline observability fields
+    failure_type: str | None = None
+    skip_reason: str | None = None
+    runtime_seconds: float | None = None
+    attempts: int | None = None
+    output_artifacts: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)

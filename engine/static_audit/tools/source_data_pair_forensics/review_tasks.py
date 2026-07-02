@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from typing import Any
 
+from engine.static_audit.finding_categories import get as _get_category_defn
+
 from ._shared import risk_rank
 
 
@@ -35,9 +37,10 @@ def assign_ids(findings: list[dict[str, Any]]) -> None:
     for finding in findings:
         category = finding["category"]
         counters[category] += 1
-        finding["finding_id"] = (
-            f"{prefixes.get(category, 'PF')}-{counters[category]:04d}"
-        )
+        # Priority: registry definition > hardcoded prefix > default "PF"
+        defn = _get_category_defn(category)
+        prefix = defn.id_prefix if defn is not None else prefixes.get(category, "PF")
+        finding["finding_id"] = f"{prefix}-{counters[category]:04d}"
 
 
 def _finding_offset(finding: dict[str, Any]) -> Any:
@@ -119,6 +122,10 @@ def _cluster_key(finding: dict[str, Any]) -> tuple[str, str, str, str, str]:
 
 
 def _category_review_question(category: str) -> str:
+    # Priority: registry definition > hardcoded questions > default
+    defn = _get_category_defn(category)
+    if defn is not None:
+        return defn.review_question
     questions = {
         "paired_ratio_reuse": "同一 sheet 内多组列对在固定行偏移下复用相同比例，需确认这些行是否为独立样本或合法派生。",
         "long_format_paired_ratio_reuse": "long-format pair 在固定 pair id 偏移下复用相同比例，需确认 pair id 是否代表独立样本/患者。",

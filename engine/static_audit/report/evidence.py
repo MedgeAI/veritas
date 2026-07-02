@@ -13,6 +13,12 @@ from engine.static_audit._shared import (
     resolve_artifact_path,
     read_json,
 )
+from engine.static_audit.typed_adapters import (
+    load_pair_forensics_artifact,
+    iter_priority_findings,
+    load_source_data_findings_artifact,
+    iter_source_data_findings,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -137,24 +143,26 @@ def _extend_with_visual_panels(
 def _extend_with_source_data_findings(
     items: list[EvidenceItem], workdir: Path
 ) -> None:
-    source_findings = (
-        read_json(resolve_artifact_path(workdir, "source_data_findings.json")) or {}
+    artifact = load_source_data_findings_artifact(
+        resolve_artifact_path(workdir, "source_data_findings.json")
     )
-    for finding in (source_findings.get("priority_findings") or [])[:100]:
+    if artifact is None:
+        return
+    for finding in list(iter_source_data_findings(artifact))[:100]:
+        columns_text = ", ".join(finding.columns) if finding.columns else None
         items.append(
             EvidenceItem(
                 evidence_id=f"EV-SD-{len(items) + 1:04d}",
                 kind="sheet",
-                source_path=str(finding.get("workbook", "")),
+                source_path=finding.workbook,
                 locator={
-                    "sheet": finding.get("sheet"),
-                    "columns": finding.get("column_pair"),
-                    "support_rows": finding.get("support_rows")
-                    or finding.get("equal_rows"),
-                    "overlap_rows": finding.get("overlap_rows"),
+                    "sheet": finding.sheet,
+                    "columns": columns_text,
+                    "support_rows": finding.support_rows or finding.equal_rows,
+                    "overlap_rows": finding.overlap_rows,
                 },
-                summary=f"Source Data priority finding {finding.get('finding_id')}",
-                metadata={"finding_id": finding.get("finding_id")},
+                summary=f"Source Data priority finding {finding.finding_id}",
+                metadata={"finding_id": finding.finding_id},
             )
         )
 
@@ -162,31 +170,28 @@ def _extend_with_source_data_findings(
 def _extend_with_pair_forensics_findings(
     items: list[EvidenceItem], workdir: Path
 ) -> None:
-    pair_forensics = (
-        read_json(resolve_artifact_path(workdir, "source_data_pair_forensics.json"))
-        or {}
+    artifact = load_pair_forensics_artifact(
+        resolve_artifact_path(workdir, "source_data_pair_forensics.json")
     )
-    for finding in (pair_forensics.get("priority_findings") or [])[:100]:
+    if artifact is None:
+        return
+    for finding in list(iter_priority_findings(artifact))[:100]:
+        columns_text = ", ".join(finding.columns) if finding.columns else None
         items.append(
             EvidenceItem(
                 evidence_id=f"EV-PF-{len(items) + 1:04d}",
                 kind="sheet",
-                source_path=str(finding.get("workbook", "")),
+                source_path=finding.workbook,
                 locator={
-                    "sheet": finding.get("sheet"),
-                    "row_offset": finding.get("row_offset"),
-                    "columns": finding.get("columns")
-                    or finding.get("column_pair")
-                    or finding.get("column"),
-                    "support_rows": finding.get("support_rows")
-                    or finding.get("matched_pairs")
-                    or finding.get("duplicate_row_count"),
-                    "overlap_rows": finding.get("overlap_rows")
-                    or finding.get("overlap_pairs"),
+                    "sheet": finding.sheet,
+                    "row_offset": finding.row_offset,
+                    "columns": columns_text,
+                    "support_rows": finding.support_rows,
+                    "overlap_rows": finding.overlap_rows,
                 },
-                summary=f"Source Data pair-forensics finding {finding.get('finding_id')}",
+                summary=f"Source Data pair-forensics finding {finding.finding_id}",
                 metadata={
-                    "finding_id": finding.get("finding_id"),
+                    "finding_id": finding.finding_id,
                     "source": "source_data_pair_forensics",
                 },
             )

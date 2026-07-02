@@ -248,17 +248,29 @@ def emit_step_result(
     step: StepResult,
     workdir: Path | None = None,
 ) -> None:
-    """Emit a step_result progress event."""
-    emit_progress(
-        progress,
-        "step_result",
-        workdir=workdir,
-        key=step.key,
-        title=step.title,
-        status=step.status,
-        detail=step.detail,
-        command_preview=command_preview(step.command),
-    )
+    """Emit a step_result progress event.
+
+    WP6: Includes new observability fields when present.
+    """
+    payload: dict[str, Any] = {
+        "key": step.key,
+        "title": step.title,
+        "status": step.status,
+        "detail": step.detail,
+        "command_preview": command_preview(step.command),
+    }
+    # WP6: attach observability fields when set
+    if step.runtime_seconds is not None:
+        payload["runtime_seconds"] = step.runtime_seconds
+    if step.attempts is not None:
+        payload["attempts"] = step.attempts
+    if step.failure_type is not None:
+        payload["failure_type"] = step.failure_type
+    if step.skip_reason is not None:
+        payload["skip_reason"] = step.skip_reason
+    if step.output_artifacts:
+        payload["output_artifacts"] = step.output_artifacts
+    emit_progress(progress, "step_result", workdir=workdir, **payload)
 
 
 def record_step(

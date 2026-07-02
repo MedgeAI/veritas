@@ -36,6 +36,9 @@ from engine.static_audit._shared import (
     resolve_artifact_path,
     run_command,
 )
+from engine.static_audit.adapters.numeric_forensics_adapter import (
+    invoke_numeric_forensics,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -128,266 +131,28 @@ def _run_source_data_steps(
     args: argparse.Namespace,
     progress: ProgressCallback | None,
 ) -> list[StepResult]:
-    """Run source_data_profile, findings, pair_forensics, cross_sheet, paperconan, verdict."""
-    steps: list[StepResult] = []
-    profile_out = resolve_artifact_path(workdir, "source_data_profile.json")
-    steps.append(
-        run_command(
-            "source_data_profile",
-            "Source Data profile",
-            [
-                sys.executable,
-                "-m",
-                "engine.static_audit.tools.source_data_profile",
-                str(source_data_dir),
-                "--output",
-                str(profile_out),
-            ],
-            [profile_out],
-            cwd=PROJECT_ROOT,
-            env=env,
-            force=args.force,
-            progress=progress,
-        )
-    )
-    if not profile_out.exists():
-        for k, t in [
-            ("source_data_findings", "Source Data findings"),
-            ("source_data_pair_forensics", "Source Data pair forensics"),
-            ("source_data_cross_sheet", "Source Data cross-sheet duplicates"),
-            ("source_data_verdict", "Source Data LLM 语义裁决"),
-        ]:
-            steps.append(
-                StepResult(k, t, "skipped", "source_data_profile.json missing.")
-            )
-        return steps
+    """Run source-data stage via declarative StagePlan (WP1).
 
-    # source_data_findings
-    cmd = [
-        sys.executable,
-        "-m",
-        "engine.static_audit.tools.source_data_findings",
-        str(source_data_dir),
-        "--profile",
-        str(profile_out),
-        "--output",
-        str(resolve_artifact_path(workdir, "source_data_findings.json")),
-        "--min-overlap",
-        str(source_finding_params["min_overlap"]),
-        "--min-support",
-        str(source_finding_params["min_support"]),
-        "--max-findings-per-category",
-        str(source_finding_params["max_findings_per_category"]),
-    ]
-    full_md = existing_artifact_path(workdir, "full.md")
-    if full_md is not None:
-        cmd.extend(["--full-md", str(full_md)])
-    steps.append(
-        run_command(
-            "source_data_findings",
-            "Source Data findings",
-            cmd,
-            [resolve_artifact_path(workdir, "source_data_findings.json")],
-            cwd=PROJECT_ROOT,
-            env=env,
-            force=args.force,
-            progress=progress,
-        )
+    Delegates to StageExecutor with 8 StepDefinitions covering:
+    profile, findings, pair_forensics, cross_sheet, cross_sheet_filter,
+    paperconan_scan, briefings, verdict.
+    """
+    from engine.static_audit.stage_executor import (
+        StageExecutor,
+        StepContext,
+        build_source_data_plan,
     )
-    # pair forensics
-    steps.append(
-        run_command(
-            "source_data_pair_forensics",
-            "Source Data pair forensics",
-            [
-                sys.executable,
-                "-m",
-                "engine.static_audit.tools.source_data_pair_forensics",
-                str(source_data_dir),
-                "--output",
-                str(resolve_artifact_path(workdir, "source_data_pair_forensics.json")),
-            ],
-            [resolve_artifact_path(workdir, "source_data_pair_forensics.json")],
-            cwd=PROJECT_ROOT,
-            env=env,
-            force=args.force,
-            progress=progress,
-        )
-    )
-    # cross-sheet
-    steps.append(
-        run_command(
-            "source_data_cross_sheet",
-            "Source Data cross-sheet duplicates",
-            [
-                sys.executable,
-                "-m",
-                "engine.static_audit.tools.source_data_cross_sheet",
-                str(source_data_dir),
-                "--output",
-                str(resolve_artifact_path(workdir, "source_data_cross_sheet.json")),
-            ],
-            [resolve_artifact_path(workdir, "source_data_cross_sheet.json")],
-            cwd=PROJECT_ROOT,
-            env=env,
-            force=args.force,
-            progress=progress,
-        )
-    )
-    # Cross-sheet LLM filter (metadata column removal)
-    cross_sheet_path = resolve_artifact_path(workdir, "source_data_cross_sheet.json")
-    if cross_sheet_path.exists():
-        emit_step_start(
-            progress, "cross_sheet_filter", "Cross-sheet LLM metadata filter"
-        )
-        try:
-            from engine.llm.client import VeritasLLMClient
-            from engine.static_audit._shared import run_cross_sheet_filter
 
-            cross_sheet_data = json.loads(cross_sheet_path.read_text(encoding="utf-8"))
-            findings = cross_sheet_data.get(
-                "findings", cross_sheet_data.get("cross_sheet_findings", [])
-            )
-
-            if findings:
-                llm_client = VeritasLLMClient()
-                filtered_findings = run_cross_sheet_filter(
-                    workdir, findings, llm_client
-                )
-
-                # Write filtered findings back
-                cross_sheet_data["findings"] = filtered_findings
-                cross_sheet_data["filter_metadata"] = {
-                    "original_count": len(findings),
-                    "filtered_count": len(filtered_findings),
-                    "filter_applied": True,
-                }
-                cross_sheet_path.write_text(
-                    json.dumps(cross_sheet_data, indent=2, ensure_ascii=False),
-                    encoding="utf-8",
-                )
-                filter_status = "ran"
-                filter_detail = f"filtered={len(findings) - len(filtered_findings)}"
-            else:
-                filter_status = "skipped"
-                filter_detail = "no findings to filter"
-        except (VeritasError, OSError) as e:
-            logger.warning("cross_sheet_filter failed: %s", e)
-            filter_status = "failed"
-            filter_detail = f"filter failed: {e}"
-        record_step(
-            steps,
-            StepResult(
-                "cross_sheet_filter",
-                "Cross-sheet LLM metadata filter",
-                filter_status,
-                filter_detail,
-            ),
-            progress,
-        )
-    else:
-        record_step(
-            steps,
-            StepResult(
-                "cross_sheet_filter",
-                "Cross-sheet LLM metadata filter",
-                "skipped",
-                "cross_sheet.json missing",
-            ),
-            progress,
-        )
-    # paperconan GRIM/GRIMMER scan
-    num_dir = resolve_artifact_path(workdir, "numeric")
-    steps.append(
-        run_command(
-            "paperconan_scan",
-            "Paperconan GRIM/GRIMMER scan",
-            [
-                sys.executable,
-                "-c",
-                f"import json\n"
-                f"from pathlib import Path\n"
-                f"from engine.static_audit.adapters.paperconan_adapter import run_paperconan_scan\n"
-                f"r = run_paperconan_scan(source_data_dir=Path({str(source_data_dir)!r}), "
-                f"output_dir=Path({str(num_dir)!r}), profile='review')\n"
-                f"print(json.dumps({{'status': r['status'], 'findings': r['findings_summary']}}))",
-            ],
-            [resolve_artifact_path(workdir, "numeric/paperconan_scan.json")],
-            cwd=PROJECT_ROOT,
-            env=env,
-            force=args.force,
-            progress=progress,
-        )
+    ctx = StepContext(
+        workdir=workdir,
+        args=args,
+        env=env,
+        progress=progress,
+        source_data_dir=source_data_dir,
+        source_finding_params=source_finding_params,
     )
-    # Sheet briefings — compact structural intelligence for Agent context
-    emit_step_start(progress, "source_data_briefings", "Source Data sheet briefings")
-    try:
-        from engine.static_audit.tools.source_data_sheet_briefing import (
-            build_all_briefings,
-        )
-
-        sd_findings = resolve_artifact_path(workdir, "source_data_findings.json")
-        sd_pf = resolve_artifact_path(workdir, "source_data_pair_forensics.json")
-        findings_data = (
-            json.loads(sd_findings.read_text(encoding="utf-8"))
-            if sd_findings.exists()
-            else None
-        )
-        pf_data = (
-            json.loads(sd_pf.read_text(encoding="utf-8")) if sd_pf.exists() else None
-        )
-        briefings = build_all_briefings(findings_data, pf_data, source_data_dir)
-        briefings_path = resolve_artifact_path(
-            workdir, "source_data_sheet_briefings.json"
-        )
-        briefings_path.parent.mkdir(parents=True, exist_ok=True)
-        briefings_path.write_text(
-            json.dumps(briefings, indent=2, ensure_ascii=False), encoding="utf-8"
-        )
-        bs = briefings.get("sheet_count", 0)
-        bst, bsd = "ran", f"sheets={bs}"
-    except (VeritasError, OSError) as e:
-        bst, bsd = "failed", f"briefings step exception: {e}"
-        logger.warning("source_data_briefings failed: %s", e)
-    record_step(
-        steps,
-        StepResult("source_data_briefings", "Source Data sheet briefings", bst, bsd),
-        progress,
-    )
-    # LLM verdict
-    emit_step_start(progress, "source_data_verdict", "Source Data LLM 语义裁决")
-    try:
-        from engine.static_audit.tools.source_data_verdict import (
-            run_source_data_verdict,
-        )
-
-        vr = run_source_data_verdict(
-            workdir,
-            source_data_dir=source_data_dir,
-            project_root=PROJECT_ROOT,
-            env=env,
-            model=args.agent_model,
-            opencode_bin=args.opencode_bin,
-            force=args.force,
-            progress=progress,
-        )
-        vs = vr.get("summary", {})
-        vd = (
-            f"sheets={vs.get('total_sheets', 0)} TP={vs.get('true_positive', 0)} "
-            f"FP={vs.get('false_positive', 0)} uncertain={vs.get('uncertain', 0)}"
-        )
-        vst = "ran" if vs.get("total_sheets", 0) > 0 else "skipped"
-        if vs.get("failed_sheets", 0) > 0:
-            vst, vd = "failed", vd + f" failed_sheets={vs['failed_sheets']}"
-    except (VeritasError, OSError) as e:
-        vst, vd = "failed", f"verdict step exception: {e}"
-        logger.warning("source_data_verdict failed: %s", e)
-    record_step(
-        steps,
-        StepResult("source_data_verdict", "Source Data LLM 语义裁决", vst, vd),
-        progress,
-    )
-    return steps
+    plan = build_source_data_plan()
+    return StageExecutor(plan).run(ctx)
 
 
 # ---------------------------------------------------------------------------
@@ -865,6 +630,15 @@ def _run_mineru_forensics_section(
                 progress=progress,
             )
         )
+        # Enrich the upstream artifact with limitations and first-party metadata.
+        _nf_output = resolve_artifact_path(workdir, "numeric_forensics.json")
+        if _nf_output.exists():
+            try:
+                invoke_numeric_forensics(_nf_output)
+            except Exception as exc:
+                logger.warning(
+                    "numeric forensics adapter enrichment failed: %s", exc
+                )
         pf_out = resolve_artifact_path(workdir, "paperfraud_rule_matches.json")
         if pf_out.exists() and not args.force:
             record_step(

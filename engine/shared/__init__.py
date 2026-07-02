@@ -40,6 +40,7 @@ from engine.shared.types import (  # noqa: F401
     InvestigationAction,
     ProgressCallback,
     StepResult,
+    StepStatus,
 )
 
 __all__ = [
@@ -47,6 +48,7 @@ __all__ = [
     "InvestigationAction",
     "ProgressCallback",
     "StepResult",
+    "StepStatus",
     # Constants
     "ARTIFACT_PATH_MAP",
     "AUDITOR_ROOT",

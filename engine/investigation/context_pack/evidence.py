@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Callable
 
 from engine.static_audit.paths import resolve_artifact_path
+from engine.static_audit.typed_adapters import load_numeric_forensics_from_workdir
 from engine.investigation.context_pack._shared import (
     _canonical_ids_cache,
     _CANONICAL_FINDING_ARTIFACTS,
@@ -214,22 +215,16 @@ def _extract_top_n_findings(
             if isinstance(item, dict)
         )
 
-    numeric = _read_json_artifact(workdir, "numeric_forensics.json")
-    if isinstance(numeric, dict):
-        remaining = n - len(findings)
-        benford = numeric.get("benford") or {}
-        if (
-            benford.get("applicability")
-            and benford.get("mad", benford.get("mean_absolute_deviation")) is not None
-        ):
-            findings.append(
-                {
-                    "source": "numeric_forensics.json",
-                    "category": "benford_analysis",
-                    "mad": benford.get("mad", benford.get("mean_absolute_deviation")),
-                    "applicability": benford.get("applicability"),
-                }
-            )
+    numeric_artifact = load_numeric_forensics_from_workdir(workdir)
+    if numeric_artifact is not None and numeric_artifact.benford_applicability and numeric_artifact.benford_mad is not None:
+        findings.append(
+            {
+                "source": "numeric_forensics.json",
+                "category": "benford_analysis",
+                "mad": numeric_artifact.benford_mad,
+                "applicability": numeric_artifact.benford_applicability,
+            }
+        )
 
     return findings[:n]
 

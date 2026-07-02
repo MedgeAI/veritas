@@ -440,6 +440,9 @@ def _artifact_summary_evidence_section(
     numeric: dict[str, Any],
 ) -> dict[str, Any]:
     """Build evidence ledger and numeric forensics summary sections."""
+    from engine.static_audit.typed_adapters import NumericForensicsArtifact
+
+    typed = NumericForensicsArtifact.from_dict(numeric) if isinstance(numeric, dict) else None
     return {
         "evidence_ledger_stats": ledger.get("stats", {}),
         "evidence_ledger_warnings": [
@@ -448,12 +451,12 @@ def _artifact_summary_evidence_section(
             if isinstance(item, dict)
         ],
         "numeric_forensics": {
-            "all_number_count": numeric.get("all_number_count"),
-            "number_count": numeric.get("number_count"),
-            "table_count": numeric.get("table_count"),
-            "effective_scope": numeric.get("effective_scope"),
-            "benford_applicability": (numeric.get("benford") or {}).get("applicability"),
-            "benford_mad": (numeric.get("benford") or {}).get(
+            "all_number_count": typed.all_number_count if typed else numeric.get("all_number_count"),
+            "number_count": typed.number_count if typed else numeric.get("number_count"),
+            "table_count": typed.table_count if typed else numeric.get("table_count"),
+            "effective_scope": typed.effective_scope if typed else numeric.get("effective_scope"),
+            "benford_applicability": typed.benford_applicability if typed else (numeric.get("benford") or {}).get("applicability"),
+            "benford_mad": typed.benford_mad if typed else (numeric.get("benford") or {}).get(
                 "mad", (numeric.get("benford") or {}).get("mean_absolute_deviation")
             ),
         },

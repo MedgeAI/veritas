@@ -43,6 +43,7 @@ from engine.shared import (  # noqa: F401
     InvestigationAction,
     ProgressCallback,
     StepResult,
+    StepStatus,
     _write_long_text_to_log,
     agent_step_status,
     artifact_exists,
@@ -173,15 +174,23 @@ def run_command(
     "reused" (cache hit), "ran" (success), or "failed" (all attempts
     exhausted).  Progress events emitted: step_start, step_attempt,
     command_output, step_result.
+
+    WP6: New fields populated: runtime_seconds, attempts, output_artifacts, failure_type.
     """
+    # WP6: output artifacts as string paths
+    output_artifacts = [str(p) for p in expected_outputs]
+
     # Cache check: reuse existing outputs when not forced.
     if expected_outputs and exists_all(expected_outputs) and not force:
         result = StepResult(
             key=key,
             title=title,
-            status="reused",
+            status=StepStatus.REUSED,
             detail="Expected outputs already exist.",
             command=command,
+            runtime_seconds=0.0,
+            attempts=0,
+            output_artifacts=output_artifacts,
         )
         emit_step_result(progress, result)
         return result
@@ -190,6 +199,8 @@ def run_command(
     emit_step_start(progress, key, title, "Running deterministic command.", command)
 
     last_detail = ""
+    last_failure_type: str | None = None
+    step_start_time = time.monotonic()
 
     for attempt in range(1, attempts + 1):
         # Progress callback: translates executor events into run_command events.
@@ -238,6 +249,7 @@ def run_command(
             last_detail = (
                 f"attempt={attempt}/{attempts} exit_code={exc.exit_code}"
             )
+            last_failure_type = "timeout" if exc.timed_out else "nonzero_exit"
             if exc.stderr_tail:
                 last_detail += f" stderr_tail={exc.stderr_tail!r}"
             if exc.timed_out:
@@ -251,6 +263,7 @@ def run_command(
                 f"attempt={attempt}/{attempts} command succeeded "
                 f"but outputs missing: {missing}"
             )
+            last_failure_type = "missing_outputs"
             stdout_tail = text_tail(exec_result.stdout)
             if stdout_tail:
                 last_detail += f" stdout_tail={stdout_tail!r}"
@@ -268,15 +281,36 @@ def run_command(
             continue
 
         # Success
+        runtime_seconds = time.monotonic() - step_start_time
         detail = "Command completed successfully."
         if attempt > 1:
             detail = f"Command completed successfully after {attempt} attempts."
-        result = StepResult(key, title, "ran", detail, command)
+        result = StepResult(
+            key=key,
+            title=title,
+            status=StepStatus.RAN,
+            detail=detail,
+            command=command,
+            runtime_seconds=round(runtime_seconds, 3),
+            attempts=attempt,
+            output_artifacts=output_artifacts,
+        )
         emit_step_result(progress, result)
         return result
 
     # All attempts exhausted
-    result = StepResult(key, title, "failed", last_detail, command)
+    runtime_seconds = time.monotonic() - step_start_time
+    result = StepResult(
+        key=key,
+        title=title,
+        status=StepStatus.FAILED,
+        detail=last_detail,
+        command=command,
+        failure_type=last_failure_type or "unknown",
+        runtime_seconds=round(runtime_seconds, 3),
+        attempts=attempts,
+        output_artifacts=output_artifacts,
+    )
     emit_step_result(progress, result)
     return result
 

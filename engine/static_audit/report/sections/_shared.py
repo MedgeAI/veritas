@@ -22,6 +22,7 @@ from engine.static_audit._shared import (
     canonical_claim_mapping_rows,
     source_finding_params_from_plan,
 )
+from engine.static_audit.typed_adapters import NumericForensicsArtifact
 
 from engine.static_audit.report.claims import (
     brief_list,
@@ -49,7 +50,7 @@ class ReportData:
     material_inventory: dict | None
     material_plan: dict | None
     ledger: dict | None
-    numeric: dict | None
+    numeric: NumericForensicsArtifact | None
     profile: dict | None
     findings: dict | None
     pair_forensics: dict | None
@@ -125,6 +126,20 @@ def scope_section(data: ReportData) -> list[str]:
     return lines
 
 
+def _enriched_detail(step: StepResult) -> str:
+    """Build a detail string enriched with WP6 observability fields."""
+    parts = [step.detail.replace("\n", " ")[:240]]
+    if step.runtime_seconds is not None:
+        parts.append(f"runtime={step.runtime_seconds:.2f}s")
+    if step.attempts is not None and step.attempts > 1:
+        parts.append(f"attempts={step.attempts}")
+    if step.failure_type:
+        parts.append(f"failure_type={step.failure_type}")
+    if step.skip_reason:
+        parts.append(f"skip_reason={step.skip_reason}")
+    return " | ".join(parts)
+
+
 def pipeline_section(data: ReportData) -> list[str]:
     lines: list[str] = []
     lines.append("## Pipeline Execution")
@@ -133,7 +148,7 @@ def pipeline_section(data: ReportData) -> list[str]:
         markdown_table(
             ["Step", "Status", "Detail"],
             [
-                [step.title, step.status, step.detail.replace("\n", " ")[:240]]
+                [step.title, str(step.status), _enriched_detail(step)]
                 for step in data.steps
             ],
         )
@@ -384,7 +399,7 @@ def ledger_section(data: ReportData) -> list[str]:
 def numeric_section(data: ReportData) -> list[str]:
     if not data.numeric:
         return []
-    benford = data.numeric.get("benford", {})
+    typed = data.numeric
     lines: list[str] = []
     lines.append("## Numeric Forensics Summary")
     lines.append("")
@@ -392,17 +407,14 @@ def numeric_section(data: ReportData) -> list[str]:
         markdown_table(
             ["Metric", "Value"],
             [
-                ["all_number_count", fmt_int(data.numeric.get("all_number_count"))],
-                ["effective_number_count", fmt_int(data.numeric.get("number_count"))],
-                ["table_count", fmt_int(data.numeric.get("table_count"))],
-                ["effective_scope", data.numeric.get("effective_scope", "-")],
-                ["benford_applicability", benford.get("applicability", "-")],
+                ["all_number_count", fmt_int(typed.all_number_count)],
+                ["effective_number_count", fmt_int(typed.number_count)],
+                ["table_count", fmt_int(typed.table_count)],
+                ["effective_scope", typed.effective_scope or "-"],
+                ["benford_applicability", typed.benford_applicability or "-"],
                 [
                     "benford_mad",
-                    fmt_float(
-                        benford.get("mad", benford.get("mean_absolute_deviation")),
-                        4,
-                    ),
+                    fmt_float(typed.benford_mad, 4),
                 ],
             ],
         )

@@ -34,6 +34,11 @@ from engine.static_audit._shared import (
     resolve_artifact_path,
     read_json,
 )
+from engine.static_audit.typed_adapters import (
+    PairForensicsArtifact,
+    SourceDataFindingsArtifact,
+    load_numeric_forensics_artifact,
+)
 
 from engine.static_audit.report.evidence import collect_evidence_items
 from engine.static_audit.report.claims import (
@@ -103,7 +108,9 @@ def generate_report(
             resolve_artifact_path(workdir, "agent_material_plan.json")
         ),
         ledger=read_json(resolve_artifact_path(workdir, "evidence_ledger.json")),
-        numeric=read_json(resolve_artifact_path(workdir, "numeric_forensics.json")),
+        numeric=load_numeric_forensics_artifact(
+            resolve_artifact_path(workdir, "numeric_forensics.json")
+        ),
         profile=read_json(resolve_artifact_path(workdir, "source_data_profile.json")),
         findings=read_json(resolve_artifact_path(workdir, "source_data_findings.json")),
         pair_forensics=read_json(
@@ -246,7 +253,8 @@ def build_static_audit_bundle(
                 status=step.status,  # type: ignore[arg-type]
                 title=step.title,
                 command=step.command,
-                outputs=[],
+                outputs=list(step.output_artifacts) if step.output_artifacts else [],
+                runtime_seconds=step.runtime_seconds,
                 detail=step.detail,
             )
             for step in steps
@@ -399,24 +407,23 @@ def _collect_source_data_findings(
 ) -> list[Finding]:
     """Build findings from source_data priority_findings."""
     source_findings = artifacts["source_findings"]
+    artifact = SourceDataFindingsArtifact.from_dict(source_findings)
     findings: list[Finding] = []
-    for item in source_findings.get("priority_findings") or []:
-        finding_id = str(item.get("finding_id"))
+    for item in artifact.priority_findings:
+        finding_id = str(item.finding_id)
         findings.append(
             Finding(
                 finding_id=finding_id,
-                category=str(item.get("category", "")),
-                risk_level=str(item.get("risk_level", "medium")),  # type: ignore[arg-type]
-                summary=f"{item.get('category')} in {item.get('workbook')} / {item.get('sheet')}",
+                category=item.category,
+                risk_level=item.risk_level,  # type: ignore[arg-type]
+                summary=f"{item.category} in {item.workbook} / {item.sheet}",
                 evidence_refs=[evidence_by_finding[finding_id]]
                 if finding_id in evidence_by_finding
                 else [],
-                benign_explanations=[
-                    str(value) for value in (item.get("benign_explanations") or [])
-                ],
-                pressure_test_result=str(item.get("pressure_test_result", "")),
-                manual_review_note=str(item.get("manual_review_note", "")),
-                metadata=item,
+                benign_explanations=list(item.benign_explanations),
+                pressure_test_result=str(item.pressure_test_result or ""),
+                manual_review_note=str(item.manual_review_note or ""),
+                metadata=item.raw,
             )
         )
     return findings
@@ -428,26 +435,32 @@ def _collect_pair_forensics_findings(
 ) -> list[Finding]:
     """Build findings from pair_forensics priority_findings."""
     pair_forensics = artifacts["pair_forensics"]
+    artifact = PairForensicsArtifact.from_dict(pair_forensics)
     findings: list[Finding] = []
-    for item in pair_forensics.get("priority_findings") or []:
-        finding_id = str(item.get("finding_id"))
+    for finding in artifact.priority_findings:
+        finding_id = str(finding.finding_id)
         evidence_id = evidence_by_finding.get(finding_id)
+        offset_display = finding.row_offset if finding.row_offset is not None else "-"
         findings.append(
             Finding(
                 finding_id=finding_id,
-                category=str(item.get("category", "")),
-                risk_level=str(item.get("risk_level", "medium")),  # type: ignore[arg-type]
+                category=finding.category,
+                risk_level=finding.risk_level,  # type: ignore[arg-type]
                 summary=(
-                    f"{item.get('category')} in {item.get('workbook')} / {item.get('sheet')} "
-                    f"offset={item.get('row_offset', '-')}"
+                    f"{finding.category} in {finding.workbook} / {finding.sheet} "
+                    f"offset={offset_display}"
                 ),
                 evidence_refs=[evidence_id] if evidence_id else [],
                 benign_explanations=[
-                    str(value) for value in (item.get("benign_explanations") or [])
+                    str(value)
+                    for value in (finding.raw.get("benign_explanations") or [])
                 ],
-                pressure_test_result=str(item.get("pressure_test_result", "")),
+                pressure_test_result=str(finding.raw.get("pressure_test_result", "")),
                 manual_review_note="Pair/row-offset Source Data pattern requires sample-independence review.",
-                metadata={**item, "source_artifact": "source_data_pair_forensics.json"},
+                metadata={
+                    **finding.raw,
+                    "source_artifact": "source_data_pair_forensics.json",
+                },
             )
         )
     return findings

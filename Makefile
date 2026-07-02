@@ -241,6 +241,9 @@ deploy-logs: ## Show production service logs
 prod-diagnose: ## Collect an agent-friendly production diagnostic bundle
 	$(PYTHON) scripts/prod_diagnose.py $(PROD_DIAG_ARGS)
 
+architecture-audit: ## Generate architecture health metrics to outputs/architecture_health.md
+	$(PYTHON) scripts/architecture_health.py
+
 # -- ELIS Provenance Container -------------------------------------------
 
 build-elis-provenance: ## Build veritas-elis-provenance Docker image from ELIS submodule
