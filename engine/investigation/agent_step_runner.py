@@ -19,6 +19,7 @@ from typing import Any, Callable
 
 from engine.env import load_project_env
 from engine.investigation.agent_models import AgentErrorCategory, AgentRunResult
+from engine.llm.config import DEFAULT_LLM_MODEL
 
 
 def extract_json(text: str) -> dict:
@@ -38,12 +39,12 @@ class AgentStepRunner:
     def __init__(
         self,
         project_root: Path,
-        model: str = "dashscope/qwen3.7-plus",
+        model: str | None = None,
         opencode_bin: str | Path = "opencode",
         env: dict[str, str] | None = None,
     ):
         self.project_root = Path(project_root)
-        self.model = model
+        self.model = model or DEFAULT_LLM_MODEL
         self.opencode_bin = str(opencode_bin)
         self.env = env or {}
         # Grounding info from the last run, for trace artifact
