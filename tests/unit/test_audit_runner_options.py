@@ -4,13 +4,14 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import MagicMock
 
+from engine.static_audit.config import AuditConfig
 from web.backend.veritas_web.models import AuditRunRecord, CaseRecord
 from web.backend.veritas_web.runner import AuditRunner
 
 
-def _fake_audit_func(paper_dir: Path, **kwargs: Any) -> dict[str, Any]:
-    case_id = kwargs["case_id"]
-    output_root = Path(kwargs["output_root"])
+def _fake_audit_func(config: AuditConfig, **kwargs: Any) -> dict[str, Any]:
+    case_id = config.case_id
+    output_root = Path(config.output_root)
     workdir = output_root / case_id / "research-integrity-audit"
     workdir.mkdir(parents=True, exist_ok=True)
     (workdir / "audit_run_manifest.json").write_text('{"steps":[]}\n', encoding="utf-8")
@@ -32,11 +33,12 @@ def _fake_audit_func(paper_dir: Path, **kwargs: Any) -> dict[str, Any]:
 
 
 def test_runner_passes_reproducibility_tier_to_audit_function(tmp_path) -> None:
-    captured_kwargs: dict[str, Any] = {}
+    captured_config: AuditConfig | None = None
 
-    def audit_func(paper_dir: Path, **kwargs: Any) -> dict[str, Any]:
-        captured_kwargs.update(kwargs)
-        return _fake_audit_func(paper_dir, **kwargs)
+    def audit_func(config: AuditConfig, **kwargs: Any) -> dict[str, Any]:
+        nonlocal captured_config
+        captured_config = config
+        return _fake_audit_func(config, **kwargs)
 
     inputs = tmp_path / "inputs"
     inputs.mkdir()
@@ -57,4 +59,5 @@ def test_runner_passes_reproducibility_tier_to_audit_function(tmp_path) -> None:
     )
 
     assert completed.status == "completed"
-    assert captured_kwargs["reproducibility_tier"] == "static"
+    assert captured_config is not None
+    assert captured_config.reproducibility_tier == "static"

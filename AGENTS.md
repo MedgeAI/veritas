@@ -38,9 +38,17 @@ Third-party        (third_party/)      — 能力吸收区，必须通过 adapte
 
 报告必须从结构化 evidence event 生成，不能从 Agent 自然语言总结生成。至少支持：`file_evidence`、`execution_evidence`、`claim_match`、`figure_evidence`。
 
-### 只讲事实，不讲观点
+### 只讲事实，LLM 解释层辅助理解
 
-报告解释层只呈现从结构化数据动态生成的事实描述。LLM 只允许输出结构化 JSON（trace、claim mapping、finding review），不进入报告正文。每个 finding 给出"建议行动"（如"要求学生解释"），不给结论。
+报告采用双层结构：
+
+1. **事实层**：从结构化 evidence event 生成，呈现客观检测数据。至少支持：`file_evidence`、`execution_evidence`、`claim_match`、`figure_evidence`。事实层不允许 LLM 生成自由文本。
+2. **解释层**：LLM 基于证据生成解释性文本（`review_question`、`benign_explanations`、`relation_text`、Judge summary），帮助用户理解证据的含义。解释层是有意设计的——充分利用 LLM 智能降低用户理解成本，同时通过证据锚定减少幻觉误判。
+
+品质护栏：
+- `HUMAN_TEXT_REPLACEMENTS` 对解释层文本执行术语规范化（如"造假" → "数据完整性问题"），确保解释层措辞符合产品定位——只解释事实，不下结论。
+- 解释层文本必须基于当前 finding 的 evidence 数据，不允许 LLM 引入报告上下文中不存在的信息。
+- 每个 finding 给出"建议行动"（如"要求学生解释"），不给最终结论。
 
 ### Agent 边界
 

@@ -10,6 +10,7 @@ from typing import Any, Callable
 from fastapi import HTTPException
 
 from engine.env import get_env
+from engine.llm.config import DEFAULT_LLM_MODEL
 from engine.static_audit.orchestrator import AuditConfig, run_static_audit
 
 from .case_store import CaseStore
@@ -101,7 +102,7 @@ class AuditRunner:
                     force=bool(params.get("force", True)),
                     no_env_file=bool(params.get("no_env_file", False)),
                     agent_mode=str(params.get("agent_mode", "review")),
-                    agent_model=str(params.get("agent_model", "dashscope/qwen3.7-plus")),
+                    agent_model=str(params.get("agent_model", DEFAULT_LLM_MODEL)),
                     opencode_bin=str(
                         params.get("opencode_bin")
                         or get_env("OPENCODE_BIN", required=False, default="opencode")
