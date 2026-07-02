@@ -1170,16 +1170,16 @@ def _run_bundle_and_report(
             report_id=report_id,
         )
 
+    async def _run_all() -> tuple[bool, Path | None]:
+        enrichment_task = _run_enrichment()
+        render_task = _run_base_render()
+        enriched, base_path = await asyncio.gather(enrichment_task, render_task)
+        return enriched, base_path
+
     try:
         if enrichment_error is None:
-            base_html_task = _run_base_render()
-            llm_enriched = asyncio.run(_run_enrichment())
+            llm_enriched, _base_html_path = asyncio.run(_run_all())
             llm_enrichment_runtime = time.monotonic() - llm_enrichment_started
-            # Wait for base render to finish (may already be done)
-            try:
-                asyncio.run(base_html_task)
-            except RuntimeError:
-                pass  # base render failed; final render will overwrite
         else:
             llm_enrichment_runtime = time.monotonic() - llm_enrichment_started
             raise enrichment_error
