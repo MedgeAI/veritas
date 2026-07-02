@@ -20,7 +20,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, overload
 
 PROJECT_ROOT_PATH = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT_PATH) not in sys.path:
@@ -33,6 +33,7 @@ from engine.static_audit._shared import (
     record_step,
     resolve_artifact_path,
 )
+from engine.static_audit.config import AuditConfig
 
 logger = logging.getLogger(__name__)
 
@@ -106,6 +107,7 @@ from engine.static_audit.stages.planning import (  # noqa: E402
 )
 
 __all__ = [
+    "AuditConfig",
     "run_static_audit",
     "resolve_audit_profile",
     "AUDIT_PROFILES",
@@ -282,6 +284,15 @@ def _run_static_audit_from_args(
 # ---------------------------------------------------------------------------
 
 
+@overload
+def run_static_audit(
+    config: AuditConfig,
+    *,
+    progress: ProgressCallback | None = None,
+) -> dict[str, Any]: ...
+
+
+@overload
 def run_static_audit(
     paper_dir: str | Path,
     *,
@@ -299,23 +310,42 @@ def run_static_audit(
     skip_unavailable_tools: bool = False,
     audit_profile: str = "fast",
     progress: ProgressCallback | None = None,
+) -> dict[str, Any]: ...
+
+
+def run_static_audit(
+    config_or_paper_dir: AuditConfig | str | Path,
+    *,
+    progress: ProgressCallback | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
-    profile = resolve_audit_profile(audit_profile)
+    """Execute the full static-audit pipeline.
+
+    Accepts either an :class:`AuditConfig` dataclass (preferred) or individual
+    keyword arguments (backward compatibility).  The keyword form constructs an
+    ``AuditConfig`` internally — new callers should pass the dataclass directly.
+    """
+    if isinstance(config_or_paper_dir, AuditConfig):
+        config = config_or_paper_dir
+    else:
+        config = AuditConfig(paper_dir=config_or_paper_dir, **kwargs)
+
+    profile = resolve_audit_profile(config.audit_profile)
     args = argparse.Namespace(
-        paper_dir=str(paper_dir),
-        case_id=case_id,
-        output_root=output_root,
-        fresh=fresh,
-        force=force,
-        no_env_file=no_env_file,
-        agent_mode=agent_mode,
-        agent_model=agent_model,
-        opencode_bin=opencode_bin,
-        agent_timeout_seconds=agent_timeout_seconds,
-        agent_max_retries=agent_max_retries,
-        reproducibility_tier=reproducibility_tier,
-        skip_unavailable_tools=skip_unavailable_tools,
-        audit_profile=audit_profile,
+        paper_dir=str(config.paper_dir),
+        case_id=config.case_id,
+        output_root=config.output_root,
+        fresh=config.fresh,
+        force=config.force,
+        no_env_file=config.no_env_file,
+        agent_mode=config.agent_mode,
+        agent_model=config.agent_model,
+        opencode_bin=config.opencode_bin,
+        agent_timeout_seconds=config.agent_timeout_seconds,
+        agent_max_retries=config.agent_max_retries,
+        reproducibility_tier=config.reproducibility_tier,
+        skip_unavailable_tools=config.skip_unavailable_tools,
+        audit_profile=config.audit_profile,
         profile=profile,
     )
     return _run_static_audit_from_args(args, progress=progress)

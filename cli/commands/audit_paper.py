@@ -4,7 +4,7 @@ import json
 import sys
 from typing import Any, Callable, TextIO
 
-from engine.static_audit.orchestrator import run_static_audit
+from engine.static_audit.orchestrator import AuditConfig, run_static_audit
 
 
 ProgressReporter = Callable[[dict[str, Any]], None]
@@ -81,19 +81,21 @@ def handle(
     progress_mode: str = "auto",
 ) -> int:
     summary = run_static_audit(
-        paper_dir,
-        case_id=case_id,
-        output_root=output_root,
-        fresh=fresh,
-        force=force,
-        no_env_file=no_env_file,
-        agent_mode=agent_mode,
-        agent_model=agent_model,
-        opencode_bin=opencode_bin,
-        agent_timeout_seconds=agent_timeout_seconds,
-        agent_max_retries=agent_max_retries,
-        skip_unavailable_tools=skip_unavailable_tools,
-        audit_profile=profile,
+        AuditConfig(
+            paper_dir=paper_dir,
+            case_id=case_id,
+            output_root=output_root,
+            fresh=fresh,
+            force=force,
+            no_env_file=no_env_file,
+            agent_mode=agent_mode,
+            agent_model=agent_model,
+            opencode_bin=opencode_bin,
+            agent_timeout_seconds=agent_timeout_seconds,
+            agent_max_retries=agent_max_retries,
+            skip_unavailable_tools=skip_unavailable_tools,
+            audit_profile=profile,
+        ),
         progress=make_progress_reporter(progress_mode),
     )
     exit_code = int(summary.pop("exit_code"))

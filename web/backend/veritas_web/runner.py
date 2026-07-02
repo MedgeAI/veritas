@@ -10,7 +10,7 @@ from typing import Any, Callable
 from fastapi import HTTPException
 
 from engine.env import get_env
-from engine.static_audit.orchestrator import run_static_audit
+from engine.static_audit.orchestrator import AuditConfig, run_static_audit
 
 from .case_store import CaseStore
 from .models import STALE_RUN_THRESHOLD_SECONDS, AuditRunRecord, utc_now
@@ -93,22 +93,24 @@ class AuditRunner:
 
         try:
             summary = self.audit_func(
-                self.store.inputs_dir(case_id),
-                case_id=case_id,
-                output_root=str(params.get("output_root", self.output_root)),
-                fresh=bool(params.get("fresh", True)),
-                force=bool(params.get("force", True)),
-                no_env_file=bool(params.get("no_env_file", False)),
-                agent_mode=str(params.get("agent_mode", "review")),
-                agent_model=str(params.get("agent_model", "dashscope/qwen3.7-plus")),
-                opencode_bin=str(
-                    params.get("opencode_bin")
-                    or get_env("OPENCODE_BIN", required=False, default="opencode")
+                AuditConfig(
+                    paper_dir=self.store.inputs_dir(case_id),
+                    case_id=case_id,
+                    output_root=str(params.get("output_root", self.output_root)),
+                    fresh=bool(params.get("fresh", True)),
+                    force=bool(params.get("force", True)),
+                    no_env_file=bool(params.get("no_env_file", False)),
+                    agent_mode=str(params.get("agent_mode", "review")),
+                    agent_model=str(params.get("agent_model", "dashscope/qwen3.7-plus")),
+                    opencode_bin=str(
+                        params.get("opencode_bin")
+                        or get_env("OPENCODE_BIN", required=False, default="opencode")
+                    ),
+                    agent_timeout_seconds=int(params.get("agent_timeout_seconds", 300)),
+                    agent_max_retries=int(params.get("agent_max_retries", 1)),
+                    reproducibility_tier=str(params.get("reproducibility_tier", "full")),
+                    audit_profile=str(params.get("audit_profile", "fast")),
                 ),
-                agent_timeout_seconds=int(params.get("agent_timeout_seconds", 300)),
-                agent_max_retries=int(params.get("agent_max_retries", 1)),
-                reproducibility_tier=str(params.get("reproducibility_tier", "full")),
-                audit_profile=str(params.get("audit_profile", "fast")),
                 progress=progress,
             )
             run.summary = summary
