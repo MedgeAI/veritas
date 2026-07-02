@@ -10,8 +10,10 @@ a runtime callback, not configuration, and is passed separately.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
+
+from engine.llm.config import DEFAULT_LLM_MODEL
 
 
 @dataclass(frozen=True)
@@ -31,7 +33,7 @@ class AuditConfig:
     force: bool = False
     no_env_file: bool = False
     agent_mode: str = "full"
-    agent_model: str = "dashscope/qwen3.7-plus"
+    agent_model: str = field(default_factory=lambda: DEFAULT_LLM_MODEL)
     opencode_bin: str = "opencode"
     agent_timeout_seconds: int = 600
     agent_max_retries: int = 1

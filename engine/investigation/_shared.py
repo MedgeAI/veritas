@@ -13,7 +13,7 @@ from engine.investigation.agent_step_runner import AgentStepRunner
 from engine.investigation.context_pack import AgentContextPack
 from engine.investigation.validators import extract_json
 from engine.shared import resolve_artifact_path
-from runtime.executors.subprocess_executor import run_simple_command
+from engine.tools.executor import run_simple_command
 
 
 @dataclass
