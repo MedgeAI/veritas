@@ -19,7 +19,7 @@ from typing import Any
 from engine.static_audit.html_report._html_utils import h
 
 # Re-export configurable constants from _config for backward compatibility
-from engine.static_audit.html_report._config import (
+from engine.static_audit.html_report._config import (  # noqa: F401
     MAX_EVIDENCE_CARDS,
     RISK_LABELS,
     RISK_SCORES,
@@ -176,8 +176,17 @@ def pattern_key_for_finding(finding: dict[str, Any]) -> str:
         "formula_derived_columns",
         "fixed_ratio",
         "fixed_difference",
+        "binary_arithmetic_relation",
+        "strict_linear_relation",
     }:
         return "formula_derivation"
+    if category in {
+        "shifted_paste",
+        "copy_paste_modify",
+        "internal_sequence_relation",
+        "decimal_tail_match_shifted",
+    }:
+        return "small_n_publication_patterns"
     category_text = category.lower()
     source_text = source_artifact.lower()
     if any(

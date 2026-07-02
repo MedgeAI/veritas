@@ -245,6 +245,12 @@ CATEGORY_LABELS = {
     "small_n_fixed_difference": "小样本固定差关系",
     "small_n_fixed_ratio": "小样本固定倍率关系",
     "cross_sheet_fractional_tail_reuse": "跨 Sheet 小数尾部复用",
+    "binary_arithmetic_relation": "三列乘除关系",
+    "shifted_paste": "行错位粘贴候选",
+    "copy_paste_modify": "保留小数改写候选",
+    "internal_sequence_relation": "列内序列关系",
+    "decimal_tail_match_shifted": "小数窗口错位匹配",
+    "strict_linear_relation": "严格线性关系",
     "copy_move_single": "单图内局部相似",
     "copy_move_cross": "跨图局部相似",
     "exact_duplicate": "字节级完全重复",
@@ -372,6 +378,12 @@ PAIR_FORENSICS_CATEGORIES = {
     "small_n_fixed_difference",
     "small_n_fixed_ratio",
     "cross_sheet_fractional_tail_reuse",
+    "binary_arithmetic_relation",
+    "shifted_paste",
+    "copy_paste_modify",
+    "internal_sequence_relation",
+    "decimal_tail_match_shifted",
+    "strict_linear_relation",
 }
 
 # =============================================================================

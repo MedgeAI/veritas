@@ -25,6 +25,12 @@ def assign_ids(findings: list[dict[str, Any]]) -> None:
         "small_n_fixed_difference": "SNF",
         "small_n_fixed_ratio": "SNR",
         "cross_sheet_fractional_tail_reuse": "CFT",
+        "binary_arithmetic_relation": "BAR",
+        "shifted_paste": "SHP",
+        "copy_paste_modify": "CPM",
+        "internal_sequence_relation": "ISR",
+        "decimal_tail_match_shifted": "DTS",
+        "strict_linear_relation": "SLR",
     }
     for finding in findings:
         category = finding["category"]
@@ -97,6 +103,12 @@ def _cluster_key(finding: dict[str, Any]) -> tuple[str, str, str, str, str]:
         "small_n_fixed_difference",
         "small_n_fixed_ratio",
         "cross_sheet_fractional_tail_reuse",
+        "binary_arithmetic_relation",
+        "shifted_paste",
+        "copy_paste_modify",
+        "internal_sequence_relation",
+        "decimal_tail_match_shifted",
+        "strict_linear_relation",
     }:
         signature = f"offset={offset};relationship={_finding_relationship(finding)}"
     elif category == "duplicate_row_vector":
@@ -122,6 +134,12 @@ def _category_review_question(category: str) -> str:
         "small_n_fixed_difference": "短向量列之间存在精确固定差值，需确认是否为合法派生关系或独立条件间的异常一致。",
         "small_n_fixed_ratio": "短向量列之间存在精确固定倍率，需确认是否为合法单位换算/归一化或独立条件间的异常一致。",
         "cross_sheet_fractional_tail_reuse": "不同 sheet 的同类数值序列连续复用小数尾部，需确认这些 figure 是否独立以及原始未舍入值是否支持该模式。",
+        "binary_arithmetic_relation": "三列之间存在精确乘除关系（A*B=C / A/B=C / B/A=C），需确认是否为独立测量或合法派生列。",
+        "shifted_paste": "列对之间存在位移粘贴关系（平移后小数部分一致、整数部分固定偏移），需确认是否为独立数据或复制移位。",
+        "copy_paste_modify": "列对之间小数部分相同但整数部分存在固定差值，需确认是否为合法修改或机械复制。",
+        "internal_sequence_relation": "单列内出现等差或等比序列，需确认是否为独立测量或人为填充。",
+        "decimal_tail_match_shifted": "不同数值在位移 ±1 位后小数尾部仍然匹配，需确认是否由计算过程或单位换算导致。",
+        "strict_linear_relation": "列对之间存在严格线性关系（R² ≥ 0.999999），需确认是否为独立测量或派生列。",
     }
     return questions.get(
         category, "该 Source Data pattern 需要结合样本语义和原始记录人工复核。"

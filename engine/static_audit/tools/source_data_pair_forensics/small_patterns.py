@@ -13,8 +13,19 @@ from engine.static_audit.tools.source_data_findings import (
     col_to_name,
     column_label,
 )
+from engine.static_audit.tools.source_data_findings.summary_statistics import (
+    is_summary_statistic_pair,
+)
 
-from ._shared import PairForensicsParams, risk_rank
+from ._shared import (
+    PairForensicsParams,
+    SheetNumericIndex,
+    common_rows as index_common_rows,
+    ensure_sheet_numeric_index,
+    has_consecutive_run,
+    risk_rank,
+)
+from .profile_helpers import _is_semantic_equivalent_pair
 
 
 DISPLAY_PLACES = 6
@@ -453,5 +464,186 @@ def cross_sheet_fractional_tail_reuse_findings(
             -risk_rank(item["risk_level"]),
             -int(item["matched_pairs"]),
             str(item["sheet"]),
+        ),
+    )[: params.max_findings_per_category]
+
+
+def _matching_tail_offsets(
+    windows_a: tuple[tuple[int, str], ...],
+    windows_b: tuple[tuple[int, str], ...],
+    token: str,
+    shift: int,
+) -> tuple[int | None, int | None]:
+    for offset_a, token_a in windows_a:
+        if token_a != token:
+            continue
+        for offset_b, token_b in windows_b:
+            if token_b == token and offset_b - offset_a == shift:
+                return offset_a, offset_b
+    return None, None
+
+
+def decimal_tail_match_shifted_findings(
+    source: SheetVectors | SheetNumericIndex,
+    params: PairForensicsParams,
+    *,
+    performance: dict[str, Any] | None = None,
+    detector_skips: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+    """Detect column pairs with matching 5-digit decimal tails, allowing ±1 position shift."""
+    index = ensure_sheet_numeric_index(source, params)
+    sheet = index.sheet
+    findings: list[dict[str, Any]] = []
+    columns = index.valid_columns
+    numeric_cell_count = sum(len(values) for values in index.values_by_col.values())
+    high_frequency_limit = max(20, int(numeric_cell_count * 0.05))
+    skipped_high_frequency_tokens = 0
+    for col_a, col_b in combinations(columns, 2):
+        values_a = index.values_by_col[col_a]
+        values_b = index.values_by_col[col_b]
+        common = index_common_rows(index, col_a, col_b)
+        if len(common) < 3:
+            continue
+        if performance is not None:
+            performance["decimal_tail_shifted_column_pairs"] = (
+                int(performance.get("decimal_tail_shifted_column_pairs", 0)) + 1
+            )
+        # Group matches by (shift, tail_token).
+        groups: dict[tuple[int, str], set[int]] = defaultdict(set)
+        for row in common:
+            windows_a = index.tail_windows_by_cell.get((col_a, row), ())
+            windows_b = index.tail_windows_by_cell.get((col_b, row), ())
+            if not windows_a or not windows_b:
+                continue
+            offsets_by_token_b: dict[str, list[int]] = defaultdict(list)
+            for offset_b, token_b in windows_b:
+                if index.tail_token_frequency.get(token_b, 0) > high_frequency_limit:
+                    skipped_high_frequency_tokens += 1
+                    continue
+                offsets_by_token_b[token_b].append(offset_b)
+            row_matches: set[tuple[int, str]] = set()
+            for offset_a, token_a in windows_a:
+                if index.tail_token_frequency.get(token_a, 0) > high_frequency_limit:
+                    skipped_high_frequency_tokens += 1
+                    continue
+                for offset_b in offsets_by_token_b.get(token_a, []):
+                    shift = offset_b - offset_a
+                    if shift in {-1, 0, 1}:
+                        row_matches.add((shift, token_a))
+            for match_key in row_matches:
+                groups[match_key].add(row)
+        common_positions = {row: idx for idx, row in enumerate(common)}
+        for (shift, tail_token), matched_row_set in groups.items():
+            matched_rows = sorted(matched_row_set)
+            indices = [common_positions[row] for row in matched_rows]
+            count = len(matched_rows)
+            comparable = len(common)
+            rate = count / comparable if comparable else 0.0
+            if not (
+                has_consecutive_run(indices, 3)
+                or (count >= 3 and rate >= 0.6)
+            ):
+                continue
+            risk = "high" if count >= 5 else "medium"
+            confidence = "high" if rate >= 0.8 else "medium"
+            # Artifact degradation: formula-derived column.
+            artifact_likelihood: str = "unknown"
+            artifact_reason: str | None = None
+            formula_cols = {col_a, col_b} & set(sheet.formulas_by_column)
+            if formula_cols:
+                risk = "low"
+                artifact_likelihood = "high"
+                artifact_reason = "formula-derived column"
+            # Artifact degradation: summary / semantic pair.
+            summary_pair = is_summary_statistic_pair(
+                sheet, col_a, col_b, matched_rows
+            )
+            lbl_a = column_label(sheet, col_a)
+            lbl_b = column_label(sheet, col_b)
+            semantic_pair = _is_semantic_equivalent_pair(lbl_a, lbl_b)
+            if summary_pair or semantic_pair:
+                risk = "low"
+                artifact_likelihood = "high"
+                if summary_pair:
+                    artifact_reason = (
+                        "Mean/Sum/N summary-statistics relationship"
+                    )
+                elif artifact_reason is None:
+                    artifact_reason = (
+                        f"semantic-equivalent pair: {lbl_a} vs {lbl_b}"
+                    )
+            sample_pairs = []
+            for row in matched_rows[:20]:
+                left_offset, right_offset = _matching_tail_offsets(
+                    index.tail_windows_by_cell.get((col_a, row), ()),
+                    index.tail_windows_by_cell.get((col_b, row), ()),
+                    tail_token,
+                    shift,
+                )
+                sample_pairs.append(
+                    {
+                        "row": row,
+                        "left_cell": _cell_ref(col_a, row),
+                        "right_cell": _cell_ref(col_b, row),
+                        "left": _display_value(values_a[row]),
+                        "right": _display_value(values_b[row]),
+                        "left_offset": left_offset,
+                        "right_offset": right_offset,
+                        "tail_token": tail_token,
+                        "shift": shift,
+                    }
+                )
+            findings.append(
+                {
+                    "finding_id": None,
+                    "category": "decimal_tail_match_shifted",
+                    "risk_level": risk,
+                    "confidence": confidence,
+                    "workbook": sheet.workbook,
+                    "sheet": sheet.sheet,
+                    "support_rows": count,
+                    "overlap_rows": comparable,
+                    "support_rate": round(rate, 4),
+                    "columns": [col_to_name(col_a), col_to_name(col_b)],
+                    "column_labels": [lbl_a, lbl_b],
+                    "shift": shift,
+                    "tail_token": tail_token,
+                    "sample_pairs": sample_pairs,
+                    "benign_explanations": [
+                        "可能是单位换算导致的小数点位移（如 mg→g）。",
+                        "可能是相同的归一化分母导致的尾数重用。",
+                        "可能是计算过程中的中间值共享。",
+                    ],
+                    "pressure_test_result": "needs_decimal_tail_shift_review",
+                    "next_steps": [
+                        "确认两列是否存在单位换算关系（10倍、100倍等）。",
+                        "核对尾数匹配是否由共同分母产生。",
+                        "检查位移方向是否与已知的单位换算一致。",
+                    ],
+                    "raw_data_samples": _extract_raw_data_samples(
+                        sheet, sorted(matched_rows)
+                    ),
+                    "artifact_likelihood": artifact_likelihood,
+                    "artifact_reason": artifact_reason,
+                }
+            )
+    if skipped_high_frequency_tokens and detector_skips is not None:
+        detector_skips.append(
+            {
+                "detector": "decimal_tail_match_shifted",
+                "workbook": sheet.workbook,
+                "sheet": sheet.sheet,
+                "reason": "high_frequency_tail_tokens_skipped",
+                "skipped_token_observations": skipped_high_frequency_tokens,
+                "frequency_limit": high_frequency_limit,
+            }
+        )
+    return sorted(
+        findings,
+        key=lambda item: (
+            -risk_rank(item["risk_level"]),
+            -int(item["support_rows"]),
+            str(item["sheet"]),
+            str(item["columns"]),
         ),
     )[: params.max_findings_per_category]

@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 from collections import Counter
 from pathlib import Path
 from typing import Any
@@ -19,6 +20,7 @@ from engine.static_audit.tools.source_data_findings import (
 from ._shared import (
     PairForensicsParams,
     RISK_ORDER,
+    build_sheet_numeric_index,
     candidate_offsets,
     common_offset_pairs,
     decimal_places,
@@ -27,14 +29,18 @@ from ._shared import (
     ratio_key,
     risk_rank,
 )
+from .binary_arithmetic import binary_arithmetic_relation_findings
 from .cross_block_diff import cross_block_paired_diff_findings
 from .duplicate_row import duplicate_row_vector_findings
 from .paired_ratio import (
+    copy_paste_modify_findings,
     long_format_paired_ratio_reuse_findings,
     long_format_within_pair_ratio_enrichment_findings,
     paired_ratio_reuse_findings,
     row_offset_scalar_findings,
     row_offset_rounding_bias_findings,
+    shifted_paste_findings,
+    strict_linear_relation_findings,
 )
 from .paired_spread import paired_difference_spread_findings
 from .review_tasks import (
@@ -42,8 +48,10 @@ from .review_tasks import (
     cluster_pair_forensics_findings,
     pair_forensics_review_tasks,
 )
+from .sequence_relation import internal_sequence_relation_findings
 from .small_patterns import (
     cross_sheet_fractional_tail_reuse_findings,
+    decimal_tail_match_shifted_findings,
     repeated_measurement_value_findings,
     small_n_fixed_relationship_findings,
     within_sheet_fractional_tail_reuse_findings,
@@ -54,12 +62,16 @@ __all__ = [
     "PairForensicsParams",
     "analyze_xlsx_root",
     "assign_ids",
+    "binary_arithmetic_relation_findings",
     "candidate_offsets",
     "cluster_pair_forensics_findings",
     "common_offset_pairs",
+    "copy_paste_modify_findings",
     "cross_block_paired_diff_findings",
     "decimal_places",
+    "decimal_tail_match_shifted_findings",
     "duplicate_row_vector_findings",
+    "internal_sequence_relation_findings",
     "is_low_information_numeric_column",
     "long_format_paired_ratio_reuse_findings",
     "long_format_within_pair_ratio_enrichment_findings",
@@ -73,7 +85,9 @@ __all__ = [
     "row_offset_scalar_findings",
     "cross_sheet_fractional_tail_reuse_findings",
     "repeated_measurement_value_findings",
+    "shifted_paste_findings",
     "small_n_fixed_relationship_findings",
+    "strict_linear_relation_findings",
     "within_sheet_fractional_tail_reuse_findings",
 ]
 
@@ -91,7 +105,20 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
     repeated_values = []
     fractional_tail_reuse = []
     small_n_fixed_relationships = []
+    binary_arithmetic = []
+    copy_paste_modify = []
+    shifted_paste = []
+    internal_sequence = []
+    decimal_tail_shifted = []
+    strict_linear = []
     all_sheets = []
+    detector_skips: list[dict[str, Any]] = []
+    performance: dict[str, Any] = {
+        "numeric_index_sheets": 0,
+        "numeric_index_columns": 0,
+        "numeric_index_cells": 0,
+        "numeric_index_build_seconds": 0.0,
+    }
     workbook_count = 0
     sheet_count = 0
     for workbook_path in sorted(xlsx_root.glob("*.xlsx")):
@@ -109,6 +136,20 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
         sheet_count += len(sheets)
         all_sheets.extend(sheets)
         for sheet in sheets:
+            index_start = time.perf_counter()
+            numeric_index = build_sheet_numeric_index(sheet, params)
+            performance["numeric_index_build_seconds"] = float(
+                performance["numeric_index_build_seconds"]
+            ) + (time.perf_counter() - index_start)
+            performance["numeric_index_sheets"] = int(
+                performance["numeric_index_sheets"]
+            ) + 1
+            performance["numeric_index_columns"] = int(
+                performance["numeric_index_columns"]
+            ) + len(numeric_index.valid_columns)
+            performance["numeric_index_cells"] = int(
+                performance["numeric_index_cells"]
+            ) + sum(len(values) for values in numeric_index.values_by_col.values())
             scalar_findings.extend(row_offset_scalar_findings(sheet, params))
             ratio_findings.extend(paired_ratio_reuse_findings(sheet, params))
             duplicate_rows.extend(duplicate_row_vector_findings(sheet, params))
@@ -128,6 +169,49 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
             small_n_fixed_relationships.extend(
                 small_n_fixed_relationship_findings(sheet, params)
             )
+            binary_arithmetic.extend(
+                binary_arithmetic_relation_findings(
+                    numeric_index,
+                    params,
+                    performance=performance,
+                    detector_skips=detector_skips,
+                )
+            )
+            copy_paste_modify.extend(
+                copy_paste_modify_findings(
+                    numeric_index,
+                    params,
+                    performance=performance,
+                    detector_skips=detector_skips,
+                )
+            )
+            shifted_paste.extend(
+                shifted_paste_findings(
+                    numeric_index,
+                    params,
+                    performance=performance,
+                    detector_skips=detector_skips,
+                )
+            )
+            internal_sequence.extend(
+                internal_sequence_relation_findings(numeric_index, params)
+            )
+            decimal_tail_shifted.extend(
+                decimal_tail_match_shifted_findings(
+                    numeric_index,
+                    params,
+                    performance=performance,
+                    detector_skips=detector_skips,
+                )
+            )
+            strict_linear.extend(
+                strict_linear_relation_findings(
+                    numeric_index,
+                    params,
+                    performance=performance,
+                    detector_skips=detector_skips,
+                )
+            )
     cross_sheet_fractional_tail_reuse = cross_sheet_fractional_tail_reuse_findings(
         all_sheets, params
     )
@@ -145,6 +229,12 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
         *fractional_tail_reuse,
         *small_n_fixed_relationships,
         *cross_sheet_fractional_tail_reuse,
+        *binary_arithmetic,
+        *copy_paste_modify,
+        *shifted_paste,
+        *internal_sequence,
+        *decimal_tail_shifted,
+        *strict_linear,
     ]
     findings = sorted(
         findings,
@@ -164,6 +254,9 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
     finding_clusters = cluster_pair_forensics_findings(priority_findings)
     review_tasks = pair_forensics_review_tasks(finding_clusters)
     by_category = Counter(finding["category"] for finding in findings)
+    performance["numeric_index_build_seconds"] = round(
+        float(performance["numeric_index_build_seconds"]), 6
+    )
     return {
         "schema_version": "1.0",
         "created_by": "engine/static_audit/tools/source_data_pair_forensics.py",
@@ -201,8 +294,16 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
             "cross_sheet_fractional_tail_reuse_findings": len(
                 cross_sheet_fractional_tail_reuse
             ),
+            "binary_arithmetic_relation_findings": len(binary_arithmetic),
+            "copy_paste_modify_findings": len(copy_paste_modify),
+            "shifted_paste_findings": len(shifted_paste),
+            "internal_sequence_relation_findings": len(internal_sequence),
+            "decimal_tail_match_shifted_findings": len(decimal_tail_shifted),
+            "strict_linear_relation_findings": len(strict_linear),
             "by_category": dict(by_category),
             "errors": len(errors),
+            "detector_skips": len(detector_skips),
+            "performance": performance,
         },
         "findings": findings,
         "priority_findings": priority_findings,
@@ -220,6 +321,14 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
         "fractional_tail_reuse_findings": fractional_tail_reuse,
         "small_n_fixed_relationship_findings": small_n_fixed_relationships,
         "cross_sheet_fractional_tail_reuse_findings": cross_sheet_fractional_tail_reuse,
+        "binary_arithmetic_relation_findings": binary_arithmetic,
+        "copy_paste_modify_findings": copy_paste_modify,
+        "shifted_paste_findings": shifted_paste,
+        "internal_sequence_relation_findings": internal_sequence,
+        "decimal_tail_match_shifted_findings": decimal_tail_shifted,
+        "strict_linear_relation_findings": strict_linear,
+        "detector_skips": detector_skips,
+        "performance": performance,
         "errors": errors,
         "limitations": [
             "该工具只识别 XLSX 中的通用行偏移、配对比例复用、long-format 成对比例复用、小样本数值复用和低宽度行重复模式，不判断最终科研诚信。",

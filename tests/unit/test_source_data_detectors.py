@@ -30,10 +30,16 @@ from engine.static_audit.tools.source_data_findings import (
 from engine.static_audit.tools.source_data_pair_forensics import (
     PairForensicsParams,
     analyze_xlsx_root,
+    binary_arithmetic_relation_findings,
     cluster_pair_forensics_findings,
+    decimal_tail_match_shifted_findings,
     duplicate_row_vector_findings,
     paired_ratio_reuse_findings,
     pair_forensics_review_tasks,
+    strict_linear_relation_findings,
+)
+from engine.static_audit.tools.source_data_pair_forensics._shared import (
+    same_fraction_integer_delta,
 )
 
 
@@ -748,6 +754,155 @@ def test_pair_forensics_detects_small_n_publication_patterns(tmp_path) -> None:
         for item in result["findings"]
         if item["category"] == "repeated_measurement_value"
     )
+
+
+def test_same_fraction_integer_delta_requires_decimal_fraction() -> None:
+    assert same_fraction_integer_delta(Decimal("1"), Decimal("5")) is None
+    assert same_fraction_integer_delta(Decimal("-1.2"), Decimal("2.2")) is None
+    assert same_fraction_integer_delta(Decimal("1.234"), Decimal("5.234")) == 4
+
+
+def test_binary_arithmetic_relation_deduplicates_equivalent_forms() -> None:
+    rows = range(1, 6)
+    sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Fig.1",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            1: {row: Decimal(row + 1) for row in rows},
+            2: {row: Decimal(row + 2) for row in rows},
+            3: {row: Decimal((row + 1) * (row + 2)) for row in rows},
+        },
+        text_columns={},
+        formulas_by_column={},
+        cell_count=15,
+        numeric_cell_count=15,
+    )
+
+    findings = binary_arithmetic_relation_findings(
+        sheet,
+        PairForensicsParams(max_findings_per_category=20),
+    )
+
+    assert len(findings) == 1
+    assert findings[0]["category"] == "binary_arithmetic_relation"
+    assert findings[0]["columns"] == ["A", "B", "C"]
+    assert findings[0]["operation"] == "A*B=C"
+
+
+def test_decimal_tail_match_shifted_uses_five_digit_windows() -> None:
+    rows = range(1, 5)
+    sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Fig.1",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            1: {
+                1: Decimal("1.123456"),
+                2: Decimal("2.123457"),
+                3: Decimal("3.123458"),
+                4: Decimal("4.123459"),
+            },
+            2: {
+                1: Decimal("5.912345"),
+                2: Decimal("6.912345"),
+                3: Decimal("7.912345"),
+                4: Decimal("8.912345"),
+            },
+        },
+        text_columns={},
+        formulas_by_column={},
+        cell_count=8,
+        numeric_cell_count=8,
+    )
+
+    findings = decimal_tail_match_shifted_findings(
+        sheet,
+        PairForensicsParams(max_findings_per_category=20),
+    )
+
+    assert findings
+    finding = findings[0]
+    assert finding["category"] == "decimal_tail_match_shifted"
+    assert finding["shift"] == 1
+    assert finding["tail_token"] == "12345"
+    assert finding["support_rows"] == len(list(rows))
+
+
+def test_strict_linear_relation_suppresses_fixed_ratio_and_difference() -> None:
+    rows = range(1, 8)
+    fixed_ratio_sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Fixed ratio",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            1: {row: Decimal(row) for row in rows},
+            2: {row: Decimal(row * 2) for row in rows},
+        },
+        text_columns={},
+        formulas_by_column={},
+        cell_count=14,
+        numeric_cell_count=14,
+    )
+    fixed_difference_sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Fixed difference",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            1: {row: Decimal(row) for row in rows},
+            2: {row: Decimal(row + 3) for row in rows},
+        },
+        text_columns={},
+        formulas_by_column={},
+        cell_count=14,
+        numeric_cell_count=14,
+    )
+    offset_linear_sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Offset linear",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            1: {row: Decimal(row) for row in rows},
+            2: {row: Decimal(row * 2) + Decimal("0.3") for row in rows},
+        },
+        text_columns={},
+        formulas_by_column={},
+        cell_count=14,
+        numeric_cell_count=14,
+    )
+
+    params = PairForensicsParams(max_findings_per_category=20)
+    assert strict_linear_relation_findings(fixed_ratio_sheet, params) == []
+    assert strict_linear_relation_findings(fixed_difference_sheet, params) == []
+    findings = strict_linear_relation_findings(offset_linear_sheet, params)
+    assert len(findings) == 1
+    assert findings[0]["category"] == "strict_linear_relation"
+
+
+def test_pair_forensics_summary_includes_performance_and_detector_skips(tmp_path) -> None:
+    write_minimal_xlsx(
+        tmp_path / "source.xlsx",
+        [
+            [1.123456, 2.234567, 3.345678],
+            [2.123456, 3.234567, 4.345678],
+            [3.123456, 4.234567, 5.345678],
+        ],
+    )
+
+    result = analyze_xlsx_root(
+        tmp_path,
+        PairForensicsParams(min_pairs=3, max_findings_per_category=20),
+    )
+
+    assert "performance" in result["summary"]
+    assert "detector_skips" in result["summary"]
+    assert isinstance(result["detector_skips"], list)
+    assert result["summary"]["performance"]["numeric_index_sheets"] == 1
 
 
 def test_pair_forensics_cross_block_requires_real_separator_and_narrow_diffs(
