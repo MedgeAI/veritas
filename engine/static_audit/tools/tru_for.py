@@ -23,8 +23,7 @@ from engine.static_audit.visual_schemas import (
     ForgedRegionEvidence,
     VISUAL_SCHEMA_VERSION,
 )
-from runtime.executors.base import ExecutionRequest
-from runtime.executors.subprocess_executor import execute_subprocess
+from engine.tools.executor import ExecutionRequest, execute_subprocess
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 DEFAULT_WEIGHTS = _REPO_ROOT / "models" / "trufor" / "weights" / "trufor.pth.tar"

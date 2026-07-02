@@ -28,8 +28,7 @@ from pathlib import Path
 from typing import Any
 
 from engine.exceptions import ToolExecutionError
-from runtime.executors.subprocess_executor import execute_subprocess
-from runtime.executors.base import ExecutionRequest
+from engine.tools.executor import ExecutionRequest, execute_subprocess
 
 # ---------------------------------------------------------------------------
 # Re-export from engine.shared for backward compatibility

@@ -14,8 +14,7 @@ from engine.ingest.manifest_loader import (
     resolve_repo_path,
 )
 from engine.reporting.models import CheckStep, ReportFinding, VerificationReport
-from runtime.executors.base import ExecutionRequest
-from runtime.executors.subprocess_executor import execute_subprocess
+from engine.tools.executor import ExecutionRequest, execute_subprocess
 
 
 SEVERITY_ORDER = {"critical": 3, "warning": 2, "info": 1}
