@@ -9,12 +9,12 @@ from __future__ import annotations
 import importlib
 import os
 import shutil
-import subprocess
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any
 
 from engine.env import get_env
+from runtime.executors.subprocess_executor import run_simple_command
 
 
 @dataclass
@@ -139,12 +139,9 @@ def _check_infrastructure(report: DiagReport) -> None:
             )
         else:
             try:
-                r = subprocess.run(
+                r = run_simple_command(
                     ["docker", "info", "--format", "{{.ServerVersion}}"],
-                    capture_output=True,
-                    text=True,
                     timeout=5,
-                    check=False,
                 )
                 if r.returncode == 0:
                     report.add("docker", True, f"v{r.stdout.strip()}")
@@ -280,12 +277,9 @@ def _check_docker_images(report: DiagReport) -> None:
     ]
     for name, tag, severity, fix in images:
         try:
-            r = subprocess.run(
+            r = run_simple_command(
                 ["docker", "images", "-q", tag],
-                capture_output=True,
-                text=True,
                 timeout=5,
-                check=False,
             )
             if r.stdout.strip():
                 report.add(f"image:{name}", True, tag)
@@ -373,12 +367,9 @@ def _check_opencode_wrapper(report: DiagReport) -> None:
         return
 
     try:
-        r = subprocess.run(
+        r = run_simple_command(
             [wrapper, "--version"],
-            capture_output=True,
-            text=True,
             timeout=15,
-            check=False,
         )
         if r.returncode == 0:
             version = r.stdout.strip() or r.stderr.strip()
@@ -391,13 +382,5 @@ def _check_opencode_wrapper(report: DiagReport) -> None:
                 severity="critical",
                 fix_hint="wrapper 脚本执行失败；检查 opencode 容器是否运行",
             )
-    except subprocess.TimeoutExpired:
-        report.add(
-            "opencode_exec",
-            False,
-            "wrapper timed out (15s)",
-            severity="critical",
-            fix_hint="opencode 容器可能卡住；检查 docker logs veritas-opencode-dev",
-        )
     except Exception as exc:
         report.add("opencode_exec", False, str(exc)[:200], severity="critical")
