@@ -20,6 +20,11 @@ def assign_ids(findings: list[dict[str, Any]]) -> None:
         "row_offset_partial_copy_rounding_bias": "RBR",
         "paired_difference_too_narrow": "PDS",
         "cross_block_paired_diff_too_narrow": "CBD",
+        "repeated_measurement_value": "RMV",
+        "fractional_tail_reuse": "FTR",
+        "small_n_fixed_difference": "SNF",
+        "small_n_fixed_ratio": "SNR",
+        "cross_sheet_fractional_tail_reuse": "CFT",
     }
     for finding in findings:
         category = finding["category"]
@@ -87,6 +92,11 @@ def _cluster_key(finding: dict[str, Any]) -> tuple[str, str, str, str, str]:
         "row_offset_exact_reuse",
         "long_format_within_pair_ratio_enrichment",
         "row_offset_partial_copy_rounding_bias",
+        "repeated_measurement_value",
+        "fractional_tail_reuse",
+        "small_n_fixed_difference",
+        "small_n_fixed_ratio",
+        "cross_sheet_fractional_tail_reuse",
     }:
         signature = f"offset={offset};relationship={_finding_relationship(finding)}"
     elif category == "duplicate_row_vector":
@@ -107,6 +117,11 @@ def _category_review_question(category: str) -> str:
         "row_offset_partial_copy_rounding_bias": "固定行偏移同时出现精度变化和部分复用，需确认后半区是否为独立原始记录。",
         "paired_difference_too_narrow": "配对列之间的差异分布异常狭窄，需确认配对测量是否来自独立生物学重复或高精度技术重复。",
         "cross_block_paired_diff_too_narrow": "被文本分隔行分开的两个数据块中，对应位置的列值差异异常狭窄，需确认两个块是否代表独立实验条件。",
+        "repeated_measurement_value": "多个 cell 出现相同展示值，需确认它们是否为独立样本、合法重复测量或四舍五入后的重复。",
+        "fractional_tail_reuse": "同一 sheet 内多个不同数值复用相同小数尾部，需确认是否由相同分母、归一化或展示规则导致。",
+        "small_n_fixed_difference": "短向量列之间存在精确固定差值，需确认是否为合法派生关系或独立条件间的异常一致。",
+        "small_n_fixed_ratio": "短向量列之间存在精确固定倍率，需确认是否为合法单位换算/归一化或独立条件间的异常一致。",
+        "cross_sheet_fractional_tail_reuse": "不同 sheet 的同类数值序列连续复用小数尾部，需确认这些 figure 是否独立以及原始未舍入值是否支持该模式。",
     }
     return questions.get(
         category, "该 Source Data pattern 需要结合样本语义和原始记录人工复核。"

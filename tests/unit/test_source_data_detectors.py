@@ -440,6 +440,70 @@ def write_minimal_xlsx(path: Path, rows: list[list[float | int | None]]) -> None
         zf.writestr("xl/worksheets/sheet1.xml", sheet_xml)
 
 
+def write_two_sheet_xlsx(
+    path: Path,
+    first_rows: list[list[float | int | None]],
+    second_rows: list[list[float | int | None]],
+) -> None:
+    def sheet_xml(rows: list[list[float | int | None]]) -> str:
+        sheet_rows = []
+        for row_index, values in enumerate(rows, start=1):
+            cells = []
+            for col_index, value in enumerate(values, start=1):
+                if value is None:
+                    continue
+                col = chr(64 + col_index)
+                cells.append(f'<c r="{col}{row_index}"><v>{value}</v></c>')
+            sheet_rows.append(f'<row r="{row_index}">{"".join(cells)}</row>')
+        return (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            f"<sheetData>{''.join(sheet_rows)}</sheetData>"
+            "</worksheet>"
+        )
+
+    with zipfile.ZipFile(path, "w") as zf:
+        zf.writestr(
+            "[Content_Types].xml",
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+            '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+            '<Default Extension="xml" ContentType="application/xml"/>'
+            '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+            '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+            '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+            "</Types>",
+        )
+        zf.writestr(
+            "_rels/.rels",
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+            "</Relationships>",
+        )
+        zf.writestr(
+            "xl/workbook.xml",
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            '<sheets>'
+            '<sheet name="Fig. 2e" sheetId="1" r:id="rId1"/>'
+            '<sheet name="Fig. 7e" sheetId="2" r:id="rId2"/>'
+            '</sheets>'
+            "</workbook>",
+        )
+        zf.writestr(
+            "xl/_rels/workbook.xml.rels",
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+            '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>'
+            "</Relationships>",
+        )
+        zf.writestr("xl/worksheets/sheet1.xml", sheet_xml(first_rows))
+        zf.writestr("xl/worksheets/sheet2.xml", sheet_xml(second_rows))
+
+
 def write_mixed_xlsx(path: Path, rows: list[list[float | int | str | None]]) -> None:
     sheet_rows = []
     for row_index, values in enumerate(rows, start=1):
@@ -624,6 +688,65 @@ def test_pair_forensics_detects_cross_block_paired_diff_too_narrow(tmp_path) -> 
     assert any(
         task["category"] == "cross_block_paired_diff_too_narrow"
         for task in result["review_tasks"]
+    )
+
+
+def test_pair_forensics_detects_cross_sheet_fractional_tail_reuse(tmp_path) -> None:
+    write_two_sheet_xlsx(
+        tmp_path / "source.xlsx",
+        [[5.438083, 6.141738, 6.692767, 7.018653, 6.952622, 4.667768]],
+        [[5.838083, 6.041738, 6.592767, 6.018653, 6.152622, 7.467768]],
+    )
+
+    result = analyze_xlsx_root(
+        tmp_path,
+        PairForensicsParams(max_findings_per_category=20),
+    )
+
+    findings = [
+        item
+        for item in result["findings"]
+        if item["category"] == "cross_sheet_fractional_tail_reuse"
+    ]
+    assert findings
+    assert findings[0]["matched_pairs"] == 6
+    assert findings[0]["finding_id"].startswith("CFT-")
+    assert result["summary"]["cross_sheet_fractional_tail_reuse_findings"] == len(
+        findings
+    )
+    assert any(
+        task["category"] == "cross_sheet_fractional_tail_reuse"
+        for task in result["review_tasks"]
+    )
+
+
+def test_pair_forensics_detects_small_n_publication_patterns(tmp_path) -> None:
+    write_minimal_xlsx(
+        tmp_path / "small_n.xlsx",
+        [
+            [1.234567, 10.0, 10.5, 1.123456],
+            [2.345678, 20.0, 20.5, 2.223456],
+            [1.234567, 30.0, 30.5, 3.323456],
+            [1.234567, 40.0, 40.5, 4.423456],
+        ],
+    )
+
+    result = analyze_xlsx_root(
+        tmp_path,
+        PairForensicsParams(max_findings_per_category=20),
+    )
+    categories = {item["category"] for item in result["findings"]}
+
+    assert "repeated_measurement_value" in categories
+    assert "fractional_tail_reuse" in categories
+    assert "small_n_fixed_difference" in categories
+    assert result["summary"]["repeated_measurement_value_findings"] >= 1
+    assert result["summary"]["fractional_tail_reuse_findings"] >= 1
+    assert result["summary"]["small_n_fixed_relationship_findings"] >= 1
+    assert any(
+        item["finding_id"].startswith("RMV-")
+        for item in result["findings"]
+        if item["category"] == "repeated_measurement_value"
     )
 
 

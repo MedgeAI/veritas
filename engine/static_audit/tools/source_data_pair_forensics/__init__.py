@@ -42,6 +42,12 @@ from .review_tasks import (
     cluster_pair_forensics_findings,
     pair_forensics_review_tasks,
 )
+from .small_patterns import (
+    cross_sheet_fractional_tail_reuse_findings,
+    repeated_measurement_value_findings,
+    small_n_fixed_relationship_findings,
+    within_sheet_fractional_tail_reuse_findings,
+)
 
 __all__ = [
     "RISK_ORDER",
@@ -65,6 +71,10 @@ __all__ = [
     "risk_rank",
     "row_offset_rounding_bias_findings",
     "row_offset_scalar_findings",
+    "cross_sheet_fractional_tail_reuse_findings",
+    "repeated_measurement_value_findings",
+    "small_n_fixed_relationship_findings",
+    "within_sheet_fractional_tail_reuse_findings",
 ]
 
 
@@ -78,6 +88,10 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
     rounding_bias = []
     narrow_diff_spread = []
     cross_block_narrow = []
+    repeated_values = []
+    fractional_tail_reuse = []
+    small_n_fixed_relationships = []
+    all_sheets = []
     workbook_count = 0
     sheet_count = 0
     for workbook_path in sorted(xlsx_root.glob("*.xlsx")):
@@ -93,6 +107,7 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
             )
             continue
         sheet_count += len(sheets)
+        all_sheets.extend(sheets)
         for sheet in sheets:
             scalar_findings.extend(row_offset_scalar_findings(sheet, params))
             ratio_findings.extend(paired_ratio_reuse_findings(sheet, params))
@@ -106,6 +121,16 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
             rounding_bias.extend(row_offset_rounding_bias_findings(sheet, params))
             narrow_diff_spread.extend(paired_difference_spread_findings(sheet, params))
             cross_block_narrow.extend(cross_block_paired_diff_findings(sheet, params))
+            repeated_values.extend(repeated_measurement_value_findings(sheet, params))
+            fractional_tail_reuse.extend(
+                within_sheet_fractional_tail_reuse_findings(sheet, params)
+            )
+            small_n_fixed_relationships.extend(
+                small_n_fixed_relationship_findings(sheet, params)
+            )
+    cross_sheet_fractional_tail_reuse = cross_sheet_fractional_tail_reuse_findings(
+        all_sheets, params
+    )
 
     findings = [
         *scalar_findings,
@@ -116,6 +141,10 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
         *rounding_bias,
         *narrow_diff_spread,
         *cross_block_narrow,
+        *repeated_values,
+        *fractional_tail_reuse,
+        *small_n_fixed_relationships,
+        *cross_sheet_fractional_tail_reuse,
     ]
     findings = sorted(
         findings,
@@ -164,6 +193,14 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
             "rounding_bias_findings": len(rounding_bias),
             "paired_difference_too_narrow_findings": len(narrow_diff_spread),
             "cross_block_paired_diff_too_narrow_findings": len(cross_block_narrow),
+            "repeated_measurement_value_findings": len(repeated_values),
+            "fractional_tail_reuse_findings": len(fractional_tail_reuse),
+            "small_n_fixed_relationship_findings": len(
+                small_n_fixed_relationships
+            ),
+            "cross_sheet_fractional_tail_reuse_findings": len(
+                cross_sheet_fractional_tail_reuse
+            ),
             "by_category": dict(by_category),
             "errors": len(errors),
         },
@@ -179,9 +216,13 @@ def analyze_xlsx_root(xlsx_root: Path, params: PairForensicsParams) -> dict[str,
         "rounding_bias_findings": rounding_bias,
         "paired_difference_too_narrow_findings": narrow_diff_spread,
         "cross_block_paired_diff_too_narrow_findings": cross_block_narrow,
+        "repeated_measurement_value_findings": repeated_values,
+        "fractional_tail_reuse_findings": fractional_tail_reuse,
+        "small_n_fixed_relationship_findings": small_n_fixed_relationships,
+        "cross_sheet_fractional_tail_reuse_findings": cross_sheet_fractional_tail_reuse,
         "errors": errors,
         "limitations": [
-            "该工具只识别 XLSX 中的通用行偏移、配对比例复用、long-format 成对比例复用和低宽度行重复模式，不判断最终科研诚信。",
+            "该工具只识别 XLSX 中的通用行偏移、配对比例复用、long-format 成对比例复用、小样本数值复用和低宽度行重复模式，不判断最终科研诚信。",
             "行是否代表独立样本、患者或技术重复需要结合 sheet 注释、论文方法和原始仪器输出人工确认。",
             "ratio_places 会影响 paired ratio reuse 的敏感度；高精度与展示值四舍五入场景应分开解释。",
             "低信息数值列会被视为分组/类别/编号候选并排除在连续测量列检测之外，可能降低二分类测量场景的敏感度。",

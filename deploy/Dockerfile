@@ -76,10 +76,26 @@ WORKDIR /app
 RUN mkdir -p /app/web_data /app/outputs /app/logs \
     && chown -R $USERNAME:$USERNAME /app/web_data /app/outputs /app/logs
 
-# Install Python dependencies (from pyproject.toml + uv.lock)
-# Dependency files are copied BEFORE source code: if only source changes,
-# the uv sync layer stays cached (the most expensive layer ~309MB).
+# ── Layer ordering: dependency install BEFORE source code ─────────────
+# uv sync only reads pyproject.toml + uv.lock — it does NOT scan source code.
+# By running uv sync BEFORE copying engine/, web/, etc., source-only changes
+# (the common case) reuse the cached uv sync layer (~309MB, ~60-90s).
+#
+# Cache boundary: uv sync re-runs ONLY when pyproject.toml or uv.lock change.
 COPY pyproject.toml uv.lock ./
+# uv sync --frozen: install exactly what uv.lock specifies, no resolution drift
+# UV_PROJECT_ENVIRONMENT (set above) tells uv to install into /opt/venv,
+# preventing it from creating its own .venv in the project directory.
+#
+# --mount=type=cache: BuildKit cache mount for uv's package download cache.
+#   - Persists across Docker builds (stored in BuildKit's volume, NOT in image layers).
+#   - First build: downloads all packages (~270s). Subsequent builds: reuses cache (~5-15s).
+#   - Removed from final image — zero impact on image size.
+#   - Requires BuildKit (DOCKER_BUILDKIT=1 or docker buildx), default in Docker 23+.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --extra web --extra pg --extra visual --extra models
+
+# ── Source code (changes here do NOT invalidate the uv sync layer) ────
 COPY cli/ ./cli/
 COPY engine/ ./engine/
 COPY runtime/ ./runtime/
@@ -109,11 +125,6 @@ COPY README.md .
 RUN mkdir -p /app/web_data/.opencode/data /app/outputs \
     && chown -R $USERNAME:$USERNAME /app/web_data /app/outputs /app/logs \
     && ln -s /app/web_data/.opencode/data /app/.opencode/data
-# uv sync --frozen: install exactly what uv.lock specifies, no resolution drift
-# --no-cache: skip uv's cache to keep image layers lean
-# UV_PROJECT_ENVIRONMENT (set above) tells uv to install into /opt/venv,
-# preventing it from creating its own .venv in the project directory
-RUN uv sync --frozen --extra web --extra pg --extra visual --extra models --no-cache
 
 # Copy frontend build artifacts from stage 1
 COPY --from=frontend-builder /build/dist ./web/frontend/dist

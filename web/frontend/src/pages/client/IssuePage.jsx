@@ -69,9 +69,6 @@ export default function IssuePage({ caseId, findingId, onNavigate }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedChoice, setSelectedChoice] = useState(null);
-  const [submitting, setSubmitting] = useState(false);
-  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   // Hook MUST be called unconditionally at the top — early returns BEFORE a
   // hook break React's rule-of-hooks (hook ordering).  The guards go INSIDE
@@ -119,85 +116,142 @@ export default function IssuePage({ caseId, findingId, onNavigate }) {
     );
   }
 
-  // Compute findings list once — shared by both list view and detail view
-  const allFindings = useMemo(() => [
+  if (!findingId) {
+    return <IssueListView data={data} onNavigate={onNavigate} />;
+  }
+
+  return (
+    <IssueDetailView
+      caseId={caseId}
+      data={data}
+      findingId={findingId}
+      onNavigate={onNavigate}
+    />
+  );
+}
+
+function allFindingsFromReport(data) {
+  return [
     ...(data.risk?.findings_by_layer?.layer_1 || []),
     ...(data.risk?.findings_by_layer?.layer_2 || []),
     ...(data.risk?.findings_by_layer?.layer_3 || []),
-  ], [data]);
+  ];
+}
 
-  // No findingId — show findings list for selection
-  if (!findingId) {
+function IssueListView({ data, onNavigate }) {
+  const findingsWithLayer = useMemo(() => {
     const layer1 = (data.risk?.findings_by_layer?.layer_1 || []).map((f) => ({ ...f, _layer: 1 }));
     const layer2 = (data.risk?.findings_by_layer?.layer_2 || []).map((f) => ({ ...f, _layer: 2 }));
     const layer3 = (data.risk?.findings_by_layer?.layer_3 || []).map((f) => ({ ...f, _layer: 3 }));
-    const findingsWithLayer = [...layer1, ...layer2, ...layer3];
-    const layerLabels = { 1: '确定性高', 2: '需人工复核', 3: '信息补充' };
+    return [...layer1, ...layer2, ...layer3];
+  }, [data]);
+  const layerLabels = { 1: '确定性高', 2: '需人工复核', 3: '信息补充' };
 
-    return (
-      <div className="mx-auto max-w-[980px] px-14 py-16 pb-24">
-        <h1 className="font-display text-[32px] font-normal text-ink-900">
-          选择需要复核的发现
-        </h1>
-        <p className="mt-3 text-sm text-ink-500">
-          共 {findingsWithLayer.length} 项发现，点击查看详情并选择处理方式
-        </p>
-        {findingsWithLayer.length === 0 ? (
-          <div className="mt-16 py-12 text-center text-sm text-ink-400">
-            暂无发现项
-          </div>
-        ) : (
-          [1, 2, 3].map((layer) => {
-            const layerFindings = findingsWithLayer.filter((f) => f._layer === layer);
-            if (layerFindings.length === 0) return null;
-            return (
-              <div key={layer} className="mt-10">
-                <div className="mb-4 flex items-baseline gap-3 border-b border-ink-900/10 pb-2">
-                  <span className="font-mono text-[10px] tracking-[0.2em] text-paper-300">Layer {layer}</span>
-                  <span className="text-xs text-ink-500">{layerLabels[layer]}</span>
-                  <span className="ml-auto text-xs text-ink-400">{layerFindings.length} 项</span>
-                </div>
-                <ul className="space-y-2">
-                  {layerFindings.map((f) => {
-                    const fCfg = RISK_CONFIG[f.risk_level] || RISK_CONFIG.info;
-                    return (
-                      <li key={f.finding_id}>
-                        <button
-                          type="button"
-                          className="w-full rounded-sm border border-ink-900/8 bg-paper-50 px-5 py-4 text-left transition-colors hover:border-ink-900/20 hover:bg-paper-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50"
-                          onClick={() => onNavigate?.('issue', { finding: f.finding_id })}
-                        >
-                          <div className="flex items-start gap-3">
-                            <span className={`mt-0.5 shrink-0 text-[10px] font-medium uppercase tracking-wider ${fCfg.color}`}>
-                              {fCfg.label}
-                            </span>
-                            <span className="min-w-0 flex-1 text-sm text-ink-800">
-                              {f.summary || f.finding_id}
-                            </span>
-                            <span className="shrink-0 font-mono text-[10px] text-ink-400">
-                              {f.finding_id}
-                            </span>
-                          </div>
-                          {f.location && (
-                            <div className="mt-1.5 pl-12 font-mono text-[11px] text-ink-400">
-                              {f.location}
-                            </div>
-                          )}
-                        </button>
-                      </li>
-                    );
-                  })}
-                </ul>
+  return (
+    <div className="mx-auto max-w-[980px] px-14 py-16 pb-24">
+      <h1 className="font-display text-[32px] font-normal text-ink-900">
+        选择需要复核的发现
+      </h1>
+      <p className="mt-3 text-sm text-ink-500">
+        共 {findingsWithLayer.length} 项发现，点击查看详情并选择处理方式
+      </p>
+      {findingsWithLayer.length === 0 ? (
+        <div className="mt-16 py-12 text-center text-sm text-ink-400">
+          暂无发现项
+        </div>
+      ) : (
+        [1, 2, 3].map((layer) => {
+          const layerFindings = findingsWithLayer.filter((f) => f._layer === layer);
+          if (layerFindings.length === 0) return null;
+          return (
+            <div key={layer} className="mt-10">
+              <div className="mb-4 flex items-baseline gap-3 border-b border-ink-900/10 pb-2">
+                <span className="font-mono text-[10px] tracking-[0.2em] text-paper-300">Layer {layer}</span>
+                <span className="text-xs text-ink-500">{layerLabels[layer]}</span>
+                <span className="ml-auto text-xs text-ink-400">{layerFindings.length} 项</span>
               </div>
-            );
-          })
-        )}
-      </div>
-    );
-  }
+              <ul className="space-y-2">
+                {layerFindings.map((f) => {
+                  const fCfg = RISK_CONFIG[f.risk_level] || RISK_CONFIG.info;
+                  return (
+                    <li key={f.finding_id}>
+                      <button
+                        type="button"
+                        className="w-full rounded-sm border border-ink-900/8 bg-paper-50 px-5 py-4 text-left transition-colors hover:border-ink-900/20 hover:bg-paper-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50"
+                        onClick={() => onNavigate?.('issue', { finding: f.finding_id })}
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className={`mt-0.5 shrink-0 text-[10px] font-medium uppercase tracking-wider ${fCfg.color}`}>
+                            {fCfg.label}
+                          </span>
+                          <span className="min-w-0 flex-1 text-sm text-ink-800">
+                            {f.summary || f.finding_id}
+                          </span>
+                          <span className="shrink-0 font-mono text-[10px] text-ink-400">
+                            {f.finding_id}
+                          </span>
+                        </div>
+                        {f.location && (
+                          <div className="mt-1.5 pl-12 font-mono text-[11px] text-ink-400">
+                            {f.location}
+                          </div>
+                        )}
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
 
-  // Find the target finding
-  const finding = allFindings.find((f) => f.finding_id === findingId);
+function IssueDetailView({ caseId, data, findingId, onNavigate }) {
+  const [selectedChoice, setSelectedChoice] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [decisionError, setDecisionError] = useState(null);
+
+  const allFindings = useMemo(() => allFindingsFromReport(data), [data]);
+  const finding = useMemo(
+    () => allFindings.find((f) => f.finding_id === findingId),
+    [allFindings, findingId],
+  );
+
+  const currentIndex = allFindings.findIndex((f) => f.finding_id === findingId);
+  const prevFinding = currentIndex > 0 ? allFindings[currentIndex - 1] : null;
+  const nextFinding = currentIndex >= 0 && currentIndex < allFindings.length - 1
+    ? allFindings[currentIndex + 1]
+    : null;
+  const totalFindings = allFindings.length;
+
+  const goPrev = useCallback(() => {
+    if (prevFinding) onNavigate?.('issue', { finding: prevFinding.finding_id });
+  }, [prevFinding, onNavigate]);
+
+  const goNext = useCallback(() => {
+    if (nextFinding) onNavigate?.('issue', { finding: nextFinding.finding_id });
+  }, [nextFinding, onNavigate]);
+
+  useEffect(() => {
+    setSelectedChoice(null);
+    setSubmitSuccess(false);
+    setDecisionError(null);
+  }, [findingId]);
+
+  useEffect(() => {
+    if (!finding) return undefined;
+    const handler = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowLeft') goPrev();
+      if (e.key === 'ArrowRight') goNext();
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [finding, goPrev, goNext]);
 
   if (!finding) {
     return (
@@ -213,34 +267,10 @@ export default function IssuePage({ caseId, findingId, onNavigate }) {
   const cfg = RISK_CONFIG[finding.risk_level] || RISK_CONFIG.info;
   const canDecide = finding.review_decision_allowed && finding.source_ref;
 
-  // Queue navigation: index into allFindings for prev/next
-  const currentIndex = allFindings.findIndex((f) => f.finding_id === findingId);
-  const prevFinding = currentIndex > 0 ? allFindings[currentIndex - 1] : null;
-  const nextFinding = currentIndex < allFindings.length - 1 ? allFindings[currentIndex + 1] : null;
-  const totalFindings = allFindings.length;
-
-  const goPrev = useCallback(() => {
-    if (prevFinding) onNavigate?.('issue', { finding: prevFinding.finding_id });
-  }, [prevFinding, onNavigate]);
-
-  const goNext = useCallback(() => {
-    if (nextFinding) onNavigate?.('issue', { finding: nextFinding.finding_id });
-  }, [nextFinding, onNavigate]);
-
-  // Keyboard shortcuts: ← prev, → next
-  useEffect(() => {
-    const handler = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if (e.key === 'ArrowLeft') goPrev();
-      if (e.key === 'ArrowRight') goNext();
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [goPrev, goNext]);
-
   const handleSubmitDecision = async () => {
     if (!selectedChoice || !canDecide) return;
     setSubmitting(true);
+    setDecisionError(null);
     try {
       await saveReviewDecision(caseId, finding.source_ref, {
         status: selectedChoice.status,
@@ -249,7 +279,7 @@ export default function IssuePage({ caseId, findingId, onNavigate }) {
       });
       setSubmitSuccess(true);
     } catch (e) {
-      setError(e.message);
+      setDecisionError(e.message);
     } finally {
       setSubmitting(false);
     }
@@ -350,19 +380,26 @@ export default function IssuePage({ caseId, findingId, onNavigate }) {
               处理选择已提交，感谢您的反馈。
             </div>
           ) : (
-            <div className="mt-6 flex items-center gap-3">
-              <button
-                type="button"
-                className="rounded-sm bg-ink-900 px-5 py-2.5 text-xs text-paper-50 hover:bg-ink-700 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50"
-                disabled={!selectedChoice || submitting}
-                onClick={handleSubmitDecision}
-              >
-                {submitting ? '提交中…' : '提交处理选择'}
-              </button>
-              {!selectedChoice && (
-                <span className="text-xs text-ink-500">请先选择一个处理方式</span>
+            <>
+              <div className="mt-6 flex items-center gap-3">
+                <button
+                  type="button"
+                  className="rounded-sm bg-ink-900 px-5 py-2.5 text-xs text-paper-50 hover:bg-ink-700 disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50"
+                  disabled={!selectedChoice || submitting}
+                  onClick={handleSubmitDecision}
+                >
+                  {submitting ? '提交中…' : '提交处理选择'}
+                </button>
+                {!selectedChoice && (
+                  <span className="text-xs text-ink-500">请先选择一个处理方式</span>
+                )}
+              </div>
+              {decisionError && (
+                <div role="alert" className="mt-4 rounded-sm border border-risk-300/45 bg-risk-50/70 p-4 text-sm text-risk-700">
+                  {decisionError}
+                </div>
               )}
-            </div>
+            </>
           )}
         </div>
       )}
