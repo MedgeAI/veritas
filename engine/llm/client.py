@@ -8,6 +8,7 @@ import re
 
 
 from engine.exceptions import VeritasError
+from engine.llm.config import DEFAULT_LLM_BASE_URL, DEFAULT_LLM_MODEL
 
 logger = logging.getLogger(__name__)
 
@@ -51,7 +52,7 @@ class VeritasLLMClient:
         # Register custom pricing for models not in litellm's default registry
         if self.litellm:
             self.litellm.register_model({
-                "dashscope/qwen3.7-plus": {
+                DEFAULT_LLM_MODEL: {
                     "max_tokens": 8192,
                     "input_cost_per_token": 0.000004,   # ¥0.004/1K tokens
                     "output_cost_per_token": 0.000012,  # ¥0.012/1K tokens
@@ -68,7 +69,7 @@ class VeritasLLMClient:
 
         self.client = OpenAI(
             api_key=api_key,
-            base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+            base_url=DEFAULT_LLM_BASE_URL,
             http_client=http_client,
         )
 
