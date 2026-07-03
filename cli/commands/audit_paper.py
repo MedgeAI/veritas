@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
 from typing import Any, Callable, TextIO
 
 from engine.static_audit.orchestrator import AuditConfig, run_static_audit
+from engine.static_audit.cli_driver import pdf_candidates
 
 
 ProgressReporter = Callable[[dict[str, Any]], None]
@@ -79,10 +81,43 @@ def handle(
     skip_unavailable_tools: bool = False,
     profile: str = "full",
     progress_mode: str = "auto",
+    paper_pdf: str | None = None,
 ) -> int:
+    selection_source: str | None = None
+    if paper_pdf is not None:
+        selection_source = "explicit"
+    else:
+        paper_path = Path(paper_dir).expanduser().resolve()
+        candidates = pdf_candidates(paper_path)
+        if len(candidates) > 1:
+            if not sys.stdin.isatty():
+                print(
+                    f"错误: 发现 {len(candidates)} 个 PDF，无法自动判断论文正文。"
+                    "请使用 --paper-pdf 指定。",
+                    file=sys.stderr,
+                )
+                return 1
+            print(f"发现 {len(candidates)} 个 PDF，请选择论文正文：\n")
+            for index, candidate in enumerate(candidates, 1):
+                size_kb = candidate.size_bytes // 1024
+                print(f"  [{index}] {candidate.relative_path} ({size_kb} KB)")
+            print("  [0] 取消\n")
+            choice = input("输入编号: ").strip()
+            if choice == "0":
+                return 1
+            try:
+                selected = candidates[int(choice) - 1]
+            except (ValueError, IndexError):
+                print("无效选择", file=sys.stderr)
+                return 1
+            paper_pdf = selected.relative_path
+            selection_source = "interactive"
+
     summary = run_static_audit(
         AuditConfig(
             paper_dir=paper_dir,
+            paper_pdf=paper_pdf,
+            paper_pdf_selection_source=selection_source,
             case_id=case_id,
             output_root=output_root,
             fresh=fresh,

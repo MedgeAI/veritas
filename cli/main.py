@@ -63,6 +63,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     audit_parser.add_argument("--case-id", help="Case id used under outputs/<case-id>.")
     audit_parser.add_argument(
+        "--paper-pdf",
+        default=None,
+        help="Paper PDF relative path inside paper_dir. Required when multiple PDFs exist.",
+    )
+    audit_parser.add_argument(
         "--output-root", default="outputs", help="Output root directory."
     )
     audit_parser.add_argument(
@@ -146,8 +151,9 @@ def main(argv: list[str] | None = None) -> int:
             args.opencode_bin,
             args.agent_timeout_seconds,
             args.agent_max_retries,
-            args.skip_unavailable_tools,
-            args.progress,
+            skip_unavailable_tools=args.skip_unavailable_tools,
+            progress_mode=args.progress,
+            paper_pdf=args.paper_pdf,
         )
     raise ValueError(f"Unsupported command: {args.command}")
 

@@ -43,7 +43,14 @@ class OptionalLanePlan:
     params: dict[str, Any] = field(default_factory=dict)
 
 
-def build_material_inventory(paper_dir: Path, paper_pdf: Path) -> dict[str, Any]:
+def build_material_inventory(
+    paper_dir: Path,
+    paper_pdf: Path,
+    *,
+    paper_pdf_relative_path: str | None = None,
+    paper_pdf_selection_source: str | None = None,
+    paper_pdf_candidates: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     files: list[MaterialFile] = []
     by_extension: Counter[str] = Counter()
     by_type: Counter[str] = Counter()
@@ -78,6 +85,10 @@ def build_material_inventory(paper_dir: Path, paper_pdf: Path) -> dict[str, Any]
         "schema_version": "1.0",
         "paper_dir": str(paper_dir),
         "paper_pdf": str(paper_pdf),
+        "paper_pdf_relative_path": paper_pdf_relative_path
+        or paper_pdf.relative_to(paper_dir).as_posix(),
+        "paper_pdf_selection_source": paper_pdf_selection_source,
+        "paper_pdf_candidates": paper_pdf_candidates or [],
         "summary": {
             "file_count": len(files),
             "by_extension": dict(sorted(by_extension.items())),

@@ -876,6 +876,7 @@ def _run_bundle_and_report(
         progress,
     )
 
+    material_inventory_data = read_json(material_inventory_path) or {}
     manifest = {
         "schema_version": "1.0",
         "created_by": "engine/static_audit/orchestrator.py",
@@ -883,6 +884,15 @@ def _run_bundle_and_report(
         "case_id": case_id,
         "paper_dir": str(paper_dir),
         "paper_pdf": str(paper_pdf),
+        "paper_pdf_relative_path": material_inventory_data.get(
+            "paper_pdf_relative_path"
+        ),
+        "paper_pdf_selection_source": material_inventory_data.get(
+            "paper_pdf_selection_source"
+        ),
+        "paper_pdf_candidates": material_inventory_data.get(
+            "paper_pdf_candidates", []
+        ),
         "source_data_dir": str(source_data_dir) if source_data_dir else None,
         "material_inventory": str(material_inventory_path),
         "agent_material_plan": str(agent_material_plan_path),

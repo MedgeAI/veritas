@@ -333,6 +333,8 @@ def run_static_audit(
     profile = resolve_audit_profile(config.audit_profile)
     args = argparse.Namespace(
         paper_dir=str(config.paper_dir),
+        paper_pdf=config.paper_pdf,
+        paper_pdf_selection_source=config.paper_pdf_selection_source,
         case_id=config.case_id,
         output_root=config.output_root,
         fresh=config.fresh,

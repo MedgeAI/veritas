@@ -61,3 +61,38 @@ def test_runner_passes_reproducibility_tier_to_audit_function(tmp_path) -> None:
     assert completed.status == "completed"
     assert captured_config is not None
     assert captured_config.reproducibility_tier == "static"
+
+
+def test_runner_passes_paper_pdf_to_audit_function(tmp_path) -> None:
+    captured_config: AuditConfig | None = None
+
+    def audit_func(config: AuditConfig, **kwargs: Any) -> dict[str, Any]:
+        nonlocal captured_config
+        captured_config = config
+        return _fake_audit_func(config, **kwargs)
+
+    inputs = tmp_path / "inputs"
+    inputs.mkdir()
+    (inputs / "paper.pdf").write_bytes(b"%PDF-1.4\n")
+
+    case = CaseRecord(case_id="paper-pdf-case", paper_title="Paper PDF Case")
+    run = AuditRunRecord(run_id="run-1", case_id=case.case_id)
+    store = MagicMock()
+    store.inputs_dir.return_value = inputs
+    store.get_run.return_value = run
+    store.get_case.return_value = case
+    runner = AuditRunner(store, audit_func=audit_func, output_root=tmp_path / "outputs")
+
+    completed = runner.run_sync(
+        case.case_id,
+        run.run_id,
+        {
+            "paper_pdf": "paper.pdf",
+            "paper_pdf_selection_source": "explicit",
+        },
+    )
+
+    assert completed.status == "completed"
+    assert captured_config is not None
+    assert captured_config.paper_pdf == "paper.pdf"
+    assert captured_config.paper_pdf_selection_source == "explicit"

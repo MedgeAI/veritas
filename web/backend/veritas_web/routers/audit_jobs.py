@@ -34,6 +34,11 @@ from ..dependencies import (
     get_auth_context,
 )
 from ..models import REPRODUCIBILITY_TIERS
+from ..paper_pdf import (
+    ambiguous_paper_pdf_error,
+    pdf_candidate_payloads,
+    validate_paper_pdf_relative,
+)
 from ..runner import AuditRunner
 from ..sse import sse_event_stream
 
@@ -53,6 +58,7 @@ class AuditSubmitRequest(BaseModel):
     # Backward compatibility for older clients that sent the tier at the top
     # level instead of inside options.
     reproducibility_tier: str | None = None
+    paper_pdf: str | None = None
 
 
 class AuditJobResponse(BaseModel):
@@ -161,6 +167,7 @@ def _submit_audit_sync(
     store: Any,
     runner: AuditRunner,
     options: dict[str, Any],
+    paper_pdf: str | None = None,
 ) -> dict[str, Any]:
     """Synchronous business logic for submit_audit (runs in executor)."""
     # Verify case exists and is owned by the caller (admin bypasses check).
@@ -174,7 +181,8 @@ def _submit_audit_sync(
     # Validate PDF exists in inputs (search recursively — uploads may
     # be organised into subdirectories via relative_path).
     inputs_dir = store.inputs_dir(case_id)
-    if next(inputs_dir.rglob("*.pdf"), None) is None:
+    pdfs = pdf_candidate_payloads(inputs_dir)
+    if not pdfs:
         raise HTTPException(
             status_code=400,
             detail=f"no PDF found in inputs for case {case_id}",
@@ -208,6 +216,31 @@ def _submit_audit_sync(
             status_code=429,
             detail=f"audit queue full (max={max_queue_size})",
         )
+
+    case_paper_pdf = getattr(case_record, "paper_pdf", None)
+    selection_source: str | None = None
+    effective_paper_pdf = paper_pdf or case_paper_pdf
+    if paper_pdf:
+        selection_source = "explicit"
+    elif case_paper_pdf:
+        selection_source = "case_record"
+
+    if effective_paper_pdf:
+        relative_paper_pdf = validate_paper_pdf_relative(
+            inputs_dir,
+            str(effective_paper_pdf),
+        )
+        options["paper_pdf"] = relative_paper_pdf
+        options["paper_pdf_selection_source"] = selection_source or "explicit"
+        if relative_paper_pdf != case_paper_pdf:
+            store.update_case(case_id, {"paper_pdf": relative_paper_pdf}, user_id=uid)
+    elif len(pdfs) > 1:
+        raise ambiguous_paper_pdf_error(inputs_dir)
+    else:
+        relative_paper_pdf = str(pdfs[0]["path"])
+        options["paper_pdf"] = relative_paper_pdf
+        options["paper_pdf_selection_source"] = "single_pdf"
+        store.update_case(case_id, {"paper_pdf": relative_paper_pdf}, user_id=uid)
 
     # Save reproducibility_tier on case if provided
     tier = options.get("reproducibility_tier") or getattr(
@@ -285,12 +318,27 @@ async def submit_audit(
     store = deps.store
     runner = _get_runner(deps)
     options = dict(payload.options)
+    if "paper_pdf" in options:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "PAPER_PDF_MUST_BE_TOP_LEVEL",
+                "message": "paper_pdf must be sent as a top-level request field.",
+            },
+        )
     if payload.reproducibility_tier:
         options.setdefault("reproducibility_tier", payload.reproducibility_tier)
 
     return await asyncio.get_event_loop().run_in_executor(
         None,
-        lambda: _submit_audit_sync(payload.case_id, uid, store, runner, options),
+        lambda: _submit_audit_sync(
+            payload.case_id,
+            uid,
+            store,
+            runner,
+            options,
+            paper_pdf=payload.paper_pdf,
+        ),
     )
 
 

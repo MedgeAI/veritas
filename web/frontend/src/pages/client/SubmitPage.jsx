@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FiArrowRight, FiCode, FiDatabase, FiFileText, FiLock, FiPlay, FiShield, FiUpload, FiUploadCloud, FiX } from 'react-icons/fi';
-import { createCase, submitAudit, uploadInputsParallel } from '../../services/api.js';
+import { createCase, submitAudit, updateCase, uploadInputsParallel } from '../../services/api.js';
+import PaperPdfSelector from '../../components/PaperPdfSelector.jsx';
 import TierRow from '../../components/client/TierRow.jsx';
 import ServiceRow from '../../components/client/ServiceRow.jsx';
+import { ambiguousPaperPdfCandidates, pdfCandidatesFromUploadResults, PAPER_PDF_MESSAGES } from '../../utils/paperPdf.js';
+import { usePaperPdfSelector } from '../../hooks/usePaperPdfSelector.js';
 
 const ACCEPTED_EXTENSIONS = '.pdf,.xlsx,.xlsm,.csv,.tsv,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,.zip,.tar,.gz,.tgz';
 const ACCEPTED_EXT_SET = new Set(['pdf', 'xlsx', 'xlsm', 'csv', 'tsv', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'bmp', 'webp', 'zip', 'tar', 'gz', 'tgz']);
@@ -101,6 +104,7 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
   const [overallProgress, setOverallProgress] = useState(-1);
   const [fileCategories, setFileCategories] = useState(new Map());
   const [dragOverSlot, setDragOverSlot] = useState(null);
+  const { open: pdfSelectorOpen, candidates: pdfSelectorCandidates, requestSelection, close: closePdfSelector } = usePaperPdfSelector();
   const abortRef = useRef(null);
   const uploadCancelledRef = useRef(false);
   const fileInputRef = useRef(null);
@@ -248,6 +252,27 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
     }
   }
 
+  async function choosePaperPdfIfNeeded(candidates) {
+    if (candidates.length === 0) return null;
+    if (candidates.length === 1) return candidates[0].path;
+    const selected = await requestSelection(candidates);
+    if (!selected) throw new Error(PAPER_PDF_MESSAGES.SELECT_REQUIRED);
+    return selected;
+  }
+
+  async function submitAuditWithPaperPdf(caseId, paperPdf) {
+    try {
+      return await submitAudit(caseId, { options: DEFAULT_PARAMS, paperPdf }, tier);
+    } catch (submitError) {
+      const candidates = ambiguousPaperPdfCandidates(submitError);
+      if (!candidates) throw submitError;
+      const selected = await requestSelection(candidates);
+      if (!selected) throw new Error(PAPER_PDF_MESSAGES.SELECT_REQUIRED);
+      await updateCase(caseId, { paper_pdf: selected });
+      return submitAudit(caseId, { options: DEFAULT_PARAMS, paperPdf: selected }, tier);
+    }
+  }
+
   async function handleSubmit() {
     setError('');
     if (!files.length) {
@@ -306,7 +331,7 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
       const firstPdf = files.find((f) => f.name.toLowerCase().endsWith('.pdf'));
       if (firstPdf && !paperTitle) setExtractingTitle(true);
 
-      const { errors: uploadErrors } = await promise;
+      const { results: uploadResults, errors: uploadErrors } = await promise;
       abortRef.current = null;
       setExtractingTitle(false);
       if (uploadCancelledRef.current) {
@@ -321,7 +346,13 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
         setError(`${uploadErrors.length} 个文件上传失败，其余文件将继续审查`);
       }
 
-      const job = await submitAudit(cid, { options: DEFAULT_PARAMS }, tier);
+      const pdfCandidates = pdfCandidatesFromUploadResults(uploadResults);
+      const paperPdf = await choosePaperPdfIfNeeded(pdfCandidates);
+      if (paperPdf) {
+        await updateCase(cid, { paper_pdf: paperPdf });
+      }
+
+      const job = await submitAuditWithPaperPdf(cid, paperPdf);
       setHasUnsavedFiles(false);
       onNavigate?.('progress', { case: cid, run: job.job_id });
     } catch (nextError) {
@@ -341,6 +372,12 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
 
   return (
     <div className="mx-auto max-w-[980px] px-14 py-16 pb-24">
+      <PaperPdfSelector
+        open={pdfSelectorOpen}
+        candidates={pdfSelectorCandidates}
+        onCancel={() => closePdfSelector(null)}
+        onConfirm={(value) => closePdfSelector(value)}
+      />
       {/* Hero block */}
       <div className="mb-16">
         <div className="mb-5 text-[10px] font-medium uppercase tracking-[2.5px] text-ink-500">

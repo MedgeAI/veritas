@@ -27,6 +27,8 @@ class AuditConfig:
     """
 
     paper_dir: str | Path
+    paper_pdf: str | Path | None = None
+    paper_pdf_selection_source: str | None = None
     case_id: str | None = None
     output_root: str = "outputs"
     fresh: bool = False

@@ -127,6 +127,22 @@ def init_db(engine: Engine | None = None) -> None:
     from . import models as _models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
+    apply_lightweight_migrations(engine)
+
+
+def apply_lightweight_migrations(engine: Engine) -> None:
+    """Apply explicit additive migrations that ``create_all`` cannot perform.
+
+    Uses PostgreSQL-specific syntax (``ADD COLUMN IF NOT EXISTS``).
+    Only runs in production/development where PostgreSQL is the database backend.
+    """
+    # NOTE: PostgreSQL-only syntax. SQLite does not support IF NOT EXISTS for ALTER TABLE.
+    # This is intentional — the project requires PostgreSQL 16+ (see CLAUDE.md).
+    with engine.connect() as conn:
+        conn.execute(
+            text("ALTER TABLE cases ADD COLUMN IF NOT EXISTS paper_pdf VARCHAR(512)")
+        )
+        conn.commit()
 
 
 def check_connection(engine: Engine | None = None) -> bool:
@@ -206,4 +222,3 @@ def check_db(engine: Engine | None = None) -> bool:
         return True
     except Exception:
         return False
-

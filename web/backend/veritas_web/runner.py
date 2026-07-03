@@ -142,6 +142,8 @@ class AuditRunner:
                 no_env_file=bool(params.get("no_env_file", False)),
                 agent_mode=str(params.get("agent_mode", "review")),
                 agent_model=str(params.get("agent_model", DEFAULT_LLM_MODEL)),
+                paper_pdf=params.get("paper_pdf"),
+                paper_pdf_selection_source=params.get("paper_pdf_selection_source"),
                 opencode_bin=str(
                     params.get("opencode_bin")
                     or get_env("OPENCODE_BIN", required=False, default="opencode")
@@ -242,6 +244,8 @@ class AuditRunner:
             "no_env_file": bool(params.get("no_env_file", False)),
             "agent_mode": str(params.get("agent_mode", "review")),
             "agent_model": str(params.get("agent_model", "dashscope/qwen3.7-plus")),
+            "paper_pdf": params.get("paper_pdf"),
+            "paper_pdf_selection_source": params.get("paper_pdf_selection_source"),
             "opencode_bin": str(
                 params.get("opencode_bin")
                 or get_env("OPENCODE_BIN", required=False, default="opencode")

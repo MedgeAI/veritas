@@ -25,10 +25,12 @@ from ..permissions import require_admin
 from ..models import (
     STALE_RUN_THRESHOLD_SECONDS,
     CaseCreate,
+    CaseUpdate,
     CaseRecord,
     InputUpload,
     REPRODUCIBILITY_TIERS,
 )
+from ..paper_pdf import validate_paper_pdf_relative
 from ..risk import summarize_findings
 from ..sse import sse_event_stream
 
@@ -138,6 +140,49 @@ async def get_case_stats(
 @router.get("/cases/{case_id}")
 async def get_case(case: CaseRecord = Depends(require_case_access)) -> dict[str, Any]:
     return case.to_dict()
+
+
+@router.patch("/cases/{case_id}")
+async def update_case(
+    case_id: str,
+    payload: CaseUpdate,
+    case: CaseRecord = Depends(require_case_access),
+    deps: AppDependencies = Depends(get_app_dependencies),
+) -> dict[str, Any]:
+    active_runs = await asyncio.get_event_loop().run_in_executor(
+        None,
+        lambda: deps.store.get_active_runs_by_case(case_id),
+    )
+    if active_runs:
+        raise HTTPException(
+            status_code=409,
+            detail={
+                "code": "CASE_HAS_ACTIVE_RUN",
+                "message": "Cannot change paper_pdf while an audit is queued or running.",
+            },
+        )
+
+    updates: dict[str, Any] = {}
+    if payload.paper_title is not None:
+        updates["paper_title"] = payload.paper_title
+    if payload.paper_pdf is not None:
+        inputs_dir = await asyncio.get_event_loop().run_in_executor(
+            None,
+            lambda: deps.store.inputs_dir(case_id),
+        )
+        updates["paper_pdf"] = validate_paper_pdf_relative(
+            inputs_dir,
+            payload.paper_pdf,
+        )
+
+    if not updates:
+        return case.to_dict()
+
+    updated = await asyncio.get_event_loop().run_in_executor(
+        None,
+        lambda: deps.store.update_case(case_id, updates, user_id=case.owner),
+    )
+    return updated.to_dict()
 
 
 @router.delete(

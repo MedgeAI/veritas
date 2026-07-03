@@ -41,7 +41,6 @@ from engine.exceptions import PipelineError, ToolExecutionError
 from engine.llm.config import DEFAULT_LLM_MODEL
 from engine.tasks._task_orm import (
     _RunRow,
-    _TaskBase,
     _get_session_factory,
     _utc_now,
 )
@@ -414,6 +413,8 @@ def _run_audit_impl(
                 no_env_file=options.get("no_env_file", False),
                 agent_mode=options.get("agent_mode", "review"),
                 agent_model=options.get("agent_model", DEFAULT_LLM_MODEL),
+                paper_pdf=options.get("paper_pdf"),
+                paper_pdf_selection_source=options.get("paper_pdf_selection_source"),
                 opencode_bin=options.get("opencode_bin")
                 or get_env("OPENCODE_BIN", required=False, default="opencode"),
                 agent_timeout_seconds=int(options.get("agent_timeout_seconds", 300)),

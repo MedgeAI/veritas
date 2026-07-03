@@ -18,6 +18,8 @@ __all__ = [
     "StageTimeoutError",
     "AgentError",
     "DataIntegrityError",
+    "AmbiguousPaperPdfError",
+    "InvalidPaperPdfError",
 ]
 
 
@@ -70,3 +72,11 @@ class AgentError(VeritasError):
 
 class DataIntegrityError(VeritasError):
     """数据不一致（ORM / 文件系统 / schema 漂移）。"""
+
+
+class AmbiguousPaperPdfError(VeritasError):
+    """输入目录包含多个 PDF 但未指定哪个是论文正文。"""
+
+
+class InvalidPaperPdfError(VeritasError):
+    """paper_pdf 声明不是 inputs 内安全、有效的 PDF 相对路径。"""

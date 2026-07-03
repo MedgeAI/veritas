@@ -103,6 +103,9 @@ async function request(path, options = {}) {
     console.error(`[API] ${method} ${path} → ${response.status}`, payload);
     const error = new Error(translateError(response.status, payload));
     error.status = response.status;
+    error.payload = payload;
+    error.detail = payload?.detail;
+    error.code = payload?.detail?.code;
     throw error;
   }
 
@@ -120,6 +123,13 @@ export async function checkHealth() {
 export async function createCase(payload) {
   return request('/api/cases', {
     method: 'POST',
+    body: payload,
+  });
+}
+
+export async function updateCase(caseId, payload) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}`, {
+    method: 'PATCH',
     body: payload,
   });
 }
@@ -392,14 +402,18 @@ export async function deleteCase(caseId) {
 // ---------------------------------------------------------------------------
 
 export async function submitAudit(caseId, options = {}, reproducibilityTier = 'full') {
-  const { signal, options: nestedOptions, ...directOptions } = options || {};
+  const { signal, options: nestedOptions, paperPdf, paper_pdf: paperPdfSnake, ...directOptions } = options || {};
   const auditOptions = {
     ...(nestedOptions || directOptions),
     reproducibility_tier: reproducibilityTier,
   };
   return request(`/api/audit`, {
     method: 'POST',
-    body: { case_id: caseId, options: auditOptions },
+    body: {
+      case_id: caseId,
+      options: auditOptions,
+      paper_pdf: paperPdf || paperPdfSnake || undefined,
+    },
     signal,
   });
 }

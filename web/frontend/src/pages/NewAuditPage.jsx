@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FiArrowRight, FiLock, FiPlay, FiShield, FiUploadCloud, FiX } from 'react-icons/fi';
-import { createCase, submitAudit, uploadInputsParallel } from '../services/api.js';
+import { createCase, submitAudit, updateCase, uploadInputsParallel } from '../services/api.js';
+import PaperPdfSelector from '../components/PaperPdfSelector.jsx';
 import ReproducibilityTierPicker from '../components/ReproducibilityTierPicker.jsx';
 import SecurityTierPicker from '../components/SecurityTierPicker.jsx';
 import ServiceTierPicker from '../components/ServiceTierPicker.jsx';
+import { ambiguousPaperPdfCandidates, pdfCandidatesFromUploadResults, PAPER_PDF_MESSAGES } from '../utils/paperPdf.js';
+import { usePaperPdfSelector } from '../hooks/usePaperPdfSelector.js';
 
 function FileStatus({ status, progress }) {
   if (status === 'done') return <span className="text-green-600">done</span>;
@@ -56,6 +59,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
   const [navGuardTarget, setNavGuardTarget] = useState(null);
   const [fileStatuses, setFileStatuses] = useState(new Map());
   const [overallProgress, setOverallProgress] = useState(-1);
+  const { open: pdfSelectorOpen, candidates: pdfSelectorCandidates, requestSelection, close: closePdfSelector } = usePaperPdfSelector();
   const abortRef = useRef(null);
   const fileInputRef = useRef(null);
   const dirInputRef = useRef(null);
@@ -186,6 +190,27 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
     }
   }
 
+  async function choosePaperPdfIfNeeded(candidates) {
+    if (candidates.length === 0) return null;
+    if (candidates.length === 1) return candidates[0].path;
+    const selected = await requestSelection(candidates);
+    if (!selected) throw new Error(PAPER_PDF_MESSAGES.SELECT_REQUIRED);
+    return selected;
+  }
+
+  async function submitAuditWithPaperPdf(caseId, options, paperPdf) {
+    try {
+      return await submitAudit(caseId, { options, paperPdf }, reproducibilityTier);
+    } catch (submitError) {
+      const candidates = ambiguousPaperPdfCandidates(submitError);
+      if (!candidates) throw submitError;
+      const selected = await requestSelection(candidates);
+      if (!selected) throw new Error(PAPER_PDF_MESSAGES.SELECT_REQUIRED);
+      await updateCase(caseId, { paper_pdf: selected });
+      return submitAudit(caseId, { options, paperPdf: selected }, reproducibilityTier);
+    }
+  }
+
   async function handleStart() {
     setBusy(true);
     setError('');
@@ -246,7 +271,7 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
       const firstPdf = files.find((f) => f.name.toLowerCase().endsWith('.pdf'));
       if (firstPdf && !form.paper_title) setExtractingTitle(true);
 
-      const { errors: uploadErrors } = await promise;
+      const { results: uploadResults, errors: uploadErrors } = await promise;
       abortRef.current = null;
       setExtractingTitle(false);
       setOverallProgress(100);
@@ -258,14 +283,18 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
         setError(`${uploadErrors.length} 个文件上传失败，其余文件将继续审查`);
       }
 
-      // 启动审查
-      const job = await submitAudit(caseId, {
-        options: {
-          ...params,
-          agent_timeout_seconds: Number(params.agent_timeout_seconds || 600),
-          agent_max_retries: Number(params.agent_max_retries || 1),
-        },
-      }, reproducibilityTier);
+      const pdfCandidates = pdfCandidatesFromUploadResults(uploadResults);
+      const paperPdf = await choosePaperPdfIfNeeded(pdfCandidates);
+      if (paperPdf) {
+        await updateCase(caseId, { paper_pdf: paperPdf });
+      }
+
+      const auditOptions = {
+        ...params,
+        agent_timeout_seconds: Number(params.agent_timeout_seconds || 600),
+        agent_max_retries: Number(params.agent_max_retries || 1),
+      };
+      const job = await submitAuditWithPaperPdf(caseId, auditOptions, paperPdf);
       setHasUnsavedFiles(false);
       onRunStarted(job);
     } catch (nextError) {
@@ -278,6 +307,12 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
 
   return (
     <div className="mx-auto max-w-5xl">
+      <PaperPdfSelector
+        open={pdfSelectorOpen}
+        candidates={pdfSelectorCandidates}
+        onCancel={() => closePdfSelector(null)}
+        onConfirm={(value) => closePdfSelector(value)}
+      />
       {/* Header */}
       <div className="mb-6">
         <h1 className="font-display text-2xl font-semibold text-ink-900">

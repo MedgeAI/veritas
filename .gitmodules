@@ -13,3 +13,6 @@
 [submodule "third_party/paperconan"]
 	path = third_party/paperconan
 	url = https://github.com/zixixr/paperconan
+[submodule "third_party/FactReview"]
+	path = third_party/FactReview
+	url = https://github.com/researchintegrity/FactReview

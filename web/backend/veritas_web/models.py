@@ -248,6 +248,7 @@ class CaseRecord:
     latest_run_id: str | None = None
     input_count: int = 0
     reproducibility_tier: str = "full"
+    paper_pdf: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -276,6 +277,7 @@ class CaseRecord:
             latest_run_id=model.latest_run_id,
             input_count=model.input_count or 0,
             reproducibility_tier=model.reproducibility_tier or "full",
+            paper_pdf=model.paper_pdf,
         )
 
 
@@ -399,6 +401,7 @@ class CaseModel(Base):
     )
     input_count = Column(Integer, default=0, nullable=False)
     reproducibility_tier = Column(String(32), default="full", nullable=False)
+    paper_pdf = Column(String(512), nullable=True)
 
     runs = relationship(
         "RunModel",
@@ -949,10 +952,12 @@ class CaseRead(BaseModel):
     latest_run_id: str | None = None
     input_count: int = 0
     reproducibility_tier: str = "full"
+    paper_pdf: str | None = None
 
 
 class CaseUpdate(BaseModel):
     paper_title: str | None = None
+    paper_pdf: str | None = None
     status: str | None = None
 
 

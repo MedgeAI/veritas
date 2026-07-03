@@ -69,9 +69,10 @@ class CaseStore:
             self._engine = create_db_engine(database_url)
         self._session_factory = sessionmaker(bind=self._engine, autoflush=False)
 
-        from .database import Base
+        from .database import Base, apply_lightweight_migrations
 
         Base.metadata.create_all(bind=self._engine)
+        apply_lightweight_migrations(self._engine)
 
     def _session(self):
         return self._session_factory()

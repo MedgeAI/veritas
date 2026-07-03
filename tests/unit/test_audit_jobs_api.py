@@ -15,6 +15,7 @@ from pathlib import Path  # noqa: E402
 from typing import Any  # noqa: E402
 from unittest.mock import MagicMock  # noqa: E402
 
+from fastapi import HTTPException  # noqa: E402
 from tests.helpers.asgi_client import LocalASGITestClient as TestClient  # noqa: E402
 from web.backend.veritas_web.auth import NoAuthProvider  # noqa: E402
 from web.backend.veritas_web.dependencies import AppDependencies, get_app_dependencies  # noqa: E402
@@ -135,6 +136,7 @@ class TestSubmitAudit:
         store.get_active_runs_by_case.return_value = []
         store.count_running_runs.return_value = 0
         store.count_queued_runs.return_value = 0
+        store.list_runs.return_value = []
 
         run_record = _make_run_record()
         store.create_run.return_value = run_record
@@ -146,19 +148,130 @@ class TestSubmitAudit:
         mock_session.get.return_value = orm_mock
         store._session.return_value = mock_session
 
+        data = _submit_audit_sync("case-1", None, store, runner, {})
+
+        assert data["job_id"] == "run-1"
+        assert data["case_id"] == "case-1"
+        assert data["status"] == "queued"
+
+    def test_submit_rejects_ambiguous_paper_pdf(self, tmp_path: Path):
+        """Verify multiple PDFs require explicit paper_pdf selection."""
+        store = MagicMock()
+        runner = MagicMock()
+        runner._max_concurrent = 5
+
+        inputs = tmp_path / "inputs"
+        inputs.mkdir()
+        (inputs / "main.pdf").write_text("fake pdf")
+        (inputs / "supplement.pdf").write_text("fake pdf")
+
+        store.get_case.return_value = _make_case_record()
+        store.inputs_dir.return_value = inputs
+        store.get_active_runs_by_case.return_value = []
+        store.count_running_runs.return_value = 0
+        store.count_queued_runs.return_value = 0
+
+        with pytest.raises(HTTPException) as exc_info:
+            _submit_audit_sync("case-1", None, store, runner, {})
+
+        assert exc_info.value.status_code == 422
+        detail = exc_info.value.detail
+        assert detail["code"] == "AMBIGUOUS_PAPER_PDF"
+        assert {item["path"] for item in detail["pdfs"]} == {
+            "main.pdf",
+            "supplement.pdf",
+        }
+
+    def test_submit_rejects_paper_pdf_inside_options(self, tmp_path: Path):
+        """Verify paper_pdf must be a top-level request field."""
+        store = MagicMock()
+        runner = MagicMock()
         app = _build_app(store, runner)
         client = TestClient(app, raise_server_exceptions=False)
 
         resp = client.post(
             "/api/audit",
-            json={"case_id": "case-1", "options": {}},
+            json={"case_id": "case-1", "options": {"paper_pdf": "paper.pdf"}},
         )
 
-        assert resp.status_code == 202
-        data = resp.json()
+        assert resp.status_code == 400
+        assert resp.json()["detail"]["code"] == "PAPER_PDF_MUST_BE_TOP_LEVEL"
+
+    def test_submit_explicit_paper_pdf_passes_to_runner(self, tmp_path: Path):
+        """Verify explicit paper_pdf is persisted and passed to runner options."""
+        store = MagicMock()
+        runner = MagicMock()
+        runner._max_concurrent = 5
+        runner._executor = MagicMock()
+
+        inputs = tmp_path / "inputs"
+        inputs.mkdir()
+        (inputs / "main.pdf").write_text("fake pdf")
+        (inputs / "supplement.pdf").write_text("fake pdf")
+
+        store.get_case.return_value = _make_case_record()
+        store.inputs_dir.return_value = inputs
+        store.get_active_runs_by_case.return_value = []
+        store.count_running_runs.return_value = 0
+        store.count_queued_runs.return_value = 0
+        store.list_runs.return_value = []
+        run_record = _make_run_record()
+        store.create_run.return_value = run_record
+        store.get_run_celery_task_id.return_value = None
+        orm_mock = _make_orm_run_mock(stages=[], current_stage=None)
+        mock_session = MagicMock()
+        mock_session.get.return_value = orm_mock
+        store._session.return_value = mock_session
+
+        data = _submit_audit_sync(
+            "case-1",
+            None,
+            store,
+            runner,
+            {},
+            paper_pdf="main.pdf",
+        )
+
         assert data["job_id"] == "run-1"
-        assert data["case_id"] == "case-1"
-        assert data["status"] == "queued"
+        store.update_case.assert_any_call(
+            "case-1", {"paper_pdf": "main.pdf"}, user_id=None
+        )
+        submitted_options = runner._executor.submit.call_args.args[3]
+        assert submitted_options["paper_pdf"] == "main.pdf"
+        assert submitted_options["paper_pdf_selection_source"] == "explicit"
+
+    def test_submit_reuses_case_record_paper_pdf(self, tmp_path: Path):
+        """Verify saved CaseRecord.paper_pdf is used when request omits it."""
+        store = MagicMock()
+        runner = MagicMock()
+        runner._max_concurrent = 5
+        runner._executor = MagicMock()
+
+        inputs = tmp_path / "inputs"
+        inputs.mkdir()
+        (inputs / "main.pdf").write_text("fake pdf")
+        (inputs / "supplement.pdf").write_text("fake pdf")
+
+        case = _make_case_record()
+        case.paper_pdf = "main.pdf"
+        store.get_case.return_value = case
+        store.inputs_dir.return_value = inputs
+        store.get_active_runs_by_case.return_value = []
+        store.count_running_runs.return_value = 0
+        store.count_queued_runs.return_value = 0
+        store.list_runs.return_value = []
+        store.create_run.return_value = _make_run_record()
+        store.get_run_celery_task_id.return_value = None
+        orm_mock = _make_orm_run_mock(stages=[], current_stage=None)
+        mock_session = MagicMock()
+        mock_session.get.return_value = orm_mock
+        store._session.return_value = mock_session
+
+        _submit_audit_sync("case-1", None, store, runner, {})
+
+        submitted_options = runner._executor.submit.call_args.args[3]
+        assert submitted_options["paper_pdf"] == "main.pdf"
+        assert submitted_options["paper_pdf_selection_source"] == "case_record"
 
     def test_submit_saves_tier_and_passes_options_to_runner(self, tmp_path: Path):
         """Verify reproducibility_tier is stored and passed to the runner."""
@@ -216,16 +329,11 @@ class TestSubmitAudit:
         store.get_case.return_value = _make_case_record()
         store.inputs_dir.return_value = inputs
 
-        app = _build_app(store, runner)
-        client = TestClient(app, raise_server_exceptions=False)
+        with pytest.raises(HTTPException) as exc_info:
+            _submit_audit_sync("case-1", None, store, runner, {})
 
-        resp = client.post(
-            "/api/audit",
-            json={"case_id": "case-1", "options": {}},
-        )
-
-        assert resp.status_code == 400
-        assert "no PDF" in resp.json()["detail"]
+        assert exc_info.value.status_code == 400
+        assert "no PDF" in exc_info.value.detail
 
     def test_submit_duplicate(self, tmp_path: Path):
         """Verify submission fails with 409 when active run exists."""
@@ -243,16 +351,11 @@ class TestSubmitAudit:
         active_run = _make_run_record(run_id="existing-run", status="running")
         store.get_active_runs_by_case.return_value = [active_run]
 
-        app = _build_app(store, runner)
-        client = TestClient(app, raise_server_exceptions=False)
+        with pytest.raises(HTTPException) as exc_info:
+            _submit_audit_sync("case-1", None, store, runner, {})
 
-        resp = client.post(
-            "/api/audit",
-            json={"case_id": "case-1", "options": {}},
-        )
-
-        assert resp.status_code == 409
-        assert "already has an active run" in resp.json()["detail"]
+        assert exc_info.value.status_code == 409
+        assert "already has an active run" in exc_info.value.detail
 
     def test_submit_limit(self, tmp_path: Path):
         """Verify submission fails with 429 when max concurrent reached."""
@@ -270,16 +373,11 @@ class TestSubmitAudit:
         store.count_running_runs.return_value = 5  # At limit
         store.count_queued_runs.return_value = 0
 
-        app = _build_app(store, runner)
-        client = TestClient(app, raise_server_exceptions=False)
+        with pytest.raises(HTTPException) as exc_info:
+            _submit_audit_sync("case-1", None, store, runner, {})
 
-        resp = client.post(
-            "/api/audit",
-            json={"case_id": "case-1", "options": {}},
-        )
-
-        assert resp.status_code == 429
-        assert "too many running" in resp.json()["detail"]
+        assert exc_info.value.status_code == 429
+        assert "too many running" in exc_info.value.detail
 
     def test_submit_queue_full(self, tmp_path: Path, monkeypatch):
         """Verify submission fails with 429 when queue is full."""
@@ -298,16 +396,11 @@ class TestSubmitAudit:
         store.count_running_runs.return_value = 0
         store.count_queued_runs.return_value = 3  # Queue full
 
-        app = _build_app(store, runner)
-        client = TestClient(app, raise_server_exceptions=False)
+        with pytest.raises(HTTPException) as exc_info:
+            _submit_audit_sync("case-1", None, store, runner, {})
 
-        resp = client.post(
-            "/api/audit",
-            json={"case_id": "case-1", "options": {}},
-        )
-
-        assert resp.status_code == 429
-        assert "queue full" in resp.json()["detail"]
+        assert exc_info.value.status_code == 429
+        assert "queue full" in exc_info.value.detail
 
     def test_submit_case_not_found(self, tmp_path: Path):
         """Verify submission fails with 404 when case doesn't exist."""
@@ -317,15 +410,10 @@ class TestSubmitAudit:
 
         store.get_case.side_effect = FileNotFoundError("case not found")
 
-        app = _build_app(store, runner)
-        client = TestClient(app, raise_server_exceptions=False)
+        with pytest.raises(HTTPException) as exc_info:
+            _submit_audit_sync("nonexistent", None, store, runner, {})
 
-        resp = client.post(
-            "/api/audit",
-            json={"case_id": "nonexistent", "options": {}},
-        )
-
-        assert resp.status_code == 404
+        assert exc_info.value.status_code == 404
 
     def test_submit_unauthorized(self, tmp_path: Path):
         """Verify submission fails with 403 when user doesn't own case."""
@@ -335,15 +423,10 @@ class TestSubmitAudit:
 
         store.get_case.side_effect = PermissionError("not the owner")
 
-        app = _build_app(store, runner)
-        client = TestClient(app, raise_server_exceptions=False)
+        with pytest.raises(HTTPException) as exc_info:
+            _submit_audit_sync("case-1", "other-user", store, runner, {})
 
-        resp = client.post(
-            "/api/audit",
-            json={"case_id": "case-1", "options": {}},
-        )
-
-        assert resp.status_code == 403
+        assert exc_info.value.status_code == 403
 
 
 class TestGetAuditStatus:
