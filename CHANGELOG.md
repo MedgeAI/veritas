@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 2026-07-06
+
+- **PaperConan 设计哲学吸收 PRD 实施（WP0-WP10 全部代码落地）**：6 个 worktree 并行实现，全部合并到 master。共 ~4300 行新代码，246 个新测试。
+  - **WP0 Coverage Matrix**：`configs/paperconan_detector_coverage.yaml` 声明式列出所有 PaperConan detector kind 及其 Veritas 覆盖状态（translated/native_equivalent/native_superset/planned/not_applicable）。
+  - **WP1 Canonical Numeric Signal Schema**：`engine/static_audit/numeric_signal_schema.py` 定义 `NumericSignal` frozen dataclass，包含 identity/detector output/profile-prefilter/applicability/evidence/provenance/WP8 claim-impact 全字段。`validate_numeric_signal()` 覆盖必填 provenance 字段。`NumericSignalSet` 支持集合操作。
+  - **WP2 PaperConan Translator**：`engine/static_audit/adapters/paperconan_adapter/translator.py` 将 `paperconan_scan.json` 翻译为 canonical `NumericSignal`，覆盖 relations/progressions/equal_pairs/row_pairs/within_col/grim/cross_sheet/digit_distribution/decimal_endings/scan_errors 全部 family。输出 translation skip ledger 记录未翻译项。
+  - **WP3 Profile/Prefilter Ledger**：`engine/static_audit/tools/source_data_prefilter/`（prefilter/ledger/profiles）实现 forensic/review/triage 三级 profile 合约。drop 不删除 signal，只影响 visibility/priority/LLM routing。hidden signal 必须出现在 diagnostics 和 downloadable ledger。
+  - **WP4 Detector Family Coverage**：`finding_categories.py` 新增 9 个 PaperConan detector category（grim_inconsistent/grimmer_inconsistent/last_digit_chi_square/row_pair_digit_coupling/integer_diff_shared_fraction/partial_constant_offset/cross_sheet_decimal_tail_reuse/within_table_fraction_reuse/recurring_row_vector）。GRIM/GRIMMER 有 applicability_premise gating（integer-valued check）。
+  - **WP5 Public Source Data Fetch**：`engine/static_audit/source_acquisition/`（fetcher/manifest/providers）+ `engine/tools/source_data_fetch.py`（tool_id: source_data.fetch_public）+ `runtime/http_fetch.py`。支持 Nature ESM/Zenodo/Figshare/Dryad/Europe PMC/direct URL。弱匹配必须 manual_confirmation_required=True。输出 `source_acquisition_manifest.json`（含 sha256/size/source_url）。no_data_found 不等于论文干净。
+  - **WP6 Evidence Window Builder**：`engine/static_audit/evidence_windows/`（locator/window_builder/manifest）。根据 evidence_locator 从原始 XLSX/CSV/TSV 重建 bounded window，支持 highlight rows/cols。同 signal 重跑结果稳定。文件缺失或 hash mismatch 时 fail loud。
+  - **WP7 Review Dossier + Red-Team Refute**：`engine/static_audit/dossiers/`（review_dossier/red_team_refute/refute_checklist）。10 项 schema 化 refute checklist。`requires_refute()` 对 tier 1/2 返回 True，配合 review_status="pending" 阻止进入高优先级区。refute 输出包含 review_status/refute_attempts/strongest_benign_explanation/remaining_uncertainty/recommended_final_status/needs_author_data。
+  - **WP8 Claim/Impact Fusion**：`engine/static_audit/claim_fusion.py`。`build_claim_index()` 从 paper metadata 构建查找索引；`fuse_signal_to_claims()` 通过 evidence locator 映射 signal 到 claim；`enrich_signal_with_claim_mapping()` 返回填充 WP8 字段的新 NumericSignal。无法映射时 impact_scope="unknown"（绝不默认 "peripheral"）。
+  - **WP9 Cross-Modal Dossier**：`engine/static_audit/cross_modal_dossier.py`。`CrossModalDossier` 按 claim 聚合 numeric/image/code evidence。red-team refute checklist 可按 modality 扩展（默认 9 numeric + 4 image + 4 code）。
+  - **WP10 Report/Diagnostics 模块**：`engine/reporting/` 新增 5 个独立报告模块：`numeric_forensics_report.py`、`paperconan_coverage_report.py`、`prefilter_ledger_report.py`、`red_team_report.py`、`source_acquisition_report.py`。只消费 canonical signals，不直接读 PaperConan raw shape。
+
 ## 2026-07-05
 
 - **流水线 8 阶段重构**：`engine/static_audit/pipeline.py` 从单体函数重构为 8 个阶段模块（`stages/`：discovery → planning → mineru → source_data → visual → investigation → roles → report），每阶段返回 frozen dataclass（如 `DiscoveryResult`、`PlanningResult`），阶段间通过 typed 结果传递数据。
