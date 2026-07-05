@@ -37,6 +37,9 @@ ValidPrefilterAction = Literal["keep", "downweight", "drop"]
 # Valid risk levels from detectors
 ValidRiskLevel = Literal["critical", "high", "medium", "low", "info"]
 
+# WP8: impact scope — how important the affected data is to the paper's main claim
+ImpactScope = Literal["core", "supporting", "peripheral", "unknown"]
+
 # Valid detector families matching the coverage matrix
 ValidDetectorFamily = Literal[
     "column_relations",
@@ -151,6 +154,7 @@ class NumericSignal:
     detector_family: ValidDetectorFamily
     raw_kind: str
     canonical_category: str
+    source_tool_version: str = ""
 
     # --- Detector output ---
     rule: str = ""
@@ -175,6 +179,14 @@ class NumericSignal:
     # --- Provenance ---
     raw_payload_ref: str = ""
 
+    # --- WP8: Claim / Impact Fusion ---
+    claim_refs: list[str] = field(default_factory=list)
+    figure_refs: list[str] = field(default_factory=list)
+    source_data_refs: list[str] = field(default_factory=list)
+    impact_scope: ImpactScope = "unknown"
+    impact_reason: str = ""
+    needs_author_data: str = ""
+
     # --- Extra detector-specific metadata ---
     extra: dict[str, Any] = field(default_factory=dict)
 
@@ -184,6 +196,7 @@ class NumericSignal:
             "schema_version": _SCHEMA_VERSION,
             "signal_id": self.signal_id,
             "source_tool": self.source_tool,
+            "source_tool_version": self.source_tool_version,
             "detector_id": self.detector_id,
             "detector_family": self.detector_family,
             "raw_kind": self.raw_kind,
@@ -199,6 +212,13 @@ class NumericSignal:
             "false_positive_context": list(self.false_positive_context),
             "prefilter_reason": self.prefilter_reason,
             "raw_payload_ref": self.raw_payload_ref,
+            # WP8 fields
+            "claim_refs": list(self.claim_refs),
+            "figure_refs": list(self.figure_refs),
+            "source_data_refs": list(self.source_data_refs),
+            "impact_scope": self.impact_scope,
+            "impact_reason": self.impact_reason,
+            "needs_author_data": self.needs_author_data,
         }
         if self.applicability_premise is not None:
             result["applicability_premise"] = self.applicability_premise.to_dict()
