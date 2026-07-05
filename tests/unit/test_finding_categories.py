@@ -22,16 +22,21 @@ from engine.static_audit.finding_categories import (
 # ---- Registry registration tests ----
 
 
-def test_all_28_categories_registered():
-    """All 28 categories are registered in the registry."""
+def test_all_37_categories_registered():
+    """All 37 categories are registered in the registry.
+
+    28 original + 9 PaperConan detector categories (WP4).
+    """
     categories = [d.category for d in all_definitions()]
-    assert len(categories) == 28
+    assert len(categories) == 37
     # Verify key categories from each group
     assert "repeated_measurement_value" in categories  # canary
     assert "row_offset_scalar_multiple" in categories  # pair forensics
     assert "duplicate_numeric_columns" in categories  # numeric
     assert "copy_move_single" in categories  # visual
     assert "paperfraud.methodology_review" in categories  # paperfraud
+    assert "grim_inconsistent" in categories  # PaperConan (WP4)
+    assert "last_digit_chi_square" in categories  # PaperConan (WP4)
 
 
 def test_register_duplicate_raises():
@@ -51,15 +56,16 @@ def test_register_duplicate_raises():
 
 
 def test_category_labels_derived_from_registry():
-    """CATEGORY_LABELS is derived from registry and contains all 28 labels."""
+    """CATEGORY_LABELS is derived from registry and contains all 37 labels."""
     from engine.static_audit.html_report._config import CATEGORY_LABELS
 
-    assert len(CATEGORY_LABELS) == 28
+    assert len(CATEGORY_LABELS) == 37
     # Verify key labels
     assert CATEGORY_LABELS["repeated_measurement_value"] == "重复展示数值"
     assert CATEGORY_LABELS["duplicate_numeric_columns"] == "数值列重复"
     assert CATEGORY_LABELS["copy_move_single"] == "单图内局部相似"
     assert CATEGORY_LABELS["paperfraud.methodology_review"] == "方法学提示"
+    assert CATEGORY_LABELS["grim_inconsistent"] == "GRIM 不一致"
 
 
 def test_no_hardcoded_category_labels_fallback():

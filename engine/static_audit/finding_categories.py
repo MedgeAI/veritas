@@ -600,3 +600,176 @@ PAPERFRAUD_FRAUD_DETECTION = register(
         pattern_sort_order=None,
     )
 )
+
+# =============================================================================
+# PaperConan detector categories (WP4: PaperConan 独有 detector 深度接入)
+# =============================================================================
+# GRIM/GRIMMER have applicability_premise gating in review_question text:
+# they only apply when the integer-valued premise holds or is pending
+# confirmation. They must not conclude against continuous measurements.
+
+GRIM_INCONSISTENT = register(
+    FindingCategoryDefinition(
+        category="grim_inconsistent",
+        label="GRIM 不一致",
+        pattern_key="grim_inconsistent",
+        id_prefix="GRIM",
+        review_question=(
+            "GRIM 检测报告的均值/比例与样本量 n 在整数计数下不一致。"
+            "仅在数据确为整数计数（integer-valued premise）成立或待确认时进入复核，"
+            "不可对连续测量下确定性结论。"
+            "需确认报告值是否可由整数 n 计算得到。"
+        ),
+        issue_category="consistency",
+        context_only=False,
+        is_pair_forensics=False,
+        in_source_data_patterns=False,
+        pattern_sort_order=None,
+    )
+)
+
+GRIMMER_INCONSISTENT = register(
+    FindingCategoryDefinition(
+        category="grimmer_inconsistent",
+        label="GRIMMER 不一致",
+        pattern_key="grimmer_inconsistent",
+        id_prefix="GRMR",
+        review_question=(
+            "GRIMMER 检测报告的方差/标准差与样本量 n 在整数计数下不一致。"
+            "仅在数据确为整数计数（integer-valued premise）成立或待确认时进入复核，"
+            "不可对连续测量下确定性结论。"
+            "需确认离散度指标是否可由整数 n 计算得到。"
+        ),
+        issue_category="consistency",
+        context_only=False,
+        is_pair_forensics=False,
+        in_source_data_patterns=False,
+        pattern_sort_order=None,
+    )
+)
+
+LAST_DIGIT_CHI_SQUARE = register(
+    FindingCategoryDefinition(
+        category="last_digit_chi_square",
+        label="末位数字卡方检验异常",
+        pattern_key="last_digit_chi_square",
+        id_prefix="LDX",
+        review_question=(
+            "末位数字分布偏离均匀分布（卡方检验显著，BH-FDR 校正后），"
+            "需确认数据是否为真实测量或存在人为构造/修约。"
+        ),
+        issue_category="consistency",
+        context_only=False,
+        is_pair_forensics=False,
+        in_source_data_patterns=False,
+        pattern_sort_order=None,
+    )
+)
+
+ROW_PAIR_DIGIT_COUPLING = register(
+    FindingCategoryDefinition(
+        category="row_pair_digit_coupling",
+        label="行对数字耦合",
+        pattern_key="row_pair_digit_coupling",
+        id_prefix="RPD",
+        review_question=(
+            "行对之间数字位存在异常耦合（如末位/十位同步变化），"
+            "需确认是否为独立测量或复制-微调痕迹。"
+        ),
+        issue_category="consistency",
+        context_only=False,
+        is_pair_forensics=False,
+        in_source_data_patterns=False,
+        pattern_sort_order=None,
+    )
+)
+
+INTEGER_DIFF_SHARED_FRACTION = register(
+    FindingCategoryDefinition(
+        category="integer_diff_shared_fraction",
+        label="整数差共享小数",
+        pattern_key="integer_diff_shared_fraction",
+        id_prefix="IDS",
+        review_question=(
+            "数值对之间整数部分不同但小数部分完全相同，"
+            "需确认是否为复制-修改整数部分或合法独立测量。"
+        ),
+        issue_category="consistency",
+        context_only=False,
+        is_pair_forensics=False,
+        in_source_data_patterns=False,
+        pattern_sort_order=None,
+    )
+)
+
+PARTIAL_CONSTANT_OFFSET = register(
+    FindingCategoryDefinition(
+        category="partial_constant_offset",
+        label="部分固定偏移",
+        pattern_key="partial_constant_offset",
+        id_prefix="PCO",
+        review_question=(
+            "列对之间部分行呈固定偏移而其他行不呈该关系，"
+            "需确认是否为合法派生关系或选择性复制。"
+        ),
+        issue_category="consistency",
+        context_only=False,
+        is_pair_forensics=False,
+        in_source_data_patterns=False,
+        pattern_sort_order=None,
+    )
+)
+
+CROSS_SHEET_DECIMAL_TAIL_REUSE_PAPERCONAN = register(
+    FindingCategoryDefinition(
+        category="cross_sheet_decimal_tail_reuse",
+        label="跨 Sheet 小数尾部复用（PaperConan）",
+        pattern_key="cross_sheet_decimal_tail_reuse",
+        id_prefix="CDT",
+        review_question=(
+            "PaperConan 检测到不同 sheet 的数值序列复用小数尾部，"
+            "需确认这些 figure 是否独立以及原始未舍入值是否支持该模式。"
+        ),
+        issue_category="consistency",
+        context_only=False,
+        is_pair_forensics=False,
+        in_source_data_patterns=False,
+        pattern_sort_order=None,
+    )
+)
+
+WITHIN_TABLE_FRACTION_REUSE = register(
+    FindingCategoryDefinition(
+        category="within_table_fraction_reuse",
+        label="表内小数复用",
+        pattern_key="within_table_fraction_reuse",
+        id_prefix="WTF",
+        review_question=(
+            "同一表内多个数值复用相同的小数/分数模式，"
+            "需确认是否为固定分母、归一化或独立测量。"
+        ),
+        issue_category="consistency",
+        context_only=False,
+        is_pair_forensics=False,
+        in_source_data_patterns=False,
+        pattern_sort_order=None,
+    )
+)
+
+RECURRING_ROW_VECTOR = register(
+    FindingCategoryDefinition(
+        category="recurring_row_vector",
+        label="循环行向量",
+        pattern_key="recurring_row_vector",
+        id_prefix="RRV",
+        review_question=(
+            "多行出现相同或高度相似的数值向量模式，"
+            "需确认是否为独立样本、模板行或批量填充。"
+        ),
+        issue_category="consistency",
+        context_only=False,
+        is_pair_forensics=False,
+        in_source_data_patterns=False,
+        pattern_sort_order=None,
+    )
+)
