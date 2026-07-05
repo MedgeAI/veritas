@@ -21,6 +21,7 @@ TOOL_ID_IMAGE_QUALITY = "visual.image_quality"
 TOOL_ID_OVERLAP_REUSE = "visual.overlap_reuse"
 SOURCE_DATA_VERDICT_TOOL_ID = "source_data.verdict"
 SOURCE_DATA_QUERY_TOOL_ID = "source_data.query"
+SOURCE_DATA_FETCH_PUBLIC_TOOL_ID = "source_data.fetch_public"
 
 
 class ExecutionPhase(str, Enum):
@@ -468,6 +469,21 @@ TOOLS: dict[str, ToolDefinition] = {
         output_artifacts=("numeric/paperconan_scan.json",),
         param_schema={
             "profile": {"type": "string", "enum": ["review", "forensic", "triage"]},
+        },
+    ),
+    SOURCE_DATA_FETCH_PUBLIC_TOOL_ID: ToolDefinition(
+        tool_id=SOURCE_DATA_FETCH_PUBLIC_TOOL_ID,
+        step_key="source_data_fetch_public",
+        title="公开 Source Data 拉取",
+        source="engine/static_audit/source_acquisition",
+        description="Fetch public source data from Nature ESM, Zenodo, Figshare, Dryad, Europe PMC, or direct URL given a DOI, title, or URL.",
+        expected_outputs=("source_acquisition_manifest.json",),
+        execution_phase=ExecutionPhase.CONDITIONAL_BASELINE,
+        output_artifacts=("source_acquisition_manifest.json",),
+        param_schema={
+            "doi": {"type": "string"},
+            "title": {"type": "string"},
+            "url": {"type": "string"},
         },
     ),
     "image.exact_duplicates": ToolDefinition(
