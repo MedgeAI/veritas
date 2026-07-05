@@ -1,0 +1,196 @@
+# PaperConan Detector Coverage Matrix
+#
+# Maps every PaperConan detector kind to its Veritas integration status.
+# Each entry is tagged with one of:
+#   - translated: PaperConan output is translated into Veritas canonical NumericSignal
+#   - native_equivalent: Veritas already has a native detector covering the same signal
+#   - native_superset: Veritas native detector covers the signal with additional context
+#   - planned: Not yet integrated; scheduled for a future milestone
+#   - not_applicable: Explicitly excluded with reason
+#
+# This matrix is the acceptance contract for WP0 (Milestone 1).
+# PaperConan README detector kinds not listed here are a coverage gap.
+#
+# Updated: 2026-07-05
+
+schema_version: "1.0"
+
+# --- Column relations (pair-wise column detectors) ---
+column_relations:
+  - kind: identical_column
+    family: column_relations
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; merges with source-data pair-forensics categories"
+
+  - kind: constant_offset
+    family: column_relations
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation"
+
+  - kind: constant_ratio
+    family: column_relations
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; profile guards for derived formulas"
+
+  - kind: exact_linear
+    family: column_relations
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; profile guards for derived formulas"
+
+  - kind: sum_constant
+    family: column_relations
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; profile guards for complementary percentages"
+
+  - kind: small_diff_set
+    family: column_relations
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation"
+
+  - kind: partial_constant_offset
+    family: column_relations
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation"
+
+# --- Copy-then-tweak fingerprints ---
+copy_tweak_fingerprints:
+  - kind: integer_diff_shared_fraction
+    family: copy_tweak_fingerprints
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation into canonical numeric signal"
+
+  - kind: row_pair_digit_coupling
+    family: copy_tweak_fingerprints
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; high-priority detector per PRD WP4"
+
+  - kind: many_equal_pairs
+    family: copy_tweak_fingerprints
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation"
+
+  - kind: identical_after_rounding
+    family: copy_tweak_fingerprints
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; high-priority detector per PRD WP4"
+
+# --- Within-column patterns ---
+within_column:
+  - kind: within_col_value_duplication
+    family: within_column
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; profile guards for matrix/omics floods"
+
+  - kind: within_col_decimal_repetition
+    family: within_column
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; profile guards for /3 decimal artifacts"
+
+  - kind: rounded_to_half_or_int
+    family: within_column
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation"
+
+  - kind: missing_last_digits
+    family: within_column
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation"
+
+# --- Cross-sheet / cross-file ---
+cross_sheet:
+  - kind: cross_sheet_position_identical
+    family: cross_sheet
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; merges with native cross-sheet dedupe"
+
+  - kind: cross_sheet_value_overlap
+    family: cross_sheet
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; merges with native cross-sheet dedupe"
+
+  - kind: cross_sheet_decimal_tail_reuse
+    family: cross_sheet
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; high-priority detector per PRD WP4"
+
+  - kind: cross_sheet_column_duplicate
+    family: cross_sheet
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; high-priority detector per PRD WP4"
+
+# --- Matrix / vector reuse ---
+matrix_vector_reuse:
+  - kind: within_table_fraction_reuse
+    family: matrix_vector_reuse
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; high-priority detector per PRD WP4"
+
+  - kind: recurring_row_vector
+    family: matrix_vector_reuse
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; high-priority detector per PRD WP4"
+
+# --- Statistical impossibility ---
+statistical_impossibility:
+  - kind: grim_inconsistent
+    family: statistical_impossibility
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; applicability_premise requires integer-valued items"
+
+  - kind: grimmer_inconsistent
+    family: statistical_impossibility
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; applicability_premise requires independent rows"
+
+# --- Digit statistics ---
+digit_statistics:
+  - kind: last_digit_chi_square
+    family: digit_statistics
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Translated from digit_distribution[] entries; BH-FDR q-value in metadata"
+
+  - kind: repeated_two_decimal_endings
+    family: digit_statistics
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Translated from decimal_endings[] entries with significant repetition"
+
+# --- Progressions ---
+progressions:
+  - kind: arithmetic_progression
+    family: progressions
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Direct translation; profile guards for axis/index columns"
+
+# --- Scan errors ---
+scan_errors:
+  - kind: scan_error
+    family: scan_errors
+    status: translated
+    veritas_target: canonical_numeric_signal
+    notes: "Scan errors become diagnostic signals; not clean, not silent"
