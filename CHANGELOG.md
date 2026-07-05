@@ -1,5 +1,40 @@
 # CHANGELOG
 
+## 2026-07-05
+
+- **流水线 8 阶段重构**：`engine/static_audit/pipeline.py` 从单体函数重构为 8 个阶段模块（`stages/`：discovery → planning → mineru → source_data → visual → investigation → roles → report），每阶段返回 frozen dataclass（如 `DiscoveryResult`、`PlanningResult`），阶段间通过 typed 结果传递数据。
+- **StageExecutor 声明式框架**：新增 `stage_executor.py`（`StepDefinition`/`StagePlan`/`StageExecutor`），source_data 阶段已迁移（8 步骤：profile → findings → pair_forensics → cross_sheet → cross_sheet_filter → paperconan → briefings → verdict）。`fail_policy` 控制失败行为（stop/skip_downstream/continue）。
+- **AuditConfig 数据类**：`config.py` 封装 14 个配置参数为 frozen dataclass，替代散落的 kwargs 传递。
+- **Paper PDF 显式选择**：当上传多个 PDF 时，前端通过 `AMBIGUOUS_PAPER_PDF` 错误码触发 `PaperPdfSelector` 弹窗。后端新增 `paper_pdf.py` 模块处理歧义检测和路径验证。`CaseModel` 新增 `paper_pdf` 字段。
+- **Source Data 取证扩展至 20 种检测模式**：新增 binary_arithmetic_relation（A*B=C 三列关系）、copy_paste_modify（复制后修改）、shifted_paste（位移粘贴）、internal_sequence_relation（列内等差/等比数列）、decimal_tail_match_shifted（位移小数尾匹配）、strict_linear_relation（严格线性关系）。所有新检测器使用 `SheetNumericIndex` 预计算索引。
+- **认证分级引擎**：`grade_engine.py` 实现 A/B/C/D 四维评分（Reproducibility/Numerical/Methodology/Interpretation），最差维度决定等级，可复现性 tier 可施加 cap（full→A, partial→B, code_only→C, static→C-）。
+- **确定性三层架构**：`certainty_enrichment.py` 为每个 finding 生成 FACT（客观事实）/ INFERENCE（AI 推断，带免责声明）/ SUGGESTION（修复建议）三层信息。
+- **Run Diagnostics 系统**：`run_diagnostics.py` 聚合 5 类诊断子 artifact（agent_debug、run_quality、artifact_summary、performance、model_calls），写入 `recommended_next_actions.md` 和 `run_diagnostics.json`。
+- **Typed Adapters**：`typed_adapters.py` 提供 4 种 artifact typed adapter（PairForensics、SourceData、Visual、NumericForensics），消除 dict.get 链，向后兼容字段别名。
+- **Finding Categories 注册表**：`finding_categories.py` 声明式注册 22 个 finding category，添加 category 只需一个 `register()` 调用。
+- **Investigation Tools 注册表分发**：`investigation_tools.py` 替代 600 行 elif 链，8 个 adapter 函数按 tool_id 分发。
+- **Tool Registry 重构**：26 个 ToolDefinition，引入声明式 `param_schema` + auto coercer，`execution_phase` 四层分类。
+- **LLM 配置集中化**：`engine/llm/config.py` 为 `DEFAULT_LLM_MODEL`/`DEFAULT_LLM_BASE_URL` 单一事实源，消除散落硬编码。
+- **Web 数据库 Schema 扩展**：新增 7 张 ORM 表（`InvestigationRecordModel`、`ReviewDecisionModel`、`ArtifactModel`、`FindingModel`、`RunDiagnosticsSummaryModel`、`ToolRegistryModel`、`CloudflareUserModel`），`RunModel` 新增 `celery_task_id`/`stages`/`current_stage`，扩展状态枚举。
+- **Engine/Web 分离（P1-5）**：`engine.reporting.risk`、`engine.reporting.review_queue`、`engine.reporting.finding_details` 承载领域逻辑，Web 层 risk/review_queue 变为瘦适配层。
+- **Runtime 统一（P0-1）**：所有 subprocess 调用统一到 `runtime/executors/subprocess_executor.py`，typed `ExecutionRequest`/`ExecutionResult`。
+- **视觉取证服务容器化**：sila-dense（:8770）和 elis-forensic（:8771）作为长驻 HTTP 容器服务，新增 `deploy/docker-compose.forensics.yml` 独立开发 compose。
+- **Client 前端完整页面体系**：新增 6 个 client 页面（SubmitPage、ProgressPage、ReportPage、IssuePage、ReverificationPage、VerifyPage），新增 PaperPdfSelector 组件、usePaperPdfSelector hook、paperPdf 工具函数。
+- **Source Data 工具扩展**：新增 `image_quality.py`（像素级质量检查）、`source_data_query.py`（语义查询）、`source_data_sheet_briefing.py`（sheet 结构简报）。`source_data_pair_forensics` 重构为包（13 个文件）。
+- **visual_pipeline 包重构**：从单文件拆分为 6 个源文件（`_orchestrator.py`、`finding_pipeline.py`、`panel_extraction.py`、`sila_dense.py`、`tru_for.py`、`provenance_relationships.py`）。
+- **context_pack 包重构**：从单文件拆分为包（`_shared.py`、`claims.py`、`deterministic.py`、`evidence.py`、`role_outputs.py`）。
+- **engine/shared/ 共享模块**：`types.py`（StepStatus/StepResult/InvestigationAction/ProgressCallback）、`constants.py`（OUTPUT_DIRS/ARTIFACT_PATH_MAP/STEP_TOOL_IDS）、`helpers.py`（finding 层级分类/event 合约/step 进度发射）。
+- **engine/reporting/ 扩展**：新增 `finding_details.py`、`layers.py`、`render_json.py`、`review_queue.py`、`risk.py`。
+- **engine/static_audit/adapters/ 扩展**：新增 `numeric_forensics_adapter/`（upstream 包装 + schema enrichment）、`paperfraud_knowledge/`（YAML 规则匹配）。
+- **Adapters 三模块**：`paperconan_adapter/`（GRIM/GRIMMER 扫描 + Veritas-shaped findings）、`paperfraud_knowledge/`（YAML 规则 + reviewer form）、`numeric_forensics_adapter/`（upstream enrichment + limitations）。
+- **HTML 报告样式增强**：`_styles.py` 大幅重构（+429 行），certainty layers 视觉样式。
+- **Pipeline 步骤状态修复（P0-1）**：warning → failed 状态语义统一。
+- **异常处理修复（P0-2）**：消除静默异常吞掉。
+- **循环依赖修复（P1-2）**：消除 runtime→engine 循环依赖。
+- **LLM 配置集中（P1-3）**：`DEFAULT_LLM_MODEL` 替代散落硬编码。
+- **Engine→Runtime Facade（P1-4）**：`_call_audit_func` 桥接新旧接口。
+- **参数封装（P1-6）**：`AuditConfig` 替代 14 个散落 kwargs。
+
 ## 2026-07-01
 
 - **审计档案（Audit Profiles）**：新增 fast/standard/full 三档审计档案，控制工具执行深度和范围。通过 `pipeline.py` 的 profile 参数传递，影响 Tool Registry 中哪些工具被执行。

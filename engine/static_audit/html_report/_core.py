@@ -450,6 +450,36 @@ def render_static_audit_html(
       </aside>
     </section>
 
+    <aside class="report-filters" id="report-filters">
+      <fieldset>
+        <legend>搜索</legend>
+        <input type="search" id="report-search" placeholder="搜索 ID、类别、内容..." />
+      </fieldset>
+      <fieldset id="sev-filter">
+        <legend>严重性</legend>
+        <label><input type="checkbox" value="critical" checked />Critical</label>
+        <label><input type="checkbox" value="high" checked />High</label>
+        <label><input type="checkbox" value="medium" checked />Medium</label>
+        <label><input type="checkbox" value="low" checked />Low</label>
+        <label><input type="checkbox" value="context" checked />Context</label>
+        <label><input type="checkbox" value="info" checked />Info</label>
+      </fieldset>
+      <fieldset id="layer-filter">
+        <legend>层级</legend>
+        <label><input type="checkbox" value="layer_1" checked />Layer 1</label>
+        <label><input type="checkbox" value="layer_2" checked />Layer 2</label>
+        <label><input type="checkbox" value="layer_3" checked />Layer 3</label>
+      </fieldset>
+      <fieldset id="cat-filter">
+        <legend>类别</legend>
+        <label><input type="checkbox" value="consistency" checked />一致性</label>
+        <label><input type="checkbox" value="matching" checked />匹配性</label>
+        <label><input type="checkbox" value="completeness" checked />完整性</label>
+      </fieldset>
+      <button type="button" id="filter-reset">重置</button>
+      <span class="filter-count" id="filter-count"></span>
+    </aside>
+
     <section class="section" id="top-patterns">
       <div class="section-head"><div><h2>必须立即追问</h2>
         <p class="muted">risk_level ∈ {{critical, high}} 且 issue_category == consistency 的 top 20 记录</p></div>
@@ -587,6 +617,59 @@ def render_static_audit_html(
     <div class="footer">生成时间：{h(datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))}。{f"报告编号：{h(report_id)}。" if report_id else ""}报告只展示技术记录和复核入口，关键结论必须人工确认。</div>
     <div class="gatekeeper-footer gatekeeper-only">本报告由 Veritas 独立签发，不可篡改 · Immutable Record{f" — {h(report_id)}" if report_id else ""} — 所有证据链均来自确定性工具执行产物</div>
   </main>
+  <script>
+  (function() {{
+    const search = document.getElementById("report-search");
+    const filterCount = document.getElementById("filter-count");
+    const filterBar = document.getElementById("report-filters");
+    const resetBtn = document.getElementById("filter-reset");
+    const cardSelector = ".finding-card, .pattern-card, .cluster-card";
+
+    function getChecked(fieldsetId) {{
+      const boxes = document.querySelectorAll("#" + fieldsetId + " input[type=checkbox]");
+      return Array.from(boxes).filter(b => b.checked).map(b => b.value);
+    }}
+
+    function applyFilters() {{
+      const searchVal = (search ? search.value : "").toLowerCase();
+      const sevFilters = getChecked("sev-filter");
+      const layerFilters = getChecked("layer-filter");
+      const catFilters = getChecked("cat-filter");
+      const cards = document.querySelectorAll(cardSelector);
+      let visible = 0;
+
+      cards.forEach(card => {{
+        const risk = card.dataset.risk || "";
+        const layer = card.dataset.layer || "";
+        const cat = card.dataset.category || "";
+        const text = card.textContent.toLowerCase();
+
+        const matchSev = !risk || sevFilters.length === 0 || sevFilters.includes(risk);
+        const matchLayer = !layer || layerFilters.length === 0 || layerFilters.includes(layer);
+        const matchCat = !cat || catFilters.length === 0 || catFilters.includes(cat);
+        const matchSearch = !searchVal || text.includes(searchVal);
+
+        const show = matchSev && matchLayer && matchCat && matchSearch;
+        card.style.display = show ? "" : "none";
+        if (show) visible++;
+      }});
+
+      filterCount.textContent = visible + " / " + cards.length + " 条记录";
+    }}
+
+    if (search) search.addEventListener("input", applyFilters);
+    document.querySelectorAll("#sev-filter input, #layer-filter input, #cat-filter input")
+      .forEach(cb => cb.addEventListener("change", applyFilters));
+    if (resetBtn) resetBtn.addEventListener("click", function() {{
+      document.querySelectorAll(".report-filters input[type=checkbox]").forEach(cb => cb.checked = true);
+      if (search) search.value = "";
+      applyFilters();
+    }});
+
+    // Initial count
+    applyFilters();
+  }})();
+  </script>
 </body>
 </html>
 """

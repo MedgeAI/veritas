@@ -133,8 +133,6 @@ COPY --from=frontend-builder /build/dist ./web/frontend/dist
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
-ENV VERITAS_HOST=0.0.0.0
-ENV VERITAS_PORT=8765
 
 # Set timezone
 ENV TZ=Asia/Shanghai

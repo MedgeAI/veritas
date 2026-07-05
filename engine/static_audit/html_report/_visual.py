@@ -155,7 +155,7 @@ def _visual_figure_cards(
                 img_tag = (
                     f'<img src="{h(panel_crop)}" alt="panel {h(panel_label)}" loading="lazy" />'
                     if panel_crop
-                    else '<div style="height:120px;background:#f4f0e6;border-radius:8px;"></div>'
+                    else '<div style="height:120px;background:#F3F4F6;border-radius:4px;"></div>'
                 )
                 panel_items.append(
                     f'<div class="visual-panel-card">'
@@ -171,7 +171,7 @@ def _visual_figure_cards(
         img_tag = (
             f'<img src="{h(image_path)}" alt="figure {h(label)}" loading="lazy" />'
             if image_path
-            else '<div style="height:180px;background:#f4f0e6;border-radius:12px;"></div>'
+            else '<div style="height:180px;background:#F3F4F6;border-radius:6px;"></div>'
         )
         cards.append(
             f'<div class="visual-figure-card">'

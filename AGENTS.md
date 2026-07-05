@@ -36,13 +36,22 @@ Third-party        (third_party/)      — 能力吸收区，必须通过 adapte
 
 ### Evidence First
 
-报告必须从结构化 evidence event 生成，不能从 Agent 自然语言总结生成。至少支持：`file_evidence`、`execution_evidence`、`claim_match`、`figure_evidence`。
+报告必须从结构化 evidence event 生成，不能从 Agent 自然语言总结生成。至少支持：`file_evidence`、`execution_evidence`、`extraction_evidence`、`claim_match`、`figure_evidence`。
+
+LLM 可以作为受约束的证据提取器处理非预期输出，但 LLM 输出本身不是原始证据源，必须转化为带 provenance 的 `extraction_evidence` / `derived_observation`：
+
+- 每个 LLM 提取值必须锚定不可变原始 artifact（stdout/stderr、输出文件、notebook cell）及其 hash
+- 每个 LLM 提取值必须包含 `source_artifact`、`source_artifact_hash`、`source_span`、`source_snippet`、`model_id`、`prompt_version`、`schema_version`、`extraction_confidence`、`validation_status`
+- 没有 artifact anchor、没有 source span、schema 校验失败或置信度不足的提取结果，不得进入确定性事实层；对应 cell 必须标记为 `unextractable` 或 `needs_review`
+- Verdict 必须区分 extraction confidence（值是否确实来自执行输出）和 comparison verdict（提取值与论文值是否一致）
+- LLM 可以扩大可提取范围，但不能扩大结论确定性
 
 ### 只讲事实，LLM 解释层辅助理解
 
 报告采用双层结构：
 
-1. **事实层**：从结构化 evidence event 生成，呈现客观检测数据。至少支持：`file_evidence`、`execution_evidence`、`claim_match`、`figure_evidence`。事实层不允许 LLM 生成自由文本。
+1. **事实层**：从结构化 evidence event 生成，呈现客观检测数据。至少支持：`file_evidence`、`execution_evidence`、`extraction_evidence`、`claim_match`、`figure_evidence`。事实层不允许 LLM 生成自由文本。
+   - LLM-mediated extraction 属于结构化事实层的派生观察：LLM 只能生成带 provenance 的 `extraction_evidence`，不能直接生成 Finding 结论或自由文本事实。
 2. **解释层**：LLM 基于证据生成解释性文本（`review_question`、`benign_explanations`、`relation_text`、Judge summary），帮助用户理解证据的含义。解释层是有意设计的——充分利用 LLM 智能降低用户理解成本，同时通过证据锚定减少幻觉误判。
 
 品质护栏：
@@ -52,8 +61,8 @@ Third-party        (third_party/)      — 能力吸收区，必须通过 adapte
 
 ### Agent 边界
 
-Agent **可以**：映射 claim→代码、选 Tool Registry 允许的 tool_id、生成结构化 JSON trace、写入 `outputs/`。
-Agent **不可以**：编辑源码、应用 patch、判定学术不端、绕过 Tool Registry。
+Agent **可以**：映射 claim→代码、选 Tool Registry 允许的 tool_id、生成结构化 JSON trace、生成带 provenance 的 extraction proposal/evidence、写入 `outputs/`。
+Agent **不可以**：编辑源码、应用 patch、判定学术不端、绕过 Tool Registry、在没有原始 artifact anchor 的情况下补全或推测事实值。
 输出必须结构化；校验失败时反馈给 Agent 重试，仍失败则记录 failed trace，不覆盖确定性证据。
 
 ### Runtime 边界

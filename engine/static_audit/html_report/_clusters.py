@@ -10,11 +10,9 @@ from engine.static_audit.html_report._html_utils import h
 from engine.static_audit.html_report._config import (
     MAX_CLUSTER_CLAIM_LENGTH,
     MAX_EVIDENCE_CLUSTERS,
-    MAX_CLUSTERS_IN_BRIEF,
     MAX_CLAIMS_PER_CLUSTER,
     MAX_TASKS_PER_CLUSTER,
     MAX_SIGNALS_PER_CLUSTER,
-    MAX_SHEETS_IN_HEADLINE,
     MAX_CATEGORIES_IN_HEADLINE,
     DEFAULT_CLUSTER_TASK_ITEMS,
 )
@@ -230,11 +228,20 @@ def evidence_cluster_cards(clusters: list[dict[str, Any]]) -> str:
         if not task_items:
             task_items = DEFAULT_CLUSTER_TASK_ITEMS
         categories = cluster.get("categories") or Counter()
+        # Determine dominant issue_category from findings for filtering
+        issue_categories = Counter(
+            str(f.get("issue_category") or "consistency")
+            for f in (cluster.get("findings") or [])
+            if isinstance(f, dict)
+        )
+        dominant_category = (
+            issue_categories.most_common(1)[0][0] if issue_categories else "consistency"
+        )
         category_text = ", ".join(
             f"{category_label(k)}×{h(v)}" for k, v in categories.most_common()
         )
         cards.append(f"""
-<article class="cluster-card" id="{h(cluster.get("cluster_id"))}">
+<article class="cluster-card" id="{h(cluster.get("cluster_id"))}" data-risk="{h(cluster.get("risk_level"))}" data-category="{h(dominant_category)}">
   <div class="cluster-top">
     <div>
       <div class="cluster-title">

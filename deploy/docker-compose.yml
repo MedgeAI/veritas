@@ -140,7 +140,7 @@ services:
   sila-dense:
     build:
       context: ./forensics/sila-dense
-    image: veritas-sila-service:latest
+    image: veritas-sila-service:${FORENSICS_VERSION:-latest}
     container_name: vprod-sila-dense
     restart: unless-stopped
     volumes:
@@ -160,7 +160,7 @@ services:
   elis-forensic:
     build:
       context: ./forensics/elis-forensic
-    image: veritas-elis-forensic-service:latest
+    image: veritas-elis-forensic-service:${FORENSICS_VERSION:-latest}
     container_name: vprod-elis-forensic
     restart: unless-stopped
     volumes:

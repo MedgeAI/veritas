@@ -373,7 +373,13 @@ _LAYER3_CATEGORIES = frozenset({
 
 # Tokens that identify Paperconan/numeric-forensics findings.
 # Paperconan HIGH-risk goes to Layer 2, not Layer 1 (per PRD section 5).
-_PAPERCONAN_TOKENS = ("paperfraud", "numeric_forensics", "benford", "digit")
+_PAPERCONAN_TOKENS = (
+    "paperfraud",
+    "numeric_forensics",
+    "benford",
+    "digit",
+    "paperconan",  # matches source_artifact "paperconan_scan.json" — covers all detector kinds without substring collision with first-party categories
+)
 
 
 def classify_finding(finding: dict[str, Any]) -> str:

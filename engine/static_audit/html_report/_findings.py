@@ -355,6 +355,80 @@ def sample_pairs_html(samples: list[dict[str, Any]]) -> str:
     )
 
 
+def render_evidence_table(finding: dict[str, Any]) -> str:
+    """Render an inline evidence table for a finding card.
+
+    Uses ``raw_data_samples`` (full row data) when available, falling back to
+    ``sample_pairs`` (left/right pair data).  Cells whose column name matches
+    ``column_pair`` entries receive the ``ev-cell-hi`` highlight class so the
+    flagged data points stand out at a glance.
+
+    Returns an empty string when no tabular evidence is available so the caller
+    can insert the result unconditionally.
+    """
+    raw_samples: list[dict[str, Any]] = finding.get("raw_data_samples") or []
+    column_pair: list[str] = [
+        str(c) for c in (finding.get("column_pair") or []) if c
+    ]
+
+    # --- build headers + rows from raw_data_samples ---
+    if raw_samples:
+        headers: list[str] = []
+        seen: set[str] = set()
+        for sample in raw_samples:
+            for col in (sample.get("column_values") or {}):
+                col_s = str(col)
+                if col_s not in seen:
+                    seen.add(col_s)
+                    headers.append(col_s)
+        if not headers:
+            return ""
+
+        hi_cols: set[str] = {str(c) for c in column_pair}
+        header_cells = "".join(
+            f'<th class="{"ev-col-hi " if hdr in hi_cols else ""}"'
+            f">{h(hdr)}</th>"
+            for hdr in headers
+        )
+        body_parts: list[str] = []
+        for sample in raw_samples[:MAX_SAMPLE_ROWS]:
+            row_num = sample.get("row", "-")
+            col_vals: dict[str, Any] = sample.get("column_values") or {}
+            cells = "".join(
+                f'<td class="{"ev-cell-hi " if hdr in hi_cols else ""}">'
+                f"{h(col_vals.get(hdr, ''))}</td>"
+                for hdr in headers
+            )
+            body_parts.append(
+                f'<tr><td class="ev-row-label">{h(row_num)}</td>{cells}</tr>'
+            )
+
+        return (
+            f'<table class="ev-table"><thead><tr>'
+            f'<th></th>{header_cells}'
+            f'</tr></thead><tbody>{"".join(body_parts)}</tbody></table>'
+        )
+
+    # --- fallback: sample_pairs (left / right columns) ---
+    pairs: list[dict[str, Any]] = finding.get("sample_pairs") or []
+    if not pairs:
+        return ""
+
+    left_label = h(column_pair[0]) if len(column_pair) >= 1 else "左列"
+    right_label = h(column_pair[1]) if len(column_pair) >= 2 else "右列"
+    rows_html = "".join(
+        f'<tr><td class="ev-row-label">{h(item.get("row", "-"))}</td>'
+        f'<td class="ev-cell-hi">{h(item.get("left", "-"))}</td>'
+        f'<td class="ev-cell-hi">{h(item.get("right", "-"))}</td></tr>'
+        for item in pairs[:MAX_SAMPLE_ROWS]
+    )
+    return (
+        f'<table class="ev-table"><thead><tr>'
+        f"<th></th><th>{left_label}</th><th>{right_label}</th>"
+        f'</tr></thead><tbody>{rows_html}</tbody></table>'
+    )
+
+
 # ---------------------------------------------------------------------------
 # Finding card rendering
 # ---------------------------------------------------------------------------
@@ -394,12 +468,15 @@ def finding_card(
     )
     review_action = review_question(source_review, risk, finding)
     sample_rows = sample_evidence_html(finding)
+    evidence_table = render_evidence_table(finding)
     claim_text = first_claim(mappings)
     risk_reason = (risk or {}).get("reason", "")
     source_artifact = source_artifact_for_finding(finding)
     mapping_note = mapping_granularity_note(finding)
     risk_badge = _confidence_badge("agent") if risk and risk_reason else ""
     anchor_id = f"finding-{finding_id.replace('.', '-').replace(' ', '-')}"
+    issue_category = str(finding.get("issue_category", "consistency"))
+    layer = str(finding.get("_layer") or finding.get("layer") or "")
 
     # Three-layer certainty model
     certainty_layers = _certainty_layers(finding)
@@ -407,8 +484,12 @@ def finding_card(
     # Risk-level color bar (W2-3)
     risk_bar_class = f"risk-bar risk-bar-{h(risk_level)}"
 
+    # Default-expand strategy: critical/high findings expand key details
+    expand_details = risk_level in {"critical", "high"}
+    open_attr = " open" if expand_details else ""
+
     return f"""
-<article class="finding-card has-risk-bar" id="{h(anchor_id)}">
+<article class="finding-card has-risk-bar" id="{h(anchor_id)}" data-risk="{h(risk_level)}" data-category="{h(issue_category)}" data-layer="{h(layer)}">
   <div class="{risk_bar_class}"></div>
   <div>
     <div class="finding-title">
@@ -418,13 +499,14 @@ def finding_card(
     </div>
     <p><strong>复核摘要：</strong>{risk_badge}{h(clean_report_text(risk_reason or default_finding_summary(finding)))}</p>
     {certainty_layers}
+    {f'<details class="evidence-details"{open_attr}><summary>证据数据</summary>{evidence_table}</details>' if evidence_table else ''}
     <div class="quote"><strong>关联论文表述：</strong>{h(claim_text or "未自动抽取到论文表述，需人工补映射。")}</div>
     <div class="grid cols-2">
       <div><h3>为什么值得复核</h3><ul><li>{h(relation)}</li><li>{h(support)}</li><li>{h(mapping_note)}</li></ul></div>
       <div><h3>良性解释</h3><ul>{"".join(f"<li>{_confidence_badge('agent')}{h(clean_report_text(item))}</li>" for item in benign[:4]) or "<li class='muted'>未记录。</li>"}</ul></div>
     </div>
     <h3>人工复核动作</h3><p>{h(review_action)}</p>
-    <details><summary>样本行</summary>{sample_rows}</details>
+    <details{open_attr}><summary>样本行</summary>{sample_rows}</details>
     <div class="finding-actions author-only">
       <a href="#manual-review">查看建议与修复</a>
       <button type="button">申诉 / 说明</button>

@@ -18,9 +18,7 @@ from engine.static_audit.html_report._config import (
 )
 from engine.static_audit.html_report._shared import (
     _confidence_badge,
-    category_label,
     clean_report_text,
-    dedupe,
 )
 
 

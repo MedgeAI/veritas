@@ -16,7 +16,7 @@ Current local operations are documented in `README.md` and the root `Makefile`. 
 For current module/data-flow orientation, read `CodeMAP.md` and `Dataflow.md` before making cross-module changes. Visual forensics is currently a first-party beta with ELIS adapters planned, not a fully replaced ELIS pipeline.
 
 
-**核心产品设计哲学**：只讲事实，LLM 解释层辅助理解。报告分两层——事实层从结构化 evidence 动态生成，不允许 LLM 自由文本；解释层由 LLM 基于证据生成解释性文本（review_question、benign_explanations、relation_text），充分利用 LLM 智能降低用户理解成本，同时通过证据锚定减少幻觉。`HUMAN_TEXT_REPLACEMENTS` 是解释层的品质护栏，对 LLM 输出执行术语规范化。详见 `AGENTS.md` → "只讲事实，LLM 解释层辅助理解"。
+**核心产品设计哲学**：只讲事实，LLM 解释层辅助理解。报告分两层——事实层从结构化 evidence 动态生成，不允许 LLM 自由文本；LLM 可以作为受约束的证据提取器生成带 provenance 的 `extraction_evidence`，但不是原始证据源；解释层由 LLM 基于证据生成解释性文本（review_question、benign_explanations、relation_text），充分利用 LLM 智能降低用户理解成本，同时通过证据锚定减少幻觉。`HUMAN_TEXT_REPLACEMENTS` 是解释层的品质护栏，对 LLM 输出执行术语规范化。详见 `AGENTS.md` → "Evidence First" 和 "只讲事实，LLM 解释层辅助理解"。
 
 ## 分层架构
 

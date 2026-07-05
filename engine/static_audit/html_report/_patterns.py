@@ -303,9 +303,18 @@ def pattern_group_cards(patterns: list[dict[str, Any]]) -> str:
             ]
         categories = pattern.get("categories") or Counter()
         pattern_risk = str(pattern.get("risk_level") or "info")
+        # Determine dominant issue_category from findings for filtering
+        issue_categories = Counter(
+            str(f.get("issue_category") or "consistency")
+            for f in (pattern.get("findings") or [])
+            if isinstance(f, dict)
+        )
+        dominant_category = (
+            issue_categories.most_common(1)[0][0] if issue_categories else "consistency"
+        )
         risk_bar_class = f"risk-bar risk-bar-{h(pattern_risk)}"
         cards.append(f"""
-<article class="pattern-card has-risk-bar" id="{h(pattern.get("pattern_id"))}">
+<article class="pattern-card has-risk-bar" id="{h(pattern.get("pattern_id"))}" data-risk="{h(pattern_risk)}" data-category="{h(dominant_category)}">
   <div class="{risk_bar_class}"></div>
   <div class="pattern-body">
   <div class="pattern-head">

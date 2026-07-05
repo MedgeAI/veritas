@@ -13,7 +13,6 @@ from engine.static_audit.html_report._config import (
     MAX_PAIR_FORENSICS_REVIEW_TASKS,
     MAX_PAIR_FORENSICS_CLUSTERS,
     MAX_EVIDENCE_SAMPLE_LENGTH,
-    MAX_SUMMARY_VALUE_LENGTH,
 )
 from engine.static_audit.html_report._shared import (
     category_label,

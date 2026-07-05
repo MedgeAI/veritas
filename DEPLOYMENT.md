@@ -36,9 +36,12 @@
 | 端口 | 当前 compose 默认行为 |
 |---|---|
 | `8765` | 容器内 Web 端口。`deploy/docker-compose.yml` 默认没有发布到宿主机 |
+| `8770` | sila-dense 视觉取证服务，容器内端口，compose 内部通信 |
+| `8771` | elis-forensic 视觉取证服务，容器内端口，compose 内部通信 |
 | `5432` | PostgreSQL 容器内端口，不对外暴露 |
 | `6379` | Redis 容器内端口，不对外暴露 |
 | `5433` | 仅本地开发 `deploy/docker-compose.local-db.yml` 发布 |
+| `8770/8771` | 仅 `docker-compose.forensics.yml` 开发模式发布到宿主机 |
 
 如需本机或反向代理访问 Web，请使用 Cloudflare overlay，或添加本地 compose override 发布 `8765:8765`。不要对公网直接暴露 PostgreSQL/Redis。
 
@@ -90,6 +93,8 @@ chmod 600 .env
 ```bash
 MINERU_API_TOKEN=<mineru-token>
 DASHSCOPE_API_KEY=<dashscope-api-key>
+VERITAS_USE_CELERY=true          # 生产环境推荐启用 Celery 异步执行
+VERITAS_LLM_MODEL=dashscope/qwen3.7-plus   # 可选，覆盖默认 LLM 模型
 ```
 
 如果使用 Cloudflare Tunnel：
@@ -161,8 +166,8 @@ make deploy-rebuild
 
 1. 读取 `.env` 和 `deploy/.env`
 2. 使用 compose project `vdeploy`
-3. 构建并重启 `postgres`、`redis`、`veritas`、`celery-worker`、`cloudflared`
-4. 等待容器健康
+3. 构建并重启 `postgres`、`redis`、`veritas`、`celery-worker`、`sila-dense`、`elis-forensic`、`cloudflared`
+4. 等待容器健康（包括视觉取证服务 :8770/:8771 健康检查）
 5. 在容器内执行 `/api/health`、`/api/health/deep`、`/api/cases` 冒烟检查
 
 注意：如果启用了非 `none` 认证，`/api/cases` 的无认证冒烟检查会返回 401；Makefile 会打印 warning，但不会中断部署。此时以 `/api/health` 和 `/api/health/deep` 为基础健康判断。
@@ -213,10 +218,16 @@ docker compose --env-file "$PWD/.env" --env-file "$PWD/deploy/.env" \
 | 服务 | 容器名 | 职责 |
 |---|---|---|
 | `postgres` | `veritas-postgres` | PostgreSQL 16 + pgvector |
-| `redis` | `veritas-redis` | Celery broker |
+| `redis` | `veritas-redis` | Celery broker（AOF 持久化） |
 | `veritas` | `veritas-web` | FastAPI API + 前端静态资源 + 审计编排 |
 | `celery-worker` | `veritas-celery-worker` | Celery 异步审计 worker |
+| `sila-dense` | `veritas-sila-dense` | **视觉取证服务**：SILA dense 检测（:8770） |
+| `elis-forensic` | `veritas-elis-forensic` | **视觉取证服务**：ELIS forensic 检测（:8771） |
 | `cloudflared` | `veritas-cloudflared` | Cloudflare Tunnel，仅 overlay 启动 |
+
+视觉取证服务（sila-dense、elis-forensic）作为长驻 HTTP 容器运行，消除每次调用的启动开销。Web 容器通过环境变量 `SILA_DENSE_URL=http://sila-dense:8770` 和 `ELIS_FORENSIC_URL=http://elis-forensic:8771` 访问。
+
+独立开发 compose（`deploy/docker-compose.forensics.yml`）可单独启动取证服务（端口 8770/8771 发布到宿主机），用于本地调试。
 
 Web 容器是否把审计任务派发给 Celery 由 `VERITAS_USE_CELERY` 控制：
 
@@ -313,6 +324,8 @@ docker ps --filter "name=veritas-"
 
 - `veritas-postgres` healthy
 - `veritas-redis` healthy
+- `veritas-sila-dense` healthy（:8770）
+- `veritas-elis-forensic` healthy（:8771）
 - `veritas-web` healthy
 - `veritas-celery-worker` running
 - 使用 Cloudflare overlay 时，`docker ps` 能看到 `veritas-cloudflared` running
@@ -350,6 +363,8 @@ curl -s http://127.0.0.1:8765/api/health/deep | python3 -m json.tool
 - `opencode` 是否在 `PATH`
 - `/app/web_data` 和 `/app/outputs` 是否可写
 - 审计关键 Python import 是否可用
+- Docker 镜像就绪状态（sila-dense、elis-forensic 等）
+- 模型权重文件（YOLOv5 panel extraction、TruFor forgery detection）
 
 ### 8.3 API 验证
 
@@ -478,6 +493,8 @@ docker logs --tail=100 veritas-postgres
 - `.env` 是否设置了 `MINERU_API_TOKEN`、`DASHSCOPE_API_KEY`
 - `web_data`、`outputs` 是否可写
 - 如果使用 Cloudflare overlay，`CLOUDFLARE_TUNNEL_TOKEN` 是否有效
+- 视觉取证服务（sila-dense、elis-forensic）是否 healthy：`docker logs --tail=50 veritas-sila-dense`
+- GPU 驱动是否就绪（TruFor/SSCD 需要 CUDA）
 
 ### 11.2 数据库连接失败
 
@@ -631,6 +648,6 @@ docker exec veritas-web curl -sf http://localhost:8765/api/health/deep
 
 ---
 
-**文档版本**：1.3
-**最后更新**：2026-07-01
+**文档版本**：1.4
+**最后更新**：2026-07-05
 **维护者**：Veritas 开发团队

@@ -1,6 +1,6 @@
 # Veritas 当前端到端数据流
 
-更新时间：2026-06-29
+更新时间：2026-07-05
 
 本文只描述当前已落地的 `audit-paper` + Web 数据流，目的是快速恢复项目掌控感。
 
@@ -9,13 +9,19 @@
 - Web 不是一套新的审查引擎。
 - Web 只是把”创建 case、上传输入、启动审查、查看进度、打开报告”包了一层浏览器界面。
 - 前端已演进为**三入口架构**：`client`（客户服务门户）、`ops`（运营后台）、`verify`（公开验证）。通过 `utils/entrypoint.js` 按 hostname/pathname 分流。
+- Client 端新增完整页面体系（SubmitPage、ProgressPage、ReportPage、IssuePage 等），Operator 端保持原有功能页面。
+- **Paper PDF 显式选择**：当上传多个 PDF 时，前端通过 `AMBIGUOUS_PAPER_PDF` 错误码触发 PaperPdfSelector 弹窗，用户选择后回传 `paper_pdf` 字段。
 - Web API 入口先把请求鉴权成 `AuthContext`（支持 4 种 provider：None / Bearer Token / Basic Auth / Cloudflare Access JWT）；所有 case-scoped route 必须通过 owner 校验。唯一例外是 `/api/verify/*` 公开验证接口，无需认证。
 - 真正审查仍然调用 `engine.static_audit.pipeline.run_static_audit()`。
-- Web 存储层已迁移到 PostgreSQL + pgvector（通过 `VERITAS_DATABASE_URL` 环境变量配置），开发环境 `make db-up` 启动 Docker PostgreSQL。
+- **流水线已重构为 8 阶段**：discovery → planning → mineru → source_data → visual → investigation → roles → report，每阶段返回 frozen dataclass。
+- **认证分级引擎**：审计完成后自动计算 A/B/C/D 认证等级（4 维度独立评分）。
+- **确定性三层架构**：每个 finding 附带 FACT/INFERENCE/SUGGESTION 三层信息。
+- Web 存储层已迁移到 PostgreSQL + pgvector（7 张核心表），通过 `VERITAS_DATABASE_URL` 环境变量配置。
 - 进度推送从 polling 迁移到 SSE（Server-Sent Events），通过 `pg_notify('audit_progress', ...)` + SSE 流实现实时推送。
-- 新增 Client Report BFF（`/api/cases/{case_id}/client-report`）聚合认证等级、风险摘要、certainty layers、复核项等数据供客户服务门户消费。
+- Client Report BFF（`/api/cases/{case_id}/client-report`）聚合认证等级、风险摘要、certainty layers、复核项、finding 详情等。
 - 输入临时落在 `web_data/`（file-based 路径）或 PostgreSQL（生产路径）。
 - 审查产物仍然落在 `outputs/`。
+- **Run Diagnostics**：每次审计自动生成 5 类诊断子 artifact（agent_debug、run_quality、artifact_summary、performance、model_calls）。
 
 ## 1. 总览图
 
@@ -368,7 +374,7 @@ run.status = running
 case.status = Running
 ```
 
-然后调用真正的审查函数：
+然后通过 `AuditConfig` 数据类封装参数（含 `paper_pdf` 选择）调用审查函数：
 
 ```python
 run_static_audit(
@@ -475,74 +481,68 @@ URL query > localStorage veritas.workspace.v1 > legacy localStorage keys > empty
 
 ## 8. 审查引擎内部数据流
 
-`engine/static_audit/orchestrator.py` 当前主要阶段如下：
+`engine/static_audit/pipeline.py` 编排 8 个阶段模块，每阶段返回 frozen dataclass：
 
 ```text
-paper_dir
-  |
-  v
-discover_pdf()
-  |
-  v
-paper_pdf
-  |
-  v
-build_material_inventory()
-  |
-  v
-material_inventory.json
-  |
-  v
-agent_material_plan
-  |
-  v
-optional_lanes
-  |
-  +-------------------------------+
-  |                               |
-  v                               v
-MinerU PDF parse                  optional Source Data lane
-  |                               |
-  v                               v
-full.md + images/                 source_data_profile.json
-  |                               source_data_findings.json
-  v                               source_data_pair_forensics.json
-evidence_ledger.json
-numeric_forensics.json
-exact_image_duplicates.json
-  |
-  v
-visual_evidence.json
-panel_evidence.json
-  |
-  v
-AgentInvestigationPlanner
-  |
-  v
-investigation_rounds.jsonl
-workdir/investigation/*
-context_pack_investigation_plan.json
-logs/*.log
-  |
-  v
-image_relationships.json
-visual_findings.json
-  |
-  v
-agent_review.json
-context_pack_review.json
-agent_role_claim_extractor.json
-agent_role_source_data_auditor.json
-agent_role_judge.json
-context_pack_<role>.json
-  |
-  v
-static_audit_bundle.json
-  |
-  v
-final_audit_report.md
-final_audit_report.html
-audit_run_manifest.json
+Stage 1: Discovery (stages/discovery.py)
+  paper_dir + paper_pdf
+  -> profile resolution, PDF discovery, workdir setup
+  -> material_inventory.json
+  -> DiscoveryResult (steps, workdir, paper_pdf, source_data_dir)
+
+Stage 2: Planning (stages/planning.py)
+  -> agent_material_plan, optional_lanes
+  -> PlanningResult (source_lane, sfp, steps)
+
+Stage 3: MinerU (stages/mineru.py)
+  -> MinerU PDF parse (失败则早终止，标记所有后续步骤 failed)
+  -> full.md + images/
+  -> evidence_ledger.json, numeric_forensics.json
+  -> paperfraud_rule_match (如果 full.md 存在)
+  -> MinerUResult (mineru_ok, steps)
+
+Stage 4: Source Data (stages/source_data.py)
+  使用 StageExecutor 声明式框架（8 步骤）：
+  -> source_data_profile.json
+  -> source_data_findings.json (14 种模式)
+  -> source_data_pair_forensics.json (20 种检测模式)
+  -> source_data_cross_sheet.json
+  -> cross_sheet_filter (LLM metadata filter)
+  -> paperconan_scan.json (GRIM/GRIMMER)
+  -> source_data_briefings.json
+  -> source_data_verdict.json
+  -> SourceDataResult (steps)
+
+Stage 5: Visual (stages/visual.py)
+  -> exact_image_duplicates.json
+  -> figure_classification.json
+  -> visual_panel_extraction.json
+  -> VisualResult (fc_manifest_data, steps)
+
+Stage 6: Investigation (stages/investigation.py)
+  -> AgentInvestigationPlanner
+  -> investigation_rounds.jsonl
+  -> workdir/investigation/*
+  -> image_relationships.json
+  -> visual_findings.json
+  -> agent_review.json
+  -> InvestigationResult (steps)
+
+Stage 7: Roles (stages/roles.py)
+  -> agent_role_claim_extractor.json
+  -> agent_role_source_data_auditor.json
+  -> agent_role_judge.json
+  -> context_pack_<role>.json
+  -> RolesResult (steps)
+
+Stage 8: Report (stages/report.py)
+  -> static_audit_bundle.json
+  -> certification_grade.json (A/B/C/D 四维评分)
+  -> certainty_data.json (FACT/INFERENCE/SUGGESTION 三层)
+  -> final_audit_report.md
+  -> final_audit_report.html
+  -> audit_run_manifest.json
+  -> run_diagnostics/ (5 类诊断子 artifact)
 ```
 
 对应落盘目录：
@@ -555,15 +555,17 @@ outputs/{case_id}/research-integrity-audit/
 
 只要输入里有 PDF，理论上固定跑：
 
-- `discover_pdf`
+- `discover_pdf`（支持 paper_pdf 显式选择 + 多 PDF 歧义处理）
 - `material_inventory`
 - `agent_material_plan`
-- `mineru`
+- `mineru`（MinerU PDF parse，失败则早终止）
 - `evidence_ledger`
 - `numeric_forensics`
 - `paperfraud_rule_match`（如果 `full.md` 存在）
 - `exact_image_duplicates`
-- `visual_panel_extraction`（如果 `images/` 存在；当前是 OpenCV 启发式实现，可能退化为 whole-figure fallback panel）
+- `figure_classification`
+- `visual_panel_extraction`（如果 `images/` 存在；当前是 OpenCV 启发式实现）
+- `image_quality`（像素级图像质量检查）
 - `visual_finding_pipeline`
 - `agent_review`
 - `ClaimExtractor`
@@ -572,17 +574,25 @@ outputs/{case_id}/research-integrity-audit/
 - `context_pack_*.json`
 - `logs/*.log`
 - `static_audit_bundle`
+- `certification_grade`（A/B/C/D 四维评分）
+- `certainty_data`（FACT/INFERENCE/SUGGESTION 三层）
 - `final_audit_report.md`
 - `final_audit_report.html`
+- `run_diagnostics/`（5 类诊断子 artifact）
 
 不一定跑或可能 skipped：
 
 - `source_data_profile`
-- `source_data_findings`
-- `source_data_pair_forensics`
+- `source_data_findings`（14 种检测模式）
+- `source_data_pair_forensics`（**20 种检测模式**：含 binary_arithmetic、copy_paste_modify、shifted_paste、internal_sequence、decimal_tail_shifted、strict_linear 等新增模式）
 - `source_data_cross_sheet`
+- `cross_sheet_filter`（LLM metadata filter）
+- `paperconan_scan`（GRIM/GRIMMER）
+- `source_data_briefings`
+- `source_data_verdict`
 - `image_similarity_candidates`
 - `visual_copy_move`
+- `provenance_graph`
 - future ELIS-style tools（YOLOv5 panel-extractor、RootSIFT/MAGSAC、TruFor、CBIR/Milvus）
 
 原因：
@@ -595,7 +605,7 @@ outputs/{case_id}/research-integrity-audit/
 
 ## 9.1 Agent 调用层
 
-当前 Agent 入口不再直接把整个 workdir 喂给 opencode。`engine/investigation/context_pack.py` 会为 material plan、review 和 role layer 构建 bounded `AgentContextPack`，排除原始 PDF、图片、二进制和过大的 artifact，只保留当前步骤需要的结构化上下文。
+当前 Agent 入口不再直接把整个 workdir 喂给 opencode。`engine/investigation/context_pack/` 包（`_shared.py`、`claims.py`、`deterministic.py`、`evidence.py`、`role_outputs.py`）为 material plan、review 和 role layer 构建 bounded `AgentContextPack`，排除原始 PDF、图片、二进制和过大的 artifact，只保留当前步骤需要的结构化上下文。
 
 `engine/investigation/agent_step_runner.py` 负责统一调用 opencode：
 
