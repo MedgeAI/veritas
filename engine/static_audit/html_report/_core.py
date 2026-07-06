@@ -85,6 +85,9 @@ from engine.static_audit.html_report._source_data import (
     pair_forensics_table,
     paperfraud_rule_section,
 )
+from engine.static_audit.html_report._numeric_forensics import (
+    render_numeric_forensics_sections,
+)
 from engine.static_audit.html_report._visual import visual_evidence_section
 from engine.static_audit.investigation import read_investigation_records
 from engine.static_audit.paths import resolve_artifact_path
@@ -115,6 +118,13 @@ def _load_report_artifacts(workdir: Path) -> dict[str, Any]:
         "verdict_data": _load("source_data_findings_verdict.json"),
         "certainty_data": _load("certainty_data.json"),
         "investigation_records": read_investigation_records(workdir),
+        # PRD WP2/WP3/WP5/WP7/WP8 new artifacts
+        "paperconan_signals": _load("numeric/paperconan_signals.json"),
+        "paperconan_translation_ledger": _load(
+            "numeric/paperconan_translation_ledger.json"
+        ),
+        "numeric_prefilter_ledger": _load("numeric/numeric_prefilter_ledger.json"),
+        "enriched_signals": _load("numeric/enriched_signals.json"),
     }
 
 
@@ -517,6 +527,8 @@ def render_static_audit_html(
     </section>
 
     <section class="panel section" id="paperfraud-rules">{paperfraud_rule_section(artifacts["paperfraud_matches"])}</section>
+
+    {render_numeric_forensics_sections(artifacts)}
 
     <section class="panel section" id="coverage">
       <h2>覆盖范围与限制</h2>
