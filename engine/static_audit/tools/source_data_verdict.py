@@ -451,6 +451,24 @@ def get_sheet_verdict(
             "See the attached JSON for details including claim_decisiveness and expected_source_data."
         )
 
+    prefilter_context = sheet_context.get("prefilter_context", [])
+    if prefilter_context:
+        pf_lines = [
+            "## Deterministic Prefilter Context",
+            f"The following {len(prefilter_context)} signal(s) on this sheet have already been "
+            "downgraded or hidden by the deterministic prefilter based on structural benign "
+            "explanations. You do NOT need to re-analyze these as suspicious — treat them as "
+            "lower priority unless you see evidence the prefilter missed:",
+        ]
+        for pf in prefilter_context:
+            ctx_tags = ", ".join(pf.get("false_positive_context", [])) or "n/a"
+            pf_lines.append(
+                f"- [{pf.get('prefilter_action')}/{pf.get('profile_action')}] "
+                f"{pf.get('signal_id', '?')}: {pf.get('prefilter_reason', 'no reason')} "
+                f"(context: {ctx_tags})"
+            )
+        prompt_parts.append("\n".join(pf_lines))
+
     prompt_parts.append(
         "\nRead the attached JSON file for full table structure and findings. "
         f"Context path: {ctx_path}. "
@@ -703,6 +721,51 @@ def _filter_claims_for_sheet(
     return matching
 
 
+def _filter_prefilter_for_sheet(
+    entries: list[dict],
+    workbook_name: str,
+    sheet_name: str,
+) -> list[dict]:
+    """Filter prefilter ledger entries relevant to the given workbook/sheet.
+
+    An entry is relevant if its evidence_locator.source_path matches the
+    workbook name AND evidence_locator.sheet matches the sheet name.
+
+    Returns compact prefilter summaries for LLM context — only entries
+    that were downgraded/hidden (action != keep/kept), since those are
+    the ones that provide FP context.
+    """
+    if not entries:
+        return []
+
+    wb_lower = workbook_name.lower()
+    sh_lower = sheet_name.lower()
+
+    matching: list[dict] = []
+    for entry in entries:
+        evidence = entry.get("evidence_locator") or {}
+        src_path = str(evidence.get("source_path", "")).lower()
+        src_sheet = str(evidence.get("sheet", "")).lower()
+        if wb_lower not in src_path and sh_lower not in src_sheet:
+            continue
+        # Only surface entries that had a deterministic FP context
+        action = entry.get("prefilter_action", "keep")
+        profile_action = entry.get("profile_action", "kept")
+        if action == "keep" and profile_action == "kept":
+            continue
+        matching.append(
+            {
+                "signal_id": entry.get("signal_id", ""),
+                "prefilter_action": action,
+                "profile_action": profile_action,
+                "false_positive_context": entry.get("false_positive_context", []),
+                "prefilter_reason": entry.get("prefilter_reason", ""),
+            }
+        )
+
+    return matching
+
+
 # ── Main entry point ─────────────────────────────────────────────────
 
 
@@ -792,12 +855,31 @@ def run_source_data_verdict(
         except (json.JSONDecodeError, ValueError, KeyError) as e:
             logger.warning("Failed to load enriched claims: %s", e)
 
+    # Load deterministic prefilter ledger (WP3 integration)
+    prefilter_entries: list[dict] = []
+    prefilter_path = resolve_artifact_path(
+        workdir, "numeric/numeric_prefilter_ledger.json"
+    )
+    if prefilter_path.exists():
+        try:
+            prefilter_data = json.loads(prefilter_path.read_text(encoding="utf-8"))
+            prefilter_entries = prefilter_data.get("entries", [])
+            logger.info(
+                "Loaded %d prefilter entries for verdict context",
+                len(prefilter_entries),
+            )
+        except (json.JSONDecodeError, ValueError, KeyError) as e:
+            logger.warning("Failed to load prefilter ledger: %s", e)
+
     # Build sheet contexts
     sheet_contexts: list[dict[str, Any]] = []
     for (wb, sh), fs in sorted(grouped.items()):
         # Filter enriched claims that reference this workbook/sheet
         sheet_claims = _filter_claims_for_sheet(enriched_claims, wb, sh)
+        # Filter prefilter entries relevant to this sheet
+        sheet_prefilter = _filter_prefilter_for_sheet(prefilter_entries, wb, sh)
         ctx = _build_sheet_context(wb, sh, fs, source_data_dir, profile, sheet_claims)
+        ctx["prefilter_context"] = sheet_prefilter
         sheet_contexts.append(ctx)
 
     # Parallel LLM calls
