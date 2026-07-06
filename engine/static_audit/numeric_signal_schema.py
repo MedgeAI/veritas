@@ -101,6 +101,15 @@ class ApplicabilityPremise:
             result["additional_premises"] = dict(self.additional_premises)
         return result
 
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> ApplicabilityPremise:
+        return cls(
+            requires_integer_valued_items=bool(data.get("requires_integer_valued_items", False)),
+            requires_independent_rows=bool(data.get("requires_independent_rows", False)),
+            requires_raw_measurement=bool(data.get("requires_raw_measurement", False)),
+            additional_premises=dict(data.get("additional_premises", {})),
+        )
+
 
 @dataclass(frozen=True)
 class EvidenceLocator:
@@ -134,6 +143,18 @@ class EvidenceLocator:
         if self.highlight_cols:
             result["highlight_cols"] = list(self.highlight_cols)
         return result
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> EvidenceLocator:
+        return cls(
+            source_path=str(data.get("source_path", "")),
+            source_sha256=str(data.get("source_sha256", "")),
+            sheet=str(data.get("sheet", "")),
+            rows=str(data.get("rows", "")),
+            cols=str(data.get("cols", "")),
+            highlight_rows=[int(x) for x in data.get("highlight_rows", [])],
+            highlight_cols=[str(x) for x in data.get("highlight_cols", [])],
+        )
 
 
 @dataclass(frozen=True)
@@ -227,6 +248,45 @@ class NumericSignal:
         if self.extra:
             result["extra"] = dict(self.extra)
         return result
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> NumericSignal:
+        """Deserialize a NumericSignal from a JSON-compatible dict."""
+        applicability = None
+        if data.get("applicability_premise"):
+            applicability = ApplicabilityPremise.from_dict(data["applicability_premise"])
+        evidence = None
+        if data.get("evidence_locator"):
+            evidence = EvidenceLocator.from_dict(data["evidence_locator"])
+        return cls(
+            signal_id=str(data["signal_id"]),
+            source_tool=data.get("source_tool", "veritas_native"),
+            detector_id=str(data.get("detector_id", "")),
+            detector_family=data.get("detector_family", "source_data"),
+            raw_kind=str(data.get("raw_kind", "")),
+            canonical_category=str(data.get("canonical_category", "")),
+            source_tool_version=str(data.get("source_tool_version", "")),
+            rule=str(data.get("rule", "")),
+            n=data.get("n"),
+            effect_size=data.get("effect_size"),
+            mechanical_confidence=data.get("mechanical_confidence"),
+            risk_level_raw=data.get("risk_level_raw", "low"),
+            profile=str(data.get("profile", "review")),
+            profile_action=data.get("profile_action", "kept"),
+            prefilter_action=data.get("prefilter_action", "keep"),
+            false_positive_context=list(data.get("false_positive_context", [])),
+            prefilter_reason=str(data.get("prefilter_reason", "")),
+            applicability_premise=applicability,
+            evidence_locator=evidence,
+            raw_payload_ref=str(data.get("raw_payload_ref", "")),
+            claim_refs=list(data.get("claim_refs", [])),
+            figure_refs=list(data.get("figure_refs", [])),
+            source_data_refs=list(data.get("source_data_refs", [])),
+            impact_scope=data.get("impact_scope", "unknown"),
+            impact_reason=str(data.get("impact_reason", "")),
+            needs_author_data=str(data.get("needs_author_data", "")),
+            extra=dict(data.get("extra", {})),
+        )
 
 
 class NumericSignalValidationError(ValueError):

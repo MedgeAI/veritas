@@ -498,10 +498,10 @@ class TestWP6Fields:
 class TestBuildSourceDataPlan:
     """build_source_data_plan must return the correct 8-step structure."""
 
-    def test_returns_8_steps(self) -> None:
+    def test_returns_13_steps(self) -> None:
         plan = build_source_data_plan()
         assert plan.stage_key == "source_data"
-        assert len(plan.steps) == 8
+        assert len(plan.steps) == 13
 
     def test_step_keys_in_order(self) -> None:
         plan = build_source_data_plan()
@@ -512,8 +512,13 @@ class TestBuildSourceDataPlan:
             "source_data_cross_sheet",
             "cross_sheet_filter",
             "paperconan_scan",
+            "paperconan_translate",
+            "source_data_prefilter",
             "source_data_briefings",
+            "claim_fusion",
+            "build_review_dossiers",
             "source_data_verdict",
+            "red_team_refute",
         ]
         actual_keys = [s.key for s in plan.steps]
         assert actual_keys == expected_keys

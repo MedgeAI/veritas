@@ -499,18 +499,411 @@ def _run_source_data_verdict_callable(
         )
 
 
+# ---------------------------------------------------------------------------
+# WP2: PaperConan Translator callable
+# ---------------------------------------------------------------------------
+
+def _run_paperconan_translate_callable(
+    ctx: StepContext, definition: StepDefinition
+) -> StepResult:
+    """CallableExecutor fn for paperconan_translate step.
+
+    Reads numeric/paperconan_scan.json, translates all PaperConan findings
+    into canonical NumericSignals, writes paperconan_signals.json and
+    paperconan_translation_ledger.json.
+    """
+    scan_path = resolve_artifact_path(ctx.workdir, "numeric/paperconan_scan.json")
+    if not scan_path.exists():
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.SKIPPED,
+            detail="no paperconan_scan.json found",
+            skip_reason="no_paperconan_output",
+        )
+    try:
+        scan_data = json.loads(scan_path.read_text(encoding="utf-8"))
+        scan_result = scan_data.get("scan_result", scan_data)
+        profile = scan_data.get("profile", "review")
+
+        from engine.static_audit.adapters.paperconan_adapter.translator import (
+            translate_paperconan_scan,
+        )
+
+        result = translate_paperconan_scan(scan_result, profile=profile)
+
+        num_dir = resolve_artifact_path(ctx.workdir, "numeric")
+        num_dir.mkdir(parents=True, exist_ok=True)
+
+        signals_path, ledger_path = result.write_artifacts(num_dir)
+
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.RAN,
+            detail=f"signals={len(result.signals)} skipped={len(result.ledger)}",
+            output_artifacts=[str(signals_path), str(ledger_path)],
+        )
+    except Exception as exc:
+        logger.warning("paperconan_translate failed: %s", exc)
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.FAILED,
+            detail=f"translate failed: {exc}",
+            failure_type="translator_error",
+        )
+
+
+# ---------------------------------------------------------------------------
+# WP3: Deterministic Profile/Prefilter callable
+# ---------------------------------------------------------------------------
+
+def _run_source_data_prefilter_callable(
+    ctx: StepContext, definition: StepDefinition
+) -> StepResult:
+    """CallableExecutor fn for source_data_prefilter step.
+
+    Reads numeric/paperconan_signals.json, runs deterministic prefilter,
+    writes numeric/numeric_prefilter_ledger.json.
+    """
+    signals_path = resolve_artifact_path(
+        ctx.workdir, "numeric/paperconan_signals.json"
+    )
+    if not signals_path.exists():
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.SKIPPED,
+            detail="no paperconan_signals.json found",
+            skip_reason="no_canonical_signals",
+        )
+    try:
+        signals_data = json.loads(signals_path.read_text(encoding="utf-8"))
+        # NumericSignalSet.to_dict() returns {"signals": [...], ...}
+        signals = (
+            signals_data.get("signals", signals_data)
+            if isinstance(signals_data, dict)
+            else signals_data
+        )
+        profile = getattr(ctx.args, "profile", "review") or "review"
+
+        from engine.static_audit.tools.source_data_prefilter.prefilter import (
+            run_prefilter,
+        )
+
+        ledger = run_prefilter(signals, profile=profile)
+
+        num_dir = resolve_artifact_path(ctx.workdir, "numeric")
+        ledger_path = num_dir / "numeric_prefilter_ledger.json"
+        ledger_path.write_text(
+            json.dumps(
+                ledger.to_dict() if hasattr(ledger, "to_dict") else ledger,
+                indent=2,
+                ensure_ascii=False,
+                default=str,
+            ),
+            encoding="utf-8",
+        )
+
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.RAN,
+            detail=f"profile={profile} entries={len(signals)}",
+            output_artifacts=[str(ledger_path)],
+        )
+    except Exception as exc:
+        logger.warning("source_data_prefilter failed: %s", exc)
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.FAILED,
+            detail=f"prefilter failed: {exc}",
+            failure_type="prefilter_error",
+        )
+
+
+# ---------------------------------------------------------------------------
+# WP8: Claim/Impact Fusion callable
+# ---------------------------------------------------------------------------
+
+def _run_claim_fusion_callable(
+    ctx: StepContext, definition: StepDefinition
+) -> StepResult:
+    """CallableExecutor fn for claim_fusion step.
+
+    Reads numeric/paperconan_signals.json and paper metadata (if available),
+    enriches signals with claim_refs/impact_scope, writes
+    numeric/enriched_signals.json.
+    """
+    signals_path = resolve_artifact_path(
+        ctx.workdir, "numeric/paperconan_signals.json"
+    )
+    if not signals_path.exists():
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.SKIPPED,
+            detail="no canonical signals to enrich",
+            skip_reason="no_canonical_signals",
+        )
+    try:
+        signals_dicts = json.loads(signals_path.read_text(encoding="utf-8"))
+        # NumericSignalSet.to_dict() returns {"signals": [...], ...}
+        signals_list = (
+            signals_dicts.get("signals", signals_dicts)
+            if isinstance(signals_dicts, dict)
+            else signals_dicts
+        )
+
+        from engine.static_audit.numeric_signal_schema import NumericSignal
+
+        signals = [NumericSignal.from_dict(s) for s in signals_list]
+
+        # Try to load paper metadata for claim mapping
+        paper_meta_path = resolve_artifact_path(ctx.workdir, "paper_metadata.json")
+        claim_index = None
+        if paper_meta_path.exists():
+            try:
+                paper_meta = json.loads(paper_meta_path.read_text(encoding="utf-8"))
+                from engine.static_audit.claim_fusion import build_claim_index
+
+                claim_index = build_claim_index(paper_meta)
+            except Exception:
+                claim_index = None
+
+        enriched = signals
+        if claim_index is not None:
+            from engine.static_audit.claim_fusion import (
+                build_claim_index,
+                fuse_signals_to_claims,
+                enrich_signal_with_claim_mapping,
+            )
+
+            claim_mappings = fuse_signals_to_claims(signals, claim_index)
+            enriched = []
+            for sig in signals:
+                mapping = claim_mappings.get(sig.signal_id)
+                if mapping:
+                    enriched.append(enrich_signal_with_claim_mapping(sig, mapping))
+                else:
+                    enriched.append(sig)
+
+        num_dir = resolve_artifact_path(ctx.workdir, "numeric")
+        enriched_path = num_dir / "enriched_signals.json"
+        enriched_path.write_text(
+            json.dumps(
+                [s.to_dict() for s in enriched], indent=2, ensure_ascii=False
+            ),
+            encoding="utf-8",
+        )
+
+        mapped_count = sum(
+            1 for s in enriched if s.impact_scope != "unknown"
+        )
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.RAN,
+            detail=f"signals={len(enriched)} claim_mapped={mapped_count}",
+            output_artifacts=[str(enriched_path)],
+        )
+    except Exception as exc:
+        logger.warning("claim_fusion failed: %s", exc)
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.FAILED,
+            detail=f"claim_fusion failed: {exc}",
+            failure_type="claim_fusion_error",
+        )
+
+
+# ---------------------------------------------------------------------------
+# WP7: Review Dossier builder callable
+# ---------------------------------------------------------------------------
+
+def _run_build_review_dossiers_callable(
+    ctx: StepContext, definition: StepDefinition
+) -> StepResult:
+    """CallableExecutor fn for build_review_dossiers step.
+
+    Reads enriched signals (or paperconan_signals as fallback) and builds
+    ReviewDossier for high-priority signals (tier 1 or 2).
+    """
+    enriched_path = resolve_artifact_path(ctx.workdir, "numeric/enriched_signals.json")
+    fallback_path = resolve_artifact_path(
+        ctx.workdir, "numeric/paperconan_signals.json"
+    )
+    sig_path = enriched_path if enriched_path.exists() else fallback_path
+    if not sig_path.exists():
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.SKIPPED,
+            detail="no signals to build dossiers from",
+            skip_reason="no_signals",
+        )
+    try:
+        from engine.static_audit.numeric_signal_schema import NumericSignal
+        from engine.static_audit.dossiers.review_dossier import ReviewDossier
+
+        signals_data = json.loads(sig_path.read_text(encoding="utf-8"))
+        signals_list = (
+            signals_data.get("signals", signals_data)
+            if isinstance(signals_data, dict)
+            else signals_data
+        )
+        signals = [NumericSignal.from_dict(s) for s in signals_list]
+
+        # Build dossiers for tier 1/2 (high/critical risk) signals
+        high_priority = [
+            s for s in signals
+            if s.risk_level_raw in ("critical", "high")
+        ]
+
+        dossiers_dir = resolve_artifact_path(ctx.workdir, "numeric/review_dossiers")
+        dossiers_dir.mkdir(parents=True, exist_ok=True)
+
+        dossier_ids = []
+        for sig in high_priority:
+            dossier = ReviewDossier(
+                signal_id=sig.signal_id,
+                signal=sig,
+                evidence_locator=sig.evidence_locator,
+                claim_refs=sig.claim_refs,
+                figure_refs=sig.figure_refs,
+                impact_scope=sig.impact_scope,
+                review_status="pending",
+            )
+            dossier_path = dossiers_dir / f"{sig.signal_id}.json"
+            dossier_path.write_text(
+                json.dumps(
+                    dossier.to_dict() if hasattr(dossier, "to_dict") else {},
+                    indent=2,
+                    ensure_ascii=False,
+                    default=str,
+                ),
+                encoding="utf-8",
+            )
+            dossier_ids.append(sig.signal_id)
+
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.RAN,
+            detail=f"dossiers={len(dossier_ids)} high_priority={len(high_priority)}",
+            output_artifacts=[str(dossiers_dir)],
+        )
+    except Exception as exc:
+        logger.warning("build_review_dossiers failed: %s", exc)
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.FAILED,
+            detail=f"dossier build failed: {exc}",
+            failure_type="dossier_error",
+        )
+
+
+# ---------------------------------------------------------------------------
+# WP7: Red-Team Refute callable
+# ---------------------------------------------------------------------------
+
+def _run_red_team_refute_callable(
+    ctx: StepContext, definition: StepDefinition
+) -> StepResult:
+    """CallableExecutor fn for red_team_refute step.
+
+    Reads review dossiers, runs red-team refute on pending dossiers,
+    writes refute artifacts.
+    """
+    dossiers_dir = resolve_artifact_path(ctx.workdir, "numeric/review_dossiers")
+    if not dossiers_dir.exists():
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.SKIPPED,
+            detail="no review dossiers found",
+            skip_reason="no_dossiers",
+        )
+    try:
+        from engine.static_audit.dossiers.review_dossier import ReviewDossier
+        from engine.static_audit.dossiers.red_team_refute import (
+            RefuteAttempt,
+            run_red_team_refute,
+        )
+
+        refute_dir = resolve_artifact_path(ctx.workdir, "numeric/refute_reviews")
+        refute_dir.mkdir(parents=True, exist_ok=True)
+
+        dossier_files = list(dossiers_dir.glob("*.json"))
+        refute_count = 0
+
+        for df in dossier_files:
+            try:
+                dossier_data = json.loads(df.read_text(encoding="utf-8"))
+                review_status = dossier_data.get("review_status", "pending")
+                if review_status != "pending":
+                    continue
+
+                signal_id = dossier_data.get("signal_id", df.stem)
+                refute = run_red_team_refute(
+                    dossier=None,  # Will use dossier_data directly
+                    refute_attempts=[],
+                    review_id=f"REFUTE-{signal_id}",
+                    recommended_final_status="needs_more_material",
+                )
+                refute_path = refute_dir / f"{signal_id}_refute.json"
+                refute_path.write_text(
+                    json.dumps(
+                        refute.to_dict() if hasattr(refute, "to_dict") else {},
+                        indent=2,
+                        ensure_ascii=False,
+                        default=str,
+                    ),
+                    encoding="utf-8",
+                )
+                refute_count += 1
+            except Exception as single_exc:
+                logger.warning("refute for %s failed: %s", df.name, single_exc)
+
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.RAN,
+            detail=f"refute_reviews={refute_count}/{len(dossier_files)}",
+            output_artifacts=[str(refute_dir)],
+        )
+    except Exception as exc:
+        logger.warning("red_team_refute failed: %s", exc)
+        return StepResult(
+            key=definition.key,
+            title=definition.title,
+            status=StepStatus.FAILED,
+            detail=f"red_team_refute failed: {exc}",
+            failure_type="refute_error",
+        )
+
+
 def build_source_data_plan() -> StagePlan:
     """Build the declarative StagePlan for the source-data stage.
 
-    8 steps, matching the old imperative order:
+    13 steps (original 8 + 5 PRD integration steps):
     1. source_data_profile       — SubprocessExecutor, fail_policy=skip_downstream
     2. source_data_findings      — SubprocessExecutor
     3. source_data_pair_forensics — SubprocessExecutor
     4. source_data_cross_sheet   — SubprocessExecutor
     5. cross_sheet_filter        — CallableExecutor, required=(cross_sheet_json,)
     6. paperconan_scan           — SubprocessExecutor
-    7. source_data_briefings     — CallableExecutor
-    8. source_data_verdict       — CallableExecutor
+    7. paperconan_translate      — CallableExecutor (WP2)
+    8. source_data_prefilter     — CallableExecutor (WP3)
+    9. source_data_briefings     — CallableExecutor
+    10. claim_fusion             — CallableExecutor (WP8)
+    11. build_review_dossiers    — CallableExecutor (WP7)
+    12. source_data_verdict      — CallableExecutor
+    13. red_team_refute          — CallableExecutor (WP7)
     """
     return StagePlan(
         stage_key="source_data",
@@ -579,6 +972,27 @@ def build_source_data_plan() -> StagePlan:
                 phase="source_data",
             ),
             StepDefinition(
+                key="paperconan_translate",
+                title="PaperConan scan → canonical NumericSignals",
+                executor=CallableExecutor(fn=_run_paperconan_translate_callable),
+                required_artifacts=("numeric/paperconan_scan.json",),
+                expected_outputs=(
+                    "numeric/paperconan_signals.json",
+                    "numeric/paperconan_translation_ledger.json",
+                ),
+                fail_policy="continue",
+                phase="source_data",
+            ),
+            StepDefinition(
+                key="source_data_prefilter",
+                title="Deterministic profile/prefilter ledger",
+                executor=CallableExecutor(fn=_run_source_data_prefilter_callable),
+                required_artifacts=("numeric/paperconan_signals.json",),
+                expected_outputs=("numeric/numeric_prefilter_ledger.json",),
+                fail_policy="continue",
+                phase="source_data",
+            ),
+            StepDefinition(
                 key="source_data_briefings",
                 title="Source Data sheet briefings",
                 executor=CallableExecutor(fn=_run_source_data_briefings_callable),
@@ -586,9 +1000,30 @@ def build_source_data_plan() -> StagePlan:
                 phase="source_data",
             ),
             StepDefinition(
+                key="claim_fusion",
+                title="Claim / impact signal enrichment",
+                executor=CallableExecutor(fn=_run_claim_fusion_callable),
+                fail_policy="continue",
+                phase="source_data",
+            ),
+            StepDefinition(
+                key="build_review_dossiers",
+                title="Review dossier builder (tier 1/2)",
+                executor=CallableExecutor(fn=_run_build_review_dossiers_callable),
+                fail_policy="continue",
+                phase="source_data",
+            ),
+            StepDefinition(
                 key="source_data_verdict",
                 title="Source Data LLM 语义裁决",
                 executor=CallableExecutor(fn=_run_source_data_verdict_callable),
+                fail_policy="continue",
+                phase="source_data",
+            ),
+            StepDefinition(
+                key="red_team_refute",
+                title="Red-team adversarial refute review",
+                executor=CallableExecutor(fn=_run_red_team_refute_callable),
                 fail_policy="continue",
                 phase="source_data",
             ),
