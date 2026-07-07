@@ -1,9 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { FiInfo, FiArrowRight } from 'react-icons/fi';
+import {
+  FiAlertCircle,
+  FiAlertTriangle,
+  FiArrowRight,
+  FiCheck,
+  FiChevronDown,
+  FiChevronRight,
+  FiCircle,
+  FiLoader,
+  FiMinusCircle,
+  FiX,
+} from 'react-icons/fi';
 import { useRunSteps } from '../../hooks/useRunSteps.js';
 import { getRun } from '../../services/api.js';
 import StepRow from '../../components/client/StepRow.jsx';
 import ClientEmptyState from '../../components/client/ClientEmptyState.jsx';
+import {
+  buildPhaseStatuses,
+  findCurrentPhase,
+  groupStepsByPhase,
+} from '../../utils/progressPhases.js';
 
 const italicStyle = { fontStyle: 'italic' };
 
@@ -32,9 +48,8 @@ export default function ProgressPage({ caseId, runId, onNavigate }) {
     if (progress.run_status?.startsWith('failed') || progress.run_status === 'interrupted') {
       return 'failed';
     }
-    if (progress.progress_pct >= 100) return 'completed';
     return 'running';
-  }, [loading, error, progress.progress_pct, progress.run_status, progress.timing_status]);
+  }, [loading, error, progress.run_status, progress.timing_status]);
 
   // ── Run metadata ───────────────────────────────────────────────────
   useEffect(() => {
@@ -71,9 +86,21 @@ export default function ProgressPage({ caseId, runId, onNavigate }) {
     [progress, pageState],
   );
 
-  // ── Completed steps count for summary ──────────────────────────────
-  const completedCount = steps.filter((s) => s.status === 'done' || s.status === 'completed').length;
-  const totalSteps = steps.length || progress.total || 0;
+  // ── Phase grouping ─────────────────────────────────────────────────
+  const phases = useMemo(() => groupStepsByPhase(steps), [steps]);
+  const phaseStatuses = useMemo(() => buildPhaseStatuses(phases), [phases]);
+  const currentPhase = useMemo(
+    () => findCurrentPhase(phases, phaseStatuses),
+    [phases, phaseStatuses],
+  );
+  const stepNumbers = useMemo(() => {
+    return new Map(
+      steps.map((step, index) => [
+        step.key || step.step_id || `step-${index}`,
+        String(index + 1).padStart(2, '0'),
+      ]),
+    );
+  }, [steps]);
 
   if (!caseId || !runId) {
     return <ClientEmptyState type="progress" caseId={caseId} onNavigate={onNavigate} />;
@@ -93,8 +120,6 @@ export default function ProgressPage({ caseId, runId, onNavigate }) {
       {pageState === 'completed' && (
         <CompletedHero
           paperTitle={paperTitle}
-          completedCount={completedCount}
-          totalSteps={totalSteps}
           onNavigate={() => onNavigate?.('report', { case: caseId, run: runId })}
         />
       )}
@@ -123,35 +148,136 @@ export default function ProgressPage({ caseId, runId, onNavigate }) {
         {steps.length === 0 ? (
           <div className="py-12 text-center text-ink-500">等待步骤…</div>
         ) : (
-          steps.map((step, i) => {
-            const num = String(i + 1).padStart(2, '0');
-            const time = formatStepTime(step);
-            const log = step.log ? (Array.isArray(step.log) ? step.log : [step.log]) : null;
-            return (
-              <StepRow
-                key={step.key || step.step_id || i}
-                number={num}
-                label={step.title || step.name || '—'}
-                labelEn={step.phase || ''}
-                status={step.status || 'pending'}
-                detail={step.detail || step.description || ''}
-                time={time}
-                log={log}
-              />
-            );
-          })
+          <div className="space-y-6">
+            {phases.map((phase) => (
+              <PhaseGroup
+                key={phase.name}
+                phase={phase}
+                status={phaseStatuses[phase.name] || 'pending'}
+                current={phase.name === currentPhase?.name}
+              >
+                {phase.steps.map((step, i) => {
+                  const stepKey = step.key || step.step_id || `step-${i}`;
+                  const time = formatStepTime(step);
+                  const log = step.log ? (Array.isArray(step.log) ? step.log : [step.log]) : null;
+                  return (
+                    <StepRow
+                      key={stepKey}
+                      number={stepNumbers.get(stepKey) || String(i + 1).padStart(2, '0')}
+                      label={step.title || step.name || '—'}
+                      labelEn={step.phase || ''}
+                      status={step.status || 'pending'}
+                      detail={step.detail || step.description || ''}
+                      time={time}
+                      log={log}
+                    />
+                  );
+                })}
+              </PhaseGroup>
+            ))}
+          </div>
         )}
       </div>
 
       {/* ── Bottom note (only during running) ───────────────────────── */}
       {pageState === 'running' && (
-        <div className="mt-12 flex items-start gap-3 rounded-sm border border-ink-100 bg-paper-100/40 px-5 py-4">
-          <FiInfo size={14} strokeWidth={1.5} className="mt-0.5 shrink-0 text-ink-500" aria-hidden="true" />
-          <span className="text-[13px] leading-relaxed text-ink-700">
-            Agent 驱动核查会分支、重试或等待外部工具，耗时波动较大；当前显示为运行事实，不做精确剩余时间承诺。
-          </span>
+        <RunNote progress={progress} />
+      )}
+    </div>
+  );
+}
+
+const PHASE_STATUS_LABEL = {
+  completed: '完成',
+  failed: '失败',
+  pending: '等待中',
+  running: '运行中',
+  skipped: '已跳过',
+  warning: '需复核',
+};
+
+const PHASE_STATUS_ICON = {
+  completed: FiCheck,
+  failed: FiX,
+  pending: FiCircle,
+  running: FiLoader,
+  skipped: FiMinusCircle,
+  warning: FiAlertTriangle,
+};
+
+function PhaseGroup({ phase, status, current, children }) {
+  const [expanded, setExpanded] = useState(current || status === 'failed' || status === 'warning');
+
+  useEffect(() => {
+    if (current || status === 'failed' || status === 'warning') {
+      setExpanded(true);
+    }
+  }, [current, status]);
+
+  const StatusIcon = PHASE_STATUS_ICON[status] || FiCircle;
+  const toneClass = {
+    completed: 'text-[#5a6b46]',
+    failed: 'text-risk-700',
+    pending: 'text-ink-500',
+    running: 'text-accent-500',
+    skipped: 'text-ink-500',
+    warning: 'text-[#8a5a00]',
+  }[status] || 'text-ink-500';
+
+  return (
+    <section className="border-t border-ink-100 pt-5">
+      <button
+        type="button"
+        className="flex w-full items-center gap-3 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50"
+        onClick={() => setExpanded((value) => !value)}
+        aria-expanded={expanded}
+      >
+        {expanded ? (
+          <FiChevronDown className="h-4 w-4 shrink-0 text-ink-500" aria-hidden="true" />
+        ) : (
+          <FiChevronRight className="h-4 w-4 shrink-0 text-ink-500" aria-hidden="true" />
+        )}
+        <StatusIcon
+          className={`h-4 w-4 shrink-0 ${toneClass} ${status === 'running' ? 'animate-spin' : ''}`}
+          aria-hidden="true"
+        />
+        <span className="min-w-0 flex-1 text-[15px] font-medium text-ink-900">
+          {phase.name}
+        </span>
+        <span className={`shrink-0 text-[12px] ${toneClass}`}>
+          {PHASE_STATUS_LABEL[status] || PHASE_STATUS_LABEL.pending}
+        </span>
+      </button>
+
+      {expanded && (
+        <div className="mt-5">
+          {children}
         </div>
       )}
+    </section>
+  );
+}
+
+function RunNote({ progress }) {
+  if (progress.is_stale) {
+    const eventAge = formatEventAge(progress.seconds_since_last_event);
+    return (
+      <div className="mt-12 flex items-start gap-3 rounded-sm border border-[#d69a2d]/30 bg-[#fff7e6] px-5 py-4">
+        <FiAlertCircle size={14} strokeWidth={1.5} className="mt-0.5 shrink-0 text-[#8a5a00]" aria-hidden="true" />
+        <span className="text-[13px] leading-relaxed text-[#7a4e00]">
+          等待外部服务响应，可能正在处理 MinerU PDF 解析、视觉取证或模型调用。
+          {eventAge ? ` 最后事件: ${eventAge}` : ''}
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-12 flex items-start gap-3 rounded-sm border border-ink-100 bg-paper-100/40 px-5 py-4">
+      <FiCircle size={14} strokeWidth={1.5} className="mt-0.5 shrink-0 text-ink-500" aria-hidden="true" />
+      <span className="text-[13px] leading-relaxed text-ink-700">
+        Agent 驱动核查会分支、重试或等待外部工具，耗时波动较大；当前显示为运行事实，不做精确剩余时间承诺。
+      </span>
     </div>
   );
 }
@@ -291,6 +417,10 @@ function formatEventAge(seconds) {
 // ── Hero components (state-driven) ───────────────────────────────────
 
 function RunningHero({ progress }) {
+  const elapsed = formatRuntimeDuration(progress.elapsed_seconds);
+  const currentStep = progress.current_step?.title || progress.current_step?.key;
+  const currentPhase = progress.current_step?.phase;
+
   return (
     <div className="mb-16">
       <div className="mb-5 text-[10px] font-medium uppercase tracking-[2.5px] text-ink-500">
@@ -300,26 +430,18 @@ function RunningHero({ progress }) {
         正在为您的稿件<br />
         <em className="font-normal text-accent-500" style={italicStyle}>出具独立核查报告</em>
       </h1>
-      {/* Progress bar */}
-      {progress.total > 0 && (
-        <div className="mt-8">
-          <div className="mb-2 flex items-center justify-between text-[11px] text-ink-500">
-            <span>{progress.completed} / {progress.total} 步骤</span>
-            <span>{progress.progress_pct}%</span>
-          </div>
-          <div className="h-1 w-full overflow-hidden rounded-full bg-ink-100">
-            <div
-              className="h-full rounded-full bg-ink-900 transition-all duration-500"
-              style={{ width: `${progress.progress_pct}%` }}
-            />
-          </div>
+      {(elapsed || currentStep || currentPhase) && (
+        <div className="mt-8 max-w-2xl text-[15px] leading-7 text-ink-600">
+          {currentPhase ? `当前阶段：${currentPhase}` : '正在初始化阶段'}
+          {elapsed ? ` · 已用时 ${elapsed}` : ''}
+          {currentStep ? ` · 当前：${currentStep}` : ''}
         </div>
       )}
     </div>
   );
 }
 
-function CompletedHero({ completedCount, totalSteps, onNavigate }) {
+function CompletedHero({ onNavigate }) {
   return (
     <div className="mb-16">
       <div className="mb-5 text-[10px] font-medium uppercase tracking-[2.5px] text-[#5a6b46]">
@@ -329,9 +451,7 @@ function CompletedHero({ completedCount, totalSteps, onNavigate }) {
         您的稿件<br />
         <em className="font-normal text-[#5a6b46]" style={italicStyle}>核查报告已就绪</em>
       </h1>
-      <div className="mt-6 text-sm text-ink-500">
-        {completedCount} / {totalSteps} 步骤已完成
-      </div>
+      <div className="mt-6 text-sm text-ink-500">报告已生成，可查看完整证据与复核建议。</div>
       {/* CTA */}
       <div className="mt-8">
         <button

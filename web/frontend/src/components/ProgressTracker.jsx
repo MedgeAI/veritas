@@ -1,57 +1,44 @@
 import PropTypes from 'prop-types';
 import { useMemo } from 'react';
+import { FiAlertCircle } from 'react-icons/fi';
 import PhaseRail from './progress/PhaseRail.jsx';
 import PhaseHeroCard from './progress/PhaseHeroCard.jsx';
 import CollapsedPastPhases from './progress/CollapsedPastPhases.jsx';
 import GhostedFuturePhases from './progress/GhostedFuturePhases.jsx';
 import CompletionSummary from './progress/CompletionSummary.jsx';
+import {
+  buildPhaseStatuses,
+  findCurrentPhase,
+  groupStepsByPhase,
+  PHASE_STATUS,
+  PHASE_STATUS_VALUES,
+} from '../utils/progressPhases.js';
 
-/**
- * Group steps by phase and compute phase-level status
- */
-function groupStepsByPhase(steps) {
-  const phaseMap = new Map();
-
-  for (const step of steps) {
-    const phaseName = step.phase || 'Unknown';
-    const phaseOrder = step.phase_order ?? 99;
-
-    if (!phaseMap.has(phaseName)) {
-      phaseMap.set(phaseName, {
-        name: phaseName,
-        order: phaseOrder,
-        steps: [],
-      });
-    }
-    phaseMap.get(phaseName).steps.push(step);
+function formatDuration(seconds) {
+  if (seconds == null || Number.isNaN(Number(seconds))) return null;
+  const safeSeconds = Math.max(0, Math.floor(Number(seconds)));
+  if (safeSeconds < 60) return `${safeSeconds} 秒`;
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = safeSeconds % 60;
+  if (minutes < 60) {
+    return remainingSeconds > 0 ? `${minutes} 分 ${remainingSeconds} 秒` : `${minutes} 分`;
   }
-
-  return Array.from(phaseMap.values()).sort((a, b) => a.order - b.order);
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+  return remainingMinutes > 0 ? `${hours} 小时 ${remainingMinutes} 分` : `${hours} 小时`;
 }
 
-/**
- * Compute phase status from its steps
- */
-function computePhaseStatus(phaseSteps) {
-  const statuses = phaseSteps.map((s) => s.status);
-
-  if (statuses.length === 0) return 'pending';
-  if (statuses.every((s) => s === 'completed' || s === 'skipped')) return 'completed';
-  if (statuses.some((s) => s === 'running')) return 'running';
-
-  return 'pending';
+function formatEventAge(seconds) {
+  const duration = formatDuration(seconds);
+  return duration ? `${duration}前` : null;
 }
 
-function ProgressTracker({ steps = [], runStatus, caseId }) {
+function ProgressTracker({ steps = [], progress = {}, runStatus, caseId }) {
   // Group steps by phase
   const phases = useMemo(() => groupStepsByPhase(steps), [steps]);
 
   // Compute phase statuses
-  const phaseStatuses = useMemo(() => {
-    return Object.fromEntries(
-      phases.map((p) => [p.name, computePhaseStatus(p.steps)]),
-    );
-  }, [phases]);
+  const phaseStatuses = useMemo(() => buildPhaseStatuses(phases), [phases]);
 
   // Compute step-level statuses (for backward compatibility)
   const stepStatuses = useMemo(() => {
@@ -65,17 +52,17 @@ function ProgressTracker({ steps = [], runStatus, caseId }) {
     );
   }, [steps]);
 
-  // Find current phase (first running or first pending)
+  // Find current phase (running step first, then first pending phase)
   const currentPhase = useMemo(() => {
-    const running = phases.find((p) => phaseStatuses[p.name] === 'running');
-    if (running) return running;
-    const pending = phases.find((p) => phaseStatuses[p.name] === 'pending');
-    return pending;
+    return findCurrentPhase(phases, phaseStatuses);
   }, [phases, phaseStatuses]);
 
   // Completed phases
   const completedPhases = useMemo(() => {
-    return phases.filter((p) => phaseStatuses[p.name] === 'completed');
+    return phases.filter((p) => (
+      phaseStatuses[p.name] === PHASE_STATUS.COMPLETED
+      || phaseStatuses[p.name] === PHASE_STATUS.SKIPPED
+    ));
   }, [phases, phaseStatuses]);
 
   // Pending phases (excluding current phase)
@@ -101,6 +88,12 @@ function ProgressTracker({ steps = [], runStatus, caseId }) {
   }, [steps]);
 
   const totalSteps = steps.length;
+  const currentPhaseIndex = currentPhase
+    ? phases.findIndex((phase) => phase.name === currentPhase.name) + 1
+    : 0;
+  const elapsedLabel = formatDuration(progress.elapsed_seconds);
+  const eventAgeLabel = formatEventAge(progress.seconds_since_last_event);
+  const currentStepTitle = progress.current_step?.title || progress.current_step?.key;
 
   // Edge case: empty steps
   if (!steps || steps.length === 0) {
@@ -132,28 +125,40 @@ function ProgressTracker({ steps = [], runStatus, caseId }) {
     );
   }
 
-  // Compute progress percentage
-  const progressPct = totalSteps > 0 ? Math.round((completedStepCount / totalSteps) * 100) : 0;
-
   // Running, queued, failed state
   return (
     <div className="dossier-panel rounded-2xl p-6">
       <p className="metric-label">审查进度</p>
 
-      <PhaseRail phases={phases} phaseStatuses={phaseStatuses} />
+      <PhaseRail
+        phases={phases}
+        phaseStatuses={phaseStatuses}
+        currentPhaseName={currentPhase?.name}
+      />
 
-      {/* Progress bar */}
-      <div className="mt-6 mb-2">
-        <div className="h-2 rounded-full bg-ink-900/5 overflow-hidden">
-          <div
-            className="h-full bg-signal-500 transition-[width] duration-500"
-            style={{ width: `${progressPct}%` }}
-          />
-        </div>
-        <p className="text-sm text-ink-600 mt-2">
-          {progressPct}% · 步骤 {completedStepCount}/{totalSteps}
+      {/* Factual phase and timing summary */}
+      <div className="mt-6 border-t border-ink-900/10 pt-4">
+        <p className="text-sm text-ink-700">
+          {currentPhase && phases.length > 0
+            ? `阶段 ${currentPhaseIndex}/${phases.length}: ${currentPhase.name}`
+            : '等待阶段'}
+          {elapsedLabel ? ` · 已用时 ${elapsedLabel}` : ''}
+          {currentStepTitle ? ` · 当前: ${currentStepTitle}` : ''}
         </p>
       </div>
+
+      {progress.is_stale && (
+        <div
+          className="mt-4 flex items-start gap-3 rounded-xl border border-[#d69a2d]/30 bg-[#fff7e6] px-4 py-3 text-sm leading-6 text-[#7a4e00]"
+          role="status"
+        >
+          <FiAlertCircle size={16} strokeWidth={1.8} className="mt-0.5 shrink-0" aria-hidden="true" />
+          <span>
+            等待外部服务响应，可能正在处理 PDF 解析、视觉取证或模型调用。
+            {eventAgeLabel ? ` 最后事件: ${eventAgeLabel}` : ''}
+          </span>
+        </div>
+      )}
 
       {/* Current phase hero card */}
       {currentPhase && (
@@ -192,11 +197,23 @@ ProgressTracker.propTypes = {
       title: PropTypes.string.isRequired,
       phase: PropTypes.string.isRequired,
       phase_order: PropTypes.number.isRequired,
-      status: PropTypes.oneOf(['completed', 'running', 'failed', 'skipped', 'pending']).isRequired,
+      status: PropTypes.oneOf([...PHASE_STATUS_VALUES, 'done']).isRequired,
       duration_seconds: PropTypes.number,
       started_at: PropTypes.string,
     }),
   ).isRequired,
+  progress: PropTypes.shape({
+    current_step: PropTypes.shape({
+      key: PropTypes.string,
+      title: PropTypes.string,
+      phase: PropTypes.string,
+      status: PropTypes.string,
+      started_at: PropTypes.string,
+    }),
+    elapsed_seconds: PropTypes.number,
+    seconds_since_last_event: PropTypes.number,
+    is_stale: PropTypes.bool,
+  }),
   runStatus: PropTypes.string.isRequired,
   caseId: PropTypes.string,
 };
