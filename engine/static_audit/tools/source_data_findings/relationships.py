@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
-from decimal import Decimal
 
 from engine.static_audit.tools.source_data_profile import normalized_number
 
@@ -39,16 +38,30 @@ def relationship_record(
     ) and is_index_like_column(sheet.numeric_columns[right_col], rows)
     summary_pair = is_summary_statistic_pair(sheet, left_col, right_col, rows)
     event_artifact = is_time_event_design_pair(sheet, [left_col, right_col], rows)
-    risk = (
-        "low"
-        if formula_involved or summary_pair
-        else ("high" if support_rows >= 100 else "medium")
-    )
-    if index_like or event_artifact:
+
+    # Calculate support_rate first (needed for risk escalation)
+    support_rate = support_rows / overlap_rows if overlap_rows > 0 else 0
+
+    # Risk assignment with automatic escalation for high-support patterns.
+    # Q1: When a fixed relationship covers all/most rows with sufficient coverage,
+    # the default risk should not stay at "medium" — escalate to high/critical.
+    if formula_involved or summary_pair:
         risk = "low"
+    elif index_like or event_artifact:
+        risk = "low"
+    elif support_rate == 1.0 and overlap_rows >= 20:
+        risk = "critical"
+    elif support_rate == 1.0 and overlap_rows >= 10:
+        risk = "high"
+    elif support_rate >= 0.8 and overlap_rows >= 30:
+        risk = "high"
+    elif support_rows >= 100:
+        risk = "high"
+    else:
+        risk = "medium"
 
     # Calculate pattern_strength: mechanical regularity coverage, not造假概率
-    support_rate = support_rows / overlap_rows if overlap_rows > 0 else 0
+    # support_rate already computed above for risk escalation
     if support_rate >= 0.99:
         pattern_strength = "complete"
     elif support_rate >= 0.8:

@@ -109,6 +109,13 @@ and how decisive those claims are for the paper's conclusions.
 5. Provide a clear, specific explanation for each verdict that cites actual data values from the table
 6. Use source_data.query tool if you need to verify a hypothesis about cross-group patterns or column relationships
 
+## High-Support Pattern Constraint (MANDATORY)
+When a fixed_difference, fixed_ratio, or constant_offset pattern covers >= 10 rows with support_rate >= 80%:
+- "Experimental design naturally produces fixed relationships" is NOT a sufficient benign explanation by itself.
+- You MUST cite a specific formula column, unit conversion factor, normalization formula, or design matrix that explains the exact numerical relationship.
+- Without concrete evidence of a benign mechanism, mark the finding as **uncertain** (not false_positive).
+- If paperconan independently detected the same relationship (e.g. constant_offset with matching value), treat it as corroborating evidence and do NOT mark false_positive without strong counter-evidence.
+
 ## Input
 Sheet context is in the attached JSON file. It contains:
 - `briefing`: compact sheet intelligence with:
@@ -187,7 +194,9 @@ def read_xlsx_column_context(
     try:
         wb = openpyxl.load_workbook(str(xlsx_path), read_only=True, data_only=True)
     except Exception:  # Deliberately broad: openpyxl raises InvalidFileException, XML parsing errors, etc.
-        logger.debug("Failed to open workbook for column context: %s", xlsx_path, exc_info=True)
+        logger.debug(
+            "Failed to open workbook for column context: %s", xlsx_path, exc_info=True
+        )
         return None
 
     try:
@@ -249,13 +258,22 @@ def read_xlsx_column_context(
             "columns": columns,
         }
     except Exception:  # Deliberately broad: openpyxl cell access raises various undocumented exceptions
-        logger.debug("Failed to read XLSX column context for %s/%s", xlsx_path.name, sheet_name, exc_info=True)
+        logger.debug(
+            "Failed to read XLSX column context for %s/%s",
+            xlsx_path.name,
+            sheet_name,
+            exc_info=True,
+        )
         return None
     finally:
         try:
             wb.close()
         except OSError:
-            logger.debug("Failed to close workbook after reading column context: %s", xlsx_path, exc_info=True)
+            logger.debug(
+                "Failed to close workbook after reading column context: %s",
+                xlsx_path,
+                exc_info=True,
+            )
 
 
 # ── Sheet context builder ────────────────────────────────────────────
@@ -422,7 +440,9 @@ def get_sheet_verdict(
 
             has_query_tool = "source_data.query" in TOOLS
         except (ImportError, AttributeError):
-            logger.debug("Failed to check tool registry for source_data.query", exc_info=True)
+            logger.debug(
+                "Failed to check tool registry for source_data.query", exc_info=True
+            )
             has_query_tool = False
 
     # Build prompt with enriched context
@@ -491,7 +511,9 @@ def get_sheet_verdict(
         try:
             ctx_path.unlink(missing_ok=True)
         except OSError:
-            logger.debug("Failed to clean up verdict context file: %s", ctx_path, exc_info=True)
+            logger.debug(
+                "Failed to clean up verdict context file: %s", ctx_path, exc_info=True
+            )
 
     if result.status == "success" and result.output:
         output = dict(result.output)
@@ -604,6 +626,97 @@ def _apply_priority_scoring(findings: list[dict[str, Any]]) -> list[dict[str, An
         item["priority"] = _priority_for_category(category, current)
         scored.append(item)
     return scored
+
+
+# ── Q2: Deterministic guardrail for high-support FP overrides ──────
+
+_RISK_SCORES = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
+
+
+def _risk_score(risk: str) -> int:
+    """Map risk level string to numeric score for comparison."""
+    return _RISK_SCORES.get(risk, 0)
+
+
+_HIGH_SUPPORT_CATEGORIES = frozenset(
+    {
+        "fixed_difference",
+        "fixed_ratio",
+        "small_n_fixed_difference",
+        "small_n_fixed_ratio",
+        "constant_offset",
+        "sum_constant",
+    }
+)
+
+_BENIGN_EVIDENCE_KEYWORDS = (
+    "formula",
+    "unit conversion",
+    "normalization",
+    "design matrix",
+    "derived from",
+    "calculated",
+    "percentage",
+    "fold-change",
+    "mean ×",
+    "mean *",
+    "n ×",
+    "n *",
+    "summary statistic",
+    "per-group",
+)
+
+
+def _apply_high_support_guardrail(
+    findings: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Post-check: override FP verdicts for high-support patterns lacking evidence.
+
+    Q2: When the LLM marks a high-support fixed relationship as FP without
+    citing specific benign evidence (formula, unit conversion, etc.),
+    override to uncertain. This prevents the "experimental design naturally
+    produces fixed relationships" hand-waving from suppressing true signals.
+    """
+    result: list[dict[str, Any]] = []
+    for finding in findings:
+        item = dict(finding)
+        category = str(item.get("category") or "")
+        verdict = str(item.get("verdict") or "")
+
+        if verdict != "false_positive" or category not in _HIGH_SUPPORT_CATEGORIES:
+            result.append(item)
+            continue
+
+        support_rate = float(item.get("support_rate", 0))
+        overlap_rows = int(item.get("overlap_rows", 0))
+        reason = str(item.get("reason", "")).lower()
+
+        if support_rate < 0.8 or overlap_rows < 10:
+            result.append(item)
+            continue
+
+        # Check if the reason cites specific benign evidence
+        has_concrete_evidence = any(kw in reason for kw in _BENIGN_EVIDENCE_KEYWORDS)
+        if has_concrete_evidence:
+            result.append(item)
+            continue
+
+        # Override: FP → uncertain with guardrail reason
+        item["verdict"] = "uncertain"
+        item["guardrail_reason"] = (
+            f"High-support {category} ({support_rate:.0%}, {overlap_rows} rows) "
+            f"marked FP without specific benign evidence. "
+            f"Override to uncertain pending human review."
+        )
+        logger.info(
+            "Guardrail: %s finding %s FP→uncertain (support=%.0f%%, rows=%d)",
+            category,
+            item.get("id", item.get("finding_id", "?")),
+            support_rate * 100,
+            overlap_rows,
+        )
+        result.append(item)
+    return result
 
 
 def _category_verdict_summary(
@@ -831,6 +944,35 @@ def run_source_data_verdict(
 
     grouped = _group_findings_by_sheet(findings_data, pair_forensics_data)
 
+    # P2-2: Skip sheets with only low/info risk findings — no LLM call needed.
+    # These sheets have no actionable signal; deterministic detection already
+    # classified them as low priority.
+    skipped_sheets: list[dict[str, Any]] = []
+    actionable_groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for (wb, sh), fs in grouped.items():
+        max_risk = max(
+            (_risk_score(str(f.get("risk_level", "low"))) for f in fs),
+            default=0,
+        )
+        if max_risk <= 1:  # low=1, info=0 — no high/critical/medium findings
+            skipped_sheets.append(
+                {
+                    "workbook": wb,
+                    "sheet": sh,
+                    "reason": "only_low_risk_findings",
+                    "finding_count": len(fs),
+                }
+            )
+        else:
+            actionable_groups[(wb, sh)] = fs
+
+    if skipped_sheets:
+        logger.info(
+            "Skipping %d sheets with only low-risk findings (LLM verdict not needed)",
+            len(skipped_sheets),
+        )
+    grouped = actionable_groups
+
     # Profile for per-sheet statistics
     profile_path = resolve_artifact_path(workdir, "source_data_profile.json")
     profile = (
@@ -950,6 +1092,7 @@ def run_source_data_verdict(
                 ctx.get("briefing", {}),
             )
             verdict["findings"] = _apply_priority_scoring(verdict["findings"])
+            verdict["findings"] = _apply_high_support_guardrail(verdict["findings"])
             sheet_verdicts.append(verdict)
 
     # Stable ordering by (workbook, sheet)
@@ -972,11 +1115,14 @@ def run_source_data_verdict(
         "created_by": "engine/static_audit/tools/source_data_verdict.py",
         "model": model,
         "sheets": sheet_verdicts,
+        "skipped_sheets": skipped_sheets,
         "category_verdicts": _category_verdict_summary(sheet_verdicts),
         "priority_scoring_config": "configs/audit_roles.yaml:priority_scoring",
         "grounding": _verdict_grounding(sheet_verdicts),
         "summary": {
-            "total_sheets": len(sheet_verdicts),
+            "total_sheets": len(sheet_verdicts) + len(skipped_sheets),
+            "verdict_sheets": len(sheet_verdicts),
+            "skipped_sheets": len(skipped_sheets),
             "total_findings": tp + fp + un,
             "true_positive": tp,
             "false_positive": fp,

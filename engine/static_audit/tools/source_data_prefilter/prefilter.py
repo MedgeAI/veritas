@@ -21,11 +21,18 @@ from .profiles import (
 
 
 def _signal_false_positive_contexts(signal: dict[str, Any]) -> list[str]:
-    """Extract the false-positive context list from a raw signal dict."""
+    """Extract the false-positive context list from a raw signal dict.
+
+    Only string entries are accepted; non-string items (e.g. dicts from
+    malformed upstream data) are silently ignored to avoid unhashable-type
+    errors when checking membership in the BENIGN_CONTEXTS frozenset.
+    """
     ctx = signal.get("false_positive_context", [])
     if isinstance(ctx, str):
         ctx = [ctx]
-    return [c for c in ctx if c in BENIGN_CONTEXTS]
+    if not isinstance(ctx, list):
+        return []
+    return [c for c in ctx if isinstance(c, str) and c in BENIGN_CONTEXTS]
 
 
 def _determine_prefilter_action(
@@ -58,9 +65,7 @@ def _apply_profile(
     profile: ProfileDefinition,
 ) -> PrefilterLedgerEntry:
     """Apply *profile* to a single *signal* and return the ledger entry."""
-    prefilter_action, prefilter_reason = _determine_prefilter_action(
-        signal, profile
-    )
+    prefilter_action, prefilter_reason = _determine_prefilter_action(signal, profile)
     profile_action = profile.resolve_profile_action(prefilter_action)
 
     risk_before = signal.get("risk_level_raw", signal.get("risk_before", "medium"))
@@ -87,7 +92,9 @@ def _apply_profile(
     return PrefilterLedgerEntry(
         signal_id=signal.get("signal_id", ""),
         profile=profile.name,
-        detector_original_action=signal.get("detector_original_action", raw_detector_action(signal)),
+        detector_original_action=signal.get(
+            "detector_original_action", raw_detector_action(signal)
+        ),
         prefilter_action=prefilter_action,
         profile_action=profile_action,
         false_positive_context=_signal_false_positive_contexts(signal),

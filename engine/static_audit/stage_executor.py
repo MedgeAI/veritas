@@ -24,7 +24,6 @@ from __future__ import annotations
 import json
 import logging
 import sys
-import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable, Literal, Protocol
@@ -75,6 +74,7 @@ class SubprocessExecutor:
     attempts: int = 1
     retry_delay_seconds: float = 0.0
     stream_output: bool = False
+    timeout_seconds: int = 300
 
     def __call__(
         self,
@@ -92,11 +92,11 @@ class SubprocessExecutor:
             expected_outputs=expected_outputs,
             cwd=PROJECT_ROOT,
             env=ctx.env,
-            force=ctx.force,
+            force=False,
             attempts=self.attempts,
             retry_delay_seconds=self.retry_delay_seconds,
-            progress=ctx.progress,
             stream_output=self.stream_output,
+            timeout_seconds=self.timeout_seconds,
         )
 
 
@@ -354,7 +354,9 @@ def _run_cross_sheet_filter_callable(
     """CallableExecutor fn for cross_sheet_filter step."""
     from engine.exceptions import VeritasError
 
-    cross_sheet_path = resolve_artifact_path(ctx.workdir, "source_data_cross_sheet.json")
+    cross_sheet_path = resolve_artifact_path(
+        ctx.workdir, "source_data_cross_sheet.json"
+    )
     try:
         from engine.llm.client import VeritasLLMClient
         from engine.static_audit._shared import run_cross_sheet_filter
@@ -365,8 +367,29 @@ def _run_cross_sheet_filter_callable(
         )
 
         if findings:
+            # N10: Minimum retention rule — when <= 3 findings, skip filter
+            # to avoid swallowing rare but potentially important discoveries.
+            if len(findings) <= 3:
+                cross_sheet_data["findings"] = findings
+                cross_sheet_data["filter_metadata"] = {
+                    "original_count": len(findings),
+                    "filtered_count": len(findings),
+                    "filter_applied": False,
+                    "skip_reason": "minimum_retention_rule (original_count <= 3)",
+                }
+                cross_sheet_path.write_text(
+                    json.dumps(cross_sheet_data, indent=2, ensure_ascii=False),
+                    encoding="utf-8",
+                )
+                return StepResult(
+                    key=definition.key,
+                    title=definition.title,
+                    status=StepStatus.RAN,
+                    detail=f"retained all {len(findings)} findings (minimum retention rule)",
+                )
+
             llm_client = VeritasLLMClient()
-            filtered_findings = run_cross_sheet_filter(
+            filtered_findings, filter_reasons = run_cross_sheet_filter(
                 ctx.workdir, findings, llm_client
             )
             cross_sheet_data["findings"] = filtered_findings
@@ -374,6 +397,7 @@ def _run_cross_sheet_filter_callable(
                 "original_count": len(findings),
                 "filtered_count": len(filtered_findings),
                 "filter_applied": True,
+                "filter_reasons": filter_reasons,
             }
             cross_sheet_path.write_text(
                 json.dumps(cross_sheet_data, indent=2, ensure_ascii=False),
@@ -503,6 +527,7 @@ def _run_source_data_verdict_callable(
 # WP2: PaperConan Translator callable
 # ---------------------------------------------------------------------------
 
+
 def _run_paperconan_translate_callable(
     ctx: StepContext, definition: StepDefinition
 ) -> StepResult:
@@ -559,6 +584,7 @@ def _run_paperconan_translate_callable(
 # WP3: Deterministic Profile/Prefilter callable
 # ---------------------------------------------------------------------------
 
+
 def _run_source_data_prefilter_callable(
     ctx: StepContext, definition: StepDefinition
 ) -> StepResult:
@@ -567,9 +593,7 @@ def _run_source_data_prefilter_callable(
     Reads numeric/paperconan_signals.json, runs deterministic prefilter,
     writes numeric/numeric_prefilter_ledger.json.
     """
-    signals_path = resolve_artifact_path(
-        ctx.workdir, "numeric/paperconan_signals.json"
-    )
+    signals_path = resolve_artifact_path(ctx.workdir, "numeric/paperconan_signals.json")
     if not signals_path.exists():
         return StepResult(
             key=definition.key,
@@ -614,7 +638,7 @@ def _run_source_data_prefilter_callable(
             output_artifacts=[str(ledger_path)],
         )
     except Exception as exc:
-        logger.warning("source_data_prefilter failed: %s", exc)
+        logger.warning("source_data_prefilter failed: %s", exc, exc_info=True)
         return StepResult(
             key=definition.key,
             title=definition.title,
@@ -628,6 +652,7 @@ def _run_source_data_prefilter_callable(
 # WP8: Claim/Impact Fusion callable
 # ---------------------------------------------------------------------------
 
+
 def _run_claim_fusion_callable(
     ctx: StepContext, definition: StepDefinition
 ) -> StepResult:
@@ -637,9 +662,7 @@ def _run_claim_fusion_callable(
     enriches signals with claim_refs/impact_scope, writes
     numeric/enriched_signals.json.
     """
-    signals_path = resolve_artifact_path(
-        ctx.workdir, "numeric/paperconan_signals.json"
-    )
+    signals_path = resolve_artifact_path(ctx.workdir, "numeric/paperconan_signals.json")
     if not signals_path.exists():
         return StepResult(
             key=definition.key,
@@ -669,22 +692,28 @@ def _run_claim_fusion_callable(
                 paper_meta = json.loads(paper_meta_path.read_text(encoding="utf-8"))
                 from engine.static_audit.claim_fusion import build_claim_index
 
-                claim_index = build_claim_index(paper_meta)
+                claim_index = build_claim_index(
+                    claims=paper_meta.get("claims"),
+                    figures=paper_meta.get("figures"),
+                    source_data_map=paper_meta.get("source_data_map"),
+                )
             except Exception:
                 claim_index = None
 
         enriched = signals
         if claim_index is not None:
             from engine.static_audit.claim_fusion import (
-                build_claim_index,
                 fuse_signals_to_claims,
                 enrich_signal_with_claim_mapping,
             )
 
             claim_mappings = fuse_signals_to_claims(signals, claim_index)
+            # fuse_signals_to_claims returns list[ClaimMapping] in signal order;
+            # build a lookup dict by signal_id.
+            mapping_by_id = {m.signal_id: m for m in claim_mappings}
             enriched = []
             for sig in signals:
-                mapping = claim_mappings.get(sig.signal_id)
+                mapping = mapping_by_id.get(sig.signal_id)
                 if mapping:
                     enriched.append(enrich_signal_with_claim_mapping(sig, mapping))
                 else:
@@ -692,16 +721,16 @@ def _run_claim_fusion_callable(
 
         num_dir = resolve_artifact_path(ctx.workdir, "numeric")
         enriched_path = num_dir / "enriched_signals.json"
+        # Write as NumericSignalSet wrapper (Q5: unified format with metadata)
+        from engine.static_audit.numeric_signal_schema import NumericSignalSet
+
+        enriched_set = NumericSignalSet(signals=enriched)
         enriched_path.write_text(
-            json.dumps(
-                [s.to_dict() for s in enriched], indent=2, ensure_ascii=False
-            ),
+            json.dumps(enriched_set.to_dict(), indent=2, ensure_ascii=False),
             encoding="utf-8",
         )
 
-        mapped_count = sum(
-            1 for s in enriched if s.impact_scope != "unknown"
-        )
+        mapped_count = sum(1 for s in enriched if s.impact_scope != "unknown")
         return StepResult(
             key=definition.key,
             title=definition.title,
@@ -723,6 +752,7 @@ def _run_claim_fusion_callable(
 # ---------------------------------------------------------------------------
 # WP7: Review Dossier builder callable
 # ---------------------------------------------------------------------------
+
 
 def _run_build_review_dossiers_callable(
     ctx: StepContext, definition: StepDefinition
@@ -758,10 +788,7 @@ def _run_build_review_dossiers_callable(
         signals = [NumericSignal.from_dict(s) for s in signals_list]
 
         # Build dossiers for tier 1/2 (high/critical risk) signals
-        high_priority = [
-            s for s in signals
-            if s.risk_level_raw in ("critical", "high")
-        ]
+        high_priority = [s for s in signals if s.risk_level_raw in ("critical", "high")]
 
         dossiers_dir = resolve_artifact_path(ctx.workdir, "numeric/review_dossiers")
         dossiers_dir.mkdir(parents=True, exist_ok=True)
@@ -769,9 +796,14 @@ def _run_build_review_dossiers_callable(
         dossier_ids = []
         for sig in high_priority:
             dossier = ReviewDossier(
-                signal_id=sig.signal_id,
-                signal=sig,
-                evidence_locator=sig.evidence_locator,
+                dossier_id=f"DOSSIER-{sig.signal_id}",
+                target_signal_ids=[sig.signal_id],
+                signal_summary=f"{sig.detector_family}/{sig.raw_kind}",
+                detector_family=sig.detector_family,
+                risk_level_raw=sig.risk_level_raw,
+                evidence_locator=(
+                    sig.evidence_locator.to_dict() if sig.evidence_locator else {}
+                ),
                 claim_refs=sig.claim_refs,
                 figure_refs=sig.figure_refs,
                 impact_scope=sig.impact_scope,
@@ -797,7 +829,7 @@ def _run_build_review_dossiers_callable(
             output_artifacts=[str(dossiers_dir)],
         )
     except Exception as exc:
-        logger.warning("build_review_dossiers failed: %s", exc)
+        logger.warning("build_review_dossiers failed: %s", exc, exc_info=True)
         return StepResult(
             key=definition.key,
             title=definition.title,
@@ -810,6 +842,7 @@ def _run_build_review_dossiers_callable(
 # ---------------------------------------------------------------------------
 # WP7: Red-Team Refute callable
 # ---------------------------------------------------------------------------
+
 
 def _run_red_team_refute_callable(
     ctx: StepContext, definition: StepDefinition
@@ -834,6 +867,9 @@ def _run_red_team_refute_callable(
             RefuteAttempt,
             run_red_team_refute,
         )
+        from engine.static_audit.dossiers.refute_checklist import (
+            REFUTE_CHECKLIST,
+        )
 
         refute_dir = resolve_artifact_path(ctx.workdir, "numeric/refute_reviews")
         refute_dir.mkdir(parents=True, exist_ok=True)
@@ -848,17 +884,36 @@ def _run_red_team_refute_callable(
                 if review_status != "pending":
                     continue
 
-                signal_id = dossier_data.get("signal_id", df.stem)
+                # Construct proper ReviewDossier from persisted JSON
+                dossier = ReviewDossier.from_dict(dossier_data)
+                signal_id = (
+                    dossier.target_signal_ids[0]
+                    if dossier.target_signal_ids
+                    else df.stem
+                )
+
+                # Build initial refute attempts from the 10-item checklist.
+                # All mechanisms start as "not_checked" — LLM integration
+                # will populate these in a future phase.
+                refute_attempts = [
+                    RefuteAttempt(
+                        mechanism=item.mechanism,
+                        status="not_checked",
+                        note=item.label,
+                    )
+                    for item in REFUTE_CHECKLIST
+                ]
+
                 refute = run_red_team_refute(
-                    dossier=None,  # Will use dossier_data directly
-                    refute_attempts=[],
+                    dossier=dossier,
+                    refute_attempts=refute_attempts,
                     review_id=f"REFUTE-{signal_id}",
                     recommended_final_status="needs_more_material",
                 )
                 refute_path = refute_dir / f"{signal_id}_refute.json"
                 refute_path.write_text(
                     json.dumps(
-                        refute.to_dict() if hasattr(refute, "to_dict") else {},
+                        refute.to_dict(),
                         indent=2,
                         ensure_ascii=False,
                         default=str,
@@ -867,7 +922,9 @@ def _run_red_team_refute_callable(
                 )
                 refute_count += 1
             except Exception as single_exc:
-                logger.warning("refute for %s failed: %s", df.name, single_exc)
+                logger.warning(
+                    "refute for %s failed: %s", df.name, single_exc, exc_info=True
+                )
 
         return StepResult(
             key=definition.key,
@@ -877,7 +934,7 @@ def _run_red_team_refute_callable(
             output_artifacts=[str(refute_dir)],
         )
     except Exception as exc:
-        logger.warning("red_team_refute failed: %s", exc)
+        logger.warning("red_team_refute failed: %s", exc, exc_info=True)
         return StepResult(
             key=definition.key,
             title=definition.title,
@@ -936,6 +993,7 @@ def build_source_data_plan() -> StagePlan:
                 executor=SubprocessExecutor(
                     command_builder=_build_pair_forensics_command,
                     expected_output_keys=("source_data_pair_forensics.json",),
+                    timeout_seconds=900,  # P2-1: 15 min for large workbooks
                 ),
                 expected_outputs=("source_data_pair_forensics.json",),
                 fail_policy="continue",

@@ -316,11 +316,17 @@ def small_n_fixed_relationship_findings(
             relationships.append(("small_n_fixed_ratio", _quantized(ratios[0])))
         for category, relationship_value in relationships:
             rows = common_rows[:]
+            # Q1: Risk escalation for high-support small_n patterns
+            overlap = len(common_rows)
+            if overlap >= 10:
+                risk_level = "high"
+            else:
+                risk_level = "medium"
             findings.append(
                 {
                     "finding_id": None,
                     "category": category,
-                    "risk_level": "medium",
+                    "risk_level": risk_level,
                     "confidence": "high",
                     "workbook": sheet.workbook,
                     "sheet": sheet.sheet,
@@ -374,7 +380,9 @@ def cross_sheet_fractional_tail_reuse_findings(
     findings: list[dict[str, Any]] = []
     row_vectors: list[tuple[SheetVectors, int, str, list[dict[str, Any]]]] = []
     for sheet in sheets:
-        rows = sorted({row for values in sheet.numeric_columns.values() for row in values})
+        rows = sorted(
+            {row for values in sheet.numeric_columns.values() for row in values}
+        )
         for row in rows:
             cells = [cell for cell in _row_cells(sheet, row) if cell.get("tail")]
             if len(cells) >= MIN_TAIL_RUN:
@@ -399,7 +407,8 @@ def cross_sheet_fractional_tail_reuse_findings(
                     while (
                         left_pos < len(left_cells)
                         and right_pos < len(right_cells)
-                        and left_cells[left_pos]["tail"] == right_cells[right_pos]["tail"]
+                        and left_cells[left_pos]["tail"]
+                        == right_cells[right_pos]["tail"]
                         and left_cells[left_pos]["display_value"]
                         != right_cells[right_pos]["display_value"]
                     ):
@@ -539,10 +548,7 @@ def decimal_tail_match_shifted_findings(
             count = len(matched_rows)
             comparable = len(common)
             rate = count / comparable if comparable else 0.0
-            if not (
-                has_consecutive_run(indices, 3)
-                or (count >= 3 and rate >= 0.6)
-            ):
+            if not (has_consecutive_run(indices, 3) or (count >= 3 and rate >= 0.6)):
                 continue
             risk = "high" if count >= 5 else "medium"
             confidence = "high" if rate >= 0.8 else "medium"
@@ -555,9 +561,7 @@ def decimal_tail_match_shifted_findings(
                 artifact_likelihood = "high"
                 artifact_reason = "formula-derived column"
             # Artifact degradation: summary / semantic pair.
-            summary_pair = is_summary_statistic_pair(
-                sheet, col_a, col_b, matched_rows
-            )
+            summary_pair = is_summary_statistic_pair(sheet, col_a, col_b, matched_rows)
             lbl_a = column_label(sheet, col_a)
             lbl_b = column_label(sheet, col_b)
             semantic_pair = _is_semantic_equivalent_pair(lbl_a, lbl_b)
@@ -565,13 +569,9 @@ def decimal_tail_match_shifted_findings(
                 risk = "low"
                 artifact_likelihood = "high"
                 if summary_pair:
-                    artifact_reason = (
-                        "Mean/Sum/N summary-statistics relationship"
-                    )
+                    artifact_reason = "Mean/Sum/N summary-statistics relationship"
                 elif artifact_reason is None:
-                    artifact_reason = (
-                        f"semantic-equivalent pair: {lbl_a} vs {lbl_b}"
-                    )
+                    artifact_reason = f"semantic-equivalent pair: {lbl_a} vs {lbl_b}"
             sample_pairs = []
             for row in matched_rows[:20]:
                 left_offset, right_offset = _matching_tail_offsets(

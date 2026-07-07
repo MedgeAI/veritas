@@ -272,8 +272,6 @@ def _run_elis_cross_verification(
     except (ToolExecutionError, json.JSONDecodeError):
         return []
 
-    return result.get("results", [])
-
 
 # ---------------------------------------------------------------------------
 # Overlap polygon computation
@@ -352,7 +350,10 @@ def _polygon_intersection_area(
     except Exception:  # Deliberately broad: Sutherland-Hodgman clipping can fail on degenerate polygons; fall back to bbox overlap
         # Sutherland-Hodgman clipping can fail on degenerate polygons;
         # fall back to bbox overlap rather than crashing the pipeline.
-        logger.debug("Polygon intersection clipping failed, falling back to bbox overlap", exc_info=True)
+        logger.debug(
+            "Polygon intersection clipping failed, falling back to bbox overlap",
+            exc_info=True,
+        )
         return _bbox_overlap_area(poly_a, poly_b)
 
 
@@ -636,7 +637,11 @@ def detect_overlap_reuse(
             continue
 
         score = min(1.0, inlier_count / 200.0)
-        overlay_path = v.get("overlay_path")
+        # ELIS runner produces matches_path (keypoint matches), mask_path,
+        # clusters_path — use matches_path as the primary overlay evidence.
+        overlay_path = v.get("matches_path") or v.get("overlay_path")
+        mask_path = v.get("mask_path") or ""
+        clusters_path = v.get("clusters_path") or ""
         transform_type = "homography" if homography is not None else "shared_area"
 
         ovl_id = f"OVL-{rel_idx:04d}"
@@ -658,6 +663,11 @@ def detect_overlap_reuse(
                 "overlap_area_ratio_target": overlap_tgt_ratio,
                 "score": round(score, 4),
                 "overlay_path": overlay_path,
+                "evidence_images": {
+                    "overlay": overlay_path or None,
+                    "mask": mask_path or None,
+                    "clusters": clusters_path or None,
+                },
                 "flip_detected": bool(v.get("flip_detected", False)),
                 "homography": homography,
                 "best_rotation_angle": rotation_angle_map.get((src_id, tgt_id), 0),

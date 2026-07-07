@@ -14,12 +14,15 @@ from typing import Any
 
 from engine.investigation.agent_models import PROGRESS_EVENT_SUMMARY_MAX_CHARS
 from engine.investigation.validators import DEFAULT_SOURCE_FINDING_PARAMS
-from engine.shared.constants import ARTIFACT_PATH_MAP, OUTPUT_DIRS
 from engine.shared.types import InvestigationAction, ProgressCallback, StepResult
 from engine.static_audit.paths import (
     artifact_path_candidates,
-    existing_artifact_path,
+    existing_artifact_path,  # noqa: F401 — re-exported via engine.shared.__init__
     resolve_artifact_path,
+)
+from engine.tools.registry import (
+    TOOLS,
+    source_data_findings_params_from_plan,
 )
 
 # ---------------------------------------------------------------------------
@@ -48,19 +51,7 @@ def normalize_expected_evidence_type(value: str) -> str:
     if value in EXPECTED_EVIDENCE_TYPES:
         return value
     return "source_data_pattern"
-from engine.tools.registry import (
-    PAPERFRAUD_RULE_MATCH_TOOL_ID,
-    SOURCE_DATA_VERDICT_TOOL_ID,
-    TOOLS,
-    TOOL_ID_COPY_MOVE,
-    TOOL_ID_FINDING_PIPELINE,
-    TOOL_ID_IMAGE_QUALITY,
-    TOOL_ID_PANEL_EXTRACTION,
-    TOOL_ID_PROVENANCE_GRAPH,
-    TOOL_ID_SILA_DENSE,
-    TOOL_ID_TRU_FOR,
-    source_data_findings_params_from_plan,
-)
+
 
 logger = logging.getLogger(__name__)
 
@@ -85,11 +76,41 @@ def write_json_artifact(path: Path, payload: dict[str, Any]) -> None:
 # Artifact path helpers
 # ---------------------------------------------------------------------------
 def artifact_exists(workdir: Path, artifact: str) -> bool:
-    """Check if an artifact exists in the workdir."""
+    """Check if an artifact exists in the workdir.
+
+    Falls back to fuzzy matching (edit distance <= 8 on the filename stem)
+    when no exact candidate is found, logging a warning with the corrected path.
+    """
+    import difflib
+
     cleaned = artifact.rstrip("/")
     if not cleaned:
         return False
-    return any(path.exists() for path in artifact_path_candidates(workdir, cleaned))
+    if any(path.exists() for path in artifact_path_candidates(workdir, cleaned)):
+        return True
+    # Fuzzy match: scan the immediate parent directory for close filenames.
+    candidate_path = workdir / cleaned
+    parent = candidate_path.parent
+    if not parent.is_dir():
+        return False
+    target_stem = candidate_path.name
+    matches = difflib.get_close_matches(
+        target_stem,
+        [p.name for p in parent.iterdir() if p.is_file() or p.is_dir()],
+        n=1,
+        cutoff=0.7,
+    )
+    if matches:
+        import logging
+
+        logging.getLogger(__name__).warning(
+            "Artifact %r not found; fuzzy-matched to %r in %s",
+            cleaned,
+            matches[0],
+            parent,
+        )
+        return True
+    return False
 
 
 # ---------------------------------------------------------------------------
@@ -222,6 +243,7 @@ def emit_step_start(
     if phase is None:
         try:
             from engine.static_audit.step_labels import get_step_label
+
             label_info = get_step_label(key)
             phase = label_info.get("phase")
             phase_order = label_info.get("phase_order")
@@ -366,10 +388,12 @@ def source_finding_params_from_lane(lane: dict[str, Any] | None) -> dict[str, An
 # Finding layer classification (PRD2-T7)
 # ---------------------------------------------------------------------------
 # Categories that are always informational (Layer 3), regardless of risk_level.
-_LAYER3_CATEGORIES = frozenset({
-    "duplicate_row_vector",
-    "paperfraud.methodology_review",
-})
+_LAYER3_CATEGORIES = frozenset(
+    {
+        "duplicate_row_vector",
+        "paperfraud.methodology_review",
+    }
+)
 
 # Tokens that identify Paperconan/numeric-forensics findings.
 # Paperconan HIGH-risk goes to Layer 2, not Layer 1 (per PRD section 5).
@@ -410,8 +434,7 @@ def classify_finding(finding: dict[str, Any]) -> str:
 
     # Check if this is a Paperconan/numeric-forensics finding
     is_paperconan = any(
-        token in category or token in source_artifact
-        for token in _PAPERCONAN_TOKENS
+        token in category or token in source_artifact for token in _PAPERCONAN_TOKENS
     )
 
     if risk_level in ("critical", "high"):

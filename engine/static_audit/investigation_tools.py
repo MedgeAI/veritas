@@ -50,14 +50,14 @@ logger = logging.getLogger(__name__)
 AdapterFn = Callable[
     [
         InvestigationAction,  # action
-        Path,                 # workdir
-        Path | None,          # source_data_dir
-        dict[str, str],       # env
-        bool,                 # force
-        Any,                  # progress (ProgressCallback | None)
-        str,                  # step_key
-        Path,                 # action_dir
-        Path,                 # output_path
+        Path,  # workdir
+        Path | None,  # source_data_dir
+        dict[str, str],  # env
+        bool,  # force
+        Any,  # progress (ProgressCallback | None)
+        str,  # step_key
+        Path,  # action_dir
+        Path,  # output_path
     ],
     tuple[StepResult, list[str]],
 ]
@@ -160,14 +160,22 @@ def _adapt_source_data_profile(
     if _require_source_data_dir(source_data_dir, key, progress):
         return _skip(key, "No selected Source Data directory.", progress)
     command = [
-        sys.executable, "-m",
+        sys.executable,
+        "-m",
         "engine.static_audit.tools.source_data_profile",
         str(source_data_dir),
-        "--output", str(output),
+        "--output",
+        str(output),
     ]
     step = run_command(
-        key, f"Agent Investigation Tool: {action.tool_id}",
-        command, [output], cwd=PROJECT_ROOT, env=env, force=force, progress=progress,
+        key,
+        f"Agent Investigation Tool: {action.tool_id}",
+        command,
+        [output],
+        cwd=PROJECT_ROOT,
+        env=env,
+        force=force,
+        progress=progress,
     )
     return step, [str(output)]
 
@@ -191,21 +199,33 @@ def _adapt_source_data_findings(
     params = dict(DEFAULT_SOURCE_FINDING_PARAMS)
     params.update(action.params)
     command = [
-        sys.executable, "-m",
+        sys.executable,
+        "-m",
         "engine.static_audit.tools.source_data_findings",
         str(source_data_dir),
-        "--profile", str(profile),
-        "--output", str(output),
-        "--min-overlap", str(params["min_overlap"]),
-        "--min-support", str(params["min_support"]),
-        "--max-findings-per-category", str(params["max_findings_per_category"]),
+        "--profile",
+        str(profile),
+        "--output",
+        str(output),
+        "--min-overlap",
+        str(params["min_overlap"]),
+        "--min-support",
+        str(params["min_support"]),
+        "--max-findings-per-category",
+        str(params["max_findings_per_category"]),
     ]
     full_md = resolve_artifact_path(workdir, "full.md")
     if full_md.exists():
         command.extend(["--full-md", str(full_md)])
     step = run_command(
-        key, f"Agent Investigation Tool: {action.tool_id}",
-        command, [output], cwd=PROJECT_ROOT, env=env, force=force, progress=progress,
+        key,
+        f"Agent Investigation Tool: {action.tool_id}",
+        command,
+        [output],
+        cwd=PROJECT_ROOT,
+        env=env,
+        force=force,
+        progress=progress,
     )
     return step, [str(output)]
 
@@ -225,20 +245,34 @@ def _adapt_source_data_pair_forensics(
         return _skip(key, "No selected Source Data directory.", progress)
     params = action.params
     command = [
-        sys.executable, "-m",
+        sys.executable,
+        "-m",
         "engine.static_audit.tools.source_data_pair_forensics",
         str(source_data_dir),
-        "--output", str(output),
-        "--min-pairs", str(params.get("min_pairs", 8)),
-        "--min-support", str(params.get("min_support", 0.95)),
-        "--ratio-places", str(params.get("ratio_places", 4)),
-        "--max-offset", str(params.get("max_offset", 80)),
-        "--max-findings-per-category", str(params.get("max_findings_per_category", 50)),
-        "--min-duplicate-row-width", str(params.get("min_duplicate_row_width", 2)),
+        "--output",
+        str(output),
+        "--min-pairs",
+        str(params.get("min_pairs", 8)),
+        "--min-support",
+        str(params.get("min_support", 0.95)),
+        "--ratio-places",
+        str(params.get("ratio_places", 4)),
+        "--max-offset",
+        str(params.get("max_offset", 80)),
+        "--max-findings-per-category",
+        str(params.get("max_findings_per_category", 50)),
+        "--min-duplicate-row-width",
+        str(params.get("min_duplicate_row_width", 2)),
     ]
     step = run_command(
-        key, f"Agent Investigation Tool: {action.tool_id}",
-        command, [output], cwd=PROJECT_ROOT, env=env, force=force, progress=progress,
+        key,
+        f"Agent Investigation Tool: {action.tool_id}",
+        command,
+        [output],
+        cwd=PROJECT_ROOT,
+        env=env,
+        force=force,
+        progress=progress,
     )
     return step, [str(output)]
 
@@ -256,17 +290,28 @@ def _adapt_source_data_cross_sheet(
 ) -> tuple[StepResult, list[str]]:
     params = action.params
     command = [
-        sys.executable, "-m",
+        sys.executable,
+        "-m",
         "engine.static_audit.tools.source_data_cross_sheet",
         str(source_data_dir),
-        "--output", str(output),
-        "--min-overlap", str(params.get("min_overlap", 10)),
-        "--min-support", str(params.get("min_support", 0.95)),
-        "--max-findings", str(params.get("max_findings", 50)),
+        "--output",
+        str(output),
+        "--min-overlap",
+        str(params.get("min_overlap", 10)),
+        "--min-support",
+        str(params.get("min_support", 0.95)),
+        "--max-findings",
+        str(params.get("max_findings", 50)),
     ]
     step = run_command(
-        key, f"Agent Investigation Tool: {action.tool_id}",
-        command, [output], cwd=PROJECT_ROOT, env=env, force=force, progress=progress,
+        key,
+        f"Agent Investigation Tool: {action.tool_id}",
+        command,
+        [output],
+        cwd=PROJECT_ROOT,
+        env=env,
+        force=force,
+        progress=progress,
     )
     return step, [str(output)]
 
@@ -287,19 +332,29 @@ def _adapt_image_similarity(
         return _skip(key, "images directory missing.", progress)
     params = action.params
     command = [
-        sys.executable, "-m",
+        sys.executable,
+        "-m",
         "engine.static_audit.tools.image_similarity",
         str(images_dir),
-        "--output", str(output),
-        "--max-distance", str(params.get("max_distance", 8)),
-        "--max-candidates", str(params.get("max_candidates", 200)),
+        "--output",
+        str(output),
+        "--max-distance",
+        str(params.get("max_distance", 8)),
+        "--max-candidates",
+        str(params.get("max_candidates", 200)),
     ]
     panel_evidence_json = resolve_artifact_path(workdir, "panel_evidence.json")
     if panel_evidence_json.exists():
         command.extend(["--panel-evidence", str(panel_evidence_json)])
     step = run_command(
-        key, f"Agent Investigation Tool: {action.tool_id}",
-        command, [output], cwd=PROJECT_ROOT, env=env, force=force, progress=progress,
+        key,
+        f"Agent Investigation Tool: {action.tool_id}",
+        command,
+        [output],
+        cwd=PROJECT_ROOT,
+        env=env,
+        force=force,
+        progress=progress,
     )
     return step, [str(output)]
 
@@ -320,20 +375,35 @@ def _adapt_copy_move(
         return _skip(key, "panel_evidence.json missing.", progress)
     params = action.params
     command = [
-        sys.executable, "-m",
+        sys.executable,
+        "-m",
         "engine.static_audit.tools.copy_move_detection",
         str(panel_json),
-        "--figure-json", str(resolve_artifact_path(workdir, "visual_evidence.json")),
-        "--output", str(output),
-        "--workdir", str(workdir),
-        "--method", str(params.get("method", "rootsift_magsac")),
-        "--min-matches", str(params.get("min_matches", 20)),
-        "--min-score", str(params.get("min_score", 0.05)),
-        "--max-relationships", str(params.get("max_relationships", 500)),
+        "--figure-json",
+        str(resolve_artifact_path(workdir, "visual_evidence.json")),
+        "--output",
+        str(output),
+        "--workdir",
+        str(workdir),
+        "--method",
+        str(params.get("method", "rootsift_magsac")),
+        "--min-matches",
+        str(params.get("min_matches", 20)),
+        "--min-score",
+        str(params.get("min_score", 0.05)),
+        "--max-relationships",
+        str(params.get("max_relationships", 500)),
     ]
     step = run_command(
-        key, f"Agent Investigation Tool: {action.tool_id}",
-        command, [output], cwd=PROJECT_ROOT, env=env, force=force, progress=progress,
+        key,
+        f"Agent Investigation Tool: {action.tool_id}",
+        command,
+        [output],
+        cwd=PROJECT_ROOT,
+        env=env,
+        force=force,
+        progress=progress,
+        timeout_seconds=600,
     )
     return step, [str(output)]
 

@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
 AUDIT_PROFILES: dict[str, dict[str, Any]] = {
     "fast": {
         "agent_timeout_seconds": 120,
-        "agent_max_retries": 0,
+        "agent_max_retries": 1,
         "agent_max_rounds": 2,
         "agent_max_actions_per_round": 5,
         "elis_timeout_seconds": 180,

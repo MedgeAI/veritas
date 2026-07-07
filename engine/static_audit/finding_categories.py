@@ -52,9 +52,7 @@ def register(defn: FindingCategoryDefinition) -> FindingCategoryDefinition:
     Raises ValueError if the same category is registered twice.
     """
     if defn.category in _REGISTRY:
-        raise ValueError(
-            f"Duplicate finding category registration: {defn.category!r}"
-        )
+        raise ValueError(f"Duplicate finding category registration: {defn.category!r}")
     _REGISTRY[defn.category] = defn
     return defn
 
@@ -146,8 +144,7 @@ DUPLICATE_ROW_VECTOR = register(
         pattern_key="row_vector_reuse",
         id_prefix="DRV",
         review_question=(
-            "多行低宽度数值向量重复，"
-            "需确认重复行是否代表同一样本、模板行或独立测量。"
+            "多行低宽度数值向量重复，需确认重复行是否代表同一样本、模板行或独立测量。"
         ),
         issue_category="consistency",
         context_only=True,
@@ -182,8 +179,7 @@ ROW_OFFSET_PARTIAL_COPY_ROUNDING_BIAS = register(
         pattern_key="partial_copy_rounding_bias",
         id_prefix="RBR",
         review_question=(
-            "固定行偏移同时出现精度变化和部分复用，"
-            "需确认后半区是否为独立原始记录。"
+            "固定行偏移同时出现精度变化和部分复用，需确认后半区是否为独立原始记录。"
         ),
         issue_category="consistency",
         context_only=False,
@@ -325,10 +321,7 @@ INTERNAL_SEQUENCE_RELATION = register(
         label="列内序列关系",
         pattern_key="internal_sequence_relation",
         id_prefix="ISR",
-        review_question=(
-            "单列内出现等差或等比序列，"
-            "需确认是否为独立测量或人为填充。"
-        ),
+        review_question=("单列内出现等差或等比序列，需确认是否为独立测量或人为填充。"),
         issue_category="consistency",
         context_only=False,
         is_pair_forensics=True,
@@ -362,8 +355,7 @@ STRICT_LINEAR_RELATION = register(
         pattern_key="strict_linear_relation",
         id_prefix="SLR",
         review_question=(
-            "列对之间存在严格线性关系（R² ≥ 0.999999），"
-            "需确认是否为独立测量或派生列。"
+            "列对之间存在严格线性关系（R² ≥ 0.999999），需确认是否为独立测量或派生列。"
         ),
         issue_category="consistency",
         context_only=False,
@@ -402,8 +394,7 @@ FIXED_DIFFERENCE = register(
         pattern_key="formula_derivation",
         id_prefix="FD",
         review_question=(
-            "列之间存在精确固定差值，"
-            "需确认是否为合法派生关系或独立条件间的异常一致。"
+            "列之间存在精确固定差值，需确认是否为合法派生关系或独立条件间的异常一致。"
         ),
         issue_category="consistency",
         context_only=False,
@@ -460,8 +451,7 @@ COPY_MOVE_SINGLE = register(
         pattern_key="visual_forensics",
         id_prefix="VFC",
         review_question=(
-            "单图内检测到局部区域相似，"
-            "需确认是否为同一主体、合法复用或导出伪影。"
+            "单图内检测到局部区域相似，需确认是否为同一主体、合法复用或导出伪影。"
         ),
         issue_category="matching",
         context_only=False,
@@ -478,8 +468,7 @@ COPY_MOVE_CROSS = register(
         pattern_key="visual_forensics",
         id_prefix="VFC",
         review_question=(
-            "跨图检测到局部区域相似，"
-            "需确认是否为同一主体、合法复用或导出伪影。"
+            "跨图检测到局部区域相似，需确认是否为同一主体、合法复用或导出伪影。"
         ),
         issue_category="matching",
         context_only=False,
@@ -496,11 +485,10 @@ EXACT_DUPLICATE = register(
         pattern_key="visual_forensics",
         id_prefix="VFC",
         review_question=(
-            "检测到字节级完全相同图像，"
-            "需确认是否为同一图像的不同引用或合法复用。"
+            "检测到字节级完全相同图像，需确认是否为同一图像的不同引用或合法复用。"
         ),
         issue_category="matching",
-        context_only=False,
+        context_only=True,
         is_pair_forensics=False,
         in_source_data_patterns=False,
         pattern_sort_order=None,
@@ -514,11 +502,10 @@ DHASH_SIMILAR = register(
         pattern_key="visual_forensics",
         id_prefix="VFC",
         review_question=(
-            "检测到感知哈希相似的图像，"
-            "需确认是否为同一主体的不同处理版本或合法复用。"
+            "检测到感知哈希相似的图像，需确认是否为同一主体的不同处理版本或合法复用。"
         ),
         issue_category="matching",
-        context_only=False,
+        context_only=True,
         is_pair_forensics=False,
         in_source_data_patterns=False,
         pattern_sort_order=None,
@@ -532,8 +519,7 @@ OVERLAP_REUSE_CROSS_PANEL = register(
         pattern_key="visual_forensics",
         id_prefix="VFC",
         review_question=(
-            "跨 Panel 检测到局部区域重叠，"
-            "需确认是否为同一主体的裁剪复用或导出伪影。"
+            "跨 Panel 检测到局部区域重叠，需确认是否为同一主体的裁剪复用或导出伪影。"
         ),
         issue_category="matching",
         context_only=False,
@@ -549,10 +535,7 @@ FORGED_REGION_SUSPICIOUS = register(
         label="区域完整性记录",
         pattern_key="visual_forensics",
         id_prefix="VFC",
-        review_question=(
-            "检测到区域完整性差异，"
-            "需确认是否为常规图像编辑或导出伪影。"
-        ),
+        review_question=("检测到区域完整性差异，需确认是否为常规图像编辑或导出伪影。"),
         issue_category="matching",
         context_only=False,
         is_pair_forensics=False,
@@ -572,8 +555,7 @@ PAPERFRAUD_METHODOLOGY_REVIEW = register(
         pattern_key="paperfraud.methodology_review",
         id_prefix="PMR",
         review_question=(
-            "PaperFraud 规则库提示方法学问题，"
-            "需确认论文方法描述是否完整且可复现。"
+            "PaperFraud 规则库提示方法学问题，需确认论文方法描述是否完整且可复现。"
         ),
         issue_category="completeness",
         context_only=True,

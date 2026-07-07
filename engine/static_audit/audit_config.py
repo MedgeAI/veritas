@@ -13,6 +13,7 @@ DEFAULT_AUDIT_ROLE_CONFIG: dict[str, Any] = {
     "role_timeouts": {
         "agent_material_plan": 120,
         "agent_plan": 180,
+        "claim_extractor": 300,
         "source_data_auditor": 300,
         "judge": 180,
         "agent_review": 180,
@@ -37,6 +38,34 @@ DEFAULT_AUDIT_ROLE_CONFIG: dict[str, Any] = {
         "small_n_fixed_difference": {"review_priority": "medium"},
         "small_n_fixed_ratio": {"review_priority": "medium"},
         "low_information_numeric": {"review_priority": "low", "filter": True},
+    },
+    "visual_demotion": {
+        "enabled": True,
+        "rules": {
+            "exact_duplicate": {
+                "requires_any_of": ["copy_move", "overlap_reuse"],
+                "reason": "SHA-256 exact match without geometric verification",
+            },
+            "dhash_similar": {
+                "requires_any_of": ["copy_move", "overlap_reuse"],
+                "reason": (
+                    "dHash perceptual similarity without geometric verification"
+                ),
+            },
+            "forged_region_suspicious": {
+                "requires_any_of": ["copy_move", "overlap_reuse"],
+                "reason": "TruFor-alone without overlap verification",
+            },
+            "visual_provenance_relationship": {
+                "requires_any_of": [
+                    "copy_move",
+                    "overlap_reuse",
+                    "dhash_similar",
+                    "exact_duplicate",
+                ],
+                "reason": ("Provenance-alone without other detector corroboration"),
+            },
+        },
     },
 }
 
@@ -77,9 +106,17 @@ def _validate_config(config: dict[str, Any]) -> None:
             raise ValueError(f"invalid priority_scoring entry: {category!r}")
         priority = rules.get("review_priority")
         if priority is not None and priority not in _VALID_PRIORITIES:
-            raise ValueError(
-                f"invalid review_priority for {category}: {priority!r}"
-            )
+            raise ValueError(f"invalid review_priority for {category}: {priority!r}")
+
+    demotion = config.get("visual_demotion")
+    if demotion is not None:
+        if not isinstance(demotion, dict):
+            raise ValueError("visual_demotion must be a mapping")
+        if "enabled" in demotion and not isinstance(demotion["enabled"], bool):
+            raise ValueError("visual_demotion.enabled must be a boolean")
+        rules = demotion.get("rules")
+        if rules is not None and not isinstance(rules, dict):
+            raise ValueError("visual_demotion.rules must be a mapping")
 
 
 @lru_cache(maxsize=1)
@@ -117,3 +154,18 @@ def provenance_relationship_config() -> tuple[float, int]:
         float(config["provenance_edge_threshold"]),
         int(config["provenance_max_relationships"]),
     )
+
+
+def visual_demotion_config() -> dict[str, Any]:
+    """Return the visual demotion configuration.
+
+    Returns dict with ``"enabled"`` (bool) and ``"rules"`` (dict mapping
+    category to rule dict with ``"requires_any_of"`` list and ``"reason"``
+    string).
+    """
+    config = load_audit_role_config()
+    demotion = config.get("visual_demotion") or {}
+    return {
+        "enabled": bool(demotion.get("enabled", True)),
+        "rules": demotion.get("rules") or {},
+    }

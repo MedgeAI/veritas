@@ -503,7 +503,9 @@ def _run_agent_plan_section(
             env=env,
             model=args.agent_model,
             opencode_bin=args.opencode_bin,
-            timeout_seconds=resolve_role_timeout("agent_plan", args.agent_timeout_seconds),
+            timeout_seconds=resolve_role_timeout(
+                "agent_plan", args.agent_timeout_seconds
+            ),
             max_retries=args.agent_max_retries,
         )
         write_agent_result(ap_path, result, "audit_plan")
@@ -636,9 +638,7 @@ def _run_mineru_forensics_section(
             try:
                 invoke_numeric_forensics(_nf_output)
             except Exception as exc:
-                logger.warning(
-                    "numeric forensics adapter enrichment failed: %s", exc
-                )
+                logger.warning("numeric forensics adapter enrichment failed: %s", exc)
         pf_out = resolve_artifact_path(workdir, "paperfraud_rule_matches.json")
         if pf_out.exists() and not args.force:
             record_step(
@@ -890,9 +890,7 @@ def _run_bundle_and_report(
         "paper_pdf_selection_source": material_inventory_data.get(
             "paper_pdf_selection_source"
         ),
-        "paper_pdf_candidates": material_inventory_data.get(
-            "paper_pdf_candidates", []
-        ),
+        "paper_pdf_candidates": material_inventory_data.get("paper_pdf_candidates", []),
         "source_data_dir": str(source_data_dir) if source_data_dir else None,
         "material_inventory": str(material_inventory_path),
         "agent_material_plan": str(agent_material_plan_path),
@@ -983,17 +981,13 @@ def _run_bundle_and_report(
         )
         record_step(
             steps,
-            StepResult(
-                "html_report", "生成最终 HTML 报告", "ran", str(html_path)
-            ),
+            StepResult("html_report", "生成最终 HTML 报告", "ran", str(html_path)),
             progress,
         )
         if llm_enriched:
             record_step(
                 steps,
-                StepResult(
-                    "llm_enrichment", "LLM 文本充实", "ran", str(html_path)
-                ),
+                StepResult("llm_enrichment", "LLM 文本充实", "ran", str(html_path)),
                 progress,
             )
     except (VeritasError, OSError) as e:
@@ -1060,8 +1054,8 @@ def _run_bundle_and_report(
         manifest_path.write_text(
             json.dumps(manifest, ensure_ascii=False, indent=2), encoding="utf-8"
         )
-    except (OSError, ValueError) as e:
-        logger.warning("run diagnostics generation failed: %s", e)
+    except Exception as e:
+        logger.warning("run diagnostics generation failed: %s", e, exc_info=True)
         record_step(
             steps,
             StepResult(

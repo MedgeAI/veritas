@@ -23,7 +23,6 @@ from __future__ import annotations
 import json
 import logging
 import time
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -167,6 +166,7 @@ def run_command(
     retry_delay_seconds: float = 0.0,
     progress: ProgressCallback | None = None,
     stream_output: bool = False,
+    timeout_seconds: int = 300,
 ) -> StepResult:
     """Run a command, delegating actual execution to the Runtime layer.
 
@@ -223,7 +223,10 @@ def run_command(
             _command=command,
         ) -> None:
             _map_executor_event(
-                _progress, _key, _title, _command,
+                _progress,
+                _key,
+                _title,
+                _command,
                 event,
                 attempt=attempt,
                 total_attempts=total_attempts,
@@ -233,7 +236,7 @@ def run_command(
         request = ExecutionRequest(
             command=list(command),
             workdir=cwd,
-            timeout_seconds=300,
+            timeout_seconds=timeout_seconds,
             env=env,
             expected_outputs=list(expected_outputs),
             stream_output=stream_output,
@@ -246,9 +249,7 @@ def run_command(
         try:
             exec_result = execute_subprocess(request)
         except ToolExecutionError as exc:
-            last_detail = (
-                f"attempt={attempt}/{attempts} exit_code={exc.exit_code}"
-            )
+            last_detail = f"attempt={attempt}/{attempts} exit_code={exc.exit_code}"
             last_failure_type = "timeout" if exc.timed_out else "nonzero_exit"
             if exc.stderr_tail:
                 last_detail += f" stderr_tail={exc.stderr_tail!r}"
@@ -684,7 +685,7 @@ def run_cross_sheet_filter(
     workdir: Path,
     cross_sheet_findings: list[dict],
     llm_client: Any,
-) -> list[dict]:
+) -> tuple[list[dict], list[dict]]:
     """Filter cross-sheet findings by LLM column classification.
 
     Only keeps findings where the column is classified as "measurement".
@@ -694,16 +695,11 @@ def run_cross_sheet_filter(
     On LLM failure, returns all findings unchanged (conservative fallback)
     and logs a warning.
 
-    Args:
-        workdir: Working directory (for logging/artifacts).
-        cross_sheet_findings: List of cross-sheet finding dicts.
-        llm_client: VeritasLLMClient instance.
-
     Returns:
-        Filtered list of findings (only measurement columns).
+        Tuple of (filtered findings list, filter_reasons list for each dropped finding).
     """
     if not cross_sheet_findings:
-        return []
+        return [], []
 
     # Extract unique column names and sample values from findings
     column_names: set[str] = set()
@@ -727,7 +723,7 @@ def run_cross_sheet_filter(
 
     if not column_names:
         logger.warning("No column names found in cross-sheet findings")
-        return cross_sheet_findings
+        return cross_sheet_findings, []
 
     # Classify columns with LLM
     column_types = classify_columns_with_llm(
@@ -740,10 +736,11 @@ def run_cross_sheet_filter(
             "LLM column classification failed; keeping all %d cross-sheet findings",
             len(cross_sheet_findings),
         )
-        return cross_sheet_findings
+        return cross_sheet_findings, []
 
     # Filter: only keep findings where column is "measurement"
     filtered = []
+    filter_reasons: list[dict] = []
     for finding in cross_sheet_findings:
         col1 = finding.get("column_1") or finding.get("column")
         col2 = finding.get("column_2")
@@ -758,6 +755,15 @@ def run_cross_sheet_filter(
             finding_copy["column_1_type"] = col1_type
             finding_copy["column_2_type"] = col2_type
             filtered.append(finding_copy)
+        else:
+            filter_reasons.append(
+                {
+                    "finding_id": finding.get("finding_id"),
+                    "reason": f"columns classified as {col1_type}/{col2_type} (not measurement)",
+                    "column_1": col1,
+                    "column_2": col2,
+                }
+            )
 
     logger.info(
         "Cross-sheet filter: %d -> %d findings (filtered %d metadata/index columns)",
@@ -766,4 +772,4 @@ def run_cross_sheet_filter(
         len(cross_sheet_findings) - len(filtered),
     )
 
-    return filtered
+    return filtered, filter_reasons
