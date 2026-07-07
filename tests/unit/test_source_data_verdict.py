@@ -500,6 +500,8 @@ def test_run_source_data_verdict_writes_summary_and_artifact(
         "false_positive": 1,
         "uncertain": 1,
         "failed_sheets": 0,
+        "skipped_sheets": 0,
+        "verdict_sheets": 2,
     }
     output_path = resolve_artifact_path(workdir, "source_data_findings_verdict.json")
     assert output_path.exists()

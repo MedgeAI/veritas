@@ -125,7 +125,7 @@ Return this exact JSON shape:
   "limitations": ["..."]
 }}
 """.strip()
-        focus = "Review deterministic Source Data findings, pressure-test benign explanations, and create manual review tasks. Limit claim mappings, finding reviews, and manual tasks to at most 12 items each; prioritize high-risk deterministic findings."
+        focus = "Review deterministic Source Data findings, pressure-test benign explanations, and create manual review tasks. Limit claim mappings, finding reviews, and manual tasks to at most 12 items each; prioritize high-risk deterministic findings. CRITICAL: Only cite finding_ids that are explicitly present in your context_pack top_n_findings. Never invent or hallucinate finding_ids. Every finding_id in finding_reviews and manual_review_tasks must appear verbatim in the context_pack."
     elif role_id == "judge":
         contract = f"""
 Return this exact JSON shape:
@@ -134,7 +134,7 @@ Return this exact JSON shape:
   "role_id": "judge",
   "case_id": "{case_id}",
   "summary": {{
-    "claim_count": 0,
+    "claim_count": 0,  // Use claim_extractor.mapped_claim_count from context pack, not total claim_count
     "finding_review_count": 0,
     "manual_review_task_count": 0,
     "technical_risk_summary": "..."
@@ -160,6 +160,7 @@ Judge-specific input contract:
 - Return at most 8 risk_suggestions, 8 report_notes, and 10 limitations.
 - Every risk_suggestions item must cite evidence_refs already present in the compact summary or top_n_findings.
 - Input findings are pre-filtered: you only receive Layer 1 (high-confidence data issues) and Layer 2 (needs human judgment) findings. Layer 3 informational findings (duplicate row vectors, low-risk signals, methodology checks) are excluded to reduce noise.
+- N5 claim independence: When reporting claim_count, use `claim_extractor.mapped_claim_count` (not total `claim_count`) as the number of claims with actual source data mapping. Report `unmapped_claim_count` claims as having `source_data_coverage: "none"`. If claim_source is "candidate_claim" for all claims, note that mappings are based on findings' built-in candidates, not independently extracted claims.
 """.strip()
     else:
         raise ValueError(f"unsupported role prompt: {role_id}")
@@ -257,6 +258,8 @@ def validate_role_output(role_id: str, data: dict[str, Any]) -> dict[str, Any]:
                 claim["figure_refs"] = []
             if "expected_source_data" not in claim:
                 claim["expected_source_data"] = []
+            # N5: Tag claim source for independence tracking
+            claim.setdefault("claim_source", "claim_extractor")
     elif role_id == "source_data_auditor":
         for key in [
             "claim_to_source_data",

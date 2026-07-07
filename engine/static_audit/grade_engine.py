@@ -23,12 +23,14 @@ from engine.static_audit.models import Finding, StaticAuditBundle, ToolRun
 logger = logging.getLogger(__name__)
 
 # Pipeline steps that are mandatory for any meaningful audit.
-_REPRODUCIBILITY_CRITICAL_STEPS = frozenset({
-    "discover",
-    "material_inventory",
-    "mineru",
-    "evidence_ledger",
-})
+_REPRODUCIBILITY_CRITICAL_STEPS = frozenset(
+    {
+        "discover",
+        "material_inventory",
+        "mineru",
+        "evidence_ledger",
+    }
+)
 
 # Risk levels considered severe enough to fail or warn a dimension.
 _CRITICAL_HIGH = frozenset({"critical", "high"})
@@ -47,6 +49,7 @@ DimensionStatus = Literal["pass", "pass_with_notes", "warning", "fail"]
 # ---------------------------------------------------------------------------
 # Output data structures
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class DimensionScore:
@@ -79,6 +82,7 @@ class CertificationGrade:
 # ---------------------------------------------------------------------------
 # Dimension scorers
 # ---------------------------------------------------------------------------
+
 
 def _find_step_status(tool_runs: list[ToolRun], step_key: str) -> str | None:
     """Return the status of a pipeline step, or None if not present."""
@@ -252,6 +256,88 @@ def _score_interpretation(findings: list[Finding]) -> DimensionScore:
     )
 
 
+def _score_claim_independence(bundle: StaticAuditBundle) -> DimensionScore:
+    """N5: Score claim independence — flag circular dependency.
+
+    When all claim-to-source-data mappings come from deterministic
+    candidate_claims (not from an independent claim_extractor), the
+    claim mapping is circular: findings → candidate_claim → claim → findings.
+    """
+    claim_mappings = bundle.metadata.get("claim_mapping_policy", {})
+    # Check deterministic mappings
+    det_mappings = bundle.metadata.get("deterministic_claim_mappings") or []
+    if not det_mappings:
+        return DimensionScore(
+            name="claim_independence",
+            label="Claim 独立性",
+            status="pass",
+            detail="无 claim 映射",
+        )
+
+    # Check if any independent claim extractor output exists
+    agent_claim_path = claim_mappings.get("agent_claim_artifact", "")
+    has_independent_claims = False
+    try:
+        from pathlib import Path as _P
+
+        claim_path = _P(agent_claim_path)
+        if claim_path.exists():
+            import json
+
+            claim_data = json.loads(claim_path.read_text(encoding="utf-8"))
+            claims = claim_data.get("claims", [])
+            for c in claims:
+                if isinstance(c, dict) and c.get("claim_source") == "claim_extractor":
+                    has_independent_claims = True
+                    break
+    except (OSError, json.JSONDecodeError):
+        pass
+
+    if not has_independent_claims and det_mappings:
+        return DimensionScore(
+            name="claim_independence",
+            label="Claim 独立性",
+            status="warning",
+            detail="所有 claim 映射均来自 candidate_claim（非独立提取）；存在循环论证风险",
+        )
+    return DimensionScore(
+        name="claim_independence",
+        label="Claim 独立性",
+        status="pass",
+        detail="存在独立 claim_extractor 输出",
+    )
+
+
+def _score_review_gate(bundle: StaticAuditBundle) -> DimensionScore:
+    """N3: Score dimension 5 — independent review gate.
+
+    When the review agent fails, the independent review layer is missing.
+    This caps the grade at B (warning level).
+    """
+    review_info = bundle.metadata.get("agent", {}).get("review")
+    if review_info is None:
+        return DimensionScore(
+            name="review_gate",
+            label="独立审查门",
+            status="pass",
+            detail="审查步骤未执行（agent_mode 未启用 review）",
+        )
+    review_status = review_info.get("status", "")
+    if review_status == "failed":
+        return DimensionScore(
+            name="review_gate",
+            label="独立审查门",
+            status="warning",
+            detail="独立审查层缺失（review agent 失败）；评级上限 B",
+        )
+    return DimensionScore(
+        name="review_gate",
+        label="独立审查门",
+        status="pass",
+        detail="独立审查层正常",
+    )
+
+
 # ---------------------------------------------------------------------------
 # Main entry point
 # ---------------------------------------------------------------------------
@@ -320,8 +406,17 @@ def compute_grade(
     numerical_fidelity = _score_numerical_fidelity(findings)
     methodology = _score_methodology(findings)
     interpretation = _score_interpretation(findings)
+    review_gate = _score_review_gate(bundle)
+    claim_independence = _score_claim_independence(bundle)
 
-    dimensions = [reproducibility, numerical_fidelity, methodology, interpretation]
+    dimensions = [
+        reproducibility,
+        numerical_fidelity,
+        methodology,
+        interpretation,
+        review_gate,
+        claim_independence,
+    ]
     worst = _worst_status(dimensions)
 
     if worst == "fail":

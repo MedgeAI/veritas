@@ -120,13 +120,38 @@ STEP_LABELS: dict[str, dict[str, Any]] = {
         "phase": _PHASE_DATA_ANALYSIS,
         "phase_order": _ORDER_DATA_ANALYSIS,
     },
+    "paperconan_translate": {
+        "title": "PaperConan 信号转换",
+        "phase": _PHASE_NUMERIC,
+        "phase_order": _ORDER_NUMERIC,
+    },
+    "source_data_prefilter": {
+        "title": "Source Data 预过滤",
+        "phase": _PHASE_DATA_ANALYSIS,
+        "phase_order": _ORDER_DATA_ANALYSIS,
+    },
     "source_data_briefings": {
         "title": "Sheet 简报",
         "phase": _PHASE_DATA_ANALYSIS,
         "phase_order": _ORDER_DATA_ANALYSIS,
     },
+    "claim_fusion": {
+        "title": "Claim / 影响信号融合",
+        "phase": _PHASE_DATA_ANALYSIS,
+        "phase_order": _ORDER_DATA_ANALYSIS,
+    },
+    "build_review_dossiers": {
+        "title": "构建复核材料包",
+        "phase": _PHASE_DATA_ANALYSIS,
+        "phase_order": _ORDER_DATA_ANALYSIS,
+    },
     "source_data_verdict": {
         "title": "Source Data 裁决",
+        "phase": _PHASE_DATA_ANALYSIS,
+        "phase_order": _ORDER_DATA_ANALYSIS,
+    },
+    "red_team_refute": {
+        "title": "Red-team 反证复核",
         "phase": _PHASE_DATA_ANALYSIS,
         "phase_order": _ORDER_DATA_ANALYSIS,
     },

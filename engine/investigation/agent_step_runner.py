@@ -76,7 +76,9 @@ class AgentStepRunner:
         AgentOutputValidator, AgentGroundingChecker, and AgentTraceWriter
         in the exact control flow order from PRD §WP2.
         """
-        invoker = AgentCommandInvoker(self.project_root, self.opencode_bin, self.env, run_simple_command)
+        invoker = AgentCommandInvoker(
+            self.project_root, self.opencode_bin, self.env, run_simple_command
+        )
         parser = AgentOutputParser()
         validator = AgentOutputValidator()
         grounding_checker = AgentGroundingChecker()
@@ -96,7 +98,9 @@ class AgentStepRunner:
             if invoke_result.completed is None:
                 break
 
-            classification = self._classify_invocation(invoke_result.completed, state, timeout_seconds)
+            classification = self._classify_invocation(
+                invoke_result.completed, state, timeout_seconds
+            )
             if classification == "continue":
                 continue
             if classification == "break":
@@ -104,13 +108,22 @@ class AgentStepRunner:
 
             parse_result = parser.parse(state.last_stdout)
             if parse_result.parsed is None:
-                state.record_failure(attempt, "schema_validation",
-                    f"JSON extraction failed: {type(parse_result.error).__name__}: {parse_result.error}")
+                state.record_failure(
+                    attempt,
+                    "schema_validation",
+                    f"JSON extraction failed: {type(parse_result.error).__name__}: {parse_result.error}",
+                )
                 continue
 
-            validation_result = validator.validate(parse_result.parsed, output_validator)
+            validation_result = validator.validate(
+                parse_result.parsed, output_validator
+            )
             if validation_result.validated is None:
-                state.record_failure(attempt, "schema_validation", f"validation failed: {validation_result.error}")
+                state.record_failure(
+                    attempt,
+                    "schema_validation",
+                    f"validation failed: {validation_result.error}",
+                )
                 continue
 
             validated = validation_result.validated
@@ -123,32 +136,72 @@ class AgentStepRunner:
                     state.record_failure(attempt, "grounding_failure", detail)
                     continue
 
-            return self._build_success_result(role, validated, state, trace_writer, log_dir, command, prompt,
-                                             context_pack_path, workdir, timeout_seconds, attempt, start_all)
+            # Hallucination gate (N2): block output that cites finding_ids
+            # not present in the context_pack top_n_findings.
+            hallucination = self._run_hallucination_checks(validated, context_pack_path)
+            if not hallucination["all_passed"]:
+                detail = f"hallucination gate: {hallucination['warnings'][:2]}"
+                state.record_failure(attempt, "hallucination_failure", detail)
+                continue
 
-        return self._build_failed_result(role, state, trace_writer, log_dir, command, prompt, context_pack_path,
-                                        workdir, timeout_seconds, max_retries, start_all)
+            return self._build_success_result(
+                role,
+                validated,
+                state,
+                trace_writer,
+                log_dir,
+                command,
+                prompt,
+                context_pack_path,
+                workdir,
+                timeout_seconds,
+                attempt,
+                start_all,
+            )
+
+        return self._build_failed_result(
+            role,
+            state,
+            trace_writer,
+            log_dir,
+            command,
+            prompt,
+            context_pack_path,
+            workdir,
+            timeout_seconds,
+            max_retries,
+            start_all,
+        )
 
     def _build_retry_prompt(self, prompt: str, state: _RetryState) -> str:
         """Construct retry prompt with previous error context."""
         raw_tail = state.last_stdout[-2000:] if state.last_stdout else ""
         return f"{prompt}\n\nPrevious attempt failed: {state.last_detail}\nRaw output tail:\n{raw_tail}\n\nPlease repair the JSON only. Return one valid JSON object."
 
-    def _classify_invocation(self, completed: subprocess.CompletedProcess, state: _RetryState, timeout_seconds: int) -> str:
+    def _classify_invocation(
+        self,
+        completed: subprocess.CompletedProcess,
+        state: _RetryState,
+        timeout_seconds: int,
+    ) -> str:
         """Classify invocation result. Returns 'continue', 'break', or 'proceed'."""
         if completed.returncode == 124:
             state.last_error_category = "timeout"
             state.last_detail = f"opencode timed out after {timeout_seconds}s"
             state.last_stdout = ""
             state.last_stderr = ""
-            state.record_failure(len(state.repair_history), "timeout", state.last_detail)
+            state.record_failure(
+                len(state.repair_history), "timeout", state.last_detail
+            )
             return "continue"
         if completed.returncode == 127:
             state.last_error_category = "non_zero_exit"
             state.last_detail = f"opencode launch failed: {completed.stderr}"
             state.last_stdout = ""
             state.last_stderr = ""
-            state.record_failure(len(state.repair_history), "non_zero_exit", state.last_detail)
+            state.record_failure(
+                len(state.repair_history), "non_zero_exit", state.last_detail
+            )
             return "break"
 
         state.last_stdout = completed.stdout or ""
@@ -157,33 +210,64 @@ class AgentStepRunner:
         if completed.returncode != 0:
             state.last_error_category = self._classify_exit_error(state.last_stderr)
             state.last_detail = f"opencode exit_code={completed.returncode} stderr_tail={state.last_stderr[-1000:]!r}"
-            state.record_failure(len(state.repair_history), state.last_error_category, state.last_detail)
+            state.record_failure(
+                len(state.repair_history), state.last_error_category, state.last_detail
+            )
             return "continue"
 
         opencode_error = self._extract_opencode_error_detail(state.last_stdout)
         if opencode_error:
             state.last_error_category = "model_failure"
             state.last_detail = f"opencode error event: {opencode_error}"
-            state.record_failure(len(state.repair_history), "model_failure", state.last_detail)
+            state.record_failure(
+                len(state.repair_history), "model_failure", state.last_detail
+            )
             return "continue"
 
         return "proceed"
 
-    def _build_success_result(self, role: str, validated: dict, state: _RetryState, trace_writer: AgentTraceWriter,
-                              log_dir: Path | None, command: list[str], prompt: str, context_pack_path: Path | None,
-                              workdir: Path | None, timeout_seconds: int, attempt: int, start_all: float) -> AgentRunResult:
+    def _build_success_result(
+        self,
+        role: str,
+        validated: dict,
+        state: _RetryState,
+        trace_writer: AgentTraceWriter,
+        log_dir: Path | None,
+        command: list[str],
+        prompt: str,
+        context_pack_path: Path | None,
+        workdir: Path | None,
+        timeout_seconds: int,
+        attempt: int,
+        start_all: float,
+    ) -> AgentRunResult:
         """Construct success AgentRunResult."""
         total_runtime = time.monotonic() - start_all
         trace_refs = None
         if log_dir:
-            trace_refs = trace_writer.write(log_dir=log_dir, role=role, command=command, prompt_text=prompt,
-                                           stdout=state.last_stdout, stderr=state.last_stderr, error_category=None,
-                                           attempt=attempt, context_pack_path=context_pack_path, validated_output=validated,
-                                           workdir=Path(workdir) if workdir else None, timeout_seconds=timeout_seconds,
-                                           repair_history=state.repair_history, last_detail=None)
+            trace_refs = trace_writer.write(
+                log_dir=log_dir,
+                role=role,
+                command=command,
+                prompt_text=prompt,
+                stdout=state.last_stdout,
+                stderr=state.last_stderr,
+                error_category=None,
+                attempt=attempt,
+                context_pack_path=context_pack_path,
+                validated_output=validated,
+                workdir=Path(workdir) if workdir else None,
+                timeout_seconds=timeout_seconds,
+                repair_history=state.repair_history,
+                last_detail=None,
+            )
 
-        result_metadata: dict = {"model": self.model, "runtime_seconds": total_runtime, "attempts": attempt + 1,
-                                "trace_ref": trace_refs.trace_ref if trace_refs else None}
+        result_metadata: dict = {
+            "model": self.model,
+            "runtime_seconds": total_runtime,
+            "attempts": attempt + 1,
+            "trace_ref": trace_refs.trace_ref if trace_refs else None,
+        }
         if trace_refs and trace_refs.grounding_info:
             result_metadata["grounding"] = trace_refs.grounding_info
         if state.repair_history:
@@ -192,40 +276,81 @@ class AgentStepRunner:
         if trace_refs:
             result_metadata.update(trace_refs.validation_artifacts)
 
-        return AgentRunResult(status="success", role=role, output=validated, error_category=None,
-                             runtime_seconds=total_runtime, log_ref=trace_refs.log_ref if trace_refs else None,
-                             metadata=result_metadata)
+        return AgentRunResult(
+            status="success",
+            role=role,
+            output=validated,
+            error_category=None,
+            runtime_seconds=total_runtime,
+            log_ref=trace_refs.log_ref if trace_refs else None,
+            metadata=result_metadata,
+        )
 
-    def _build_failed_result(self, role: str, state: _RetryState, trace_writer: AgentTraceWriter, log_dir: Path | None,
-                            command: list[str], prompt: str, context_pack_path: Path | None, workdir: Path | None,
-                            timeout_seconds: int, max_retries: int, start_all: float) -> AgentRunResult:
+    def _build_failed_result(
+        self,
+        role: str,
+        state: _RetryState,
+        trace_writer: AgentTraceWriter,
+        log_dir: Path | None,
+        command: list[str],
+        prompt: str,
+        context_pack_path: Path | None,
+        workdir: Path | None,
+        timeout_seconds: int,
+        max_retries: int,
+        start_all: float,
+    ) -> AgentRunResult:
         """Construct failed AgentRunResult."""
         total_runtime = time.monotonic() - start_all
         trace_refs = None
         grounding_info = self._last_grounding
         if log_dir:
-            trace_refs = trace_writer.write(log_dir=log_dir, role=role, command=command, prompt_text=prompt,
-                                           stdout=state.last_stdout, stderr=state.last_stderr,
-                                           error_category=state.last_error_category or "non_zero_exit", attempt=max_retries,
-                                           context_pack_path=context_pack_path, validated_output=None,
-                                           workdir=Path(workdir) if workdir else None, timeout_seconds=timeout_seconds,
-                                           repair_history=state.repair_history, last_detail=state.last_detail)
+            trace_refs = trace_writer.write(
+                log_dir=log_dir,
+                role=role,
+                command=command,
+                prompt_text=prompt,
+                stdout=state.last_stdout,
+                stderr=state.last_stderr,
+                error_category=state.last_error_category or "non_zero_exit",
+                attempt=max_retries,
+                context_pack_path=context_pack_path,
+                validated_output=None,
+                workdir=Path(workdir) if workdir else None,
+                timeout_seconds=timeout_seconds,
+                repair_history=state.repair_history,
+                last_detail=state.last_detail,
+            )
             if trace_refs.grounding_info:
                 grounding_info = trace_refs.grounding_info
 
-        failed_metadata: dict = {"schema_version": "agent_output_validation.v1", "role_id": role, "model": self.model,
-                                "runtime_seconds": total_runtime, "attempts": max_retries + 1, "last_detail": state.last_detail,
-                                "trace_ref": trace_refs.trace_ref if trace_refs else None,
-                                "failure_type": state.last_error_category or "non_zero_exit", "timeout_seconds": timeout_seconds,
-                                "repair_attempts": len(state.repair_history), "repair_history": state.repair_history}
+        failed_metadata: dict = {
+            "schema_version": "agent_output_validation.v1",
+            "role_id": role,
+            "model": self.model,
+            "runtime_seconds": total_runtime,
+            "attempts": max_retries + 1,
+            "last_detail": state.last_detail,
+            "trace_ref": trace_refs.trace_ref if trace_refs else None,
+            "failure_type": state.last_error_category or "non_zero_exit",
+            "timeout_seconds": timeout_seconds,
+            "repair_attempts": len(state.repair_history),
+            "repair_history": state.repair_history,
+        }
         if trace_refs:
             failed_metadata.update(trace_refs.validation_artifacts)
         if grounding_info:
             failed_metadata["grounding"] = grounding_info
 
-        return AgentRunResult(status="failed", role=role, output=None,
-                             error_category=state.last_error_category or "non_zero_exit", runtime_seconds=total_runtime,
-                             log_ref=trace_refs.log_ref if trace_refs else None, metadata=failed_metadata)
+        return AgentRunResult(
+            status="failed",
+            role=role,
+            output=None,
+            error_category=state.last_error_category or "non_zero_exit",
+            runtime_seconds=total_runtime,
+            log_ref=trace_refs.log_ref if trace_refs else None,
+            metadata=failed_metadata,
+        )
 
     def _classify_exit_error(self, stderr: str) -> AgentErrorCategory:
         """Classify non-zero exit based on stderr content."""
@@ -409,8 +534,7 @@ class AgentStepRunner:
             )
             if step_count or cache_read:
                 lines.append(
-                    f"Token detail: steps={step_count:,} "
-                    f"cache_read={cache_read:,}"
+                    f"Token detail: steps={step_count:,} cache_read={cache_read:,}"
                 )
 
         # Prompt summary (first 500 chars, not hashed)
@@ -829,7 +953,7 @@ class AgentStepRunner:
 
         # Build backref map for known IDs
         artifact_backrefs: dict[str, str] = {}
-        for fid in (cited_ids - unknown_ids):
+        for fid in cited_ids - unknown_ids:
             backref = get_artifact_backref(fid, workdir)
             if backref:
                 artifact_backrefs[fid] = backref

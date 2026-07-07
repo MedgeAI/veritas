@@ -15,8 +15,8 @@ Validates:
 from __future__ import annotations
 
 import argparse
+import json
 from pathlib import Path
-from unittest.mock import MagicMock
 
 import pytest
 
@@ -31,6 +31,7 @@ from engine.static_audit.stage_executor import (
     SubprocessExecutor,
     build_source_data_plan,
 )
+from engine.static_audit.step_labels import get_step_label
 
 
 # ---------------------------------------------------------------------------
@@ -47,7 +48,11 @@ def _make_ctx(tmp_path: Path, **overrides) -> StepContext:
         env={},
         progress=None,
         source_data_dir=tmp_path / "source",
-        source_finding_params={"min_overlap": 5, "min_support": 0.8, "max_findings_per_category": 10},
+        source_finding_params={
+            "min_overlap": 5,
+            "min_support": 0.8,
+            "max_findings_per_category": 10,
+        },
     )
     defaults.update(overrides)
     return StepContext(**defaults)
@@ -55,6 +60,7 @@ def _make_ctx(tmp_path: Path, **overrides) -> StepContext:
 
 def _success_fn(key: str = "step_a", detail: str = "ok") -> CallableExecutor:
     """Return a CallableExecutor that produces a success StepResult."""
+
     def fn(ctx: StepContext, defn: StepDefinition) -> StepResult:
         return StepResult(
             key=defn.key,
@@ -64,11 +70,13 @@ def _success_fn(key: str = "step_a", detail: str = "ok") -> CallableExecutor:
             runtime_seconds=0.1,
             output_artifacts=list(defn.expected_outputs),
         )
+
     return CallableExecutor(fn=fn)
 
 
 def _fail_fn(failure_type: str = "test_failure") -> CallableExecutor:
     """Return a CallableExecutor that produces a failed StepResult."""
+
     def fn(ctx: StepContext, defn: StepDefinition) -> StepResult:
         return StepResult(
             key=defn.key,
@@ -77,11 +85,13 @@ def _fail_fn(failure_type: str = "test_failure") -> CallableExecutor:
             detail=f"deliberate test failure: {defn.key}",
             failure_type=failure_type,
         )
+
     return CallableExecutor(fn=fn)
 
 
 def _skip_fn(reason: str = "no_data") -> CallableExecutor:
     """Return a CallableExecutor that produces a skipped StepResult."""
+
     def fn(ctx: StepContext, defn: StepDefinition) -> StepResult:
         return StepResult(
             key=defn.key,
@@ -90,6 +100,7 @@ def _skip_fn(reason: str = "no_data") -> CallableExecutor:
             detail=f"skipped: {reason}",
             skip_reason=reason,
         )
+
     return CallableExecutor(fn=fn)
 
 
@@ -127,7 +138,10 @@ class TestStageExecutorOrdering:
         def make_fn(key: str) -> CallableExecutor:
             def fn(ctx: StepContext, defn: StepDefinition) -> StepResult:
                 execution_log.append(key)
-                return StepResult(key=defn.key, title=defn.title, status=StepStatus.RAN, detail="ok")
+                return StepResult(
+                    key=defn.key, title=defn.title, status=StepStatus.RAN, detail="ok"
+                )
+
             return CallableExecutor(fn=fn)
 
         plan = StagePlan(
@@ -172,7 +186,9 @@ class TestFailPolicySkipDownstream:
         plan = StagePlan(
             stage_key="test",
             steps=(
-                _defn("profile", _fail_fn("profile_error"), fail_policy="skip_downstream"),
+                _defn(
+                    "profile", _fail_fn("profile_error"), fail_policy="skip_downstream"
+                ),
                 _defn("findings", _success_fn()),
                 _defn("pair_forensics", _success_fn()),
                 _defn("verdict", _success_fn()),
@@ -190,7 +206,9 @@ class TestFailPolicySkipDownstream:
             assert r.status == StepStatus.SKIPPED
             assert r.skip_reason == "upstream_failure"
 
-    def test_non_skip_downstream_failure_does_not_propagate(self, tmp_path: Path) -> None:
+    def test_non_skip_downstream_failure_does_not_propagate(
+        self, tmp_path: Path
+    ) -> None:
         """A failure with fail_policy='continue' does NOT skip downstream."""
         plan = StagePlan(
             stage_key="test",
@@ -237,8 +255,16 @@ class TestFailPolicyStop:
             def fn(ctx: StepContext, defn: StepDefinition) -> StepResult:
                 execution_log.append(key)
                 if fail:
-                    return StepResult(key=defn.key, title=defn.title, status=StepStatus.FAILED, detail="stop!")
-                return StepResult(key=defn.key, title=defn.title, status=StepStatus.RAN, detail="ok")
+                    return StepResult(
+                        key=defn.key,
+                        title=defn.title,
+                        status=StepStatus.FAILED,
+                        detail="stop!",
+                    )
+                return StepResult(
+                    key=defn.key, title=defn.title, status=StepStatus.RAN, detail="ok"
+                )
+
             return CallableExecutor(fn=fn)
 
         plan = StagePlan(
@@ -298,7 +324,11 @@ class TestRequiredArtifacts:
         plan = StagePlan(
             stage_key="test",
             steps=(
-                _defn("needs_file", _success_fn(), required_artifacts=("nonexistent.json",)),
+                _defn(
+                    "needs_file",
+                    _success_fn(),
+                    required_artifacts=("nonexistent.json",),
+                ),
             ),
         )
         results = StageExecutor(plan).run(_make_ctx(tmp_path))
@@ -328,12 +358,19 @@ class TestRequiredArtifacts:
         assert len(results) == 1
         assert results[0].status == StepStatus.RAN
 
-    def test_required_artifacts_skip_does_not_trigger_skip_downstream(self, tmp_path: Path) -> None:
+    def test_required_artifacts_skip_does_not_trigger_skip_downstream(
+        self, tmp_path: Path
+    ) -> None:
         """A step skipped due to missing artifacts should NOT trigger skip_downstream for later steps."""
         plan = StagePlan(
             stage_key="test",
             steps=(
-                _defn("missing_dep", _success_fn(), required_artifacts=("ghost.json",), fail_policy="skip_downstream"),
+                _defn(
+                    "missing_dep",
+                    _success_fn(),
+                    required_artifacts=("ghost.json",),
+                    fail_policy="skip_downstream",
+                ),
                 _defn("after", _success_fn()),
             ),
         )
@@ -359,9 +396,7 @@ class TestExceptionHandling:
 
         plan = StagePlan(
             stage_key="test",
-            steps=(
-                _defn("crash", CallableExecutor(fn=bad_fn)),
-            ),
+            steps=(_defn("crash", CallableExecutor(fn=bad_fn)),),
         )
         results = StageExecutor(plan).run(_make_ctx(tmp_path))
 
@@ -377,7 +412,9 @@ class TestExceptionHandling:
         plan = StagePlan(
             stage_key="test",
             steps=(
-                _defn("crash", CallableExecutor(fn=bad_fn), fail_policy="skip_downstream"),
+                _defn(
+                    "crash", CallableExecutor(fn=bad_fn), fail_policy="skip_downstream"
+                ),
                 _defn("after", _success_fn()),
             ),
         )
@@ -402,8 +439,14 @@ class TestStepContextPropagation:
 
         def make_fn(key: str) -> CallableExecutor:
             def fn(ctx: StepContext, defn: StepDefinition) -> StepResult:
-                seen_previous[key] = {k: v.status.value if hasattr(v.status, "value") else str(v.status) for k, v in ctx.previous_results.items()}
-                return StepResult(key=defn.key, title=defn.title, status=StepStatus.RAN, detail="ok")
+                seen_previous[key] = {
+                    k: v.status.value if hasattr(v.status, "value") else str(v.status)
+                    for k, v in ctx.previous_results.items()
+                }
+                return StepResult(
+                    key=defn.key, title=defn.title, status=StepStatus.RAN, detail="ok"
+                )
+
             return CallableExecutor(fn=fn)
 
         plan = StagePlan(
@@ -427,7 +470,9 @@ class TestStepContextPropagation:
             captured["workdir"] = ctx.workdir
             captured["env"] = ctx.env
             captured["source_data_dir"] = ctx.source_data_dir
-            return StepResult(key=defn.key, title=defn.title, status=StepStatus.RAN, detail="ok")
+            return StepResult(
+                key=defn.key, title=defn.title, status=StepStatus.RAN, detail="ok"
+            )
 
         plan = StagePlan(stage_key="test", steps=(_defn("x", CallableExecutor(fn=fn)),))
         ctx = _make_ctx(tmp_path, env={"FOO": "bar"})
@@ -455,6 +500,7 @@ class TestWP6Fields:
                 detail="ok",
                 runtime_seconds=42.5,
             )
+
         plan = StagePlan(stage_key="test", steps=(_defn("x", CallableExecutor(fn=fn)),))
         results = StageExecutor(plan).run(_make_ctx(tmp_path))
         assert results[0].runtime_seconds == 42.5
@@ -468,6 +514,7 @@ class TestWP6Fields:
                 detail="ok",
                 output_artifacts=["/path/to/artifact.json"],
             )
+
         plan = StagePlan(stage_key="test", steps=(_defn("x", CallableExecutor(fn=fn)),))
         results = StageExecutor(plan).run(_make_ctx(tmp_path))
         assert results[0].output_artifacts == ["/path/to/artifact.json"]
@@ -538,17 +585,40 @@ class TestBuildSourceDataPlan:
 
     def test_callable_steps_use_callable_executor(self) -> None:
         plan = build_source_data_plan()
-        callable_keys = {"cross_sheet_filter", "source_data_briefings", "source_data_verdict"}
+        callable_keys = {
+            "cross_sheet_filter",
+            "source_data_briefings",
+            "source_data_verdict",
+        }
         for step in plan.steps:
             if step.key in callable_keys:
-                assert isinstance(step.executor, CallableExecutor), f"{step.key} should use CallableExecutor"
-            elif step.key in {"source_data_profile", "source_data_findings", "source_data_pair_forensics", "source_data_cross_sheet", "paperconan_scan"}:
-                assert isinstance(step.executor, SubprocessExecutor), f"{step.key} should use SubprocessExecutor"
+                assert isinstance(step.executor, CallableExecutor), (
+                    f"{step.key} should use CallableExecutor"
+                )
+            elif step.key in {
+                "source_data_profile",
+                "source_data_findings",
+                "source_data_pair_forensics",
+                "source_data_cross_sheet",
+                "paperconan_scan",
+            }:
+                assert isinstance(step.executor, SubprocessExecutor), (
+                    f"{step.key} should use SubprocessExecutor"
+                )
 
     def test_all_phases_are_source_data(self) -> None:
         plan = build_source_data_plan()
         for step in plan.steps:
             assert step.phase == "source_data"
+
+    def test_all_step_keys_have_progress_labels(self) -> None:
+        plan = build_source_data_plan()
+        for step in plan.steps:
+            label = get_step_label(step.key)
+            assert label["phase"] != "Unknown", f"{step.key} must have a progress phase"
+            assert label["phase_order"] != 99, (
+                f"{step.key} must have a progress phase order"
+            )
 
 
 # ---------------------------------------------------------------------------
@@ -659,6 +729,76 @@ class TestMixedFailPolicies:
         results = StageExecutor(plan).run(_make_ctx(tmp_path))
 
         assert results[0].status == StepStatus.FAILED  # continue
-        assert results[1].status == StepStatus.RAN     # still runs
+        assert results[1].status == StepStatus.RAN  # still runs
         assert results[2].status == StepStatus.FAILED  # skip_downstream
-        assert results[3].status == StepStatus.SKIPPED # skipped by c's policy
+        assert results[3].status == StepStatus.SKIPPED  # skipped by c's policy
+
+
+class TestBuildReviewDossiersCallable:
+    """P0-2 regression: ReviewDossier must be constructed with valid kwargs."""
+
+    def test_dossier_uses_correct_fields(self, tmp_path: Path) -> None:
+        """build_review_dossiers must not pass signal_id or signal kwargs."""
+        from engine.static_audit.stage_executor import (
+            _run_build_review_dossiers_callable,
+            StepDefinition,
+            CallableExecutor,
+        )
+
+        # Write a paperconan_signals.json with one high-risk signal
+        numeric_dir = tmp_path / "numeric"
+        numeric_dir.mkdir(parents=True, exist_ok=True)
+        signals_data = {
+            "signals": [
+                {
+                    "signal_id": "FD-0001",
+                    "source_tool": "veritas",
+                    "detector_id": "fixed_difference",
+                    "detector_family": "structural",
+                    "raw_kind": "fixed_difference",
+                    "canonical_category": "fixed_relationship",
+                    "risk_level_raw": "high",
+                    "impact_scope": "unknown",
+                    "evidence_locator": {
+                        "source_path": "test.xlsx",
+                        "sheet": "Fig4",
+                        "rows": "1-35",
+                        "cols": "D-E",
+                    },
+                    "claim_refs": [],
+                    "figure_refs": [],
+                }
+            ]
+        }
+        signals_path = numeric_dir / "paperconan_signals.json"
+        signals_path.write_text(json.dumps(signals_data), encoding="utf-8")
+
+        # Also write to workdir as the callable expects
+        workdir_numeric = tmp_path / "workdir" / "numeric"
+        workdir_numeric.mkdir(parents=True, exist_ok=True)
+        (workdir_numeric / "paperconan_signals.json").write_text(
+            json.dumps(signals_data), encoding="utf-8"
+        )
+
+        definition = StepDefinition(
+            key="build_review_dossiers",
+            title="Review dossier builder",
+            executor=CallableExecutor(fn=_run_build_review_dossiers_callable),
+        )
+        ctx = _make_ctx(tmp_path / "workdir")
+        result = _run_build_review_dossiers_callable(ctx, definition)
+
+        assert result.status == StepStatus.RAN
+        assert "high_priority=1" in result.detail
+
+        # Verify the dossier JSON has correct fields
+        dossier_path = workdir_numeric / "review_dossiers" / "FD-0001.json"
+        assert dossier_path.exists()
+        dossier_data = json.loads(dossier_path.read_text(encoding="utf-8"))
+        assert dossier_data["dossier_id"] == "DOSSIER-FD-0001"
+        assert dossier_data["target_signal_ids"] == ["FD-0001"]
+        assert dossier_data["signal_summary"] == "structural/fixed_difference"
+        assert dossier_data["risk_level_raw"] == "high"
+        assert dossier_data["review_status"] == "pending"
+        # Must NOT contain the old wrong fields
+        assert "signal_id" not in dossier_data

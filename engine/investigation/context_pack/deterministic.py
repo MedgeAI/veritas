@@ -137,6 +137,9 @@ def _build_judge_context_summary(workdir: Path) -> dict[str, Any]:
     artifacts = _load_judge_artifacts(workdir)
     limitations = _collect_limitations(workdir)
 
+    # N6: Detect verdict/auditor disagreements
+    verdict_auditor_conflicts = _detect_verdict_auditor_conflicts(workdir, artifacts)
+
     return {
         "contract": {
             "role_id": "judge",
@@ -171,7 +174,71 @@ def _build_judge_context_summary(workdir: Path) -> dict[str, Any]:
         # PRD2-T6: Filter Judge input to only Layer 1 + Layer 2 findings
         "top_n_findings": filter_judge_input(_extract_top_n_findings(workdir, n=12)),
         "limitations": limitations[:12],
+        "verdict_auditor_conflicts": verdict_auditor_conflicts,
     }
+
+
+def _detect_verdict_auditor_conflicts(
+    workdir: Path, artifacts: dict[str, Any]
+) -> list[dict[str, Any]]:
+    """N6: Compare verdict and auditor assessments for same finding_ids.
+
+    Returns a list of conflicts where verdict and auditor disagree on
+    the same finding_id (e.g., verdict=true_positive but auditor=likely_artifact).
+    """
+    from engine.static_audit.paths import resolve_artifact_path
+
+    # Load verdict findings
+    verdict_path = resolve_artifact_path(workdir, "source_data_findings_verdict.json")
+    verdict_findings: dict[str, str] = {}
+    if verdict_path.exists():
+        try:
+            verdict_data = json.loads(verdict_path.read_text(encoding="utf-8"))
+            for sheet in verdict_data.get("sheets", []):
+                for f in sheet.get("findings", []):
+                    fid = f.get("finding_id")
+                    verdict = f.get("verdict")
+                    if fid and verdict:
+                        verdict_findings[str(fid)] = str(verdict)
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    if not verdict_findings:
+        return []
+
+    # Load auditor finding_reviews
+    source_output = artifacts.get("source_output") or {}
+    auditor_reviews = source_output.get("finding_reviews", [])
+
+    # Map auditor assessment to verdict-compatible categories
+    _ASSESSMENT_MAP = {
+        "manual_review_required": "true_positive",
+        "likely_artifact": "false_positive",
+        "needs_more_evidence": "uncertain",
+    }
+
+    conflicts = []
+    for review in auditor_reviews:
+        if not isinstance(review, dict):
+            continue
+        fid = str(review.get("finding_id", ""))
+        if fid not in verdict_findings:
+            continue
+        auditor_assessment = _ASSESSMENT_MAP.get(
+            str(review.get("assessment", "")), str(review.get("assessment", ""))
+        )
+        verdict_verdict = verdict_findings[fid]
+        if auditor_assessment != verdict_verdict:
+            conflicts.append(
+                {
+                    "finding_id": fid,
+                    "verdict_assessment": verdict_verdict,
+                    "auditor_assessment": str(review.get("assessment", "")),
+                    "conflict": True,
+                }
+            )
+
+    return conflicts
 
 
 def _json_excerpt(data: dict[str, Any], config: TruncationConfig) -> str:

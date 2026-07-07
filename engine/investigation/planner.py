@@ -8,6 +8,7 @@ from engine.investigation.context_pack import (
     build_material_inventory_context_pack,
     build_review_context_pack,
 )
+from engine.static_audit.paths import ARTIFACT_PATH_MAP
 from engine.investigation.validators import (
     DEFAULT_SOURCE_FINDING_PARAMS,
     _require,
@@ -271,6 +272,38 @@ Return this exact JSON shape:
 """.strip()
 
 
+def _investigation_artifact_catalog() -> dict[str, str]:
+    """Return the canonical artifact paths that investigation actions may reference.
+
+    Maps the legacy flat names to their actual subdirectory paths, filtered
+    to the subset most relevant to investigation ``depends_on_artifacts``.
+    """
+    _INVESTIGATION_KEYS = (
+        "full.md",
+        "images",
+        "exact_image_duplicates.json",
+        "image_similarity_candidates.json",
+        "visual_copy_move.json",
+        "forged_region_evidence.json",
+        "visual_findings.json",
+        "visual_relationship_findings.json",
+        "visual_evidence.json",
+        "provenance_edge_filtered.json",
+        "image_relationships.json",
+        "source_data_profile.json",
+        "source_data_findings.json",
+        "source_data_findings_verdict.json",
+        "source_data_cross_sheet.json",
+        "source_data_pair_forensics.json",
+        "numeric_forensics.json",
+        "paperconan_scan.json",
+        "paperfraud_rule_matches.json",
+    )
+    return {
+        k: ARTIFACT_PATH_MAP[k] for k in _INVESTIGATION_KEYS if k in ARTIFACT_PATH_MAP
+    }
+
+
 def build_investigation_plan_prompt(
     *,
     case_id: str,
@@ -281,6 +314,7 @@ def build_investigation_plan_prompt(
     summary = _artifact_summary(workdir)
     compact_records = previous_records[-30:]
     tool_catalog = tool_catalog_for_investigation()
+    artifact_catalog = _investigation_artifact_catalog()
     return f"""
 You are Veritas AgentInvestigationPlanner.
 
@@ -291,6 +325,7 @@ Rules:
 - Do not select Agent tools such as agent.review or JudgeAgent.
 - Mandatory bootstrap tools have already run or have been skipped by deterministic prerequisites; do not request mineru.parse_pdf, paper.evidence_ledger, paper.numeric_forensics, image.exact_duplicates, report tools, or Agent tools.
 - Every action must include hypothesis, depends_on_artifacts, and expected_evidence_type.
+- For depends_on_artifacts, use ONLY the canonical paths from the Artifact Path Catalog below. Do not invent paths.
 - Avoid repeating any previous tool_id + params + depends_on_artifacts combination.
 - Prefer no actions over noisy actions. If no useful deterministic follow-up is available, return actions=[] and stop_reason="no_more_tools".
 - Use Chinese for natural-language fields. Keep tool_id, artifact names, file paths, workbook/sheet names, evidence refs, and professional terms unchanged.
@@ -304,6 +339,9 @@ Case:
 
 Artifact summary:
 {json.dumps(summary, ensure_ascii=False, indent=2)}
+
+Artifact Path Catalog (use these exact paths in depends_on_artifacts):
+{json.dumps(artifact_catalog, ensure_ascii=False, indent=2)}
 
 Previous investigation records:
 {json.dumps(compact_records, ensure_ascii=False, indent=2)}
@@ -322,7 +360,7 @@ Return this exact JSON shape:
       "tool_id": "image.similarity_candidates",
       "params": {{"max_distance": 8, "max_candidates": 200}},
       "hypothesis": "...",
-      "depends_on_artifacts": ["images/", "exact_image_duplicates.json"],
+      "depends_on_artifacts": ["visual/images", "visual/exact_duplicates.json"],
       "expected_evidence_type": "image_similarity",
       "stop_if_no_new_evidence": true
     }}

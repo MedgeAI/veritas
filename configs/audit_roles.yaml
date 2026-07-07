@@ -2,6 +2,7 @@
 role_timeouts:
   agent_material_plan: 120
   agent_plan: 180
+  claim_extractor: 300
   source_data_auditor: 300
   judge: 180
   agent_review: 180
@@ -28,3 +29,22 @@ priority_scoring:
   low_information_numeric:
     review_priority: low
     filter: true
+
+# Visual finding demotion rules.
+# Findings in these categories are demoted to visual/candidates/ when they
+# lack corroboration from the specified detector families.
+visual_demotion:
+  enabled: true
+  rules:
+    exact_duplicate:
+      requires_any_of: [copy_move, overlap_reuse]
+      reason: "SHA-256 exact match without geometric verification"
+    dhash_similar:
+      requires_any_of: [copy_move, overlap_reuse]
+      reason: "dHash perceptual similarity without geometric verification"
+    forged_region_suspicious:
+      requires_any_of: [copy_move, overlap_reuse]
+      reason: "TruFor-alone without overlap verification"
+    visual_provenance_relationship:
+      requires_any_of: [copy_move, overlap_reuse, dhash_similar, exact_duplicate]
+      reason: "Provenance-alone without other detector corroboration"

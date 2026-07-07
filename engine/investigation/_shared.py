@@ -353,6 +353,7 @@ def _claims_from_mappings(mappings: list[dict[str, Any]]) -> list[dict[str, Any]
                 "paper_location": mapping.get("source_figure_id"),
                 "evidence_refs": [mapping.get("mapping_id"), mapping.get("sheet")],
                 "status": "needs_review",
+                "claim_source": "candidate_claim",
             }
         )
     return claims
@@ -442,7 +443,11 @@ def _artifact_summary_evidence_section(
     """Build evidence ledger and numeric forensics summary sections."""
     from engine.static_audit.typed_adapters import NumericForensicsArtifact
 
-    typed = NumericForensicsArtifact.from_dict(numeric) if isinstance(numeric, dict) else None
+    typed = (
+        NumericForensicsArtifact.from_dict(numeric)
+        if isinstance(numeric, dict)
+        else None
+    )
     return {
         "evidence_ledger_stats": ledger.get("stats", {}),
         "evidence_ledger_warnings": [
@@ -451,12 +456,22 @@ def _artifact_summary_evidence_section(
             if isinstance(item, dict)
         ],
         "numeric_forensics": {
-            "all_number_count": typed.all_number_count if typed else numeric.get("all_number_count"),
-            "number_count": typed.number_count if typed else numeric.get("number_count"),
+            "all_number_count": typed.all_number_count
+            if typed
+            else numeric.get("all_number_count"),
+            "number_count": typed.number_count
+            if typed
+            else numeric.get("number_count"),
             "table_count": typed.table_count if typed else numeric.get("table_count"),
-            "effective_scope": typed.effective_scope if typed else numeric.get("effective_scope"),
-            "benford_applicability": typed.benford_applicability if typed else (numeric.get("benford") or {}).get("applicability"),
-            "benford_mad": typed.benford_mad if typed else (numeric.get("benford") or {}).get(
+            "effective_scope": typed.effective_scope
+            if typed
+            else numeric.get("effective_scope"),
+            "benford_applicability": typed.benford_applicability
+            if typed
+            else (numeric.get("benford") or {}).get("applicability"),
+            "benford_mad": typed.benford_mad
+            if typed
+            else (numeric.get("benford") or {}).get(
                 "mad", (numeric.get("benford") or {}).get("mean_absolute_deviation")
             ),
         },
@@ -636,9 +651,13 @@ def _artifact_summary(workdir: Path) -> dict[str, Any]:
     # Build sections (investigation_records intentionally excluded:
     # build_investigation_plan_prompt injects previous_records separately,
     # avoiding double injection of the same data into the prompt.)
-    summary.update(_artifact_summary_material_section(material_inventory, material_plan))
+    summary.update(
+        _artifact_summary_material_section(material_inventory, material_plan)
+    )
     summary.update(_artifact_summary_evidence_section(ledger, numeric))
-    summary.update(_artifact_summary_source_data_section(source_findings, pair_forensics))
+    summary.update(
+        _artifact_summary_source_data_section(source_findings, pair_forensics)
+    )
     summary.update(_artifact_summary_briefings_section(workdir))
     summary.update(_artifact_summary_image_section(image_duplicates, image_similarity))
     summary.update(_artifact_summary_visual_section(visual_findings))
