@@ -207,8 +207,13 @@ def collect_report_findings(
         if fid:
             seen.add(fid)
         findings.append(normalized)
+    # Q3: Separate source_data_missing (completeness) findings from main list.
+    # They are demoted to end of list so consistency/matching findings appear first.
+    non_completeness = [
+        f for f in findings if str(f.get("category")) != "source_data_missing"
+    ]
     return sorted(
-        dedupe_findings([f for f in findings if not f.get("suppressed_by")]),
+        dedupe_findings([f for f in non_completeness if not f.get("suppressed_by")]),
         key=lambda f: (
             -finding_display_score(f),
             -finding_support_value(f),
@@ -367,16 +372,14 @@ def render_evidence_table(finding: dict[str, Any]) -> str:
     can insert the result unconditionally.
     """
     raw_samples: list[dict[str, Any]] = finding.get("raw_data_samples") or []
-    column_pair: list[str] = [
-        str(c) for c in (finding.get("column_pair") or []) if c
-    ]
+    column_pair: list[str] = [str(c) for c in (finding.get("column_pair") or []) if c]
 
     # --- build headers + rows from raw_data_samples ---
     if raw_samples:
         headers: list[str] = []
         seen: set[str] = set()
         for sample in raw_samples:
-            for col in (sample.get("column_values") or {}):
+            for col in sample.get("column_values") or {}:
                 col_s = str(col)
                 if col_s not in seen:
                     seen.add(col_s)
@@ -386,8 +389,7 @@ def render_evidence_table(finding: dict[str, Any]) -> str:
 
         hi_cols: set[str] = {str(c) for c in column_pair}
         header_cells = "".join(
-            f'<th class="{"ev-col-hi " if hdr in hi_cols else ""}"'
-            f">{h(hdr)}</th>"
+            f'<th class="{"ev-col-hi " if hdr in hi_cols else ""}">{h(hdr)}</th>'
             for hdr in headers
         )
         body_parts: list[str] = []
@@ -405,8 +407,8 @@ def render_evidence_table(finding: dict[str, Any]) -> str:
 
         return (
             f'<table class="ev-table"><thead><tr>'
-            f'<th></th>{header_cells}'
-            f'</tr></thead><tbody>{"".join(body_parts)}</tbody></table>'
+            f"<th></th>{header_cells}"
+            f"</tr></thead><tbody>{''.join(body_parts)}</tbody></table>"
         )
 
     # --- fallback: sample_pairs (left / right columns) ---
@@ -425,7 +427,7 @@ def render_evidence_table(finding: dict[str, Any]) -> str:
     return (
         f'<table class="ev-table"><thead><tr>'
         f"<th></th><th>{left_label}</th><th>{right_label}</th>"
-        f'</tr></thead><tbody>{rows_html}</tbody></table>'
+        f"</tr></thead><tbody>{rows_html}</tbody></table>"
     )
 
 
@@ -499,7 +501,7 @@ def finding_card(
     </div>
     <p><strong>复核摘要：</strong>{risk_badge}{h(clean_report_text(risk_reason or default_finding_summary(finding)))}</p>
     {certainty_layers}
-    {f'<details class="evidence-details"{open_attr}><summary>证据数据</summary>{evidence_table}</details>' if evidence_table else ''}
+    {f'<details class="evidence-details"{open_attr}><summary>证据数据</summary>{evidence_table}</details>' if evidence_table else ""}
     <div class="quote"><strong>关联论文表述：</strong>{h(claim_text or "未自动抽取到论文表述，需人工补映射。")}</div>
     <div class="grid cols-2">
       <div><h3>为什么值得复核</h3><ul><li>{h(relation)}</li><li>{h(support)}</li><li>{h(mapping_note)}</li></ul></div>

@@ -94,7 +94,7 @@ def test_pattern_strength_complete_35_of_35():
         == "fixed_difference=0.3 covers 35/35 overlapping rows"
     )
     assert result["support_rate"] == 1.0
-    assert result["risk_level"] == "medium"  # 35 < 100, so medium
+    assert result["risk_level"] == "critical"  # Q1: 100% support + 35 rows >= 20
 
 
 def test_pattern_strength_strong_80_percent():
@@ -134,7 +134,7 @@ def test_pattern_strength_strong_80_percent():
         == "fixed_difference=0.5 covers 80/100 overlapping rows"
     )
     assert result["support_rate"] == 0.8
-    assert result["risk_level"] == "medium"  # 80 < 100, so medium
+    assert result["risk_level"] == "high"  # Q1: 80% support + 100 rows >= 30
 
 
 def test_pattern_strength_high_when_support_rows_ge_100():
@@ -347,7 +347,7 @@ def test_mean_sum_labels_without_integer_n_relationship_are_not_downgraded() -> 
     )
     finding = next(item for item in findings if item["category"] == "fixed_ratio")
 
-    assert finding["risk_level"] == "medium"
+    assert finding["risk_level"] == "high"  # Q1: 100% support + 10 rows → escalated
     assert finding["artifact_likelihood"] == "unknown"
     assert finding["pressure_test_result"] == "needs_semantics_and_formula_review"
 
@@ -492,10 +492,10 @@ def write_two_sheet_xlsx(
             '<?xml version="1.0" encoding="UTF-8"?>'
             '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
             'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
-            '<sheets>'
+            "<sheets>"
             '<sheet name="Fig. 2e" sheetId="1" r:id="rId1"/>'
             '<sheet name="Fig. 7e" sheetId="2" r:id="rId2"/>'
-            '</sheets>'
+            "</sheets>"
             "</workbook>",
         )
         zf.writestr(
@@ -884,7 +884,9 @@ def test_strict_linear_relation_suppresses_fixed_ratio_and_difference() -> None:
     assert findings[0]["category"] == "strict_linear_relation"
 
 
-def test_pair_forensics_summary_includes_performance_and_detector_skips(tmp_path) -> None:
+def test_pair_forensics_summary_includes_performance_and_detector_skips(
+    tmp_path,
+) -> None:
     write_minimal_xlsx(
         tmp_path / "source.xlsx",
         [

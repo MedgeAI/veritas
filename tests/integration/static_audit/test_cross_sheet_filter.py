@@ -5,9 +5,6 @@ Tests classify_columns_with_llm and run_cross_sheet_filter from engine.static_au
 
 from __future__ import annotations
 
-import pytest
-from pathlib import Path
-from unittest.mock import Mock
 
 from engine.static_audit._shared import (
     classify_columns_with_llm,
@@ -39,11 +36,13 @@ class TestClassifyColumnsWithLLM:
             "sample_name": ["Sample_A", "Sample_B", "Sample_C"],
             "group": ["control", "treatment", "treatment"],
         }
-        mock_client = MockLLMClient(response={
-            "patient_id": "metadata",
-            "sample_name": "metadata",
-            "group": "metadata",
-        })
+        mock_client = MockLLMClient(
+            response={
+                "patient_id": "metadata",
+                "sample_name": "metadata",
+                "group": "metadata",
+            }
+        )
 
         result = classify_columns_with_llm(column_names, sample_values, mock_client)
 
@@ -61,11 +60,13 @@ class TestClassifyColumnsWithLLM:
             "count": [100, 200, 150],
             "ratio": [0.5, 0.7, 0.6],
         }
-        mock_client = MockLLMClient(response={
-            "expression": "measurement",
-            "count": "measurement",
-            "ratio": "measurement",
-        })
+        mock_client = MockLLMClient(
+            response={
+                "expression": "measurement",
+                "count": "measurement",
+                "ratio": "measurement",
+            }
+        )
 
         result = classify_columns_with_llm(column_names, sample_values, mock_client)
 
@@ -83,11 +84,13 @@ class TestClassifyColumnsWithLLM:
             "index": [0, 1, 2],
             "#": [1, 2, 3],
         }
-        mock_client = MockLLMClient(response={
-            "row_number": "index",
-            "index": "index",
-            "#": "index",
-        })
+        mock_client = MockLLMClient(
+            response={
+                "row_number": "index",
+                "index": "index",
+                "#": "index",
+            }
+        )
 
         result = classify_columns_with_llm(column_names, sample_values, mock_client)
 
@@ -105,11 +108,13 @@ class TestClassifyColumnsWithLLM:
             "expression": [1.5, 2.3],
             "row_number": [1, 2],
         }
-        mock_client = MockLLMClient(response={
-            "patient_id": "metadata",
-            "expression": "measurement",
-            "row_number": "index",
-        })
+        mock_client = MockLLMClient(
+            response={
+                "patient_id": "metadata",
+                "expression": "measurement",
+                "row_number": "index",
+            }
+        )
 
         result = classify_columns_with_llm(column_names, sample_values, mock_client)
 
@@ -173,12 +178,14 @@ class TestRunCrossSheetFilter:
             },
         ]
 
-        mock_client = MockLLMClient(response={
-            "patient_id": "metadata",
-            "expression": "measurement",
-        })
+        mock_client = MockLLMClient(
+            response={
+                "patient_id": "metadata",
+                "expression": "measurement",
+            }
+        )
 
-        filtered = run_cross_sheet_filter(tmp_path, findings, mock_client)
+        filtered, _reasons = run_cross_sheet_filter(tmp_path, findings, mock_client)
 
         assert len(filtered) == 1
         assert filtered[0]["finding_id"] == "CSD-0002"
@@ -197,7 +204,7 @@ class TestRunCrossSheetFilter:
 
         mock_client = MockLLMClient(response={"row_number": "index"})
 
-        filtered = run_cross_sheet_filter(tmp_path, findings, mock_client)
+        filtered, _reasons = run_cross_sheet_filter(tmp_path, findings, mock_client)
 
         assert len(filtered) == 0
 
@@ -211,12 +218,14 @@ class TestRunCrossSheetFilter:
             },
         ]
 
-        mock_client = MockLLMClient(response={
-            "expression": "measurement",
-            "count": "measurement",
-        })
+        mock_client = MockLLMClient(
+            response={
+                "expression": "measurement",
+                "count": "measurement",
+            }
+        )
 
-        filtered = run_cross_sheet_filter(tmp_path, findings, mock_client)
+        filtered, _reasons = run_cross_sheet_filter(tmp_path, findings, mock_client)
 
         assert len(filtered) == 1
         assert filtered[0]["finding_id"] == "CSD-0001"
@@ -238,7 +247,7 @@ class TestRunCrossSheetFilter:
 
         mock_client = MockLLMClient(raise_error=True)
 
-        filtered = run_cross_sheet_filter(tmp_path, findings, mock_client)
+        filtered, _reasons = run_cross_sheet_filter(tmp_path, findings, mock_client)
 
         # All findings should be kept (conservative fallback)
         assert len(filtered) == 2
@@ -247,7 +256,7 @@ class TestRunCrossSheetFilter:
         """Test with empty findings list."""
         mock_client = MockLLMClient(response={})
 
-        filtered = run_cross_sheet_filter(tmp_path, [], mock_client)
+        filtered, _reasons = run_cross_sheet_filter(tmp_path, [], mock_client)
 
         assert filtered == []
 
@@ -261,12 +270,14 @@ class TestRunCrossSheetFilter:
             },
         ]
 
-        mock_client = MockLLMClient(response={
-            "patient_id": "metadata",
-            "expression": "measurement",
-        })
+        mock_client = MockLLMClient(
+            response={
+                "patient_id": "metadata",
+                "expression": "measurement",
+            }
+        )
 
-        filtered = run_cross_sheet_filter(tmp_path, findings, mock_client)
+        filtered, _reasons = run_cross_sheet_filter(tmp_path, findings, mock_client)
 
         # Should keep because at least one column is measurement
         assert len(filtered) == 1
@@ -285,7 +296,7 @@ class TestRunCrossSheetFilter:
 
         mock_client = MockLLMClient(response={"expression": "measurement"})
 
-        filtered = run_cross_sheet_filter(tmp_path, findings, mock_client)
+        filtered, _reasons = run_cross_sheet_filter(tmp_path, findings, mock_client)
 
         assert len(filtered) == 1
         assert "column_1_type" in filtered[0]

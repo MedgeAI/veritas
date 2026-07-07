@@ -175,6 +175,7 @@ class UTCDateTime(TypeDecorator[datetime]):
             return value.astimezone(timezone.utc)
         return self.process_bind_param(value, dialect)
 
+
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -497,9 +498,7 @@ class RunModel(Base):
     stages = Column(MutableList.as_mutable(JSONB), nullable=True)
     current_stage = Column(String(50), nullable=True)
 
-    case = relationship(
-        "CaseModel", back_populates="runs", foreign_keys=[case_id]
-    )
+    case = relationship("CaseModel", back_populates="runs", foreign_keys=[case_id])
     events = relationship(
         "RunEventModel",
         back_populates="run",
@@ -667,22 +666,28 @@ class ReviewDecisionModel(Base):
         index=True,
     )
     source_ref = Column(String(256), nullable=False)
+    finding_id = Column(String(128), nullable=True, index=True)
+    run_id = Column(String(128), nullable=True)
     status = Column(String(32), default="open", nullable=False)
     note = Column(Text, default="", nullable=False)
     decided_by = Column(String(128), nullable=True)
     decided_at = Column(UTCDateTime(), default=utc_now_datetime, nullable=False)
     decision_type = Column(String(64), nullable=True)
+    extra_metadata = Column("metadata", JSONB, default=dict, nullable=False)
 
     case = relationship("CaseModel", back_populates="review_decisions")
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "source_ref": self.source_ref,
+            "finding_id": self.finding_id,
+            "run_id": self.run_id,
             "status": self.status,
             "note": self.note,
             "decided_by": self.decided_by,
             "decided_at": to_iso_timestamp(self.decided_at),
             "decision_type": self.decision_type,
+            "metadata": self.extra_metadata or {},
         }
 
 
@@ -691,8 +696,12 @@ class ArtifactModel(Base):
 
     __tablename__ = "artifacts"
     __table_args__ = (
-        UniqueConstraint("run_id", "artifact_type", "path", name="uq_artifact_run_path"),
-        CheckConstraint("size_bytes IS NULL OR size_bytes >= 0", name="ck_artifacts_size"),
+        UniqueConstraint(
+            "run_id", "artifact_type", "path", name="uq_artifact_run_path"
+        ),
+        CheckConstraint(
+            "size_bytes IS NULL OR size_bytes >= 0", name="ck_artifacts_size"
+        ),
         Index("ix_artifacts_case_run", "case_id", "run_id"),
         Index("ix_artifacts_run_type", "run_id", "artifact_type"),
         Index("ix_artifacts_created_at", "created_at"),
@@ -1015,18 +1024,22 @@ class InvestigationRunRequest(BaseModel):
 class ReviewDecisionCreate(BaseModel):
     status: Literal["open", "resolved", "dismissed", "needs_author_response"] = "open"
     note: str = ""
+    finding_id: str | None = None
     decision_type: (
         Literal["apply_suggestion", "manual_edit", "re_execute", "appeal"] | None
     ) = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class ReviewDecisionRead(BaseModel):
     source_ref: str
+    finding_id: str | None = None
     status: str = "open"
     note: str = ""
     decided_by: str | None = None
     decided_at: str = ""
     decision_type: str | None = None
+    metadata: dict[str, Any] = Field(default_factory=dict)
 
 
 class ReviewItemRead(BaseModel):

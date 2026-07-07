@@ -90,8 +90,6 @@ def header_section(data: ReportData) -> list[str]:
         lines.append(
             "- 当前未选择可执行 XLSX/XLSM Source Data optional lane，Source Data 审查被标记为材料缺口或暂不支持。"
         )
-    if not data.vlm:
-        lines.append("- 当前未执行批量 VLM 视觉审查；视觉结论仅限已有抽样或未覆盖。")
     lines.append("")
     return lines
 
