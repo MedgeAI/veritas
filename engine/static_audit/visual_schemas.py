@@ -166,6 +166,11 @@ class PanelEvidence:
         extraction_confidence: Confidence score 0.0-1.0 from extraction algorithm
         extraction_method: Method used, e.g. "yolov5_panel_extractor"
         panel_type: Semantic panel type from YOLOv5 classifier (e.g. "Blots", "Graphs")
+        paper_figure_label: Label from the paper (e.g. "Figure 1")
+        legend_snippet: Text snippet from figure legend relevant to this panel
+            (populated by Phase 4 论文语义 binding)
+        caption_context: Figure caption text for parent figure context
+            (populated by Phase 4 论文语义 binding)
         metadata: Additional provenance or extraction metadata
     """
 
@@ -182,6 +187,8 @@ class PanelEvidence:
     extraction_method: str
     panel_type: str | None = None
     paper_figure_label: str | None = None
+    legend_snippet: str = ""
+    caption_context: str = ""
     metadata: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -401,4 +408,60 @@ class ImageRelationship:
                 len(row) != 3 for row in self.homography
             ):
                 errors.append("homography must be a 3x3 matrix")
+        return errors
+
+
+@dataclass
+class DemotedCandidate:
+    """A visual finding demoted from the primary report.
+
+    Demoted candidates are preserved in ``visual/candidates/`` for manual
+    review but excluded from the main findings rendering path.  Each carries
+    its raw output and the reason it was demoted.
+
+    Attributes:
+        candidate_id: Stable identifier, e.g. ``"DC-0001"``.
+        detector_source: Detector family that produced this finding,
+            e.g. ``"exact_duplicate"``, ``"tru_for"``, ``"provenance"``.
+        raw_output: Original finding dict (verbatim from
+            ``build_visual_findings`` or provenance edge conversion).
+        demotion_reason: Human-readable reason for demotion.
+        visible_in_report: Always ``False`` for demoted candidates.
+        demoted_at: ISO-8601 timestamp of demotion.
+        scope_key: Grouping key used for corroboration lookup.
+    """
+
+    candidate_id: str
+    detector_source: str
+    raw_output: dict[str, Any]
+    demotion_reason: str
+    visible_in_report: bool = False
+    demoted_at: str = ""
+    scope_key: str = ""
+
+    def to_dict(self) -> dict[str, Any]:
+        """Serialize to dictionary."""
+        return asdict(self)
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> DemotedCandidate:
+        """Deserialize from dictionary."""
+        return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
+
+    def validate(self) -> list[str]:
+        """Validate demoted candidate invariants.
+
+        Returns list of validation errors (empty if valid).
+        """
+        errors: list[str] = []
+        if not self.candidate_id:
+            errors.append("candidate_id is required")
+        if not self.detector_source:
+            errors.append("detector_source is required")
+        if not isinstance(self.raw_output, dict):
+            errors.append("raw_output must be a dict")
+        if not self.demotion_reason:
+            errors.append("demotion_reason is required")
+        if self.visible_in_report:
+            errors.append("visible_in_report must be False for demoted candidates")
         return errors

@@ -380,6 +380,44 @@ def run_provenance_graph(
             "provenance_graph": {"status": "skipped", "detail": "insufficient figures"}
         }
 
+    # Preflight: check that enough figures have valid image paths.
+    valid_path_count = sum(
+        1
+        for fig in figures
+        if fig.get("source_image_path")
+        and (workdir / str(fig["source_image_path"])).exists()
+    )
+    if valid_path_count < 2:
+        record_step(
+            steps,
+            StepResult(
+                "visual_provenance_graph",
+                "溯源图构建",
+                "skipped",
+                f"Only {valid_path_count}/{len(figures)} figures have valid image paths.",
+            ),
+            progress,
+        )
+        return steps, {
+            "provenance_graph": {
+                "status": "skipped",
+                "detail": "insufficient valid image paths",
+                "valid_path_count": valid_path_count,
+                "total_figures": len(figures),
+            }
+        }
+
+    # Preflight: if panel extraction was 100% fallback, provenance quality is degraded.
+    panel_quality_path = resolve_artifact_path(workdir, "panel_extraction_quality.json")
+    if panel_quality_path.exists():
+        panel_quality = read_json(panel_quality_path) or {}
+        fallback_rate = panel_quality.get("fallback_rate", 0.0)
+        if isinstance(fallback_rate, (int, float)) and fallback_rate >= 1.0:
+            logger.warning(
+                "Panel extraction fallback_rate=%.1f; provenance will be degraded.",
+                fallback_rate,
+            )
+
     try:
         from engine.static_audit.tools.provenance_graph import build_provenance_graph
 
