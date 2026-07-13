@@ -246,10 +246,12 @@ def test_build_role_context_pack_claim_extractor() -> None:
         pack = build_context_pack_for_role("claim_extractor", workdir, "test-case")
 
         excerpt_keys = set(pack.bounded_excerpts.keys())
+        # Claim extractor now gets only full.md (no truncation) and grounding_index.json
         assert "full.md" in excerpt_keys
-        assert "evidence_ledger.json" in excerpt_keys
-        assert "source_data_findings.json" in excerpt_keys
-        assert "material_inventory.json" in excerpt_keys
+        # Old artifacts are intentionally excluded
+        assert "evidence_ledger.json" not in excerpt_keys
+        assert "source_data_findings.json" not in excerpt_keys
+        assert "material_inventory.json" not in excerpt_keys
         assert len(pack.evidence_refs) >= 1
 
 

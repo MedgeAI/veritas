@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import json
 from pathlib import Path
-from typing import Any
 
 from engine.investigation.agent_models import AgentContextPack, TruncationConfig
 from engine.shared import filter_judge_input
@@ -16,7 +14,6 @@ from engine.investigation.context_pack._shared import (
     _enforce_token_budget,
     _read_json_artifact,
     head_tail_truncate,
-    estimate_tokens,
     _artifact_path,
 )
 from engine.investigation.context_pack.evidence import (
@@ -61,6 +58,27 @@ def build_context_pack_for_role(
                 config,
             ),
         }
+    elif role == "claim_extractor":
+        # Claim extractor needs full paper text (no truncation) and grounding
+        # index for figure/table reference validation. Other artifacts from
+        # _ROLE_ARTIFACTS (material_inventory, agent_material_plan,
+        # evidence_ledger, source_data_findings, source_data_pair_forensics)
+        # are intentionally excluded.
+        bounded_excerpts = {}
+        full_md_path = _artifact_path(workdir, "full.md")
+        if full_md_path.exists():
+            try:
+                bounded_excerpts["full.md"] = full_md_path.read_text(encoding="utf-8")
+            except UnicodeDecodeError:
+                pass
+        grounding_path = _artifact_path(workdir, "grounding_index.json")
+        if grounding_path.exists():
+            try:
+                bounded_excerpts["grounding_index.json"] = grounding_path.read_text(
+                    encoding="utf-8"
+                )
+            except UnicodeDecodeError:
+                pass
     else:
         bounded_excerpts = _build_bounded_excerpts(
             workdir, artifact_names, config, role=role

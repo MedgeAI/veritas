@@ -530,6 +530,140 @@ def run_agent_roles(
 
         roles_to_run.append((role, output_path, trace_path))
 
+    # Before Phase 2, build grounding_index if claim_extractor will run
+    roles_to_run_ids = {rd[0].role_id for rd in roles_to_run}
+    if "claim_extractor" in roles_to_run_ids:
+        try:
+            from engine.static_audit.tools.grounding_index import (
+                build_grounding_index,
+                save_grounding_index,
+            )
+
+            full_md_path = resolve_artifact_path(workdir, "full.md")
+            evidence_ledger_path = resolve_artifact_path(
+                workdir, "evidence_ledger.json"
+            )
+            source_data_dir = resolve_artifact_path(workdir, "source_data")
+            if full_md_path.exists():
+                idx = build_grounding_index(
+                    full_md_path=full_md_path,
+                    evidence_ledger_path=(
+                        evidence_ledger_path
+                        if evidence_ledger_path.exists()
+                        else None
+                    ),
+                    source_data_dir=(
+                        source_data_dir if source_data_dir.exists() else None
+                    ),
+                )
+                gi_path = workdir / "grounding_index.json"
+                save_grounding_index(idx, gi_path)
+        except Exception:  # noqa: BLE001
+            import logging
+
+            logging.getLogger(__name__).warning(
+                "grounding_index build failed", exc_info=True
+            )
+
+    # Phase 2: Run roles in dependency order (respecting input_artifacts)
+    if roles_to_run:
+
+        def _run_single_role(role_data):
+            role, output_path, _trace_path = role_data
+            step_key = f"agent_role_{role.role_id}"
+            emit_step_start(
+                progress,
+                step_key,
+                f"opencode Agent role: {role.title}",
+                f"Calling opencode role agent {role.role_id}.",
+            )
+            result = run_agent_role(
+                role_id=role.role_id,
+                case_id=case_id,
+                workdir=workdir,
+                project_root=project_root,
+                env=env,
+                model=model,
+                opencode_bin=opencode_bin,
+                timeout_seconds=resolve_role_timeout(role.role_id, timeout_seconds),
+                max_retries=max_retries,
+            )
+            payload = write_role_agent_result(output_path, role, case_id, result)
+            trace = trace_from_role_result(role, output_path, result, payload, model)
+            write_role_trace(workdir, trace)
+            metadata = result_metadata(result, output_path)
+            metadata["role_id"] = role.role_id
+            step = StepResult(
+                step_key,
+                f"opencode Agent role: {role.title}",
+                agent_step_status(result.status),
+                result.detail,
+                result.command,
+            )
+            return step, metadata
+
+        # 根据 input_artifacts 构建依赖分层，按层级顺序执行
+        layers = _build_dependency_layers(roles_to_run)
+        for layer in layers:
+            # 每层内部并行执行，层间顺序执行
+            with ThreadPoolExecutor(max_workers=len(layer)) as executor:
+                futures = {executor.submit(_run_single_role, rd): rd[0] for rd in layer}
+                for future in as_completed(futures):
+                    step, metadata = future.result()
+                    record_step(steps, step, progress)
+                    role_manifest.append(metadata)
+
+    # After Phase 2, enrich claim_extractor output if needed
+    if "claim_extractor" in roles_to_run_ids:
+        try:
+            from engine.static_audit.tools.claim_enricher import enrich_claims
+
+            claim_output_path = resolve_artifact_path(
+                workdir, "agent_claim_extractor.json"
+            )
+            if claim_output_path.exists():
+                payload = json.loads(claim_output_path.read_text(encoding="utf-8"))
+                claims = payload.get("claims", [])
+                needs_enrichment = any(
+                    "mentioned_refs" in c and "paper_location" not in c
+                    for c in claims
+                )
+                if needs_enrichment:
+                    gi_path = workdir / "grounding_index.json"
+                    grounding_index_data: dict[str, Any] = {}
+                    if gi_path.exists():
+                        grounding_index_data = json.loads(
+                            gi_path.read_text(encoding="utf-8")
+                        )
+                    el_path = resolve_artifact_path(
+                        workdir, "evidence_ledger.json"
+                    )
+                    evidence_ledger_data = None
+                    if el_path.exists():
+                        evidence_ledger_data = json.loads(
+                            el_path.read_text(encoding="utf-8")
+                        )
+                    full_md_path = resolve_artifact_path(workdir, "full.md")
+                    enriched = enrich_claims(
+                        raw_claims=claims,
+                        grounding_index=grounding_index_data,
+                        evidence_ledger=evidence_ledger_data,
+                        full_md_path=(
+                            full_md_path if full_md_path.exists() else None
+                        ),
+                        case_id=case_id,
+                    )
+                    claim_output_path.write_text(
+                        json.dumps(enriched, ensure_ascii=False, indent=2),
+                        encoding="utf-8",
+                    )
+        except Exception:  # noqa: BLE001
+            import logging
+
+            logging.getLogger(__name__).warning(
+                "claim enrichment failed", exc_info=True
+            )
+
     return steps, role_manifest
 
 
