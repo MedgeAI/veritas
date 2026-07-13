@@ -9,6 +9,7 @@ if __package__ in {None, ""}:
 
 from engine._logging import configure_logging
 from cli.commands import audit_paper, precheck, report, run
+from cli import reproduce as reproduce_cmd
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -125,6 +126,21 @@ def build_parser() -> argparse.ArgumentParser:
         default="auto",
         help="Progress output mode. Progress is written to stderr; final summary JSON stays on stdout.",
     )
+    audit_parser.add_argument(
+        "--tier",
+        choices=["bare", "structured", "artifact", "provenance", "dual-layer"],
+        default=None,
+        help="Benchmark tier — controls which pipeline stages run. "
+        "Omit for full pipeline (backward compatible).",
+    )
+
+    # -- benchmark-batch ---------------------------------------------------
+    from cli import benchmark_batch as benchmark_batch_cmd
+
+    benchmark_batch_cmd.add_subparsers(subparsers)
+
+    # -- reproduce (Veritas-Auditor benchmark & mock) ----------------------
+    reproduce_cmd.add_subparsers(subparsers)
 
     return parser
 
@@ -154,7 +170,14 @@ def main(argv: list[str] | None = None) -> int:
             skip_unavailable_tools=args.skip_unavailable_tools,
             progress_mode=args.progress,
             paper_pdf=args.paper_pdf,
+            benchmark_tier=getattr(args, "tier", None),
         )
+    if args.command == "benchmark-batch":
+        from cli import benchmark_batch as benchmark_batch_cmd
+
+        return benchmark_batch_cmd.dispatch(args)
+    if args.command == "reproduce":
+        return reproduce_cmd.dispatch(args)
     raise ValueError(f"Unsupported command: {args.command}")
 
 

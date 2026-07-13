@@ -82,6 +82,7 @@ def handle(
     profile: str = "full",
     progress_mode: str = "auto",
     paper_pdf: str | None = None,
+    benchmark_tier: str | None = None,
 ) -> int:
     selection_source: str | None = None
     if paper_pdf is not None:
@@ -130,6 +131,7 @@ def handle(
             agent_max_retries=agent_max_retries,
             skip_unavailable_tools=skip_unavailable_tools,
             audit_profile=profile,
+            benchmark_tier=benchmark_tier,
         ),
         progress=make_progress_reporter(progress_mode),
     )

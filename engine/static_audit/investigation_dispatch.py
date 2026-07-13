@@ -413,6 +413,7 @@ def run_agent_roles(
     timeout_seconds: int,
     max_retries: int,
     progress: ProgressCallback | None = None,
+    enabled_roles: frozenset[str] | None = None,
 ) -> tuple[list[StepResult], list[dict[str, Any]]]:
     steps: list[StepResult] = []
     role_manifest: list[dict[str, Any]] = []
@@ -468,6 +469,33 @@ def run_agent_roles(
             )
             continue
 
+        # Benchmark tier filter: skip roles not enabled for this tier
+        if enabled_roles is not None and role.role_id not in enabled_roles:
+            trace = skipped_trace(
+                role, f"Benchmark tier does not include role '{role.role_id}'."
+            )
+            trace.output_path = str(output_path)
+            write_reserved_role_output(workdir, role, trace)
+            write_role_trace(workdir, trace)
+            role_manifest.append(
+                {
+                    "role_id": role.role_id,
+                    "status": trace.status,
+                    "output": str(output_path),
+                }
+            )
+            record_step(
+                steps,
+                StepResult(
+                    f"agent_role_{role.role_id}",
+                    f"opencode Agent role: {role.title}",
+                    "skipped",
+                    trace.detail,
+                ),
+                progress,
+            )
+            continue
+
         step_key = f"agent_role_{role.role_id}"
         if not agent_enabled:
             trace = AgentTrace(
@@ -501,54 +529,6 @@ def run_agent_roles(
             continue
 
         roles_to_run.append((role, output_path, trace_path))
-
-    # Phase 2: Run roles in dependency order (respecting input_artifacts)
-    if roles_to_run:
-
-        def _run_single_role(role_data):
-            role, output_path, _trace_path = role_data
-            step_key = f"agent_role_{role.role_id}"
-            emit_step_start(
-                progress,
-                step_key,
-                f"opencode Agent role: {role.title}",
-                f"Calling opencode role agent {role.role_id}.",
-            )
-            result = run_agent_role(
-                role_id=role.role_id,
-                case_id=case_id,
-                workdir=workdir,
-                project_root=project_root,
-                env=env,
-                model=model,
-                opencode_bin=opencode_bin,
-                timeout_seconds=resolve_role_timeout(role.role_id, timeout_seconds),
-                max_retries=max_retries,
-            )
-            payload = write_role_agent_result(output_path, role, case_id, result)
-            trace = trace_from_role_result(role, output_path, result, payload, model)
-            write_role_trace(workdir, trace)
-            metadata = result_metadata(result, output_path)
-            metadata["role_id"] = role.role_id
-            step = StepResult(
-                step_key,
-                f"opencode Agent role: {role.title}",
-                agent_step_status(result.status),
-                result.detail,
-                result.command,
-            )
-            return step, metadata
-
-        # 根据 input_artifacts 构建依赖分层，按层级顺序执行
-        layers = _build_dependency_layers(roles_to_run)
-        for layer in layers:
-            # 每层内部并行执行，层间顺序执行
-            with ThreadPoolExecutor(max_workers=len(layer)) as executor:
-                futures = {executor.submit(_run_single_role, rd): rd[0] for rd in layer}
-                for future in as_completed(futures):
-                    step, metadata = future.result()
-                    record_step(steps, step, progress)
-                    role_manifest.append(metadata)
 
     return steps, role_manifest
 

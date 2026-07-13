@@ -42,3 +42,4 @@ class AuditConfig:
     reproducibility_tier: str = "full"
     skip_unavailable_tools: bool = False
     audit_profile: str = "fast"
+    benchmark_tier: str | None = None
