@@ -125,6 +125,8 @@ class ExecutionStatus:
     runtime_backend: str | None = None
     manifest_path: str | None = None
     summary: str = "Code execution audit is not connected for this static-audit run."
+    reproduction_evidence: list[dict[str, Any]] = field(default_factory=list)
+    claim_verdicts: list[dict[str, Any]] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
 

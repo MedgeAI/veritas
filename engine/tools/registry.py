@@ -770,6 +770,28 @@ TOOLS: dict[str, ToolDefinition] = {
         ),
         output_artifacts=("reports/final_audit_report.html",),
     ),
+    "auditor.evidence_graph": ToolDefinition(
+        tool_id="auditor.evidence_graph",
+        step_key="auditor_evidence_graph",
+        title="Veritas-Auditor 证据图构建",
+        source="veritas_auditor",
+        description="Build and aggregate evidence graph from paper and source data.",
+        deterministic=True,
+        execution_phase=ExecutionPhase.CONDITIONAL_BASELINE,
+        input_artifacts=("paper.pdf", "source_data/"),
+        output_artifacts=("evidence_graph.json", "claim_verdicts.json"),
+    ),
+    "auditor.benchmark": ToolDefinition(
+        tool_id="auditor.benchmark",
+        step_key="auditor_benchmark",
+        title="VeritasBench 评测",
+        source="veritas_auditor",
+        description="Run VeritasBench evaluation.",
+        deterministic=True,
+        execution_phase=ExecutionPhase.REPORT_ONLY,
+        input_artifacts=(),
+        output_artifacts=("benchmark_results.json",),
+    ),
 }
 
 # Auto-attach schema-based coercers to tools without custom coercers.
