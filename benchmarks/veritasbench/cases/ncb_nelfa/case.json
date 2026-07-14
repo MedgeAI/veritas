@@ -1,0 +1,193 @@
+{
+  "case_id": "ncb_nelfa",
+  "paper_title": "Maternal factor NELFA drives a 2C-like state in mouse embryonic stem cells",
+  "paper_authors": [
+    "A*STAR Singapore team"
+  ],
+  "artifacts": {
+    "41556_2019_453_moesm14_esm": {
+      "path": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "sha256": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "d38f7bfef9e04cfdf6a3cf65c4b6781a7a4a03fb2753eef1897e279e04e40388",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!Q16": {
+      "value": 41.294316210292315,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', Q16 (Day2 %Prolif conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!Q17": {
+      "value": 42.49698546136111,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', Q17 (Day2 %Prolif conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!Q18": {
+      "value": 46.28573255474236,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', Q18 (Day2 %Prolif conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!Q19": {
+      "value": 43.3590114087986,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', Q19 (Day2 %Prolif conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!Q20": {
+      "value": 1.5039809209175916,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', Q20 (Day2 %Prolif conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!Q24": {
+      "value": 41.294316210292315,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', Q24 (Day3 %Prolif conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!Q25": {
+      "value": 42.49698546136111,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', Q25 (Day3 %Prolif conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!Q26": {
+      "value": 46.28573255474236,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', Q26 (Day3 %Prolif conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!Q27": {
+      "value": 43.3590114087986,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', Q27 (Day3 %Prolif conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!Q28": {
+      "value": 1.5039809209175916,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', Q28 (Day3 %Prolif conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!J16": {
+      "value": 1.4527408581553687,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', J16 (Day2 %cytotox conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!J17": {
+      "value": 1.3076254990115885,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', J17 (Day2 %cytotox conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!J18": {
+      "value": -0.7586153463299926,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', J18 (Day2 %cytotox conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!J19": {
+      "value": 0.6672503369456549,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', J19 (Day2 %cytotox conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!J20": {
+      "value": 0.7141625228014056,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', J20 (Day2 %cytotox conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!J24": {
+      "value": 5.875769640949209,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', J24 (Day3 %cytotox conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!J25": {
+      "value": -3.773183760552602,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', J25 (Day3 %cytotox conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!J26": {
+      "value": 2.749789157163929,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', J26 (Day3 %cytotox conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!J27": {
+      "value": 1.6174583458535121,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', J27 (Day3 %cytotox conc4)"
+    },
+    "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!J28": {
+      "value": 2.8423702102160284,
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "e399ee7b5b08c6e9be91f2b34f82634af6aea0ca097e9d6f8d46cccfb9ff9f69",
+      "source_span": "sheet 'Extended data fig 5f', J28 (Day3 %cytotox conc4)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_nelfa_ann_001",
+      "claim_id": "ncb_nelfa_claim_001",
+      "claim_atom": "In Extended Data Fig. 5f, the Day 2 and Day 3 %Proliferation measurements (concentration 4) are independent.",
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!Q16",
+      "target_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!Q24",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_values",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-14T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "Q16(Day2)=41.294316210292315 == Q24(Day3)=41.294316210292315",
+        "Q17(Day2)=42.49698546136111 == Q25(Day3)=42.49698546136111",
+        "Q18(Day2)=46.28573255474236 == Q26(Day3)=46.28573255474236",
+        "Q19(Day2)=43.3590114087986 == Q27(Day3)=43.3590114087986",
+        "Q20(Day2)=1.5039809209175916 == Q28(Day3)=1.5039809209175916"
+      ],
+      "_adjudication": "wuguandu 核定=inconsistent: ED5f %Prolif(Q列)Day2(r16-20)与Day3(r24-28) n1/n2/n3/Avg/SEM 5值逐一相同(41.29/42.50/46.29/43.36/1.50), 不同天不可能字节相同=复制粘贴; 同表%cytotox(J列)两天真不同=对照."
+    },
+    {
+      "annotation_id": "ncb_nelfa_ann_002",
+      "claim_id": "ncb_nelfa_claim_002",
+      "claim_atom": "In Extended Data Fig. 5f, the Day 2 and Day 3 %Cytotoxicity (concentration 4) are independent measurements.",
+      "source_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!J16",
+      "target_artifact": "artifacts/41556_2019_453_MOESM14_ESM.xlsx#Extended data fig 5f!J24",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-14T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "clean/FAR基线: %cytotox J列 Day2(1.45,1.31,-0.76,0.67,0.71) vs Day3(5.88,-3.77,2.75,1.62,2.84) 各值不同=独立真数据."
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_nelfa",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [
+      "mixed_boundary"
+    ],
+    "source_url": "https://doi.org/10.1038/s41556-019-0453-8",
+    "_lingjing_disclosure": "灵镜: ED Fig 5f 不同组同数据队列",
+    "_independent_status": "下载窗口 dup_scan 我方复现: ED5f %Prolif Day2==Day3",
+    "_signed_by": "wuguandu @ 2026-07-14T00:00:00Z; 第二标注人待补(指南§5)"
+  }
+}
