@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://veritasbench/case.schema.json",
+  "title": "VeritasBench case.json",
+  "description": "Paper-level case contract (data-collection guide v2.0 §4). Authoritative checks live in scripts/validate_veritasbench.py; this schema documents the shape.",
+  "type": "object",
+  "required": ["case_id", "paper_title", "artifacts", "observations", "claims", "metadata"],
+  "additionalProperties": true,
+  "properties": {
+    "case_id": {"type": "string"},
+    "paper_title": {"type": "string"},
+    "paper_authors": {"type": "array", "items": {"type": "string"}},
+    "artifacts": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["path", "sha256", "kind"],
+        "properties": {
+          "path": {"type": "string", "description": "relative to the case directory"},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "kind": {"type": "string", "examples": ["paper_pdf", "source_data", "code", "code_output", "table", "figure", "supplement"]}
+        }
+      }
+    },
+    "observations": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["value", "source_artifact", "source_artifact_hash", "source_span"],
+        "properties": {
+          "value": {},
+          "source_artifact": {"type": "string"},
+          "source_artifact_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "source_span": {"type": "string"},
+          "source_snippet": {"type": "string"}
+        }
+      }
+    },
+    "claims": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["annotation_id", "claim_id", "claim_atom", "source_artifact", "target_artifact", "relation_type", "verdict", "evidence_span", "annotator_id", "annotation_timestamp", "is_clean_claim"],
+        "properties": {
+          "annotation_id": {"type": "string"},
+          "claim_id": {"type": "string"},
+          "claim_atom": {"type": "string"},
+          "source_artifact": {"type": "string", "description": "must be an observations key"},
+          "target_artifact": {"type": "string", "description": "must be an observations key"},
+          "relation_type": {"enum": ["L1", "L2", "L3", "L4"]},
+          "verdict": {"enum": ["consistent", "inconsistent", "insufficient"]},
+          "discrepancy_type": {"type": ["string", "null"]},
+          "evidence_span": {"type": ["string", "null"]},
+          "severity": {"type": ["string", "null"]},
+          "annotator_id": {"type": "string"},
+          "annotation_timestamp": {"type": "string"},
+          "is_clean_claim": {"type": "boolean", "description": "true requires verdict=consistent"}
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["paper_split", "primary_failure_mode"],
+      "properties": {
+        "paper_split": {"type": "string"},
+        "primary_failure_mode": {"enum": ["grounding", "verifier_conflict", "false_positive_trap", "mixed_boundary"]},
+        "secondary_failure_modes": {"type": "array", "items": {"type": "string"}},
+        "source_url": {"type": "string"}
+      }
+    }
+  }
+}

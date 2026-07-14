@@ -1,0 +1,318 @@
+{
+  "case_id": "ncb_h19",
+  "paper_title": "The lncRNA H19 alleviates muscular dystrophy by stabilizing dystrophin",
+  "paper_authors": [
+    "Yang Liuqing (MD Anderson) et al."
+  ],
+  "artifacts": {
+    "source_data_exfig9cd": {
+      "path": "artifacts/source_data_exfig9cd.xlsx",
+      "sha256": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "91098e5063fa88c74bbe377397dde65b1d16871da59806c5a373c7c1dd21937f",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/source_data_exfig9cd.xlsx#9c_r3_A": {
+      "value": 7948.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 3, col A (Dmd WT+Scr), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r3_B": {
+      "value": 5976.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 3, col B (Dmd C3333Y+Scr), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r3_C": {
+      "value": 6448.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 3, col C (Dmd C3333Y+AGR-H19), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r3_D": {
+      "value": 6658.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 3, col D (Dmd C3333Y+AGR-H19 mut), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r4_A": {
+      "value": 5856.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 4, col A (Dmd WT+Scr), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r4_B": {
+      "value": 6048.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 4, col B (Dmd C3333Y+Scr), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r4_C": {
+      "value": 5467.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 4, col C (Dmd C3333Y+AGR-H19), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r4_D": {
+      "value": 8457.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 4, col D (Dmd C3333Y+AGR-H19 mut), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r5_A": {
+      "value": 5976.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 5, col A (Dmd WT+Scr), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r5_B": {
+      "value": 7428.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 5, col B (Dmd C3333Y+Scr), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r5_C": {
+      "value": 6458.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 5, col C (Dmd C3333Y+AGR-H19), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r5_D": {
+      "value": 6449.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 5, col D (Dmd C3333Y+AGR-H19 mut), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r6_A": {
+      "value": 7116.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 6, col A (Dmd WT+Scr), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r6_B": {
+      "value": 7856.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 6, col B (Dmd C3333Y+Scr), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r6_C": {
+      "value": 7262.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 6, col C (Dmd C3333Y+AGR-H19), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r6_D": {
+      "value": 6478.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 6, col D (Dmd C3333Y+AGR-H19 mut), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r7_A": {
+      "value": 6516.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 7, col A (Dmd WT+Scr), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r7_B": {
+      "value": 6744.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 7, col B (Dmd C3333Y+Scr), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r7_C": {
+      "value": 7929.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 7, col C (Dmd C3333Y+AGR-H19), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9c_r7_D": {
+      "value": 7676.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 7, col D (Dmd C3333Y+AGR-H19 mut), panel 9c"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r20_A": {
+      "value": 16448.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 20, col A (Dmd WT+Scr), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r20_B": {
+      "value": 16658.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 20, col B (Dmd C3333Y+Scr), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r20_C": {
+      "value": 18929.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 20, col C (Dmd C3333Y+AGR-H19), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r20_D": {
+      "value": 18676.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 20, col D (Dmd C3333Y+AGR-H19 mut), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r21_A": {
+      "value": 14467.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 21, col A (Dmd WT+Scr), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r21_B": {
+      "value": 13457.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 21, col B (Dmd C3333Y+Scr), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r21_C": {
+      "value": 13894.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 21, col C (Dmd C3333Y+AGR-H19), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r21_D": {
+      "value": 16895.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 21, col D (Dmd C3333Y+AGR-H19 mut), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r22_A": {
+      "value": 16458.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 22, col A (Dmd WT+Scr), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r22_B": {
+      "value": 16449.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 22, col B (Dmd C3333Y+Scr), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r22_C": {
+      "value": 15467.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 22, col C (Dmd C3333Y+AGR-H19), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r22_D": {
+      "value": 18457.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 22, col D (Dmd C3333Y+AGR-H19 mut), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r23_A": {
+      "value": 17262.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 23, col A (Dmd WT+Scr), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r23_B": {
+      "value": 16478.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 23, col B (Dmd C3333Y+Scr), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r23_C": {
+      "value": 15894.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 23, col C (Dmd C3333Y+AGR-H19), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r23_D": {
+      "value": 15684.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 23, col D (Dmd C3333Y+AGR-H19 mut), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r24_A": {
+      "value": 17929.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 24, col A (Dmd WT+Scr), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r24_B": {
+      "value": 17676.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 24, col B (Dmd C3333Y+Scr), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r24_C": {
+      "value": 17589.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 24, col C (Dmd C3333Y+AGR-H19), panel 9d"
+    },
+    "artifacts/source_data_exfig9cd.xlsx#9d_r24_D": {
+      "value": 16058.0,
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
+      "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
+      "source_span": "sheet 'Ex. Fig. 9c-d', row 24, col D (Dmd C3333Y+AGR-H19 mut), panel 9d"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_h19_ann_001",
+      "claim_id": "ncb_h19_claim_001",
+      "claim_atom": "Extended Data Fig. 9d presents grip-strength measurements as an independent experiment from Fig. 9c.",
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx#9c_r3_C",
+      "target_artifact": "artifacts/source_data_exfig9cd.xlsx#9d_r20_A",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_with_constant_offset",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-14T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "9d[9d_r20_A]=16448.0 = 9c[9c_r3_C]=6448.0 +10000",
+        "9d[9d_r20_B]=16658.0 = 9c[9c_r3_D]=6658.0 +10000",
+        "9d[9d_r22_A]=16458.0 = 9c[9c_r5_C]=6458.0 +10000",
+        "9d[9d_r22_B]=16449.0 = 9c[9c_r5_D]=6449.0 +10000",
+        "9d[9d_r22_C]=15467.0 = 9c[9c_r4_C]=5467.0 +10000",
+        "9d[9d_r22_D]=18457.0 = 9c[9c_r4_D]=8457.0 +10000",
+        "9d[9d_r23_A]=17262.0 = 9c[9c_r6_C]=7262.0 +10000",
+        "9d[9d_r23_B]=16478.0 = 9c[9c_r6_D]=6478.0 +10000",
+        "9d[9d_r24_A]=17929.0 = 9c[9c_r7_C]=7929.0 +10000",
+        "9d[9d_r24_B]=17676.0 = 9c[9c_r7_D]=7676.0 +10000"
+      ]
+    },
+    {
+      "annotation_id": "ncb_h19_ann_002",
+      "claim_id": "ncb_h19_claim_002",
+      "claim_atom": "Extended Data Fig. 9d column C (Dmd C3333Y+AGR-H19) values are independent measurements, not derived from Fig. 9c.",
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx#9c_r3_C",
+      "target_artifact": "artifacts/source_data_exfig9cd.xlsx#9d_r20_C",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-14T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "clean/FAR基线: 9d C列(18929,13894,15467,15894,17589)减10000在9c查无匹配 → 独立真数据, 表面同样可疑但一致。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_h19",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [
+      "mixed_boundary"
+    ],
+    "source_url": "https://doi.org/10.1038/s41556-020-00595-5",
+    "_paper_artifact_status": "paper artifact 已补入(kind=paper_pdf, 43843KB); 支持后续L3(文字claim)/L4(图编码)标注",
+    "_lingjing_disclosure": "灵镜: Fig1c/3h/ExFig3h(差一位小数)/ExFig9c-9d(恒定差值)",
+    "_independent_status": "第三方PubPeer取证; 下载窗口已从开放Source Data独立复现ExFig9c/9d +10000关系",
+    "_signed_by": "wuguandu @ 2026-07-14T00:00:00Z (下载窗口 provisional→已核定); 第二标注人待补(指南§5双人)"
+  }
+}

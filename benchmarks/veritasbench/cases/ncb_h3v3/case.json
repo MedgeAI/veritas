@@ -1,0 +1,309 @@
+{
+  "case_id": "ncb_h3v3",
+  "paper_title": "Histone variant H3.3 maintains adult haematopoietic stem cell homeostasis by enforcing chromatin adaptability",
+  "paper_authors": [
+    "Weill Cornell team (Guo et al.)"
+  ],
+  "artifacts": {
+    "41556_2021_795_moesm15_esm": {
+      "path": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "sha256": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "fcda1e9c7c2d7db70e1f7629abbf2e8123fcdebb251274e6608bb510e1e444fe",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!T69": {
+      "value": 1.0,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', T69"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!T76": {
+      "value": 1.0,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', T76"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!U69": {
+      "value": 12.6,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', U69"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!U76": {
+      "value": 12.6,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', U76"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!V69": {
+      "value": 11.6,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', V69"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!V76": {
+      "value": 11.6,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', V76"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!W69": {
+      "value": 11.8,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', W69"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!W76": {
+      "value": 11.8,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', W76"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!X69": {
+      "value": 10.5,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', X69"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!X76": {
+      "value": 10.5,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', X76"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!T70": {
+      "value": 4.0,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', T70"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!T77": {
+      "value": 4.0,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', T77"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!U70": {
+      "value": 11.1,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', U70"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!U77": {
+      "value": 11.1,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', U77"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!V70": {
+      "value": 11.4,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', V70"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!V77": {
+      "value": 11.4,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', V77"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!W70": {
+      "value": 10.2,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', W70"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!W77": {
+      "value": 10.2,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', W77"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!X70": {
+      "value": 11.4,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', X70"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!X77": {
+      "value": 11.4,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', X77"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!T71": {
+      "value": 8.0,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', T71"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!T78": {
+      "value": 8.0,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', T78"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!U71": {
+      "value": 18.2,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', U71"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!U78": {
+      "value": 18.2,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', U78"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!V71": {
+      "value": 15.3,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', V71"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!V78": {
+      "value": 15.3,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', V78"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!W71": {
+      "value": 12.4,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', W71"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!W78": {
+      "value": 12.4,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', W78"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!X71": {
+      "value": 14.1,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', X71"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!X78": {
+      "value": 14.1,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', X78"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!A5": {
+      "value": -5.0,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', A5"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!A36": {
+      "value": -6.0,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', A36"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_h3v3_ann_001",
+      "claim_id": "ncb_h3v3_claim_001",
+      "claim_atom": "Extended Data Figure 6 (T69:X69) and Extended Data Figure 6 (T76:X76) are independent measurements.",
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!T69",
+      "target_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!T76",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_values",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-14T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "T69=1 ~ T76=1",
+        "U69=12.6 ~ U76=12.6",
+        "V69=11.6 ~ V76=11.6",
+        "W69=11.8 ~ W76=11.8",
+        "X69=10.5 ~ X76=10.5"
+      ]
+    },
+    {
+      "annotation_id": "ncb_h3v3_ann_002",
+      "claim_id": "ncb_h3v3_claim_002",
+      "claim_atom": "Extended Data Figure 6 (T70:X70) and Extended Data Figure 6 (T77:X77) are independent measurements.",
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!T70",
+      "target_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!T77",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_values",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-14T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "T70=4 ~ T77=4",
+        "U70=11.1 ~ U77=11.1",
+        "V70=11.4 ~ V77=11.4",
+        "W70=10.2 ~ W77=10.2",
+        "X70=11.4 ~ X77=11.4"
+      ]
+    },
+    {
+      "annotation_id": "ncb_h3v3_ann_003",
+      "claim_id": "ncb_h3v3_claim_003",
+      "claim_atom": "Extended Data Figure 6 (T71:X71) and Extended Data Figure 6 (T78:X78) are independent measurements.",
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!T71",
+      "target_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!T78",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_values",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-14T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "T71=8 ~ T78=8",
+        "U71=18.2 ~ U78=18.2",
+        "V71=15.3 ~ V78=15.3",
+        "W71=12.4 ~ W78=12.4",
+        "X71=14.1 ~ X78=14.1"
+      ]
+    },
+    {
+      "annotation_id": "ncb_h3v3_ann_clean",
+      "claim_id": "ncb_h3v3_claim_clean",
+      "claim_atom": "Two columns in Extended Data Figure 6 are independent measurements (genuinely different).",
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!A5",
+      "target_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!A36",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-14T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "clean/FAR基线: Extended Data Figure 6 两列值不同=独立真数据(非复制), 表面同样可疑但一致."
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_h3v3",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [
+      "mixed_boundary"
+    ],
+    "source_url": "https://doi.org/10.1038/s41556-021-00795-7",
+    "_paper_artifact_status": "paper artifact 已补入(kind=paper_pdf, 23587KB); 支持后续L3(文字claim)/L4(图编码)标注",
+    "_lingjing_disclosure": "灵镜: ED Fig 6j vs 6k 不同表示同队列",
+    "_independent_status": "下载窗口 dup_scan 我方复现; 6j(%)与6k(#细胞数)不可能相同却逐行相同=造假铁证(灵镜披露背书)",
+    "_signed_by": "wuguandu @ 2026-07-14T00:00:00Z (下载窗口 provisional→已核定); 第二标注人待补(指南§5双人)"
+  }
+}

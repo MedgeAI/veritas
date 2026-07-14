@@ -1,0 +1,740 @@
+{
+  "case_id": "ncb_eet",
+  "paper_title": "Eosinophil extracellular traps drive asthma progression through neuro-immune signals",
+  "paper_authors": [
+    "Sun Yat-sen team (Su et al.)"
+  ],
+  "artifacts": {
+    "41556_2021_762_moesm3_esm": {
+      "path": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "sha256": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "kind": "source_data"
+    },
+    "41556_2021_762_moesm10_esm": {
+      "path": "artifacts/41556_2021_762_MOESM10_ESM.xlsx",
+      "sha256": "849b54724422100901bd741866f7b0c3784d290dd14c6e2da85404c95dd0f225",
+      "kind": "source_data"
+    },
+    "41556_2021_762_moesm6_esm": {
+      "path": "artifacts/41556_2021_762_MOESM6_ESM.xlsx",
+      "sha256": "bda4fadc90e0af8a075250e94477de3b07c3a70bd93f6d5ea7f3b50386ce5b10",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "4a0cb023f46100efd795ccf706382824cc32a9e324a850b644181eca6ef12e8f",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B3": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B3"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F3": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F3"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B4": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B4"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F4": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F4"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B5": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B5"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F5": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F5"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B6": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B6"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F6": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F6"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B7": {
+      "value": 0.15,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B7"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F7": {
+      "value": 0.15,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F7"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B8": {
+      "value": 0.34,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B8"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F8": {
+      "value": 0.34,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F8"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B9": {
+      "value": 0.68,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B9"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F9": {
+      "value": 0.68,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F9"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B10": {
+      "value": 0.71,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B10"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F10": {
+      "value": 0.71,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F10"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B11": {
+      "value": 1.08,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B11"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F11": {
+      "value": 1.08,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F11"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B12": {
+      "value": 1.23,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B12"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F12": {
+      "value": 1.23,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F12"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B13": {
+      "value": 1.29,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B13"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F13": {
+      "value": 1.29,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F13"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B14": {
+      "value": 1.48,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B14"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F14": {
+      "value": 1.48,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F14"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B15": {
+      "value": 1.84,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B15"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F15": {
+      "value": 1.84,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F15"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B16": {
+      "value": 1.87,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B16"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F16": {
+      "value": 1.87,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F16"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B17": {
+      "value": 2.05,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B17"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F17": {
+      "value": 2.05,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F17"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B18": {
+      "value": 2.05,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B18"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F18": {
+      "value": 2.05,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F18"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B19": {
+      "value": 2.07,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B19"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F19": {
+      "value": 2.07,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F19"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B20": {
+      "value": 2.15,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B20"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F20": {
+      "value": 2.15,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F20"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B21": {
+      "value": 2.2,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B21"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F21": {
+      "value": 2.2,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F21"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B22": {
+      "value": 2.24,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B22"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F22": {
+      "value": 2.24,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F22"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B23": {
+      "value": 2.52,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B23"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F23": {
+      "value": 2.52,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F23"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B24": {
+      "value": 2.58,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B24"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F24": {
+      "value": 2.58,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F24"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B25": {
+      "value": 2.59,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B25"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F25": {
+      "value": 2.59,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F25"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B26": {
+      "value": 2.67,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B26"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F26": {
+      "value": 2.67,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F26"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B27": {
+      "value": 2.89,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B27"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F27": {
+      "value": 2.89,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F27"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B28": {
+      "value": 2.94,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B28"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F28": {
+      "value": 2.94,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F28"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B29": {
+      "value": 2.95,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B29"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F29": {
+      "value": 2.95,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F29"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B30": {
+      "value": 2.98,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B30"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F30": {
+      "value": 2.98,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F30"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B31": {
+      "value": 2.98,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B31"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F31": {
+      "value": 2.98,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F31"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B32": {
+      "value": 3.12,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B32"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F32": {
+      "value": 3.12,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F32"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B33": {
+      "value": 3.14,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B33"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F33": {
+      "value": 3.14,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F33"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B34": {
+      "value": 3.34,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B34"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F34": {
+      "value": 3.34,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F34"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B35": {
+      "value": 3.47,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B35"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F35": {
+      "value": 3.47,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F35"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B36": {
+      "value": 3.6,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B36"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F36": {
+      "value": 3.6,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F36"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B37": {
+      "value": 3.65,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B37"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F37": {
+      "value": 3.65,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F37"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B38": {
+      "value": 3.87,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B38"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F38": {
+      "value": 3.87,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F38"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B39": {
+      "value": 3.92,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B39"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F39": {
+      "value": 3.92,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F39"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B40": {
+      "value": 4.32,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B40"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F40": {
+      "value": 4.32,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F40"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B41": {
+      "value": 4.45,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B41"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F41": {
+      "value": 4.45,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F41"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B42": {
+      "value": 4.83,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B42"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F42": {
+      "value": 4.83,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F42"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B43": {
+      "value": 5.12,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B43"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F43": {
+      "value": 5.12,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F43"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B44": {
+      "value": 5.6,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B44"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F44": {
+      "value": 5.6,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F44"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B45": {
+      "value": 6.39,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B45"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F45": {
+      "value": 6.39,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F45"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B46": {
+      "value": 6.6,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B46"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F46": {
+      "value": 6.6,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F46"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B47": {
+      "value": 6.78,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B47"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F47": {
+      "value": 6.78,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F47"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B48": {
+      "value": 7.62,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', B48"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F48": {
+      "value": 7.62,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', F48"
+    },
+    "artifacts/41556_2021_762_MOESM10_ESM.xlsx#Fig6!AG13": {
+      "value": 93.72,
+      "source_artifact": "artifacts/41556_2021_762_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "849b54724422100901bd741866f7b0c3784d290dd14c6e2da85404c95dd0f225",
+      "source_span": "sheet 'Fig6', AG13"
+    },
+    "artifacts/41556_2021_762_MOESM6_ESM.xlsx#Fig3!W13": {
+      "value": 95.72,
+      "source_artifact": "artifacts/41556_2021_762_MOESM6_ESM.xlsx",
+      "source_artifact_hash": "bda4fadc90e0af8a075250e94477de3b07c3a70bd93f6d5ea7f3b50386ce5b10",
+      "source_span": "sheet 'Fig3', W13"
+    },
+    "artifacts/41556_2021_762_MOESM10_ESM.xlsx#Fig6!AG14": {
+      "value": 67.58,
+      "source_artifact": "artifacts/41556_2021_762_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "849b54724422100901bd741866f7b0c3784d290dd14c6e2da85404c95dd0f225",
+      "source_span": "sheet 'Fig6', AG14"
+    },
+    "artifacts/41556_2021_762_MOESM6_ESM.xlsx#Fig3!W14": {
+      "value": 69.58,
+      "source_artifact": "artifacts/41556_2021_762_MOESM6_ESM.xlsx",
+      "source_artifact_hash": "bda4fadc90e0af8a075250e94477de3b07c3a70bd93f6d5ea7f3b50386ce5b10",
+      "source_span": "sheet 'Fig3', W14"
+    },
+    "artifacts/41556_2021_762_MOESM10_ESM.xlsx#Fig6!AG15": {
+      "value": 48.97,
+      "source_artifact": "artifacts/41556_2021_762_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "849b54724422100901bd741866f7b0c3784d290dd14c6e2da85404c95dd0f225",
+      "source_span": "sheet 'Fig6', AG15"
+    },
+    "artifacts/41556_2021_762_MOESM6_ESM.xlsx#Fig3!W15": {
+      "value": 50.97,
+      "source_artifact": "artifacts/41556_2021_762_MOESM6_ESM.xlsx",
+      "source_artifact_hash": "bda4fadc90e0af8a075250e94477de3b07c3a70bd93f6d5ea7f3b50386ce5b10",
+      "source_span": "sheet 'Fig3', W15"
+    },
+    "artifacts/41556_2021_762_MOESM10_ESM.xlsx#Fig6!AG16": {
+      "value": 71.67,
+      "source_artifact": "artifacts/41556_2021_762_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "849b54724422100901bd741866f7b0c3784d290dd14c6e2da85404c95dd0f225",
+      "source_span": "sheet 'Fig6', AG16"
+    },
+    "artifacts/41556_2021_762_MOESM6_ESM.xlsx#Fig3!W16": {
+      "value": 73.67,
+      "source_artifact": "artifacts/41556_2021_762_MOESM6_ESM.xlsx",
+      "source_artifact_hash": "bda4fadc90e0af8a075250e94477de3b07c3a70bd93f6d5ea7f3b50386ce5b10",
+      "source_span": "sheet 'Fig3', W16"
+    },
+    "artifacts/41556_2021_762_MOESM10_ESM.xlsx#Fig6!AG17": {
+      "value": 78.02,
+      "source_artifact": "artifacts/41556_2021_762_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "849b54724422100901bd741866f7b0c3784d290dd14c6e2da85404c95dd0f225",
+      "source_span": "sheet 'Fig6', AG17"
+    },
+    "artifacts/41556_2021_762_MOESM6_ESM.xlsx#Fig3!W17": {
+      "value": 80.02,
+      "source_artifact": "artifacts/41556_2021_762_MOESM6_ESM.xlsx",
+      "source_artifact_hash": "bda4fadc90e0af8a075250e94477de3b07c3a70bd93f6d5ea7f3b50386ce5b10",
+      "source_span": "sheet 'Fig3', W17"
+    },
+    "artifacts/41556_2021_762_MOESM10_ESM.xlsx#Fig6!AG18": {
+      "value": 115.26,
+      "source_artifact": "artifacts/41556_2021_762_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "849b54724422100901bd741866f7b0c3784d290dd14c6e2da85404c95dd0f225",
+      "source_span": "sheet 'Fig6', AG18"
+    },
+    "artifacts/41556_2021_762_MOESM6_ESM.xlsx#Fig3!W18": {
+      "value": 117.26,
+      "source_artifact": "artifacts/41556_2021_762_MOESM6_ESM.xlsx",
+      "source_artifact_hash": "bda4fadc90e0af8a075250e94477de3b07c3a70bd93f6d5ea7f3b50386ce5b10",
+      "source_span": "sheet 'Fig3', W18"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!C3": {
+      "value": 85.18,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', C3"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_eet_ann_001",
+      "claim_id": "ncb_eet_claim_001",
+      "claim_atom": "Fig1 (B3:B48) and Fig1 (F3:F48) are independent measurements.",
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B3",
+      "target_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!F3",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-14T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "B3=0 ~ F3=0",
+        "B4=0 ~ F4=0",
+        "B5=0 ~ F5=0",
+        "B6=0 ~ F6=0",
+        "B7=0.15 ~ F7=0.15",
+        "B8=0.34 ~ F8=0.34",
+        "B9=0.68 ~ F9=0.68",
+        "B10=0.71 ~ F10=0.71"
+      ],
+      "_adjudication": "wuguandu 核定=合法: Fig1c 相关性散点图, colB(EET%)作x轴对colC(FEV1%)与colF(EET%)对colG(classification)复用同一批病人EET值=合法, 非造假. 转FP陷阱clean素材."
+    },
+    {
+      "annotation_id": "ncb_eet_ann_002",
+      "claim_id": "ncb_eet_claim_002",
+      "claim_atom": "Fig6 (AG13:AG18) and Fig3 (W13:W18) are independent measurements.",
+      "source_artifact": "artifacts/41556_2021_762_MOESM10_ESM.xlsx#Fig6!AG13",
+      "target_artifact": "artifacts/41556_2021_762_MOESM6_ESM.xlsx#Fig3!W13",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "constant_offset_2.0",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-14T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "AG13=93.72 ~ W13=95.72",
+        "AG14=67.58 ~ W14=69.58",
+        "AG15=48.97 ~ W15=50.97",
+        "AG16=71.67 ~ W16=73.67",
+        "AG17=78.02 ~ W17=80.02",
+        "AG18=115.26 ~ W18=117.26"
+      ]
+    },
+    {
+      "annotation_id": "ncb_eet_ann_clean",
+      "claim_id": "ncb_eet_claim_clean",
+      "claim_atom": "Two columns in Fig1 are independent measurements (genuinely different).",
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!B3",
+      "target_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!C3",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-14T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "clean/FAR基线: Fig1 两列值不同=独立真数据(非复制), 表面同样可疑但一致."
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_eet",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [
+      "mixed_boundary"
+    ],
+    "source_url": "https://doi.org/10.1038/s41556-021-00762-2",
+    "_paper_artifact_status": "paper artifact 已补入(kind=paper_pdf, 17512KB); 支持后续L3(文字claim)/L4(图编码)标注",
+    "_lingjing_disclosure": "灵镜: ED Fig 4f 两组差=10倍数",
+    "_independent_status": "下载窗口 dup_scan 我方复现; Fig1c colB==colF 46值全同 + Fig6a==Fig3c 跨图恒定+2偏移",
+    "_signed_by": "wuguandu @ 2026-07-14T00:00:00Z (下载窗口 provisional→已核定); 第二标注人待补(指南§5双人)"
+  }
+}

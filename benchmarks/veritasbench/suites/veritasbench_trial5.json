@@ -1,0 +1,5 @@
+{
+  "schema_version": 1,
+  "name": "veritasbench_trial5",
+  "case_ids": ["ncb_eet", "ncb_h19", "ncb_h3v3", "ncb_sirt1", "ncb_wnt"]
+}

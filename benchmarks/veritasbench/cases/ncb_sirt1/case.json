@@ -1,0 +1,373 @@
+{
+  "case_id": "ncb_sirt1",
+  "paper_title": "SIRT1 is downregulated by autophagy in senescence and ageing",
+  "paper_authors": [
+    "UPenn team (Xu et al.)"
+  ],
+  "artifacts": {
+    "source_data_fig4i": {
+      "path": "artifacts/source_data_fig4i.xlsx",
+      "sha256": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "25fb82a9a4ba43af56dc89b2c073d4920bccd19f2911dc3ce4a91d20a6b3d5b7",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/source_data_fig4i.xlsx#r3_c2": {
+      "value": 7.01754386,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 3 (Pro), col 2 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r3_c3": {
+      "value": 7.08661417,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 3 (Pro), col 3 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r3_c4": {
+      "value": 6.48148148,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 3 (Pro), col 4 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r3_c5": {
+      "value": 4.83870968,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 3 (Pro), col 5 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r3_c6": {
+      "value": 8.63309353,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 3 (Pro), col 6 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r3_c7": {
+      "value": 6.55737705,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 3 (Pro), col 7 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r3_c8": {
+      "value": 6.10687023,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 3 (Pro), col 8 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r3_c9": {
+      "value": 6.03448276,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 3 (Pro), col 9 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r3_c10": {
+      "value": 7.14285714,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 3 (Pro), col 10 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r3_c11": {
+      "value": 8.8,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 3 (Pro), col 11 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r4_c2": {
+      "value": 46.728972,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 4 (Eto D4), col 2 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r4_c3": {
+      "value": 49.5412844,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 4 (Eto D4), col 3 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r4_c4": {
+      "value": 48.5714286,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 4 (Eto D4), col 4 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r4_c5": {
+      "value": 40.9836066,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 4 (Eto D4), col 5 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r4_c6": {
+      "value": 44.3661972,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 4 (Eto D4), col 6 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r4_c7": {
+      "value": 23.8095238,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 4 (Eto D4), col 7 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r4_c8": {
+      "value": 19.2307692,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 4 (Eto D4), col 8 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r4_c9": {
+      "value": 24.7787611,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 4 (Eto D4), col 9 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r4_c10": {
+      "value": 25.4385965,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 4 (Eto D4), col 10 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r4_c11": {
+      "value": 18.556701,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 4 (Eto D4), col 11 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r5_c2": {
+      "value": 55.7522124,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 5 (Eto D7), col 2 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r5_c3": {
+      "value": 50.0,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 5 (Eto D7), col 3 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r5_c4": {
+      "value": 59.8290598,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 5 (Eto D7), col 4 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r5_c5": {
+      "value": 53.3898305,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 5 (Eto D7), col 5 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r5_c6": {
+      "value": 60.0,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 5 (Eto D7), col 6 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r5_c7": {
+      "value": 23.8095238,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 5 (Eto D7), col 7 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r5_c8": {
+      "value": 19.2307692,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 5 (Eto D7), col 8 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r5_c9": {
+      "value": 24.7787611,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 5 (Eto D7), col 9 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r5_c10": {
+      "value": 25.4385965,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 5 (Eto D7), col 10 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r5_c11": {
+      "value": 18.556701,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 5 (Eto D7), col 11 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r6_c2": {
+      "value": 63.8095238,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 6 (Eto D10), col 2 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r6_c3": {
+      "value": 66.9811321,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 6 (Eto D10), col 3 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r6_c4": {
+      "value": 53.3783784,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 6 (Eto D10), col 4 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r6_c5": {
+      "value": 64.9484536,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 6 (Eto D10), col 5 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r6_c6": {
+      "value": 65.3543307,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 6 (Eto D10), col 6 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r6_c7": {
+      "value": 44.2307692,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 6 (Eto D10), col 7 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r6_c8": {
+      "value": 52.0,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 6 (Eto D10), col 8 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r6_c9": {
+      "value": 51.2605042,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 6 (Eto D10), col 9 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r6_c10": {
+      "value": 52.9411765,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 6 (Eto D10), col 10 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r6_c11": {
+      "value": 59.3220339,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 6 (Eto D10), col 11 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r7_c2": {
+      "value": 82.5688073,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 7 (Eto D13), col 2 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r7_c3": {
+      "value": 81.4814815,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 7 (Eto D13), col 3 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r7_c4": {
+      "value": 75.9259259,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 7 (Eto D13), col 4 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r7_c5": {
+      "value": 77.3195876,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 7 (Eto D13), col 5 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r7_c6": {
+      "value": 77.4509804,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 7 (Eto D13), col 6 (group I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r7_c7": {
+      "value": 60.3960396,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 7 (Eto D13), col 7 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r7_c8": {
+      "value": 66.6666667,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 7 (Eto D13), col 8 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r7_c9": {
+      "value": 65.9340659,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 7 (Eto D13), col 9 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r7_c10": {
+      "value": 59.5959596,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 7 (Eto D13), col 10 (group WV+I347A, replicate)"
+    },
+    "artifacts/source_data_fig4i.xlsx#r7_c11": {
+      "value": 62.037037,
+      "source_artifact": "artifacts/source_data_fig4i.xlsx",
+      "source_artifact_hash": "ec5d7126229b0b35496898e75fcde0c5b093bfc8fe9a8e71ebccf1dd90a0480c",
+      "source_span": "sheet 'Figure 4', panel 'Fig. 4i', row 7 (Eto D13), col 11 (group WV+I347A, replicate)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_sirt1_ann_001",
+      "claim_id": "ncb_sirt1_claim_001",
+      "claim_atom": "In Fig. 4i, the WV+I347A group Etoposide-Day7 measurements are independent from Day4.",
+      "source_artifact": "artifacts/source_data_fig4i.xlsx#r4_c7",
+      "target_artifact": "artifacts/source_data_fig4i.xlsx#r5_c7",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_rows",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-14T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "D7 col7=23.8095238 == D4 col7=23.8095238",
+        "D7 col8=19.2307692 == D4 col8=19.2307692",
+        "D7 col9=24.7787611 == D4 col9=24.7787611",
+        "D7 col10=25.4385965 == D4 col10=25.4385965",
+        "D7 col11=18.556701 == D4 col11=18.556701"
+      ]
+    },
+    {
+      "annotation_id": "ncb_sirt1_ann_002",
+      "claim_id": "ncb_sirt1_claim_002",
+      "claim_atom": "In Fig. 4i, the I347A group Day4 and Day7 are independent measurements.",
+      "source_artifact": "artifacts/source_data_fig4i.xlsx#r4_c2",
+      "target_artifact": "artifacts/source_data_fig4i.xlsx#r5_c2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-14T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "clean/FAR基线: I347A组 D4(46.7,49.5,48.6,41.0,44.4) vs D7(55.8,50,59.8,53.4,60) 各值不同=独立真数据,表面同样可疑但一致。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_sirt1",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [
+      "mixed_boundary"
+    ],
+    "source_url": "https://doi.org/10.1038/s41556-020-00579-5",
+    "_paper_artifact_status": "paper artifact 已补入(kind=paper_pdf, 10349KB); 支持后续L3(文字claim)/L4(图编码)标注",
+    "_lingjing_disclosure": "灵镜: Fig 4i 不同组同数据队列",
+    "_independent_status": "下载窗口从开放Source Data独立复现: WV+I347A组 EtoD7=EtoD4",
+    "_signed_by": "wuguandu @ 2026-07-14T00:00:00Z (下载窗口 provisional→已核定); 第二标注人待补(指南§5双人)"
+  }
+}
