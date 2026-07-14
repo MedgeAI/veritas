@@ -656,6 +656,48 @@
       "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
       "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
       "source_span": "sheet 'Fig1', C3"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!C4": {
+      "value": 83.2,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', C4"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!C5": {
+      "value": 84.4,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', C5"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!C6": {
+      "value": 75.4,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', C6"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!C7": {
+      "value": 86.7,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', C7"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!C8": {
+      "value": 67.2,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', C8"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!C9": {
+      "value": 78.1,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', C9"
+    },
+    "artifacts/41556_2021_762_MOESM3_ESM.xlsx#Fig1!C10": {
+      "value": 76.0,
+      "source_artifact": "artifacts/41556_2021_762_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "278f224a71cedbe84a0cf3a05b94b7b2cf46186b3a0e9961025802b6e3e3e9ad",
+      "source_span": "sheet 'Fig1', C10"
     }
   },
   "claims": [
@@ -683,7 +725,9 @@
         "B9=0.68 ~ F9=0.68",
         "B10=0.71 ~ F10=0.71"
       ],
-      "_adjudication": "wuguandu 核定=合法: Fig1c 相关性散点图, colB(EET%)作x轴对colC(FEV1%)与colF(EET%)对colG(classification)复用同一批病人EET值=合法, 非造假. 转FP陷阱clean素材."
+      "_adjudication": "wuguandu 核定=合法: Fig1c 相关性散点图, colB(EET%)作x轴对colC(FEV1%)与colF(EET%)对colG(classification)复用同一批病人EET值=合法, 非造假. 转FP陷阱clean素材.",
+      "source_a1_range": "B3:B10",
+      "target_a1_range": "F3:F10"
     },
     {
       "annotation_id": "ncb_eet_ann_002",
@@ -706,7 +750,9 @@
         "AG16=71.67 ~ W16=73.67",
         "AG17=78.02 ~ W17=80.02",
         "AG18=115.26 ~ W18=117.26"
-      ]
+      ],
+      "source_a1_range": "AG13:AG18",
+      "target_a1_range": "W13:W18"
     },
     {
       "annotation_id": "ncb_eet_ann_clean",
@@ -722,7 +768,9 @@
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-14T00:00:00Z",
       "is_clean_claim": true,
-      "_note": "clean/FAR基线: Fig1 两列值不同=独立真数据(非复制), 表面同样可疑但一致."
+      "_note": "clean/FAR基线: Fig1 两列值不同=独立真数据(非复制), 表面同样可疑但一致.",
+      "source_a1_range": "B3:B10",
+      "target_a1_range": "C3:C10"
     }
   ],
   "metadata": {

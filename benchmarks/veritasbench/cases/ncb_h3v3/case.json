@@ -208,6 +208,54 @@
       "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
       "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
       "source_span": "sheet 'Extended Data Figure 6', A36"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!B5": {
+      "value": 14.0,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', B5"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!C5": {
+      "value": 19.3,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', C5"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!D5": {
+      "value": 19.9,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', D5"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!E5": {
+      "value": 23.9,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', E5"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!B36": {
+      "value": 10040.0,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', B36"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!C36": {
+      "value": 10040.0,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', C36"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!D36": {
+      "value": 10000.0,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', D36"
+    },
+    "artifacts/41556_2021_795_MOESM15_ESM.xlsx#Extended Data Figure 6!E36": {
+      "value": 10000.0,
+      "source_artifact": "artifacts/41556_2021_795_MOESM15_ESM.xlsx",
+      "source_artifact_hash": "942664ba4665a7253fecda20316c93f0189add4bd307a6b407b2e5be6e014f92",
+      "source_span": "sheet 'Extended Data Figure 6', E36"
     }
   },
   "claims": [
@@ -231,7 +279,9 @@
         "V69=11.6 ~ V76=11.6",
         "W69=11.8 ~ W76=11.8",
         "X69=10.5 ~ X76=10.5"
-      ]
+      ],
+      "source_a1_range": "T69:X69",
+      "target_a1_range": "T76:X76"
     },
     {
       "annotation_id": "ncb_h3v3_ann_002",
@@ -253,7 +303,9 @@
         "V70=11.4 ~ V77=11.4",
         "W70=10.2 ~ W77=10.2",
         "X70=11.4 ~ X77=11.4"
-      ]
+      ],
+      "source_a1_range": "T70:X70",
+      "target_a1_range": "T77:X77"
     },
     {
       "annotation_id": "ncb_h3v3_ann_003",
@@ -275,7 +327,9 @@
         "V71=15.3 ~ V78=15.3",
         "W71=12.4 ~ W78=12.4",
         "X71=14.1 ~ X78=14.1"
-      ]
+      ],
+      "source_a1_range": "T71:X71",
+      "target_a1_range": "T78:X78"
     },
     {
       "annotation_id": "ncb_h3v3_ann_clean",
@@ -291,7 +345,9 @@
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-14T00:00:00Z",
       "is_clean_claim": true,
-      "_note": "clean/FAR基线: Extended Data Figure 6 两列值不同=独立真数据(非复制), 表面同样可疑但一致."
+      "_note": "clean/FAR基线: Extended Data Figure 6 两列值不同=独立真数据(非复制), 表面同样可疑但一致.",
+      "source_a1_range": "A5:E5",
+      "target_a1_range": "A36:E36"
     }
   ],
   "metadata": {

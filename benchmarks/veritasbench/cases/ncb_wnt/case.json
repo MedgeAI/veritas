@@ -213,6 +213,12 @@
       "source_artifact": "artifacts/41556_2020_507_MOESM7_ESM.xlsx",
       "source_artifact_hash": "03bfe21c488046f1a11ac1172c8a5e49ed0efdaf9a54fd277423050634fbc722",
       "source_span": "sheet 'Fig 3', D26"
+    },
+    "artifacts/41556_2020_507_MOESM7_ESM.xlsx#Fig 3!E26": {
+      "value": 75.9,
+      "source_artifact": "artifacts/41556_2020_507_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "03bfe21c488046f1a11ac1172c8a5e49ed0efdaf9a54fd277423050634fbc722",
+      "source_span": "sheet 'Fig 3', E26"
     }
   },
   "claims": [
@@ -238,7 +244,9 @@
         "F3=0.13 ~ G6=0.13",
         "G3=0.01 ~ H6=0.01"
       ],
-      "_adjudication": "wuguandu 核定=inconsistent: ED Fig5(NanoDXR实验) 与 Fig3(另一批) 两个不同实验的 Lin-CD3+c-Kit+ Vehicle 原始值字节相同=跨实验复制fabrication信号."
+      "_adjudication": "wuguandu 核定=inconsistent: ED Fig5(NanoDXR实验) 与 Fig3(另一批) 两个不同实验的 Lin-CD3+c-Kit+ Vehicle 原始值字节相同=跨实验复制fabrication信号.",
+      "source_a1_range": "B3:G3",
+      "target_a1_range": "C6:H6"
     },
     {
       "annotation_id": "ncb_wnt_ann_002",
@@ -264,7 +272,9 @@
         "I3=11.8 ~ I21=11.8",
         "J3=21 ~ J21=21"
       ],
-      "_adjudication": "wuguandu 核定=insufficient: Fig3 panel b/d 均为 CD45Hi CD3+ Vehicle, 图注示b/d为不同处理方案但无法证明vehicle对照是独立实验(可能共用同批对照小鼠). 按指南§2.2证据不足不强判inconsistent."
+      "_adjudication": "wuguandu 核定=insufficient: Fig3 panel b/d 均为 CD45Hi CD3+ Vehicle, 图注示b/d为不同处理方案但无法证明vehicle对照是独立实验(可能共用同批对照小鼠). 按指南§2.2证据不足不强判inconsistent.",
+      "source_a1_range": "C3:K3",
+      "target_a1_range": "C21:K21"
     },
     {
       "annotation_id": "ncb_wnt_ann_clean",
@@ -280,7 +290,9 @@
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-14T00:00:00Z",
       "is_clean_claim": true,
-      "_note": "clean/FAR基线: Fig 3 两列值不同=独立真数据(非复制), 表面同样可疑但一致."
+      "_note": "clean/FAR基线: Fig 3 两列值不同=独立真数据(非复制), 表面同样可疑但一致.",
+      "source_a1_range": "C26:D26",
+      "target_a1_range": "D26:E26"
     }
   ],
   "metadata": {

@@ -17,245 +17,245 @@
     }
   },
   "observations": {
-    "artifacts/source_data_exfig9cd.xlsx#9c_r3_A": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!A3": {
       "value": 7948.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 3, col A (Dmd WT+Scr), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', A3 (Dmd WT+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r3_B": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!B3": {
       "value": 5976.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 3, col B (Dmd C3333Y+Scr), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', B3 (Dmd C3333Y+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r3_C": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!C3": {
       "value": 6448.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 3, col C (Dmd C3333Y+AGR-H19), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', C3 (Dmd C3333Y+AGR-H19)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r3_D": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!D3": {
       "value": 6658.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 3, col D (Dmd C3333Y+AGR-H19 mut), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', D3 (Dmd C3333Y+AGR-H19 mut)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r4_A": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!A4": {
       "value": 5856.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 4, col A (Dmd WT+Scr), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', A4 (Dmd WT+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r4_B": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!B4": {
       "value": 6048.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 4, col B (Dmd C3333Y+Scr), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', B4 (Dmd C3333Y+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r4_C": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!C4": {
       "value": 5467.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 4, col C (Dmd C3333Y+AGR-H19), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', C4 (Dmd C3333Y+AGR-H19)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r4_D": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!D4": {
       "value": 8457.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 4, col D (Dmd C3333Y+AGR-H19 mut), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', D4 (Dmd C3333Y+AGR-H19 mut)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r5_A": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!A5": {
       "value": 5976.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 5, col A (Dmd WT+Scr), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', A5 (Dmd WT+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r5_B": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!B5": {
       "value": 7428.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 5, col B (Dmd C3333Y+Scr), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', B5 (Dmd C3333Y+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r5_C": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!C5": {
       "value": 6458.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 5, col C (Dmd C3333Y+AGR-H19), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', C5 (Dmd C3333Y+AGR-H19)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r5_D": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!D5": {
       "value": 6449.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 5, col D (Dmd C3333Y+AGR-H19 mut), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', D5 (Dmd C3333Y+AGR-H19 mut)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r6_A": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!A6": {
       "value": 7116.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 6, col A (Dmd WT+Scr), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', A6 (Dmd WT+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r6_B": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!B6": {
       "value": 7856.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 6, col B (Dmd C3333Y+Scr), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', B6 (Dmd C3333Y+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r6_C": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!C6": {
       "value": 7262.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 6, col C (Dmd C3333Y+AGR-H19), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', C6 (Dmd C3333Y+AGR-H19)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r6_D": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!D6": {
       "value": 6478.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 6, col D (Dmd C3333Y+AGR-H19 mut), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', D6 (Dmd C3333Y+AGR-H19 mut)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r7_A": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!A7": {
       "value": 6516.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 7, col A (Dmd WT+Scr), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', A7 (Dmd WT+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r7_B": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!B7": {
       "value": 6744.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 7, col B (Dmd C3333Y+Scr), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', B7 (Dmd C3333Y+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r7_C": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!C7": {
       "value": 7929.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 7, col C (Dmd C3333Y+AGR-H19), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', C7 (Dmd C3333Y+AGR-H19)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9c_r7_D": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!D7": {
       "value": 7676.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 7, col D (Dmd C3333Y+AGR-H19 mut), panel 9c"
+      "source_span": "sheet 'Ex. Fig. 9c-d', D7 (Dmd C3333Y+AGR-H19 mut)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r20_A": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!A20": {
       "value": 16448.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 20, col A (Dmd WT+Scr), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', A20 (Dmd WT+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r20_B": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!B20": {
       "value": 16658.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 20, col B (Dmd C3333Y+Scr), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', B20 (Dmd C3333Y+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r20_C": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!C20": {
       "value": 18929.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 20, col C (Dmd C3333Y+AGR-H19), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', C20 (Dmd C3333Y+AGR-H19)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r20_D": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!D20": {
       "value": 18676.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 20, col D (Dmd C3333Y+AGR-H19 mut), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', D20 (Dmd C3333Y+AGR-H19 mut)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r21_A": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!A21": {
       "value": 14467.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 21, col A (Dmd WT+Scr), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', A21 (Dmd WT+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r21_B": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!B21": {
       "value": 13457.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 21, col B (Dmd C3333Y+Scr), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', B21 (Dmd C3333Y+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r21_C": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!C21": {
       "value": 13894.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 21, col C (Dmd C3333Y+AGR-H19), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', C21 (Dmd C3333Y+AGR-H19)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r21_D": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!D21": {
       "value": 16895.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 21, col D (Dmd C3333Y+AGR-H19 mut), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', D21 (Dmd C3333Y+AGR-H19 mut)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r22_A": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!A22": {
       "value": 16458.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 22, col A (Dmd WT+Scr), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', A22 (Dmd WT+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r22_B": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!B22": {
       "value": 16449.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 22, col B (Dmd C3333Y+Scr), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', B22 (Dmd C3333Y+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r22_C": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!C22": {
       "value": 15467.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 22, col C (Dmd C3333Y+AGR-H19), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', C22 (Dmd C3333Y+AGR-H19)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r22_D": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!D22": {
       "value": 18457.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 22, col D (Dmd C3333Y+AGR-H19 mut), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', D22 (Dmd C3333Y+AGR-H19 mut)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r23_A": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!A23": {
       "value": 17262.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 23, col A (Dmd WT+Scr), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', A23 (Dmd WT+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r23_B": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!B23": {
       "value": 16478.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 23, col B (Dmd C3333Y+Scr), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', B23 (Dmd C3333Y+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r23_C": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!C23": {
       "value": 15894.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 23, col C (Dmd C3333Y+AGR-H19), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', C23 (Dmd C3333Y+AGR-H19)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r23_D": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!D23": {
       "value": 15684.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 23, col D (Dmd C3333Y+AGR-H19 mut), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', D23 (Dmd C3333Y+AGR-H19 mut)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r24_A": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!A24": {
       "value": 17929.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 24, col A (Dmd WT+Scr), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', A24 (Dmd WT+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r24_B": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!B24": {
       "value": 17676.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 24, col B (Dmd C3333Y+Scr), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', B24 (Dmd C3333Y+Scr)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r24_C": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!C24": {
       "value": 17589.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 24, col C (Dmd C3333Y+AGR-H19), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', C24 (Dmd C3333Y+AGR-H19)"
     },
-    "artifacts/source_data_exfig9cd.xlsx#9d_r24_D": {
+    "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!D24": {
       "value": 16058.0,
       "source_artifact": "artifacts/source_data_exfig9cd.xlsx",
       "source_artifact_hash": "c8ede11bc9fe057b03b47582499a3f0b078eb2d33478c0339056e7a2d7222fa0",
-      "source_span": "sheet 'Ex. Fig. 9c-d', row 24, col D (Dmd C3333Y+AGR-H19 mut), panel 9d"
+      "source_span": "sheet 'Ex. Fig. 9c-d', D24 (Dmd C3333Y+AGR-H19 mut)"
     }
   },
   "claims": [
@@ -263,8 +263,8 @@
       "annotation_id": "ncb_h19_ann_001",
       "claim_id": "ncb_h19_claim_001",
       "claim_atom": "Extended Data Fig. 9d presents grip-strength measurements as an independent experiment from Fig. 9c.",
-      "source_artifact": "artifacts/source_data_exfig9cd.xlsx#9c_r3_C",
-      "target_artifact": "artifacts/source_data_exfig9cd.xlsx#9d_r20_A",
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!C3",
+      "target_artifact": "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!A20",
       "relation_type": "L1",
       "verdict": "inconsistent",
       "discrepancy_type": "duplicated_with_constant_offset",
@@ -284,14 +284,16 @@
         "9d[9d_r23_B]=16478.0 = 9c[9c_r6_D]=6478.0 +10000",
         "9d[9d_r24_A]=17929.0 = 9c[9c_r7_C]=7929.0 +10000",
         "9d[9d_r24_B]=17676.0 = 9c[9c_r7_D]=7676.0 +10000"
-      ]
+      ],
+      "source_a1_range": "C3:C7",
+      "target_a1_range": "A20:A24"
     },
     {
       "annotation_id": "ncb_h19_ann_002",
       "claim_id": "ncb_h19_claim_002",
       "claim_atom": "Extended Data Fig. 9d column C (Dmd C3333Y+AGR-H19) values are independent measurements, not derived from Fig. 9c.",
-      "source_artifact": "artifacts/source_data_exfig9cd.xlsx#9c_r3_C",
-      "target_artifact": "artifacts/source_data_exfig9cd.xlsx#9d_r20_C",
+      "source_artifact": "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!C3",
+      "target_artifact": "artifacts/source_data_exfig9cd.xlsx#Ex. Fig. 9c-d!C20",
       "relation_type": "L1",
       "verdict": "consistent",
       "discrepancy_type": null,
@@ -300,7 +302,9 @@
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-14T00:00:00Z",
       "is_clean_claim": true,
-      "_note": "clean/FAR基线: 9d C列(18929,13894,15467,15894,17589)减10000在9c查无匹配 → 独立真数据, 表面同样可疑但一致。"
+      "_note": "clean/FAR基线: 9d C列(18929,13894,15467,15894,17589)减10000在9c查无匹配 → 独立真数据, 表面同样可疑但一致。",
+      "source_a1_range": "C3:C7",
+      "target_a1_range": "C20:C24"
     }
   ],
   "metadata": {

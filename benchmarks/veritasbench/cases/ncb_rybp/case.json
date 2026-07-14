@@ -93,73 +93,73 @@
       "value": 0.09461478018905554,
       "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
       "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
-      "source_span": "sheet Sheet1, C5 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
+      "source_span": "sheet 'Sheet1', C5 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
     },
     "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C6": {
       "value": 0.058868942117615154,
       "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
       "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
-      "source_span": "sheet Sheet1, C6 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
+      "source_span": "sheet 'Sheet1', C6 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
     },
     "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C7": {
       "value": 0.03241824734147356,
       "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
       "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
-      "source_span": "sheet Sheet1, C7 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
+      "source_span": "sheet 'Sheet1', C7 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
     },
     "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C8": {
       "value": 0.017573416383859945,
       "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
       "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
-      "source_span": "sheet Sheet1, C8 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
+      "source_span": "sheet 'Sheet1', C8 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
     },
     "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C9": {
       "value": 0.026241525058003524,
       "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
       "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
-      "source_span": "sheet Sheet1, C9 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
+      "source_span": "sheet 'Sheet1', C9 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
     },
     "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C10": {
       "value": 0.012723269705075278,
       "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
       "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
-      "source_span": "sheet Sheet1, C10 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
+      "source_span": "sheet 'Sheet1', C10 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
     },
     "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D5": {
       "value": 0.09963828038161522,
       "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
       "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
-      "source_span": "sheet Sheet1, D5 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
+      "source_span": "sheet 'Sheet1', D5 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
     },
     "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D6": {
       "value": 0.0551393938722869,
       "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
       "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
-      "source_span": "sheet Sheet1, D6 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
+      "source_span": "sheet 'Sheet1', D6 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
     },
     "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D7": {
       "value": 0.026981360723843342,
       "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
       "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
-      "source_span": "sheet Sheet1, D7 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
+      "source_span": "sheet 'Sheet1', D7 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
     },
     "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D8": {
       "value": 0.017783107135523765,
       "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
       "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
-      "source_span": "sheet Sheet1, D8 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
+      "source_span": "sheet 'Sheet1', D8 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
     },
     "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D9": {
       "value": 0.0241773324832569,
       "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
       "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
-      "source_span": "sheet Sheet1, D9 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
+      "source_span": "sheet 'Sheet1', D9 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
     },
     "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D10": {
       "value": 0.014616134212778804,
       "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
       "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
-      "source_span": "sheet Sheet1, D10 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
+      "source_span": "sheet 'Sheet1', D10 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
     }
   },
   "claims": [
@@ -184,7 +184,9 @@
         "C35(Supp Fig 9d Lhx2 qRT-PCR WT repeat2)=0.00022790536444481185 ~ D35(Supp Fig 9d Lhx2 qRT-PCR WT repeat3)=0.00022790536444481185",
         "...6/6 满足 EXACT"
       ],
-      "_adjudication": "wuguandu核定=inconsistent: Supp Fig 9d (ED9) Lhx2 qRT-PCR: WT repeat3 (D32:D37) byte-identical to WT repeat2 (C32:C37) across all six timepoints; other genes (Oct4/Tuj1/Hens5) have distinct rep2/rep3 and cells are hard values (no formula) -> an independent third replicate was fabricated by copying repeat2. (6/6满足EXACT)"
+      "_adjudication": "wuguandu核定=inconsistent: Supp Fig 9d (ED9) Lhx2 qRT-PCR: WT repeat3 (D32:D37) byte-identical to WT repeat2 (C32:C37) across all six timepoints; other genes (Oct4/Tuj1/Hens5) have distinct rep2/rep3 and cells are hard values (no formula) -> an independent third replicate was fabricated by copying repeat2. (6/6满足EXACT)",
+      "source_a1_range": "C32:C37",
+      "target_a1_range": "D32:D37"
     },
     {
       "annotation_id": "ncb_rybp_ann_002",
@@ -208,7 +210,9 @@
         "C9(Oct4 WT rep2)=0.026241525058003524 != D9(Oct4 WT rep3)=0.0241773324832569",
         "C10(Oct4 WT rep2)=0.012723269705075278 != D10(Oct4 WT rep3)=0.014616134212778804"
       ],
-      "_note": "clean/FAR baseline: same figure/same WT condition, two repeats -> superficially as suspicious as the Lhx2 pair, but Oct4 rep2/rep3 differ at every timepoint (0/6 EXACT) => genuinely independent, verdict consistent. Guards against a detector that flags any two-repeat pair."
+      "_note": "clean/FAR baseline: same figure/same WT condition, two repeats -> superficially as suspicious as the Lhx2 pair, but Oct4 rep2/rep3 differ at every timepoint (0/6 EXACT) => genuinely independent, verdict consistent. Guards against a detector that flags any two-repeat pair.",
+      "source_a1_range": "C5:C10",
+      "target_a1_range": "D5:D10"
     }
   ],
   "metadata": {

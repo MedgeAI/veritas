@@ -18,7 +18,7 @@
     "ncb_alkbh7": {
       "ok": true,
       "n_artifacts": 2,
-      "n_observations": 56,
+      "n_observations": 63,
       "n_claims": 2,
       "n_clean_claims": 1,
       "errors": []
@@ -34,7 +34,7 @@
     "ncb_eet": {
       "ok": true,
       "n_artifacts": 4,
-      "n_observations": 105,
+      "n_observations": 112,
       "n_claims": 3,
       "n_clean_claims": 2,
       "errors": []
@@ -42,7 +42,7 @@
     "ncb_ercc": {
       "ok": true,
       "n_artifacts": 1,
-      "n_observations": 519,
+      "n_observations": 526,
       "n_claims": 2,
       "n_clean_claims": 1,
       "errors": []
@@ -50,7 +50,7 @@
     "ncb_fbp1": {
       "ok": true,
       "n_artifacts": 2,
-      "n_observations": 28,
+      "n_observations": 30,
       "n_claims": 2,
       "n_clean_claims": 1,
       "errors": []
@@ -66,7 +66,7 @@
     "ncb_h3v3": {
       "ok": true,
       "n_artifacts": 2,
-      "n_observations": 32,
+      "n_observations": 40,
       "n_claims": 4,
       "n_clean_claims": 1,
       "errors": []
@@ -90,7 +90,7 @@
     "ncb_pkcb": {
       "ok": true,
       "n_artifacts": 2,
-      "n_observations": 48,
+      "n_observations": 54,
       "n_claims": 2,
       "n_clean_claims": 1,
       "errors": []
@@ -98,7 +98,7 @@
     "ncb_psen2": {
       "ok": true,
       "n_artifacts": 2,
-      "n_observations": 124,
+      "n_observations": 138,
       "n_claims": 2,
       "n_clean_claims": 1,
       "errors": []
@@ -130,7 +130,7 @@
     "ncb_wnt": {
       "ok": true,
       "n_artifacts": 3,
-      "n_observations": 32,
+      "n_observations": 33,
       "n_claims": 3,
       "n_clean_claims": 1,
       "errors": []

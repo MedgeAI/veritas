@@ -57,37 +57,37 @@
       "value": 26.3,
       "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
       "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
-      "source_span": "sheet Sheet1, F30 (Fig1e Huh7 shCtrl)"
+      "source_span": "sheet 'Sheet1', F30 (Fig1e Huh7 shCtrl)"
     },
     "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!F31": {
       "value": 28,
       "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
       "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
-      "source_span": "sheet Sheet1, F31 (Fig1e Huh7 shCtrl)"
+      "source_span": "sheet 'Sheet1', F31 (Fig1e Huh7 shCtrl)"
     },
     "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!F32": {
       "value": 29.5,
       "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
       "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
-      "source_span": "sheet Sheet1, F32 (Fig1e Huh7 shCtrl)"
+      "source_span": "sheet 'Sheet1', F32 (Fig1e Huh7 shCtrl)"
     },
     "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!H30": {
       "value": 80.5,
       "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
       "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
-      "source_span": "sheet Sheet1, H30 (Fig1e Huh7 shGDH1-1 knockdown)"
+      "source_span": "sheet 'Sheet1', H30 (Fig1e Huh7 shGDH1-1 knockdown)"
     },
     "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!H31": {
       "value": 79,
       "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
       "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
-      "source_span": "sheet Sheet1, H31 (Fig1e Huh7 shGDH1-1 knockdown)"
+      "source_span": "sheet 'Sheet1', H31 (Fig1e Huh7 shGDH1-1 knockdown)"
     },
     "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!H32": {
       "value": 89.25,
       "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
       "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
-      "source_span": "sheet Sheet1, H32 (Fig1e Huh7 shGDH1-1 knockdown)"
+      "source_span": "sheet 'Sheet1', H32 (Fig1e Huh7 shGDH1-1 knockdown)"
     }
   },
   "claims": [
@@ -111,7 +111,9 @@
         "J32(Fig1e Huh7 shGDH1-2 knockdown)=81.75 ~ N32(Fig1e H1299 shGDH1-1 knockdown)=81.75",
         "...3/3 满足 EXACT"
       ],
-      "_adjudication": "wuguandu核定=inconsistent: Fig1e: Huh7 shGDH1-2 and H1299 shGDH1-1 (different cell line AND different shRNA hairpin) report byte-identical triplicate cell-death values 82.5/91/81.75 (3/3满足EXACT)"
+      "_adjudication": "wuguandu核定=inconsistent: Fig1e: Huh7 shGDH1-2 and H1299 shGDH1-1 (different cell line AND different shRNA hairpin) report byte-identical triplicate cell-death values 82.5/91/81.75 (3/3满足EXACT)",
+      "source_a1_range": "J30:J32",
+      "target_a1_range": "N30:N32"
     },
     {
       "annotation_id": "ncb_akg_ann_clean",
@@ -141,7 +143,9 @@
           "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!H32"
         ]
       ],
-      "_note": "clean/FAR baseline: Fig1e same-block shCtrl vs shGDH1-1 give distinct values = independent real data, not duplicated."
+      "_note": "clean/FAR baseline: Fig1e same-block shCtrl vs shGDH1-1 give distinct values = independent real data, not duplicated.",
+      "source_a1_range": "F30:F32",
+      "target_a1_range": "H30:H32"
     }
   ],
   "metadata": {

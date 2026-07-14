@@ -160,7 +160,9 @@
         "Q19(Day2)=43.3590114087986 == Q27(Day3)=43.3590114087986",
         "Q20(Day2)=1.5039809209175916 == Q28(Day3)=1.5039809209175916"
       ],
-      "_adjudication": "wuguandu 核定=inconsistent: ED5f %Prolif(Q列)Day2(r16-20)与Day3(r24-28) n1/n2/n3/Avg/SEM 5值逐一相同(41.29/42.50/46.29/43.36/1.50), 不同天不可能字节相同=复制粘贴; 同表%cytotox(J列)两天真不同=对照."
+      "_adjudication": "wuguandu 核定=inconsistent: ED5f %Prolif(Q列)Day2(r16-20)与Day3(r24-28) n1/n2/n3/Avg/SEM 5值逐一相同(41.29/42.50/46.29/43.36/1.50), 不同天不可能字节相同=复制粘贴; 同表%cytotox(J列)两天真不同=对照.",
+      "source_a1_range": "Q16:Q20",
+      "target_a1_range": "Q24:Q28"
     },
     {
       "annotation_id": "ncb_nelfa_ann_002",
@@ -176,7 +178,9 @@
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-14T00:00:00Z",
       "is_clean_claim": true,
-      "_note": "clean/FAR基线: %cytotox J列 Day2(1.45,1.31,-0.76,0.67,0.71) vs Day3(5.88,-3.77,2.75,1.62,2.84) 各值不同=独立真数据."
+      "_note": "clean/FAR基线: %cytotox J列 Day2(1.45,1.31,-0.76,0.67,0.71) vs Day3(5.88,-3.77,2.75,1.62,2.84) 各值不同=独立真数据.",
+      "source_a1_range": "J16:J20",
+      "target_a1_range": "J24:J28"
     }
   ],
   "metadata": {
