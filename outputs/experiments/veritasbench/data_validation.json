@@ -1,0 +1,51 @@
+{
+  "ok": true,
+  "base_path": "benchmarks/veritasbench",
+  "suite": "veritasbench_trial5",
+  "expected_cases": 5,
+  "actual_cases": 5,
+  "allow_empty": false,
+  "global_errors": [],
+  "cases": {
+    "ncb_eet": {
+      "ok": true,
+      "n_artifacts": 4,
+      "n_observations": 105,
+      "n_claims": 3,
+      "n_clean_claims": 2,
+      "errors": []
+    },
+    "ncb_h19": {
+      "ok": true,
+      "n_artifacts": 2,
+      "n_observations": 40,
+      "n_claims": 2,
+      "n_clean_claims": 1,
+      "errors": []
+    },
+    "ncb_h3v3": {
+      "ok": true,
+      "n_artifacts": 2,
+      "n_observations": 32,
+      "n_claims": 4,
+      "n_clean_claims": 1,
+      "errors": []
+    },
+    "ncb_sirt1": {
+      "ok": true,
+      "n_artifacts": 2,
+      "n_observations": 50,
+      "n_claims": 2,
+      "n_clean_claims": 1,
+      "errors": []
+    },
+    "ncb_wnt": {
+      "ok": true,
+      "n_artifacts": 3,
+      "n_observations": 32,
+      "n_claims": 3,
+      "n_clean_claims": 1,
+      "errors": []
+    }
+  }
+}
