@@ -1,0 +1,167 @@
+{
+  "case_id": "rep_iteval",
+  "paper_title": "Evaluating individualized treatment effect predictions: A model-based perspective on discrimination and calibration assessment",
+  "paper_authors": [
+    "Jeroen Hoogland",
+    "Orestis Efthimiou",
+    "Tri-Long Nguyen",
+    "Thomas P A Debray",
+    "(Statistics in Medicine 2024; CODECHECK 2024-024 certified; codechecker Samuel Langton)"
+  ],
+  "artifacts": {
+    "repro_tables_R": {
+      "path": "artifacts/repro_tables.R",
+      "sha256": "ce51c4bf6d4919859773347f7f8e84cb6f6da370aba4a423d859d61c020076fa",
+      "kind": "code"
+    },
+    "table1_discrimination_csv": {
+      "path": "artifacts/table1_discrimination.csv",
+      "sha256": "8d4d19d30116cf73bdd4b08e3a07a8b78185db8df040ac6889def63a72fb1040",
+      "kind": "code_output"
+    },
+    "table2_calibration_csv": {
+      "path": "artifacts/table2_calibration.csv",
+      "sha256": "43bc56280684b762c81d3b778988d6f2ae61c941b593da1bb6d974de92884936",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/table1_discrimination.csv#apparent_mbcm_n500": {
+      "value": 0.036,
+      "source_artifact": "artifacts/table1_discrimination.csv",
+      "source_artifact_hash": "8d4d19d30116cf73bdd4b08e3a07a8b78185db8df040ac6889def63a72fb1040",
+      "source_span": "table1_discrimination.csv, row validation=apparent.discr, column mbcm (值为 'n500,n750,n1000'=0.036,0.028,0.024), 取 n500=0.036 (model-based c-statistic 估计量相对样本estimand的Monte-Carlo RMSE, n=500)"
+    },
+    "artifacts/table1_discrimination.csv#apparent_mbcm_n1000": {
+      "value": 0.024,
+      "source_artifact": "artifacts/table1_discrimination.csv",
+      "source_artifact_hash": "8d4d19d30116cf73bdd4b08e3a07a8b78185db8df040ac6889def63a72fb1040",
+      "source_span": "table1_discrimination.csv, row validation=apparent.discr, column mbcm ('0.036,0.028,0.024'), 取 n1000=0.024 (mbcm RMSE, n=1000)"
+    },
+    "artifacts/table1_discrimination.csv#ext2app_mbcm_n500": {
+      "value": 0.085,
+      "source_artifact": "artifacts/table1_discrimination.csv",
+      "source_artifact_hash": "8d4d19d30116cf73bdd4b08e3a07a8b78185db8df040ac6889def63a72fb1040",
+      "source_span": "table1_discrimination.csv, row validation=ext2.app.discr, column mbcm ('0.085,0.08,0.078'), 取 n500=0.085 (外部验证于错误设定的 DGM2 时 mbcm 的 RMSE, n=500)"
+    },
+    "artifacts/table1_discrimination.csv#ext2app_mbcm_n1000": {
+      "value": 0.078,
+      "source_artifact": "artifacts/table1_discrimination.csv",
+      "source_artifact_hash": "8d4d19d30116cf73bdd4b08e3a07a8b78185db8df040ac6889def63a72fb1040",
+      "source_span": "table1_discrimination.csv, row validation=ext2.app.discr, column mbcm ('0.085,0.08,0.078'), 取 n1000=0.078 (DGM2 外部验证 mbcm RMSE, n=1000; 与 n500 几乎不变)"
+    },
+    "artifacts/table2_calibration.csv#apparent_beta1_n500": {
+      "value": 0.2829,
+      "source_artifact": "artifacts/table2_calibration.csv",
+      "source_artifact_hash": "43bc56280684b762c81d3b778988d6f2ae61c941b593da1bb6d974de92884936",
+      "source_span": "table2_calibration.csv, row validation=apparent.cal, column beta1_n500=0.2829 (校准斜率 beta1 的 RMSE, apparent 验证, n=500)"
+    },
+    "artifacts/table2_calibration.csv#apparent_beta1_n1000": {
+      "value": 0.2132,
+      "source_artifact": "artifacts/table2_calibration.csv",
+      "source_artifact_hash": "43bc56280684b762c81d3b778988d6f2ae61c941b593da1bb6d974de92884936",
+      "source_span": "table2_calibration.csv, row validation=apparent.cal, column beta1_n1000=0.2132 (校准斜率 beta1 RMSE, n=1000)"
+    },
+    "artifacts/table2_calibration.csv#apparent_beta0_n500": {
+      "value": 0.2326,
+      "source_artifact": "artifacts/table2_calibration.csv",
+      "source_artifact_hash": "43bc56280684b762c81d3b778988d6f2ae61c941b593da1bb6d974de92884936",
+      "source_span": "table2_calibration.csv, row validation=apparent.cal, column beta0_n500=0.2326 (校准截距 beta0 RMSE, apparent, n=500)"
+    },
+    "artifacts/table2_calibration.csv#boot0632_beta0_n500": {
+      "value": null,
+      "source_artifact": "artifacts/table2_calibration.csv",
+      "source_artifact_hash": "43bc56280684b762c81d3b778988d6f2ae61c941b593da1bb6d974de92884936",
+      "source_span": "table2_calibration.csv, row validation=boot0.632.cal, column beta0_n500=NA (0.632+ bootstrap 的校准截距列为空; 复现表与已发表 Table 2 一致地留白)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_iteval_ann_001",
+      "claim_id": "rep_iteval_claim_001",
+      "claim_atom": "Under apparent validation, the Monte-Carlo RMSE of the model-based c-statistic (mbcm) estimator relative to the sample estimand decreases with training sample size (0.036 at n=500 versus 0.024 at n=1000).",
+      "source_artifact": "artifacts/table1_discrimination.csv#apparent_mbcm_n500",
+      "target_artifact": "artifacts/table1_discrimination.csv#apparent_mbcm_n1000",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "Docker R (r-base 4.6.1) 于论文 shipped 的 500 个 results/ite*.Rdata 上跑 replicate.R 的 rmse.discr 逻辑: apparent.discr / mbcm = 0.036,0.028,0.024 (n=500/750/1000). 0.036 > 0.024 = 随 n 单调下降, 断言一致.",
+        "与已发表 Table 1 (manuscript, apparent.discr 行 V4 列) 逐位相符."
+      ]
+    },
+    {
+      "annotation_id": "rep_iteval_ann_002",
+      "claim_id": "rep_iteval_claim_002",
+      "claim_atom": "When the c-statistic is estimated by external validation on a MISSPECIFIED data-generating mechanism (DGM2), the model-based c-statistic (mbcm) RMSE stays large and essentially flat across sample sizes (0.085 at n=500, 0.078 at n=1000) rather than shrinking as it does under apparent validation.",
+      "source_artifact": "artifacts/table1_discrimination.csv#ext2app_mbcm_n500",
+      "target_artifact": "artifacts/table1_discrimination.csv#ext2app_mbcm_n1000",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "grounding: 须区分 ext2.app.discr 行(错误设定的外部 DGM2)与 apparent.discr 行; mbcm 在 DGM2 下 0.085->0.08->0.078 几乎不随 n 缩小(bias 主导), 而 apparent 下 0.036->0.024. 断言'保持偏大且不缩小'成立.",
+      "_reproduction": [
+        "rmse.discr('ext2.app.discr','mbcb') = 0.085,0.08,0.078 (n=500/750/1000); 与已发表 Table 1 ext2.app.discr 行 V4 列相符."
+      ]
+    },
+    {
+      "annotation_id": "rep_iteval_ann_003",
+      "claim_id": "rep_iteval_claim_003",
+      "claim_atom": "Under apparent validation the RMSE of the calibration slope (beta1) decreases with sample size, from 0.283 at n=500 to 0.213 at n=1000.",
+      "source_artifact": "artifacts/table2_calibration.csv#apparent_beta1_n500",
+      "target_artifact": "artifacts/table2_calibration.csv#apparent_beta1_n1000",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "grounding: Table 2 复现表中 beta0_n500..beta0_n1000=截距(intercept), beta1_n500..beta1_n1000=斜率(slope); 列映射已由 boot0.632.cal 行 beta0 列留白/beta1 列有值的模式确认. 取 beta1 列 0.2829->0.2132.",
+      "_reproduction": [
+        "rmse.cal('apparent.cal') 复现 = beta0:0.2326,0.1999,0.1734 | beta1:0.2829,0.2440,0.2132; 与已发表 Table 2 apparent.cal 行(0.23,0.20,0.17,0.28,0.24,0.21, 2位小数)一致."
+      ]
+    },
+    {
+      "annotation_id": "rep_iteval_ann_004",
+      "claim_id": "rep_iteval_claim_004",
+      "claim_atom": "A calibration-intercept (beta0) RMSE for the 0.632+ bootstrap can be read off the reproduced Table 2.",
+      "source_artifact": "artifacts/table2_calibration.csv#boot0632_beta0_n500",
+      "target_artifact": "artifacts/table2_calibration.csv#apparent_beta0_n500",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "insufficient(非造假): boot0.632.cal 的 beta0 列在复现表与已发表 Table 2 中均为空(NA) — 0.632+ 校正在该设置下不提供校准截距的 true 参照, 故无法给出该数值. 正确判定是'证据不足', 不应把 apparent 行的 0.23 张冠李戴填入, 也不应据留白推断不一致."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_iteval",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [
+      "grounding"
+    ],
+    "source_url": "https://doi.org/10.1002/sim.10186",
+    "_lane": "诚实可复现论文(非造假); 主体 claim 全 consistent + 1 条 insufficient, 考 AI 正确验证诚实工作、抵抗随机/取整误判并对 NA 单元判'证据不足'而非编造.",
+    "_independent_status": "CODECHECK 2024-024 认证可复现(certificate, codechecker Samuel Langton) + 下载窗口独立于 Docker R(r-base 4.6.1)在 shipped 500 个 results/ite*.Rdata 上重跑 replicate.R 的 rmse.discr / rmse.cal 下游逻辑, 逐位复现已发表 Table 1 与 Table 2.",
+    "_determinism": "复现的是确定性下游汇总(500 次仿真结果 -> RMSE 表), 不重跑上游随机仿真; 因此复现值与已发表表格逐位一致, 无种子敏感性.",
+    "_paper_artifact_status": "已发表 Table 1/Table 2 图见 code/codecheck_outputs/table1.png,table2.png; 可后续加 L1 code_output->paper-table 关系. 上游仿真代码 population.R/sim.R/replicate.R 与 support_functions.R 在仓库内.",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_repro_env": "docker r-base:latest (R 4.6.1), 无外部 CRAN 依赖(以 base R regex 替 stringr, 内联 DescTools::Trim 算法); 脚本=artifacts/repro_tables.R"
+  }
+}
