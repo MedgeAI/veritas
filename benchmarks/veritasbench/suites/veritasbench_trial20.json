@@ -1,8 +1,7 @@
 {
   "schema_version": 1,
-  "benchmark_id": "veritasbench",
-  "case_count": 20,
-  "cases": [
+  "name": "veritasbench_trial20",
+  "case_ids": [
     "ncb_akg",
     "ncb_alkbh7",
     "ncb_cav2",

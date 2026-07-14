@@ -1,0 +1,12 @@
+Name,sample_size,power
+Luminous exposure (lx*h),3,0.8
+"Mean of brightest 10 hours (M10, lux)",3,0.9
+"Midpoint of brightest 10 hours (M10, hh:mm)",3,0.9
+Geometric mean (lx),3,1
+Time above 1000 lx (h),3,1
+Time above 250 lx (h),3,1
+Mean timing of light below 10 lx (hh:mm),5,0.9
+Intradaily variability,10,0.8
+"Mean of darkest 5 hours (L5, lux)",12,0.8
+Geometric sd (lx),19,0.8
+Mean timing of light above 250 lx (hh:mm),21,0.8

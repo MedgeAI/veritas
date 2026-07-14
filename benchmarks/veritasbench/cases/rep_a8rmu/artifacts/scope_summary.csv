@@ -1,0 +1,24 @@
+"variable","level","n"
+"n_included_studies","total",104
+"intervention_class","open science policies and guidelines",73
+"intervention_class","open methodology",10
+"intervention_class","other",9
+"intervention_class","open science tools",7
+"intervention_class","open data and materials",2
+"intervention_class","open educational resources",2
+"intervention_class","open evaluations",1
+"intervention_class","_n_levels",7
+"outcomes_class","methods transparency",35
+"outcomes_class","research material sharing",34
+"outcomes_class","miscellaneous",16
+"outcomes_class","reproducibility",8
+"outcomes_class","other direct outcome",4
+"outcomes_class","registration status",4
+"outcomes_class","replicability",2
+"outcomes_class","inferential reproducibility",1
+"outcomes_class","_n_levels",8
+"author_stated_effect","generally positive",60
+"author_stated_effect","null/neutral",43
+"author_stated_effect","generally negative",1
+"direct","direct outcomes",15
+"direct","proxy outcomes",89

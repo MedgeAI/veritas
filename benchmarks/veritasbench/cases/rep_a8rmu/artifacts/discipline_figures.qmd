@@ -1,0 +1,127 @@
+---
+title: "Discipline figures"
+format: html
+---
+
+```{r include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, dpi = 600)
+```
+
+```{r}
+library(tidyverse)
+library(colorspace)
+library(patchwork)
+
+theme_set(theme_minimal())
+
+df <- readxl::read_excel("fulldata.xlsx")
+
+relevant_data <- df %>% 
+  # read_excel imports an empty row for some reason
+  filter(!is.na(item_id)) %>% 
+  mutate(publication_year = str_extract(author_year, "\\d+")) %>% 
+  select(article_id = item_id, frasc_top = `discipline_frascati_top-level`,
+         frasc_2nd = `discipline_frascati_2nd-level`, publication_year) %>% 
+  mutate(study_id = seq_along(article_id)) %>% 
+  select(article_id, study_id, everything())
+
+stopifnot(identical(nrow(relevant_data), 104L))
+```
+
+# Fix the issues (except first order codings)
+
+```{r}
+relevant_fixed <- relevant_data %>% 
+  mutate(frasc_2nd = str_replace_all(frasc_2nd, "Sciences", "sciences") %>% 
+           str_replace_all(",", ";"))
+```
+
+
+# Split top level
+```{r}
+frasc_top_long <- relevant_fixed %>% 
+  mutate(frasc_top_split = str_split(frasc_top, ";\\s")) %>% 
+  unnest(frasc_top_split)
+```
+
+
+# Panel 3 - papers over time
+```{r}
+p3 <- frasc_top_long %>% 
+  count(publication_year, frasc_top_split) %>% 
+  ggplot(aes(publication_year, n, fill = frasc_top_split)) +
+  geom_col(width = .75) +
+  scale_fill_discrete_qualitative() +
+  scale_y_continuous(breaks = seq(0, 20, by = 4)) +
+  theme(legend.position = "top") +
+  labs(x = NULL, y = "Number of studies", fill = NULL)
+```
+
+# Panel 1 - Frascati distribution overall
+```{r, fig.width=5, fig.height=3}
+pdata <- frasc_top_long %>% 
+  count(frasc_top_split) %>% 
+  # add missing disciplines
+  bind_rows(
+    tribble(
+      ~full_data, ~n,
+      "Engineering and technology", 0,
+      "Agricultural and veterinary sciences", 0,
+      "Humanities and the arts", 0
+    )
+  ) %>% 
+  mutate(full_data = coalesce(frasc_top_split, full_data))
+
+p1 <- pdata %>% 
+  ggplot(aes(fct_rev(full_data), n, fill = frasc_top_split)) +
+  geom_col(show.legend = FALSE, width = .75) +
+  scale_fill_discrete_qualitative() +
+  labs(x = NULL, y = "Number of studies", fill = NULL) +
+  coord_flip()
+```
+
+# Panel 2 - Second order frascati
+```{r}
+frasc_2nd_long <- relevant_fixed %>% 
+  mutate(frasc_2nd_split = str_split(frasc_2nd, ";\\s")) %>% 
+  unnest(frasc_2nd_split) %>% 
+  mutate(frasc_2nd_split =  case_match(
+    frasc_2nd_split,
+    "Earth and related environmental sciences" ~ "Earth/env. sciences",
+    .default = frasc_2nd_split),
+         frasc_top_split = 
+           case_when(
+             !str_detect(frasc_top, ";") ~ frasc_top,
+             frasc_2nd_split == "Clinical medicine" ~ "Medical and health sciences",
+             frasc_2nd_split == "Health sciences" ~ "Medical and health sciences",
+             frasc_2nd_split == "Basic medicine" ~ "Medical and health sciences",
+             frasc_2nd_split == "Psychology and cognitive sciences" ~ "Social sciences",
+             frasc_2nd_split == "Other social sciences" ~ "Social sciences",
+             frasc_2nd_split == "Biological sciences" ~ "Natural sciences",
+             TRUE ~ NA_character_
+           ))
+```
+
+```{r, fig.width=7, fig.height=5}
+p2 <- frasc_2nd_long %>% 
+  count(frasc_2nd_split, frasc_top_split) %>% 
+  ggplot(aes(fct_reorder(str_wrap(frasc_2nd_split, 30), n, .fun = max), n, fill = frasc_top_split)) +
+  geom_col(show.legend = FALSE, width = .75) +
+  scale_fill_discrete_qualitative() +
+  labs(x = NULL, y = "Number of studies", fill = NULL) +
+  coord_flip()
+```
+
+# Joint figure
+```{r discipline-fig, fig.width=8, fig.height=6.5}
+areas <- c(
+  area(2, 1, 10, 8),
+  area(1, 9, 11, 20),
+  area(12, 1, 20, 20)
+)
+
+p1 + p2 + free(p3) + plot_annotation(tag_levels = "A") +
+  plot_layout(guides = "collect", design = areas) & 
+  theme(legend.position = "none")
+```
+

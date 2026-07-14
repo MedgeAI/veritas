@@ -1,0 +1,166 @@
+{
+  "case_id": "rep_mqg86",
+  "paper_title": "Using Consumer Wearables to Measure Physical Activity of Nursing Home Residents with Dementia",
+  "paper_authors": [
+    "Daniela Gawehns",
+    "Suzanne Portegijs",
+    "Adriana Petronella Anna van Beek",
+    "Matthijs van Leeuwen"
+  ],
+  "artifacts": {
+    "linked_data_rds": {
+      "path": "artifacts/linkedData.rds",
+      "sha256": "d43199f91b8e1ae090af217a245efe4db6337fb5c867126344159d8626b5906d",
+      "kind": "source_data"
+    },
+    "repro_cor_matrix_csv": {
+      "path": "artifacts/repro_cor_matrix_5sec.csv",
+      "sha256": "2026bedc358a639ff77954e2c473712e63ea8093053a5706d5d21723d289a6ab",
+      "kind": "code_output"
+    },
+    "plotting_scripts_r": {
+      "path": "artifacts/PlottingScripts.R",
+      "sha256": "3d38fc7704d38f335cfed8c0a707216745ccbd5e602483073d770fcecd319fc7",
+      "kind": "code"
+    }
+  },
+  "observations": {
+    "artifacts/repro_cor_matrix_5sec.csv#MADmean_vs_Light": {
+      "value": 0.775,
+      "source_artifact": "artifacts/repro_cor_matrix_5sec.csv",
+      "source_artifact_hash": "2026bedc358a639ff77954e2c473712e63ea8093053a5706d5d21723d289a6ab",
+      "source_span": "repro_cor_matrix_5sec.csv, row 'MADmean', column 'Light' = 0.775 (可穿戴加速度计运动量 MADmean 与观测到的轻度活动 Light 的 Pearson 相关, 正相关)"
+    },
+    "artifacts/repro_cor_matrix_5sec.csv#MADmean_vs_Inactive": {
+      "value": -0.5902,
+      "source_artifact": "artifacts/repro_cor_matrix_5sec.csv",
+      "source_artifact_hash": "2026bedc358a639ff77954e2c473712e63ea8093053a5706d5d21723d289a6ab",
+      "source_span": "repro_cor_matrix_5sec.csv, row 'MADmean', column 'Inactive' = -0.5902 (可穿戴 MADmean 与 Samsung 24hrs 分类 Inactive 的相关, 负相关)"
+    },
+    "artifacts/repro_cor_matrix_5sec.csv#MADsd_vs_MADqant": {
+      "value": 0.9945,
+      "source_artifact": "artifacts/repro_cor_matrix_5sec.csv",
+      "source_artifact_hash": "2026bedc358a639ff77954e2c473712e63ea8093053a5706d5d21723d289a6ab",
+      "source_span": "repro_cor_matrix_5sec.csv, row 'MADsd', column 'MADqant' = 0.9945 (两个 MAD 衍生量间的相关, 近乎共线)"
+    },
+    "artifacts/repro_cor_matrix_5sec.csv#MADmean_vs_MADsd": {
+      "value": 0.9443,
+      "source_artifact": "artifacts/repro_cor_matrix_5sec.csv",
+      "source_artifact_hash": "2026bedc358a639ff77954e2c473712e63ea8093053a5706d5d21723d289a6ab",
+      "source_span": "repro_cor_matrix_5sec.csv, row 'MADmean', column 'MADsd' = 0.9443 (MADmean 与 MADsd 相关, 高度共线)"
+    },
+    "artifacts/repro_cor_matrix_5sec.csv#Inactive_vs_Light": {
+      "value": -0.8884,
+      "source_artifact": "artifacts/repro_cor_matrix_5sec.csv",
+      "source_artifact_hash": "2026bedc358a639ff77954e2c473712e63ea8093053a5706d5d21723d289a6ab",
+      "source_span": "repro_cor_matrix_5sec.csv, row 'Inactive', column 'Light' = -0.8884 (Samsung 24hrs 分类 Inactive 与 Light 的相关, 强负相关=内部一致)"
+    },
+    "artifacts/repro_cor_matrix_5sec.csv#Inactive_vs_MLO2": {
+      "value": 0.8215,
+      "source_artifact": "artifacts/repro_cor_matrix_5sec.csv",
+      "source_artifact_hash": "2026bedc358a639ff77954e2c473712e63ea8093053a5706d5d21723d289a6ab",
+      "source_span": "repro_cor_matrix_5sec.csv, row 'Inactive', column 'MLO2' = 0.8215 (Samsung Inactive 与 MEDLO 被动观测类别 MLO2 的相关, 正相关)"
+    },
+    "artifacts/linkedData.rds#n_residents": {
+      "value": 12,
+      "source_artifact": "artifacts/linkedData.rds",
+      "source_artifact_hash": "d43199f91b8e1ae090af217a245efe4db6337fb5c867126344159d8626b5906d",
+      "source_span": "linkedData.rds: data.frame 12 obs. of 14 variables (nrow=12) = 相关矩阵基于 12 名同时具备可穿戴+行为观测完整配对的住民"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_mqg86_ann_001",
+      "claim_id": "rep_mqg86_claim_001",
+      "claim_atom": "Consumer-wearable accelerometer movement (MADmean) tracks observed physical activity: it correlates positively with time in Light activity (r=0.78) and negatively with time Inactive (r=-0.59), supporting that the wearable captures residents' physical activity.",
+      "source_artifact": "artifacts/repro_cor_matrix_5sec.csv#MADmean_vs_Light",
+      "target_artifact": "artifacts/repro_cor_matrix_5sec.csv#MADmean_vs_Inactive",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_stochastic": "cor() 为确定性(无随机种子): 复现 MADmean~Light=0.775>0 且 MADmean~Inactive=-0.5902<0, 方向与论文'可穿戴捕捉体力活动'一致 → consistent. n=12 相关系数量级中等属正常, 勿因样本小把中等相关误判为不支持(FP陷阱)。",
+      "_reproduction": [
+        "Docker R (r-base 4.6.1) 跑 cor(readRDS('linkedData.rds')) = PlottingScripts.R L91 corrplot 底层矩阵: MADmean~Light=0.775, MADmean~Inactive=-0.5902"
+      ]
+    },
+    {
+      "annotation_id": "rep_mqg86_ann_002",
+      "claim_id": "rep_mqg86_claim_002",
+      "claim_atom": "The MAD-derived movement summaries are highly collinear with one another: MADsd vs MADqant r=0.99 and MADmean vs MADsd r=0.94 (both > 0.94).",
+      "source_artifact": "artifacts/repro_cor_matrix_5sec.csv#MADsd_vs_MADqant",
+      "target_artifact": "artifacts/repro_cor_matrix_5sec.csv#MADmean_vs_MADsd",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "consistent: 0.9945 与 0.9443 均 > 0.94, 支持多个 MAD 衍生量高度共线的观察。grounding: 须在同一相关矩阵内取 MAD-MAD 子块, 别与 MAD-observation 跨块混淆。"
+    },
+    {
+      "annotation_id": "rep_mqg86_ann_003",
+      "claim_id": "rep_mqg86_claim_003",
+      "claim_atom": "The Samsung 24-hour activity-recognition 'Inactive' category is internally coherent: it correlates strongly negatively with 'Light' (r=-0.89) and strongly positively with the MEDLO passive-behaviour category MLO2 (r=0.82).",
+      "source_artifact": "artifacts/repro_cor_matrix_5sec.csv#Inactive_vs_Light",
+      "target_artifact": "artifacts/repro_cor_matrix_5sec.csv#Inactive_vs_MLO2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "consistent: Inactive~Light=-0.8884 (负), Inactive~MLO2=0.8215 (正), 两独立来源(Samsung 日志 vs MEDLO 观测)方向自洽, 支持 Inactive 分类有效性。"
+    },
+    {
+      "annotation_id": "rep_mqg86_ann_004",
+      "claim_id": "rep_mqg86_claim_004",
+      "claim_atom": "The wearable-vs-observation correlation coefficients are stable population estimates that would generalize beyond this nursing-home cohort.",
+      "source_artifact": "artifacts/repro_cor_matrix_5sec.csv#MADmean_vs_Light",
+      "target_artifact": "artifacts/linkedData.rds#n_residents",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "evidence_span": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "insufficient: 相关矩阵仅基于 n=12 名住民的样本内点估计, 无置信区间/外部验证。能否外推到其他人群、点估计的稳定性, 无法仅凭该矩阵判定。论文本身定位为小样本探索性可行性研究, 未作此强外推断言, 故判证据不足而非 inconsistent。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_mqg86",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [
+      "grounding"
+    ],
+    "source_url": "https://doi.org/10.31234/osf.io/mqg86",
+    "_lane": "诚实可复现(Docker R); 全 claim=consistent + 1 insufficient, 考 AI 正确验证诚实可行性研究而不因小样本(n=12)中等相关误报为不支持",
+    "_independent_status": "CODECHECK 2024-021 认证 (certificate zenodo.14261193; 三图中两图与论文视觉一致); 下载窗口在 Docker r-base 4.6.1 重跑 PlottingScripts.R 的 Figure 3 逻辑 cor(linkedData.rds) 复现相关系数矩阵",
+    "_reproduction": {
+      "engine": "Docker r-base:latest (R 4.6.1), 装包走代理 HTTP(S)_PROXY=172.17.0.1:10808 (本次仅用 base::cor, 无需额外包)",
+      "code_run": "PlottingScripts.R L9+L91: readRDS('linkedData.rds') 后 cor(LinkedData_21_5sec) = manuscript Figure 3 (CorrelationMatrix_5sec_hc.tif) 底层 Pearson 相关矩阵 (corrplot 的 order='hclust' 仅重排显示不改数值)",
+      "not_rerun": "上游原始加速度计 .dat -> MAD/ENMO 5sec-epoch 特征提取 (ExtractMAD_EN_ENMO_MIMS.R/FormatACCData.R, WEARDA/GGIR 风格) + MEDLO 行为观测 + Samsung 24hrs 活动识别日志的清洗/归一化/连接 (clean2021DataOfNotOnWrist.R/LinkData_Correlations.R) 未重跑; 原始个体数据未公开(隐私, README data-not-available)。采用论文 shipped 中间产物 linkedData.rds (12 residents x 14 measures) 作确定性下游输入",
+      "reproduced_values": {
+        "n_residents": 12,
+        "MADmean_vs_Light": 0.775,
+        "MADmean_vs_Inactive": -0.5902,
+        "MADsd_vs_MADqant": 0.9945,
+        "MADmean_vs_MADsd": 0.9443,
+        "Inactive_vs_Light": -0.8884,
+        "Inactive_vs_MLO2": 0.8215
+      }
+    },
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_paper_artifact_status": "paper 正文 = PsyArXiv 预印本开放 (osf.io/preprints/psyarxiv/mqg86); 可后续补 paper_pdf artifact 加真 L1 code_output->paper-figure 比对"
+  }
+}

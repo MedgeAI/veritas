@@ -1,0 +1,261 @@
+{
+  "case_id": "rep_a8rmu",
+  "paper_title": "Open Science interventions to improve reproducibility and replicability of research: a scoping review",
+  "paper_authors": [
+    "Leonie Dudda",
+    "Eva Kormann",
+    "Magdalena Kozula",
+    "Nicholas J. DeVito",
+    "Thomas Klebe",
+    "Ayu P.M. Dewi",
+    "Rene Spijker",
+    "Inge Stegeman",
+    "Veerle Van den Eynden",
+    "Tony Ross-Hellauer",
+    "Mariska M.G. Leeflang"
+  ],
+  "artifacts": {
+    "fulldata_xlsx": {
+      "path": "artifacts/fulldata.xlsx",
+      "sha256": "de5e39068897ef895c33c51212820760cb85ade5bb03242dbf140fe934325e2e",
+      "kind": "source_data"
+    },
+    "discipline_figures_qmd": {
+      "path": "artifacts/discipline_figures.qmd",
+      "sha256": "45ac05eefd7b667726d57e1aedbb9ef45bee6bffa92b49e8d43e60f9309949eb",
+      "kind": "code"
+    },
+    "scope_qmd": {
+      "path": "artifacts/scope.qmd",
+      "sha256": "6c1a015c72be1c488fecbb6fcf6fc959ca256a07215f31070be9a75113a99de3",
+      "kind": "code"
+    },
+    "discipline_counts_csv": {
+      "path": "artifacts/discipline_counts.csv",
+      "sha256": "0fab8d8be3a4ba6567665fc5cd8bf605774d895b20bf5fd17cbab5c6db6bcd6f",
+      "kind": "code_output"
+    },
+    "scope_summary_csv": {
+      "path": "artifacts/scope_summary.csv",
+      "sha256": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/discipline_counts.csv#medical_health": {
+      "value": 70,
+      "source_artifact": "artifacts/discipline_counts.csv",
+      "source_artifact_hash": "0fab8d8be3a4ba6567665fc5cd8bf605774d895b20bf5fd17cbab5c6db6bcd6f",
+      "source_span": "discipline_counts.csv, row frasc_top_level='Medical and health sciences', column n_assignments = 70 (Frascati top-level 学科归类的赋值次数;分母是学科-研究配对而非研究数, 因多学科研究会被赋多个 top-level 类别)"
+    },
+    "artifacts/discipline_counts.csv#social": {
+      "value": 27,
+      "source_artifact": "artifacts/discipline_counts.csv",
+      "source_artifact_hash": "0fab8d8be3a4ba6567665fc5cd8bf605774d895b20bf5fd17cbab5c6db6bcd6f",
+      "source_span": "discipline_counts.csv, row frasc_top_level='Social sciences', column n_assignments = 27"
+    },
+    "artifacts/discipline_counts.csv#natural": {
+      "value": 15,
+      "source_artifact": "artifacts/discipline_counts.csv",
+      "source_artifact_hash": "0fab8d8be3a4ba6567665fc5cd8bf605774d895b20bf5fd17cbab5c6db6bcd6f",
+      "source_span": "discipline_counts.csv, row frasc_top_level='Natural sciences', column n_assignments = 15"
+    },
+    "artifacts/discipline_counts.csv#multidisciplinary": {
+      "value": 7,
+      "source_artifact": "artifacts/discipline_counts.csv",
+      "source_artifact_hash": "0fab8d8be3a4ba6567665fc5cd8bf605774d895b20bf5fd17cbab5c6db6bcd6f",
+      "source_span": "discipline_counts.csv, row frasc_top_level='Multidisciplinary', column n_assignments = 7 (四类之和 70+27+15+7 = 119 > 104, 因多学科研究被 unnest 成多行, 非重复计数错误)"
+    },
+    "artifacts/scope_summary.csv#n_studies": {
+      "value": 104,
+      "source_artifact": "artifacts/scope_summary.csv",
+      "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
+      "source_span": "scope_summary.csv, row variable='n_included_studies' level='total', n = 104 (scoping review 纳入的研究总数; 与 discipline_figures.qmd 中 stopifnot(nrow==104L) 一致)"
+    },
+    "artifacts/scope_summary.csv#intervention_policies": {
+      "value": 73,
+      "source_artifact": "artifacts/scope_summary.csv",
+      "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
+      "source_span": "scope_summary.csv, row variable='intervention_class' level='open science policies and guidelines', n = 73 (最常见的干预类别)"
+    },
+    "artifacts/scope_summary.csv#intervention_methodology": {
+      "value": 10,
+      "source_artifact": "artifacts/scope_summary.csv",
+      "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
+      "source_span": "scope_summary.csv, row variable='intervention_class' level='open methodology', n = 10 (第二常见的干预类别)"
+    },
+    "artifacts/scope_summary.csv#intervention_n_levels": {
+      "value": 7,
+      "source_artifact": "artifacts/scope_summary.csv",
+      "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
+      "source_span": "scope_summary.csv, row variable='intervention_class' level='_n_levels', n = 7 (intervention_class 共 7 个类别)"
+    },
+    "artifacts/scope_summary.csv#outcomes_methods_transparency": {
+      "value": 35,
+      "source_artifact": "artifacts/scope_summary.csv",
+      "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
+      "source_span": "scope_summary.csv, row variable='outcomes_class' level='methods transparency', n = 35 (最常见的结局类别)"
+    },
+    "artifacts/scope_summary.csv#outcomes_material_sharing": {
+      "value": 34,
+      "source_artifact": "artifacts/scope_summary.csv",
+      "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
+      "source_span": "scope_summary.csv, row variable='outcomes_class' level='research material sharing', n = 34 (第二常见的结局类别, 与 methods transparency 仅差 1)"
+    },
+    "artifacts/scope_summary.csv#outcomes_n_levels": {
+      "value": 8,
+      "source_artifact": "artifacts/scope_summary.csv",
+      "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
+      "source_span": "scope_summary.csv, row variable='outcomes_class' level='_n_levels', n = 8 (outcomes_class 共 8 个类别)"
+    },
+    "artifacts/scope_summary.csv#effect_positive": {
+      "value": 60,
+      "source_artifact": "artifacts/scope_summary.csv",
+      "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
+      "source_span": "scope_summary.csv, row variable='author_stated_effect' level='generally positive', n = 60"
+    },
+    "artifacts/scope_summary.csv#effect_null": {
+      "value": 43,
+      "source_artifact": "artifacts/scope_summary.csv",
+      "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
+      "source_span": "scope_summary.csv, row variable='author_stated_effect' level='null/neutral', n = 43"
+    },
+    "artifacts/scope_summary.csv#effect_negative": {
+      "value": 1,
+      "source_artifact": "artifacts/scope_summary.csv",
+      "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
+      "source_span": "scope_summary.csv, row variable='author_stated_effect' level='generally negative', n = 1 (60+43+1 = 104 = 纳入研究总数, 每项研究恰一个 author-stated effect)"
+    },
+    "artifacts/scope_summary.csv#direct_count": {
+      "value": 15,
+      "source_artifact": "artifacts/scope_summary.csv",
+      "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
+      "source_span": "scope_summary.csv, row variable='direct' level='direct outcomes', n = 15 (direct==1 的研究数; 其余 89 为 proxy outcomes)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_a8rmu_ann_001",
+      "claim_id": "rep_a8rmu_claim_001",
+      "claim_atom": "Medical and health sciences is the most represented top-level Frascati discipline among the 104 included studies, with 70 discipline assignments, far more than Social sciences (27) or Natural sciences (15).",
+      "source_artifact": "artifacts/discipline_counts.csv#medical_health",
+      "target_artifact": "artifacts/discipline_counts.csv#social",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_stochastic": "纯计数 scoping review, 无随机性: discipline_counts.csv 复现 Medical and health sciences=70 > Social sciences=27 > Natural sciences=15 > Multidisciplinary=7 → 'Medical and health sciences 最常见' 成立.",
+      "_note": "FP陷阱: 四类 n_assignments 之和 = 119 > 104 (纳入研究数). 这不是重复计数错误 — 多学科研究在 discipline_figures.qmd 中被 str_split(';') + unnest 拆成多行, 每个 top-level 学科各计一次. grounding: 须理解 n_assignments 是学科-研究配对数而非研究数, 勿因 119≠104 误判 inconsistent.",
+      "_reproduction": [
+        "Docker R (r-base 4.6.1) 跑 discipline_figures.qmd 的 relevant_data + frasc_top_long 逻辑于 shipped fulldata.xlsx: Medical and health sciences=70 为最高档"
+      ]
+    },
+    {
+      "annotation_id": "rep_a8rmu_ann_002",
+      "claim_id": "rep_a8rmu_claim_002",
+      "claim_atom": "Open science policies and guidelines is by far the most studied class of intervention (73 of the 104 studies), an order of magnitude above the next class, open methodology (10).",
+      "source_artifact": "artifacts/scope_summary.csv#intervention_policies",
+      "target_artifact": "artifacts/scope_summary.csv#intervention_methodology",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_stochastic": "scope.qmd intervention_class 计数 (确定性): open science policies and guidelines=73, open methodology=10 → 73 远超 10, 断言一致. 每项研究一个 intervention_class, 7 类之和 = 104.",
+      "_reproduction": [
+        "scope_summary.csv row intervention_class/open science policies and guidelines = 73; open methodology = 10"
+      ]
+    },
+    {
+      "annotation_id": "rep_a8rmu_ann_003",
+      "claim_id": "rep_a8rmu_claim_003",
+      "claim_atom": "The two most common outcome classes are methods transparency (35 studies) and research material sharing (34 studies), which are almost tied and together dominate the eight outcome classes.",
+      "source_artifact": "artifacts/scope_summary.csv#outcomes_methods_transparency",
+      "target_artifact": "artifacts/scope_summary.csv#outcomes_material_sharing",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "consistent: methods transparency=35, research material sharing=34, 仅差 1, 为 outcomes_class (共 8 类) 中前二. grounding: 须从 outcomes_class 表 (非 outcomes_specific) 取值."
+    },
+    {
+      "annotation_id": "rep_a8rmu_ann_004",
+      "claim_id": "rep_a8rmu_claim_004",
+      "claim_atom": "Author-stated effects of the interventions skew positive: 60 studies report a generally positive effect versus 43 null/neutral and only 1 generally negative.",
+      "source_artifact": "artifacts/scope_summary.csv#effect_positive",
+      "target_artifact": "artifacts/scope_summary.csv#effect_null",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "consistent: generally positive=60 > null/neutral=43 > generally negative=1. FP陷阱: 60+43+1 = 104 恰等于纳入研究总数 (每项研究一个 author-stated effect), 是内部一致的完整划分, 勿把 '和=104' 误读为异常."
+    },
+    {
+      "annotation_id": "rep_a8rmu_ann_005",
+      "claim_id": "rep_a8rmu_claim_005",
+      "claim_atom": "The predominance of open science policies and guidelines interventions (73 vs 10 for open methodology) demonstrates that policy/guideline interventions are the most effective open-science interventions for improving reproducibility.",
+      "source_artifact": "artifacts/scope_summary.csv#intervention_policies",
+      "target_artifact": "artifacts/scope_summary.csv#intervention_methodology",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "evidence_span": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "insufficient: 计数 73 vs 10 只说明这是被最多研究覆盖的干预类别 (evidence-mapping 频次), 不能推出该类干预'最有效'. 有效性需按 author_stated_effect / 定量结局分层比较, scope_summary.csv 的类别计数无法支撑效果性断言. scoping review 本身也只做证据映射不做有效性排序 → 判证据不足, 非 inconsistent."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_a8rmu",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [
+      "grounding"
+    ],
+    "source_url": "https://doi.org/10.31222/osf.io/a8rmu",
+    "_lane": "诚实可复现 (Docker R, 纯计数 scoping review); 4 consistent (3 clean) + 1 insufficient. 考 AI 正确验证诚实的证据映射计数, 并抵抗两处 FP 陷阱 (学科赋值和 119>104 / 效果计数和=104) 与多表 grounding (discipline vs intervention_class vs outcomes_class).",
+    "_independent_status": "CODECHECK 2024-004 认证可复现 (certificate zenodo.13364677, codechecker Sam Langton); 下载窗口在 Docker r-base 4.6.1 重跑 discipline_figures.qmd + scope.qmd 的计数逻辑于 shipped fulldata.xlsx, 复现 discipline_counts.csv 与 scope_summary.csv.",
+    "_reproduction": {
+      "engine": "Docker r-base:latest (R 4.6.1), readxl / dplyr / stringr / tidyr, HTTP(S)_PROXY=172.17.0.1:10808",
+      "code_run": "discipline_figures.qmd (relevant_data filter !is.na(item_id) -> nrow=104; frasc_top str_split(';') + unnest -> count) 与 scope.qmd (lowercase 清洗 -> table(intervention_class)/table(outcomes_class)/table(author_stated_effect)/table(direct)) 于 shipped fulldata.xlsx",
+      "not_rerun": "quarto 全文渲染 + 完整 tidyverse/janitor/inspectdf/flextable/patchwork 绘图 (图 2-5) 未重跑; 只复现产出关键计数的确定性数据逻辑 (图的底层 count 表).",
+      "reproduced_values": {
+        "n_included_studies": 104,
+        "discipline_medical_health": 70,
+        "discipline_social": 27,
+        "discipline_natural": 15,
+        "discipline_multidisciplinary": 7,
+        "discipline_assignments_sum": 119,
+        "intervention_class_n_levels": 7,
+        "intervention_open_science_policies_and_guidelines": 73,
+        "intervention_open_methodology": 10,
+        "outcomes_class_n_levels": 8,
+        "outcomes_methods_transparency": 35,
+        "outcomes_research_material_sharing": 34,
+        "author_effect_generally_positive": 60,
+        "author_effect_null_neutral": 43,
+        "author_effect_generally_negative": 1,
+        "direct_outcomes": 15,
+        "proxy_outcomes": 89
+      }
+    },
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_paper_artifact_status": "paper 正文 = MetaArXiv 开放预印本 (osf.io/preprints/metaarxiv/a8rmu); 可后续补 paper_pdf artifact 加真·L1 code_output->paper-table/figure 比对"
+  }
+}

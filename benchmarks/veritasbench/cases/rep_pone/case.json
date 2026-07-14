@@ -1,0 +1,168 @@
+{
+  "case_id": "rep_pone",
+  "paper_title": "Power analysis for personal light exposure measurements and interventions",
+  "paper_authors": [
+    "Johannes Zauner",
+    "Ljiljana Udovicic",
+    "Manuel Spitschan"
+  ],
+  "artifacts": {
+    "power_data_csv": {
+      "path": "artifacts/Power_data.csv",
+      "sha256": "f4cd2d0ccf7a61d9f73f8141fd9dae86c6d85f414f99889b67a3851400bd5579",
+      "kind": "code_output"
+    },
+    "power_summary_reproduced_csv": {
+      "path": "artifacts/Power_summary_reproduced.csv",
+      "sha256": "66c77bdbc0a35f1d22796d38e896ff75118b9985450681584bce2bfddf68dd18",
+      "kind": "code_output"
+    },
+    "missing_metrics_txt": {
+      "path": "artifacts/missing_metrics.txt",
+      "sha256": "e09602503175dfddc58ccf1aaf308314094ba5b8a14cac997ca4d80b8f503aef",
+      "kind": "code_output"
+    },
+    "powercalc_qmd": {
+      "path": "artifacts/PowerCalc.qmd",
+      "sha256": "b505f186991bedf73ff594811685c250ecbe31843e3da42d7c32cb7e3dc20274",
+      "kind": "code"
+    }
+  },
+  "observations": {
+    "artifacts/Power_summary_reproduced.csv#geomean_min_ss": {
+      "value": 3,
+      "source_artifact": "artifacts/Power_summary_reproduced.csv",
+      "source_artifact_hash": "66c77bdbc0a35f1d22796d38e896ff75118b9985450681584bce2bfddf68dd18",
+      "source_span": "Power_summary_reproduced.csv, row Name='Geometric mean (lx)', column sample_size = 3 (达到80%功效所需最小样本量;为所有指标中最小档 n=3)"
+    },
+    "artifacts/Power_data.csv#geomean_power_ss3": {
+      "value": 1.0,
+      "source_artifact": "artifacts/Power_data.csv",
+      "source_artifact_hash": "f4cd2d0ccf7a61d9f73f8141fd9dae86c6d85f414f99889b67a3851400bd5579",
+      "source_span": "Power_data.csv, row Name='Geometric mean (lx)', sample_size=3, column power = 1 (n=3 时功效已达100%)"
+    },
+    "artifacts/Power_summary_reproduced.csv#n_metrics_reaching_80": {
+      "value": 11,
+      "source_artifact": "artifacts/Power_summary_reproduced.csv",
+      "source_artifact_hash": "66c77bdbc0a35f1d22796d38e896ff75118b9985450681584bce2bfddf68dd18",
+      "source_span": "Power_summary_reproduced.csv 共 11 行数据(12 个指标中有 11 个在 n<=50 内达到 80% 功效)"
+    },
+    "artifacts/Power_data.csv#L5midpoint_max_power": {
+      "value": 0.6,
+      "source_artifact": "artifacts/Power_data.csv",
+      "source_artifact_hash": "f4cd2d0ccf7a61d9f73f8141fd9dae86c6d85f414f99889b67a3851400bd5579",
+      "source_span": "Power_data.csv, Name='Midpoint of darkest 5 hours (L5, hh:mm)' 各 sample_size 的 power 最大值 = 0.6 (全程 < 0.8, 故未列入 required-sample-size 汇总表)"
+    },
+    "artifacts/Power_summary_reproduced.csv#timing250_min_ss": {
+      "value": 21,
+      "source_artifact": "artifacts/Power_summary_reproduced.csv",
+      "source_artifact_hash": "66c77bdbc0a35f1d22796d38e896ff75118b9985450681584bce2bfddf68dd18",
+      "source_span": "Power_summary_reproduced.csv, row Name='Mean timing of light above 250 lx (hh:mm)', column sample_size = 21 (达 80% 功效所需样本量,为达标指标中最大)"
+    },
+    "artifacts/missing_metrics.txt#missing_metric_name": {
+      "value": "Midpoint of darkest 5 hours (L5, hh:mm)",
+      "source_artifact": "artifacts/missing_metrics.txt",
+      "source_artifact_hash": "e09602503175dfddc58ccf1aaf308314094ba5b8a14cac997ca4d80b8f503aef",
+      "source_span": "missing_metrics.txt 唯一一行 = 'Midpoint of darkest 5 hours (L5, hh:mm)' (在测试样本范围内始终未达 80% 功效的指标)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_pone_ann_001",
+      "claim_id": "rep_pone_claim_001",
+      "claim_atom": "The geometric mean of (melanopic) light exposure is the most sensitive metric to seasonal change: it reaches the 80% power threshold at the smallest tested sample size (n=3), where power is already 100%.",
+      "source_artifact": "artifacts/Power_summary_reproduced.csv#geomean_min_ss",
+      "target_artifact": "artifacts/Power_data.csv#geomean_power_ss3",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_stochastic": "功效以每档 10 次 bootstrap 重采样计算,分辨率 0.1;Geometric mean 在 n=3 即 power=1.0,远高于阈值,是稳健的最敏感指标。换种子重跑仍应在 n=3 达标 → 判 consistent,勿因随机小抖动误判(FP陷阱)。",
+      "_reproduction": [
+        "Docker R (r-base 4.6.1, dplyr 1.2.1) 跑 PowerCalc.qmd 的 results-table 逻辑于论文 shipped Power_data.csv: Geometric mean 最小达标样本量=3, 该处 power=1.0"
+      ]
+    },
+    {
+      "annotation_id": "rep_pone_ann_002",
+      "claim_id": "rep_pone_claim_002",
+      "claim_atom": "Of the 12 light-exposure metrics, 11 reach 80% power within the tested sample-size range (n<=50); the single exception, Midpoint of darkest 5 hours (L5), never reaches the threshold (its power peaks at 0.6).",
+      "source_artifact": "artifacts/Power_summary_reproduced.csv#n_metrics_reaching_80",
+      "target_artifact": "artifacts/Power_data.csv#L5midpoint_max_power",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_stochastic": "汇总表 11 行 = 11 个达标指标;missing 集恰为 1 个 (L5 midpoint),其 power 全程 <=0.6。grounding:须区分 required-sample-size 表(达标指标)与 missing 脚注(未达标),别把两者混算。",
+      "_reproduction": [
+        "Power_summary_reproduced.csv 有 11 行; base::setdiff 得 missing = {'Midpoint of darkest 5 hours (L5, hh:mm)'}; 该指标在 Power_data.csv 各样本量 power 最大 0.6"
+      ]
+    },
+    {
+      "annotation_id": "rep_pone_ann_003",
+      "claim_id": "rep_pone_claim_003",
+      "claim_atom": "Timing metrics require substantially larger samples than intensity metrics: Mean timing of light above 250 lx needs n=21 to reach 80% power, versus n=3 for the geometric mean.",
+      "source_artifact": "artifacts/Power_summary_reproduced.csv#timing250_min_ss",
+      "target_artifact": "artifacts/Power_summary_reproduced.csv#geomean_min_ss",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "consistent: 21 (timing>250lx) > 3 (geomean),达标样本量差 7 倍,支持论文'timing 指标更难检出季节差异'的结论。"
+    },
+    {
+      "annotation_id": "rep_pone_ann_004",
+      "claim_id": "rep_pone_claim_004",
+      "claim_atom": "The per-metric required sample sizes are stable population estimates that would generalize beyond this 13-participant shift-worker cohort.",
+      "source_artifact": "artifacts/Power_summary_reproduced.csv#timing250_min_ss",
+      "target_artifact": "artifacts/Power_summary_reproduced.csv#geomean_min_ss",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "evidence_span": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "insufficient: code output 仅给出基于 n=13 参与者、每档 10 次 bootstrap(功效分辨率 0.1)的样本内点估计。是否可外推到其他人群、以及点估计的稳定性,无法仅凭该 Power_data.csv 判定。论文本身亦定位为该数据集的探索性功效分析,未做此强断言,故不判 inconsistent,而判证据不足。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_pone",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [
+      "grounding",
+      "stochastic_variation"
+    ],
+    "source_url": "https://doi.org/10.1371/journal.pone.0308768",
+    "_lane": "诚实可复现(Docker R); 全 consistent claim + 1 insufficient, 考 AI 正确验证诚实功效分析而不因 bootstrap 随机/粗分辨率误报",
+    "_independent_status": "CODECHECK 2024-018 认证可编译 (certificate zenodo.14235113); 下载窗口在 Docker r-base 4.6.1 重跑 PowerCalc.qmd 的 results-table 代码块于论文 shipped Results/Power_data.csv, 复现 required-sample-size 汇总表 + missing 指标集",
+    "_reproduction": {
+      "engine": "Docker r-base:latest (R 4.6.1), dplyr 1.2.1 / tidyr / readr, HTTP(S)_PROXY=172.17.0.1:10808",
+      "code_run": "PowerCalc.qmd 'results table' 代码块 (group_by(Name) %>% filter(power>=0.8) %>% slice_min(sample_size); base::setdiff 求 missing) 于论文 shipped Results/Power_data.csv",
+      "not_rerun": "上游 LightLogR/lightdosimetry 导入+MEDI 标定+清洗+bootstrap(2-3小时, 每档 10 重采样, github 依赖 tscnlab/LightLogR + steffenhartmeyer/lightdosimetry, lme4/lmerTest 混合效应模型)未重跑; 采用论文 shipped code_output CSV (codecheck.yml manifest 产物) 作输入, 下游汇总为确定性复现",
+      "reproduced_values": {
+        "geomean_min_sample_size": 3,
+        "geomean_power_at_n3": 1.0,
+        "n_metrics_reaching_80pct": 11,
+        "n_metrics_total": 12,
+        "metric_never_reaching_80pct": "Midpoint of darkest 5 hours (L5, hh:mm)",
+        "L5_midpoint_max_power": 0.6,
+        "timing_above_250lx_min_sample_size": 21
+      }
+    },
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_paper_artifact_status": "paper 正文 = PLoS ONE 开放获取 (含 correction doi 10.1371/journal.pone.0325944); 可后续补 paper_pdf artifact 加真·L1 code_output->paper-table 比对"
+  }
+}

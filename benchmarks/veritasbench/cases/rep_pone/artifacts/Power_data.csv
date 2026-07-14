@@ -1,0 +1,577 @@
+Name,sample_size,power
+Geometric mean (lx),3,1
+Geometric mean (lx),4,1
+Geometric mean (lx),5,1
+Geometric mean (lx),6,1
+Geometric mean (lx),7,1
+Geometric mean (lx),8,1
+Geometric mean (lx),9,1
+Geometric mean (lx),10,1
+Geometric mean (lx),11,1
+Geometric mean (lx),12,1
+Geometric mean (lx),13,1
+Geometric mean (lx),14,1
+Geometric mean (lx),15,1
+Geometric mean (lx),16,1
+Geometric mean (lx),17,1
+Geometric mean (lx),18,1
+Geometric mean (lx),19,1
+Geometric mean (lx),20,1
+Geometric mean (lx),21,1
+Geometric mean (lx),22,1
+Geometric mean (lx),23,1
+Geometric mean (lx),24,1
+Geometric mean (lx),25,1
+Geometric mean (lx),26,1
+Geometric mean (lx),27,1
+Geometric mean (lx),28,1
+Geometric mean (lx),29,1
+Geometric mean (lx),30,1
+Geometric mean (lx),31,1
+Geometric mean (lx),32,1
+Geometric mean (lx),33,1
+Geometric mean (lx),34,1
+Geometric mean (lx),35,1
+Geometric mean (lx),36,1
+Geometric mean (lx),37,1
+Geometric mean (lx),38,1
+Geometric mean (lx),39,1
+Geometric mean (lx),40,1
+Geometric mean (lx),41,1
+Geometric mean (lx),42,1
+Geometric mean (lx),43,1
+Geometric mean (lx),44,1
+Geometric mean (lx),45,1
+Geometric mean (lx),46,1
+Geometric mean (lx),47,1
+Geometric mean (lx),48,1
+Geometric mean (lx),49,1
+Geometric mean (lx),50,1
+Geometric sd (lx),3,0.7
+Geometric sd (lx),4,0.6
+Geometric sd (lx),5,0.6
+Geometric sd (lx),6,0.4
+Geometric sd (lx),7,0.2
+Geometric sd (lx),8,0.5
+Geometric sd (lx),9,0.3
+Geometric sd (lx),10,0.3
+Geometric sd (lx),11,0.5
+Geometric sd (lx),12,0.6
+Geometric sd (lx),13,0.5
+Geometric sd (lx),14,0.4
+Geometric sd (lx),15,0.6
+Geometric sd (lx),16,0.5
+Geometric sd (lx),17,0.6
+Geometric sd (lx),18,0.5
+Geometric sd (lx),19,0.8
+Geometric sd (lx),20,0.4
+Geometric sd (lx),21,0.2
+Geometric sd (lx),22,0.5
+Geometric sd (lx),23,0.6
+Geometric sd (lx),24,0.5
+Geometric sd (lx),25,0.6
+Geometric sd (lx),26,0.4
+Geometric sd (lx),27,0.5
+Geometric sd (lx),28,0.5
+Geometric sd (lx),29,0.6
+Geometric sd (lx),30,0.7
+Geometric sd (lx),31,0.5
+Geometric sd (lx),32,0.8
+Geometric sd (lx),33,0.9
+Geometric sd (lx),34,0.6
+Geometric sd (lx),35,0.4
+Geometric sd (lx),36,0.7
+Geometric sd (lx),37,0.9
+Geometric sd (lx),38,0.6
+Geometric sd (lx),39,0.7
+Geometric sd (lx),40,0.7
+Geometric sd (lx),41,0.7
+Geometric sd (lx),42,0.9
+Geometric sd (lx),43,0.4
+Geometric sd (lx),44,0.7
+Geometric sd (lx),45,0.9
+Geometric sd (lx),46,0.4
+Geometric sd (lx),47,0.6
+Geometric sd (lx),48,0.7
+Geometric sd (lx),49,0.8
+Geometric sd (lx),50,0.9
+Intradaily variability,3,0.3
+Intradaily variability,4,0.3
+Intradaily variability,5,0.5
+Intradaily variability,6,0.5
+Intradaily variability,7,0.7
+Intradaily variability,8,0.3
+Intradaily variability,9,0.6
+Intradaily variability,10,0.8
+Intradaily variability,11,0.6
+Intradaily variability,12,0.6
+Intradaily variability,13,0.6
+Intradaily variability,14,0.6
+Intradaily variability,15,0.7
+Intradaily variability,16,0.8
+Intradaily variability,17,0.7
+Intradaily variability,18,0.9
+Intradaily variability,19,0.9
+Intradaily variability,20,0.9
+Intradaily variability,21,0.9
+Intradaily variability,22,0.9
+Intradaily variability,23,1
+Intradaily variability,24,0.9
+Intradaily variability,25,0.8
+Intradaily variability,26,1
+Intradaily variability,27,0.7
+Intradaily variability,28,0.8
+Intradaily variability,29,1
+Intradaily variability,30,0.9
+Intradaily variability,31,0.9
+Intradaily variability,32,1
+Intradaily variability,33,1
+Intradaily variability,34,1
+Intradaily variability,35,0.9
+Intradaily variability,36,1
+Intradaily variability,37,1
+Intradaily variability,38,0.9
+Intradaily variability,39,1
+Intradaily variability,40,0.9
+Intradaily variability,41,1
+Intradaily variability,42,1
+Intradaily variability,43,1
+Intradaily variability,44,1
+Intradaily variability,45,1
+Intradaily variability,46,1
+Intradaily variability,47,1
+Intradaily variability,48,1
+Intradaily variability,49,1
+Intradaily variability,50,1
+Luminous exposure (lx*h),3,0.8
+Luminous exposure (lx*h),4,1
+Luminous exposure (lx*h),5,1
+Luminous exposure (lx*h),6,1
+Luminous exposure (lx*h),7,1
+Luminous exposure (lx*h),8,1
+Luminous exposure (lx*h),9,1
+Luminous exposure (lx*h),10,1
+Luminous exposure (lx*h),11,1
+Luminous exposure (lx*h),12,1
+Luminous exposure (lx*h),13,1
+Luminous exposure (lx*h),14,1
+Luminous exposure (lx*h),15,1
+Luminous exposure (lx*h),16,1
+Luminous exposure (lx*h),17,1
+Luminous exposure (lx*h),18,1
+Luminous exposure (lx*h),19,1
+Luminous exposure (lx*h),20,1
+Luminous exposure (lx*h),21,1
+Luminous exposure (lx*h),22,1
+Luminous exposure (lx*h),23,1
+Luminous exposure (lx*h),24,1
+Luminous exposure (lx*h),25,1
+Luminous exposure (lx*h),26,1
+Luminous exposure (lx*h),27,1
+Luminous exposure (lx*h),28,1
+Luminous exposure (lx*h),29,1
+Luminous exposure (lx*h),30,1
+Luminous exposure (lx*h),31,1
+Luminous exposure (lx*h),32,1
+Luminous exposure (lx*h),33,1
+Luminous exposure (lx*h),34,1
+Luminous exposure (lx*h),35,1
+Luminous exposure (lx*h),36,1
+Luminous exposure (lx*h),37,1
+Luminous exposure (lx*h),38,1
+Luminous exposure (lx*h),39,1
+Luminous exposure (lx*h),40,1
+Luminous exposure (lx*h),41,1
+Luminous exposure (lx*h),42,1
+Luminous exposure (lx*h),43,1
+Luminous exposure (lx*h),44,1
+Luminous exposure (lx*h),45,1
+Luminous exposure (lx*h),46,1
+Luminous exposure (lx*h),47,1
+Luminous exposure (lx*h),48,1
+Luminous exposure (lx*h),49,1
+Luminous exposure (lx*h),50,1
+"Mean of brightest 10 hours (M10, lux)",3,0.9
+"Mean of brightest 10 hours (M10, lux)",4,1
+"Mean of brightest 10 hours (M10, lux)",5,1
+"Mean of brightest 10 hours (M10, lux)",6,1
+"Mean of brightest 10 hours (M10, lux)",7,1
+"Mean of brightest 10 hours (M10, lux)",8,1
+"Mean of brightest 10 hours (M10, lux)",9,1
+"Mean of brightest 10 hours (M10, lux)",10,1
+"Mean of brightest 10 hours (M10, lux)",11,1
+"Mean of brightest 10 hours (M10, lux)",12,1
+"Mean of brightest 10 hours (M10, lux)",13,1
+"Mean of brightest 10 hours (M10, lux)",14,1
+"Mean of brightest 10 hours (M10, lux)",15,1
+"Mean of brightest 10 hours (M10, lux)",16,1
+"Mean of brightest 10 hours (M10, lux)",17,1
+"Mean of brightest 10 hours (M10, lux)",18,1
+"Mean of brightest 10 hours (M10, lux)",19,1
+"Mean of brightest 10 hours (M10, lux)",20,1
+"Mean of brightest 10 hours (M10, lux)",21,1
+"Mean of brightest 10 hours (M10, lux)",22,1
+"Mean of brightest 10 hours (M10, lux)",23,1
+"Mean of brightest 10 hours (M10, lux)",24,1
+"Mean of brightest 10 hours (M10, lux)",25,1
+"Mean of brightest 10 hours (M10, lux)",26,1
+"Mean of brightest 10 hours (M10, lux)",27,1
+"Mean of brightest 10 hours (M10, lux)",28,1
+"Mean of brightest 10 hours (M10, lux)",29,1
+"Mean of brightest 10 hours (M10, lux)",30,1
+"Mean of brightest 10 hours (M10, lux)",31,1
+"Mean of brightest 10 hours (M10, lux)",32,1
+"Mean of brightest 10 hours (M10, lux)",33,1
+"Mean of brightest 10 hours (M10, lux)",34,1
+"Mean of brightest 10 hours (M10, lux)",35,1
+"Mean of brightest 10 hours (M10, lux)",36,1
+"Mean of brightest 10 hours (M10, lux)",37,1
+"Mean of brightest 10 hours (M10, lux)",38,1
+"Mean of brightest 10 hours (M10, lux)",39,1
+"Mean of brightest 10 hours (M10, lux)",40,1
+"Mean of brightest 10 hours (M10, lux)",41,1
+"Mean of brightest 10 hours (M10, lux)",42,1
+"Mean of brightest 10 hours (M10, lux)",43,1
+"Mean of brightest 10 hours (M10, lux)",44,1
+"Mean of brightest 10 hours (M10, lux)",45,1
+"Mean of brightest 10 hours (M10, lux)",46,1
+"Mean of brightest 10 hours (M10, lux)",47,1
+"Mean of brightest 10 hours (M10, lux)",48,1
+"Mean of brightest 10 hours (M10, lux)",49,1
+"Mean of brightest 10 hours (M10, lux)",50,1
+"Mean of darkest 5 hours (L5, lux)",3,0.7
+"Mean of darkest 5 hours (L5, lux)",4,0.7
+"Mean of darkest 5 hours (L5, lux)",5,0
+"Mean of darkest 5 hours (L5, lux)",6,0.7
+"Mean of darkest 5 hours (L5, lux)",7,0.3
+"Mean of darkest 5 hours (L5, lux)",8,0.5
+"Mean of darkest 5 hours (L5, lux)",9,0.5
+"Mean of darkest 5 hours (L5, lux)",10,0.4
+"Mean of darkest 5 hours (L5, lux)",11,0.7
+"Mean of darkest 5 hours (L5, lux)",12,0.8
+"Mean of darkest 5 hours (L5, lux)",13,0.7
+"Mean of darkest 5 hours (L5, lux)",14,0.7
+"Mean of darkest 5 hours (L5, lux)",15,0.4
+"Mean of darkest 5 hours (L5, lux)",16,0.6
+"Mean of darkest 5 hours (L5, lux)",17,0.7
+"Mean of darkest 5 hours (L5, lux)",18,0.7
+"Mean of darkest 5 hours (L5, lux)",19,1
+"Mean of darkest 5 hours (L5, lux)",20,0.9
+"Mean of darkest 5 hours (L5, lux)",21,0.7
+"Mean of darkest 5 hours (L5, lux)",22,0.9
+"Mean of darkest 5 hours (L5, lux)",23,0.6
+"Mean of darkest 5 hours (L5, lux)",24,0.8
+"Mean of darkest 5 hours (L5, lux)",25,0.7
+"Mean of darkest 5 hours (L5, lux)",26,0.7
+"Mean of darkest 5 hours (L5, lux)",27,0.7
+"Mean of darkest 5 hours (L5, lux)",28,0.9
+"Mean of darkest 5 hours (L5, lux)",29,0.8
+"Mean of darkest 5 hours (L5, lux)",30,0.5
+"Mean of darkest 5 hours (L5, lux)",31,0.9
+"Mean of darkest 5 hours (L5, lux)",32,1
+"Mean of darkest 5 hours (L5, lux)",33,0.8
+"Mean of darkest 5 hours (L5, lux)",34,0.9
+"Mean of darkest 5 hours (L5, lux)",35,0.9
+"Mean of darkest 5 hours (L5, lux)",36,0.8
+"Mean of darkest 5 hours (L5, lux)",37,1
+"Mean of darkest 5 hours (L5, lux)",38,1
+"Mean of darkest 5 hours (L5, lux)",39,0.8
+"Mean of darkest 5 hours (L5, lux)",40,0.7
+"Mean of darkest 5 hours (L5, lux)",41,0.9
+"Mean of darkest 5 hours (L5, lux)",42,0.8
+"Mean of darkest 5 hours (L5, lux)",43,1
+"Mean of darkest 5 hours (L5, lux)",44,1
+"Mean of darkest 5 hours (L5, lux)",45,0.9
+"Mean of darkest 5 hours (L5, lux)",46,1
+"Mean of darkest 5 hours (L5, lux)",47,1
+"Mean of darkest 5 hours (L5, lux)",48,1
+"Mean of darkest 5 hours (L5, lux)",49,1
+"Mean of darkest 5 hours (L5, lux)",50,1
+Mean timing of light above 250 lx (hh:mm),3,0.1
+Mean timing of light above 250 lx (hh:mm),4,0.1
+Mean timing of light above 250 lx (hh:mm),5,0.3
+Mean timing of light above 250 lx (hh:mm),6,0.3
+Mean timing of light above 250 lx (hh:mm),7,0.5
+Mean timing of light above 250 lx (hh:mm),8,0.4
+Mean timing of light above 250 lx (hh:mm),9,0.3
+Mean timing of light above 250 lx (hh:mm),10,0.1
+Mean timing of light above 250 lx (hh:mm),11,0.4
+Mean timing of light above 250 lx (hh:mm),12,0.3
+Mean timing of light above 250 lx (hh:mm),13,0.6
+Mean timing of light above 250 lx (hh:mm),14,0.7
+Mean timing of light above 250 lx (hh:mm),15,0.4
+Mean timing of light above 250 lx (hh:mm),16,0.6
+Mean timing of light above 250 lx (hh:mm),17,0.4
+Mean timing of light above 250 lx (hh:mm),18,0.6
+Mean timing of light above 250 lx (hh:mm),19,0.3
+Mean timing of light above 250 lx (hh:mm),20,0.4
+Mean timing of light above 250 lx (hh:mm),21,0.8
+Mean timing of light above 250 lx (hh:mm),22,0.7
+Mean timing of light above 250 lx (hh:mm),23,0.7
+Mean timing of light above 250 lx (hh:mm),24,0.7
+Mean timing of light above 250 lx (hh:mm),25,0.6
+Mean timing of light above 250 lx (hh:mm),26,0.6
+Mean timing of light above 250 lx (hh:mm),27,0.9
+Mean timing of light above 250 lx (hh:mm),28,0.8
+Mean timing of light above 250 lx (hh:mm),29,0.6
+Mean timing of light above 250 lx (hh:mm),30,0.8
+Mean timing of light above 250 lx (hh:mm),31,0.6
+Mean timing of light above 250 lx (hh:mm),32,0.5
+Mean timing of light above 250 lx (hh:mm),33,0.4
+Mean timing of light above 250 lx (hh:mm),34,0.6
+Mean timing of light above 250 lx (hh:mm),35,0.9
+Mean timing of light above 250 lx (hh:mm),36,0.7
+Mean timing of light above 250 lx (hh:mm),37,0.8
+Mean timing of light above 250 lx (hh:mm),38,0.8
+Mean timing of light above 250 lx (hh:mm),39,0.8
+Mean timing of light above 250 lx (hh:mm),40,0.9
+Mean timing of light above 250 lx (hh:mm),41,0.6
+Mean timing of light above 250 lx (hh:mm),42,1
+Mean timing of light above 250 lx (hh:mm),43,0.8
+Mean timing of light above 250 lx (hh:mm),44,0.8
+Mean timing of light above 250 lx (hh:mm),45,0.7
+Mean timing of light above 250 lx (hh:mm),46,0.7
+Mean timing of light above 250 lx (hh:mm),47,0.9
+Mean timing of light above 250 lx (hh:mm),48,0.9
+Mean timing of light above 250 lx (hh:mm),49,0.6
+Mean timing of light above 250 lx (hh:mm),50,0.9
+Mean timing of light below 10 lx (hh:mm),3,0.6
+Mean timing of light below 10 lx (hh:mm),4,0.7
+Mean timing of light below 10 lx (hh:mm),5,0.9
+Mean timing of light below 10 lx (hh:mm),6,0.7
+Mean timing of light below 10 lx (hh:mm),7,0.7
+Mean timing of light below 10 lx (hh:mm),8,1
+Mean timing of light below 10 lx (hh:mm),9,1
+Mean timing of light below 10 lx (hh:mm),10,0.8
+Mean timing of light below 10 lx (hh:mm),11,1
+Mean timing of light below 10 lx (hh:mm),12,0.9
+Mean timing of light below 10 lx (hh:mm),13,1
+Mean timing of light below 10 lx (hh:mm),14,1
+Mean timing of light below 10 lx (hh:mm),15,1
+Mean timing of light below 10 lx (hh:mm),16,1
+Mean timing of light below 10 lx (hh:mm),17,1
+Mean timing of light below 10 lx (hh:mm),18,1
+Mean timing of light below 10 lx (hh:mm),19,1
+Mean timing of light below 10 lx (hh:mm),20,1
+Mean timing of light below 10 lx (hh:mm),21,1
+Mean timing of light below 10 lx (hh:mm),22,1
+Mean timing of light below 10 lx (hh:mm),23,1
+Mean timing of light below 10 lx (hh:mm),24,1
+Mean timing of light below 10 lx (hh:mm),25,1
+Mean timing of light below 10 lx (hh:mm),26,1
+Mean timing of light below 10 lx (hh:mm),27,1
+Mean timing of light below 10 lx (hh:mm),28,1
+Mean timing of light below 10 lx (hh:mm),29,1
+Mean timing of light below 10 lx (hh:mm),30,1
+Mean timing of light below 10 lx (hh:mm),31,1
+Mean timing of light below 10 lx (hh:mm),32,1
+Mean timing of light below 10 lx (hh:mm),33,1
+Mean timing of light below 10 lx (hh:mm),34,1
+Mean timing of light below 10 lx (hh:mm),35,1
+Mean timing of light below 10 lx (hh:mm),36,1
+Mean timing of light below 10 lx (hh:mm),37,1
+Mean timing of light below 10 lx (hh:mm),38,1
+Mean timing of light below 10 lx (hh:mm),39,1
+Mean timing of light below 10 lx (hh:mm),40,1
+Mean timing of light below 10 lx (hh:mm),41,1
+Mean timing of light below 10 lx (hh:mm),42,1
+Mean timing of light below 10 lx (hh:mm),43,1
+Mean timing of light below 10 lx (hh:mm),44,1
+Mean timing of light below 10 lx (hh:mm),45,1
+Mean timing of light below 10 lx (hh:mm),46,1
+Mean timing of light below 10 lx (hh:mm),47,1
+Mean timing of light below 10 lx (hh:mm),48,1
+Mean timing of light below 10 lx (hh:mm),49,1
+Mean timing of light below 10 lx (hh:mm),50,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",3,0.9
+"Midpoint of brightest 10 hours (M10, hh:mm)",4,0.9
+"Midpoint of brightest 10 hours (M10, hh:mm)",5,0.9
+"Midpoint of brightest 10 hours (M10, hh:mm)",6,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",7,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",8,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",9,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",10,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",11,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",12,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",13,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",14,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",15,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",16,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",17,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",18,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",19,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",20,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",21,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",22,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",23,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",24,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",25,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",26,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",27,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",28,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",29,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",30,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",31,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",32,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",33,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",34,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",35,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",36,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",37,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",38,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",39,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",40,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",41,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",42,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",43,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",44,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",45,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",46,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",47,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",48,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",49,1
+"Midpoint of brightest 10 hours (M10, hh:mm)",50,1
+"Midpoint of darkest 5 hours (L5, hh:mm)",3,0.5
+"Midpoint of darkest 5 hours (L5, hh:mm)",4,0.2
+"Midpoint of darkest 5 hours (L5, hh:mm)",5,0.5
+"Midpoint of darkest 5 hours (L5, hh:mm)",6,0
+"Midpoint of darkest 5 hours (L5, hh:mm)",7,0.2
+"Midpoint of darkest 5 hours (L5, hh:mm)",8,0.4
+"Midpoint of darkest 5 hours (L5, hh:mm)",9,0.6
+"Midpoint of darkest 5 hours (L5, hh:mm)",10,0.1
+"Midpoint of darkest 5 hours (L5, hh:mm)",11,0.3
+"Midpoint of darkest 5 hours (L5, hh:mm)",12,0.3
+"Midpoint of darkest 5 hours (L5, hh:mm)",13,0.2
+"Midpoint of darkest 5 hours (L5, hh:mm)",14,0.1
+"Midpoint of darkest 5 hours (L5, hh:mm)",15,0.1
+"Midpoint of darkest 5 hours (L5, hh:mm)",16,0.5
+"Midpoint of darkest 5 hours (L5, hh:mm)",17,0.1
+"Midpoint of darkest 5 hours (L5, hh:mm)",18,0.4
+"Midpoint of darkest 5 hours (L5, hh:mm)",19,0.3
+"Midpoint of darkest 5 hours (L5, hh:mm)",20,0.2
+"Midpoint of darkest 5 hours (L5, hh:mm)",21,0.2
+"Midpoint of darkest 5 hours (L5, hh:mm)",22,0.1
+"Midpoint of darkest 5 hours (L5, hh:mm)",23,0.1
+"Midpoint of darkest 5 hours (L5, hh:mm)",24,0.1
+"Midpoint of darkest 5 hours (L5, hh:mm)",25,0.1
+"Midpoint of darkest 5 hours (L5, hh:mm)",26,0.5
+"Midpoint of darkest 5 hours (L5, hh:mm)",27,0.2
+"Midpoint of darkest 5 hours (L5, hh:mm)",28,0.2
+"Midpoint of darkest 5 hours (L5, hh:mm)",29,0.4
+"Midpoint of darkest 5 hours (L5, hh:mm)",30,0.3
+"Midpoint of darkest 5 hours (L5, hh:mm)",31,0.1
+"Midpoint of darkest 5 hours (L5, hh:mm)",32,0.1
+"Midpoint of darkest 5 hours (L5, hh:mm)",33,0.3
+"Midpoint of darkest 5 hours (L5, hh:mm)",34,0.1
+"Midpoint of darkest 5 hours (L5, hh:mm)",35,0.3
+"Midpoint of darkest 5 hours (L5, hh:mm)",36,0.3
+"Midpoint of darkest 5 hours (L5, hh:mm)",37,0.3
+"Midpoint of darkest 5 hours (L5, hh:mm)",38,0
+"Midpoint of darkest 5 hours (L5, hh:mm)",39,0.2
+"Midpoint of darkest 5 hours (L5, hh:mm)",40,0.2
+"Midpoint of darkest 5 hours (L5, hh:mm)",41,0.3
+"Midpoint of darkest 5 hours (L5, hh:mm)",42,0.2
+"Midpoint of darkest 5 hours (L5, hh:mm)",43,0.3
+"Midpoint of darkest 5 hours (L5, hh:mm)",44,0.1
+"Midpoint of darkest 5 hours (L5, hh:mm)",45,0.5
+"Midpoint of darkest 5 hours (L5, hh:mm)",46,0.5
+"Midpoint of darkest 5 hours (L5, hh:mm)",47,0.4
+"Midpoint of darkest 5 hours (L5, hh:mm)",48,0.3
+"Midpoint of darkest 5 hours (L5, hh:mm)",49,0.3
+"Midpoint of darkest 5 hours (L5, hh:mm)",50,0.3
+Time above 1000 lx (h),3,1
+Time above 1000 lx (h),4,1
+Time above 1000 lx (h),5,1
+Time above 1000 lx (h),6,1
+Time above 1000 lx (h),7,1
+Time above 1000 lx (h),8,1
+Time above 1000 lx (h),9,1
+Time above 1000 lx (h),10,1
+Time above 1000 lx (h),11,1
+Time above 1000 lx (h),12,1
+Time above 1000 lx (h),13,1
+Time above 1000 lx (h),14,1
+Time above 1000 lx (h),15,1
+Time above 1000 lx (h),16,1
+Time above 1000 lx (h),17,1
+Time above 1000 lx (h),18,1
+Time above 1000 lx (h),19,1
+Time above 1000 lx (h),20,1
+Time above 1000 lx (h),21,1
+Time above 1000 lx (h),22,1
+Time above 1000 lx (h),23,1
+Time above 1000 lx (h),24,1
+Time above 1000 lx (h),25,1
+Time above 1000 lx (h),26,1
+Time above 1000 lx (h),27,1
+Time above 1000 lx (h),28,1
+Time above 1000 lx (h),29,1
+Time above 1000 lx (h),30,1
+Time above 1000 lx (h),31,1
+Time above 1000 lx (h),32,1
+Time above 1000 lx (h),33,1
+Time above 1000 lx (h),34,1
+Time above 1000 lx (h),35,1
+Time above 1000 lx (h),36,1
+Time above 1000 lx (h),37,1
+Time above 1000 lx (h),38,1
+Time above 1000 lx (h),39,1
+Time above 1000 lx (h),40,1
+Time above 1000 lx (h),41,1
+Time above 1000 lx (h),42,1
+Time above 1000 lx (h),43,1
+Time above 1000 lx (h),44,1
+Time above 1000 lx (h),45,1
+Time above 1000 lx (h),46,1
+Time above 1000 lx (h),47,1
+Time above 1000 lx (h),48,1
+Time above 1000 lx (h),49,1
+Time above 1000 lx (h),50,1
+Time above 250 lx (h),3,1
+Time above 250 lx (h),4,1
+Time above 250 lx (h),5,1
+Time above 250 lx (h),6,1
+Time above 250 lx (h),7,1
+Time above 250 lx (h),8,1
+Time above 250 lx (h),9,1
+Time above 250 lx (h),10,1
+Time above 250 lx (h),11,1
+Time above 250 lx (h),12,1
+Time above 250 lx (h),13,1
+Time above 250 lx (h),14,1
+Time above 250 lx (h),15,1
+Time above 250 lx (h),16,1
+Time above 250 lx (h),17,1
+Time above 250 lx (h),18,1
+Time above 250 lx (h),19,1
+Time above 250 lx (h),20,1
+Time above 250 lx (h),21,1
+Time above 250 lx (h),22,1
+Time above 250 lx (h),23,1
+Time above 250 lx (h),24,1
+Time above 250 lx (h),25,1
+Time above 250 lx (h),26,1
+Time above 250 lx (h),27,1
+Time above 250 lx (h),28,1
+Time above 250 lx (h),29,1
+Time above 250 lx (h),30,1
+Time above 250 lx (h),31,1
+Time above 250 lx (h),32,1
+Time above 250 lx (h),33,1
+Time above 250 lx (h),34,1
+Time above 250 lx (h),35,1
+Time above 250 lx (h),36,1
+Time above 250 lx (h),37,1
+Time above 250 lx (h),38,1
+Time above 250 lx (h),39,1
+Time above 250 lx (h),40,1
+Time above 250 lx (h),41,1
+Time above 250 lx (h),42,1
+Time above 250 lx (h),43,1
+Time above 250 lx (h),44,1
+Time above 250 lx (h),45,1
+Time above 250 lx (h),46,1
+Time above 250 lx (h),47,1
+Time above 250 lx (h),48,1
+Time above 250 lx (h),49,1
+Time above 250 lx (h),50,1
