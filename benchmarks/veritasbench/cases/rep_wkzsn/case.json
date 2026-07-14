@@ -1,0 +1,179 @@
+{
+  "case_id": "rep_wkzsn",
+  "paper_title": "Quality in Question: Assessing the accuracy of four heart rate wearables and the implications for psychophysiological research",
+  "paper_authors": [
+    "Mohammadamin Sinichi",
+    "Martin Gevonden",
+    "Lydia Krabbendam"
+  ],
+  "artifacts": {
+    "group_pickle": {
+      "path": "artifacts/group.pickle",
+      "sha256": "a4daf3b3e6d40ff5f90dc5f6752307515d5c791bb4279c1c727a2d4c4aac7c0e",
+      "kind": "source_data"
+    },
+    "reproduce_py": {
+      "path": "artifacts/reproduce.py",
+      "sha256": "56a6b9dfea8de2b2e9c54c1839b1e129408226d0d6dad5ea27f21c029f4cad7f",
+      "kind": "code"
+    },
+    "mape_summary_csv": {
+      "path": "artifacts/mape_summary.csv",
+      "sha256": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/mape_summary.csv#meanhr_sitting_empatica_mape": {
+      "value": 2.6929,
+      "source_artifact": "artifacts/mape_summary.csv",
+      "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
+      "source_span": "mape_summary.csv, row device=empatica feature=mean_hr condition=sitting, column MAPE=2.6929 (%; 静息坐姿下 Empatica 平均心率 MAPE, 四设备中最高但仍<3%; n=4)"
+    },
+    "artifacts/mape_summary.csv#meanhr_sitting_rhythm_mape": {
+      "value": 1.5747,
+      "source_artifact": "artifacts/mape_summary.csv",
+      "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
+      "source_span": "mape_summary.csv, row device=rhythm feature=mean_hr condition=sitting, column MAPE=1.5747 (%; 静息坐姿下 Scosche Rhythm+ 平均心率 MAPE, 四设备中最低; n=10)"
+    },
+    "artifacts/mape_summary.csv#meanhr_sitting_heartmath_mape": {
+      "value": 2.4384,
+      "source_artifact": "artifacts/mape_summary.csv",
+      "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
+      "source_span": "mape_summary.csv, row device=heartmath feature=mean_hr condition=sitting, column MAPE=2.4384 (%; 静息坐姿下 HeartMath 平均心率 MAPE; n=10)"
+    },
+    "artifacts/mape_summary.csv#meanhr_biking_empatica_mape": {
+      "value": 34.7591,
+      "source_artifact": "artifacts/mape_summary.csv",
+      "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
+      "source_span": "mape_summary.csv, row device=empatica feature=mean_hr condition=biking, column MAPE=34.7591 (%; 骑行运动下 Empatica 平均心率 MAPE; n=4)"
+    },
+    "artifacts/mape_summary.csv#meanhr_biking_rhythm_mape": {
+      "value": 16.0433,
+      "source_artifact": "artifacts/mape_summary.csv",
+      "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
+      "source_span": "mape_summary.csv, row device=rhythm feature=mean_hr condition=biking, column MAPE=16.0433 (%; 骑行运动下 Rhythm+ 平均心率 MAPE; n=10)"
+    },
+    "artifacts/mape_summary.csv#rmssd_sitting_heartmath_mape": {
+      "value": 20.3618,
+      "source_artifact": "artifacts/mape_summary.csv",
+      "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
+      "source_span": "mape_summary.csv, row device=heartmath feature=rmssd condition=sitting, column MAPE=20.3618 (%; 静息坐姿下 HeartMath 的 HRV(RMSSD) MAPE; n=10)"
+    },
+    "artifacts/mape_summary.csv#rmssd_biking_heartmath_mape": {
+      "value": 1144.4996,
+      "source_artifact": "artifacts/mape_summary.csv",
+      "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
+      "source_span": "mape_summary.csv, row device=heartmath feature=rmssd condition=biking, column MAPE=1144.4996 (%; 骑行运动下 HeartMath 的 HRV(RMSSD) MAPE 爆炸式升高; n=10)"
+    },
+    "artifacts/mape_summary.csv#ba_bias_meanhr_sitting_heartmath": {
+      "value": 1.883,
+      "source_artifact": "artifacts/mape_summary.csv",
+      "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
+      "source_span": "mape_summary.csv, row device=heartmath feature=mean_hr condition=sitting, column BA_bias=1.883 (bpm; Bland-Altman 偏差, HeartMath 相对 VU-AMS ECG 平均高估约 1.9 bpm; n=10)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_wkzsn_ann_001",
+      "claim_id": "rep_wkzsn_claim_001",
+      "claim_atom": "Motion markedly degrades mean-heart-rate accuracy: for a given wearable (Empatica EmbracePlus), the mean-HR MAPE during biking is far larger than during seated rest.",
+      "source_artifact": "artifacts/mape_summary.csv#meanhr_biking_empatica_mape",
+      "target_artifact": "artifacts/mape_summary.csv#meanhr_sitting_empatica_mape",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "Empatica mean_hr MAPE: biking=34.76% vs sitting=2.69% (>10x) -> 运动显著降低心率准确性, 与论文核心结论一致"
+      ]
+    },
+    {
+      "annotation_id": "rep_wkzsn_ann_002",
+      "claim_id": "rep_wkzsn_claim_002",
+      "claim_atom": "Heart-rate variability (RMSSD) is captured far less accurately than mean heart rate: even at rest, a device's RMSSD MAPE is roughly an order of magnitude larger than its mean-HR MAPE.",
+      "source_artifact": "artifacts/mape_summary.csv#rmssd_sitting_heartmath_mape",
+      "target_artifact": "artifacts/mape_summary.csv#meanhr_sitting_heartmath_mape",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "HeartMath sitting: RMSSD MAPE=20.36% vs mean_hr MAPE=2.44% (~8x) -> HRV 远不如 HR 可靠, 与论文一致"
+      ]
+    },
+    {
+      "annotation_id": "rep_wkzsn_ann_003",
+      "claim_id": "rep_wkzsn_claim_003",
+      "claim_atom": "Motion compounds HRV error catastrophically: RMSSD MAPE during biking is vastly larger than during seated rest for the same device.",
+      "source_artifact": "artifacts/mape_summary.csv#rmssd_biking_heartmath_mape",
+      "target_artifact": "artifacts/mape_summary.csv#rmssd_sitting_heartmath_mape",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_stochastic": "FP陷阱: HeartMath biking RMSSD MAPE=1144.5% 看似荒谬(疑似bug), 实为真实复现——运动中criterion RMSSD很小, 相对误差被放大. 相对 sitting=20.36% 一致, 勿把巨大数字误判为不一致/造假.",
+      "_reproduction": [
+        "HeartMath RMSSD MAPE: biking=1144.50% vs sitting=20.36% -> 运动使 HRV 误差爆炸, 但方向与量级均为真实复现"
+      ]
+    },
+    {
+      "annotation_id": "rep_wkzsn_ann_004",
+      "claim_id": "rep_wkzsn_claim_004",
+      "claim_atom": "At seated rest all four wearables track mean heart rate well: the least accurate device at rest (Empatica) still has a mean-HR MAPE below 3%, comparable to the best device (Rhythm+).",
+      "source_artifact": "artifacts/mape_summary.csv#meanhr_sitting_empatica_mape",
+      "target_artifact": "artifacts/mape_summary.csv#meanhr_sitting_rhythm_mape",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "consistent: 静息 mean_hr MAPE empatica=2.69% (最差) 与 rhythm=1.57% (最佳) 均<3%, 四设备静息下 HR 皆准. FP陷阱: 两数不相等不代表不一致, 均满足'皆<3%'."
+    },
+    {
+      "annotation_id": "rep_wkzsn_ann_005",
+      "claim_id": "rep_wkzsn_claim_005",
+      "claim_atom": "Empatica is the single least accurate device overall, across every condition tested in the study.",
+      "source_artifact": "artifacts/mape_summary.csv#meanhr_biking_empatica_mape",
+      "target_artifact": "artifacts/mape_summary.csv#meanhr_biking_rhythm_mape",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "evidence_span": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "insufficient: 复现产物只覆盖 sitting/biking 两条件, 且 Empatica biking n=4(功效低), 无法就'across every condition'的全局排名下结论. 骑行下 empatica=34.76%>rhythm=16.04% 仅支持单条件, 不足以裁定全局最差."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_wkzsn",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [
+      "grounding"
+    ],
+    "source_url": "https://doi.org/10.31219/osf.io/wkzsn",
+    "_lane": "诚实可复现论文(非造假); clean claim 全 consistent, 考 AI 正确验证诚实工作 + 抵抗大数值(如 RMSSD MAPE>1000%)误判为不一致/造假",
+    "_independent_status": "CODECHECK 2024-019 认证可复现(certificate https://doi.org/10.5281/zenodo.14279041); 下载窗口独立用 wearablehrv/group.py 的 mape_analysis/blandaltman_analysis 公式在 shipped group.pickle 上重跑 reproduce.py 得 mape_summary.csv",
+    "_reproduction": "python3 reproduce.py 于 group.pickle 复现: mean_hr MAPE(sitting)=1.57-2.69%, (biking)=9.82-34.76%; rmssd MAPE(sitting)=18.6-141.5%, (biking)>1000%; HeartMath BA bias(mean_hr,sitting)=+1.88bpm. 值真跑非编.",
+    "_paper_note": "wkzsn 为 OSF preprint; 仓库内含 JOSS software paper(paper.md)+CODECHECK 报告. Table 1 用了额外 signal_quality 阈值过滤(本 case 用 shipped 聚合 group.pickle, 故绝对样本量/条数与 Table 1 略异, 但 MAPE/BA 分析公式与设备-条件方向结论忠实复现).",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_lane_tag": "rep"
+  }
+}

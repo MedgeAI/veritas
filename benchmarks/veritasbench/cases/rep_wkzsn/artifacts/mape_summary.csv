@@ -1,0 +1,17 @@
+device,feature,condition,MAPE,n,BA_bias,BA_sd
+heartmath,mean_hr,sitting,2.4384,10,1.883,0.2333
+kyto,mean_hr,sitting,1.7436,6,1.2535,0.154
+rhythm,mean_hr,sitting,1.5747,10,0.2963,2.4365
+empatica,mean_hr,sitting,2.6929,4,-2.2324,4.5622
+heartmath,mean_hr,biking,9.8221,10,-11.1326,20.4905
+kyto,mean_hr,biking,nan,6,nan,nan
+rhythm,mean_hr,biking,16.0433,10,-22.3868,21.4774
+empatica,mean_hr,biking,34.7591,4,-49.1521,21.8036
+heartmath,rmssd,sitting,20.3618,10,4.5876,4.9637
+kyto,rmssd,sitting,18.6253,6,-5.6164,2.7117
+rhythm,rmssd,sitting,86.0548,10,25.4185,19.8397
+empatica,rmssd,sitting,141.5029,4,36.641,27.848
+heartmath,rmssd,biking,1144.4996,10,45.6984,16.5104
+kyto,rmssd,biking,nan,6,nan,nan
+rhythm,rmssd,biking,1309.7673,10,56.957,12.9818
+empatica,rmssd,biking,1780.7127,4,71.3726,16.0884
