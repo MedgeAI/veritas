@@ -1,0 +1,2615 @@
+{
+  "case_id": "usp15_grounding",
+  "paper_title": "Loss of the receptors ER, PR and HER2 promotes USP15-dependent stabilization of PARP1 in triple-negative breast cancer",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "43018_2023_535_moesm26_esm": {
+      "path": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "sha256": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "kind": "source_data"
+    }
+  },
+  "observations": {
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!B7": {
+      "value": 27.30305,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', B7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!C7": {
+      "value": 20.63051,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', C7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!D7": {
+      "value": 24.07499,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', D7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!E7": {
+      "value": 29.32618,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', E7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!F7": {
+      "value": 28.96927,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', F7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!G7": {
+      "value": 24.20886,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', G7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!H7": {
+      "value": 21.86761,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', H7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!I7": {
+      "value": 17.59359,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', I7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!J7": {
+      "value": 27.59368,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', J7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!K7": {
+      "value": 16.24355,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', K7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!L7": {
+      "value": 23.03777,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', L7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!M7": {
+      "value": 13.33791,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', M7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!N7": {
+      "value": 29.26547,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', N7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!O7": {
+      "value": 23.70901,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', O7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!P7": {
+      "value": 14.68861,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', P7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!Q7": {
+      "value": 29.49315,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', Q7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!R7": {
+      "value": 26.52713,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', R7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!S7": {
+      "value": 25.29798,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', S7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!T7": {
+      "value": 18.88246,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', T7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!U7": {
+      "value": 24.43852,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', U7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!V7": {
+      "value": 22.77984,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', V7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!W7": {
+      "value": 22.52793,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', W7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!X7": {
+      "value": 23.26928,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', X7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!Y7": {
+      "value": 23.52477,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', Y7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!Z7": {
+      "value": 16.84085,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', Z7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AA7": {
+      "value": 24.40422,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AA7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AB7": {
+      "value": 35.92066,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AB7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AC7": {
+      "value": 18.89047,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AC7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AD7": {
+      "value": 27.13363,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AD7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AE7": {
+      "value": 31.30609,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AE7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AF7": {
+      "value": 23.80534,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AF7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AG7": {
+      "value": 19.82534,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AG7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AH7": {
+      "value": 23.78998,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AH7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AI7": {
+      "value": 18.40737,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AI7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AJ7": {
+      "value": 24.22627,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AJ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AK7": {
+      "value": 20.81602,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AK7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AL7": {
+      "value": 23.6877,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AL7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AM7": {
+      "value": 27.14978,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AM7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AN7": {
+      "value": 12.53115,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AN7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AO7": {
+      "value": 9.334275,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AO7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AP7": {
+      "value": 17.13162,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AP7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AQ7": {
+      "value": 22.81658,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AQ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AR7": {
+      "value": 17.58174,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AR7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AS7": {
+      "value": 25.02363,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AS7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AT7": {
+      "value": 17.69541,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AT7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AU7": {
+      "value": 22.82075,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AU7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AV7": {
+      "value": 15.72895,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AV7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AW7": {
+      "value": 26.85008,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AW7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AX7": {
+      "value": 17.2016,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AX7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AY7": {
+      "value": 28.2838,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AY7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AZ7": {
+      "value": 26.67808,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AZ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BA7": {
+      "value": 17.54652,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BA7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BB7": {
+      "value": 27.64267,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BB7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BC7": {
+      "value": 11.8505,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BC7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BD7": {
+      "value": 11.59879,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BD7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BE7": {
+      "value": 15.20699,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BE7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BF7": {
+      "value": 18.96554,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BF7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BG7": {
+      "value": 22.15791,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BG7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BH7": {
+      "value": 25.23568,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BH7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BI7": {
+      "value": 14.8285,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BI7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BJ7": {
+      "value": 24.68281,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BJ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BK7": {
+      "value": 19.8262,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BK7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BL7": {
+      "value": 22.52846,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BL7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BM7": {
+      "value": 10.74668,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BM7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BN7": {
+      "value": 30.41511,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BN7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BO7": {
+      "value": 30.63325,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BO7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BP7": {
+      "value": 21.93063,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BP7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BQ7": {
+      "value": 20.1126,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BQ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BR7": {
+      "value": 19.38634,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BR7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BS7": {
+      "value": 22.69867,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BS7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BT7": {
+      "value": 19.59303,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BT7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BU7": {
+      "value": 15.83871,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BU7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BV7": {
+      "value": 15.03215,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BV7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BW7": {
+      "value": 24.80489,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BW7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BX7": {
+      "value": 21.13075,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BX7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BY7": {
+      "value": 18.47358,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BY7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BZ7": {
+      "value": 16.26421,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BZ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CA7": {
+      "value": 26.27814,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CA7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CB7": {
+      "value": 16.6372,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CB7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CC7": {
+      "value": 13.56162,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CC7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CD7": {
+      "value": 18.16858,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CD7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CE7": {
+      "value": 13.97698,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CE7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CF7": {
+      "value": 17.05072,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CF7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CG7": {
+      "value": 19.64354,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CG7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CH7": {
+      "value": 20.61184,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CH7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CI7": {
+      "value": 10.37633,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CI7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CJ7": {
+      "value": 20.62436,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CJ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CK7": {
+      "value": 23.5678,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CK7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CL7": {
+      "value": 14.61056,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CL7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CM7": {
+      "value": 21.29653,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CM7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CN7": {
+      "value": 22.84942,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CN7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CO7": {
+      "value": 30.00047,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CO7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CP7": {
+      "value": 15.58025,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CP7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CQ7": {
+      "value": 31.8191,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CQ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CR7": {
+      "value": 23.45088,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CR7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CS7": {
+      "value": 23.4861,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CS7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CT7": {
+      "value": 25.39616,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CT7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CU7": {
+      "value": 18.20399,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CU7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CV7": {
+      "value": 25.11016,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CV7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CW7": {
+      "value": 21.48402,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CW7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CX7": {
+      "value": 17.39286,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CX7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CY7": {
+      "value": 14.72198,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CY7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CZ7": {
+      "value": 20.55623,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CZ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DA7": {
+      "value": 18.7609,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DA7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DB7": {
+      "value": 32.88122,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DB7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DC7": {
+      "value": 20.29327,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DC7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DD7": {
+      "value": 17.88059,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DD7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DE7": {
+      "value": 22.95872,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DE7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DF7": {
+      "value": 23.47419,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DF7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DG7": {
+      "value": 22.89463,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DG7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DH7": {
+      "value": 20.63932,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DH7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DI7": {
+      "value": 18.32144,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DI7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DJ7": {
+      "value": 25.11592,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DJ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DK7": {
+      "value": 13.96401,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DK7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DL7": {
+      "value": 14.21572,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DL7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DM7": {
+      "value": 25.11771,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DM7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DN7": {
+      "value": 12.55306,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DN7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DO7": {
+      "value": 14.01141,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DO7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DP7": {
+      "value": 22.62128,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DP7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DQ7": {
+      "value": 18.49159,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DQ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DR7": {
+      "value": 11.48393,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DR7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DS7": {
+      "value": 22.03669,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DS7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DT7": {
+      "value": 17.20424,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DT7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DU7": {
+      "value": 12.09427,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DU7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DV7": {
+      "value": 20.69049,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DV7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DW7": {
+      "value": 15.92405,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DW7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DX7": {
+      "value": 26.11428,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DX7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DY7": {
+      "value": 16.19469,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DY7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DZ7": {
+      "value": 14.44028,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DZ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EA7": {
+      "value": 26.54501,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EA7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EB7": {
+      "value": 16.39927,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EB7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EC7": {
+      "value": 14.21922,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EC7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!ED7": {
+      "value": 22.3311,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', ED7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EE7": {
+      "value": 25.33645,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EE7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EF7": {
+      "value": 25.93295,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EF7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EG7": {
+      "value": 15.20838,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EG7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EH7": {
+      "value": 13.8794,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EH7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EI7": {
+      "value": 29.36491,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EI7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EJ7": {
+      "value": 24.90989,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EJ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EK7": {
+      "value": 18.28993,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EK7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EL7": {
+      "value": 21.80902,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EL7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EM7": {
+      "value": 22.53826,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EM7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EN7": {
+      "value": 30.47926,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EN7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EO7": {
+      "value": 24.47334,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EO7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EP7": {
+      "value": 23.653,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EP7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EQ7": {
+      "value": 26.0308,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EQ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!ER7": {
+      "value": 31.40784,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', ER7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!ES7": {
+      "value": 19.17673,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', ES7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!ET7": {
+      "value": 25.09348,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', ET7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EU7": {
+      "value": 25.48296,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EU7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EV7": {
+      "value": 31.42003,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EV7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EW7": {
+      "value": 21.01178,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EW7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EX7": {
+      "value": 26.54189,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EX7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EY7": {
+      "value": 24.71922,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EY7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EZ7": {
+      "value": 18.54667,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EZ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FA7": {
+      "value": 20.04798,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FA7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FB7": {
+      "value": 21.96188,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FB7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FC7": {
+      "value": 24.89765,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FC7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FD7": {
+      "value": 27.19023,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FD7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FE7": {
+      "value": 23.28365,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FE7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FF7": {
+      "value": 22.97289,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FF7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FG7": {
+      "value": 23.24565,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FG7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FH7": {
+      "value": 27.86327,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FH7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FI7": {
+      "value": 21.53996,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FI7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FJ7": {
+      "value": 24.51942,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FJ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FK7": {
+      "value": 15.10133,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FK7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FL7": {
+      "value": 14.73681,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FL7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FM7": {
+      "value": 20.13683,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FM7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FN7": {
+      "value": 22.48278,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FN7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FO7": {
+      "value": 17.4012,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FO7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FP7": {
+      "value": 19.16508,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FP7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FQ7": {
+      "value": 20.54034,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FQ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FR7": {
+      "value": 21.32917,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FR7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FS7": {
+      "value": 16.42707,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FS7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FT7": {
+      "value": 13.83464,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FT7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FU7": {
+      "value": 20.96928,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FU7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FV7": {
+      "value": 23.65976,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FV7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FW7": {
+      "value": 19.11225,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FW7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FX7": {
+      "value": 17.62299,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FX7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FY7": {
+      "value": 18.46669,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FY7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FZ7": {
+      "value": 24.22329,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FZ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GA7": {
+      "value": 11.02149,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GA7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GB7": {
+      "value": 24.23196,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GB7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GC7": {
+      "value": 14.35627,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GC7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GD7": {
+      "value": 19.60772,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GD7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GE7": {
+      "value": 35.37242,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GE7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GF7": {
+      "value": 22.01445,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GF7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GG7": {
+      "value": 17.10944,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GG7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GH7": {
+      "value": 20.22276,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GH7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GI7": {
+      "value": 16.55319,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GI7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GJ7": {
+      "value": 8.607683,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GJ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GK7": {
+      "value": 10.57719,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GK7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GL7": {
+      "value": 8.753862,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GL7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GM7": {
+      "value": 10.73946,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GM7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GN7": {
+      "value": 24.80781,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GN7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GO7": {
+      "value": 16.20105,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GO7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GP7": {
+      "value": 19.84427,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GP7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GQ7": {
+      "value": 17.00159,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GQ7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GR7": {
+      "value": 15.38713,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GR7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GS7": {
+      "value": 19.95794,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GS7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GT7": {
+      "value": 15.89254,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GT7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GU7": {
+      "value": 21.99796,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GU7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GV7": {
+      "value": 24.58927,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GV7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GW7": {
+      "value": 24.50482,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GW7 (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!B16": {
+      "value": 26.0029,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', B16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!C16": {
+      "value": 19.64811,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', C16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!D16": {
+      "value": 22.92856,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', D16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!E16": {
+      "value": 27.9297,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', E16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!F16": {
+      "value": 27.58979,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', F16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!G16": {
+      "value": 23.05605,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', G16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!H16": {
+      "value": 20.82629,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', H16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!I16": {
+      "value": 16.7558,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', I16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!J16": {
+      "value": 26.2797,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', J16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!K16": {
+      "value": 15.47005,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', K16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!L16": {
+      "value": 21.94073,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', L16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!M16": {
+      "value": 12.70277,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', M16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!N16": {
+      "value": 27.87188,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', N16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!O16": {
+      "value": 22.58001,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', O16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!P16": {
+      "value": 13.98916,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', P16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!Q16": {
+      "value": 28.08871,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', Q16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!R16": {
+      "value": 25.26393,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', R16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!S16": {
+      "value": 24.09332,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', S16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!T16": {
+      "value": 17.98329,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', T16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!U16": {
+      "value": 23.27478,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', U16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!V16": {
+      "value": 21.69508,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', V16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!W16": {
+      "value": 21.45517,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', W16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!X16": {
+      "value": 22.16122,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', X16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!Y16": {
+      "value": 22.40454,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', Y16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!Z16": {
+      "value": 16.0389,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', Z16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AA16": {
+      "value": 23.24212,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AA16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AB16": {
+      "value": 34.21015,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AB16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AC16": {
+      "value": 17.99092,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AC16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AD16": {
+      "value": 25.84155,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AD16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AE16": {
+      "value": 29.81532,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AE16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AF16": {
+      "value": 22.67175,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AF16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AG16": {
+      "value": 18.88127,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AG16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AH16": {
+      "value": 22.65712,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AH16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AI16": {
+      "value": 17.53083,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AI16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AJ16": {
+      "value": 23.07264,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AJ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AK16": {
+      "value": 19.82478,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AK16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AL16": {
+      "value": 22.55971,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AL16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AM16": {
+      "value": 25.85694,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AM16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AN16": {
+      "value": 11.93443,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AN16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AO16": {
+      "value": 8.889786,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AO16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AP16": {
+      "value": 16.31583,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AP16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AQ16": {
+      "value": 21.73008,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AQ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AR16": {
+      "value": 16.74451,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AR16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AS16": {
+      "value": 23.83203,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AS16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AT16": {
+      "value": 16.85277,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AT16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AU16": {
+      "value": 21.73405,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AU16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AV16": {
+      "value": 14.97995,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AV16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AW16": {
+      "value": 25.5715,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AW16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AX16": {
+      "value": 16.38247,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AX16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AY16": {
+      "value": 26.93695,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AY16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!AZ16": {
+      "value": 25.40769,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', AZ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BA16": {
+      "value": 16.71097,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BA16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BB16": {
+      "value": 26.32636,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BB16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BC16": {
+      "value": 11.28619,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BC16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BD16": {
+      "value": 11.04647,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BD16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BE16": {
+      "value": 14.48285,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BE16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BF16": {
+      "value": 18.06242,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BF16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BG16": {
+      "value": 21.10277,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BG16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BH16": {
+      "value": 24.03398,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BH16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BI16": {
+      "value": 14.12238,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BI16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BJ16": {
+      "value": 23.50744,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BJ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BK16": {
+      "value": 18.88209,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BK16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BL16": {
+      "value": 21.45567,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BL16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BM16": {
+      "value": 10.23493,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BM16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BN16": {
+      "value": 28.96677,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BN16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BO16": {
+      "value": 29.17453,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BO16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BP16": {
+      "value": 20.88632,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BP16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BQ16": {
+      "value": 19.15485,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BQ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BR16": {
+      "value": 18.46318,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BR16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BS16": {
+      "value": 21.61778,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BS16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BT16": {
+      "value": 18.66003,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BT16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BU16": {
+      "value": 15.08449,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BU16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BV16": {
+      "value": 14.31633,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BV16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BW16": {
+      "value": 23.62371,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BW16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BX16": {
+      "value": 20.12453,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BX16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BY16": {
+      "value": 17.59388,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BY16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!BZ16": {
+      "value": 15.48972,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', BZ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CA16": {
+      "value": 25.0268,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CA16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CB16": {
+      "value": 15.84496,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CB16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CC16": {
+      "value": 12.91583,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CC16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CD16": {
+      "value": 17.3034,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CD16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CE16": {
+      "value": 13.31141,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CE16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CF16": {
+      "value": 16.23878,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CF16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CG16": {
+      "value": 18.70813,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CG16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CH16": {
+      "value": 19.63033,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CH16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CI16": {
+      "value": 9.882219,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CI16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CJ16": {
+      "value": 19.64224,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CJ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CK16": {
+      "value": 22.44552,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CK16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CL16": {
+      "value": 13.91482,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CL16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CM16": {
+      "value": 20.28241,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CM16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CN16": {
+      "value": 21.76135,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CN16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CO16": {
+      "value": 28.57188,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CO16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CP16": {
+      "value": 14.83834,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CP16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CQ16": {
+      "value": 30.30391,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CQ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CR16": {
+      "value": 22.33417,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CR16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CS16": {
+      "value": 22.36772,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CS16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CT16": {
+      "value": 24.18682,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CT16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CU16": {
+      "value": 17.33714,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CU16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CV16": {
+      "value": 23.91444,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CV16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CW16": {
+      "value": 20.46097,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CW16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CX16": {
+      "value": 16.56463,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CX16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CY16": {
+      "value": 14.02093,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CY16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!CZ16": {
+      "value": 19.57736,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', CZ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DA16": {
+      "value": 17.86753,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DA16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DB16": {
+      "value": 31.31545,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DB16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DC16": {
+      "value": 19.32692,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DC16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DD16": {
+      "value": 17.02913,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DD16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DE16": {
+      "value": 21.86545,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DE16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DF16": {
+      "value": 22.35637,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DF16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DG16": {
+      "value": 21.80441,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DG16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DH16": {
+      "value": 19.65649,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DH16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DI16": {
+      "value": 17.44899,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DI16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DJ16": {
+      "value": 23.91992,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DJ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DK16": {
+      "value": 13.29905,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DK16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DL16": {
+      "value": 13.53878,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DL16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DM16": {
+      "value": 23.92163,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DM16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DN16": {
+      "value": 11.9553,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DN16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DO16": {
+      "value": 13.3442,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DO16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DP16": {
+      "value": 21.54407,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DP16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DQ16": {
+      "value": 17.61103,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DQ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DR16": {
+      "value": 10.93707,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DR16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DS16": {
+      "value": 20.98733,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DS16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DT16": {
+      "value": 16.38499,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DT16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DU16": {
+      "value": 11.51835,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DU16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DV16": {
+      "value": 19.70523,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DV16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DW16": {
+      "value": 15.16576,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DW16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DX16": {
+      "value": 24.87074,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DX16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DY16": {
+      "value": 15.42352,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DY16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!DZ16": {
+      "value": 13.75265,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', DZ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EA16": {
+      "value": 25.28096,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EA16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EB16": {
+      "value": 15.61835,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EB16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EC16": {
+      "value": 13.54212,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EC16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!ED16": {
+      "value": 21.26772,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', ED16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EE16": {
+      "value": 24.12995,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EE16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EF16": {
+      "value": 24.69805,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EF16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EG16": {
+      "value": 14.48417,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EG16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EH16": {
+      "value": 13.21847,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EH16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EI16": {
+      "value": 27.96658,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EI16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EJ16": {
+      "value": 23.72371,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EJ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EK16": {
+      "value": 17.41898,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EK16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EL16": {
+      "value": 20.77049,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EL16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EM16": {
+      "value": 21.46501,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EM16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EN16": {
+      "value": 29.02787,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EN16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EO16": {
+      "value": 23.30794,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EO16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EP16": {
+      "value": 22.52667,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EP16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EQ16": {
+      "value": 24.79124,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EQ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!ER16": {
+      "value": 29.91223,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', ER16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!ES16": {
+      "value": 18.26356,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', ES16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!ET16": {
+      "value": 23.89855,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', ET16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EU16": {
+      "value": 24.26948,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EU16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EV16": {
+      "value": 29.92383,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EV16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EW16": {
+      "value": 20.01122,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EW16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EX16": {
+      "value": 25.27799,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EX16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EY16": {
+      "value": 23.54212,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EY16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!EZ16": {
+      "value": 17.66349,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', EZ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FA16": {
+      "value": 19.09332,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FA16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FB16": {
+      "value": 20.91608,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FB16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FC16": {
+      "value": 23.71204,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FC16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FD16": {
+      "value": 25.89546,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FD16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FE16": {
+      "value": 22.17491,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FE16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FF16": {
+      "value": 21.87894,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FF16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FG16": {
+      "value": 22.13871,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FG16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FH16": {
+      "value": 26.53644,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FH16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FI16": {
+      "value": 20.51425,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FI16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FJ16": {
+      "value": 23.35183,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FJ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FK16": {
+      "value": 14.38222,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FK16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FL16": {
+      "value": 14.03506,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FL16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FM16": {
+      "value": 19.17793,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FM16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FN16": {
+      "value": 21.41217,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FN16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FO16": {
+      "value": 16.57257,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FO16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FP16": {
+      "value": 18.25246,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FP16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FQ16": {
+      "value": 19.56223,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FQ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FR16": {
+      "value": 20.31349,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FR16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FS16": {
+      "value": 15.64483,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FS16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FT16": {
+      "value": 13.17585,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FT16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FU16": {
+      "value": 19.97074,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FU16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FV16": {
+      "value": 22.5331,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FV16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FW16": {
+      "value": 18.20214,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FW16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FX16": {
+      "value": 16.7838,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FX16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FY16": {
+      "value": 17.58733,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FY16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!FZ16": {
+      "value": 23.0698,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', FZ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GA16": {
+      "value": 10.49666,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GA16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GB16": {
+      "value": 23.07806,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GB16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GC16": {
+      "value": 13.67264,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GC16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GD16": {
+      "value": 18.67402,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GD16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GE16": {
+      "value": 33.68802,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GE16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GF16": {
+      "value": 20.96614,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GF16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GG16": {
+      "value": 16.2947,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GG16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GH16": {
+      "value": 19.25977,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GH16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GI16": {
+      "value": 15.76494,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GI16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GJ16": {
+      "value": 8.197793,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GJ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GK16": {
+      "value": 10.07352,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GK16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GL16": {
+      "value": 8.337011,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GL16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GM16": {
+      "value": 10.22806,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GM16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GN16": {
+      "value": 23.62648,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GN16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GO16": {
+      "value": 15.42957,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GO16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GP16": {
+      "value": 18.89931,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GP16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GQ16": {
+      "value": 16.19199,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GQ16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GR16": {
+      "value": 14.65441,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GR16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GS16": {
+      "value": 19.00757,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GS16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GT16": {
+      "value": 15.13575,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GT16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GU16": {
+      "value": 20.95044,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GU16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GV16": {
+      "value": 23.41835,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GV16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!GW16": {
+      "value": 23.33792,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', GW16 (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!B3": {
+      "value": 20.74767,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', B3 (shControl DMSO row3)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!B4": {
+      "value": 35.45455,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', B4 (shUSP15-2 DMSO row4)"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!C3": {
+      "value": 27.6242,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', C3"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!D3": {
+      "value": 14.12387,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', D3"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!E3": {
+      "value": 24.575,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', E3"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!F3": {
+      "value": 16.943,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', F3"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!G3": {
+      "value": 23.1768,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', G3"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!H3": {
+      "value": 25.5804,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', H3"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!I3": {
+      "value": 17.947,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', I3"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!C4": {
+      "value": 23.73794,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', C4"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!D4": {
+      "value": 24.75094,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', D4"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!E4": {
+      "value": 28.50001,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', E4"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!F4": {
+      "value": 35.72037,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', F4"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!G4": {
+      "value": 35.52507,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', G4"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!H4": {
+      "value": 24.6557,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', H4"
+    },
+    "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!I4": {
+      "value": 12.22811,
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx",
+      "source_artifact_hash": "60279c0f42e70b36d3a46b50cacf350934a8c9a14a4e0e31bc1e5e5cd8820cc8",
+      "source_span": "sheet 'Extended Data Fig. 5B', I4"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "usp15_grounding_ann_001",
+      "claim_id": "usp15_grounding_claim_001",
+      "claim_atom": "Extended Data Fig. 5B (ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7)) and Extended Data Fig. 5B (ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16)) are independent measurements.",
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!B7",
+      "target_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!B16",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "scale_0.952381",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "B7(ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7))=27.30305 ~ B16(ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16))=26.0029",
+        "C7(ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7))=20.63051 ~ C16(ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16))=19.64811",
+        "D7(ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7))=24.07499 ~ D16(ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16))=22.92856",
+        "E7(ED Fig 5B DMSO panel, shUSP15-2+pPARP1 (row 7))=29.32618 ~ E16(ED Fig 5B MMS panel, shUSP15-2+pPARP1 (row 16))=27.9297",
+        "...204/204 满足 SCALE:0.952381"
+      ],
+      "_adjudication": "wuguandu核定=inconsistent: PubPeer CA8BBED9: ED Fig 5B 中 shUSP15-2+pPARP1 条件的 MMS 面板 204 个单细胞测量值恒为 DMSO 面板的 0.952381 倍(=20/21),藏在 18x230 的宽表约 230 列里需自行定位;任意比例非x10/x100,标准扫描器会漏 (204/204满足SCALE:0.952381)",
+      "source_a1_range": "B7:GW7",
+      "target_a1_range": "B16:GW16"
+    },
+    {
+      "annotation_id": "usp15_grounding_ann_clean",
+      "claim_id": "usp15_grounding_claim_clean",
+      "claim_atom": "Two different conditions in ED Fig 5B (shControl vs shUSP15-2, DMSO) are independent measurements with unrelated values.",
+      "source_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!B3",
+      "target_artifact": "artifacts/43018_2023_535_MOESM26_ESM.xlsx#Extended Data Fig. 5B!B4",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "clean/FAR baseline: 两个不同条件的独立单细胞测量值 (20.74767 vs 35.45455),无固定关系,好审计员不应误报.",
+      "source_a1_range": "B3:I3",
+      "target_a1_range": "B4:I4"
+    }
+  ],
+  "metadata": {
+    "paper_split": "usp15_grounding",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [
+      "mixed_boundary"
+    ],
+    "source_url": "https://doi.org/10.1038/s43018-023-00535-w",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_note": "PubPeer CA8BBED9: ED Fig 5B 中 shUSP15-2+pPARP1 条件的 MMS 面板 204 个单细胞测量值恒为 DMSO 面板的 0.952381 倍(=20/21),藏在 18x230 的宽表约 230 列里需自行定位;任意比例非x10/x100,标准扫描器会漏"
+  }
+}

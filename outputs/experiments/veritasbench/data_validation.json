@@ -1,9 +1,9 @@
 {
   "ok": true,
   "base_path": "benchmarks/veritasbench",
-  "suite": "veritasbench_trial21",
-  "expected_cases": 21,
-  "actual_cases": 21,
+  "suite": "veritasbench_trial22",
+  "expected_cases": 22,
+  "actual_cases": 22,
   "allow_empty": false,
   "global_errors": [],
   "cases": {
@@ -173,6 +173,14 @@
       "n_observations": 6,
       "n_claims": 4,
       "n_clean_claims": 2,
+      "errors": []
+    },
+    "usp15_grounding": {
+      "ok": true,
+      "n_artifacts": 1,
+      "n_observations": 424,
+      "n_claims": 2,
+      "n_clean_claims": 1,
       "errors": []
     }
   }
