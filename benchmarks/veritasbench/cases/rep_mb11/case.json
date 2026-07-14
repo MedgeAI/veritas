@@ -1,0 +1,185 @@
+{
+  "case_id": "rep_mb11",
+  "paper_title": "Multiproxy analysis exploring patterns of diet and disease in dental calculus and skeletal remains from a 19th century Dutch population",
+  "paper_authors": [
+    "Bjørn Peare Bartholdy",
+    "Jørgen Hasselstrøm",
+    "Lambert Sørensen",
+    "Maia Casna",
+    "Menno Hoogland",
+    "Amanda Henry",
+    "(Peer Community Journal 2024; CODECHECK 2025-001 certified)"
+  ],
+  "artifacts": {
+    "demography_csv": {
+      "path": "artifacts/demography.csv",
+      "sha256": "432af288825ee46cba6ced30006e1609cd13dd2b8b337854dd7837193cba14d6",
+      "kind": "source_data"
+    },
+    "repro_summary_csv": {
+      "path": "artifacts/repro_summary.csv",
+      "sha256": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
+      "kind": "code_output"
+    },
+    "repro_mb11_R": {
+      "path": "artifacts/repro_mb11.R",
+      "sha256": "f99e8a9ccd05c85a658ce179adc59f6cd9a3fddef00ff2eb583980246e1c7f7c",
+      "kind": "code"
+    }
+  },
+  "observations": {
+    "artifacts/repro_summary.csv#n_individuals": {
+      "value": 41,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
+      "source_span": "repro_summary.csv, row metric=n_individuals (nrow(demography); 样本总人数)"
+    },
+    "artifacts/repro_summary.csv#n_males": {
+      "value": 27,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
+      "source_span": "repro_summary.csv, row metric=n_males (sex=='m' 计数; 确定男性)"
+    },
+    "artifacts/repro_summary.csv#n_prob_males": {
+      "value": 11,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
+      "source_span": "repro_summary.csv, row metric=n_prob_males (sex=='pm'; 可能男性)"
+    },
+    "artifacts/repro_summary.csv#n_pipe_notch_indiv": {
+      "value": 25,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
+      "source_span": "repro_summary.csv, row metric=n_pipe_notch_indiv (batch2 男/可能男中带 pipe notch 的个体数)"
+    },
+    "artifacts/repro_summary.csv#n_pipe_notch_tobacco_detected": {
+      "value": 14,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
+      "source_span": "repro_summary.csv, row metric=n_pipe_notch_tobacco_detected (带 pipe notch 且检出烟草生物碱的个体数)"
+    },
+    "artifacts/repro_summary.csv#pct_pipe_notch_detected": {
+      "value": 56.0,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
+      "source_span": "repro_summary.csv, row metric=pct_pipe_notch_detected (14/25 = 56.0%; pipe-notch 个体的烟草检出率)"
+    },
+    "artifacts/repro_summary.csv#overall_accuracy_pct": {
+      "value": 59.25925925925926,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
+      "source_span": "repro_summary.csv, row metric=overall_accuracy_pct (mean(correct)=16/27; 计入'无 notch 且未检出'为正确后的整体准确率, 论文报 59.3%)"
+    },
+    "artifacts/repro_summary.csv#old_accuracy_pct": {
+      "value": 100.0,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
+      "source_span": "repro_summary.csv, row metric=old_accuracy_pct (老年组准确率 100.0%)"
+    },
+    "artifacts/repro_summary.csv#n_old_adult": {
+      "value": 2,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
+      "source_span": "repro_summary.csv, row metric=n_old_adult (老年组个体数=2)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_mb11_ann_001",
+      "claim_id": "rep_mb11_claim_001",
+      "claim_atom": "The MB11 sample consists of 41 individuals, of which 27 are (definite) males, i.e. males make up the largest sex category of the sample.",
+      "source_artifact": "artifacts/repro_summary.csv#n_individuals",
+      "target_artifact": "artifacts/repro_summary.csv#n_males",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "nrow(demography)=41; sum(sex=='m')=27; 论文 _materials.qmd 报 41 individuals / 27 males => 一致"
+      ]
+    },
+    {
+      "annotation_id": "rep_mb11_ann_002",
+      "claim_id": "rep_mb11_claim_002",
+      "claim_atom": "In batch 2, some form of tobacco (nicotine and/or cotinine) was detected in 14 of the 25 individuals bearing a pipe notch.",
+      "source_artifact": "artifacts/repro_summary.csv#n_pipe_notch_tobacco_detected",
+      "target_artifact": "artifacts/repro_summary.csv#n_pipe_notch_indiv",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "重建 uhplc_calculus_long(batch2, nicotine/cotinine, sex m|pm)后 pipe_notch>0 个体=25, 其中 detection>0 个体=14; 论文正文报 '14 of 25 (56.0%)' => 一致"
+      ]
+    },
+    {
+      "annotation_id": "rep_mb11_ann_003",
+      "claim_id": "rep_mb11_claim_003",
+      "claim_atom": "The overall accuracy of the tobacco-detection method (59.3%) is higher than the raw detection rate among pipe-notch individuals (56.0%).",
+      "source_artifact": "artifacts/repro_summary.csv#overall_accuracy_pct",
+      "target_artifact": "artifacts/repro_summary.csv#pct_pipe_notch_detected",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "FP陷阱: 59.3% 与 56.0% 是两个不同指标(整体准确率含'无 notch 且未检出'为正确 vs 仅 pipe-notch 检出率), 数值不同但各自都与代码输出一致. 不要因两个'accuracy 样'数字不相等而误判 inconsistent."
+    },
+    {
+      "annotation_id": "rep_mb11_ann_004",
+      "claim_id": "rep_mb11_claim_004",
+      "claim_atom": "Accuracy in the old-adult age category is 100.0%, but this is based on only 2 individuals.",
+      "source_artifact": "artifacts/repro_summary.csv#old_accuracy_pct",
+      "target_artifact": "artifacts/repro_summary.csv#n_old_adult",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "old 组 mean(correct)=100.0%, n=2; 论文正文报 '100.0%, but with only 2 individuals' => 一致"
+      ]
+    },
+    {
+      "annotation_id": "rep_mb11_ann_005",
+      "claim_id": "rep_mb11_claim_005",
+      "claim_atom": "The 100% old-adult accuracy demonstrates that the tobacco-detection method is more reliable in older individuals than in the sample overall.",
+      "source_artifact": "artifacts/repro_summary.csv#old_accuracy_pct",
+      "target_artifact": "artifacts/repro_summary.csv#overall_accuracy_pct",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "insufficient: 老年组 n=2, 100% 与整体 59.3% 的差异无法支撑'方法在老年人更可靠'的推论(样本量过小, 论文本身亦仅作 caveat 陈述, 未下此结论). AI 应判 insufficient/abstain 而非 consistent 或 inconsistent."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_mb11",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.24072/pcjournal.414",
+    "_lane": "诚实可复现论文(非造假); claim 全 consistent(+1 insufficient), 考 AI 正确将论文正文数字 ground 到复现代码输出, 并抵抗'两个 accuracy 数字不等'的 FP 误判",
+    "_independent_status": "CODECHECK 2025-001 认证全文可复现; 本案在 Docker r-base 里独立重跑 setup-qmd.R 的 UHPLC/demography 逻辑得 repro_summary.csv, 数值与 version_of_record.pdf 完全一致(41/27; 14/25=56.0%; 59.3%; old 100.0% n=2)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_reproduction_env": "docker r-base:latest (R 4.6.1) + dplyr/tidyr/readr/stringr via 代理; 读 data/*.rda(uhplc_data_comb/metadata/demography)重建 uhplc_calculus_long; 确定性无随机"
+  }
+}

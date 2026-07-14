@@ -1,0 +1,226 @@
+{
+  "case_id": "rep_samplesize",
+  "paper_title": "Sample size estimation for task-related functional MRI studies using Bayesian updating",
+  "paper_authors": [
+    "Eduard T. Klapwijk",
+    "Joran Jongerling",
+    "Herbert Hoijtink",
+    "Eveline A. Crone"
+  ],
+  "artifacts": {
+    "cohens_d_html": {
+      "path": "artifacts/figures-cohens_d.html",
+      "sha256": "f00a30b57292dfed3c5ff1d95b6364dd858a75475eb1c3d1f2f553ee82a6dfd5",
+      "kind": "code_output"
+    },
+    "correlations_html": {
+      "path": "artifacts/figures-correlations.html",
+      "sha256": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
+      "kind": "code_output"
+    },
+    "cohens_d_qmd": {
+      "path": "artifacts/figures-cohens_d.qmd",
+      "sha256": "3da1d9b07040cd21ae3bd73d90efd2d29e744449e978cad7c9879f489c0ccaf9",
+      "kind": "code"
+    },
+    "correlations_qmd": {
+      "path": "artifacts/figures-correlations.qmd",
+      "sha256": "8f18c530bba3c1f3710c2f507beb14b61b3e687aad82ac8c3da7e83dda16bc52",
+      "kind": "code"
+    },
+    "repro_r": {
+      "path": "artifacts/repro_samplesize.R",
+      "sha256": "6e6711efa51f576d6dccf8fa371d78d12ef82fc8099f5fec9dbf183d09a20221",
+      "kind": "code"
+    }
+  },
+  "observations": {
+    "artifacts/figures-cohens_d.html#feedback_d_total": {
+      "value": 1.87,
+      "source_artifact": "artifacts/figures-cohens_d.html",
+      "source_artifact_hash": "f00a30b57292dfed3c5ff1d95b6364dd858a75475eb1c3d1f2f553ee82a6dfd5",
+      "source_span": "figures-cohens_d.html, Table 2, row Feedback DLPFC, column N = total: 1.87 (1.69, 2.04), N = 271 (Cohen's d full-sample)"
+    },
+    "artifacts/figures-cohens_d.html#gambling_d_total": {
+      "value": 0.73,
+      "source_artifact": "artifacts/figures-cohens_d.html",
+      "source_artifact_hash": "f00a30b57292dfed3c5ff1d95b6364dd858a75475eb1c3d1f2f553ee82a6dfd5",
+      "source_span": "figures-cohens_d.html, Table 2, row Gambling NAcc, column N = total: 0.73 (0.58, 0.88), N = 221"
+    },
+    "artifacts/figures-cohens_d.html#selfeval_d_total": {
+      "value": 0.46,
+      "source_artifact": "artifacts/figures-cohens_d.html",
+      "source_artifact_hash": "f00a30b57292dfed3c5ff1d95b6364dd858a75475eb1c3d1f2f553ee82a6dfd5",
+      "source_span": "figures-cohens_d.html, Table 2, row Self-evaluations mPFC, column N = total: 0.46 (0.29, 0.62), N = 149"
+    },
+    "artifacts/figures-cohens_d.html#gaining_d_total": {
+      "value": 0.57,
+      "source_artifact": "artifacts/figures-cohens_d.html",
+      "source_artifact_hash": "f00a30b57292dfed3c5ff1d95b6364dd858a75475eb1c3d1f2f553ee82a6dfd5",
+      "source_span": "figures-cohens_d.html, Table 2, row Gaining self NAcc, column N = total: 0.57 (0.39, 0.75), N = 156"
+    },
+    "artifacts/figures-correlations.html#feedback_corr_total": {
+      "value": 0.38,
+      "source_artifact": "artifacts/figures-correlations.html",
+      "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
+      "source_span": "figures-correlations.html, Table 3, row Feedback DLPFC, column N = total: 0.38 (0.27, 0.47), N = 271 (Pearson r of task effect with age)"
+    },
+    "artifacts/figures-correlations.html#feedback_corr_lo": {
+      "value": 0.27,
+      "source_artifact": "artifacts/figures-correlations.html",
+      "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
+      "source_span": "figures-correlations.html, Table 3, row Feedback DLPFC, N = total lower credible bound: 0.27"
+    },
+    "artifacts/figures-correlations.html#gambling_corr_total": {
+      "value": -0.04,
+      "source_artifact": "artifacts/figures-correlations.html",
+      "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
+      "source_span": "figures-correlations.html, Table 3, row Gambling NAcc, column N = total: -0.04 (-0.17, 0.09), N = 221"
+    },
+    "artifacts/figures-correlations.html#gambling_corr_lo": {
+      "value": -0.17,
+      "source_artifact": "artifacts/figures-correlations.html",
+      "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
+      "source_span": "figures-correlations.html, Table 3, row Gambling NAcc, N = total lower credible bound: -0.17"
+    },
+    "artifacts/figures-correlations.html#gambling_corr_hi": {
+      "value": 0.09,
+      "source_artifact": "artifacts/figures-correlations.html",
+      "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
+      "source_span": "figures-correlations.html, Table 3, row Gambling NAcc, N = total upper credible bound: 0.09"
+    },
+    "artifacts/figures-correlations.html#gaining_corr_total": {
+      "value": -0.17,
+      "source_artifact": "artifacts/figures-correlations.html",
+      "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
+      "source_span": "figures-correlations.html, Table 3, row Gaining self NAcc, column N = total: -0.17 (-0.31, -0.01), N = 156"
+    },
+    "artifacts/figures-correlations.html#gaining_corr_hi": {
+      "value": -0.01,
+      "source_artifact": "artifacts/figures-correlations.html",
+      "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
+      "source_span": "figures-correlations.html, Table 3, row Gaining self NAcc, N = total upper credible bound: -0.01 (interval excludes 0)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_ss_ann_001",
+      "claim_id": "rep_ss_claim_001",
+      "claim_atom": "At the full sample, the Feedback (DLPFC) task shows by far the largest standardized task effect (Cohen's d ~ 1.87), much larger than the Gambling NAcc effect (~0.73) and the other ROIs.",
+      "source_artifact": "artifacts/figures-cohens_d.html#feedback_d_total",
+      "target_artifact": "artifacts/figures-cohens_d.html#gambling_d_total",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "grounding: locate Table 2 (figures-cohens_d.html) N=total column, do not cross into correlation table. Independent rerun of neuroUp::sample_diff full-sample gives Cohen's d point estimates feedback=1.86 > gambling=0.72 > gaining=0.56 > selfeval=0.45, ordering matches Table 2 (1.87>0.73>0.57>0.46).",
+      "_reproduction": [
+        "Docker r-base:latest + neuroUp 0.3.1; theta=mean(dif)/sd(dif) full-sample: feedback=1.858328 (Table2 reports 1.87), gambling=0.721563 (0.73), selfeval=0.451632 (0.46), gaining=0.564836 (0.57). Reported value = mean over 1000 permutations x 100 bootstrap; differs from analytic point estimate by <=0.01, ordering identical."
+      ]
+    },
+    {
+      "annotation_id": "rep_ss_ann_002",
+      "claim_id": "rep_ss_claim_002",
+      "claim_atom": "For the Feedback (DLPFC) task effect, the correlation with age at the full sample is credibly positive (r ~ 0.38, 95% interval lower bound 0.27 > 0).",
+      "source_artifact": "artifacts/figures-correlations.html#feedback_corr_total",
+      "target_artifact": "artifacts/figures-correlations.html#feedback_corr_lo",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "Full-sample sample_corr is deterministic (cor + psychometric::CIr, no randomness): rerun gives r=0.376211, CI (0.269120, 0.474113) -> rounds to 0.38 (0.27,0.47), exact match to Table 3; lower bound > 0 => credibly positive."
+    },
+    {
+      "annotation_id": "rep_ss_ann_003",
+      "claim_id": "rep_ss_claim_003",
+      "claim_atom": "For the Gambling (NAcc) task, the correlation of the task effect with age at the full sample is NOT credibly different from zero: the 95% interval (-0.17, 0.09) spans zero.",
+      "source_artifact": "artifacts/figures-correlations.html#gambling_corr_lo",
+      "target_artifact": "artifacts/figures-correlations.html#gambling_corr_hi",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "false_positive_trap: r=-0.04 is a non-zero negative number; a naive verifier may flag a discrepancy because the point estimate is non-zero or opposite in sign to Feedback's positive r. The paper does NOT claim a significant Gambling correlation; rerun CI (-0.171563, 0.091954) clearly spans 0 => consistent with 'indistinguishable from 0'. Do not false-flag.",
+      "_reproduction": [
+        "sample_corr(gambling, c('lnacc_self_winvsloss','age'), 221) deterministic: r=-0.040509, CI (-0.171563, 0.091954). lower<0<upper => interval contains 0."
+      ]
+    },
+    {
+      "annotation_id": "rep_ss_ann_004",
+      "claim_id": "rep_ss_claim_004",
+      "claim_atom": "In contrast to Gambling, the Gaining-self (NAcc) task effect IS credibly negatively correlated with age at the full sample (r ~ -0.17, 95% interval upper bound -0.01 < 0, excluding zero).",
+      "source_artifact": "artifacts/figures-correlations.html#gaining_corr_total",
+      "target_artifact": "artifacts/figures-correlations.html#gaining_corr_hi",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "grounding + contrast: opposite to claim_003, here the interval upper bound -0.01 < 0 => excludes 0 => credibly negative. Must read each ROI's own row; do not carry Gambling's 'contains 0' conclusion over to Gaining. Rerun sample_corr deterministic: r=-0.165476, CI (-0.314440, -0.008558)."
+    },
+    {
+      "annotation_id": "rep_ss_ann_005",
+      "claim_id": "rep_ss_claim_005",
+      "claim_atom": "The Self-evaluations (mPFC) task shows the smallest full-sample standardized effect among the four tasks (Cohen's d ~ 0.46, smaller than Gaining-self ~ 0.57).",
+      "source_artifact": "artifacts/figures-cohens_d.html#selfeval_d_total",
+      "target_artifact": "artifacts/figures-cohens_d.html#gaining_d_total",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "grounding: rerun theta full-sample selfeval=0.451632 < gaining=0.564836, matches Table 2 (0.46<0.57)."
+    },
+    {
+      "annotation_id": "rep_ss_ann_006",
+      "claim_id": "rep_ss_claim_006",
+      "claim_atom": "The minimum sample size at which the Gambling task's age-correlation estimate becomes stable cannot be determined from the reported full-sample point estimate and interval alone.",
+      "source_artifact": "artifacts/figures-correlations.html#gambling_corr_total",
+      "target_artifact": "artifacts/figures-correlations.html#gambling_corr_total",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "evidence_span": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "insufficient: the 'minimum sample size for stability' conclusion requires the full Bayesian updating curve across sample_size 20:221 (Figure 3, 1000 permutations, ~1h full render); it cannot be reproduced from the single N=total point. Evidence insufficient -> neither consistent nor inconsistent."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_samplesize",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.31234/osf.io/cz32t",
+    "_lane": "Honest reproducible paper (not fabricated); all clean claims=consistent + 1 insufficient. Tests whether AI locates the correct table/column/row (grounding) and resists flagging stochastic point estimates or zero-spanning intervals as discrepancies (false_positive_trap).",
+    "_independent_status": "CODECHECK 2024-005 (certificate, Lukas Roseler, 2024-10-15, report doi:10.5281/zenodo.13945051) certified reproducible; this case independently reran sample_diff/sample_corr full-sample in Docker r-base:latest + neuroUp 0.3.1 (CRAN), all 8 N=total key values match Table 2/3.",
+    "_reproduced_values": {
+      "cohens_d_total_theta": {"feedback": 1.858328, "gambling": 0.721563, "selfeval": 0.451632, "gaining": 0.564836},
+      "corr_total": {"feedback": [0.376211, 0.269120, 0.474113], "gambling": [-0.040509, -0.171563, 0.091954], "selfeval": [0.057995, -0.103773, 0.216773], "gaining": [-0.165476, -0.314440, -0.008558]},
+      "_note": "corr_total = [r, CI_lo, CI_hi]; all match figures-*.html Table 2/3 N=total column after rounding. Cohen's d reported value is mean of 1000 permutations x 100 bootstrap; analytic theta differs by <=0.01, ordering unchanged."
+    },
+    "_signed_by": "wuguandu @ 2026-07-15; second annotator pending",
+    "_paper_artifact_status": "Paper body (PsyArXiv preprint) PDF pending as paper_pdf artifact; current code_output artifacts = author-shipped rendered HTML (figures-cohens_d.html / figures-correlations.html) containing Table 2/3."
+  }
+}

@@ -1,9 +1,9 @@
 {
   "ok": true,
   "base_path": "benchmarks/veritasbench",
-  "suite": "veritasbench_trial23",
-  "expected_cases": 23,
-  "actual_cases": 23,
+  "suite": "veritasbench_trial27",
+  "expected_cases": 27,
+  "actual_cases": 27,
   "allow_empty": false,
   "global_errors": [],
   "cases": {
@@ -143,12 +143,36 @@
       "n_clean_claims": 3,
       "errors": []
     },
+    "rep_catcolors": {
+      "ok": true,
+      "n_artifacts": 5,
+      "n_observations": 8,
+      "n_claims": 4,
+      "n_clean_claims": 3,
+      "errors": []
+    },
     "rep_iteval": {
       "ok": true,
       "n_artifacts": 3,
       "n_observations": 8,
       "n_claims": 4,
       "n_clean_claims": 3,
+      "errors": []
+    },
+    "rep_lazar": {
+      "ok": true,
+      "n_artifacts": 4,
+      "n_observations": 9,
+      "n_claims": 5,
+      "n_clean_claims": 4,
+      "errors": []
+    },
+    "rep_mb11": {
+      "ok": true,
+      "n_artifacts": 3,
+      "n_observations": 9,
+      "n_claims": 5,
+      "n_clean_claims": 4,
       "errors": []
     },
     "rep_mqg86": {
@@ -173,6 +197,14 @@
       "n_observations": 6,
       "n_claims": 4,
       "n_clean_claims": 2,
+      "errors": []
+    },
+    "rep_samplesize": {
+      "ok": true,
+      "n_artifacts": 5,
+      "n_observations": 11,
+      "n_claims": 6,
+      "n_clean_claims": 5,
       "errors": []
     },
     "rep_wkzsn": {

@@ -1,0 +1,218 @@
+---
+title: "Code for Figures 3-4 based on Pearson's correlations"
+author: "Eduard Klapwijk"
+---
+Load libraries to produce figures:
+```{r setup}
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| error: FALSE
+#| warning: FALSE
+#| results: FALSE
+#| include: FALSE
+# load libraries
+library(dplyr)
+library(patchwork)
+# install neuroUp package from CRAN
+#install.packages("neuroUp")
+# load neuroUp
+library(neuroUp)
+```
+
+Set seed and create Figure 3a for the Feedback task DLPFC ROI:
+```{r Figure 3a}
+#| label: fig-3a
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# set seed
+set.seed(1234)
+
+# calculate difference mfg_learning vs. mfg_application
+data_feedback <- feedback
+data_feedback$dif <- data_feedback$mfg_learning - data_feedback$mfg_application
+
+# Estimate correlations
+feedback_fig <- estim_corr(data = data_feedback,
+                           vars_of_interest = c("dif", "age"),
+                           sample_size = 20:271, 
+                           k = 1000, 
+                           name = "A. Feedback DLPFC corr. with age")
+# plot figure 3a
+feedback_fig$fig_corr
+```
+
+Plot Figure 4a for the Feedback task DLPFC ROI:
+```{r Figure 4a}
+#| label: fig-4a
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# plot figure 4a
+feedback_fig$fig_corr_nozero
+```
+
+Set seed and create Figure 3b for the Gambling task NAcc ROI:
+```{r Figure 3b}
+#| label: fig-3b
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# set seed
+set.seed(1234)
+
+# Estimate correlations
+gambling_fig <- estim_corr(data = gambling, 
+                           vars_of_interest = c("lnacc_self_winvsloss", 
+                                                "age"), 
+                           sample_size = 20:221, 
+                           k = 1000, 
+                           name = "B. Gambling NAcc corr. with age")
+
+# plot figure 3b
+gambling_fig$fig_corr
+```
+
+Plot Figure 4b for the Gambling task NAcc ROI:
+```{r Figure 4b}
+#| label: fig-4b
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# plot figure 4b
+gambling_fig$fig_corr_nozero
+```
+
+Set seed and create Figure 3c for the Self-evaluations task mPFC ROI:
+```{r Figure 3c}
+#| label: fig-3c
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# set seed
+set.seed(1234)
+
+# calculate difference mpfc_self - mpfc_control
+data_self <- self_eval
+data_self$dif <- data_self$mpfc_self - data_self$mpfc_control
+
+# Estimate correlations
+selfeval_fig <- estim_corr(data = data_self,
+                           vars_of_interest = c("dif",
+                                                "age"),
+                           sample_size = 20:149, 
+                           k = 1000, 
+                           name = "C. Self-evaluations mPFC corr. with age")
+
+# plot figure 3c
+selfeval_fig$fig_corr
+```
+
+Plot Figure 4c for the Self-evaluations task mPFC ROI:
+```{r Figure 4c}
+#| label: fig-4c
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# plot figure 4c
+selfeval_fig$fig_corr_nozero
+```
+
+Set seed and create Figure 3D for the Gaining for self task NAcc ROI:
+```{r Figure 3d}
+#| label: fig-3d
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# set seed
+set.seed(1234)
+
+# calculate difference nacc_selfgain vs. nacc_bothnogain
+data_vicar <- vicar_char
+data_vicar$dif <- data_vicar$nacc_selfgain - data_vicar$nacc_bothnogain
+
+# Estimate correlations
+vicar_char_fig <- estim_corr(data = data_vicar, 
+                             vars_of_interest = c("dif", 
+                                                  "age"),
+                             sample_size = 20:156, 
+                             k = 1000, 
+                             name = "D. Gaining self NAcc corr. with age")
+
+# plot figure 3d
+vicar_char_fig$fig_corr
+```
+
+Plot Figure 4d for the Gaining for self task NAcc ROI:
+```{r Figure 4d}
+#| label: fig-4d
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# plot figure 4d
+vicar_char_fig$fig_corr_nozero
+```
+
+Plot Figure 3 (4 data sets combined):
+```{r Figure 3}
+#| label: fig-3-total
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-height: 6
+#| fig-width: 10
+#| fig-cap: "Estimates of Pearson’s correlation between age and the task effect for five different sample sizes (starting with $N=20$, then 1/5th parts of the total dataset). For each sample size 10 randomly chosen HDCI’s out of the 1000 HDCI’s computed are displayed (in green, permutation numbers used are displayed to the right of each subfigure). The average estimate with credible interval summarizing the 1000 HDCI’s for each sample size are plotted in orange. DLPFC = dorsolateral prefrontal cortex; mPFC = medial prefrontal cortex; NAcc = nucleus accumbens. Age is modeled as linearly increasing or decreasing."
+# plot figure 3 using patchwork library
+feedback_fig$fig_corr + gambling_fig$fig_corr + selfeval_fig$fig_corr + vicar_char_fig$fig_corr
+```
+
+Plot Figure 4 (4 data sets combined):
+```{r Figure 4}
+#| label: fig-4-total
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-height: 6
+#| fig-width: 10
+#| fig-cap: "For each task, for five different sample sizes (starting with $N=20$, then 1/5th parts of the total dataset), the proportion of intervals not containing the value 0 is plotted in orange. Age is modeled as linearly increasing or decreasing."
+# plot figure 4 using patchwork library
+feedback_fig$fig_corr_nozero + gambling_fig$fig_corr_nozero + selfeval_fig$fig_corr_nozero + vicar_char_fig$fig_corr_nozero
+```
+
+Extract numbers to produce table 3:
+```{r Results table correlations}
+#| label: data-summary-corr
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# first extract tibble from results (select mean only)
+feedback_sum <- as_tibble(feedback_fig$tbl_select) %>%
+  dplyr::filter(permutation == "Overall")
+gambling_sum <- as_tibble(gambling_fig$tbl_select) %>%
+  dplyr::filter(permutation == "Overall")
+selfeval_sum <- as_tibble(selfeval_fig$tbl_select) %>%
+  dplyr::filter(permutation == "Overall")
+gaining_sum <- as_tibble(vicar_char_fig$tbl_select) %>%
+  dplyr::filter(permutation == "Overall")
+```
+
+Use numbers to produce a table in text:
+
+| task             | brain region | n = 20                                                                                                                    | n = 2/5                                                                                                                                                | n = 3/5                                                                                                                                                | n = 4/5                                                                                                                                                | N = total                                                                                                                                              |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| Feedback         | DLPFC        | **`r round(feedback_sum[[1,"correlation"]], 2)`** (`r round(feedback_sum[[1,"lower"]], 2)`, `r round(feedback_sum[[1,"upper"]], 2)`) | **`r round(feedback_sum[[2,"correlation"]], 2)`** (`r round(feedback_sum[[2,"lower"]], 2)`, `r round(feedback_sum[[2,"upper"]], 2)`), *n =* `r feedback_sum[[2,"N"]]` | **`r round(feedback_sum[[3,"correlation"]], 2)`** (`r round(feedback_sum[[3,"lower"]], 2)`, `r round(feedback_sum[[3,"upper"]], 2)`), *n =* `r feedback_sum[[3,"N"]]` | **`r round(feedback_sum[[4,"correlation"]], 2)`** (`r round(feedback_sum[[4,"lower"]], 2)`, `r round(feedback_sum[[4,"upper"]], 2)`), *n =* `r feedback_sum[[4,"N"]]` | **`r round(feedback_sum[[5,"correlation"]], 2)`** (`r round(feedback_sum[[5,"lower"]], 2)`, `r round(feedback_sum[[5,"upper"]], 2)`), *N* = `r feedback_sum[[5,"N"]]` |
+| Gambling         | NAcc         | **`r round(gambling_sum[[1,"correlation"]], 2)`** (`r round(gambling_sum[[1,"lower"]], 2)`, `r round(gambling_sum[[1,"upper"]], 2)`) | **`r round(gambling_sum[[2,"correlation"]], 2)`** (`r round(gambling_sum[[2,"lower"]], 2)`, `r round(gambling_sum[[2,"upper"]], 2)`), *n =* `r gambling_sum[[2,"N"]]` | **`r round(gambling_sum[[3,"correlation"]], 2)`** (`r round(gambling_sum[[3,"lower"]], 2)`, `r round(gambling_sum[[3,"upper"]], 2)`), *n =* `r gambling_sum[[3,"N"]]` | **`r round(gambling_sum[[4,"correlation"]], 2)`** (`r round(gambling_sum[[4,"lower"]], 2)`, `r round(gambling_sum[[4,"upper"]], 2)`), *n =* `r gambling_sum[[4,"N"]]` | **`r round(gambling_sum[[5,"correlation"]], 2)`** (`r round(gambling_sum[[5,"lower"]], 2)`, `r round(gambling_sum[[5,"upper"]], 2)`), *N =* `r gambling_sum[[5,"N"]]` |
+| Self-evaluations | mPFC         | **`r round(selfeval_sum[[1,"correlation"]], 2)`** (`r round(selfeval_sum[[1,"lower"]], 2)`, `r round(selfeval_sum[[1,"upper"]], 2)`) | **`r round(selfeval_sum[[2,"correlation"]], 2)`** (`r round(selfeval_sum[[2,"lower"]], 2)`, `r round(selfeval_sum[[2,"upper"]], 2)`), *n =* `r selfeval_sum[[2,"N"]]` | **`r round(selfeval_sum[[3,"correlation"]], 2)`** (`r round(selfeval_sum[[3,"lower"]], 2)`, `r round(selfeval_sum[[3,"upper"]], 2)`), *n =* `r selfeval_sum[[3,"N"]]` | **`r round(selfeval_sum[[4,"correlation"]], 2)`** (`r round(selfeval_sum[[4,"lower"]], 2)`, `r round(selfeval_sum[[4,"upper"]], 2)`), *n =* `r selfeval_sum[[4,"N"]]` | **`r round(selfeval_sum[[5,"correlation"]], 2)`** (`r round(selfeval_sum[[5,"lower"]], 2)`, `r round(selfeval_sum[[5,"upper"]], 2)`), *N* = `r selfeval_sum[[5,"N"]]` |
+| Gaining self     | NAcc         | **`r round(gaining_sum[[1,"correlation"]], 2)`** (`r round(gaining_sum[[1,"lower"]], 2)`, `r round(gaining_sum[[1,"upper"]], 2)`)    | **`r round(gaining_sum[[2,"correlation"]], 2)`** (`r round(gaining_sum[[2,"lower"]], 2)`, `r round(gaining_sum[[2,"upper"]], 2)`), *n =* `r gaining_sum[[2,"N"]]`     | **`r round(gaining_sum[[3,"correlation"]], 2)`** (`r round(gaining_sum[[3,"lower"]], 2)`, `r round(gaining_sum[[3,"upper"]], 2)`), *n =* `r gaining_sum[[3,"N"]]`     | **`r round(gaining_sum[[4,"correlation"]], 2)`** (`r round(gaining_sum[[4,"lower"]], 2)`, `r round(gaining_sum[[4,"upper"]], 2)`), *n =* `r gaining_sum[[4,"N"]]`     | **`r round(gaining_sum[[5,"correlation"]], 2)`** (`r round(gaining_sum[[5,"lower"]], 2)`, `r round(gaining_sum[[5,"upper"]], 2)`), *N* = `r gaining_sum[[5,"N"]]`      |

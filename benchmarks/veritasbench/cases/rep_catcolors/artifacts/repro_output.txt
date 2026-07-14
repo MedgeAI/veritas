@@ -1,0 +1,12 @@
+study1_nrow_participants: 25 
+study2_nrow_raw: 73 
+study2_n_analyzed: 73 
+age_mean: 46.274 
+age_sd: 14.8654 
+dis_mean: 17.2055 
+gender_table:
+
+   1    2    3 <NA> 
+  23   49    1    0 
+cronbach_raw_alpha: 0.3837 
+cronbach_std_alpha: 0.3687 

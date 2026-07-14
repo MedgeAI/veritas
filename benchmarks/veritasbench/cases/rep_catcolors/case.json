@@ -1,0 +1,171 @@
+{
+  "case_id": "rep_catcolors",
+  "paper_title": "Exploring Categorical Colors",
+  "paper_authors": [
+    "Röseler, L. (2024); codecheckers/Exploring-Categorical-Colors (CODECHECK 2025-020 certified)"
+  ],
+  "artifacts": {
+    "study1_csv": {
+      "path": "artifacts/study1_data_processed.csv",
+      "sha256": "85ce0bc34e151d78eee039797b702e2ac78ae7f3b23b5057b833f59dbf6ddb10",
+      "kind": "source_data"
+    },
+    "study2_csv": {
+      "path": "artifacts/study2_data_processed.csv",
+      "sha256": "af8c90c543eefb8d9ec71b38de7af0670b92eac70fa80b5f5cc440d835bdc6a5",
+      "kind": "source_data"
+    },
+    "ministudy1_R": {
+      "path": "artifacts/ministudy1_analyses_final.R",
+      "sha256": "153c2e86d0797a787b8c096ef7fa9f51fcfcccbec52bba818299547716ce77ca",
+      "kind": "code"
+    },
+    "ministudy2_R": {
+      "path": "artifacts/ministudy2_analyses_final.R",
+      "sha256": "a1cad82695a1cbdcc0295d769c1f96677c6bc223046fc890d009ce8a956fea9a",
+      "kind": "code"
+    },
+    "repro_output": {
+      "path": "artifacts/repro_output.txt",
+      "sha256": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/repro_output.txt#study1_n_participants": {
+      "value": 25,
+      "source_artifact": "artifacts/repro_output.txt",
+      "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
+      "source_span": "repro_output.txt, line 'study1_nrow_participants: 25' (Pilot 参与者数; ministudy1_analyses_final.R 的 nrow(ds))"
+    },
+    "artifacts/repro_output.txt#study2_n_analyzed": {
+      "value": 73,
+      "source_artifact": "artifacts/repro_output.txt",
+      "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
+      "source_span": "repro_output.txt, line 'study2_n_analyzed: 73' (主研究去 NA 后进入分析的参与者数; ministudy2 的 co <- co[!is.na(co[,1]),])"
+    },
+    "artifacts/repro_output.txt#age_mean": {
+      "value": 46.274,
+      "source_artifact": "artifacts/repro_output.txt",
+      "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
+      "source_span": "repro_output.txt, line 'age_mean: 46.274' (主研究平均年龄; psych::describe(DE02_01))"
+    },
+    "artifacts/repro_output.txt#age_sd": {
+      "value": 14.8654,
+      "source_artifact": "artifacts/repro_output.txt",
+      "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
+      "source_span": "repro_output.txt, line 'age_sd: 14.8654' (主研究年龄标准差)"
+    },
+    "artifacts/repro_output.txt#gender_female": {
+      "value": 49,
+      "source_artifact": "artifacts/repro_output.txt",
+      "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
+      "source_span": "repro_output.txt, gender_table 列 '2' 计数 49 (DE01=2 女性; 1=male,2=female,3=diverse)"
+    },
+    "artifacts/repro_output.txt#gender_male": {
+      "value": 23,
+      "source_artifact": "artifacts/repro_output.txt",
+      "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
+      "source_span": "repro_output.txt, gender_table 列 '1' 计数 23 (DE01=1 男性)"
+    },
+    "artifacts/repro_output.txt#cronbach_raw_alpha": {
+      "value": 0.3837,
+      "source_artifact": "artifacts/repro_output.txt",
+      "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
+      "source_span": "repro_output.txt, line 'cronbach_raw_alpha: 0.3837' (20 个颜色评分项的 psych::alpha 原始 Cronbach α)"
+    },
+    "artifacts/repro_output.txt#cronbach_std_alpha": {
+      "value": 0.3687,
+      "source_artifact": "artifacts/repro_output.txt",
+      "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
+      "source_span": "repro_output.txt, line 'cronbach_std_alpha: 0.3687' (标准化 Cronbach α)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_catcolors_ann_001",
+      "claim_id": "rep_catcolors_claim_001",
+      "claim_atom": "The main study analyzed a larger participant sample (73) than the pilot study (25).",
+      "source_artifact": "artifacts/repro_output.txt#study2_n_analyzed",
+      "target_artifact": "artifacts/repro_output.txt#study1_n_participants",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "consistent: 主研究 n=73 > pilot n=25. 确定性计数, 无随机. FP陷阱:两个数字看似要核对差异, 实为平凡的大小关系, 勿误判为 inconsistent.",
+      "_reproduction": [
+        "ministudy1 nrow(ds)=25; ministudy2 去NA后 nrow(co)=73; 73>25=断言一致"
+      ]
+    },
+    {
+      "annotation_id": "rep_catcolors_ann_002",
+      "claim_id": "rep_catcolors_claim_002",
+      "claim_atom": "In the main study sample, female participants (49) outnumbered male participants (23).",
+      "source_artifact": "artifacts/repro_output.txt#gender_female",
+      "target_artifact": "artifacts/repro_output.txt#gender_male",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "consistent: table(DE01) 给 male=23, female=49, diverse=1. grounding:须映射编码 1=male,2=female,3=diverse, 别把列标签数字当计数.",
+      "_reproduction": [
+        "table(ds$DE01): 1->23, 2->49, 3->1; female 49 > male 23=一致"
+      ]
+    },
+    {
+      "annotation_id": "rep_catcolors_ann_003",
+      "claim_id": "rep_catcolors_claim_003",
+      "claim_atom": "Internal consistency across the 20 color-rating items is low: raw Cronbach's alpha (0.38) and standardized alpha (0.37) agree, which is the honestly reported result and not a reproduction failure.",
+      "source_artifact": "artifacts/repro_output.txt#cronbach_raw_alpha",
+      "target_artifact": "artifacts/repro_output.txt#cronbach_std_alpha",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "★FP陷阱核心: α=0.38 远低于 0.7 常规阈值, 易被误判为'复现失败/数据坏'. 实际这是论文如实报告的结果——颜色沿红蓝光谱变化, 20 个刺激本就不构成单维可靠量表, 低 α 恰是可复现的诚实值. raw 0.3837 与 std 0.3687 一致, 判 consistent.",
+      "_reproduction": [
+        "psych::alpha(co[,1:20]): raw_alpha=0.3837, std.alpha=0.3687; 两者均低且接近=内部一致性低, 复现一致"
+      ]
+    },
+    {
+      "annotation_id": "rep_catcolors_ann_004",
+      "claim_id": "rep_catcolors_claim_004",
+      "claim_atom": "Whether the low internal consistency reflects genuine categorical-perception boundaries rather than measurement noise cannot be determined from the reproduced descriptive scalars alone.",
+      "source_artifact": "artifacts/repro_output.txt#cronbach_raw_alpha",
+      "target_artifact": "artifacts/repro_output.txt#study2_n_analyzed",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "evidence_span": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "insufficient: 复现输出仅有描述统计与 α 标量, 不含个体层轨迹/聚类/心理物理建模, 无法据此断定低 α 的机制解释. 需要 ministudy2 的聚类与 per-participant 曲线才能评估此因果性断言."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_catcolors",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [
+      "grounding"
+    ],
+    "source_url": "https://doi.org/10.31234/osf.io/gj76p",
+    "_lane": "诚实可复现论文(非造假); 全 consistent claim(+1 insufficient), 考 AI 正确验证诚实工作并抵抗把低 Cronbach α 误判为复现失败的 FP 陷阱",
+    "_independent_status": "CODECHECK 2025-020 认证可复现 (Prince Oppong Boakye, 2025-06-28) + 下载窗口 Docker r-base 4.6.1 独立重跑 ministudy1/2 得 repro_output.txt",
+    "_paper_artifact_status": "preprint PDF (PsyArXiv gj76p) 待补作 paper_pdf artifact; 当前 claim 为 L1 code_output 自洽, 未与论文表格直接比对",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补"
+  }
+}

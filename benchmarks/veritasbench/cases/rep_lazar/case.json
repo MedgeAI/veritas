@@ -1,0 +1,193 @@
+{
+  "case_id": "rep_lazar",
+  "paper_title": "Regulation of pupil size in natural vision across the human lifespan",
+  "paper_authors": [
+    "Rafael Lazar",
+    "Manuel Spitschan",
+    "(R Soc Open Sci 2024; CODECHECK 2024-001 certified)"
+  ],
+  "artifacts": {
+    "repro_values_csv": {
+      "path": "artifacts/repro_values.csv",
+      "sha256": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
+      "kind": "code_output"
+    },
+    "repro_code": {
+      "path": "artifacts/repro_pupil.R",
+      "sha256": "836d38ebb3faa56152033a36e73bf44483e6fec41c5727d5a9d113d929f73456",
+      "kind": "code"
+    },
+    "rawdata_rda": {
+      "path": "artifacts/rawdata_ID_all.rda",
+      "sha256": "51184951059a86ace66fbde1b144d61cbe344e16b6de53e185b21759d39ad130",
+      "kind": "source_data"
+    },
+    "survey_rda": {
+      "path": "artifacts/cleaned_survey.rda",
+      "sha256": "b559cb9d04adfb96c90070e494d82219eec3422a18762f628956a86e79388af6",
+      "kind": "source_data"
+    }
+  },
+  "observations": {
+    "artifacts/repro_values.csv#n_invited_total": {
+      "value": 113,
+      "source_artifact": "artifacts/repro_values.csv",
+      "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
+      "source_span": "repro_values.csv, row metric=n_invited_total, column value (受邀参与者总数, SP001-SP113)"
+    },
+    "artifacts/repro_values.csv#n_included_primary": {
+      "value": 83,
+      "source_artifact": "artifacts/repro_values.csv",
+      "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
+      "source_span": "repro_values.csv, row metric=n_included_primary, column value (主分析纳入人数, adjusted 0.75 data-loss阈值)"
+    },
+    "artifacts/repro_values.csv#included_age_min": {
+      "value": 18,
+      "source_artifact": "artifacts/repro_values.csv",
+      "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
+      "source_span": "repro_values.csv, row metric=included_age_min, column value (纳入样本最小年龄, Table 1)"
+    },
+    "artifacts/repro_values.csv#included_age_max": {
+      "value": 87,
+      "source_artifact": "artifacts/repro_values.csv",
+      "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
+      "source_span": "repro_values.csv, row metric=included_age_max, column value (纳入样本最大年龄, Table 1)"
+    },
+    "artifacts/repro_values.csv#obs_field": {
+      "value": 10082,
+      "source_artifact": "artifacts/repro_values.csv",
+      "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
+      "source_span": "repro_values.csv, row metric=obs_field, column value (Field真实世界条件有效瞳孔观测数)"
+    },
+    "artifacts/repro_values.csv#obs_lab": {
+      "value": 3698,
+      "source_artifact": "artifacts/repro_values.csv",
+      "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
+      "source_span": "repro_values.csv, row metric=obs_lab, column value (Lab实验室条件有效瞳孔观测数)"
+    },
+    "artifacts/repro_values.csv#obs_dark": {
+      "value": 2871,
+      "source_artifact": "artifacts/repro_values.csv",
+      "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
+      "source_span": "repro_values.csv, row metric=obs_dark, column value (Dark暗适应阳性对照条件观测数)"
+    },
+    "artifacts/repro_values.csv#included_sex_female": {
+      "value": 43,
+      "source_artifact": "artifacts/repro_values.csv",
+      "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
+      "source_span": "repro_values.csv, row metric=included_sex_female, column value (纳入样本女性人数, Table 1 Sex)"
+    },
+    "artifacts/repro_values.csv#included_sex_male": {
+      "value": 40,
+      "source_artifact": "artifacts/repro_values.csv",
+      "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
+      "source_span": "repro_values.csv, row metric=included_sex_male, column value (纳入样本男性人数, Table 1 Sex)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_lazar_ann_001",
+      "claim_id": "rep_lazar_claim_001",
+      "claim_atom": "In the primary analysis (adjusted 0.75 data-loss threshold), 83 of the 113 invited participants were retained as 'Included' (Table 1).",
+      "source_artifact": "artifacts/repro_values.csv#n_included_primary",
+      "target_artifact": "artifacts/repro_values.csv#n_invited_total",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "grounding+FP陷阱: n=83对应adjusted 0.75阈值(默认主分析); 论文另报n=63对应initial 0.5阈值. 复现用0.75的rawdata_ID_all.rda得n_included_primary=83, n_invited_total=113 => 一致. 陷阱=别把63误当纳入数, 也别把113(受邀)当纳入数.",
+      "_reproduction": [
+        "n_included_primary=83, n_invited_total=113 (excl_time: Included=83/POST=23/PRE=7)"
+      ]
+    },
+    {
+      "annotation_id": "rep_lazar_ann_002",
+      "claim_id": "rep_lazar_claim_002",
+      "claim_atom": "The included sample spans ages 18 to 87 years, consistent with the paper's title claim of covering the human lifespan.",
+      "source_artifact": "artifacts/repro_values.csv#included_age_min",
+      "target_artifact": "artifacts/repro_values.csv#included_age_max",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "grounding: 年龄范围须取Included子集(excl=='results')的min/max=18与87, 不是全部受邀者. 一致.",
+      "_reproduction": [
+        "included_age_min=18, included_age_max=87 (mean 35.70, sd 17.16)"
+      ]
+    },
+    {
+      "annotation_id": "rep_lazar_ann_003",
+      "claim_id": "rep_lazar_claim_003",
+      "claim_atom": "The real-world Field condition contributed more valid pupil observations than the controlled Lab condition.",
+      "source_artifact": "artifacts/repro_values.csv#obs_field",
+      "target_artifact": "artifacts/repro_values.csv#obs_lab",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "grounding: 三个实验相subdataset — Field=10082 > Lab=3698 > Dark=2871. 陷阱=别把Dark(2871, 暗适应阳性对照)与Lab(3698)混淆. Field最多=一致.",
+      "_reproduction": [
+        "obs_field=10082, obs_lab=3698, obs_dark=2871"
+      ]
+    },
+    {
+      "annotation_id": "rep_lazar_ann_004",
+      "claim_id": "rep_lazar_claim_004",
+      "claim_atom": "The included sample was approximately sex-balanced, with 43 female and 40 male participants (Table 1, Sex).",
+      "source_artifact": "artifacts/repro_values.csv#included_sex_female",
+      "target_artifact": "artifacts/repro_values.csv#included_sex_male",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "grounding: 性别计数取Included子集 43F/40M(共83). 一致.",
+      "_reproduction": [
+        "included_sex_female=43, included_sex_male=40 (total 83)"
+      ]
+    },
+    {
+      "annotation_id": "rep_lazar_ann_005",
+      "claim_id": "rep_lazar_claim_005",
+      "claim_atom": "The paper's confirmatory Bayes factor (BF10) for the melanopic-illumination effect on pupil size in the field (CH1) can be verified from this reproduction bundle.",
+      "source_artifact": "artifacts/repro_values.csv#obs_field",
+      "target_artifact": "artifacts/repro_values.csv#obs_dark",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "FP陷阱/insufficient: 该断言指向论文confirmatory BF10头条结论, 但BF10来自51_hypotheses.R的10000次迭代BayesFactor MCMC, 而本复现产物repro_values.csv只含确定性的人口学/计数描述量, 不含BF. 因此凭本bundle无法证实或证伪该数值 => insufficient. 陷阱=看似可核对(field/dark数据确是CH1输入)但目标数值不在给定产物中, 别误判为consistent或inconsistent."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_lazar",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.1098/rsos.191613",
+    "_lane": "诚实可复现论文(非造假); 全实质claim=consistent, 难点=在多个人口学/subdataset描述量(Table 1 + 三实验相计数, 及n=83/n=63双data-loss阈值)中定位对的值; 另含1条insufficient考FP抗性",
+    "_independent_status": "CODECHECK 2024-001 认证可复现 (codecheckers/LazarEtAl_RSocOpenSci_2024); 下载窗口在Docker r-base里从repo shipped的cleaned_survey.rda + rawdata_ID_all.rda(adjusted 0.75阈值)独立重跑30_datamerge/40_demographics/50_subdatasets逻辑得repro_values.csv",
+    "_reproduction_env": "Docker r-base:latest (R 4.6.1), base R only, 确定性无MCMC; merge/demographics/subdataset逻辑",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_paper_artifact_status": "paper正文=R Soc Open Sci开放获取, 待补PDF作paper_pdf artifact(可加真·L1 code_output->paper-Table1); codecheck.yml manifest列8图表产物(dem_tab.pdf=Table1, agepyr_plot.pdf=Fig2等)"
+  }
+}

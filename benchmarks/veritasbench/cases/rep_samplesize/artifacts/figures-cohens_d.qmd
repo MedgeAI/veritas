@@ -1,0 +1,209 @@
+---
+title: "Code for Figures 1-2 based on Cohen's d"
+author: "Eduard Klapwijk"
+---
+
+Load libraries to produce figures:
+```{r setup}
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| error: FALSE
+#| warning: FALSE
+#| results: FALSE
+#| include: FALSE
+# load libraries
+library(dplyr)
+library(patchwork)
+# install neuroUp package from CRAN
+#install.packages("neuroUp")
+# load neuroUp
+library(neuroUp)
+```
+
+Set seed and create Figure 1a for the Feedback task DLPFC ROI:
+```{r Figure 1a}
+#| label: fig-1a
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# set seed
+set.seed(1234)
+
+# Estimate differences (unstandardized and Cohen's d)
+feedback_fig <- estim_diff(data = feedback,
+                           vars_of_interest = c("mfg_learning",
+                                                "mfg_application"),
+                           sample_size = 20:271, 
+                           k = 1000, 
+                           name = "A. Feedback DLPFC")
+
+# plot figure 1a
+feedback_fig$fig_cohens_d
+```
+
+Plot Figure 2a for the Feedback task DLPFC ROI:
+```{r Figure 2a}
+#| label: fig-2a
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# plot figure 2a
+feedback_fig$fig_d_nozero
+```
+
+Set seed and create Figure 1b for the Gambling task NAcc ROI:
+```{r Figure 1b}
+#| label: fig-1b
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# set seed
+set.seed(1234)
+
+# Estimate differences (unstandardized and Cohen's d)
+gambling_fig <- estim_diff(data = gambling, 
+                           vars_of_interest = c("lnacc_self_win", 
+                                                "lnacc_self_loss"), 
+                           sample_size = 20:221, 
+                           k = 1000, 
+                           name = "B. Gambling NAcc")
+# plot figure 1b
+gambling_fig$fig_cohens_d
+```
+
+Plot Figure 2b for the  Gambling task NAcc ROI:
+```{r Figure 2b}
+#| label: fig-2b
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# plot figure 2b
+gambling_fig$fig_d_nozero
+```
+
+Set seed and create Figure 1c for the Self-evaluations task mPFC ROI:
+```{r Figure 1c}
+#| label: fig-1c
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# set seed
+set.seed(1234)
+
+# Estimate differences (unstandardized and Cohen's d)
+selfeval_fig <- estim_diff(data = self_eval, 
+                           vars_of_interest = c("mpfc_self", 
+                                                "mpfc_control"),
+                           sample_size = 20:149, 
+                           k = 1000, 
+                           name = "C. Self-evaluations mPFC")
+
+# plot figure 1c
+selfeval_fig$fig_cohens_d
+```
+
+Plot Figure 2c for the Self-evaluations task mPFC ROI:
+```{r Figure 2c}
+#| label: fig-2c
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# plot figure 2c
+selfeval_fig$fig_d_nozero
+```
+
+Set seed and create Figure 1d for the Gaining for self task NAcc ROI:
+```{r Figure 1d}
+#| label: fig-1d
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# set seed
+set.seed(1234)
+
+# Estimate differences (unstandardized and Cohen's d)
+vicar_char_fig <- estim_diff(data = vicar_char, 
+                             vars_of_interest = c("nacc_selfgain", 
+                                                  "nacc_bothnogain"),
+                             sample_size = 20:156, 
+                             k = 1000, 
+                             name = "D. Gaining self NAcc")
+
+# plot figure 1d
+vicar_char_fig$fig_cohens_d
+```
+
+Plot Figure 2d for the Gaining for self task NAcc ROI:
+```{r Figure 2d}
+#| label: fig-2d
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# plot figure 2d
+vicar_char_fig$fig_d_nozero
+```
+
+Plot Figure 1 (4 data sets combined):
+```{r Figure 1}
+#| label: fig-1-total
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-height: 6
+#| fig-width: 10
+#| fig-cap: "Estimates of task effects for five different sample sizes (starting with $N=20$, then 1/5th parts of the total dataset). For each sample size 10 randomly chosen HDCI’s out of the 1000 HDCI’s computed are displayed (in light blue, permutation numbers used are displayed to the right of each subfigure). The average estimate with credible interval summarizing the 1000 HDCI’s for each sample size are plotted in reddish purple. DLPFC = dorsolateral prefrontal cortex; mPFC = medial prefrontal cortex; NAcc = nucleus accumbens."
+# plot figure 1 using patchwork library
+feedback_fig$fig_cohens_d + gambling_fig$fig_cohens_d + selfeval_fig$fig_cohens_d + vicar_char_fig$fig_cohens_d
+
+```
+
+Plot Figure 2 (4 data sets combined):
+```{r Figure 2}
+#| label: fig-2-total
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+#| fig-height: 6
+#| fig-width: 10
+#| fig-cap: "For each task, for five different sample sizes (starting with $n=20$, then 1/5th parts of the total dataset), the proportion of intervals not containing the value 0 is plotted in reddish purple."
+# plot figure 2 using patchwork library
+feedback_fig$fig_d_nozero + gambling_fig$fig_d_nozero + selfeval_fig$fig_d_nozero + vicar_char_fig$fig_d_nozero
+```
+
+Extract numbers to make table 2:
+```{r Results table Cohens d}
+#| label: data-summary-cohens
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE
+#| warning: FALSE
+# first extract tibble from results (select mean only)
+feedback_sum <- as_tibble(feedback_fig$tbl_select) %>%
+  dplyr::filter(permutation == "Overall")
+gambling_sum <- as_tibble(gambling_fig$tbl_select) %>%
+  dplyr::filter(permutation == "Overall")
+selfeval_sum <- as_tibble(selfeval_fig$tbl_select) %>%
+  dplyr::filter(permutation == "Overall")
+gaining_sum <- as_tibble(vicar_char_fig$tbl_select) %>%
+  dplyr::filter(permutation == "Overall")
+```
+
+Use numbers to produce a table in text:
+
+| task             | brain region | n = 20                                                                                                                             | n = 2/5                                                                                                                                                             | n = 3/5                                                                                                                                                             | n = 4/5                                                                                                                                                             | N = total                                                                                                                                                           |
+|-----------|-----------|-----------|-----------|-----------|-----------|-----------|
+| Feedback         | DLPFC        | **`r round(feedback_sum[[1,"cohens_d"]], 2)`** (`r round(feedback_sum[[1,"d_lower"]], 2)`, `r round(feedback_sum[[1,"d_upper"]], 2)`) | **`r round(feedback_sum[[2,"cohens_d"]], 2)`** (`r round(feedback_sum[[2,"d_lower"]], 2)`, `r round(feedback_sum[[2,"d_upper"]], 2)`), *n* = `r feedback_sum[[2,"N"]]` | **`r round(feedback_sum[[3,"cohens_d"]], 2)`** (`r round(feedback_sum[[3,"d_lower"]], 2)`, `r round(feedback_sum[[3,"d_upper"]], 2)`), *n* = `r feedback_sum[[3,"N"]]` | **`r round(feedback_sum[[4,"cohens_d"]], 2)`** (`r round(feedback_sum[[4,"d_lower"]], 2)`, `r round(feedback_sum[[4,"d_upper"]], 2)`), *n* = `r feedback_sum[[4,"N"]]` | **`r round(feedback_sum[[5,"cohens_d"]], 2)`** (`r round(feedback_sum[[5,"d_lower"]], 2)`, `r round(feedback_sum[[5,"d_upper"]], 2)`), *N* = `r feedback_sum[[5,"N"]]` |
+| Gambling         | NAcc         | **`r round(gambling_sum[[1,"cohens_d"]], 2)`** (`r round(gambling_sum[[1,"d_lower"]], 2)`, `r round(gambling_sum[[1,"d_upper"]], 2)`) | **`r round(gambling_sum[[2,"cohens_d"]], 2)`** (`r round(gambling_sum[[2,"d_lower"]], 2)`, `r round(gambling_sum[[2,"d_upper"]], 2)`), *n* = `r gambling_sum[[2,"N"]]` | **`r round(gambling_sum[[3,"cohens_d"]], 2)`** (`r round(gambling_sum[[3,"d_lower"]], 2)`, `r round(gambling_sum[[3,"d_upper"]], 2)`), *n* = `r gambling_sum[[3,"N"]]` | **`r round(gambling_sum[[4,"cohens_d"]], 2)`** (`r round(gambling_sum[[4,"d_lower"]], 2)`, `r round(gambling_sum[[4,"d_upper"]], 2)`), *n* = `r gambling_sum[[4,"N"]]` | **`r round(gambling_sum[[5,"cohens_d"]], 2)`** (`r round(gambling_sum[[5,"d_lower"]], 2)`, `r round(gambling_sum[[5,"d_upper"]], 2)`), *N* = `r gambling_sum[[5,"N"]]` |
+| Self-evaluations | mPFC         | **`r round(selfeval_sum[[1,"cohens_d"]], 2)`** (`r round(selfeval_sum[[1,"d_lower"]], 2)`, `r round(selfeval_sum[[1,"d_upper"]], 2)`) | **`r round(selfeval_sum[[2,"cohens_d"]], 2)`** (`r round(selfeval_sum[[2,"d_lower"]], 2)`, `r round(selfeval_sum[[2,"d_upper"]], 2)`), *n* = `r selfeval_sum[[2,"N"]]` | **`r round(selfeval_sum[[3,"cohens_d"]], 2)`** (`r round(selfeval_sum[[3,"d_lower"]], 2)`, `r round(selfeval_sum[[3,"d_upper"]], 2)`), *n* = `r selfeval_sum[[3,"N"]]` | **`r round(selfeval_sum[[4,"cohens_d"]], 2)`** (`r round(selfeval_sum[[4,"d_lower"]], 2)`, `r round(selfeval_sum[[4,"d_upper"]], 2)`), *n* = `r selfeval_sum[[4,"N"]]` | **`r round(selfeval_sum[[5,"cohens_d"]], 2)`** (`r round(selfeval_sum[[5,"d_lower"]], 2)`, `r round(selfeval_sum[[5,"d_upper"]], 2)`), *N* = `r selfeval_sum[[5,"N"]]` |
+| Gaining self     | NAcc         | **`r round(gaining_sum[[1,"cohens_d"]], 2)`** (`r round(gaining_sum[[1,"d_lower"]], 2)`, `r round(gaining_sum[[1,"d_upper"]], 2)`)    | **`r round(gaining_sum[[2,"cohens_d"]], 2)`** (`r round(gaining_sum[[2,"d_lower"]], 2)`, `r round(gaining_sum[[2,"d_upper"]], 2)`), *n* = `r gaining_sum[[2,"N"]]`     | **`r round(gaining_sum[[3,"cohens_d"]], 2)`** (`r round(gaining_sum[[3,"d_lower"]], 2)`, `r round(gaining_sum[[3,"d_upper"]], 2)`), *n* = `r gaining_sum[[3,"N"]]`     | **`r round(gaining_sum[[4,"cohens_d"]], 2)`** (`r round(gaining_sum[[4,"d_lower"]], 2)`, `r round(gaining_sum[[4,"d_upper"]], 2)`), *n* = `r gaining_sum[[4,"N"]]`     | **`r round(gaining_sum[[5,"cohens_d"]], 2)`** (`r round(gaining_sum[[5,"d_lower"]], 2)`, `r round(gaining_sum[[5,"d_upper"]], 2)`), *N* = `r gaining_sum[[5,"N"]]`     |

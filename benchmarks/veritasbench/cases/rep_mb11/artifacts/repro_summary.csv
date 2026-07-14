@@ -1,0 +1,12 @@
+metric,value
+n_individuals,41
+n_males,27
+n_prob_males,11
+n_prob_females,2
+n_females,1
+n_pipe_notch_indiv,25
+n_pipe_notch_tobacco_detected,14
+pct_pipe_notch_detected,56.0
+overall_accuracy_pct,59.25925925925926
+old_accuracy_pct,100.0
+n_old_adult,2

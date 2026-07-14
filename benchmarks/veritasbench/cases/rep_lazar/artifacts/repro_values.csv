@@ -1,0 +1,17 @@
+"metric","value"
+"n_invited_total",113
+"n_included_primary",83
+"n_excluded_post",23
+"n_excluded_pre",7
+"included_age_mean",35.6988
+"included_age_sd",17.1605
+"included_age_min",18
+"included_age_max",87
+"included_bmi_mean",22.9565
+"included_bmi_sd",3.4697
+"included_sex_female",43
+"included_sex_male",40
+"obs_field",10082
+"obs_dark",2871
+"obs_lab",3698
+"n_ids_field",83
