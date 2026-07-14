@@ -1,0 +1,2 @@
+"""Deterministic statistical consistency checks."""
+

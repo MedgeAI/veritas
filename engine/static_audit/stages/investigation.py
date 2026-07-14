@@ -18,6 +18,7 @@ from engine.static_audit._shared import (
     PROJECT_ROOT,
     ProgressCallback,
     StepResult,
+    record_step,
 )
 
 
@@ -46,37 +47,65 @@ def run(
 
     steps: list[StepResult] = []
 
-    # Investigation rounds
-    inv_steps, inv_manifest = run_investigation_rounds(
-        case_id=case_id,
-        workdir=workdir,
-        source_data_dir=source_data_dir,
-        agent_enabled=args.agent_mode in {"review", "full"},
-        agent_mode=args.agent_mode,
-        force=args.force,
-        project_root=PROJECT_ROOT,
-        env=env,
-        model=args.agent_model,
-        opencode_bin=args.opencode_bin,
-        timeout_seconds=args.agent_timeout_seconds,
-        max_retries=args.agent_max_retries,
-        progress=progress,
-    )
-    steps.extend(inv_steps)
-    agent_manifest["investigation"] = inv_manifest
-
-    # Investigation fallbacks
-    steps.extend(
-        _run_investigation_fallbacks(
-            workdir=workdir,
-            images_dir=images_dir,
-            investigation_manifest=inv_manifest,
-            env=env,
-            args=args,
-            progress=progress,
-            figure_classification=fc_manifest_data,
+    if getattr(args, "llm_only_ablation", False):
+        inv_manifest = {
+            "mode": "llm_only_ablation",
+            "rounds": [],
+            "skipped_deterministic_tools": True,
+        }
+        record_step(
+            steps,
+            StepResult(
+                "investigation",
+                "Agent 调查轮次",
+                "skipped",
+                "Round-2 LLM-only ablation: deterministic investigation tools skipped.",
+            ),
+            progress,
         )
-    )
+        record_step(
+            steps,
+            StepResult(
+                "investigation_fallback",
+                "调查 fallback 工具",
+                "skipped",
+                "Round-2 LLM-only ablation: deterministic fallback tools skipped.",
+            ),
+            progress,
+        )
+        agent_manifest["investigation"] = inv_manifest
+    else:
+        # Investigation rounds
+        inv_steps, inv_manifest = run_investigation_rounds(
+            case_id=case_id,
+            workdir=workdir,
+            source_data_dir=source_data_dir,
+            agent_enabled=args.agent_mode in {"review", "full"},
+            agent_mode=args.agent_mode,
+            force=args.force,
+            project_root=PROJECT_ROOT,
+            env=env,
+            model=args.agent_model,
+            opencode_bin=args.opencode_bin,
+            timeout_seconds=args.agent_timeout_seconds,
+            max_retries=args.agent_max_retries,
+            progress=progress,
+        )
+        steps.extend(inv_steps)
+        agent_manifest["investigation"] = inv_manifest
+
+        # Investigation fallbacks
+        steps.extend(
+            _run_investigation_fallbacks(
+                workdir=workdir,
+                images_dir=images_dir,
+                investigation_manifest=inv_manifest,
+                env=env,
+                args=args,
+                progress=progress,
+                figure_classification=fc_manifest_data,
+            )
+        )
 
     # Agent review
     steps.extend(

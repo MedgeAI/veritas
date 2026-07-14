@@ -77,6 +77,7 @@ def handle(
     agent_timeout_seconds: int,
     agent_max_retries: int,
     skip_unavailable_tools: bool = False,
+    llm_only_ablation: bool = False,
     profile: str = "full",
     progress_mode: str = "auto",
 ) -> int:
@@ -93,6 +94,7 @@ def handle(
         agent_timeout_seconds=agent_timeout_seconds,
         agent_max_retries=agent_max_retries,
         skip_unavailable_tools=skip_unavailable_tools,
+        llm_only_ablation=llm_only_ablation,
         audit_profile=profile,
         progress=make_progress_reporter(progress_mode),
     )

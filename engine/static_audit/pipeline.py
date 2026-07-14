@@ -296,6 +296,7 @@ def run_static_audit(
     agent_max_retries: int = 1,
     reproducibility_tier: str = "full",
     skip_unavailable_tools: bool = False,
+    llm_only_ablation: bool = False,
     audit_profile: str = "fast",
     progress: ProgressCallback | None = None,
 ) -> dict[str, Any]:
@@ -314,6 +315,7 @@ def run_static_audit(
         agent_max_retries=agent_max_retries,
         reproducibility_tier=reproducibility_tier,
         skip_unavailable_tools=skip_unavailable_tools,
+        llm_only_ablation=llm_only_ablation,
         audit_profile=audit_profile,
         profile=profile,
     )

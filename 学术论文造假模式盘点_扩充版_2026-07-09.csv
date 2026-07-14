@@ -1,0 +1,67 @@
+﻿编号,大类,子类,模式名称,详细描述,识别特征,检测工具或方法,典型案例,备注,MedgeBench关联/我方状态
+1,图像造假,同图复用,同论文内不同条件复用,同一张图被标注为不同实验条件、不同时间点或不同处理组,跨 figure 视野完全一致；caption 描述不同但视觉内容相同,PubPeer 比对；ImageTwin；Imagecheck,Marc Tessier-Lavigne 多篇 Cell/Nature 论文（前 Stanford 校长 2023 辞职）,最常见模式，对外行也可见,外部文献参考
+2,图像造假,同图复用,跨论文同图复用,同作者跨多篇论文复用同一张代表性图（细胞、Western blot、组织切片等）,反向图像搜索；同作者论文图像库比对,ImageTwin 跨库比对；Elisabeth Bik 手工法,Joachim Boldt 麻醉学胶体液研究多篇图重复,paper mill 重要指纹,外部文献参考
+3,图像造假,几何变换复用,旋转翻转裁剪后再用,同一张图被旋转 90/180 度、水平翻转或裁剪后假装是新数据,SIFT 特征匹配仍能命中；细节纹理高度一致,ImageTwin 几何不变性匹配；Forensically,Sylvain Lesné Aβ*56 系列（2006 Nature 起）,需要工具，肉眼难辨,外部文献参考
+4,图像造假,局部 PS 操纵,Photoshop 克隆图章,用克隆图章工具复制小区域，留下相同噪点纹理斑块或重复细胞外形,放大后纹理斑块重复；细胞轮廓完全一致,Forensically（ELA 错误等级分析）；Proofig,Hwang Woo-suk 干细胞图（2005 Science 撤稿）,经典 PS 操纵痕迹,外部文献参考
+5,图像造假,局部 PS 操纵,矩形遮罩或边缘羽化,用黑色矩形或羽化区域覆盖原始信号、接缝或不利数据,异常背景突变；遮罩边缘锐利不自然；羽化光晕,Forensically；人工观察,大量 paper mill Western blot,常用于盖住条带拼接接缝,外部文献参考
+6,图像造假,Western blot,条带 splicing 拼接,不同 lane 来自不同曝光或不同凝胶，被拼成一张图发表,条带间背景灰度跳变；marker lane 与条带不对齐；缺 marker,ORI Western blot 取证 guideline；Forensically 噪声分析,Sylvain Lesné Aβ*56 关键证据；阿尔茨海默研究被误导 16 年,生物医学最高发模式,外部文献参考
+7,图像造假,Western blot,marker 与条带不对齐,分子量 marker 看起来对，但与样本条带不在同一次曝光,对齐度异常；marker 像素位置无法物理对应,目视；Forensically,大量撤稿论文,拼接的副作用之一,外部文献参考
+8,图像造假,显微镜与组织,视野局部复制,同一显微镜视野中出现两个完全相同的细胞或两块相同纹理,局部放大对比；ImageTwin 局部块匹配,ImageTwin；Proofig,多个 paper mill 案例（免疫荧光、组织切片）,免疫荧光与 IHC 高发,外部文献参考
+9,图像造假,显微镜与组织,染色图边缘羽化,染色边缘有 PS 羽化光晕，原本应是清晰组织结构,边缘对比度异常平滑,Forensically；目视,Hindawi/Wiley 大批撤稿,与遮罩同源,外部文献参考
+10,图像造假,凝胶与印迹,背景纹理不一致,条带处背景纹理与周围突变，提示拼接或合成,背景渐变断裂；噪声分布不连续,Forensically 噪声分析；目视,ORI 案例库多例,拼接副产物,外部文献参考
+11,图像造假,流式细胞,FACS 轮廓异常重复,不同样本流式细胞图的散点轮廓完全一致,散点图离群点位置完全相同,PubPeer 比对,多起免疫学造假,流式数据本身有随机性，完全重合不可能,外部文献参考
+12,图像造假,AI 生成,AI 生成假实验图,Midjourney、DALL-E、Stable Diffusion 生成假显微镜、假凝胶、假解剖图,解剖学不可能；文字像但读不通；光照异常；组织结构错配染色方法,Imagecheck 新增 AI 检测；专业领域知识,2024 Frontiers Cell Dev Biol 老鼠生殖系统图（巨大睾丸、标签'dck'）,2023 后激增，反检测军备竞赛,外部文献参考
+13,图像造假,AI 生成,AI 生成假示意图与结构式,AI 生成的分子结构式键角错乱；假流程图逻辑无意义,化学键违反价键规则；流程箭头指向无意义,专业知识审查；人工识别,多起低质期刊本科论文,2024-2025 快速增长,外部文献参考
+14,误差棒可视化,标注缺失,error bar 不标 SD/SEM/CI,误差棒裸出现但 caption 不说明是 SD、SEM 还是 CI，读者无法判断变异,审稿时主动检查 caption；查图例与方法学,人工审查,常见于低质量期刊与会议论文,QRP（可疑研究行为）非完全造假但严重误导,外部文献参考
+15,误差棒可视化,数值异常,误差棒长度过于均匀,所有组的 error bar 视觉长度几乎完全一致，缺乏真实数据的随机波动,目视；像素测量对比,GRIM/SPRITE 间接推断,大量心理学与营养学论文,可能反映编造或过度处理,外部文献参考
+16,误差棒可视化,选择 SEM,用 SEM 代替 SD 视觉缩小变异,SEM = SD/√n，n 较大时显著小于 SD，让数据'看起来更干净',caption 是否注明 SEM；可计算 SD = SEM × √n 还原,人工审查,大量'看起来很显著'的柱状图,技术合规但视觉误导,外部文献参考
+17,误差棒可视化,柱状图掩盖,柱状图不画原始散点,只画 mean + errorbar，掩盖底层分布形状（双峰、异常值、真实 n）,图中缺乏散点；箱线图、小提琴图缺失,要求作者提供原始数据点；GRIM/SPRITE,生物医学与心理学普遍现象,推荐改用散点 + 箱线图叠加,外部文献参考
+18,数字统计,末位数字,末位分布偏离均匀,真实测量末位 0-9 应近似均匀，编造时常集中在 0 和 5 或某几个数字,卡方检验末位分布；可视化频次直方图,Python/R 简单脚本；Digit-Frequency Test,多起社会科学与临床数据审查,审计角度可批量扫描,外部文献参考
+19,数字统计,首位数字,Benford 首位定律违反,自然产生的跨数量级数据首位数字应符合 log 分布（1 约 30%、9 约 5%）,首位频次直方图与 Benford 期望对比,Benford's Law 检验脚本,金融、人口、物理常数；也用于科研数据审查,对跨数量级数据有效,外部文献参考
+20,数字统计,GRIM,GRIM 测试不一致,给定 n 和整数评分（如 Likert），并非所有 mean 值数学上可能,n=10 的 1-7 评分，mean=4.13 不可能（分子必须是整数）,GRIM 公式一行；Heathers & Brown 的在线工具,Brian Wansink 多篇食物心理学论文,可批量扫描心理学/社科论文,外部文献参考
+21,数字统计,SPRITE,SPRITE 重建不可能,给 mean+SD+n+取值范围，能否重建合法整数数据集,重建出的数据分布视觉荒谬（极端双峰、全堆一头）,SPRITE 工具（Heathers 等）,Wansink 系列；多起心理学撤稿,与 GRIM 互补,外部文献参考
+22,数字统计,Carlisle 方法,临床试验 baseline 异常,对 Table 1 基线特征做 χ²/p 值分布检验。真随机分组 p 值应近似均匀分布在 0-1，编造的常集中在 0.5 附近（潜意识想让两组对等）,p 值分布偏离均匀；过多 p 值在 0.4-0.6,Carlisle method 脚本；R 包,Yoshitaka Fujii 撤稿 200+（至今最多）；Joachim Boldt,麻醉学杀手锏，可推广到其他 RCT 领域,外部文献参考
+23,数字统计,方差异常,SD 异常小,标准差小到生物变异不可能；剂量反应曲线过于平滑,对比文献 SD 范围；与同领域基准比较,领域知识 + 描述统计审查,多起药理学撤稿,'too good to be true'核心特征,外部文献参考
+24,数字统计,方差异常,跨组 SD 完全一致,多个独立组的 SD 数值完全相等到小数点后多位,表格中 SD 列重复值；数字字符串完全匹配,目视 + 简单脚本扫描,Diederik Stapel 社会心理学（2011）,真随机数据极不可能完全一致,外部文献参考
+25,数字统计,重复数字,数字字符串复制粘贴,Excel 列中长串完全相同的数字；不同实验中出现同一组数据,数据排序后异常相邻；Data Colada 风格的排序痕迹分析,Data Colada 方法；Excel 重复值高亮,Francesca Gino 哈佛行为经济学（2023 被 Data Colada 抓）,Excel 操作痕迹可追溯,外部文献参考
+26,数字统计,p 值分布,p 值聚集异常,大量 p 值集中在 0.04 或 0.049（恰好显著）；或集中在 0.001 等整齐值,p-curve 分析；分布在 0.05 附近异常密集,p-curve.com（Simonsohn 等）；Statcheck,心理学整个领域 p-curve 偏向 0.05,p-hacking 的群体级指纹,外部文献参考
+27,数字统计,样本量,不报告 n 或 n 模糊,图表只有 mean 不说 n；正文 n 与图表 n 不一致,审稿时强制要求 n；交叉对比方法学与结果,人工审查 + Statcheck,常见于低质期刊,结构性 QRP,外部文献参考
+28,实验设计与分析,p-hacking,多重比较取显著,跑多种统计检验、多种协变量组合，只报告 p<0.05 的那个,方法学描述模糊；显著结果异常多；缺乏多重比较校正,pre-registration 比对；预注册偏离检查,Brian Wansink 自爆博客（2017）,最普遍的 QRP,外部文献参考
+29,实验设计与分析,HARKing,事后假说,看了数据再写假说，把事后探索包装成事前预测,Introduction 写得'像先知'；hypothesis 与结果过于贴合,pre-registration（OSF、ClinicalTrials.gov）,社会心理学复制危机的重要原因,结构性 QRP,外部文献参考
+30,实验设计与分析,optional stopping,边收数据边看 p 值即停,达到显著就停，否则继续收，把 false positive 推到 20-50%,样本量描述含糊；无 power analysis,pre-registration 锁定 n,心理学普遍,顺序检验需特殊统计方法,外部文献参考
+31,实验设计与分析,选择性报告,只报告显著实验,实验做了 10 次只发 1 次；显著的报告不显著的隐藏,出版偏倚检测（funnel plot 不对称）,Funnel plot；Egger's test；trial registry 比对,抗抑郁药 RCT 的 selective publication（Turner et al 2008）,系统性影响 meta 分析,外部文献参考
+32,实验设计与分析,删除数据,无理由剔除'异常值',标准是事后定的，剔除完才能显著,方法学是否预先定义 outlier 准则,pre-registration；原始数据公开,多起撤稿,与 p-hacking 同源,外部文献参考
+33,实验设计与分析,改 endpoint,变更 primary outcome,注册时是 A，发表时换成更好看的 B,ClinicalTrials.gov 比对；COMPare project 公开追查,COMPare（Goldacre 团队）；trial registry 比对,BMJ 2016 报告多家高 IF 期刊都中招,临床试验高发,外部文献参考
+34,实验设计与分析,事后分组,cutoff 调整,高血压标准从 140 改到 130 才显著；连续变量被事后二分化,cutoff 是否预先定义；是否多种 cutoff 都试,pre-registration；敏感性分析要求,多起肿瘤学撤稿,biomarker 研究高发,外部文献参考
+35,实验设计与分析,数据捕鱼,子组钓鱼 data dredging,在大量子组中找显著差异，不做多重校正,事后子组数量 vs 报告数量；显著子组无生物学合理性,Subgroup pre-specification；Bonferroni 等校正,药企临床试验 subgroup 子组分析滥用,容易过度解读,外部文献参考
+36,实验设计与分析,临床受试者,编造或删除受试者,病人不存在；或不利受试者被悄悄移出分析,CRF 与发表数据对比；source data verification（SDV）,FDA/EMA 审计；CRO 监查,Werner Bezwoda 高剂量化疗造假（1999）,严重违法，可起诉,外部文献参考
+37,实验设计与分析,合成数据,完全编造整组数据,实验从未进行，数据全部 fabricated,SD/末位数字/Benford 等多维异常；同事举报；笔记本审查,机构调查 + 数据取证,Diederik Stapel（2011）；Jan Hendrik Schön（2002）,最严重的造假形态,外部文献参考
+38,实验设计与分析,隐藏 null,null findings 不发表,做了 10 个实验，9 个 null 的全部抽屉文件,出版偏倚 funnel plot 不对称,Funnel plot；多重比较；预注册,几乎所有领域都有,'抽屉问题'，复制危机根源,外部文献参考
+39,实验设计与分析,预注册偏离,隐瞒注册-发表偏差,预注册了方案 A，实际跑了 B，但发表时不说,注册版本 vs 发表版本逐字段对比,COMPare project；trial registry 审查,多家 BMJ/JAMA/NEJM 论文,系统性问题,外部文献参考
+40,生态与流程,论文工厂,paper mill 工业化生产,同一框架模板替换基因/疾病/分子名，量产几百到几千篇,结构模板化；图像复用；中介广告；同期类似论文簇,Tadpole Western blot 检测；ImageTwin 大库扫描,2024 Wiley/Hindawi 一次性撤稿数千篇,中国/伊朗/俄罗斯/印度医生晋升场景高发,外部文献参考
+41,生态与流程,论文工厂,Tadpole Western blot 套图,特定形状的'蝌蚪形'Western blot 在数百篇论文中重现,条带形态完全相同；与已知 paper mill 数据库匹配,Bik/Cabanac 公开数据库,数千篇追溯到同一造假网络,可视化指纹,外部文献参考
+42,生态与流程,作者署名,影子作者 gift authorship,真正干活者不署名；没贡献的'大佬'挂名换资源,贡献声明（CRediT）vs 实际工作矛盾,CRediT 分类要求；ICMJE 作者标准,行业普遍，难取证,结构性问题,外部文献参考
+43,生态与流程,作者署名,代笔 ghostwriter,医药公司雇代笔写好论文，找意见领袖（KOL）署名,利益冲突声明不全；KOL 论文风格突变,利益冲突披露要求；FOIA 内部文件,Vioxx 案（默克代笔系列）,制药行业灰色生态,外部文献参考
+44,生态与流程,作者署名,买卖作者位置,中介明码标价：第一作者 X 元、通讯作者 Y 元,Telegram/QQ 群广告；作者机构与论文主题不匹配,Cabanac 等追踪 paper mill 中介,俄语圈、中文圈广泛存在,刑事性质,外部文献参考
+45,生态与流程,同行评审,假同行评审,投稿推荐审稿人，提供假邮箱指向自己或同伙,审稿邮箱域名与机构不符；审稿回复速度异常,期刊邮箱验证；ORCID 核验,2015 Springer/Elsevier 一次性撤稿数百篇,早期 paper mill 套路,外部文献参考
+46,生态与流程,引用操纵,citation cartel 引用环,小团体互相引用推高 h-index 和期刊 IF,引用网络分析显示异常团簇,Citation network analysis；JCR 监测,多家期刊被踢出 JCR,期刊层面常见,外部文献参考
+47,生态与流程,引用操纵,自引爆炸,作者或期刊自引比例异常高,self-citation rate > 同领域基准,Scopus/WoS 自引率统计,多位高被引学者被审查,学术晋升压力下常见,外部文献参考
+48,生态与流程,期刊操纵,劫持期刊 hijacked journal,合法期刊被冒名顶替建假网站收钱发文,ISSN 重复或异常；域名非官方；编委名单不符,Retraction Watch hijacked journals 列表,数十种期刊被劫持,作者交 APC 还以为发了正经刊,外部文献参考
+49,生态与流程,期刊操纵,掠夺性期刊 predatory journal,不做真同行评审，收钱即发,审稿周期异常短；编委质量低；不被主流索引收录,Beall's list 及继任者；Cabells Predatory Reports,数千种掠夺性期刊,结构性生态污染,外部文献参考
+50,AI 时代新模式,残留词痕,ChatGPT 提示词漏出,"论文正文出现'As an AI language model, I cannot...'、'Certainly! Here is...'、'Regenerate response'等 LLM 痕迹",Google Scholar 搜索特定短语,关键词搜索；Problematic Paper Screener,2024 起被搜出数十至数百篇已发表论文,低级翻车，反映完全无审查,外部文献参考
+51,AI 时代新模式,扭曲措辞,tortured phrases 躲查重,用同义词替换躲 Turnitin：'breast cancer' → 'bosom peril'、'artificial intelligence' → 'counterfeit consciousness'、'signal-to-noise ratio' → 'flag-to-clamor proportion',专门词典扫描非常用搭配,Problematic Paper Screener（Cabanac 等）；自建词典,上千篇已被识别,早于 ChatGPT 的机器改写痕迹,外部文献参考
+52,AI 时代新模式,AI 编造引用,假参考文献,ChatGPT 编造的引用：作者真实、期刊真实，但论文不存在；DOI 解析失败或指向无关,逐条 DOI 验证；CrossRef 反查,DOI 验证脚本；CrossRef API,法律文书、医学综述、本科论文广泛存在,LLM 幻觉特征,外部文献参考
+53,AI 时代新模式,AI 流水线,AI 自动化论文工厂,GPT 生成骨架 + Stable Diffusion 生成图 + GAN 生成数据 → 完全自动化流水线,多维异常叠加；同时间窗内大量相似论文涌入,Imagecheck + GPTZero + Problematic Paper Screener 组合,2024-2025 涌现，检测方刚起步,反检测军备竞赛,外部文献参考
+54,AI 时代新模式,AI 改写,LLM 改写躲查重,用 ChatGPT 把别人论文整段改写换说法发表,语义指纹分析；BERT-based 抄袭检测,Originality.ai；Turnitin AI detection,低质期刊与本科论文激增,查重工具滞后,外部文献参考
+55,AI 时代新模式,未声明 AI,未披露 AI 使用,用 LLM 写正文、做分析、生成图，但未在 acknowledgment 或 methods 声明,COPE 与多数期刊已强制要求声明,期刊政策审查；自动检测辅助,几乎所有领域都有,2024 起多数期刊已有政策,外部文献参考
+56,源数据/数据矩阵造假,整块复制(#1),raw 数据块原样复制,整块数据(行/列/子块)原样搬到另一样本或实验组冒充新数据,跨样本/组逐位完全相同的数值块;高计数位上 identical 比例远超噪声,跨样本 exact-duplicate identity 扫描(排序后逐行比对);相关热图 QC 常漏,"nka(S07→S12/S13,酶活)★已复现已建;cf-olfactory(CTRL两pool)★已建;alkbh7/h3v3/sirt1/charge-trapping/leaflitter/bioconvection","PubPeer 语料最常见手法;裸整块复制 telegraph 太易,须藏匿或嵌诱饵",已建 medge-nka-1 / medge-cf-1
+57,源数据/数据矩阵造假,近似复制+单格篡改(#2),复制后改少数单格躲 exact 检测,复制数据块后改动极少数单格(常保留小数部分只动整数)以躲 exact-dup 检测,近重复(仅 1-数格不同);被改格小数部分与源相同、整数微调,near-duplicate 匹配(允 1 格差);单格 near-dup 检测,nka(C71/F74/D75)★已建;foxo(14exact+8单格改)★已建;parthenium/alpine-traits,nka 作者自认蓄意改读数;foxo 整数±1/2/8/10,已建 medge-nka-1 / medge-foxo-1
+58,源数据/数据矩阵造假,跨组复制(#3),一组数据复制标为另一实验组,"把一个实验组/genotype 的数据整体复制、重标为另一组,伪造组间效应",跨组逐行相同队列/向量;组间效应实为零(原始被复制),跨组 block 匹配;per-cell/per-sample 跨组 identity 查,cf-olfactory★已建;foxo★已建;parkinson-gut/sudhof/thetis/h19(ExFig3h)/mindfulness,常与 #1/#2 联用,已建 medge-cf-1 / medge-foxo-1 / medge-audit-3(跨集)
+59,源数据/数据矩阵造假,值置换错配(#4),同组值重排或错配,"把一组数值重新排列或跨基因/条件错配,制造貌似独立实则同源的数据",multiset 相同仅顺序不同(排序后逐位一致),排序后 multiset 相等比对,clonalfish/np-grassland/thetis;alkbh7(ND5=CYTB 4值仅2/3位互换)★已复现,★MedgeBench 判太易:检测判据⊥暴露 tell 共线(audit-7 死法);identical-reshuffle≠生物共调控,已探判死(不建 task)
+60,源数据/数据矩阵造假,线性变换(#5),对复制数据施常数偏移/比例,"对复制的数据施常数偏移、固定比例等线性变换,躲 exact 检测",两组差值=常数或固定比例;pairwise 差值直方图出圆整峰,pairwise 差值/比值直方图找常数峰(如 +10000),"insect-bird(Møller,#5 典型,已撤稿);h19(ExFig9d 10/20值=9c+10000)★已复现;eet-asthma(差值=10倍数)",★H19 当 #5 常数偏移保真度参照 substrate;裸案无良性解释轴 telegraph 太易(不单建 task),"已复现,作合成注入参照"
+61,源数据/数据矩阵造假,派生列不自洽(#6),计算列与原始列矛盾,派生/计算列(比值、归一化、均值等)与其原始列重算结果不自洽,重算派生值≠报告值;衍生列内部逻辑矛盾,重算校验(用原始列复算派生列比对),soilwarming-P/alpine-traits/bamboo/soil-multifunc,生态案例居多,外部文献参考
+62,源数据/数据矩阵造假,样本量核算矛盾(#7),报告 n 与数据/图不符,报告样本量 n 与实际数据行数、自由度或图上点数矛盾,n / df / 图点数三者不一致,交叉核算(n vs 行数 vs df vs 图元素),parthenium/allometry-trees/drosophila-color/insect-bird,常与选择性删除受试者联用,外部文献参考
+63,源数据/数据矩阵造假,未披露插补(#8),偷偷插补缺失冒充真实,"对缺失值偷偷插补(如 ALRA)冒充真实测量,伪造共表达/平滑结构",global SVD 秩异常(PCs@90% 远高于真数据);hub 遍布非 module 相关,global SVD cliff 分析;共表达结构诊断,soilwarming-P(#6;#8);合成 ALRA 案★已建,轴 = 共表达 appropriateness 非 DE;不给 raw,已建 medge-audit-6
+64,源数据/数据矩阵造假,统计假设违背/伪重复(#9),违背独立性等假设,违背独立性/分布假设——最常见=伪重复(把非独立单元当独立样本膨胀显著性),按生物学重复(donor/sample)聚合后 p 值翻转/失去显著;循环分析(同数据聚类+DE),按生物学重复聚合重检;Neufeld count-splitting(循环分析);pool 级检验,bioconvection/mazmanian;合成伪重复+循环案★已建,cf-1 的第二层难度即伪重复,已建 medge-audit-5(伪重复)/medge-audit-9(循环)/medge-cf-1
+65,源数据/数据矩阵造假,核苷酸序列误标(#10),引物/shRNA 与所称靶不符,报告的核苷酸序列试剂(primer/shRNA/siRNA)与其所称靶标基因不符,BLAST 序列 vs 所称靶不匹配;non-targeting 对照实为真实基因靶向,Seek&Blastn / BLAST vs 本地 RefSeq;IRIT Problematic Paper Screener,Byrne&Labbé 语料(712篇/78期刊;ERC benchmark 1679序列),★独立 task-type(非矩阵);判太易(检测判据⊥暴露 tell 共线)+GT 随 DB 漂,已探判死(不建 task)
+66,源数据/数据矩阵造假,★藏匿变体(hidden-by-processing),复制被处理步骤藏起来,"★现代精细化:#1-#3 的复制被一道处理变换(归一化/pseudobulk 聚合/参考基因)藏住,naive 在报告/绘图层看不出,须回退原始层才见","报告层(归一化/pseudobulk)看着干净,原始层(raw counts/per-cell 向量)才现逐位复制",回退 raw/per-cell 层做身份查;识别归一化/聚合能让相同原始显得不同(或相反),cf-olfactory(pool结构藏)★已建;foxo(RpL3归一化藏)★已建;合成 audit-13(size-factor藏)/audit-14(pseudobulk藏)★已建,"★★真实隐藏式造假不可搜索(反搜索),cf/foxo 近全集→靠合成注入+hiding transform 复刻",已建 medge-cf-1/foxo-1/audit-13/audit-14

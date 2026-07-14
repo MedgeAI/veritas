@@ -168,7 +168,48 @@ function NewAuditPage({ onCaseCreated, onRunStarted, onNavigate, selectedCase, s
     e.stopPropagation();
     dragCounter.current = 0;
     setIsDragging(false);
-    if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+
+    const items = e.dataTransfer.items;
+    if (!items || !items.length) return;
+
+    const entries = Array.from(items)
+      .map((item) => item.webkitGetAsEntry?.())
+      .filter(Boolean);
+
+    if (!entries.length) {
+      if (e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
+      return;
+    }
+
+    function readEntry(entry) {
+      if (entry.isFile) {
+        return new Promise((resolve) => entry.file(resolve, () => resolve(null)));
+      }
+      if (entry.isDirectory) {
+        const reader = entry.createReader();
+        return new Promise((resolve) => {
+          const allEntries = [];
+          function readBatch() {
+            reader.readEntries(async (batch) => {
+              if (!batch.length) {
+                const nested = await Promise.all(allEntries.map(readEntry));
+                resolve(nested.flat().filter(Boolean));
+              } else {
+                allEntries.push(...batch);
+                readBatch();
+              }
+            }, () => resolve([]));
+          }
+          readBatch();
+        });
+      }
+      return Promise.resolve(null);
+    }
+
+    Promise.all(entries.map(readEntry)).then((results) => {
+      const files = results.flat().filter(Boolean);
+      if (files.length) addFiles(files);
+    });
   }, [addFiles]);
 
   function guardedNavigate(page) {

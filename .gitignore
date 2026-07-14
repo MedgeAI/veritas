@@ -64,3 +64,8 @@ tests/fixtures/*
 
 # Dev logs
 logs/
+
+.Rhistory
+third_party/geng-academic-fraud-detector/
+__pycache__/
+*.pyc

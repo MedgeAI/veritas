@@ -9,6 +9,19 @@ NO_ENV_FILE_MARKER = "VERITAS_NO_ENV_FILE"
 # Default log directory (repo-relative).  Override with VERITAS_LOG_DIR.
 DEFAULT_LOG_DIR = "logs/"
 
+# Shared real-paper source-data root. VeritasBench headline cases read their downloaded
+# supplementary files from ONE shared store so multiple windows/hosts use a single copy rather
+# than duplicating per checkout. Default = the shared server location (w1 decision, 2026-07-09);
+# hosts without that mount (e.g. local dev) must set VERITAS_REAL_PAPERS_ROOT to a reachable copy.
+# Layout under the root: <sanitized-doi>/source_data/*.xlsx.
+_DEFAULT_REAL_PAPERS_ROOT = Path("/srv/Research/share/medgebench/downloads/real-papers")
+
+
+def real_papers_root() -> Path:
+    """Shared root holding real-paper source data; VERITAS_REAL_PAPERS_ROOT overrides the default."""
+    override = get_env("VERITAS_REAL_PAPERS_ROOT", required=False, default=None)
+    return Path(override) if override else _DEFAULT_REAL_PAPERS_ROOT
+
 PROXY_ENV_KEYS = (
     "ALL_PROXY",
     "all_proxy",

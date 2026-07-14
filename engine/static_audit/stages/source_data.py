@@ -38,7 +38,17 @@ def run(
     """Run source-data pipeline or record skip steps if unavailable."""
     steps: list[StepResult] = []
 
-    if source_lane and source_data_dir and source_data_dir.is_dir():
+    if getattr(args, "llm_only_ablation", False):
+        reason = "Round-2 LLM-only ablation: deterministic source_data/statistical stages skipped."
+        for k, t in [
+            ("source_data_profile", "Source Data profile"),
+            ("source_data_findings", "Source Data findings"),
+            ("source_data_pair_forensics", "Source Data pair forensics"),
+            ("source_data_cross_sheet", "Source Data cross-sheet duplicates"),
+            ("source_data_verdict", "Source Data LLM 语义裁决"),
+        ]:
+            record_step(steps, StepResult(k, t, "skipped", reason), progress)
+    elif source_lane and source_data_dir and source_data_dir.is_dir():
         steps.extend(
             _run_source_data_steps(
                 workdir=workdir,

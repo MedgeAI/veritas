@@ -1,0 +1,30 @@
+# Paper 1 Ground Truth Annotations
+# Source: https://www.pubpeer.com/publications/429F23C68462E5C1A09175C3CD8B07
+# Paper: Human HDAC6 senses valine abundancy to regulate DNA damage (2024)
+#
+# NOTE ON SCOPE (evidence-first): the PubPeer thread also reports "overlap in fluorescence
+# images" (corrected July 2025), but the source text never localises those overlaps to a
+# specific figure panel, so they are intentionally NOT annotated here. Only the
+# quantitatively-specified source-data claims — the ones an auditor could in principle
+# reproduce cell-for-cell from the raw file — are recorded. All are L3 (report-claim /
+# internal source-data consistency), matching the current benchmark coverage.
+
+paper:
+  base_paper_id: "HDAC6-valine-DNA-damage"
+  title: "Human HDAC6 senses valine abundancy to regulate DNA damage"
+  pubpeer_url: "https://www.pubpeer.com/publications/429F23C68462E5C1A09175C3CD8B07"
+
+claims:
+  - claim_type: "source_data.fixed_difference"
+    target: "Fig. 4c (raw data digitised from comment #6)"
+    description: "shHDAC6(24h) = shHDAC6(0h) - 0.3 percentage points for all 35 rows; a constant fixed difference between two series that should be independent measurements (author-reported chance probability < 1e-22)"
+    evidence_type: "source_data"
+    comment_id: "#5"
+    confirmed_by_human: true
+
+  - claim_type: "source_data.fixed_difference"
+    target: "Fig. 4c shHDAC6(24h) column vs shTET2(0h) neighbour column"
+    description: "the shHDAC6(24h) column shows extremely regular fixed differences with its shTET2(0h) neighbour column; flagged in the same thread, exact delta not quantified in the report"
+    evidence_type: "source_data"
+    comment_id: "#5"
+    confirmed_by_human: true

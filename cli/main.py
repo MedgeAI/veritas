@@ -115,6 +115,11 @@ def build_parser() -> argparse.ArgumentParser:
         "Without this flag, environment failures abort the pipeline.",
     )
     audit_parser.add_argument(
+        "--llm-only-ablation",
+        action="store_true",
+        help="Run the Round-2 LLM-only ablation: skip deterministic source-data/statistical/visual stages and run only agent review layers.",
+    )
+    audit_parser.add_argument(
         "--progress",
         choices=["auto", "plain", "jsonl", "off"],
         default="auto",
@@ -147,6 +152,7 @@ def main(argv: list[str] | None = None) -> int:
             args.agent_timeout_seconds,
             args.agent_max_retries,
             args.skip_unavailable_tools,
+            args.llm_only_ablation,
             args.progress,
         )
     raise ValueError(f"Unsupported command: {args.command}")

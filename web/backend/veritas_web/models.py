@@ -126,6 +126,7 @@ class CaseRecord:
     latest_run_id: str | None = None
     input_count: int = 0
     reproducibility_tier: str = "full"
+    report_version: int = 1
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -245,6 +246,7 @@ class CaseModel(Base):
     latest_run_id = Column(String(128), nullable=True)
     input_count = Column(Integer, default=0)
     reproducibility_tier = Column(String(32), default="full", nullable=True)
+    report_version = Column(Integer, default=1, nullable=True)
 
     runs = relationship("RunModel", back_populates="case", lazy="selectin")
     review_decisions = relationship(

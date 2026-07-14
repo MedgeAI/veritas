@@ -122,6 +122,22 @@ def run(
     """Run image duplicates, figure classification, and visual baseline."""
     steps: list[StepResult] = []
 
+    if getattr(args, "llm_only_ablation", False):
+        reason = "Round-2 LLM-only ablation: deterministic visual stages skipped."
+        for k, t in [
+            ("exact_image_duplicates", "图片字节级重复检查"),
+            ("image_similarity_candidates", "图片近似相似候选检查"),
+            ("panel_extraction", "Panel 提取 (YOLOv5)"),
+            ("visual_copy_move", "Copy-Move 检测 (RootSIFT)"),
+            ("visual_copy_move_dense", "密集 Copy-Move 检测 (SILA)"),
+            ("visual_trufor", "TruFor 伪造检测"),
+            ("visual_overlap_reuse", "图像复用检测"),
+        ]:
+            record_step(steps, StepResult(k, t, "skipped", reason), progress)
+        agent_manifest["figure_classification"] = None
+        agent_manifest.setdefault("visual_forensics", {})
+        return VisualResult(figure_classification=None, steps=steps)
+
     # Image duplicates
     if images_dir.is_dir():
         steps.append(
