@@ -1,0 +1,156 @@
+{
+  "case_id": "ncb_cav2",
+  "paper_title": "CAV2-expressing Nerves induce Metabolic Switch toward Mitochondrial Oxidative Phosphorylation to Promote Cancer Stemness",
+  "paper_authors": [
+    "Ze Zhang",
+    "Ruoyan Liu",
+    "Hua Guo",
+    "Jingtao Luo (corresponding; Tianjin Medical University Cancer Institute & Hospital)"
+  ],
+  "artifacts": {
+    "source_data_figure8": {
+      "path": "artifacts/source_data_figure8.xlsx",
+      "sha256": "039aedc749c3c03c9a2240656cbc4a4550d52dafe8ecf180ce2e7d3ab8abae0d",
+      "kind": "source_data"
+    },
+    "source_data_supplementaryfigure3": {
+      "path": "artifacts/source_data_supplementaryfigure3.xlsx",
+      "sha256": "72fc90a995ce5e94b166de56990a4e4878f177f6219cbe87f3f16247342016e4",
+      "kind": "source_data"
+    },
+    "supplementary_figures_pdf": {
+      "path": "artifacts/supplementary_figures.pdf",
+      "sha256": "152f0732bb76b525d2cf5f94ee2dc2e50a6fb9e27c9962d2501643f33a7f6dd5",
+      "kind": "supplement"
+    }
+  },
+  "observations": {
+    "artifacts/source_data_figure8.xlsx#fig8d_line1_r1": {
+      "value": 225.83,
+      "source_artifact": "artifacts/source_data_figure8.xlsx",
+      "source_artifact_hash": "039aedc749c3c03c9a2240656cbc4a4550d52dafe8ecf180ce2e7d3ab8abae0d",
+      "source_span": "sheet 'Figure 8d', cell C5 (column header C4='line 1'; OCR value, replicate 1)"
+    },
+    "artifacts/source_data_figure8.xlsx#fig8d_line2_r1": {
+      "value": 287.79,
+      "source_artifact": "artifacts/source_data_figure8.xlsx",
+      "source_artifact_hash": "039aedc749c3c03c9a2240656cbc4a4550d52dafe8ecf180ce2e7d3ab8abae0d",
+      "source_span": "sheet 'Figure 8d', cell D5 (column header D4='line 2'; OCR value, replicate 1)"
+    },
+    "artifacts/source_data_figure8.xlsx#fig8d_line2_r2": {
+      "value": 273.51,
+      "source_artifact": "artifacts/source_data_figure8.xlsx",
+      "source_artifact_hash": "039aedc749c3c03c9a2240656cbc4a4550d52dafe8ecf180ce2e7d3ab8abae0d",
+      "source_span": "sheet 'Figure 8d', cell D6 (column header D4='line 2'; OCR value, replicate 2)"
+    },
+    "artifacts/source_data_figure8.xlsx#fig8e_line1_r1": {
+      "value": 287.79,
+      "source_artifact": "artifacts/source_data_figure8.xlsx",
+      "source_artifact_hash": "039aedc749c3c03c9a2240656cbc4a4550d52dafe8ecf180ce2e7d3ab8abae0d",
+      "source_span": "sheet 'Figure 8e', cell C5 (column header C4='line 1'; OCR value, replicate 1)"
+    },
+    "artifacts/source_data_figure8.xlsx#fig8e_line1_r2": {
+      "value": 273.51,
+      "source_artifact": "artifacts/source_data_figure8.xlsx",
+      "source_artifact_hash": "039aedc749c3c03c9a2240656cbc4a4550d52dafe8ecf180ce2e7d3ab8abae0d",
+      "source_span": "sheet 'Figure 8e', cell C6 (column header C4='line 1'; OCR value, replicate 2)"
+    },
+    "artifacts/source_data_figure8.xlsx#fig8e_line2_r1": {
+      "value": 257.89,
+      "source_artifact": "artifacts/source_data_figure8.xlsx",
+      "source_artifact_hash": "039aedc749c3c03c9a2240656cbc4a4550d52dafe8ecf180ce2e7d3ab8abae0d",
+      "source_span": "sheet 'Figure 8e', cell D5 (column header D4='line 2'; OCR value, replicate 1)"
+    },
+    "artifacts/source_data_supplementaryfigure3.xlsx#supp3b_filaments_line2_r2": {
+      "value": 8,
+      "source_artifact": "artifacts/source_data_supplementaryfigure3.xlsx",
+      "source_artifact_hash": "72fc90a995ce5e94b166de56990a4e4878f177f6219cbe87f3f16247342016e4",
+      "source_span": "sheet 'Supplementary Figure 3b', cell D18 (block 'number of neural filaments per neuron', column header D16='line 2', replicate 2)"
+    },
+    "artifacts/source_data_supplementaryfigure3.xlsx#supp3b_filaments_line1_r6": {
+      "value": 8,
+      "source_artifact": "artifacts/source_data_supplementaryfigure3.xlsx",
+      "source_artifact_hash": "72fc90a995ce5e94b166de56990a4e4878f177f6219cbe87f3f16247342016e4",
+      "source_span": "sheet 'Supplementary Figure 3b', cell C22 (block 'number of neural filaments per neuron', column header C16='line 1', replicate 6)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_cav2_ann_001",
+      "claim_id": "ncb_cav2_claim_001",
+      "claim_atom": "The three OCR values plotted as the second trajectory in Fig 8d are identical to the first trajectory in Fig 8e (287.79, 273.51, 290.22), because the two panels reuse the SAME experimental condition as a shared comparison group.",
+      "source_artifact": "artifacts/source_data_figure8.xlsx#fig8d_line2_r1",
+      "target_artifact": "artifacts/source_data_figure8.xlsx#fig8e_line1_r1",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_adjudication": "FP陷阱: Fig8d 'line 2'(D5:D7=287.79/273.51/290.22) 与 Fig8e 'line 1'(C5:C7=287.79/273.51/290.22) 逐值相同, 表面像重复/造假. 但作者 Zhang Ze 在 PubPeer D2FBCE9FA73566BD54FA6FA5E8A070 明确回复: 该组为两个分析共用的同一实验条件(shared comparison group), 属合法复用, 仅图注未标注. 值相同=预期, 判 consistent + clean. 勿因跨panel同值误判造假."
+    },
+    {
+      "annotation_id": "ncb_cav2_ann_002",
+      "claim_id": "ncb_cav2_claim_002",
+      "claim_atom": "The high-OCR trajectory (287.79, 273.51, ...) is assigned a consistent group label across Fig 8d and Fig 8e.",
+      "source_artifact": "artifacts/source_data_figure8.xlsx#fig8d_line2_r2",
+      "target_artifact": "artifacts/source_data_figure8.xlsx#fig8e_line1_r2",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "label_swap",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "Inconsistent(展示层与数据不符): 同一条高-OCR曲线(值 273.51 等)在 Fig8d 被标为 'line 2', 在 Fig8e 却被标为 'line 1' — 同组数据跨panel标签不一致. 对应 PubPeer 点2: 作者承认 Fig8d 两组标签被颠倒(labels reversed), 底层数值/统计未变, 但展示层group归属出错. 这是真实错误(非gotcha), 判 inconsistent."
+    },
+    {
+      "annotation_id": "ncb_cav2_ann_003",
+      "claim_id": "ncb_cav2_claim_003",
+      "claim_atom": "Identical integer values appearing across different conditions in Supp Fig 3b 'number of neural filaments per neuron' (e.g. a count of 8 in both line 1 and line 2) indicate duplicated/fabricated data.",
+      "source_artifact": "artifacts/source_data_supplementaryfigure3.xlsx#supp3b_filaments_line2_r2",
+      "target_artifact": "artifacts/source_data_supplementaryfigure3.xlsx#supp3b_filaments_line1_r6",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_adjudication": "FP陷阱: Supp3b 神经丝计数为小离散整数(观测范围 1-14). 不同条件间出现相同整数(如 D18=8 与 C22=8)是离散小计数的必然巧合, 非数据复制. 对应 PubPeer 点5: 作者解释 neurite 分支/丝数为 1-N 离散整数, 跨图偶合常见=合法. 断言(称其为造假)不成立→数据实际 consistent + clean; AI 若据同值指控造假即踩FP陷阱."
+    },
+    {
+      "annotation_id": "ncb_cav2_ann_004",
+      "claim_id": "ncb_cav2_claim_004",
+      "claim_atom": "The phenotypic OCR increase in Fig 8d/8e is mechanistically explained by a CAV2-driven proteomic shift toward mitochondrial OXPHOS, as quantified by the study's mass-spectrometry proteomics.",
+      "source_artifact": "artifacts/source_data_figure8.xlsx#fig8d_line1_r1",
+      "target_artifact": "artifacts/source_data_figure8.xlsx#fig8e_line2_r1",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": "method_species_mismatch",
+      "evidence_span": null,
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "Insufficient(证据不足以判数值对错): 代谢开关的分子层证据依赖蛋白质组学, 但作者在 PubPeer 点4 承认 mouse 样本被误用 human UniProt 库分析(物种数据库不匹配, 已重分析). 本 case 的公开 source data 仅含 Fig8d/8e 的 OCR 表型值, 不含(修正后的)蛋白组定量矩阵. 因此无法从现有 artifacts 判定该机制断言的数值正确性→insufficient. source/target 指向 OCR 表型观测仅作claim锚点, 非该机制的直接证据."
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_cav2",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.1038/s41467-025-66914-2",
+    "_lane": "混合型诚实案(非干净造假): 混合 consistent/FP(合法共用组+离散整数巧合) + inconsistent(Fig8d标签颠倒) + insufficient(小鼠样本误用人类UniProt库). 考AI能否区分'看着可疑但作者有合法解释'与'确有展示层错误'与'证据不足'.",
+    "_pubpeer": "D2FBCE9FA73566BD54FA6FA5E8A070(作者已承认多项)",
+    "_pubpeer_points": "1)Fig8d line2==Fig8e line1三值共用组=合法复用[consistent/FP]; 2)Fig8d两组标签颠倒[inconsistent]; 3)Supp3b末两列放错细胞系条件[已承认制图错]; 4)蛋白组用人类UniProt分析小鼠样本已重分析[insufficient]; 5)Fig5c/Supp3b/Fig4k离散整数偶合=合法[consistent/FP]",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_paper_artifact_status": "本地下载缺主文 PDF(仅有 Peer Review File / Supplementary Figures / Reporting Summary / GSEA xlsx); 数值取自 Source Data zip (MOESM6) 内 per-figure xlsx, 逐 cell 读取无编造."
+  }
+}
