@@ -1,0 +1,157 @@
+{
+  "case_id": "ncb_akg",
+  "paper_title": "Alpha-Ketoglutarate dictates AMPK protein synthesis for energy sensing in human cancers",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "41589_2025_2013_moesm14_esm": {
+      "path": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
+      "sha256": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "01b0f25d566beb651d19728cf3c5588a337481140726dcbb13ead5fd1fb34300",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!J30": {
+      "value": 82.5,
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
+      "source_span": "sheet 'Sheet1', J30 (Fig1e Huh7 shGDH1-2 knockdown)"
+    },
+    "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!J31": {
+      "value": 91.0,
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
+      "source_span": "sheet 'Sheet1', J31 (Fig1e Huh7 shGDH1-2 knockdown)"
+    },
+    "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!J32": {
+      "value": 81.75,
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
+      "source_span": "sheet 'Sheet1', J32 (Fig1e Huh7 shGDH1-2 knockdown)"
+    },
+    "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!N30": {
+      "value": 82.5,
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
+      "source_span": "sheet 'Sheet1', N30 (Fig1e H1299 shGDH1-1 knockdown)"
+    },
+    "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!N31": {
+      "value": 91.0,
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
+      "source_span": "sheet 'Sheet1', N31 (Fig1e H1299 shGDH1-1 knockdown)"
+    },
+    "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!N32": {
+      "value": 81.75,
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
+      "source_span": "sheet 'Sheet1', N32 (Fig1e H1299 shGDH1-1 knockdown)"
+    },
+    "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!F30": {
+      "value": 26.3,
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
+      "source_span": "sheet Sheet1, F30 (Fig1e Huh7 shCtrl)"
+    },
+    "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!F31": {
+      "value": 28,
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
+      "source_span": "sheet Sheet1, F31 (Fig1e Huh7 shCtrl)"
+    },
+    "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!F32": {
+      "value": 29.5,
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
+      "source_span": "sheet Sheet1, F32 (Fig1e Huh7 shCtrl)"
+    },
+    "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!H30": {
+      "value": 80.5,
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
+      "source_span": "sheet Sheet1, H30 (Fig1e Huh7 shGDH1-1 knockdown)"
+    },
+    "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!H31": {
+      "value": 79,
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
+      "source_span": "sheet Sheet1, H31 (Fig1e Huh7 shGDH1-1 knockdown)"
+    },
+    "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!H32": {
+      "value": 89.25,
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "ec2dfbdb543ea0201b163ec26c3075191840492981d45f37f4cc5d6e88135ab5",
+      "source_span": "sheet Sheet1, H32 (Fig1e Huh7 shGDH1-1 knockdown)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_akg_ann_001",
+      "claim_id": "ncb_akg_claim_001",
+      "claim_atom": "Sheet1 (Fig1e Huh7 shGDH1-2 knockdown) and Sheet1 (Fig1e H1299 shGDH1-1 knockdown) are independent measurements.",
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!J30",
+      "target_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!N30",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_values",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "J30(Fig1e Huh7 shGDH1-2 knockdown)=82.5 ~ N30(Fig1e H1299 shGDH1-1 knockdown)=82.5",
+        "J31(Fig1e Huh7 shGDH1-2 knockdown)=91.0 ~ N31(Fig1e H1299 shGDH1-1 knockdown)=91.0",
+        "J32(Fig1e Huh7 shGDH1-2 knockdown)=81.75 ~ N32(Fig1e H1299 shGDH1-1 knockdown)=81.75",
+        "...3/3 满足 EXACT"
+      ],
+      "_adjudication": "wuguandu核定=inconsistent: Fig1e: Huh7 shGDH1-2 and H1299 shGDH1-1 (different cell line AND different shRNA hairpin) report byte-identical triplicate cell-death values 82.5/91/81.75 (3/3满足EXACT)"
+    },
+    {
+      "annotation_id": "ncb_akg_ann_clean",
+      "claim_id": "ncb_akg_claim_clean",
+      "claim_atom": "Fig1e Huh7 shCtrl (col F) and Huh7 shGDH1-1 (col H) are independent measurements with different values.",
+      "source_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!F30",
+      "target_artifact": "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!H30",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_clean_pairs": [
+        [
+          "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!F30",
+          "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!H30"
+        ],
+        [
+          "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!F31",
+          "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!H31"
+        ],
+        [
+          "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!F32",
+          "artifacts/41589_2025_2013_MOESM14_ESM.xlsx#Sheet1!H32"
+        ]
+      ],
+      "_note": "clean/FAR baseline: Fig1e same-block shCtrl vs shGDH1-1 give distinct values = independent real data, not duplicated."
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_akg",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [
+      "mixed_boundary"
+    ],
+    "source_url": "https://doi.org/10.1038/s41589-025-02013-z",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_note": "Fig1e: Huh7 shGDH1-2 and H1299 shGDH1-1 (different cell line AND different shRNA hairpin) report byte-identical triplicate cell-death values 82.5/91/81.75"
+  }
+}

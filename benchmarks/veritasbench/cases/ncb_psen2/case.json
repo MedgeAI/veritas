@@ -1,0 +1,816 @@
+{
+  "case_id": "ncb_psen2",
+  "paper_title": "Presenilin 2 N141I mutation induces hyperactive immune response through the epigenetic repression of REV-ERBalpha",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "41467_2022_29653_moesm4_esm": {
+      "path": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "sha256": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "124c7b17914af36b2d5aab6851bf8520d78035725b475840fff5261afcb776b9",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR5": {
+      "value": 6.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR5 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR6": {
+      "value": 6.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR6 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR7": {
+      "value": 7.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR7 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR8": {
+      "value": 8.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR8 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR9": {
+      "value": 9.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR9 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR10": {
+      "value": 10.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR10 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR11": {
+      "value": 11.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR11 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR12": {
+      "value": 16.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR12 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR13": {
+      "value": 13.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR13 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR14": {
+      "value": 12.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR14 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR15": {
+      "value": 14.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR15 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR16": {
+      "value": 15.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR16 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR17": {
+      "value": 20.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR17 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR18": {
+      "value": 19.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR18 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR19": {
+      "value": 18.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR19 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR20": {
+      "value": 14.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR20 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR21": {
+      "value": 14.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR21 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR22": {
+      "value": 19.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR22 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR23": {
+      "value": 13.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR23 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR24": {
+      "value": 9.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR24 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR25": {
+      "value": 9.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR25 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR26": {
+      "value": 8.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR26 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR27": {
+      "value": 5.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR27 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR28": {
+      "value": 4.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR28 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR29": {
+      "value": 3.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR29 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR30": {
+      "value": 3.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR30 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR31": {
+      "value": 2.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR31 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR32": {
+      "value": 1.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR32 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR33": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR33 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR34": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR34 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR35": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR35 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR36": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR36 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR37": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR37 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR38": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR38 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR39": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR39 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR40": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR40 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR41": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR41 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR42": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR42 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR43": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR43 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR44": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR44 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR45": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR45 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR46": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR46 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR47": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR47 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR48": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR48 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR49": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR49 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR50": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR50 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR51": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR51 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR52": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR52 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR53": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR53 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR54": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR54 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR55": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR55 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR56": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR56 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR57": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR57 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR58": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR58 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR59": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR59 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR60": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR60 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR61": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR61 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR62": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR62 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR63": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR63 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR64": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR64 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR65": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', DR65 (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z5": {
+      "value": 6.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z5 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z6": {
+      "value": 6.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z6 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z7": {
+      "value": 7.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z7 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z8": {
+      "value": 8.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z8 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z9": {
+      "value": 9.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z9 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z10": {
+      "value": 10.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z10 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z11": {
+      "value": 11.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z11 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z12": {
+      "value": 16.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z12 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z13": {
+      "value": 13.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z13 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z14": {
+      "value": 12.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z14 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z15": {
+      "value": 14.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z15 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z16": {
+      "value": 15.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z16 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z17": {
+      "value": 20.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z17 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z18": {
+      "value": 19.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z18 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z19": {
+      "value": 18.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z19 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z20": {
+      "value": 14.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z20 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z21": {
+      "value": 14.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z21 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z22": {
+      "value": 19.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z22 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z23": {
+      "value": 13.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z23 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z24": {
+      "value": 9.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z24 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z25": {
+      "value": 9.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z25 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z26": {
+      "value": 8.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z26 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z27": {
+      "value": 5.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z27 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z28": {
+      "value": 4.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z28 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z29": {
+      "value": 3.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z29 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z30": {
+      "value": 3.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z30 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z31": {
+      "value": 2.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z31 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z32": {
+      "value": 1.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z32 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z33": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z33 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z34": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z34 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z35": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z35 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z36": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z36 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z37": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z37 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z38": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z38 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z39": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z39 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z40": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z40 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z41": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z41 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z42": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z42 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z43": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z43 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z44": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z44 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z45": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z45 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z46": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z46 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z47": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z47 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z48": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z48 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z49": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z49 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z50": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z50 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z51": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z51 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z52": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z52 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z53": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z53 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z54": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z54 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z55": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z55 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z56": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z56 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z57": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z57 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z58": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z58 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z59": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z59 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z60": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z60 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z61": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z61 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z62": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z62 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z63": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z63 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z64": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z64 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z65": {
+      "value": 0.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 9c_sholl analysis', Z65 (Fig9c KI/+ microglia (untreated) Sholl profile)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!D5": {
+      "value": 1.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', D5 (colD)"
+    },
+    "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!E5": {
+      "value": 12.0,
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "80342e763d650e286cd9535ea0b8aa0475e74c79a6ed3f7dd7f6bf308c348df5",
+      "source_span": "sheet 'Figure 3c_sholl analysis', E5 (colE)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_psen2_ann_001",
+      "claim_id": "ncb_psen2_claim_001",
+      "claim_atom": "Figure 3c_sholl analysis (Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile) and Figure 9c_sholl analysis (Fig9c KI/+ microglia (untreated) Sholl profile) are independent measurements.",
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!DR5",
+      "target_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 9c_sholl analysis!Z5",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_values",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "DR5(Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)=6.0 ~ Z5(Fig9c KI/+ microglia (untreated) Sholl profile)=6.0",
+        "DR6(Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)=6.0 ~ Z6(Fig9c KI/+ microglia (untreated) Sholl profile)=6.0",
+        "DR7(Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)=7.0 ~ Z7(Fig9c KI/+ microglia (untreated) Sholl profile)=7.0",
+        "DR8(Fig3c KI/+ + LPS microglia (LPS-treated) Sholl profile)=8.0 ~ Z8(Fig9c KI/+ microglia (untreated) Sholl profile)=8.0",
+        "...61/61 满足 EXACT"
+      ],
+      "_adjudication": "wuguandu核定=inconsistent: An LPS-treated KI/+ microglia Sholl trace (Fig3c) is byte-identical across all 61 radii to an untreated KI/+ trace (Fig9c) — different treatment conditions cannot yield identical single-cell morphometry; part of wholesale block duplication between the two sholl sheets plus within-Fig9c duplicated replicate columns. (61/61满足EXACT)"
+    },
+    {
+      "annotation_id": "ncb_psen2_ann_clean",
+      "claim_id": "ncb_psen2_claim_clean",
+      "claim_atom": "Two other columns in Figure 3c_sholl analysis are independent (different values).",
+      "source_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!D5",
+      "target_artifact": "artifacts/41467_2022_29653_MOESM4_ESM.xlsx#Figure 3c_sholl analysis!E5",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "clean/FAR基线: 同表两列值不同=独立真数据."
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_psen2",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [
+      "mixed_boundary"
+    ],
+    "source_url": "https://doi.org/10.1038/s41467-022-29653-2",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_note": "An LPS-treated KI/+ microglia Sholl trace (Fig3c) is byte-identical across all 61 radii to an untreated KI/+ trace (Fig9c) — different treatment conditions cannot yield identical single-cell morphometry; part of wholesale block duplication between the two sholl sheets plus within-Fig9c duplicated replicate columns."
+  }
+}

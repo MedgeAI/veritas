@@ -1,0 +1,224 @@
+{
+  "case_id": "ncb_rybp",
+  "paper_title": "RYBP/YAF2-PRC1 complexes and histone H1-dependent chromatin compaction mediate propagation of H2AK119ub1 during cell division",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "41556_2020_484_moesm27_esm": {
+      "path": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "sha256": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "f5d7ea8de21b8469610dc054b560197bfb70dac534b061c43b2cb166c31cb3e8",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C32": {
+      "value": 4.012278047884416e-05,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet 'Sheet1', C32 (Supp Fig 9d Lhx2 qRT-PCR WT repeat2)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C33": {
+      "value": 4.23102542976354e-05,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet 'Sheet1', C33 (Supp Fig 9d Lhx2 qRT-PCR WT repeat2)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C34": {
+      "value": 0.00012623895145799947,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet 'Sheet1', C34 (Supp Fig 9d Lhx2 qRT-PCR WT repeat2)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C35": {
+      "value": 0.00022790536444481185,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet 'Sheet1', C35 (Supp Fig 9d Lhx2 qRT-PCR WT repeat2)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C36": {
+      "value": 0.0002473197912952316,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet 'Sheet1', C36 (Supp Fig 9d Lhx2 qRT-PCR WT repeat2)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C37": {
+      "value": 0.0006734059975211349,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet 'Sheet1', C37 (Supp Fig 9d Lhx2 qRT-PCR WT repeat2)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D32": {
+      "value": 4.012278047884416e-05,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet 'Sheet1', D32 (Supp Fig 9d Lhx2 qRT-PCR WT repeat3)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D33": {
+      "value": 4.23102542976354e-05,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet 'Sheet1', D33 (Supp Fig 9d Lhx2 qRT-PCR WT repeat3)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D34": {
+      "value": 0.00012623895145799947,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet 'Sheet1', D34 (Supp Fig 9d Lhx2 qRT-PCR WT repeat3)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D35": {
+      "value": 0.00022790536444481185,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet 'Sheet1', D35 (Supp Fig 9d Lhx2 qRT-PCR WT repeat3)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D36": {
+      "value": 0.0002473197912952316,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet 'Sheet1', D36 (Supp Fig 9d Lhx2 qRT-PCR WT repeat3)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D37": {
+      "value": 0.0006734059975211349,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet 'Sheet1', D37 (Supp Fig 9d Lhx2 qRT-PCR WT repeat3)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C5": {
+      "value": 0.09461478018905554,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet Sheet1, C5 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C6": {
+      "value": 0.058868942117615154,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet Sheet1, C6 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C7": {
+      "value": 0.03241824734147356,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet Sheet1, C7 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C8": {
+      "value": 0.017573416383859945,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet Sheet1, C8 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C9": {
+      "value": 0.026241525058003524,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet Sheet1, C9 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C10": {
+      "value": 0.012723269705075278,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet Sheet1, C10 (Supp Fig 9d Oct4 qRT-PCR WT repeat2)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D5": {
+      "value": 0.09963828038161522,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet Sheet1, D5 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D6": {
+      "value": 0.0551393938722869,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet Sheet1, D6 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D7": {
+      "value": 0.026981360723843342,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet Sheet1, D7 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D8": {
+      "value": 0.017783107135523765,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet Sheet1, D8 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D9": {
+      "value": 0.0241773324832569,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet Sheet1, D9 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
+    },
+    "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D10": {
+      "value": 0.014616134212778804,
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx",
+      "source_artifact_hash": "895fb482916dc1e869160f41f054914c5d7e41ff4495313a871286b1171a3f12",
+      "source_span": "sheet Sheet1, D10 (Supp Fig 9d Oct4 qRT-PCR WT repeat3)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_rybp_ann_001",
+      "claim_id": "ncb_rybp_claim_001",
+      "claim_atom": "Sheet1 (Supp Fig 9d Lhx2 qRT-PCR WT repeat2) and Sheet1 (Supp Fig 9d Lhx2 qRT-PCR WT repeat3) are independent measurements.",
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C32",
+      "target_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D32",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_values",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "C32(Supp Fig 9d Lhx2 qRT-PCR WT repeat2)=4.012278047884416e-05 ~ D32(Supp Fig 9d Lhx2 qRT-PCR WT repeat3)=4.012278047884416e-05",
+        "C33(Supp Fig 9d Lhx2 qRT-PCR WT repeat2)=4.23102542976354e-05 ~ D33(Supp Fig 9d Lhx2 qRT-PCR WT repeat3)=4.23102542976354e-05",
+        "C34(Supp Fig 9d Lhx2 qRT-PCR WT repeat2)=0.00012623895145799947 ~ D34(Supp Fig 9d Lhx2 qRT-PCR WT repeat3)=0.00012623895145799947",
+        "C35(Supp Fig 9d Lhx2 qRT-PCR WT repeat2)=0.00022790536444481185 ~ D35(Supp Fig 9d Lhx2 qRT-PCR WT repeat3)=0.00022790536444481185",
+        "...6/6 满足 EXACT"
+      ],
+      "_adjudication": "wuguandu核定=inconsistent: Supp Fig 9d (ED9) Lhx2 qRT-PCR: WT repeat3 (D32:D37) byte-identical to WT repeat2 (C32:C37) across all six timepoints; other genes (Oct4/Tuj1/Hens5) have distinct rep2/rep3 and cells are hard values (no formula) -> an independent third replicate was fabricated by copying repeat2. (6/6满足EXACT)"
+    },
+    {
+      "annotation_id": "ncb_rybp_ann_002",
+      "claim_id": "ncb_rybp_claim_002",
+      "claim_atom": "Supp Fig 9d Oct4 qRT-PCR WT repeat2 and WT repeat3 are independent measurements.",
+      "source_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!C5",
+      "target_artifact": "artifacts/41556_2020_484_MOESM27_ESM.xlsx#Sheet1!D5",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "C5(Oct4 WT rep2)=0.09461478018905554 != D5(Oct4 WT rep3)=0.09963828038161522",
+        "C6(Oct4 WT rep2)=0.058868942117615154 != D6(Oct4 WT rep3)=0.0551393938722869",
+        "C7(Oct4 WT rep2)=0.03241824734147356 != D7(Oct4 WT rep3)=0.026981360723843342",
+        "C8(Oct4 WT rep2)=0.017573416383859945 != D8(Oct4 WT rep3)=0.017783107135523765",
+        "C9(Oct4 WT rep2)=0.026241525058003524 != D9(Oct4 WT rep3)=0.0241773324832569",
+        "C10(Oct4 WT rep2)=0.012723269705075278 != D10(Oct4 WT rep3)=0.014616134212778804"
+      ],
+      "_note": "clean/FAR baseline: same figure/same WT condition, two repeats -> superficially as suspicious as the Lhx2 pair, but Oct4 rep2/rep3 differ at every timepoint (0/6 EXACT) => genuinely independent, verdict consistent. Guards against a detector that flags any two-repeat pair."
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_rybp",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [
+      "mixed_boundary"
+    ],
+    "source_url": "https://doi.org/10.1038/s41556-020-0484-1",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_note": "Supp Fig 9d (ED9) Lhx2 qRT-PCR: WT repeat3 (D32:D37) byte-identical to WT repeat2 (C32:C37) across all six timepoints; other genes (Oct4/Tuj1/Hens5) have distinct rep2/rep3 and cells are hard values (no formula) -> an independent third replicate was fabricated by copying repeat2."
+  }
+}

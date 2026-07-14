@@ -1,0 +1,245 @@
+{
+  "case_id": "ncb_fbp1",
+  "paper_title": "FBP1 loss disrupts liver metabolism and promotes tumorigenesis through a hepatic stellate cell senescence secretome",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "41556_2020_511_moesm9_esm": {
+      "path": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "sha256": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "6e816f95f0c24302ebc704cc2036be501be00c6b9b1ebadfaa9b7baadd8b931f",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!C47": {
+      "value": 8.0,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', C47 (Fig. 6n Veh SA-beta-Gal (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!D47": {
+      "value": 7.4,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', D47 (Fig. 6n Veh SA-beta-Gal (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!E47": {
+      "value": 6.2,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', E47 (Fig. 6n Veh SA-beta-Gal (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!F47": {
+      "value": 6.5,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', F47 (Fig. 6n Veh SA-beta-Gal (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!G47": {
+      "value": 5.3,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', G47 (Fig. 6n Veh SA-beta-Gal (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!H47": {
+      "value": 4.9,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', H47 (Fig. 6n Veh SA-beta-Gal (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!I47": {
+      "value": 4.0,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', I47 (Fig. 6n Veh SA-beta-Gal (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!C50": {
+      "value": 6.0,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', C50 (Fig. 6p Veh IL6 IHC (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!D50": {
+      "value": 5.4,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', D50 (Fig. 6p Veh IL6 IHC (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!E50": {
+      "value": 4.2,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', E50 (Fig. 6p Veh IL6 IHC (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!F50": {
+      "value": 4.5,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', F50 (Fig. 6p Veh IL6 IHC (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!G50": {
+      "value": 3.3,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', G50 (Fig. 6p Veh IL6 IHC (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!H50": {
+      "value": 2.9,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', H50 (Fig. 6p Veh IL6 IHC (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!I50": {
+      "value": 2.0,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', I50 (Fig. 6p Veh IL6 IHC (n=7))"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!C44": {
+      "value": 0.52,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', C44 (Fig. 6m Tumour apoptosis)"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!D44": {
+      "value": 0.61,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', D44 (Fig. 6m Tumour apoptosis)"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!E44": {
+      "value": 0.8,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', E44 (Fig. 6m Tumour apoptosis)"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!F44": {
+      "value": 0.75,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', F44 (Fig. 6m Tumour apoptosis)"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!G44": {
+      "value": 0.65,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', G44 (Fig. 6m Tumour apoptosis)"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!H44": {
+      "value": 0.54,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', H44 (Fig. 6m Tumour apoptosis)"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!I44": {
+      "value": 0.6,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', I44 (Fig. 6m Tumour apoptosis)"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!C45": {
+      "value": 0.4,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', C45 (Fig. 6m Non-Tumour apoptosis)"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!D45": {
+      "value": 0.6,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', D45 (Fig. 6m Non-Tumour apoptosis)"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!E45": {
+      "value": 0.9,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', E45 (Fig. 6m Non-Tumour apoptosis)"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!F45": {
+      "value": 0.81,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', F45 (Fig. 6m Non-Tumour apoptosis)"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!G45": {
+      "value": 0.25,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', G45 (Fig. 6m Non-Tumour apoptosis)"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!H45": {
+      "value": 0.57,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', H45 (Fig. 6m Non-Tumour apoptosis)"
+    },
+    "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!I45": {
+      "value": 0.64,
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "329a9cd2693eefaa1825d32773a70646202a73b2d4ae83af90abbc96768945c5",
+      "source_span": "sheet 'Sheet1', I45 (Fig. 6m Non-Tumour apoptosis)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_fbp1_ann_001",
+      "claim_id": "ncb_fbp1_claim_001",
+      "claim_atom": "Sheet1 (Fig. 6n Veh SA-beta-Gal (n=7)) and Sheet1 (Fig. 6p Veh IL6 IHC (n=7)) are independent measurements.",
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!C47",
+      "target_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!C50",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "constant_offset_-2.0",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "C47(Fig. 6n Veh SA-beta-Gal (n=7))=8.0 ~ C50(Fig. 6p Veh IL6 IHC (n=7))=6.0",
+        "D47(Fig. 6n Veh SA-beta-Gal (n=7))=7.4 ~ D50(Fig. 6p Veh IL6 IHC (n=7))=5.4",
+        "E47(Fig. 6n Veh SA-beta-Gal (n=7))=6.2 ~ E50(Fig. 6p Veh IL6 IHC (n=7))=4.2",
+        "F47(Fig. 6n Veh SA-beta-Gal (n=7))=6.5 ~ F50(Fig. 6p Veh IL6 IHC (n=7))=4.5",
+        "...7/7 满足 OFFSET:-2"
+      ],
+      "_adjudication": "wuguandu核定=inconsistent: Two different immunostain quantifications (Fig.6n SA-beta-Gal vs Fig.6p IL6 IHC) share the same Veh control values offset by a constant -2.0 across all 7 mice (7/7满足OFFSET:-2)"
+    },
+    {
+      "annotation_id": "ncb_fbp1_ann_clean",
+      "claim_id": "ncb_fbp1_claim_clean",
+      "claim_atom": "Fig. 6m Tumour and Non-Tumour peritumour apoptosis quantifications are independent measurements (different values, no fixed relation).",
+      "source_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!C44",
+      "target_artifact": "artifacts/41556_2020_511_MOESM9_ESM.xlsx#Sheet1!C45",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "Tumour C44:I44=[0.52, 0.61, 0.8, 0.75, 0.65, 0.54, 0.6]",
+        "Non-Tumour C45:I45=[0.4, 0.6, 0.9, 0.81, 0.25, 0.57, 0.64]",
+        "两组不同实验组(Tumour vs Non-Tumour)真独立数据,无固定offset/scale关系"
+      ],
+      "_note": "clean/FAR基线: Fig.6m 同表两不同实验组独立真数据."
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_fbp1",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [
+      "mixed_boundary"
+    ],
+    "source_url": "https://doi.org/10.1038/s41556-020-0511-2",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_note": "Two different immunostain quantifications (Fig.6n SA-beta-Gal vs Fig.6p IL6 IHC) share the same Veh control values offset by a constant -2.0 across all 7 mice"
+  }
+}

@@ -1,0 +1,150 @@
+{
+  "case_id": "rep_pbc_surv",
+  "paper_title": "Clinically Interpretable Survival Prediction in Primary Biliary Cholangitis with TreeSHAP and Gradient-Boosted Models",
+  "paper_authors": [
+    "codecheckers/surv-tcav-pbc (Lifecycle Journal 2025; CODECHECK 2025-028 certified)"
+  ],
+  "artifacts": {
+    "pbc_csv": {
+      "path": "artifacts/pbc.csv",
+      "sha256": "797ea9b6abfec34297ef07f361a2e0bfdd90c3c2def180adf8547ea30e75b613",
+      "kind": "source_data"
+    },
+    "summary_metrics_csv": {
+      "path": "artifacts/summary_metrics.csv",
+      "sha256": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
+      "kind": "code_output"
+    },
+    "split_metrics_csv": {
+      "path": "artifacts/split_metrics.csv",
+      "sha256": "28efb70eca504bb90407dd4e42c7cadedc5fb36e4ace2cf64522e8a4024b56f4",
+      "kind": "code_output"
+    },
+    "pbc_surv_tcav_py": {
+      "path": "artifacts/pbc_surv_tcav.py",
+      "sha256": "9013fd87b039e6087be5391c3d49a6eb6db31258a33bd63b2ecf00f493234a9f",
+      "kind": "code"
+    }
+  },
+  "observations": {
+    "artifacts/summary_metrics.csv#xgb_C_mean": {
+      "value": 0.845179002082301,
+      "source_artifact": "artifacts/summary_metrics.csv",
+      "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
+      "source_span": "summary_metrics.csv, row model=xgb, column C_mean (XGBoost-AFT C-index均值)"
+    },
+    "artifacts/summary_metrics.csv#xgb_C_boot_lo": {
+      "value": 0.8250315072016461,
+      "source_artifact": "artifacts/summary_metrics.csv",
+      "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
+      "source_span": "summary_metrics.csv, row model=xgb, column C_boot_lo (xgb C 95%CI下)"
+    },
+    "artifacts/summary_metrics.csv#xgb_C_boot_hi": {
+      "value": 0.869307671015191,
+      "source_artifact": "artifacts/summary_metrics.csv",
+      "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
+      "source_span": "summary_metrics.csv, row model=xgb, column C_boot_hi (xgb C 95%CI上)"
+    },
+    "artifacts/summary_metrics.csv#cox_C_mean": {
+      "value": 0.8370431502002689,
+      "source_artifact": "artifacts/summary_metrics.csv",
+      "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
+      "source_span": "summary_metrics.csv, row model=cox, column C_mean (Cox C-index均值)"
+    },
+    "artifacts/summary_metrics.csv#cox_C_boot_lo": {
+      "value": 0.8142436128257888,
+      "source_artifact": "artifacts/summary_metrics.csv",
+      "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
+      "source_span": "summary_metrics.csv, row model=cox, column C_boot_lo (cox CI下)"
+    },
+    "artifacts/summary_metrics.csv#cox_C_boot_hi": {
+      "value": 0.8584783855828013,
+      "source_artifact": "artifacts/summary_metrics.csv",
+      "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
+      "source_span": "summary_metrics.csv, row model=cox, column C_boot_hi (cox CI上)"
+    },
+    "artifacts/summary_metrics.csv#waft_C_mean": {
+      "value": 0.8244784426931829,
+      "source_artifact": "artifacts/summary_metrics.csv",
+      "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
+      "source_span": "summary_metrics.csv, row model=waft, column C_mean (Weibull-AFT C-index均值)"
+    },
+    "artifacts/summary_metrics.csv#xgb_IBS_mean": {
+      "value": 0.3519679327438954,
+      "source_artifact": "artifacts/summary_metrics.csv",
+      "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
+      "source_span": "summary_metrics.csv, row model=xgb, column IBS_mean (xgb IBS(越低越好))"
+    },
+    "artifacts/summary_metrics.csv#cox_IBS_mean": {
+      "value": 0.1502094385593659,
+      "source_artifact": "artifacts/summary_metrics.csv",
+      "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
+      "source_span": "summary_metrics.csv, row model=cox, column IBS_mean (cox IBS)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_pbc_ann_001",
+      "claim_id": "rep_pbc_claim_001",
+      "claim_atom": "XGBoost-AFT achieved the highest concordance (C-index) among the compared survival models on PBC (Table 2).",
+      "source_artifact": "artifacts/summary_metrics.csv#xgb_C_mean",
+      "target_artifact": "artifacts/summary_metrics.csv#cox_C_mean",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_stochastic": "CV/bootstrap随机: 代码输出 xgb C=0.8452 [0.825,0.869] > cox 0.8370 [0.814,0.858] > waft 0.8245 → 'XGBoost最高'成立. 重跑值落CI内即consistent, 勿因种子差异误判(FP陷阱).",
+      "_reproduction": [
+        "xgb C_mean=0.8452 > cox 0.8370 > waft 0.8245; xgb为最高=断言一致"
+      ]
+    },
+    {
+      "annotation_id": "rep_pbc_ann_002",
+      "claim_id": "rep_pbc_claim_002",
+      "claim_atom": "On the integrated Brier score (IBS, lower is better), XGBoost-AFT is NOT the best model; Cox achieves a lower IBS.",
+      "source_artifact": "artifacts/summary_metrics.csv#xgb_IBS_mean",
+      "target_artifact": "artifacts/summary_metrics.csv#cox_IBS_mean",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_stochastic": "代码输出 xgb IBS=0.352 vs cox IBS=0.150 → Cox的IBS更低. 论文亦不宣称xgb在IBS最优=一致(grounding:须找对指标列, 别把C-index结论套到IBS)."
+    },
+    {
+      "annotation_id": "rep_pbc_ann_003",
+      "claim_id": "rep_pbc_claim_003",
+      "claim_atom": "The reported XGBoost-AFT C-index point estimate (0.845) lies within its own reported 95% bootstrap CI.",
+      "source_artifact": "artifacts/summary_metrics.csv#xgb_C_mean",
+      "target_artifact": "artifacts/summary_metrics.csv#xgb_C_boot_lo",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "consistent: 0.8452 ∈ [0.8250, 0.8693]. FP陷阱:看似要比对两数字, 实为点估计落自身CI内=平凡一致, 别误判."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_pbc_surv",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [
+      "grounding"
+    ],
+    "source_url": "https://doi.org/10.71240/lcyc.66O7260",
+    "_lane": "诚实可复现论文(非造假); 全claim=consistent, 考AI正确验证诚实工作+抵抗随机值误判",
+    "_independent_status": "CODECHECK 2025-028 认证可复现 + 下载窗口独立重跑 pbc_surv_tcav.py 得summary_metrics.csv",
+    "_paper_artifact_status": "paper正文=Lifecycle Journal开放, 待补PDF作paper_pdf artifact(可加真·L1 code→paper-table)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}

@@ -1,0 +1,138 @@
+{
+  "case_id": "ncb_sting",
+  "paper_title": "The STING phase-separator suppresses innate immune signalling",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "41556_2021_659_moesm17_esm": {
+      "path": "artifacts/41556_2021_659_MOESM17_ESM.xlsx",
+      "sha256": "d946f95188cb0b56db510028ce585ef765d48d6c37f72d0d78011c8c857042fc",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "8c56a4271dc926dbd3784d9f491abae841e774a06012fdd0e8cf8ba5fced2b35",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!B5": {
+      "value": 0.444025,
+      "source_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx",
+      "source_artifact_hash": "d946f95188cb0b56db510028ce585ef765d48d6c37f72d0d78011c8c857042fc",
+      "source_span": "sheet 'Extended Data Fig. 2d', B5 (colB)"
+    },
+    "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!C5": {
+      "value": 0.264686,
+      "source_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx",
+      "source_artifact_hash": "d946f95188cb0b56db510028ce585ef765d48d6c37f72d0d78011c8c857042fc",
+      "source_span": "sheet 'Extended Data Fig. 2d', C5 (STING-mNeonGreen (C-terminal mNeonGreen fusion))"
+    },
+    "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!D5": {
+      "value": 0.274188,
+      "source_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx",
+      "source_artifact_hash": "d946f95188cb0b56db510028ce585ef765d48d6c37f72d0d78011c8c857042fc",
+      "source_span": "sheet 'Extended Data Fig. 2d', D5 (STING-mNeonGreen (C-terminal mNeonGreen fusion))"
+    },
+    "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!E5": {
+      "value": 0.308715,
+      "source_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx",
+      "source_artifact_hash": "d946f95188cb0b56db510028ce585ef765d48d6c37f72d0d78011c8c857042fc",
+      "source_span": "sheet 'Extended Data Fig. 2d', E5 (STING-mNeonGreen (C-terminal mNeonGreen fusion))"
+    },
+    "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!F5": {
+      "value": 0.4075,
+      "source_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx",
+      "source_artifact_hash": "d946f95188cb0b56db510028ce585ef765d48d6c37f72d0d78011c8c857042fc",
+      "source_span": "sheet 'Extended Data Fig. 2d', F5 (STING-mNeonGreen (C-terminal mNeonGreen fusion))"
+    },
+    "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!I4": {
+      "value": 0.444025,
+      "source_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx",
+      "source_artifact_hash": "d946f95188cb0b56db510028ce585ef765d48d6c37f72d0d78011c8c857042fc",
+      "source_span": "sheet 'Extended Data Fig. 2d', I4 (N-GFP-STING (N-terminal GFP fusion))"
+    },
+    "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!J4": {
+      "value": 0.264686,
+      "source_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx",
+      "source_artifact_hash": "d946f95188cb0b56db510028ce585ef765d48d6c37f72d0d78011c8c857042fc",
+      "source_span": "sheet 'Extended Data Fig. 2d', J4 (N-GFP-STING (N-terminal GFP fusion))"
+    },
+    "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!K4": {
+      "value": 0.274188,
+      "source_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx",
+      "source_artifact_hash": "d946f95188cb0b56db510028ce585ef765d48d6c37f72d0d78011c8c857042fc",
+      "source_span": "sheet 'Extended Data Fig. 2d', K4 (N-GFP-STING (N-terminal GFP fusion))"
+    },
+    "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!L4": {
+      "value": 0.308715,
+      "source_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx",
+      "source_artifact_hash": "d946f95188cb0b56db510028ce585ef765d48d6c37f72d0d78011c8c857042fc",
+      "source_span": "sheet 'Extended Data Fig. 2d', L4 (N-GFP-STING (N-terminal GFP fusion))"
+    },
+    "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!M4": {
+      "value": 0.4075,
+      "source_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx",
+      "source_artifact_hash": "d946f95188cb0b56db510028ce585ef765d48d6c37f72d0d78011c8c857042fc",
+      "source_span": "sheet 'Extended Data Fig. 2d', M4 (N-GFP-STING (N-terminal GFP fusion))"
+    },
+    "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!A5": {
+      "value": 3.0,
+      "source_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx",
+      "source_artifact_hash": "d946f95188cb0b56db510028ce585ef765d48d6c37f72d0d78011c8c857042fc",
+      "source_span": "sheet 'Extended Data Fig. 2d', A5 (colA)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_sting_ann_001",
+      "claim_id": "ncb_sting_claim_001",
+      "claim_atom": "Extended Data Fig. 2d (STING-mNeonGreen (C-terminal mNeonGreen fusion)) and Extended Data Fig. 2d (N-GFP-STING (N-terminal GFP fusion)) are independent measurements.",
+      "source_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!B5",
+      "target_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!I4",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_values",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "B5(STING-mNeonGreen (C-terminal mNeonGreen fusion))=0.444025 ~ I4(N-GFP-STING (N-terminal GFP fusion))=0.444025",
+        "C5(STING-mNeonGreen (C-terminal mNeonGreen fusion))=0.264686 ~ J4(N-GFP-STING (N-terminal GFP fusion))=0.264686",
+        "D5(STING-mNeonGreen (C-terminal mNeonGreen fusion))=0.274188 ~ K4(N-GFP-STING (N-terminal GFP fusion))=0.274188",
+        "E5(STING-mNeonGreen (C-terminal mNeonGreen fusion))=0.308715 ~ L4(N-GFP-STING (N-terminal GFP fusion))=0.308715",
+        "...5/5 满足 EXACT"
+      ],
+      "_adjudication": "wuguandu核定=inconsistent: Extended Data Fig. 2d FRAP quantification: the N-terminal-GFP-STING construct shares byte-identical 5-replicate intensity tuples with the C-terminal-mNeonGreen-STING construct at 16 of 17 shared timepoints, though the paper presents them as independent fusion-tag controls proving condensation is tag-independent. (5/5满足EXACT)"
+    },
+    {
+      "annotation_id": "ncb_sting_ann_clean",
+      "claim_id": "ncb_sting_claim_clean",
+      "claim_atom": "Two other columns in Extended Data Fig. 2d are independent (different values).",
+      "source_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!A5",
+      "target_artifact": "artifacts/41556_2021_659_MOESM17_ESM.xlsx#Extended Data Fig. 2d!B5",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "clean/FAR基线: 同表两列值不同=独立真数据."
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_sting",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [
+      "mixed_boundary"
+    ],
+    "source_url": "https://doi.org/10.1038/s41556-021-00659-0",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_note": "Extended Data Fig. 2d FRAP quantification: the N-terminal-GFP-STING construct shares byte-identical 5-replicate intensity tuples with the C-terminal-mNeonGreen-STING construct at 16 of 17 shared timepoints, though the paper presents them as independent fusion-tag controls proving condensation is tag-independent."
+  }
+}

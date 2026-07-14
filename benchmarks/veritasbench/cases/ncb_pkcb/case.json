@@ -1,0 +1,365 @@
+{
+  "case_id": "ncb_pkcb",
+  "paper_title": "Protein kinase C beta II phosphorylates ACSL4 to regulate ferroptosis (Nat Cell Biol 2021)",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "41556_2021_818_moesm13_esm": {
+      "path": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "sha256": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "a71e18f1010342e01d3f723673d2b2b3c4b1d9c7d99ea908fd64962bbbb102f7",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A4": {
+      "value": 1.25,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', A4 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!B4": {
+      "value": 3.05,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', B4 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!C4": {
+      "value": 4.78,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', C4 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!D4": {
+      "value": 0.98,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', D4 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!E4": {
+      "value": 1.23,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', E4 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!F4": {
+      "value": 1.67,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', F4 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A5": {
+      "value": 0.9,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', A5 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!B5": {
+      "value": 2.56,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', B5 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!C5": {
+      "value": 4.03,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', C5 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!D5": {
+      "value": 1.23,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', D5 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!E5": {
+      "value": 0.89,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', E5 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!F5": {
+      "value": 1.34,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', F5 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A6": {
+      "value": 0.85,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', A6 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!B6": {
+      "value": 2.34,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', B6 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!C6": {
+      "value": 4.45,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', C6 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!D6": {
+      "value": 1.17,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', D6 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!E6": {
+      "value": 0.93,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', E6 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!F6": {
+      "value": 1.29,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', F6 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A10": {
+      "value": 1.25,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', A10 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!B10": {
+      "value": 3.05,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', B10 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!C10": {
+      "value": 4.78,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', C10 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!D10": {
+      "value": 0.98,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', D10 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!E10": {
+      "value": 1.23,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', E10 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!F10": {
+      "value": 1.67,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', F10 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A11": {
+      "value": 0.9,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', A11 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!B11": {
+      "value": 2.56,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', B11 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!C11": {
+      "value": 4.03,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', C11 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!D11": {
+      "value": 1.23,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', D11 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!E11": {
+      "value": 0.89,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', E11 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!F11": {
+      "value": 1.34,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', F11 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A12": {
+      "value": 0.85,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', A12 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!B12": {
+      "value": 2.34,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', B12 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!C12": {
+      "value": 4.45,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', C12 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!D12": {
+      "value": 1.17,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', D12 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!E12": {
+      "value": 0.93,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', E12 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!F12": {
+      "value": 1.29,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', F12 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A17": {
+      "value": 45.62534578,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', A17 (Fig5d 231-ACSL4-WT DMSO)"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A18": {
+      "value": 45.48599337,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', A18 (Fig5d 231-ACSL4-WT DMSO)"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A19": {
+      "value": 45.67782014,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', A19 (Fig5d 231-ACSL4-WT DMSO)"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A20": {
+      "value": 42.61426464,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', A20 (Fig5d 231-ACSL4-WT DMSO)"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A21": {
+      "value": 31.36310242,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', A21 (Fig5d 231-ACSL4-WT DMSO)"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A22": {
+      "value": 43.48638606,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', A22 (Fig5d 231-ACSL4-WT DMSO)"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!B17": {
+      "value": 70.70526132,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', B17 (Fig5d 231-ACSL4-WT Erastin)"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!B18": {
+      "value": 53.56743738,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', B18 (Fig5d 231-ACSL4-WT Erastin)"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!B19": {
+      "value": 70.9297411,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', B19 (Fig5d 231-ACSL4-WT Erastin)"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!B20": {
+      "value": 78.80668325,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', B20 (Fig5d 231-ACSL4-WT Erastin)"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!B21": {
+      "value": 50.53811917,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', B21 (Fig5d 231-ACSL4-WT Erastin)"
+    },
+    "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!B22": {
+      "value": 55.72382545,
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9d7a93c911397b9a442fecc95ce3a4c699cff8162c63479bc7186dc51a0cf08f",
+      "source_span": "sheet 'Sheet1', B22 (Fig5d 231-ACSL4-WT Erastin)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_pkcb_ann_001",
+      "claim_id": "ncb_pkcb_claim_001",
+      "claim_atom": "Sheet1 (Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3)) and Sheet1 (Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3)) are independent measurements.",
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A4",
+      "target_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A10",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_values",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "A4(Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))=1.25 ~ A10(Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))=1.25",
+        "B4(Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))=3.05 ~ B10(Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))=3.05",
+        "C4(Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))=4.78 ~ C10(Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))=4.78",
+        "D4(Fig5a-left 231-WT/231-PKCbetaII-KO (DMSO/Erastin/RSL3))=0.98 ~ D10(Fig5a-right ACSL4-WT/ACSL4-T328A (DMSO/Erastin/RSL3))=0.98",
+        "...18/18 满足 EXACT"
+      ],
+      "_adjudication": "wuguandu核定=inconsistent: Fig 5a left panel (231-WT vs PKCbetaII KO) and right panel (ACSL4-WT vs ACSL4-T328A) are byte-identical across all 18 values despite being different cell-line/mutant experiments (18/18满足EXACT)"
+    },
+    {
+      "annotation_id": "ncb_pkcb_ann_clean",
+      "claim_id": "ncb_pkcb_claim_clean",
+      "claim_atom": "Fig5d columns 231-ACSL4-WT DMSO and 231-ACSL4-WT Erastin are independent measurements (different treatment groups, distinct values).",
+      "source_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!A17",
+      "target_artifact": "artifacts/41556_2021_818_MOESM13_ESM.xlsx#Sheet1!B17",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "colA=[45.62534578, 45.48599337, 45.67782014, 42.61426464, 31.36310242, 43.48638606]",
+        "colB=[70.70526132, 53.56743738, 70.9297411, 78.80668325, 50.53811917, 55.72382545]",
+        "independent DMSO vs Erastin groups, no constant offset"
+      ],
+      "_note": "clean/FAR baseline: two distinct treatment columns = independent real data."
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_pkcb",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [
+      "mixed_boundary"
+    ],
+    "source_url": "https://doi.org/10.1038/s41556-021-00818-3",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_note": "Fig 5a left panel (231-WT vs PKCbetaII KO) and right panel (ACSL4-WT vs ACSL4-T328A) are byte-identical across all 18 values despite being different cell-line/mutant experiments"
+  }
+}
