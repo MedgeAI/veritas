@@ -1,0 +1,7 @@
+metric,value
+n_supported_food_metabolite,426
+n_supported_food_microbe,109
+n_supported_microbe_metabolite,2636
+n_candidate_triplets,463
+n_direction_coherent,434
+n_alcohol_triplets,65

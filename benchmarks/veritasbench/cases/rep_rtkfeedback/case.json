@@ -1,0 +1,151 @@
+{
+  "case_id": "rep_rtkfeedback",
+  "paper_title": "Single-cell drug screen of PI3K/AKT/mTOR inhibitors in high-grade serous ovarian cancer models reveals model-specific compensatory RTK/EGFR feedback as an actionable combination vulnerability",
+  "paper_authors": [
+    "Dini et al., Nature Chemical Biology (2024)"
+  ],
+  "artifacts": {
+    "solve_correct": {
+      "path": "artifacts/solve_correct.py",
+      "sha256": "98180af320758e1b4018f52b8da714030a466e1c055807a30da1928319b973ee",
+      "kind": "code"
+    },
+    "correct_combination_targets": {
+      "path": "artifacts/correct_combination_targets.csv",
+      "sha256": "8e19e57e138de641da2e8a3c57ac10e8d8108455594e677521c039f7bec9f365",
+      "kind": "code_output"
+    },
+    "correct_drug_response": {
+      "path": "artifacts/correct_drug_response.csv",
+      "sha256": "743ae91b1f75ee9938cfb80516453d50a7bb39af0af10f4224103c8102f9b1e1",
+      "kind": "code_output"
+    },
+    "naive_combination_targets": {
+      "path": "artifacts/naive_combination_targets.csv",
+      "sha256": "c88b222f6eab23cecd907da3cbe681093daa8a3be75c6c8cfdc694785db2ca36",
+      "kind": "code_output"
+    },
+    "naive_drug_response": {
+      "path": "artifacts/naive_drug_response.csv",
+      "sha256": "3c7c7bad3887feb574c48ccc6d02647d7b1d6a3b30fb9335be112704860c5ba5",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/correct_combination_targets.csv#EGFR_lfc_DrugA_ModelA": {
+      "value": 0.413,
+      "source_artifact": "artifacts/correct_combination_targets.csv",
+      "source_artifact_hash": "8e19e57e138de641da2e8a3c57ac10e8d8108455594e677521c039f7bec9f365",
+      "source_span": "correct_combination_targets.csv, row drug_id=Drug_A & model=Model_A, column score (严谨复现: 控细胞周期后 Drug_A 在 Model_A 的 EGFR logFC=0.413, actionable=yes, target_gene=EGFR; 代偿性 RTK 上调真信号)"
+    },
+    "artifacts/correct_combination_targets.csv#n_actionable_hits": {
+      "value": 6,
+      "source_artifact": "artifacts/correct_combination_targets.csv",
+      "source_artifact_hash": "8e19e57e138de641da2e8a3c57ac10e8d8108455594e677521c039f7bec9f365",
+      "source_span": "correct_combination_targets.csv, 统计 actionable=yes 的行数 (Drug_A/C/E/F/G/K × Model_A 共 6 条, EGFR logFC 0.288-0.453 且 CAV1 同向; target_gene 全=EGFR)"
+    },
+    "artifacts/correct_combination_targets.csv#n_actionable_other_models": {
+      "value": 0,
+      "source_artifact": "artifacts/correct_combination_targets.csv",
+      "source_artifact_hash": "8e19e57e138de641da2e8a3c57ac10e8d8108455594e677521c039f7bec9f365",
+      "source_span": "correct_combination_targets.csv, 统计 model∈{Model_B,Model_C} 且 actionable=yes 的行数 = 0 (反馈信号仅 Model_A 患者来源模型可见, 模型特异)"
+    },
+    "artifacts/correct_combination_targets.csv#DrugD_ModelA_actionable": {
+      "value": "no",
+      "source_artifact": "artifacts/correct_combination_targets.csv",
+      "source_artifact_hash": "8e19e57e138de641da2e8a3c57ac10e8d8108455594e677521c039f7bec9f365",
+      "source_span": "correct_combination_targets.csv, row drug_id=Drug_D & model=Model_A, column actionable=no (最大响应药 Drug_D 的 EGFR logFC=-0.06, 无代偿反馈, 严谨解正确判定 non-actionable)"
+    },
+    "artifacts/correct_drug_response.csv#nDEG_DrugD_ModelA": {
+      "value": 478,
+      "source_artifact": "artifacts/correct_drug_response.csv",
+      "source_artifact_hash": "743ae91b1f75ee9938cfb80516453d50a7bb39af0af10f4224103c8102f9b1e1",
+      "source_span": "correct_drug_response.csv, row drug_id=Drug_D & model=Model_A, column response_magnitude=478, dominant_response=cell_cycle_arrest (Model_A 内最大响应, 但纯 G1 arrest 程序)"
+    },
+    "artifacts/correct_drug_response.csv#nDEG_DrugA_ModelA": {
+      "value": 29,
+      "source_artifact": "artifacts/correct_drug_response.csv",
+      "source_artifact_hash": "743ae91b1f75ee9938cfb80516453d50a7bb39af0af10f4224103c8102f9b1e1",
+      "source_span": "correct_drug_response.csv, row drug_id=Drug_A & model=Model_A, column response_magnitude=29 (真反馈 actionable 药响应幅度很小, 与 Drug_D 478 反差 16 倍)"
+    },
+    "artifacts/naive_combination_targets.csv#DrugD_ModelA_actionable": {
+      "value": "yes",
+      "source_artifact": "artifacts/naive_combination_targets.csv",
+      "source_artifact_hash": "c88b222f6eab23cecd907da3cbe681093daa8a3be75c6c8cfdc694785db2ca36",
+      "source_span": "naive_combination_targets.csv, row drug_id=Drug_D & model=Model_A, column actionable=yes, target_gene=NEAT1, rationale_tag=largest_response (naive 按响应幅度排序把最大 arrester 当 top actionable, 靶标误报为 lncRNA NEAT1)"
+    },
+    "artifacts/naive_combination_targets.csv#DrugA_ModelA_actionable": {
+      "value": "no",
+      "source_artifact": "artifacts/naive_combination_targets.csv",
+      "source_artifact_hash": "c88b222f6eab23cecd907da3cbe681093daa8a3be75c6c8cfdc694785db2ca36",
+      "source_span": "naive_combination_targets.csv, row drug_id=Drug_A & model=Model_A, column actionable=no (naive 因响应幅度小=29 而漏掉真反馈药 Drug_A; 同理漏 Drug_E/F/K)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_rtkfeedback_ann_001",
+      "claim_id": "rep_rtkfeedback_claim_001",
+      "claim_atom": "After controlling for the cell-cycle arrest program, a subset of drugs (Drug_A/C/E/F/G/K) induces a compensatory up-regulation of the receptor tyrosine kinase EGFR (logFC 0.29-0.45, concordant with its mediator CAV1) that constitutes an actionable combination vulnerability co-targetable with an EGFR inhibitor. Reproduction yields exactly 6 actionable drug/model hits with target_gene=EGFR (e.g. Drug_A in Model_A, EGFR logFC=0.413), matching the paper's headline.",
+      "source_artifact": "artifacts/correct_combination_targets.csv#EGFR_lfc_DrugA_ModelA",
+      "target_artifact": "artifacts/correct_combination_targets.csv#n_actionable_hits",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "严谨解 solve_correct.py: 库大小归一+log1p, per drug×model DE vs control, 对 RTK/EGFR 上调(logFC>=0.25)且 CAV1 同向者判 actionable=yes; 得 6 条 hit, target_gene 全=EGFR, EGFR logFC 0.288-0.453, 复现论文 'subset PI3K/AKT/mTOR 抑制剂诱导 EGFR 激活(CAV1 介导)'"
+      ]
+    },
+    {
+      "annotation_id": "rep_rtkfeedback_ann_002",
+      "claim_id": "rep_rtkfeedback_claim_002",
+      "claim_atom": "The compensatory EGFR feedback is model-specific: all 6 actionable hits fall in Model_A (a patient-derived model), while Model_B and Model_C yield zero actionable hits. The paper's claim that the feedback vulnerability is confined to one model reproduces cleanly.",
+      "source_artifact": "artifacts/correct_combination_targets.csv#n_actionable_hits",
+      "target_artifact": "artifacts/correct_combination_targets.csv#n_actionable_other_models",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "correct_combination_targets.csv: actionable=yes 全部 6 条落 Model_A; Model_B/Model_C 各 0 条 (EGFR logFC 不达阈或 CAV1 不同向). 模型特异性成立, 与论文一致"
+      ]
+    },
+    {
+      "annotation_id": "rep_rtkfeedback_ann_003",
+      "claim_id": "rep_rtkfeedback_claim_003",
+      "claim_atom": "A naive audit that ranks drugs by transcriptional response magnitude (number of DE genes) flags the biggest responder Drug_D in Model_A (nDEG=478) as the top actionable hit with target NEAT1, and simultaneously discards the paper's real feedback drugs (e.g. Drug_A, nDEG=29) as non-actionable. This magnitude-based re-analysis does NOT overturn the paper: response magnitude tracks G1 cell-cycle arrest, not target biology, so Drug_D is a pure arrester with no compensatory RTK signal (EGFR logFC=-0.06), correctly labelled non-actionable by the rigorous solution.",
+      "source_artifact": "artifacts/naive_combination_targets.csv#DrugD_ModelA_actionable",
+      "target_artifact": "artifacts/correct_combination_targets.csv#DrugD_ModelA_actionable",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "★FP陷阱(核心): naive 审计者按响应幅度(nDEG)给药排序, 把 Model_A 内最大响应药 Drug_D(nDEG=478)当成 top actionable(还把靶标误报为 lncRNA NEAT1), 并因 Drug_A/E/F/K 响应小(如 Drug_A nDEG=29)判它们 non-actionable → 极易得出 '论文挑了几个弱响应药当 actionable, 漏掉了最强的 Drug_D, 结论不可信/挑樱桃' 的误判. 实为合法: 响应幅度追踪的是细胞周期 G1 arrest 程序(corr(nDEG,ΔG1)≈0.97)而非靶点特异生物学; Drug_D 是纯 arrester, EGFR logFC=-0.06, 无代偿 RTK 反馈, 严谨解正确判 non-actionable. 真 actionable 信号=控 arrest 后一小撮药的代偿性 EGFR 上调(CAV1 同向), 幅度小但机制明确, 且仅 Model_A 可见. 论文的 EGFR 反馈结论复现干净(6 条 hit, target=EGFR). AI 不应因 naive 幅度排序与论文选择不符就报异常—幅度大≠actionable 是本陷阱的隐蔽点."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_rtkfeedback",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [
+      "grounding"
+    ],
+    "source_url": "https://doi.org/10.1038/s41589-024-01761-8",
+    "_mechanism": "arrest_magnitude_decoy_plus_modelspecific_RTK_feedback (响应幅度诱饵=细胞周期 G1 arrest; 真信号=模型特异代偿性 EGFR/RTK 反馈, CAV1 介导)",
+    "_lane": "诚实可复现(非造假): 全 claim=consistent. 考 AI 面对 'naive 按响应幅度重排→最大 arrester Drug_D 看着像最该 actionable、论文却选了几个弱响应药' 的红鲱鱼, 不误报论文的 EGFR 代偿反馈结论. 底材=medgebench task medge-ext011-1 真实数据(GSE274905, Dini et al Nat Chem Biol 2024, HGSOC PI3K/AKT/mTOR 抑制剂 scRNA 药物扰动).",
+    "_independent_status": "本地重跑 solve.py(严谨: 控 cell_cycle + 查 RTK/EGFR 上调 + CAV1 同向 + 认模型特异)得 6 条 actionable hit 全 Model_A target=EGFR(correct code_output), 与 naive_solve.py(按 nDEG 幅度排 top-3)把 Drug_D(478/NEAT1)当 actionable、漏 Drug_A/E/F/K(naive code_output)两份对照",
+    "_source_task": "medge-ext011-1 (paper_doi 10.1038/s41589-024-01761-8, trap=arrest_magnitude_decoy_plus_modelspecific_RTK_feedback; >5MB 原始 expression_counts.tsv.gz/cell_metadata.tsv 未装, 仅装 code_output/code)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}

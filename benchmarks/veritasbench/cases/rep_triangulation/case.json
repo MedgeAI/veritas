@@ -1,0 +1,132 @@
+{
+  "case_id": "rep_triangulation",
+  "paper_title": "Population-scale diet-microbe-metabolite triangulation of faecal mediation candidates",
+  "paper_authors": [
+    "Nature Communications (2025), s41467-025-66046-7"
+  ],
+  "artifacts": {
+    "summary_correct": {
+      "path": "artifacts/triangulation_summary_correct.csv",
+      "sha256": "b38bfe3fae90af5931211cf1e6f5f59c489ed02a67736cebf17bc7ea9a97cefb",
+      "kind": "code_output"
+    },
+    "summary_naive": {
+      "path": "artifacts/triangulation_summary_naive.csv",
+      "sha256": "0bfa2d5db211bd6f5894a30e81fa94899b09d86b427b8146bbef98dcf5efe390",
+      "kind": "code_output"
+    },
+    "candidates_correct": {
+      "path": "artifacts/candidate_triplets_correct.csv",
+      "sha256": "890a39e9d827544946e1925a3d92a9ad59230c04d094062f1d65b089ac92059c",
+      "kind": "table"
+    },
+    "code_correct": {
+      "path": "artifacts/solve_correct.py",
+      "sha256": "63d3857a5cbbdbd14d04d6c0de25c5d4d3bbeb16d5c25cb15c230af5ba297568",
+      "kind": "code"
+    },
+    "code_naive": {
+      "path": "artifacts/solve_naive.py",
+      "sha256": "20bdc08ebf7303e42ea7ef979c36b4ed7ea2fb6442531a23a35afb06c893de8a",
+      "kind": "code"
+    }
+  },
+  "observations": {
+    "artifacts/triangulation_summary_correct.csv#n_candidate_triplets": {
+      "value": 463,
+      "source_artifact": "artifacts/triangulation_summary_correct.csv",
+      "source_artifact_hash": "b38bfe3fae90af5931211cf1e6f5f59c489ed02a67736cebf17bc7ea9a97cefb",
+      "source_span": "triangulation_summary_correct.csv, row metric=n_candidate_triplets, column value (严谨复现: food-label harmonization后三表三角化出的 diet-microbe-metabolite 候选三联体数)"
+    },
+    "artifacts/triangulation_summary_correct.csv#n_direction_coherent": {
+      "value": 434,
+      "source_artifact": "artifacts/triangulation_summary_correct.csv",
+      "source_artifact_hash": "b38bfe3fae90af5931211cf1e6f5f59c489ed02a67736cebf17bc7ea9a97cefb",
+      "source_span": "triangulation_summary_correct.csv, row metric=n_direction_coherent, column value (三条 signed Beta 方向自洽的三联体数; 434/463=93.7%)"
+    },
+    "artifacts/triangulation_summary_correct.csv#n_alcohol_triplets": {
+      "value": 65,
+      "source_artifact": "artifacts/triangulation_summary_correct.csv",
+      "source_artifact_hash": "b38bfe3fae90af5931211cf1e6f5f59c489ed02a67736cebf17bc7ea9a97cefb",
+      "source_span": "triangulation_summary_correct.csv, row metric=n_alcohol_triplets, column value (canonical food='Alcoholic Beverages'的三联体数; 只有 harmonize 'Alcohol'->'Alcoholic Beverages'后才能join出)"
+    },
+    "artifacts/triangulation_summary_naive.csv#n_candidate_triplets": {
+      "value": 398,
+      "source_artifact": "artifacts/triangulation_summary_naive.csv",
+      "source_artifact_hash": "0bfa2d5db211bd6f5894a30e81fa94899b09d86b427b8146bbef98dcf5efe390",
+      "source_span": "triangulation_summary_naive.csv, row metric=n_candidate_triplets, column value (naive 直接精确join, 不做 food-label harmonization: 'Alcohol' 永不匹配 'Alcoholic Beverages' → 静默丢 65 个)"
+    },
+    "artifacts/triangulation_summary_naive.csv#n_alcohol_triplets": {
+      "value": 0,
+      "source_artifact": "artifacts/triangulation_summary_naive.csv",
+      "source_artifact_hash": "0bfa2d5db211bd6f5894a30e81fa94899b09d86b427b8146bbef98dcf5efe390",
+      "source_span": "triangulation_summary_naive.csv, row metric=n_alcohol_triplets, column value (naive join 下, 酒精相关三联体=0: 'Alcohol'/'Alcoholic Beverages' 标签失配静默 drop)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_triangulation_ann_001",
+      "claim_id": "rep_triangulation_claim_001",
+      "claim_atom": "Applying a single consistent support criterion (meta-analysis replicated significance AND cross-cohort direction agreement) across the three pairwise association tables and triangulating with food-label harmonization yields 463 diet-microbe-metabolite mediation candidate triplets, of which 434 (93.7%) are direction-coherent with a single diet->microbe->metabolite chain — the multi-evidence triangulation reproduces.",
+      "source_artifact": "artifacts/triangulation_summary_correct.csv#n_candidate_triplets",
+      "target_artifact": "artifacts/triangulation_summary_correct.csv#n_direction_coherent",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "固定 support criterion (Significant flag / meta FDR<0.05 + Beta Same Direction) → supported 边 426/109/2636; 三角化+harmonize → 463 候选, direction_coherent=sign(fm)*sign(fb)*sign(bm)>0 → 434/463=93.7%"
+      ]
+    },
+    {
+      "annotation_id": "rep_triangulation_ann_002",
+      "claim_id": "rep_triangulation_claim_002",
+      "claim_atom": "A naive single-pass reproduction that joins the three tables on the raw food labels without reconciling them recovers only 398 candidate triplets and zero alcohol-related mediation candidates. This is a food-label harmonization artifact ('Alcohol' in the food-microbe table never exact-matches 'Alcoholic Beverages' in the food-metabolite table, so the merge silently drops those rows), NOT evidence that the paper over-counts candidates or that alcohol-diet mediation is unsupported; after harmonizing the label the count reproduces at 463.",
+      "source_artifact": "artifacts/triangulation_summary_naive.csv#n_candidate_triplets",
+      "target_artifact": "artifacts/triangulation_summary_correct.csv#n_candidate_triplets",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "★FP陷阱(核心): naive审计者对三张关联表做单次直接精确join(不做 food-label reconciliation)只得 398 候选 vs 论文的 463, 且酒精相关三联体=0, 极易误判'论文三联体数虚高/酒精-膳食中介不可复现/三角化有误'. 实为合法失配: food_microbe 表用 'Alcohol', 另两表用 'Alcoholic Beverages', pandas merge 精确匹配下这两个标签互不相等 → 65 个(14%)酒精三联体被静默 drop(不报错). 正确复现必须先出 food_label_map 把 'Alcohol'->'Alcoholic Beverages' 归一, 归一后候选数回到 463 且 65 个酒精三联体全部join出. 论文报告的三角化结果=consistent. AI 不应因 naive join 少 65 个、看着像不可复现就报异常; 静默丢行(无 KeyError/无 NaN 警告)是此陷阱隐蔽点."
+    },
+    {
+      "annotation_id": "rep_triangulation_ann_003",
+      "claim_id": "rep_triangulation_claim_003",
+      "claim_atom": "Harmonizing the 'Alcohol' / 'Alcoholic Beverages' food label recovers 65 alcohol-based mediation triplets, versus 0 under the naive exact-join reproduction — the 65-triplet gap between the two reproductions is fully explained by the label reconciliation, not by missing or discrepant association data.",
+      "source_artifact": "artifacts/triangulation_summary_correct.csv#n_alcohol_triplets",
+      "target_artifact": "artifacts/triangulation_summary_naive.csv#n_alcohol_triplets",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "harmonize: canonical food='Alcoholic Beverages' 三联体=65; naive: 0. 差值 65=463-398 完全由 'Alcohol'<->'Alcoholic Beverages' 标签归一引起, 非数据缺失或统计差异"
+      ]
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_triangulation",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [
+      "grounding"
+    ],
+    "source_url": "https://doi.org/10.1038/s41467-025-66046-7",
+    "_lane": "诚实可复现(非造假): 全claim=consistent. 考AI面对'naive单次直接join三张关联表得 398 候选、少 65 个酒精三联体、看着像论文三联体数虚高/不可复现'的 food-label 失配, 不误报论文的三角化结果. 底材=medgebench task medge-104-1 真实数据(Nat Commun 2025 s41467-025-66046-7 supplementary Data 7/11/12, 三张 diet-microbe-metabolite 两两关联表).",
+    "_independent_status": "下载窗口本地重跑 solve_correct.py (food-label harmonization + 固定 support criterion) 得 463 候选/434 direction-coherent/65 酒精三联体 (correct) 与 solve_naive.py (直接精确join无 harmonization) 得 398 候选/0 酒精三联体 (naive) 两份 code_output; supported 边 426/109/2636 与内部参考一致",
+    "_source_task": "medge-104-1 (paper_doi 10.1038/s41467-025-66046-7, trap=secondary-analysis-data-reasoning; food-label harmonization 隐性陷阱)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}
