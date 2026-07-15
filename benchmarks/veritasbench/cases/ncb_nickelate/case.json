@@ -1,0 +1,114 @@
+{
+  "case_id": "ncb_nickelate",
+  "paper_title": "Bulk high-temperature superconductivity in pressurized tetragonal La2PrNi2O7",
+  "paper_authors": [
+    "Wang Ningning(王宁宁)、Zhou Rui(周睿)、Cheng Jinguang(程金光)、Uwatoko Yoshiya 等 (中国科学院物理研究所; Nature, 2024)"
+  ],
+  "artifacts": {
+    "source_fig1c": {
+      "path": "artifacts/41586_2024_7996_MOESM2_ESM.xlsx",
+      "sha256": "b5206de3dca0283ff85727db19882bf67412abc30d6cd0fad3398a6a338579d3",
+      "kind": "source_data"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "d2c1473a73c34a7aaabf3d93255ef44078827d28c00796eeb1febbc3ec393bb6",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41586_2024_7996_MOESM2_ESM.xlsx#Fig1(c)!A46": {
+      "value": 16.05,
+      "source_artifact": "artifacts/41586_2024_7996_MOESM2_ESM.xlsx",
+      "source_artifact_hash": "b5206de3dca0283ff85727db19882bf67412abc30d6cd0fad3398a6a338579d3",
+      "source_span": "sheet 'Fig1(c)', A46 (F1c-1谱, 139La NQR峰频率16.05 MHz; Nature Fig1c归属La4Ni3O10(4310)共生相)"
+    },
+    "artifacts/41586_2024_7996_MOESM2_ESM.xlsx#Fig1(c)!B46": {
+      "value": 0.40656,
+      "source_artifact": "artifacts/41586_2024_7996_MOESM2_ESM.xlsx",
+      "source_artifact_hash": "b5206de3dca0283ff85727db19882bf67412abc30d6cd0fad3398a6a338579d3",
+      "source_span": "sheet 'Fig1(c)', B46 (16.05 MHz峰强度0.40656, 该谱最强峰之一)"
+    },
+    "artifacts/41586_2024_7996_MOESM2_ESM.xlsx#Fig1(c)!A31": {
+      "value": 17.0,
+      "source_artifact": "artifacts/41586_2024_7996_MOESM2_ESM.xlsx",
+      "source_artifact_hash": "b5206de3dca0283ff85727db19882bf67412abc30d6cd0fad3398a6a338579d3",
+      "source_span": "sheet 'Fig1(c)', A31 (F1c-1谱, 频率17.0 MHz; Nature归属La3Ni2O7(327)相双峰附近)"
+    },
+    "artifacts/41586_2024_7996_MOESM2_ESM.xlsx#Fig1(c)!B31": {
+      "value": 0.14789,
+      "source_artifact": "artifacts/41586_2024_7996_MOESM2_ESM.xlsx",
+      "source_artifact_hash": "b5206de3dca0283ff85727db19882bf67412abc30d6cd0fad3398a6a338579d3",
+      "source_span": "sheet 'Fig1(c)', B31 (17.0 MHz峰强度0.14789)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_nickelate_ann_001",
+      "claim_id": "ncb_nickelate_claim_001",
+      "claim_atom": "In Fig. 1c the 139La NQR peak at 16.05 MHz (intensity 0.40656 in the Source Data) is assigned to the La4Ni3O10 ('4310') intergrowth phase, and the ~17.0 MHz feature to the La3Ni2O7 ('327') phase. The SAME team's later Chinese Physics Letters paper, using nearly identical NQR data, reassigns the ~16.05 MHz peak to the 327 phase — the opposite phase — on the basis of temperature-dependent 1/T1T measurements (density-wave transitions T_DW ~153 K for 327 vs ~133 K for 4310). The corresponding author (Zhou Rui) acknowledged on PubPeer that the Nature assignment was TENTATIVE (made from lineshape before the 1/T1T data existed) and that an Author Correction reassigning the NQR lines is being prepared. The Nature Fig. 1c phase assignment is therefore inconsistent with the team's own corrected assignment.",
+      "source_artifact": "artifacts/41586_2024_7996_MOESM2_ESM.xlsx#Fig1(c)!A46",
+      "target_artifact": "artifacts/41586_2024_7996_MOESM2_ESM.xlsx#Fig1(c)!A31",
+      "source_a1_range": "A46:A46",
+      "target_a1_range": "A31:A31",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "assignment_inconsistency",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "作者已承认的归属不一致(inconsistent, 非high): Nature Fig1c把16.05MHz峰归La4310、17.0MHz归La327; 同团队后续CPL论文用近乎相同数据据温度依赖1/T1T(T_DW 327~153K/4310~133K)把16.05MHz峰改归La327。周睿PubPeer承认Nature归属是缺1/T1T时的暂定判断, 正准备Author Correction。同队同数据不同归属=真不一致, 作者已认。"
+    },
+    {
+      "annotation_id": "ncb_nickelate_ann_002",
+      "claim_id": "ncb_nickelate_claim_002",
+      "claim_atom": "The paper's central finding — coexistence of La3Ni2O7 and La4Ni3O10 intergrowth phases, evidenced by the presence of four distinct 139La NQR lines (e.g. the resolved peaks at 16.05 MHz intensity 0.40656 and 17.0 MHz intensity 0.14789), and the bulk high-Tc superconductivity result — does NOT depend on which of the two intergrowth-site peaks is labelled 327 vs 4310. The four NQR lines are present in the Source Data regardless of the labelling; only the phase attribution of two peaks is being swapped. The author states the pending correction does not affect the paper's main conclusions.",
+      "source_artifact": "artifacts/41586_2024_7996_MOESM2_ESM.xlsx#Fig1(c)!B46",
+      "target_artifact": "artifacts/41586_2024_7996_MOESM2_ESM.xlsx#Fig1(c)!B31",
+      "source_a1_range": "B46:B46",
+      "target_a1_range": "B31:B31",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "核心结论稳健(consistent): 共生相共存的判断来自4条不同NQR线的存在(源数据中16.05/17.0等峰确实分辨), 不依赖两峰归属谁是327/4310; 更正只互换两峰的相归属, 不改'4条线存在'与高温超导结论。AI不应因待更正的归属把headline判错。"
+    },
+    {
+      "annotation_id": "ncb_nickelate_ann_003",
+      "claim_id": "ncb_nickelate_claim_003",
+      "claim_atom": "Whether analyses downstream of the specific peak assignment are affected, and what the final corrected attribution will be, cannot be adjudicated yet: the author states an Author Correction is 'being prepared for submission to Nature' but, as of this writing, no correction has appeared on the Nature article page and the journal's editorial processing is pending. 'Preparing to submit' is not equivalent to Nature having accepted or published a correction.",
+      "source_artifact": "artifacts/41586_2024_7996_MOESM2_ESM.xlsx#Fig1(c)!A46",
+      "target_artifact": "artifacts/41586_2024_7996_MOESM2_ESM.xlsx#Fig1(c)!A31",
+      "source_a1_range": "A46:A46",
+      "target_a1_range": "A31:A31",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "待定(insufficient): 依赖峰归属的下游分析是否受影响+最终归属, 需等正式Author Correction与Nature编辑处理; 截至整理Nature页面尚无更正, 'preparing to submit'≠已接受/发布。verdict=insufficient。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_nickelate",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "verifier_conflict"
+    ],
+    "source_url": "https://doi.org/10.1038/s41586-024-07996-8",
+    "_lane": "作者已承认真实错误+核心稳健+正在更正型mixed(三verdict): ①inconsistent=Nature Fig1c NQR峰归属(16.05→La4310)与同队后续CPL归属(16.05→La327)矛盾, 作者承认暂定并准备Author Correction; ②consistent=共生相+高温超导核心结论不依赖两峰互换(4条NQR线存在); ③insufficient=下游影响与最终归属待正式更正/Nature处理。此案考AI区分'该更正的具体归属错误'(flag inconsistent)与'不受影响的核心结论'(consistent)与'待官方处理'(insufficient)。",
+    "_author_response": "通讯作者周睿(Zhou Rui)7/11 PubPeer回复: 承认原NQR峰归属不一致; Nature稿件时未完成温度依赖1/T1T测量无法区分La327-i(2)/La4310-i(2), 原归属据谱线形态暂定; 后续1/T1T得T_DW 327~153K/4310~133K据此重排低→高频四峰归属; 正准备向Nature提交Author Correction; 强调不影响主要结论。",
+    "_independent_status": "下载窗口取开放link的Source Data(MOESM2, Fig1c NQR谱3条F1c-1/2/3)+正文PDF。本地核验: F1c-1谱16.05MHz峰强度0.40656(最强峰之一)/17.0MHz峰0.14789, 即争议归属的两峰真实存在于源数据。CPL后续归属未入artifact(跨论文), 在claim atom+adjudication中描述。",
+    "_pubpeer": "6F961624EF99DA4B068A6B9D0A7B71",
+    "_correction_status": "截至2026-07整理, Nature页面尚未显示Author Correction; 作者称'preparing for submission'。",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}
