@@ -1,0 +1,6 @@
+metric,value
+pearson_r,0.963
+MAE_years,4.02
+n_samples_numeric_age,495
+n_topcoded_excluded,5
+n_clock_probes_matched,2000

@@ -1,0 +1,147 @@
+{
+  "case_id": "rep_methclock",
+  "paper_title": "A blood-based EPICv2 DNA-methylation epigenetic clock (Biomarkers of Aging Consortium)",
+  "paper_authors": [
+    "Biomarkers of Aging Consortium (bioRxiv, 2024)"
+  ],
+  "artifacts": {
+    "betas": {
+      "path": "artifacts/methylation_betas.csv.gz",
+      "sha256": "08967c84f878844ecb875ea3bac0ecc9a35ba2ce813abbe31e18c236031da4bd",
+      "kind": "source_data"
+    },
+    "clock": {
+      "path": "artifacts/reference_clock.csv",
+      "sha256": "f477209982894838233f877dc0c398a37dfd048b3bbefcfc5b9ddb180b2647db",
+      "kind": "source_data"
+    },
+    "meta": {
+      "path": "artifacts/sample_metadata.tsv",
+      "sha256": "5d27faafe04d4421b3efc0368b59694012edf7f53c1cc3d43809f9b69f7872fe",
+      "kind": "source_data"
+    },
+    "code": {
+      "path": "artifacts/clock_apply_correct.py",
+      "sha256": "28ae26efc66b483cb9d64af4acd006c8bec30e38b153682eba8ac31756fb5d3d",
+      "kind": "code"
+    },
+    "eval_correct": {
+      "path": "artifacts/clock_evaluation_correct.csv",
+      "sha256": "4b333a25df069b41ed64734526b3773472345d08040d1dc9deb69e342a183ebf",
+      "kind": "code_output"
+    },
+    "eval_naive": {
+      "path": "artifacts/clock_evaluation_naive.csv",
+      "sha256": "33cff7c2e30f5184a326bb71764ecb2b38006e4264cba28c4d96d3caaa29b154",
+      "kind": "code_output"
+    },
+    "pred_correct": {
+      "path": "artifacts/predicted_age_correct.csv",
+      "sha256": "0fe6133c27981e0ad372ccd9ef245c8202c7f8d35f80d8aa566c930dce72323a",
+      "kind": "code_output"
+    },
+    "pred_naive": {
+      "path": "artifacts/predicted_age_naive.csv",
+      "sha256": "4139c3e08932769e1d24ebcb314fb03076b724ca89b693442ba4270e78deedf2",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/clock_evaluation_correct.csv#pearson_r": {
+      "value": 0.963,
+      "source_artifact": "artifacts/clock_evaluation_correct.csv",
+      "source_artifact_hash": "4b333a25df069b41ed64734526b3773472345d08040d1dc9deb69e342a183ebf",
+      "source_span": "clock_evaluation_correct.csv, row metric=pearson_r, column value (严谨复现: strip EPICv2后缀+collapse重复探针后, 时钟预测年龄的Pearson r)"
+    },
+    "artifacts/clock_evaluation_correct.csv#MAE_years": {
+      "value": 4.02,
+      "source_artifact": "artifacts/clock_evaluation_correct.csv",
+      "source_artifact_hash": "4b333a25df069b41ed64734526b3773472345d08040d1dc9deb69e342a183ebf",
+      "source_span": "clock_evaluation_correct.csv, row metric=MAE_years, column value (平均绝对误差, 年)"
+    },
+    "artifacts/clock_evaluation_correct.csv#n_probes": {
+      "value": 2000,
+      "source_artifact": "artifacts/clock_evaluation_correct.csv",
+      "source_artifact_hash": "4b333a25df069b41ed64734526b3773472345d08040d1dc9deb69e342a183ebf",
+      "source_span": "clock_evaluation_correct.csv, row metric=n_clock_probes_matched, column value (strip+collapse后匹配上的时钟探针数)"
+    },
+    "artifacts/clock_evaluation_naive.csv#pearson_r": {
+      "value": 0.0,
+      "source_artifact": "artifacts/clock_evaluation_naive.csv",
+      "source_artifact_hash": "33cff7c2e30f5184a326bb71764ecb2b38006e4264cba28c4d96d3caaa29b154",
+      "source_span": "clock_evaluation_naive.csv, row metric=pearson_r, column value (naive直接匹配探针ID: 0重叠→退化常数预测→r=0)"
+    },
+    "artifacts/clock_evaluation_naive.csv#n_probes": {
+      "value": 0,
+      "source_artifact": "artifacts/clock_evaluation_naive.csv",
+      "source_artifact_hash": "33cff7c2e30f5184a326bb71764ecb2b38006e4264cba28c4d96d3caaa29b154",
+      "source_span": "clock_evaluation_naive.csv, row metric=n_clock_probes_matched, column value (naive直接匹配: 时钟裸cgXXXX vs 矩阵EPICv2 cgXXXX_TC21 → 0探针重叠)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_methclock_ann_001",
+      "claim_id": "rep_methclock_claim_001",
+      "claim_atom": "After reconciling EPICv2 probe IDs (strip the _XX## address suffix and collapse replicate probes per CpG), all reference-clock probes apply and the clock predicts chronological age with Pearson r=0.963 and MAE=4.02 years across 495 samples — the clock is accurate in this EPICv2 blood cohort.",
+      "source_artifact": "artifacts/clock_evaluation_correct.csv#pearson_r",
+      "target_artifact": "artifacts/clock_evaluation_correct.csv#MAE_years",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "strip EPICv2后缀+collapse重复探针→2000探针全匹配; r=0.963, MAE=4.02y, n=495; 5个age='>89'删失样本从数值metric中排除(非静默coerce NaN)"
+      ]
+    },
+    {
+      "annotation_id": "rep_methclock_ann_002",
+      "claim_id": "rep_methclock_claim_002",
+      "claim_atom": "A naive application that matches the clock's bare cg IDs directly against the EPICv2-suffixed matrix index yields 0 overlapping probes and a degenerate constant prediction (Pearson r=0.00). This is a probe-ID reconciliation artifact of the EPICv2 array (cgXXXX vs cgXXXX_TC21/_BC11 with replicate probes per CpG), NOT evidence that the reported r~0.96 is unreproducible or fabricated; after suffix stripping the clock reproduces cleanly.",
+      "source_artifact": "artifacts/clock_evaluation_naive.csv#pearson_r",
+      "target_artifact": "artifacts/clock_evaluation_correct.csv#pearson_r",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "★FP陷阱(核心): naive审计者直接匹配探针ID→0重叠→r=0.00, 极易误判'时钟无法复现/论文r=0.96造假'. 实为合法: EPICv2芯片探针ID带地址后缀(cgXXXX_TC21)且每CpG多个重复探针, 而参考时钟按裸cgXXXX键控; strip后缀+collapse重复探针后2000探针全匹配, r回到0.963. 论文报告的r~0.96=consistent. AI不应因naive 0重叠的技术失配报异常. 静默失败(不报错)是此陷阱的隐蔽点."
+    },
+    {
+      "annotation_id": "rep_methclock_ann_003",
+      "claim_id": "rep_methclock_claim_003",
+      "claim_atom": "After stripping the EPICv2 suffix and collapsing replicate probes, 2000 clock probes match the methylation matrix, versus 0 probes under naive direct-ID matching — the reconciliation recovers the full clock.",
+      "source_artifact": "artifacts/clock_evaluation_correct.csv#n_probes",
+      "target_artifact": "artifacts/clock_evaluation_naive.csv#n_probes",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "strip+collapse: 2000/2000探针匹配; naive: 0匹配. 差异纯由EPICv2探针ID格式引起, 非数据缺失"
+      ]
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_methclock",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [
+      "grounding"
+    ],
+    "source_url": "https://doi.org/10.1101/2024.10.29.620782",
+    "_lane": "诚实可复现(非造假): 全claim=consistent. 考AI面对'naive重算得退化r=0、看着像不可复现'的EPICv2探针ID失配, 不误报论文的r~0.96. 底材=medgebench task medge-ext022-1真实数据(GSE246337 500血样EPICv2甲基化).",
+    "_independent_status": "下载窗口本地重跑 clock_apply_correct.py (strip+collapse) 得 r=0.963/MAE=4.02y (correct) 与 naive直接匹配 r=0.00/0探针 (naive) 两份code_output",
+    "_source_task": "medge-ext022-1 (paper_doi 10.1101/2024.10.29.620782, trap=epicv2_probe_mismatch_silent_clock_failure)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}
