@@ -189,7 +189,8 @@
       "severity": "low",
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-15T00:00:00Z",
-      "_note": "INSUFFICIENT: rr_out仅含个案繁殖数分布(rr/rr_reduced/total_traced/inf_p), 人群层接触配额需baseline_incident_cases与p_tested(在table*.csv/正文), 这些rr_out无法支撑=证据不足, 非矛盾."
+      "_note": "INSUFFICIENT: rr_out仅含个案繁殖数分布(rr/rr_reduced/total_traced/inf_p), 人群层接触配额需baseline_incident_cases与p_tested(在table*.csv/正文), 这些rr_out无法支撑=证据不足, 非矛盾.",
+      "is_clean_claim": false
     }
   ],
   "metadata": {

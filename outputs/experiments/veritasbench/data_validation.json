@@ -1,9 +1,9 @@
 {
-  "ok": false,
+  "ok": true,
   "base_path": "benchmarks/veritasbench",
-  "suite": "veritasbench_trial39",
-  "expected_cases": 39,
-  "actual_cases": 38,
+  "suite": "veritasbench_trial41",
+  "expected_cases": 41,
+  "actual_cases": 41,
   "allow_empty": false,
   "global_errors": [],
   "cases": {
@@ -200,14 +200,12 @@
       "errors": []
     },
     "rep_covtracing": {
-      "ok": false,
+      "ok": true,
       "n_artifacts": 7,
       "n_observations": 9,
       "n_claims": 5,
       "n_clean_claims": 4,
-      "errors": [
-        "claim rep_cov_ann_005 missing field 'is_clean_claim'"
-      ]
+      "errors": []
     },
     "rep_detorakis": {
       "ok": true,
@@ -265,6 +263,14 @@
       "n_clean_claims": 3,
       "errors": []
     },
+    "rep_piccolo": {
+      "ok": true,
+      "n_artifacts": 3,
+      "n_observations": 4,
+      "n_claims": 4,
+      "n_clean_claims": 3,
+      "errors": []
+    },
     "rep_pone": {
       "ok": true,
       "n_artifacts": 4,
@@ -295,6 +301,14 @@
       "n_observations": 5,
       "n_claims": 4,
       "n_clean_claims": 3,
+      "errors": []
+    },
+    "rep_svaretro": {
+      "ok": true,
+      "n_artifacts": 5,
+      "n_observations": 8,
+      "n_claims": 3,
+      "n_clean_claims": 2,
       "errors": []
     },
     "rep_wkzsn": {

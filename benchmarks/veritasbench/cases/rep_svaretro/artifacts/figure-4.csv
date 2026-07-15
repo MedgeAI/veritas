@@ -1,0 +1,25 @@
+category,count,caller,group
+detected,470,svaRetro+GRIDSS,RT
+detected,443,svaRetro+Manta,RT
+undetected bps,23,svaRetro+GRIDSS,RT
+undetected bps,45,svaRetro+Manta,RT
+unmapped insSeqs,5,svaRetro+GRIDSS,RT
+unmapped insSeqs,11,svaRetro+Manta,RT
+misaligned reads,2,svaRetro+GRIDSS,RT
+misaligned reads,1,svaRetro+Manta,RT
+detected,352,svaNUMT+GRIDSS,NUMT
+detected,238,svaNUMT+Manta,NUMT
+undetected bps,14,svaNUMT+GRIDSS,NUMT
+undetected bps,75,svaNUMT+Manta,NUMT
+single insSite,88,svaNUMT+GRIDSS,NUMT
+single insSite,118,svaNUMT+Manta,NUMT
+unmapped insSeqs,46,svaNUMT+GRIDSS,NUMT
+unmapped insSeqs,69,svaNUMT+Manta,NUMT
+detected,295,GRIPper,RT
+undetected bps,205,GRIPper,RT
+unmapped insSeqs,0,GRIPper,RT
+misaligned reads,0,GRIPper,RT
+detected,392,dinumt,NUMT
+undetected bps,108,dinumt,NUMT
+single insSite,0,dinumt,NUMT
+unmapped insSeqs,0,dinumt,NUMT

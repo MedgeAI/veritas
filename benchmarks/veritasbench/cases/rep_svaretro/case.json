@@ -1,0 +1,153 @@
+{
+  "case_id": "rep_svaretro",
+  "paper_title": "svaRetro and svaNUMT: Modular packages for annotation of retrotransposed transcripts and nuclear integration of mitochondrial DNA in genome sequencing data",
+  "paper_authors": [
+    "Ruining Dong",
+    "Daniel Cameron",
+    "Justin Bedo",
+    "Anthony T Papenfuss",
+    "(GigaByte 2022; CODECHECK 2022-018 certified, codechecker Raniere Silva)"
+  ],
+  "artifacts": {
+    "figure4_csv": {
+      "path": "artifacts/figure-4.csv",
+      "sha256": "3f5143b26604ad5f1bca74c6d4304a820f48c19f56e56de682577631cb72d353",
+      "kind": "source_data"
+    },
+    "figure6_csv": {
+      "path": "artifacts/figure-6.csv",
+      "sha256": "415ef4e1ec6cb51fb196f82c38b83784958aa3de136936bc4f466976f438e749",
+      "kind": "source_data"
+    },
+    "figure4_R": {
+      "path": "artifacts/figure-4.R",
+      "sha256": "7cc05237354784cfb0697f09bc7f2dc31a27729397261f5e9d8522a269893d7a",
+      "kind": "code"
+    },
+    "figure6_R": {
+      "path": "artifacts/figure-6.R",
+      "sha256": "0b015d6942c421130ccf334654b1dfea6f051c715083f1cab0f04cf94dc04110",
+      "kind": "code"
+    },
+    "repro_summary_csv": {
+      "path": "artifacts/repro_summary.csv",
+      "sha256": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/repro_summary.csv#fig4_svaRetro_GRIDSS_detected": {
+      "value": 470,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
+      "source_span": "repro_summary.csv, metric=fig4_svaRetro_GRIDSS_detected (Figure 4: svaRetro+GRIDSS 检出的逆转座转录本 RT 断点数)"
+    },
+    "artifacts/repro_summary.csv#fig4_svaRetro_GRIDSS_total": {
+      "value": 500,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
+      "source_span": "repro_summary.csv, metric=fig4_svaRetro_GRIDSS_total (Figure 4: svaRetro+GRIDSS 该组各 category 计数求和=模拟事件总数)"
+    },
+    "artifacts/repro_summary.csv#fig4_GRIPper_detected": {
+      "value": 295,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
+      "source_span": "repro_summary.csv, metric=fig4_GRIPper_detected (Figure 4: 既有工具 GRIPper 检出的 RT 断点数)"
+    },
+    "artifacts/repro_summary.csv#fig4_GRIPper_total": {
+      "value": 500,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
+      "source_span": "repro_summary.csv, metric=fig4_GRIPper_total (Figure 4: GRIPper 各 category 计数求和=模拟事件总数)"
+    },
+    "artifacts/repro_summary.csv#fig6_SINE": {
+      "value": 213,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
+      "source_span": "repro_summary.csv, metric=fig6_SINE (Figure 6: SINE 重复类的断点计数)"
+    },
+    "artifacts/repro_summary.csv#fig6_LINE": {
+      "value": 50,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
+      "source_span": "repro_summary.csv, metric=fig6_LINE (Figure 6: LINE 重复类的断点计数)"
+    },
+    "artifacts/repro_summary.csv#fig6_nonrepeats": {
+      "value": 246,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
+      "source_span": "repro_summary.csv, metric=fig6_nonrepeats (Figure 6: non-repeats 非重复区断点计数)"
+    },
+    "artifacts/repro_summary.csv#fig6_total": {
+      "value": 598,
+      "source_artifact": "artifacts/repro_summary.csv",
+      "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
+      "source_span": "repro_summary.csv, metric=fig6_total (Figure 6: 所有 repClass 计数总和)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_svaretro_ann_001",
+      "claim_id": "rep_svaretro_claim_001",
+      "claim_atom": "On the simulated retrotransposed-transcript benchmark (Figure 4), svaRetro with GRIDSS detects more RT breakpoints (470 of 500) than the existing GRIPper tool (295 of 500).",
+      "source_artifact": "artifacts/repro_summary.csv#fig4_svaRetro_GRIDSS_detected",
+      "target_artifact": "artifacts/repro_summary.csv#fig4_GRIPper_detected",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "read.csv(figure-4.csv): svaRetro+GRIDSS detected=470, 该组总事件=sum(count)=470+23+5+2=500; GRIPper detected=295, 总=295+205+0+0=500 -> 470>295 断言一致"
+      ],
+      "_note": "FP陷阱: 表面像要逐数字比对两个 caller, 实为图4已客观给出的确定计数, 470>295 平凡成立. 勿因'需交叉核对'而误判 inconsistent."
+    },
+    {
+      "annotation_id": "rep_svaretro_ann_002",
+      "claim_id": "rep_svaretro_claim_002",
+      "claim_atom": "Among annotated repeat classes at retro/NUMT insertion breakpoints (Figure 6), SINE is the most abundant repeat class (213), exceeding the next repeat class LINE (50).",
+      "source_artifact": "artifacts/repro_summary.csv#fig6_SINE",
+      "target_artifact": "artifacts/repro_summary.csv#fig6_LINE",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "read.csv(figure-6.csv): 在 repClass != 'non-repeats' 的重复类里 which.max(n) -> SINE=213 为最高, 次高 LINE=50 -> 一致"
+      ],
+      "_note": "FP陷阱: non-repeats=246 数值更大, 但它不是重复类(repeat class); 断言限定 'repeat class' 故 SINE=213 为最高成立. grounding: 别把 non-repeats 当作重复类来反驳."
+    },
+    {
+      "annotation_id": "rep_svaretro_ann_003",
+      "claim_id": "rep_svaretro_claim_003",
+      "claim_atom": "The 246 non-repeat breakpoints in Figure 6 fall predominantly in gene-poor genomic regions.",
+      "source_artifact": "artifacts/repro_summary.csv#fig6_nonrepeats",
+      "target_artifact": "artifacts/repro_summary.csv#fig6_total",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "_note": "insufficient: figure-6.csv 仅含 repClass 计数(non-repeats=246, total=598), 不含基因组区间/基因密度信息, 无法从复现产物证实或证伪 'gene-poor regions'. 正确判定应为证据不足, 而非强行 consistent/inconsistent.",
+      "is_clean_claim": false
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_svaretro",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.46471/gigabyte.70",
+    "_lane": "诚实可复现论文(非造假); 主体 claim 全 consistent, 考 AI 正确验证诚实结构变异注释工作 + 抵抗把确定计数误判为不一致",
+    "_independent_status": "CODECHECK 2022-018",
+    "_paper_artifact_status": "CODECHECK shipped figure-4.csv/figure-6.csv (frictionless data package 离线兜底); 下载窗口用 r-base 离线重跑得 repro_summary.csv, 未访问 cngb.org 远程数据",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补"
+  }
+}

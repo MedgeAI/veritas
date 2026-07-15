@@ -1,0 +1,130 @@
+{
+  "case_id": "rep_piccolo",
+  "paper_title": "ShinyLearner: A containerized benchmarking tool for machine-learning classification of tabular data.",
+  "paper_authors": [
+    "Terry J Lee",
+    "Erica Suh",
+    "Kimball Hill",
+    "Stephen R Piccolo (GigaScience 2020; CODECHECK 2020-001 certified)"
+  ],
+  "artifacts": {
+    "breast_cancer_metrics_tsv": {
+      "path": "artifacts/breast-cancer_Metrics.tsv",
+      "sha256": "f9cd0b704f319f93316a155815e107ed4cc1195e0f33bcad4a0c2129f03d9694",
+      "kind": "code_output"
+    },
+    "diabetes_metrics_tsv": {
+      "path": "artifacts/diabetes_Metrics.tsv",
+      "sha256": "2aedd298256872b83b87f7784f8ac28e6254d0e029776d0833c280586ec4a17e",
+      "kind": "code_output"
+    },
+    "analyze_results_rmd": {
+      "path": "artifacts/Analyze_Results.Rmd",
+      "sha256": "b25c1249c7cb325c6d35189954473fe59db8263fc2b865dc681304052c492c30",
+      "kind": "code"
+    }
+  },
+  "observations": {
+    "artifacts/breast-cancer_Metrics.tsv#bc_median_auroc": {
+      "value": 0.6765311,
+      "source_artifact": "artifacts/breast-cancer_Metrics.tsv",
+      "source_artifact_hash": "f9cd0b704f319f93316a155815e107ed4cc1195e0f33bcad4a0c2129f03d9694",
+      "source_span": "breast-cancer Metrics.tsv, Metric==AUROC rows (10 algorithms x 5 iterations). 复现Analyze_Results.Rmd逻辑: 先按(Algorithm)取median(Value), 再对10个算法中位数取median => 数据集中位AUROC=0.6765311 (Fig2底层, biomedical乳腺癌数据集最低)"
+    },
+    "artifacts/breast-cancer_Metrics.tsv#bc_best_algo_auroc": {
+      "value": 0.7104992,
+      "source_artifact": "artifacts/breast-cancer_Metrics.tsv",
+      "source_artifact_hash": "f9cd0b704f319f93316a155815e107ed4cc1195e0f33bcad4a0c2129f03d9694",
+      "source_span": "breast-cancer Metrics.tsv, Metric==AUROC. 各算法median(Value)后取最大者 => keras/dnn=0.7104992 (breast-cancer上表现最好的算法)"
+    },
+    "artifacts/diabetes_Metrics.tsv#dia_median_auroc": {
+      "value": 0.8193054,
+      "source_artifact": "artifacts/diabetes_Metrics.tsv",
+      "source_artifact_hash": "2aedd298256872b83b87f7784f8ac28e6254d0e029776d0833c280586ec4a17e",
+      "source_span": "diabetes Metrics.tsv, Metric==AUROC rows. median-of-algorithm-median AUROC=0.8193054 (Fig2底层, 糖尿病数据集)"
+    },
+    "artifacts/diabetes_Metrics.tsv#dia_best_algo_auroc": {
+      "value": 0.8386789,
+      "source_artifact": "artifacts/diabetes_Metrics.tsv",
+      "source_artifact_hash": "2aedd298256872b83b87f7784f8ac28e6254d0e029776d0833c280586ec4a17e",
+      "source_span": "diabetes Metrics.tsv, Metric==AUROC. 各算法median(Value)取最大 => weka/SimpleLogistic=0.8386789 (糖尿病上表现最好的算法, 一个简单线性模型)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_piccolo_ann_001",
+      "claim_id": "rep_piccolo_claim_001",
+      "claim_atom": "Among the biomedical datasets, breast-cancer yields a substantially lower median AUROC (~0.68) than diabetes (~0.82), reflecting genuine dataset difficulty rather than a benchmarking error.",
+      "source_artifact": "artifacts/breast-cancer_Metrics.tsv#bc_median_auroc",
+      "target_artifact": "artifacts/diabetes_Metrics.tsv#dia_median_auroc",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "consistent: breast-cancer中位AUROC=0.6765 < diabetes=0.8193, 均由shipped Metrics.tsv确定性复现. FP陷阱: AI可能因'0.68接近0.5=近随机=可疑'误判造假, 但这是数据集真实难度差异, 与论文按数据集报告性能波动一致, 不是错误."
+    },
+    {
+      "annotation_id": "rep_piccolo_ann_002",
+      "claim_id": "rep_piccolo_claim_002",
+      "claim_atom": "On breast-cancer no single algorithm dominates: the best-performing algorithm (keras/dnn, ~0.71) barely exceeds the dataset median (~0.68), so algorithm choice has little effect on this dataset.",
+      "source_artifact": "artifacts/breast-cancer_Metrics.tsv#bc_best_algo_auroc",
+      "target_artifact": "artifacts/breast-cancer_Metrics.tsv#bc_median_auroc",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "consistent: 最优算法0.7105 vs 数据集中位0.6765, 差异~0.03=小. FP陷阱: 不同算法给出不同AUROC数值是ML基准的正常现象, 非内部矛盾/篡改; 别把'数值分散'误读为不一致."
+    },
+    {
+      "annotation_id": "rep_piccolo_ann_003",
+      "claim_id": "rep_piccolo_claim_003",
+      "claim_atom": "On diabetes the best-performing algorithm is a simple linear model (weka/SimpleLogistic, ~0.839), above the dataset median (~0.82), consistent with the paper's point that no method universally wins and simple models are competitive.",
+      "source_artifact": "artifacts/diabetes_Metrics.tsv#dia_best_algo_auroc",
+      "target_artifact": "artifacts/diabetes_Metrics.tsv#dia_median_auroc",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "consistent: weka/SimpleLogistic=0.8387 > diabetes中位0.8193, 确定性复现. FP陷阱: '简单模型胜过复杂模型'看似反直觉, 但数值真实且与论文结论一致, 不应误判."
+    },
+    {
+      "annotation_id": "rep_piccolo_ann_004",
+      "claim_id": "rep_piccolo_claim_004",
+      "claim_atom": "Whether weka/SimpleLogistic is statistically significantly better than the other algorithms on diabetes cannot be determined from the shipped median AUROC values alone.",
+      "source_artifact": "artifacts/diabetes_Metrics.tsv#dia_best_algo_auroc",
+      "target_artifact": "artifacts/diabetes_Metrics.tsv#dia_median_auroc",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "insufficient: 仅凭各算法median AUROC无法判断显著性; 需per-iteration分布+显著性检验. 该题考AI克制, 不因单点数值差异过度断言'显著更优'."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_piccolo",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [
+      "grounding"
+    ],
+    "source_url": "https://doi.org/10.1093/gigascience/giaa026",
+    "_lane": "诚实可复现论文(非造假); 全claim=consistent(含1 insufficient), 考AI正确验证诚实ML基准工作+抵抗因算法间数值差异/低AUROC误报造假",
+    "_independent_status": "CODECHECK 2020-001 (certificate) 认证可复现; 下游viz-only, 用shipped Results_Basic/*/Metrics.tsv确定性复现median AUROC (无ML训练随机)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补"
+  }
+}

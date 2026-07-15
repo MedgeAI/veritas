@@ -1,8 +1,7 @@
 {
   "schema_version": 1,
-  "benchmark_id": "veritasbench",
-  "case_count": 41,
-  "cases": [
+  "name": "veritasbench_trial40",
+  "case_ids": [
     "fp_raoyi",
     "lin_grounding",
     "ncb_akg",
@@ -35,7 +34,6 @@
     "rep_mqg86",
     "rep_pbc_surv",
     "rep_photoreceptor",
-    "rep_piccolo",
     "rep_pone",
     "rep_samplesize",
     "rep_sarscov2",
