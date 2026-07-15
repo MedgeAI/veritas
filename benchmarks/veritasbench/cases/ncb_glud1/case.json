@@ -1,0 +1,192 @@
+{
+  "case_id": "ncb_glud1",
+  "paper_title": "GluD1 is a signal transduction device disguised as an ionotropic receptor",
+  "paper_authors": [
+    "Jinye Dai, Erica Seigneur … Thomas C. Südhof (Stanford University; Nature, 2021)"
+  ],
+  "artifacts": {
+    "sd_ed7": {
+      "path": "artifacts/41586_2021_3661_MOESM14_ESM.xlsx",
+      "sha256": "487813b919f8924e5379e69de5d203ea1488d2e360ec0c8112691d9b88be5a57",
+      "kind": "source_data"
+    },
+    "sd_fig1": {
+      "path": "artifacts/41586_2021_3661_MOESM4_ESM.xlsx",
+      "sha256": "5d1a0824c117a2947b133499b3ad3dd2103ee1dbb5b6d1fb9eac64f064f1160e",
+      "kind": "source_data"
+    },
+    "sd_ed1": {
+      "path": "artifacts/41586_2021_3661_MOESM9_ESM.xlsx",
+      "sha256": "e0d4dff81501644d2c4195bef63fcd527d118ebb1326cbdc6f10bd837cad5fa3",
+      "kind": "source_data"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "888c7fc018bd7c6182fc9132bcb1f4dada719d4592c2b82691939a0affd1cb36",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41586_2021_3661_MOESM14_ESM.xlsx#ED Figure7!C6": {
+      "value": 0.00165,
+      "source_artifact": "artifacts/41586_2021_3661_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "487813b919f8924e5379e69de5d203ea1488d2e360ec0c8112691d9b88be5a57",
+      "source_span": "sheet 'ED Figure7', C6 (panel 'ED Figure 7a-7c', Control / EPSC Rise Time (s), 第1个细胞; C5表头'Control', C6:C34共29个值)"
+    },
+    "artifacts/41586_2021_3661_MOESM14_ESM.xlsx#ED Figure7!AM6": {
+      "value": 0.00165,
+      "source_artifact": "artifacts/41586_2021_3661_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "487813b919f8924e5379e69de5d203ea1488d2e360ec0c8112691d9b88be5a57",
+      "source_span": "sheet 'ED Figure7', AM6 (panel 'ED Figure 7d-7f', Control / EPSC Rise Time (s), 第1个细胞; AM6:AM34共29个值与C6:C34逐位相同=不同rescue面板却同值)"
+    },
+    "artifacts/41586_2021_3661_MOESM14_ESM.xlsx#ED Figure7!D6": {
+      "value": 0.00265,
+      "source_artifact": "artifacts/41586_2021_3661_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "487813b919f8924e5379e69de5d203ea1488d2e360ec0c8112691d9b88be5a57",
+      "source_span": "sheet 'ED Figure7', D6 (panel 'ED Figure 7a-7c', GluD1 KO / Rise Time (s), 第1个细胞; D6:D36共31个值)"
+    },
+    "artifacts/41586_2021_3661_MOESM14_ESM.xlsx#ED Figure7!AN6": {
+      "value": 0.00265,
+      "source_artifact": "artifacts/41586_2021_3661_MOESM14_ESM.xlsx",
+      "source_artifact_hash": "487813b919f8924e5379e69de5d203ea1488d2e360ec0c8112691d9b88be5a57",
+      "source_span": "sheet 'ED Figure7', AN6 (panel 'ED Figure 7d-7f', GluD1 KO / Rise Time (s); AN6:AN36共31个值与D6:D36逐位相同)"
+    },
+    "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!V10": {
+      "value": 0.5166666666666667,
+      "source_artifact": "artifacts/41586_2021_3661_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "5d1a0824c117a2947b133499b3ad3dd2103ee1dbb5b6d1fb9eac64f064f1160e",
+      "source_span": "sheet 'Figure1', V10 (Fig1k Control mEPSC Frequency (Hz), 某细胞; 0.5166666666666667 = 31/60, 60秒窗内计31个mini事件)"
+    },
+    "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!V12": {
+      "value": 0.5166666666666667,
+      "source_artifact": "artifacts/41586_2021_3661_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "5d1a0824c117a2947b133499b3ad3dd2103ee1dbb5b6d1fb9eac64f064f1160e",
+      "source_span": "sheet 'Figure1', V12 (Fig1k Control mEPSC Freq; 与V10同值0.5166666666666667=31/60)"
+    },
+    "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!V14": {
+      "value": 0.5166666666666667,
+      "source_artifact": "artifacts/41586_2021_3661_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "5d1a0824c117a2947b133499b3ad3dd2103ee1dbb5b6d1fb9eac64f064f1160e",
+      "source_span": "sheet 'Figure1', V14 (Fig1k Control mEPSC Freq; 与V10同值0.5166666666666667=31/60)"
+    },
+    "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!V21": {
+      "value": 0.5166666666666667,
+      "source_artifact": "artifacts/41586_2021_3661_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "5d1a0824c117a2947b133499b3ad3dd2103ee1dbb5b6d1fb9eac64f064f1160e",
+      "source_span": "sheet 'Figure1', V21 (Fig1k Control mEPSC Freq; 与V10/V12/V14同值0.5166666666666667=31/60, Control列21值中该值出现4次)"
+    },
+    "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!W4": {
+      "value": 3,
+      "source_artifact": "artifacts/41586_2021_3661_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "5d1a0824c117a2947b133499b3ad3dd2103ee1dbb5b6d1fb9eac64f064f1160e",
+      "source_span": "sheet 'Figure1', W4 (Fig1k CRISPR mEPSC Frequency (Hz); 3 = 180/60)"
+    },
+    "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!W11": {
+      "value": 3.1166666666666667,
+      "source_artifact": "artifacts/41586_2021_3661_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "5d1a0824c117a2947b133499b3ad3dd2103ee1dbb5b6d1fb9eac64f064f1160e",
+      "source_span": "sheet 'Figure1', W11 (Fig1k CRISPR mEPSC Freq; 3.1166666666666667 = 187/60, 全精度重复尾数=N/60量化签名)"
+    },
+    "artifacts/41586_2021_3661_MOESM9_ESM.xlsx#ED Figure1!C4": {
+      "value": 0.0216,
+      "source_artifact": "artifacts/41586_2021_3661_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "e0d4dff81501644d2c4195bef63fcd527d118ebb1326cbdc6f10bd837cad5fa3",
+      "source_span": "sheet 'ED Figure1', C4 (ED Fig1a 'mRNA level' GluD1列, 第1值; C4:C6共3值=0.0216/0.0322/0.0221)"
+    },
+    "artifacts/41586_2021_3661_MOESM9_ESM.xlsx#ED Figure1!F4": {
+      "value": 0.0216,
+      "source_artifact": "artifacts/41586_2021_3661_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "e0d4dff81501644d2c4195bef63fcd527d118ebb1326cbdc6f10bd837cad5fa3",
+      "source_span": "sheet 'ED Figure1', F4 (ED Fig1c 'GluD1 mRNA level' Control列, 第1值; F4:F7=0.0216/0.0322/0.0221/0.0459, 前3值与ED Fig1a GluD1列C4:C6逐位相同)"
+    },
+    "artifacts/41586_2021_3661_MOESM9_ESM.xlsx#ED Figure1!F7": {
+      "value": 0.0459,
+      "source_artifact": "artifacts/41586_2021_3661_MOESM9_ESM.xlsx",
+      "source_artifact_hash": "e0d4dff81501644d2c4195bef63fcd527d118ebb1326cbdc6f10bd837cad5fa3",
+      "source_span": "sheet 'ED Figure1', F7 (ED Fig1c Control列第4值0.0459, ED Fig1a GluD1列仅3值无对应=两面板样本数不一致, 无法判定是否共享同一对照)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_glud1_ann_001",
+      "claim_id": "ncb_glud1_claim_001",
+      "claim_atom": "In the Source Data for Extended Data Fig. 7, the entire Control and GluD1-KO EPSC-kinetics columns of panel ED Fig. 7a-7c are byte-identical to six significant figures to the corresponding columns of panel ED Fig. 7d-7f: the ED Fig. 7a Control Rise-Time column (C6:C34, 29 cells, starting 0.00165, 0.00105, 0.001, 0.0022 …) equals the ED Fig. 7d Control column (AM6:AM34), and the GluD1-KO Rise-Time column (D6:D36, 31 cells, starting 0.00265 …) equals AN6:AN36; the same holds for the fast-tau and slow-tau columns at −70 mV and +40 mV (J=AS, K=AT, Q=AY, R=AZ, X=BE, Y=BF, AE=BK, AF=BL). ED Fig. 7a-c and 7d-f report DIFFERENT rescue experiments, so per-cell kinetics values identical to six figures across 29–31 cells cannot both be genuine independent recordings. The first author (Jinye Dai) acknowledged copy/paste errors in the Extended Data Fig. 7 Source Data (and the associated Excel) and stated a correction was submitted.",
+      "source_artifact": "artifacts/41586_2021_3661_MOESM14_ESM.xlsx#ED Figure7!C6",
+      "target_artifact": "artifacts/41586_2021_3661_MOESM14_ESM.xlsx#ED Figure7!AM6",
+      "source_a1_range": "C6:C34",
+      "target_a1_range": "AM6:AM34",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_columns",
+      "severity": "medium",
+      "evidence_span": "L1:source_data->source_data",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "造假核心-作者已承认(inconsistent): ED Fig7 Source Data 中, 面板7a-7c的Control与GluD1 KO两组EPSC动力学列(Rise Time/fast tau/slow tau, -70mV与+40mV)与面板7d-7f对应列6位有效数字逐位相同——C6:C34(29细胞, 0.00165/0.00105/0.001/0.0022…)=AM6:AM34; D6:D36(31细胞, 0.00265…)=AN6:AN36; 同理J=AS,K=AT,Q=AY,R=AZ,X=BE,Y=BF,AE=BK,AF=BL。7a-c与7d-f是不同rescue实验, 逐细胞值跨29-31个不可能都真独立记录。一作Jinye Dai在PubPeer承认ED Fig7 Source Data(及对应Excel)存在复制/粘贴错误并称已提交更正。verdict=inconsistent。"
+    },
+    {
+      "annotation_id": "ncb_glud1_ann_002",
+      "claim_id": "ncb_glud1_claim_002",
+      "claim_atom": "In the Fig. 1k Source Data, the Control mEPSC-frequency column (V) shows the value 0.5166666666666667 Hz repeated at four cells (V10, V12, V14, V21); this equals exactly 31/60, i.e. 31 miniature events counted over a fixed 60-second recording window. Every full-precision value in the CRISPR column (W) is likewise an exact integer count divided by 60 (e.g. W4 = 3 = 180/60, W11 = 3.1166666666666667 = 187/60; 19 of 19 W cells are N/60). mEPSC frequency = (event count)/(60 s), a discrete quantity, so occasional cells sharing the same integer event count produce byte-identical frequencies. The repeated 0.51667 Hz values are a quantization artifact of fixed-window event counting, not copy-pasted data — consistent with the authors' explanation that some repeated frequencies arise from the fixed 60-second event count.",
+      "source_artifact": "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!V10",
+      "target_artifact": "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!V21",
+      "source_a1_range": "V4:V24",
+      "target_a1_range": "W4:W22",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "evidence_span": "L1:source_data->source_data",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_clean_pairs": [
+        [
+          "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!V10",
+          "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!V21"
+        ],
+        [
+          "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!V12",
+          "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!V21"
+        ],
+        [
+          "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!V14",
+          "artifacts/41586_2021_3661_MOESM4_ESM.xlsx#Figure1!V21"
+        ]
+      ],
+      "_adjudication": "合法-60秒计数量化(consistent, 类比fp_raoyi epoch量化): Fig1k Control mEPSC频率列(V)在V10/V12/V14/V21四个细胞出现完全相同的0.5166666666666667 Hz = 恰好31/60 = 固定60秒窗内计到31个mini事件。CRISPR列(W)每个全精度值也都是整数计数/60(W4=3=180/60, W11=3.1166666666666667=187/60; W列19/19都是N/60)。mEPSC频率=事件数/60s为离散量, 不同细胞偶然计到相同整数事件数就产生逐位相同的频率。重复的0.51667 Hz是固定窗计数量化的巧合, 非复制粘贴。一作解释部分重复频率来自固定60秒事件计数=合法。AI不应把量化偶合的相同频率判为造假。verdict=consistent, is_clean_claim=true。"
+    },
+    {
+      "annotation_id": "ncb_glud1_ann_003",
+      "claim_id": "ncb_glud1_claim_003",
+      "claim_atom": "In the Extended Data Fig. 1 Source Data, the GluD1 qPCR values of panel ED Fig. 1a (mRNA level, column C = 0.0216, 0.0322, 0.0221) are identical to the first three of the four Control values in panel ED Fig. 1c (GluD1 mRNA level, column F = 0.0216, 0.0322, 0.0221, 0.0459). Both panels report GluD1 mRNA in the control condition, so this could be a legitimate reuse of the same control qPCR samples across two panels; however the two panels carry different sample counts (three values in 1a versus four in 1c, the extra F7 = 0.0459 has no counterpart in 1a) and the promised correction has not yet been published nor the underlying raw qPCR records archived, so whether this overlap is an intended shared control or a partial copy/paste cannot be adjudicated at this time.",
+      "source_artifact": "artifacts/41586_2021_3661_MOESM9_ESM.xlsx#ED Figure1!C4",
+      "target_artifact": "artifacts/41586_2021_3661_MOESM9_ESM.xlsx#ED Figure1!F4",
+      "source_a1_range": "C4:C6",
+      "target_a1_range": "F4:F7",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "evidence_span": "L1:source_data->source_data",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "待定(insufficient): ED Fig1 Source Data中, 面板ED Fig1a的GluD1 qPCR值(C列=0.0216/0.0322/0.0221)与面板ED Fig1c的Control前3值(F列=0.0216/0.0322/0.0221/0.0459)逐位相同。两面板都报对照条件下GluD1 mRNA, 故可能是同一批对照qPCR样本在两图合法复用; 但两面板样本数不一致(1a为3值, 1c为4值, 多出的F7=0.0459在1a无对应), 且承诺的更正尚未发布、底层原始qPCR记录未存档, 无法判定该重叠是有意共享对照还是局部复制粘贴。verdict=insufficient。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_glud1",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "verifier_conflict"
+    ],
+    "source_url": "https://doi.org/10.1038/s41586-021-03661-6",
+    "_lane": "作者已承认复制粘贴错误型mixed(三verdict天然齐): ①inconsistent=ED Fig7 Source Data面板7a-c与7d-f的Control+GluD1 KO动力学列6位有效数字逐位相同(不同rescue实验), 一作Jinye Dai承认复制/粘贴错误并提交更正; ②consistent=Fig1k Control mEPSC频率0.51667 Hz重复4次=31/60, CRISPR列19/19都是N/60, 固定60秒事件计数的量化偶合(类比fp_raoyi epoch量化)=合法; ③insufficient=ED Fig1a GluD1值与1c Control前3值同, 可能是共享对照也可能是局部复制, 更正未发布/原始qPCR未存档→待定。考AI区分'作者已认的复制粘贴造假'、'量化计数造成的合法重复'、'证据不足待更正的待定项'。",
+    "_author_response": "一作Jinye Dai在PubPeer回复: 承认Extended Data Fig.7与关联Excel存在复制/粘贴错误(整块动力学列误复制到相邻rescue面板), 已提交更正; 并解释部分mEPSC/mIPSC频率的重复值来自固定60秒事件计数(频率=事件数/60s, 离散计数不同细胞偶合同值属正常); 更正截至整理尚未正式发布。",
+    "_independent_status": "下载窗口机构cookie取Source Data ED Fig7(MOESM14)/Fig1(MOESM4)/ED Fig1(MOESM9)+正文PDF。本地openpyxl核验: (1)ED Fig7面板7a-c的C6:C34(29值,0.00165…)=面板7d-f的AM6:AM34, D6:D36(31值,0.00265…)=AN6:AN36, 另4对动力学列(J=AS/K=AT/Q=AY/R=AZ/X=BE/Y=BF/AE=BK/AF=BL)全逐位相同; (2)Fig1k V列0.5166666666666667重复于V10/V12/V14/V21=31/60, W列19/19全为N/60(W4=3=180/60,W11=187/60); (3)ED Fig1a C4:C6=ED Fig1c F4:F6(GluD1对照qPCR前3值), F7=0.0459在1a无对应。第二标注人复核待补。",
+    "_pubpeer": "0B87E141DC8DFFF4826A9250A94BAD",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}

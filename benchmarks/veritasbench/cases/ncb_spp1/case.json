@@ -1,0 +1,138 @@
+{
+  "case_id": "ncb_spp1",
+  "paper_title": "Perivascular cells induce microglial phagocytic states and synaptic engulfment via SPP1 in mouse models of Alzheimer's disease",
+  "paper_authors": [
+    "Sebastiaan De Schepper, Judy Z. Ge, ..., Steffen Jung, Soyon Hong (UK Dementia Research Institute, UCL; Nature Neuroscience, 2023)"
+  ],
+  "artifacts": {
+    "source_edfig1": {
+      "path": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx",
+      "sha256": "6e18040f3c7d71ed9db134eaf220fe53077d7ec65e5e8cf50fe5b4ee98fc3f87",
+      "kind": "source_data"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "e94153aa174563bc153b658f547948589c98dee690224f1bf4b9f6da08c9980e",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!D28": {
+      "value": 21.696,
+      "source_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "6e18040f3c7d71ed9db134eaf220fe53077d7ec65e5e8cf50fe5b4ee98fc3f87",
+      "source_span": "sheet 'Extended Data Fig 1a 1b', D28 (ED Fig 1a 海马SLM, 小鼠 NLF186 的第1个 tile 的 Total SPP1 immunoreactivity per tile; B28='NLF186', C28='SLM', E28='1a')"
+    },
+    "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!D29": {
+      "value": 6.414,
+      "source_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "6e18040f3c7d71ed9db134eaf220fe53077d7ec65e5e8cf50fe5b4ee98fc3f87",
+      "source_span": "sheet 'Extended Data Fig 1a 1b', D29 (同一只小鼠 NLF186 的第2个 tile; B29='NLF186', C29='SLM')"
+    },
+    "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!D30": {
+      "value": 28.463,
+      "source_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "6e18040f3c7d71ed9db134eaf220fe53077d7ec65e5e8cf50fe5b4ee98fc3f87",
+      "source_span": "sheet 'Extended Data Fig 1a 1b', D30 (同一只小鼠 NLF186 的第3个 tile; B30='NLF186', C30='SLM'; 同鼠三 tile 值 21.696/6.414/28.463 极离散)"
+    },
+    "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!G30": {
+      "value": 18.857666666666667,
+      "source_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "6e18040f3c7d71ed9db134eaf220fe53077d7ec65e5e8cf50fe5b4ee98fc3f87",
+      "source_span": "sheet 'Extended Data Fig 1a 1b', G30 (更正版新增的 Per-mouse 列; F30 注 'NLF186 average (of datapoints 21.696; 6.414; 28.463)'=18.8577, 即把 D28:D30 三个 tile 塌回一只鼠的均值)"
+    },
+    "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!G14": {
+      "value": 6.4735,
+      "source_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "6e18040f3c7d71ed9db134eaf220fe53077d7ec65e5e8cf50fe5b4ee98fc3f87",
+      "source_span": "sheet 'Extended Data Fig 1a 1b', G14 (ED Fig 1b 小脑CB 的一只 NLF 鼠 per-mouse 均值; F14='NLF average (of datapoints 6.199; 6.748)'=6.4735; C14='CB', E14='1b')"
+    },
+    "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!G16": {
+      "value": 7.67,
+      "source_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "6e18040f3c7d71ed9db134eaf220fe53077d7ec65e5e8cf50fe5b4ee98fc3f87",
+      "source_span": "sheet 'Extended Data Fig 1a 1b', G16 (ED Fig 1b 小脑CB 的一只 WT 鼠 per-mouse 均值; F16='WT average (of datapoints 8.896; 6.444)'=7.67; C16='CB', E16='1b'; CB 内 NLF 6.4735 < WT 7.67, 无 NLF 升高)"
+    },
+    "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!D23": {
+      "value": 13.0715,
+      "source_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "6e18040f3c7d71ed9db134eaf220fe53077d7ec65e5e8cf50fe5b4ee98fc3f87",
+      "source_span": "sheet 'Extended Data Fig 1a 1b', D23 (小鼠 NLF107 在海马SLM 的 SPP1 值; B23='NLF107', C23='SLM', E23='1a')"
+    },
+    "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!D2": {
+      "value": 12.603333333333333,
+      "source_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "6e18040f3c7d71ed9db134eaf220fe53077d7ec65e5e8cf50fe5b4ee98fc3f87",
+      "source_span": "sheet 'Extended Data Fig 1a 1b', D2 (同一只小鼠 NLF107 在小脑CB 的 SPP1 值; B2='NLF107', C2='CB', E2='1b'; 与 D23 构成同鼠跨区配对, 是 region×genotype 交互检验所需的结构)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_spp1_ann_001",
+      "claim_id": "ncb_spp1_claim_001",
+      "claim_atom": "In the Source Data for Extended Data Fig. 1a (hippocampal SLM), the 'Total SPP1 immunoreactivity per tile' column contains 15 tile-level rows for NLF drawn from only 9 mice: several mice contribute three tiles each that were counted as independent replicates (e.g. mouse NLF186 gives D28,D29,D30 = 21.696, 6.414, 28.463 — a >4-fold within-mouse spread). The corrected file itself adds a 'Per-mouse' column (F/G) that collapses these three tiles into a single per-mouse value G30 = 18.857667 ('NLF186 average (of datapoints 21.696; 6.414; 28.463)'). Treating the 15 tiles (and 16 WT tiles) as independent n inflates the degrees of freedom relative to the true unit of replication (the animal, n=9 NLF / n=10 WT), i.e. pseudoreplication that inflates the significance of the reported hippocampal SPP1 difference. This matches the PubPeer critique (15 NLF / 16 WT source points vs 8 plotted; p reported as 0.0499) and the pseudoreplication concern that the authors explicitly declined to correct.",
+      "source_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!D28",
+      "target_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!G30",
+      "source_a1_range": "D28:D30",
+      "target_a1_range": "G30",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "pseudoreplication",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "伪重复核心(inconsistent): ED Fig 1a 海马SLM 的 NLF 组 source data 有 15 个 tile 级数据点, 但只来自 9 只鼠——NLF130/NLF186/NLF188 三只鼠各贡献 3 个 tile 被当独立重复。以 NLF186 为例, D28/D29/D30=21.696/6.414/28.463 同鼠内跨 4 倍以上极离散, 更正文件自己新增 Per-mouse 列把三 tile 塌成一只鼠均值 G30=18.8577。把 15 个 tile(WT 16 个)当独立 n 抬高自由度、膨胀所报海马 SPP1 差异的显著性(所报 p=0.0499)。这正是 PubPeer 指出的'source 15/16 点 vs 图上各 8 点、伪重复'。作者在 #31 明确表示更正不涵盖伪重复问题。verdict=inconsistent, discrepancy_type=pseudoreplication。"
+    },
+    {
+      "annotation_id": "ncb_spp1_ann_002",
+      "claim_id": "ncb_spp1_claim_002",
+      "claim_atom": "The paper's headline claim for this panel is that SPP1 upregulation is region-specific — elevated in hippocampus but NOT in cerebellum. In the cerebellum half (Extended Data Fig. 1b), collapsing to the corrected per-mouse values shows no NLF elevation: a representative NLF cerebellar mouse G14 = 6.4735 is LOWER than a representative WT cerebellar mouse G16 = 7.67, and across the panel the NLF and WT per-mouse cerebellar means overlap (NLF ~= 8-10, WT ~= 9-11). Thus the 'no SPP1 upregulation in cerebellum' half of the region-specificity statement is direction-robust to per-mouse aggregation and is not affected by the pseudoreplication that inflates the hippocampal comparison. This is consistent with the authors' response that per-mouse re-analysis (e.g. Fig. 1b per-mouse P = 0.0043) does not overturn the qualitative regional finding.",
+      "source_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!G14",
+      "target_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!G16",
+      "source_a1_range": "G14",
+      "target_a1_range": "G16",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "合法子断言(consistent): 论文对该面板的核心说法是 SPP1 升高'区域特异'——海马升高、小脑不升高。小脑(ED Fig 1b)按 per-mouse 塌回后 NLF 并不高于 WT: 代表性 NLF 小脑鼠 G14=6.4735 < 代表性 WT 小脑鼠 G16=7.67, 全面板 NLF/WT 小脑 per-mouse 均值重叠。即'小脑不升高'这一半在 per-mouse 聚合下方向稳健, 不受海马那侧伪重复的影响, 与作者 #34 per-mouse 重分析(如 Fig 1b per-mouse P=0.0043 仍显著)结论方向不变一致。AI 应把这半判为 consistent, 不因伪重复争议就否定整个区域特异结论。is_clean_claim=true。"
+    },
+    {
+      "annotation_id": "ncb_spp1_ann_003",
+      "claim_id": "ncb_spp1_claim_003",
+      "claim_atom": "Whether the hippocampal SPP1 elevation is actually statistically significant once analysed at the mouse level, and whether the paper's 'region-specific' wording is justified, both hinge on a region x genotype interaction test (the mouse NLF107 is measured in both regions: SLM D23 = 13.0715 vs CB D2 = 12.603333, and other mice similarly), which was never reported. Multiple commenters (and a Nature Neuroscience tutorial cited in the thread) note the paper compares two separate p-values on either side of 0.05 rather than testing the interaction, and never provides the per-mouse P value for ED Fig. 1a. The published Correction (s41593-025-02197-6) revised some statistics and source files but the corresponding author stated the pseudoreplication concern would NOT be addressed, and the region-specificity interaction remains untested in the public record. Adjudication of whether the hippocampus-vs-cerebellum region specificity holds is therefore pending.",
+      "source_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!D23",
+      "target_artifact": "artifacts/41593_2023_1257_MOESM10_ESM.xlsx#Extended Data Fig 1a 1b!D2",
+      "source_a1_range": "D23",
+      "target_a1_range": "D2",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "待定(insufficient): '海马升高是否真显著(在鼠层面)'与'区域特异措辞是否成立'都取决于 region×genotype 交互检验——同一只鼠 NLF107 两区都测(SLM D23=13.0715 vs CB D2=12.6033), 具备做交互的配对结构, 但该交互从未被报告。多位评论者(及线程引用的 nn.2886 教程)指出论文靠'两个 p 值各在 0.05 两侧'下结论而非直接检验交互, 也从未给出 ED Fig 1a 的 per-mouse P。已发布的更正(s41593-025-02197-6)改了部分统计与 source 文件, 但通讯作者明确表示伪重复问题不在更正范围, 区域特异所需的交互检验在公开记录中仍缺失。故区域特异是否成立=待定。verdict=insufficient。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_spp1",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "verifier_conflict"
+    ],
+    "source_url": "https://doi.org/10.1038/s41593-023-01257-z",
+    "_lane": "伪重复(pseudoreplication)型 mixed(三 verdict): ①inconsistent=ED Fig 1a 海马SLM 每只鼠多个 tile 被当独立重复(NLF 15 tile 仅来自 9 鼠, 如 NLF186 三 tile D28:D30 塌成 per-mouse G30), 膨胀显著性; ②consistent=小脑(ED Fig 1b)per-mouse 下 NLF 不高于 WT(G14<G16), '小脑不升高'方向稳健, 与作者 per-mouse 重分析结论不变一致; ③insufficient=区域特异真正需要的 region×genotype 交互检验(同鼠 NLF107 两区 D23 vs D2)从未报告、per-mouse 海马 P 未公开、更正明确不涵盖伪重复→待定。考 AI 区分'伪重复导致的膨胀显著性(inconsistent)'、'per-mouse 聚合后仍稳健的合法子结论(consistent)'与'缺交互检验/未公开无法判定(insufficient)'。",
+    "_author_response": "通讯作者 Soyon Hong 团队回应(PubPeer #31/#34): #31 承认定稿最后一步'人为失误上传了错误的 source data 文件', 2023-11 已联系编辑, 将发更正并附正确 source data; 称重查后仅有少量统计需改, 改后各图显著/非显著结论不变; 但明确表示伪重复问题不在更正范围(认为按微胶质细胞/突触为单位有合理性)。#34 提供 per-mouse vs per-microglia 并列再分析: Fig 1b per-mouse P=0.0043(去离群后 0.0008), Fig 4f per-mouse 交互 P=0.0007、Spp1 基因型 0.0010、APP 突变 <0.0001(two-way ANOVA), 称 per-mouse 与 per-microglia 结果相似、不改变结论。",
+    "_timeline": "2023-02 NCB 发表; 2023-11 起 PubPeer 多帖指出伪重复+source data 与图不符(ED Fig 1a 15/16 点 vs 图上各 8 点、p=0.0499)+归一化/交互检验问题; 2023-11 作者联系编辑; #31 作者承认误传 source 文件; #34(2024)提供 per-mouse 再分析; 2026 发布更正 s41593-025-02197-6(#39), 但伪重复与部分 p>0.9999 异常未解释。",
+    "_independent_status": "下载窗口用 Nature 机构 cookie 取 Source Data ED Fig 1(MOESM10, 当前=更正版, 含新增 Per-mouse 列)+正文 PDF(19页)。本地核验(openpyxl): ED Fig 1a(SLM/海马)NLF=15 tile 来自 9 鼠、WT=16 tile 来自 10 鼠; NLF186 三 tile D28/D29/D30=21.696/6.414/28.463→per-mouse G30=18.8577; per-tile NLF 14.06>WT 10.85, per-mouse NLF 13.62>WT 10.82(方向存但 n 由 15/16 塌成 9/10)。ED Fig 1b(CB/小脑)NLF/WT 各 9 tile, per-mouse NLF≈WT(G14=6.4735<G16=7.67)无升高。第二标注人尚未独立复核。",
+    "_pubpeer": "98FCB4581543F4A4D1BE2F386D6BDA",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}

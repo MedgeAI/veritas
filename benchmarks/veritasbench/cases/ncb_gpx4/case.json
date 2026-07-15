@@ -1,0 +1,155 @@
+{
+  "case_id": "ncb_gpx4",
+  "paper_title": "Palmitoylation of GPX4 via the targetable ZDHHC8 determines ferroptosis sensitivity and antitumor immunity",
+  "paper_authors": [
+    "Liang Zhou、Guangyu Lian、Tao Zhou 等；通讯作者 Jun Cui(崔隽) (中山大学; Nature Cancer, 2025)"
+  ],
+  "artifacts": {
+    "source_figs": {
+      "path": "artifacts/43018_2025_937_MOESM4_ESM.xlsx",
+      "sha256": "82143989c9d440971fc19475c71d378e3fc1cbba07b838f3110c0d72b89b7338",
+      "kind": "source_data"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "45ac42a16563bbb92166017ed2c7c2c9c7427613bc16aaa691ef96b89b29c327",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Fig. 2!B47": {
+      "value": 106.53,
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "82143989c9d440971fc19475c71d378e3fc1cbba07b838f3110c0d72b89b7338",
+      "source_span": "sheet 'Fig. 2', B47 (Fig. 2i 'IKE+Fer1'行, GPX4(WT)块第1重复; 该行8个值B47:E47[WT]+G47:J47[C75S]与Fig. 4c 'RSL3+Fer1'行B18:J18逐位相同)"
+    },
+    "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Fig. 4!B18": {
+      "value": 106.53,
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "82143989c9d440971fc19475c71d378e3fc1cbba07b838f3110c0d72b89b7338",
+      "source_span": "sheet 'Fig. 4', B18 (Fig. 4c 'RSL3+Fer1'行, Mock块第1重复; 与Fig. 2i的B47逐位相同, 但两图是不同实验)"
+    },
+    "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Fig. 2!G47": {
+      "value": 102.36,
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "82143989c9d440971fc19475c71d378e3fc1cbba07b838f3110c0d72b89b7338",
+      "source_span": "sheet 'Fig. 2', G47 (Fig. 2i 'IKE+Fer1'行, GPX4(C75S)块第1重复; 与Fig. 4c ZDHHC8-KO1块G18=102.36逐位相同)"
+    },
+    "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Fig. 4!G18": {
+      "value": 102.36,
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "82143989c9d440971fc19475c71d378e3fc1cbba07b838f3110c0d72b89b7338",
+      "source_span": "sheet 'Fig. 4', G18 (Fig. 4c 'RSL3+Fer1'行, ZDHHC8-KO1块第1重复; 与Fig. 2i C75S块G47逐位相同)"
+    },
+    "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Fig. 4!L18": {
+      "value": 99.04,
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "82143989c9d440971fc19475c71d378e3fc1cbba07b838f3110c0d72b89b7338",
+      "source_span": "sheet 'Fig. 4', L18 (Fig. 4c 'RSL3+Fer1'行, ZDHHC8-KO2块L18:O18=99.04/115.65/100.32/96.49; 该第三组在Fig. 2i无对应列→复制粘贴只搬了前8个单元, 越界处露馅)"
+    },
+    "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Fig. 2!B45": {
+      "value": 100.6536,
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "82143989c9d440971fc19475c71d378e3fc1cbba07b838f3110c0d72b89b7338",
+      "source_span": "sheet 'Fig. 2', B45 (Fig. 2i 'Vehicle'行WT第1重复=100.6536; 6位小数, 与Fig. 4c Vehicle行B16=99.37[2位小数]不同→只有'IKE+Fer1'那一行被误粘, 其余行真独立)"
+    },
+    "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Extended Data Fig. 5!P87": {
+      "value": 7.54717,
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "82143989c9d440971fc19475c71d378e3fc1cbba07b838f3110c0d72b89b7338",
+      "source_span": "sheet 'Extended Data Fig. 5', P87 (ED Fig. 5d B16-F10细胞, RSL3 500 nM, Vehicle块; =7.54717)"
+    },
+    "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Extended Data Fig. 5!U87": {
+      "value": 7.54717,
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "82143989c9d440971fc19475c71d378e3fc1cbba07b838f3110c0d72b89b7338",
+      "source_span": "sheet 'Extended Data Fig. 5', U87 (ED Fig. 5d B16-F10细胞, RSL3 500 nM, PF-670462块; =7.54717, 与不同处理列的P87同值)"
+    },
+    "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Extended Data Fig. 5!P82": {
+      "value": 98.74214,
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "82143989c9d440971fc19475c71d378e3fc1cbba07b838f3110c0d72b89b7338",
+      "source_span": "sheet 'Extended Data Fig. 5', P82 (ED Fig. 5d B16-F10细胞, RSL3 0 nM; 同面板低剂量行P82:X82八个重复全互异→重复值只出现在高剂量致死平台, 非全表)"
+    },
+    "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Fig. 1!R32": {
+      "value": 92.89428076256499,
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "82143989c9d440971fc19475c71d378e3fc1cbba07b838f3110c0d72b89b7338",
+      "source_span": "sheet 'Fig. 1', R32 (Fig. 1h '2-BP+Fer1'块, RSL3 100 nM; =92.89428076256499, 15位有效数字)"
+    },
+    "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Fig. 1!S32": {
+      "value": 92.89428076256499,
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "82143989c9d440971fc19475c71d378e3fc1cbba07b838f3110c0d72b89b7338",
+      "source_span": "sheet 'Fig. 1', S32 (Fig. 1h '2-BP+Fer1'块, RSL3 100 nM 第2重复; 与R32/T32逐位相同=92.89428076256499, 15位有效数字全同)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_gpx4_ann_001",
+      "claim_id": "ncb_gpx4_claim_001",
+      "claim_atom": "In the Statistical Source Data, the Fig. 2i 'IKE+Fer1' row (B47:E47 for GPX4-WT and G47:J47 for GPX4-C75S = 106.53, 103.16, 102.74, 116.21, 102.36, 123.50, 105.70, 102.36) is byte-identical, all 8 of 8 values, to the Fig. 4c 'RSL3+Fer1' row (B18:E18 Mock and G18:J18 ZDHHC8-KO1). Fig. 2i and Fig. 4c report entirely DIFFERENT experiments — different cell/genotype panels (GPX4-WT/C75S mutant vs ZDHHC8 Mock/KO), different ferroptosis inducers (IKE vs RSL3) — so identical per-replicate normalized values across all eight wells cannot both be genuine independent measurements. The tell-tale is the precision mismatch: the Fig. 2i Vehicle and IKE rows carry 6-decimal values (e.g. B45=100.6536) while this single rescue row carries the 2-decimal formatting of Fig. 4c, and the paste stopped at 8 cells (Fig. 4c's ZDHHC8-KO2 columns L18:O18 have no Fig. 2i counterpart). The corresponding author Jun Cui acknowledged a copy-paste error in Fig. 2i on PubPeer and undertook to correct it.",
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Fig. 2!B47",
+      "target_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Fig. 4!B18",
+      "source_a1_range": "B47:J47",
+      "target_a1_range": "B18:J18",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_rows",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "造假核心-作者已承认(inconsistent): Fig. 2i 'IKE+Fer1'行(WT B47:E47 + C75S G47:J47)8/8单元与Fig. 4c 'RSL3+Fer1'行(Mock B18:E18 + KO1 G18:J18)逐位相同(106.53/103.16/102.74/116.21/102.36/123.50/105.70/102.36)。但两图=不同细胞/基因型(GPX4-WT/C75S vs ZDHHC8 Mock/KO)、不同诱导剂(IKE vs RSL3), 独立测量不可能8孔全同。露馅点: Fig. 2i其余行是6位小数(如B45=100.6536)唯独这一救援行是Fig. 4c的2位小数格式, 且粘贴只搬8格(Fig. 4c的KO2列L18:O18在Fig. 2i无对应)。通讯作者Jun Cui在PubPeer承认Fig. 2i复制粘贴错误并将更正。verdict=inconsistent。注: 争议清单称'Fig. 4a', 但source data中逐位匹配的面板标签为Fig. 4c。"
+    },
+    {
+      "annotation_id": "ncb_gpx4_ann_002",
+      "claim_id": "ncb_gpx4_claim_002",
+      "claim_atom": "In Extended Data Fig. 5d (B16-F10 cell line, RSL3 dose response), the value 7.54717 recurs across multiple wells and across DIFFERENT treatment columns at the high-dose cytotoxic plateau — e.g. Vehicle P87 = PF-670462 U87 = 7.54717 at RSL3 500 nM (row 87: P87=R87=S87=U87=V87=W87 all 7.54717). At first glance this looks like duplicated data, but it is a legitimate assay-floor / normalization artifact: at lethal RSL3 doses viability collapses to the assay background, all wells read the same quantized plate-reader signal regardless of CK1 (PF-670462) co-treatment, and dividing by the same vehicle-control mean and rounding yields identical normalized percentages. This is verifiable and self-limiting: the repeats appear ONLY in the high-dose dead rows (RSL3 >= 500 nM), whereas the 0-25-50-100 nM rows of the same panel (e.g. P82:X82 = 98.74/99.37/108.18/93.71/92.77/106.92/91.82/105.97) are all mutually distinct. This matches the authors' explanation that such repeats arise from MTT/viability normalization, instrument precision and rounding, not fabrication.",
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Extended Data Fig. 5!P87",
+      "target_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Extended Data Fig. 5!U87",
+      "source_a1_range": "P87:P87",
+      "target_a1_range": "U87:U87",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "合法计算/测量假象(consistent): ED Fig. 5d B16-F10面板, 值7.54717在高剂量致死平台反复出现且跨不同处理列(Vehicle P87 = PF-670462 U87 = 7.54717, 500 nM行P87/R87/S87/U87/V87/W87全=7.54717)。看似重复, 实为assay-floor+归一化假象: RSL3致死剂量下活力塌到检测背景, 无论是否加CK1抑制剂(PF-670462)所有孔读到同一量化的酶标仪信号, 除以同一vehicle对照均值并四舍五入→归一化百分比逐位相同。可验证且自限: 重复只在高剂量死亡行(RSL3>=500 nM), 同面板0/25/50/100 nM行(如P82:X82八孔)全互异。符合作者'MTT归一化/仪器精度/四舍五入'的解释, 非造假。AI应把跨处理列的同值判为合法平台假象, 不误报为复制。is_clean_claim=true。"
+    },
+    {
+      "annotation_id": "ncb_gpx4_ann_003",
+      "claim_id": "ncb_gpx4_claim_003",
+      "claim_atom": "In Fig. 1h (2-BP + Fer-1 co-treatment block), several replicate wells carry byte-identical values to 15 significant figures — e.g. R32 = S32 = T32 = 92.89428076256499 at RSL3 100 nM, and the same 15-digit value also appears at S31. Unlike other panels (2-decimal viabilities), the entire Fig. 1h sheet is stored at ~15-digit floating precision, so identical values could either be a legitimate shared-divisor normalization artifact (as the authors argue for Fig. 1d/g/h) or a propagated copy/entry error. This cannot be adjudicated from the released Source Data alone: the raw pre-normalization plate readings are not deposited, and the authors' formal Correction has not yet been published. Pending the raw data and the official correction, the status of the Fig. 1h repeats is undetermined.",
+      "source_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Fig. 1!R32",
+      "target_artifact": "artifacts/43018_2025_937_MOESM4_ESM.xlsx#Fig. 1!S32",
+      "source_a1_range": "R32:T32",
+      "target_a1_range": "S32:S32",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "待定(insufficient): Fig. 1h '2-BP+Fer1'块多个重复孔15位有效数字逐位相同(如R32=S32=T32=92.89428076256499, RSL3 100 nM; 同值亦见S31)。Fig. 1h整表存了~15位浮点精度(与其余2位小数面板不同), 故同值既可能是合法的共享归一化除数假象(作者对Fig. 1d/g/h即如此解释), 也可能是传播的复制/录入错误。仅凭已发布source data无法判定: 归一化前的原始酶标读数未存, 作者的正式Correction也尚未发布。待原始数据与官方更正出炉前, Fig. 1h重复的性质未定。verdict=insufficient。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_gpx4",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "verifier_conflict"
+    ],
+    "source_url": "https://doi.org/10.1038/s43018-025-00937-y",
+    "_lane": "作者已承认复制粘贴错误型mixed(三verdict): ①inconsistent=Fig. 2i 'IKE+Fer1'行8/8单元与Fig. 4c 'RSL3+Fer1'行逐位相同(不同细胞/诱导剂/基因型), 通讯作者Jun Cui承认Fig. 2i copy-paste并将更正; ②consistent=ED Fig. 5d高剂量致死平台的重复值(如7.54717跨Vehicle/PF-670462列)是assay-floor+归一化+四舍五入的合法假象, 只现于高剂量死亡行; ③insufficient=Fig. 1h '2-BP+Fer1'块15位精度重复(R32=S32=T32=92.89428076256499)无法凭已发布数据判定, 待原始读数与正式Correction。考AI区分'作者已认的局部复制粘贴'、'看似重复实为归一化平台假象的合法反证'、'缺原始数据/更正无法判的待定项'。",
+    "_author_response": "通讯作者Jun Cui(崔隽)在PubPeer回复: 承认Fig. 2i存在一处复制粘贴错误并将提交更正; 同时解释ED Fig. 5c/d、Fig. 1d/g/h等处的重复值系MTT/活力归一化(同除一个对照均值)、酶标仪仪器精度有限、以及四舍五入所致, 属合法计算假象, 不改结论。争议source data涉及: ED Fig. 5c/d、Fig. 1d/g/h、Fig. 2i、Fig. 4a、Fig. 5g、Fig. 6d。",
+    "_independent_status": "下载窗口用机构cookie从Nature取该文Statistical source data(MOESM4, xlsx, 15个sheet按图分)+正文PDF(53页), 仅本地核验未上传。核验结果: (a) inconsistent已复现——openpyxl逐格比对Fig. 2i行47(B47:E47,G47:J47)与Fig. 4c行18(B18:E18,G18:J18)8/8单元完全相同(106.53/103.16/102.74/116.21/102.36/123.50/105.70/102.36), 且Fig. 2i其余行为6位小数唯此行为2位小数、粘贴止于8格(Fig. 4c KO2列L18:O18无对应)=典型copy-paste; Fig. 2i Vehicle/IKE行与Fig. 4c对应行不同, 证仅一行误粘。(b) consistent已复现——ED Fig. 5d B16-F10高剂量行重复值7.54717跨Vehicle/PF-670462列, 但同面板低剂量行全互异=assay平台/归一化假象。(c) insufficient——Fig. 1h 15位精度重复(92.89428076256499)缺归一化前原始读数, 且Nature正式Correction截至核验未上线, 无法判定。cookie与临时下载均未进repo。",
+    "_pubpeer": "35C7610A3C43C1249A6DB526674757",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "case_id": "ncb_teneurin",
+  "paper_title": "Teneurins assemble into presynaptic nanoclusters that promote synapse formation via postsynaptic non-teneurin ligands",
+  "paper_authors": [
+    "Xuchen Zhang, Pei-Yi Lin, Kif Liakath-Ali, Thomas C. Sudhof (Nature Communications, 2022)"
+  ],
+  "artifacts": {
+    "orig_incorrect": {
+      "path": "artifacts/41467_2022_29751_source_data_original_incorrect.xlsx",
+      "sha256": "215c4d543a45888bcbd19bddf7f8779e1cb97711aea34576516fc758e45ddf38",
+      "kind": "source_data"
+    },
+    "corrected": {
+      "path": "artifacts/41467_2022_29751_source_data_corrected.xlsx",
+      "sha256": "e7b62dc6ee5700c7cfccf815e65bcdd33f8cd6c8d11e97952de2479a81b7cf8b",
+      "kind": "source_data"
+    }
+  },
+  "observations": {
+    "artifacts/41467_2022_29751_source_data_original_incorrect.xlsx#Main Fig. 8!AC34": {
+      "value": 8.5,
+      "source_artifact": "artifacts/41467_2022_29751_source_data_original_incorrect.xlsx",
+      "source_artifact_hash": "215c4d543a45888bcbd19bddf7f8779e1cb97711aea34576516fc758e45ddf38",
+      "source_span": "sheet 'Main Fig. 8', AC34 (Fig.8k 面板, A31='Fig.8 k'; 列头 O32='Cre' 起为 Cre 条件重复列, AC=第15列 Cre 重复; 数据行34-41对应 stimulate intensity 30..? μA; AC34:AC41=8.5,80.6,105,140,211.2,261.8,289.3,353.4)"
+    },
+    "artifacts/41467_2022_29751_source_data_original_incorrect.xlsx#Main Fig. 8!M34": {
+      "value": 8.5,
+      "source_artifact": "artifacts/41467_2022_29751_source_data_original_incorrect.xlsx",
+      "source_artifact_hash": "215c4d543a45888bcbd19bddf7f8779e1cb97711aea34576516fc758e45ddf38",
+      "source_span": "sheet 'Main Fig. 8', M34 (Fig.8k 面板, 列头 B32='DeltaCre'..N 为 DeltaCre 条件, M=第12列 DeltaCre 重复; M34:M41=8.5,80.6,105,140,211.2,261.8,289.3,353.4 与 Cre 列 AC34:AC41 逐位相同=不同条件却同值)"
+    },
+    "artifacts/41467_2022_29751_source_data_original_incorrect.xlsx#Main Fig. 8!AB4": {
+      "value": 19.5,
+      "source_artifact": "artifacts/41467_2022_29751_source_data_original_incorrect.xlsx",
+      "source_artifact_hash": "215c4d543a45888bcbd19bddf7f8779e1cb97711aea34576516fc758e45ddf38",
+      "source_span": "sheet 'Main Fig. 8', AB4 (Fig.8b 面板, A1='Fig.8 b'; AB 为一整列多出的外来数据, AB4:AB11=19.5,69.6,95.2,106.2,148.9,163,183.7,192.3; 与 Fig.8b 正常 DeltaCre/Cre 数据列量级不符=从别处粘入)"
+    },
+    "artifacts/41467_2022_29751_source_data_original_incorrect.xlsx#Main Fig. 8!AD34": {
+      "value": 19.5,
+      "source_artifact": "artifacts/41467_2022_29751_source_data_original_incorrect.xlsx",
+      "source_artifact_hash": "215c4d543a45888bcbd19bddf7f8779e1cb97711aea34576516fc758e45ddf38",
+      "source_span": "sheet 'Main Fig. 8', AD34 (Fig.8k 面板 AD 列; AD34:AD41=19.5,69.6,95.2,106.2,148.9,163,183.7,192.3, 与 Fig.8b 多出的 AB4:AB11 逐位相同=AB 列即从此处粘来)"
+    },
+    "artifacts/41467_2022_29751_source_data_corrected.xlsx#Main Fig. 8!AC34": {
+      "value": 7.6,
+      "source_artifact": "artifacts/41467_2022_29751_source_data_corrected.xlsx",
+      "source_artifact_hash": "e7b62dc6ee5700c7cfccf815e65bcdd33f8cd6c8d11e97952de2479a81b7cf8b",
+      "source_span": "sheet 'Main Fig. 8', AC34 (更正版: Fig.8k 列 AC 已改为独立值 AC34:AC41=7.6,87.3,108.8,149.5,209,270.6,288.2,362.2, 不再等于 M 列)"
+    },
+    "artifacts/41467_2022_29751_source_data_corrected.xlsx#Main Fig. 8!M34": {
+      "value": 8.5,
+      "source_artifact": "artifacts/41467_2022_29751_source_data_corrected.xlsx",
+      "source_artifact_hash": "e7b62dc6ee5700c7cfccf815e65bcdd33f8cd6c8d11e97952de2479a81b7cf8b",
+      "source_span": "sheet 'Main Fig. 8', M34 (更正版: Fig.8k DeltaCre 列 M 保持不变 M34:M41=8.5,80.6,105,140,211.2,261.8,289.3,353.4=真实测量未被改动, 仅被误粘的 AC 列被修正)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_teneurin_ann_001",
+      "claim_id": "ncb_teneurin_claim_001",
+      "claim_atom": "In the original (incorrect) Source Data, sheet 'Main Fig. 8', the Fig. 8k Cre-condition replicate column AC (AC34:AC41 = 8.5, 80.6, 105, 140, 211.2, 261.8, 289.3, 353.4) is byte-identical to the Fig. 8k DeltaCre-condition column M (M34:M41). These are two DIFFERENT experimental conditions (Cre vs DeltaCre), so identical per-intensity values cannot be independent measurements. In the same sheet the Fig. 8b panel also contained an extra foreign column AB (AB4:AB11 = 19.5, 69.6, 95.2, 106.2, 148.9, 163, 183.7, 192.3) that is byte-identical to the Fig. 8k column AD (AD34:AD41). The corresponding author Xuchen Zhang acknowledged both, and Nature Communications published an Author Correction (Nat Commun 14, 2957 (2023), 10.1038/s41467-023-38713-0) stating the Fig. 8b column AB was 'incorrectly pasted from elsewhere' and removed, and the Fig. 8k column AC values were 'inadvertently pasted from Fig. 8k column M' and corrected.",
+      "source_artifact": "artifacts/41467_2022_29751_source_data_original_incorrect.xlsx#Main Fig. 8!AC34",
+      "target_artifact": "artifacts/41467_2022_29751_source_data_original_incorrect.xlsx#Main Fig. 8!M34",
+      "source_a1_range": "AC34:AC41",
+      "target_a1_range": "M34:M41",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_columns",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "造假核心-作者+Nat Commun已认(inconsistent): 原始(incorrect)版 'Main Fig. 8' 中 Fig.8k Cre 列 AC(AC34:AC41)与 DeltaCre 列 M(M34:M41)8个值逐位相同, 但 Cre 与 DeltaCre 是不同条件, 独立测量不可能逐位同; 且 Fig.8b 多出一整列外来 AB(AB4:AB11)与 Fig.8k 的 AD 列(AD34:AD41)逐位相同。作者 Xuchen Zhang 承认, Nat Commun 发布 Author Correction(s41467-023-38713-0)明认 Fig.8b 的 AB 列'incorrectly pasted from elsewhere'已删除、Fig.8k 的 AC 列'inadvertently pasted from column M'已更正。before/after 双版本 diff 坐实: 仅 AB4:AB11 被删+AC34:AC41 被改。verdict=inconsistent。"
+    },
+    {
+      "annotation_id": "ncb_teneurin_ann_002",
+      "claim_id": "ncb_teneurin_claim_002",
+      "claim_atom": "The correction is localized to the Fig. 8b/8k display columns. In the corrected Source Data the Fig. 8k column AC now holds distinct values (AC34:AC41 = 7.6, 87.3, 108.8, 149.5, 209, 270.6, 288.2, 362.2) that differ from the untouched DeltaCre column M (M34:M41 = 8.5, 80.6, 105, 140, 211.2, 261.8, 289.3, 353.4), so after correction the two conditions are genuinely independent. Column M -- the source of the erroneous paste -- is byte-identical between the original and corrected files, showing it is real, unaltered measurement data. Only one appended column per panel was affected; the correction removed one foreign column (Fig. 8b AB) and replaced one duplicated column (Fig. 8k AC), i.e. an isolated copy-paste during Source Data assembly rather than fabrication of the Fig. 8 datasets, consistent with the authors' statement that the correction does not change the conclusions of the paper.",
+      "source_artifact": "artifacts/41467_2022_29751_source_data_corrected.xlsx#Main Fig. 8!AC34",
+      "target_artifact": "artifacts/41467_2022_29751_source_data_corrected.xlsx#Main Fig. 8!M34",
+      "source_a1_range": "AC34:AC41",
+      "target_a1_range": "M34:M41",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "合法子断言(consistent): 更正版 Fig.8k AC 列改为独立值(7.6,87.3...)且不同于未改动的 DeltaCre M 列(8.5,80.6...), 证更正后两条件真独立; 被误粘的源列 M 在原始/更正两版逐位相同=真实测量未被动过。每面板仅 1 个附加列受影响(8b 删外来 AB、8k 换重复 AC)=Source Data 整理阶段的孤立复制粘贴, 非 Fig.8 数据集编造, 支持作者'更正不改结论'。AI 应把此定为孤立展示层错误, 不因此判整图造假。"
+    },
+    {
+      "annotation_id": "ncb_teneurin_ann_003",
+      "claim_id": "ncb_teneurin_claim_003",
+      "claim_atom": "The corrected Fig. 8k column AC values (7.6, 87.3, 108.8, 149.5, 209, 270.6, 288.2, 362.2) are the authors' asserted true measurements replacing the values erroneously copied from column M, but the raw field-EPSP / electrophysiology traces underlying these input-output curves are not deposited, so whether the corrected AC values are themselves the correct underlying measurements cannot be independently verified from the Source Data files alone. Additionally, the two deposited files ('Incorrect' vs 'Updated' Source Data) also differ in many undocumented cells outside Fig. 8 (e.g. sheet 'Main Fig. 2' and 'Main Fig. 3' show hundreds of row-shifted/re-ordered values and sheet 'Main Fig. 5' shows rounding changes) that the Author Correction does not mention, so the full provenance of the corrected file cannot be adjudicated from the source data alone pending the raw traces.",
+      "source_artifact": "artifacts/41467_2022_29751_source_data_corrected.xlsx#Main Fig. 8!AC34",
+      "target_artifact": "artifacts/41467_2022_29751_source_data_original_incorrect.xlsx#Main Fig. 8!AC34",
+      "source_a1_range": "AC34:AC41",
+      "target_a1_range": "AC34:AC41",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "待定(insufficient): 更正后的 Fig.8k AC 值(7.6,87.3...)是作者主张的真值(替换从 M 列误粘的值), 但支撑这些 input-output 曲线的原始电生理/fEPSP trace 未存, 故更正值本身是否为真测量无法仅凭 Source Data 独立核验。此外, 'Incorrect' 与 'Updated' 两版在 Fig.8 之外还有大量 Author Correction 未提及的差异(如 'Main Fig. 2'/'Main Fig. 3' 数百处行位移/重排、'Main Fig. 5' 的四舍五入变化), 使更正文件的完整来源无法仅凭 source data 判定, 待原始 trace。verdict=insufficient。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_teneurin",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "verifier_conflict"
+    ],
+    "source_url": "https://doi.org/10.1038/s41467-022-29751-1",
+    "_lane": "作者+期刊已认并已发布正式更正型 mixed(三verdict, before/after 双版本): (1)inconsistent=原始(incorrect)版 Fig.8k Cre 列 AC 与 DeltaCre 列 M 逐位相同(不同条件)+Fig.8b 多出外来列 AB 与 Fig.8k AD 列逐位相同, Author Correction(s41467-023-38713-0)明认 copy-paste; (2)consistent=更正版 AC 已改为独立值且 M 未动+每面板仅 1 附加列受影响=孤立复制粘贴非整图造假, 结论不变; (3)insufficient=更正值是作者主张真值但原始电生理 trace 未存无法独立核验, 且两版在 Fig.8 之外有未记录差异。开放 Nat Commun source data 含更正前(Incorrect)+更正后(Updated)双版本可 diff。",
+    "_author_response": "通讯作者 Xuchen Zhang 确认 Fig.8b/8k source data 为 copy-paste 错误并已修正; Nature Communications 发布 Author Correction(Nat Commun 14, 2957 (2023), 10.1038/s41467-023-38713-0, 2023-05-25): 'The original version of the Source Data file associated with this Article included errors in the data shown for figure 8b and figure 8k. The Source Data for fig. 8b incorrectly contained an additional column of data, under AB, which was incorrectly pasted from elsewhere. This column has been removed. The values shown in the Source Data for Fig. 8k column AC were incorrect, as these were inadvertently pasted from Fig. 8k column M... The HTML has been updated to include a corrected version of the Source Data file; the original incorrect version can be found as Supplementary Information associated with this Correction.'",
+    "_independent_status": "下载窗口(带机构 cookie)取 Nat Commun 主文 Source Data(MOESM3, 已更正版)+ Author Correction 的 Supplementary: 'Updated Source Data'(MOESM1, sha e7b62dc6..., 与主文 MOESM3 同 hash=更正后)与 'Incorrect Source Data'(MOESM2, sha 215c4d54...=更正前)。本地 openpyxl 核验坐实: 原始版 'Main Fig. 8' AC34:AC41==M34:M41(8.5,80.6,105,140,211.2,261.8,289.3,353.4)逐位同; AB4:AB11(19.5,69.6,95.2,106.2,148.9,163,183.7,192.3)==AD34:AD41; 更正版 AB 列被删、AC34:AC41 改为 7.6,87.3,108.8,149.5,209,270.6,288.2,362.2、M 列未动。两版另在 Fig.2/3/5 等 sheet 有 Correction 未提及的重排/取整差异。",
+    "_pubpeer": "EC9A138F8BFAAE1F2FB803106703AB",
+    "_correction_status": "Nat Commun 已发布正式 Author Correction(article 2957, 10.1038/s41467-023-38713-0, 2023-05-25)。此案用更正前(Incorrect Source Data)+更正后(Updated Source Data)双版本。",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}
