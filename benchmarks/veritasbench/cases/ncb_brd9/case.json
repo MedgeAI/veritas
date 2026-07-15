@@ -1,0 +1,120 @@
+{
+  "case_id": "ncb_brd9",
+  "paper_title": "BRD9-mediated chromatin remodeling suppresses osteoclastogenesis through negative feedback mechanism",
+  "paper_authors": [
+    "蒋欣泉、周明亮 团队 (上海交通大学医学院; Nature Communications, 2023)"
+  ],
+  "artifacts": {
+    "source_data": {
+      "path": "artifacts/41467_2023_37116_MOESM3_ESM.xlsx",
+      "sha256": "28afa01390cbbc6446d542f10abd4488dbcbab73da1c06f0a4c4205c2b24be05",
+      "kind": "source_data"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "2a8b4e05f163e6fbb35dfdcd47f8c0fefe6a213382d6e319599355dbc84403c0",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41467_2023_37116_MOESM3_ESM.xlsx#Figure 3d!B3": {
+      "value": 1.034225,
+      "source_artifact": "artifacts/41467_2023_37116_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "28afa01390cbbc6446d542f10abd4488dbcbab73da1c06f0a4c4205c2b24be05",
+      "source_span": "sheet 'Figure 3d', B3 (CCK-8 OD, 0 uM BRD9抑制剂, 重复1; 行2为浓度表头; 1.034225 = 原始1.1882 - 空白均值0.153975)"
+    },
+    "artifacts/41467_2023_37116_MOESM3_ESM.xlsx#Figure 3d!C3": {
+      "value": 1.176325,
+      "source_artifact": "artifacts/41467_2023_37116_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "28afa01390cbbc6446d542f10abd4488dbcbab73da1c06f0a4c4205c2b24be05",
+      "source_span": "sheet 'Figure 3d', C3 (0.3 uM, 重复1; 1.176325 = 1.3303 - 0.153975)"
+    },
+    "artifacts/41467_2023_37116_MOESM3_ESM.xlsx#Figure 3d!B4": {
+      "value": 0.989325,
+      "source_artifact": "artifacts/41467_2023_37116_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "28afa01390cbbc6446d542f10abd4488dbcbab73da1c06f0a4c4205c2b24be05",
+      "source_span": "sheet 'Figure 3d', B4 (0 uM, 重复2; 1.1433 - 0.153975; 同样以...25结尾)"
+    },
+    "artifacts/41467_2023_37116_MOESM3_ESM.xlsx#Figure 7b!C3": {
+      "value": 0.980538,
+      "source_artifact": "artifacts/41467_2023_37116_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "28afa01390cbbc6446d542f10abd4488dbcbab73da1c06f0a4c4205c2b24be05",
+      "source_span": "sheet 'Figure 7b', C3 (同类CCK-8, 0um, 相对细胞活性=扣背景后再除对照均值归一化; ~1.0附近, 不以...25结尾)"
+    },
+    "artifacts/41467_2023_37116_MOESM3_ESM.xlsx#Figure 7b!D3": {
+      "value": 1.077991,
+      "source_artifact": "artifacts/41467_2023_37116_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "28afa01390cbbc6446d542f10abd4488dbcbab73da1c06f0a4c4205c2b24be05",
+      "source_span": "sheet 'Figure 7b', D3 (0.01um, 归一化相对活性)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_brd9_ann_001",
+      "claim_id": "ncb_brd9_claim_001",
+      "claim_atom": "All 50 CCK-8 absorbance values in Figure 3d terminate in '...25' at the sixth decimal place. This uniform terminal-digit pattern is a deterministic artifact of background subtraction: each reported value equals a four-decimal raw absorbance minus the fixed blank-well mean 0.153975 (= (0.1538+0.1555+0.1520+0.1546)/4, which ends in ...975). Verified for all 50 values — e.g. B3 1.034225 = 1.1882 - 0.153975 and C3 1.176325 = 1.3303 - 0.153975; every value + 0.153975 recovers a clean four-decimal number. The uniform '...25' ending therefore does NOT indicate fabrication.",
+      "source_artifact": "artifacts/41467_2023_37116_MOESM3_ESM.xlsx#Figure 3d!B3",
+      "target_artifact": "artifacts/41467_2023_37116_MOESM3_ESM.xlsx#Figure 3d!C3",
+      "source_a1_range": "B3:B3",
+      "target_a1_range": "C3:C3",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "合法(consistent, 已算术验证50/50): 6位小数尾数全为...25=对固定空白均值0.153975(尾...975)做扣背景的确定性算术结果, 非造假。刘盼原则[1]: 归一化/机器计算数据的尾数频率无意义。val+0.153975全为干净4位小数(1.034225→1.1882, 1.176325→1.3303)坐实作者解释。AI不应因统一尾数报异常。"
+    },
+    {
+      "annotation_id": "ncb_brd9_ann_002",
+      "claim_id": "ncb_brd9_claim_002",
+      "claim_atom": "Figure 7b (the same CCK-8 assay) does NOT show the '...25' terminal-digit pattern, and this difference is consistent with the authors' account that Fig 7b reports background-subtracted values that are then normalized to the control-group mean (relative cell viability centered on ~1.0, observed range 0.755-1.078), whereas Fig 3d reports only background-subtracted absorbances. Division by the control mean removes the fixed-subtraction terminal-digit signature, so the 3d-vs-7b discrepancy the commenter raised is fully explained by the different processing step rather than indicating an anomaly.",
+      "source_artifact": "artifacts/41467_2023_37116_MOESM3_ESM.xlsx#Figure 7b!C3",
+      "target_artifact": "artifacts/41467_2023_37116_MOESM3_ESM.xlsx#Figure 7b!D3",
+      "source_a1_range": "C3:C3",
+      "target_a1_range": "D3:D3",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "合法(consistent): 7b=扣背景后再除对照均值归一化(相对活性~1.0), 归一化抹掉固定减法的尾数签名, 故无...25。commenter追问'为何3d有7b无'被处理流程差异完整解释。观测坐实: 7b值域0.755-1.078居1.0附近, 54值中仅1个巧合以25结尾。"
+    },
+    {
+      "annotation_id": "ncb_brd9_ann_003",
+      "claim_id": "ncb_brd9_claim_003",
+      "claim_atom": "Whether the underlying raw instrument absorbance readings for Fig 3d and Fig 7b are themselves authentic cannot be independently confirmed from the published (derived) Source Data alone: the commenter noted that the author-posted screenshots are not the original instrument export file, and the authors state the original Tecan Spark 10M export files for both figures were submitted to the PubPeer / journal editorial team for independent verification but are not publicly available. The arithmetic of the background subtraction and normalization is fully reproducible from the published values, but the provenance of the raw readings behind them remains under editorial review.",
+      "source_artifact": "artifacts/41467_2023_37116_MOESM3_ESM.xlsx#Figure 3d!B4",
+      "target_artifact": "artifacts/41467_2023_37116_MOESM3_ESM.xlsx#Figure 7b!C3",
+      "source_a1_range": "B4:B4",
+      "target_a1_range": "C3:C3",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "待定(insufficient): 扣背景/归一化的算术可从公开值完全复现(claim1/2), 但底层原始仪器读数的真实性无法仅凭派生Source Data独立确认——截图≠原始导出文件, 作者称原始Tecan Spark 10M导出文件已提交PubPeer/期刊编辑独立核验但未公开。verdict=insufficient。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_brd9",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.1038/s41467-023-37116-5",
+    "_lane": "作者已回应型mixed(consistent主导+insufficient尾, 无硬inconsistent): Fig3d CCK-8的50值6位小数全...25→被追问疑造假, 但=扣固定空白均值0.153975的确定性算术artifact(可验证50/50, consistent);7b无此模式因归一化(consistent);原始仪器导出文件只交编辑部核验未公开→底层读数真实性待定(insufficient)。此案考AI抵抗尾数假警报+识别原始provenance未闭合。★偏false_positive(作者可验证正确), 作为mixed的'已澄清假警报+原始数据待核'子型。",
+    "_author_response": "周明亮多轮回应(7/1,7/7): ①Tecan Spark 10M, 原始OD 4位小数; ②Fig3d值=原始-空白均值0.153975(给出算例1.1882-0.153975=1.034225); ③Fig7b=扣背景后再除对照均值归一化, 与3d不同处理; ④两图原始仪器导出文件已提交PubPeer编辑团队独立核验。",
+    "_independent_status": "下载窗口取开放获取Source Data(MOESM3)+正文PDF。本地验证作者解释: Fig3d 50/50值以...25结尾且val+0.153975全为干净4位小数(坐实扣背景); Fig7b归一化值~1.0无...25模式(坐实处理差异)。",
+    "_pubpeer": "12F2EA0413CF63085C81A4E3A22EF4",
+    "_note_doi_correction": "用户提供URL尾号-2为笔误, 正确DOI=10.1038/s41467-023-37116-5(PMC10014883)。",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}
