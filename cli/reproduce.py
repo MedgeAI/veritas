@@ -78,6 +78,40 @@ try:
         rc = handle_benchmark(suite=suite, output_dir=output_dir, far_alpha=far_alpha)
         sys.exit(rc)
 
+    @reproduce.command("experiment-plan", help="Prepare a reproducible VeritasBench experiment plan.")
+    @click.option(
+        "--config",
+        "config_path",
+        type=click.Path(),
+        default="configs/experiments/veritasbench_b1_b5.yaml",
+        show_default=True,
+        help="Experiment YAML contract.",
+    )
+    @click.option("--base-path", default="benchmarks/veritasbench", show_default=True)
+    @click.option(
+        "--output-dir",
+        default="outputs/experiments/veritasbench",
+        show_default=True,
+    )
+    @click.option(
+        "--allow-partial",
+        is_flag=True,
+        help="Allow a non-empty pilot subset; never use for final results.",
+    )
+    def _click_experiment_plan(
+        config_path: str,
+        base_path: str,
+        output_dir: str,
+        allow_partial: bool,
+    ) -> None:
+        rc = handle_experiment_plan(
+            config_path=config_path,
+            base_path=base_path,
+            output_dir=output_dir,
+            allow_partial=allow_partial,
+        )
+        sys.exit(rc)
+
     @reproduce.command("mock", help="Generate mock claims for development.")
     @click.option(
         "--num-claims",
@@ -169,6 +203,49 @@ def handle_benchmark(
     return 0
 
 
+def handle_experiment_plan(
+    *,
+    config_path: str = "configs/experiments/veritasbench_b1_b5.yaml",
+    base_path: str = "benchmarks/veritasbench",
+    output_dir: str = "outputs/experiments/veritasbench",
+    allow_partial: bool = False,
+) -> int:
+    """Validate the frozen dataset and write the deterministic run plan."""
+    from engine.reproduction.benchmark.experiment_runner import (
+        ExperimentExecutionError,
+        ExperimentLedger,
+    )
+
+    try:
+        prepared = ExperimentLedger(
+            config_path,
+            base_path=base_path,
+            output_dir=output_dir,
+            allow_partial=allow_partial,
+        ).prepare()
+    except (ExperimentExecutionError, FileNotFoundError, ValueError) as exc:
+        print(f"Experiment plan failed: {exc}", file=sys.stderr)
+        return 1
+
+    print(
+        json.dumps(
+            {
+                "experiment_id": prepared.spec.experiment_id,
+                "config_digest": prepared.spec.config_digest,
+                "plan_digest": prepared.plan["plan_digest"],
+                "cases": len(prepared.cases),
+                "runs": len(prepared.plan["runs"]),
+                "partial": prepared.plan["partial"],
+                "output_dir": str(prepared.output_dir),
+                "status": "ready",
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
+    return 0
+
+
 def handle_mock(
     *,
     num_claims: int = 50,
@@ -236,6 +313,33 @@ def add_subparsers(subparsers: Any) -> None:
         help="False-accusation-rate threshold (default: 0.05).",
     )
 
+    # -- reproduce experiment-plan ----------------------------------------
+    plan_parser = sub.add_parser(
+        "experiment-plan",
+        help="Validate VeritasBench and write the deterministic B1-B5 run plan.",
+    )
+    plan_parser.add_argument(
+        "--config",
+        dest="config_path",
+        default="configs/experiments/veritasbench_b1_b5.yaml",
+        help="Experiment YAML contract.",
+    )
+    plan_parser.add_argument(
+        "--base-path",
+        default="benchmarks/veritasbench",
+        help="VeritasBench root directory.",
+    )
+    plan_parser.add_argument(
+        "--output-dir",
+        default="outputs/experiments/veritasbench",
+        help="Experiment ledger output directory.",
+    )
+    plan_parser.add_argument(
+        "--allow-partial",
+        action="store_true",
+        help="Allow a non-empty pilot subset; never use for final results.",
+    )
+
     # -- reproduce mock ----------------------------------------------------
     mock_parser = sub.add_parser("mock", help="Generate mock claims for development.")
     mock_parser.add_argument(
@@ -266,6 +370,13 @@ def dispatch(args: Any) -> int:
             suite=args.suite,
             output_dir=args.output_dir,
             far_alpha=args.far_alpha,
+        )
+    if cmd == "experiment-plan":
+        return handle_experiment_plan(
+            config_path=args.config_path,
+            base_path=args.base_path,
+            output_dir=args.output_dir,
+            allow_partial=args.allow_partial,
         )
     if cmd == "mock":
         return handle_mock(

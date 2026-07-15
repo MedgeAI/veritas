@@ -1,9 +1,9 @@
 """Benchmark case loader for VeritasBench.
 
-Loads benchmark suites and cases from a structured directory layout,
-with automatic fallback to mock data when the benchmark directory is absent.
+Loads benchmark suites and cases from a structured directory layout.
+Mock data is available only when the caller explicitly opts in.
 
-Expected directory layout under base_path (default: benchmarks/veritas_bench_v1/):
+Expected directory layout under base_path (default: benchmarks/veritasbench/):
 
     suites/
         {suite_name}.json   -- {"name": "...", "description": "...", "case_ids": [...]}
@@ -23,23 +23,41 @@ from engine.reproduction.models import BenchmarkCase, ClaimRelationAnnotation
 
 logger = logging.getLogger(__name__)
 
-_DEFAULT_BASE_PATH = Path("benchmarks/veritas_bench_v1")
+_DEFAULT_BASE_PATH = Path("benchmarks/veritasbench")
 
 
 class BenchmarkCaseLoader:
-    """Loads benchmark suites and cases from disk, with mock-data fallback."""
+    """Load benchmark data, failing loudly unless mock mode is explicit."""
 
-    def __init__(self, base_path: Path | str | None = None) -> None:
+    def __init__(
+        self,
+        base_path: Path | str | None = None,
+        *,
+        allow_mock: bool = False,
+    ) -> None:
         if base_path is None:
             self.base_path = _DEFAULT_BASE_PATH
         else:
             self.base_path = Path(base_path)
-        self._use_mock = not self.base_path.is_dir()
+        # Explicit mock mode is independent of the filesystem. This keeps
+        # regression tests isolated even when the paper scaffold exists.
+        self._use_mock = allow_mock
         if self._use_mock:
             logger.warning(
-                "Benchmark directory %s not found; falling back to mock data",
+                "Explicit mock mode enabled for benchmark loader at %s",
                 self.base_path,
             )
+        elif not self.base_path.is_dir():
+            raise FileNotFoundError(
+                f"Benchmark directory not found: {self.base_path}. "
+                "Pass allow_mock=True only for regression tests."
+            )
+
+    @property
+    def using_mock(self) -> bool:
+        """Whether this loader is serving synthetic regression data."""
+
+        return self._use_mock
 
     # ------------------------------------------------------------------
     # Public API
@@ -88,13 +106,20 @@ class BenchmarkCaseLoader:
 
         suite_data = self._read_json(suite_path)
         case_ids: list[str] = suite_data.get("case_ids", [])
+        if len(set(case_ids)) != len(case_ids):
+            raise ValueError(f"Suite {suite_name!r} contains duplicate case IDs")
 
         cases: list[BenchmarkCase] = []
+        missing: list[str] = []
         for case_id in case_ids:
             try:
                 cases.append(self.load_case(case_id))
             except FileNotFoundError:
-                logger.warning("Case %s listed in suite but not found on disk; skipping", case_id)
+                missing.append(case_id)
+        if missing:
+            raise FileNotFoundError(
+                f"Suite {suite_name!r} lists cases missing on disk: {', '.join(missing)}"
+            )
         return cases
 
     def load_case(self, case_id: str) -> BenchmarkCase:
@@ -141,6 +166,7 @@ class BenchmarkCaseLoader:
             paper_authors=data.get("paper_authors", []),
             artifacts=data.get("artifacts", {}),
             claims=claims,
+            observations=data.get("observations", {}),
             metadata=data.get("metadata", {}),
         )
 

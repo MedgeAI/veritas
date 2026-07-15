@@ -1,0 +1,65 @@
+schema_version: 1
+experiment_id: veritasbench_b1_b5_v1
+
+dataset:
+  manifest: benchmarks/veritasbench/manifest.json
+  suite: veritasbench_50
+  expected_cases: 50
+  split_unit: paper
+
+# B4 and B5 must share every upstream condition. Only aggregation_policy may differ.
+tiers:
+  - id: B1
+    pipeline_tier: bare
+    audit_profile: fast
+    aggregation_policy: flat
+    roles: [judge]
+  - id: B2
+    pipeline_tier: structured
+    audit_profile: fast
+    aggregation_policy: flat
+    roles: [claim_extractor, judge]
+  - id: B3
+    pipeline_tier: artifact
+    audit_profile: fast
+    aggregation_policy: flat
+    roles: [claim_extractor, source_data_auditor, judge]
+  - id: B4
+    pipeline_tier: provenance
+    audit_profile: fast
+    aggregation_policy: flat
+    roles: [claim_extractor, source_data_auditor, judge]
+  - id: B5
+    pipeline_tier: provenance
+    audit_profile: fast
+    aggregation_policy: graph_aware
+    roles: [claim_extractor, source_data_auditor, judge]
+
+consistency:
+  repeats: 3
+  canonical_fields:
+    - case_id
+    - tier_id
+    - input_hashes
+    - config_digest
+    - tool_registry_digest
+    - model_id
+    - seed
+    - temperature
+    - verdicts
+    - evidence_spans
+  exclude_from_digest:
+    - started_at
+    - finished_at
+    - duration_seconds
+
+metrics:
+  - claim_f1
+  - evidence_precision
+  - evidence_recall
+  - far
+  - recall_at_far_05
+  - recall_at_far_10
+  - coverage
+  - abstention_rate
+  - digest_mismatch_rate

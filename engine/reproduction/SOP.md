@@ -39,7 +39,7 @@
 │  输入：suite_name (str)                                            │
 │  输出：list[BenchmarkCase]                                         │
 │                                                                    │
-│  真实数据：benchmarks/veritas_bench_v1/suites/{suite}.json         │
+│  真实数据：benchmarks/veritasbench/suites/{suite}.json             │
 │           → cases/{case_id}/case.json                              │
 │  Mock fallback：generate_mock_benchmark_case() × 3                │
 └─────────────────────────┬─────────────────────────────────────────┘
@@ -192,7 +192,7 @@ uv run python -m cli.main reproduce benchmark
 
 **你会看到**：
 ```
-Benchmark directory benchmarks/veritas_bench_v1 not found; falling back to mock data
+Benchmark directory not found; paper runs fail loudly. Mock data requires allow_mock=True
 ============================================================
 VeritasBench  suite=smoke_test
 ============================================================
@@ -212,7 +212,7 @@ Metrics:
 ```
 
 **发生了什么**：
-1. `BenchmarkCaseLoader` 发现 `benchmarks/veritas_bench_v1/` 不存在
+1. `BenchmarkCaseLoader` 发现真实 benchmark 目录不存在时直接失败；只有显式 `allow_mock=True` 才加载 mock
 2. 自动 fallback 到 mock data（3 个 case，每个 5 个 annotation）
 3. `BenchmarkRunner` 对每个 case 调用 `VeritasAuditor.audit_case()`
 4. `VeritasAuditor` 构建 EvidenceGraph，运行 NumericComparator，聚合 verdict
@@ -453,14 +453,22 @@ for v in data['claim_verdicts'][:3]:
 "
 ```
 
-### Step 7: 用真实数据格式创建 benchmark（准备 future work）
+### Step 7: 用 VeritasBench schema 准备真实 benchmark
 
-创建最小真实数据目录结构：
+创建数据目录结构。当前仓库只提供 scaffold；真实论文结果必须使用完整的 50-case 数据集，并通过 `benchmarks/veritasbench/case.schema.json` 校验。
 
 ```bash
-mkdir -p benchmarks/veritas_bench_v1/suites
-mkdir -p benchmarks/veritas_bench_v1/cases/case_001
+mkdir -p benchmarks/veritasbench/suites
+mkdir -p benchmarks/veritasbench/cases/case_001
 ```
+
+The historical minimal example below predates the provenance contract. For a
+paper run, add `artifacts` with immutable hashes and `observations` records
+with `value`, `source_artifact`, `source_artifact_hash`, and `source_span`.
+Verifier inputs must come from observations; annotation verdicts are labels
+for metrics only. Prefer the schema and scaffold in `benchmarks/veritasbench/`
+and generate the 750-run identity plan with
+`engine/reproduction/benchmark/experiment_plan.py`.
 
 ```python
 import json
@@ -471,7 +479,7 @@ suite = {
     "description": "Smoke test suite with 1 case",
     "case_ids": ["case_001"]
 }
-with open("benchmarks/veritas_bench_v1/suites/smoke_test.json", "w") as f:
+with open("benchmarks/veritasbench/suites/smoke_test.json", "w") as f:
     json.dump(suite, f, indent=2)
 
 # 创建 case 文件（最小格式）
@@ -515,7 +523,7 @@ case = {
         "statistical_methods": ["t-test"]
     }
 }
-with open("benchmarks/veritas_bench_v1/cases/case_001/case.json", "w") as f:
+with open("benchmarks/veritasbench/cases/case_001/case.json", "w") as f:
     json.dump(case, f, indent=2)
 ```
 
@@ -526,7 +534,7 @@ uv run python -m cli.main reproduce benchmark --suite smoke_test
 ```
 
 **理解要点**：
-- `case.json` 的必填字段只有 `case_id` 和 `claims`
+- `case.json` 还必须包含带 hash/span 的 `artifacts` 与 `observations`
 - 每个 claim annotation 必须有 `claim_id`, `source_artifact`, `target_artifact`, `relation_type`, `verdict`
 - `evidence_span` 必须使用 canonical 格式 `{relation_type}:{source}->{target}`
 - `is_clean_claim` 必须正确设置（FAR 测量依赖它）
@@ -540,7 +548,7 @@ uv run python -m cli.main reproduce benchmark --suite smoke_test
 |---|---|---|
 | evidence_span 格式 | `{relation_type}:{source}->{target}` | 稳定标识符，GT 和 predicted 可精确匹配 |
 | Verdict 生成 | 经过 engine，不直接读 GT | 即使 mock data 也要走算法路径 |
-| Mock 数值生成 | SHA256 hash → deterministic float | 相同 artifact_ref 总是生成相同值 |
+| Mock 数据边界 | 只有显式 `allow_mock=True` 与 `use_mock_verdicts=True` 才允许 | mock 只能用于回归测试，不能进入论文表格 |
 | inconsistent 数值构造 | source × 2.5 | 产生 ~150% 差异 → critical severity |
 | FAR-constrained decision | flag_score 最高但 far_risk > α → abstain | 宁可不说也不乱说 |
 | claim_f1 粒度 | claim-level（不是 annotation-level） | 一个 claim 有一个 annotation 不一致就算 dirty |
@@ -553,9 +561,9 @@ uv run python -m cli.main reproduce benchmark --suite smoke_test
 | 局限 | 原因 | 影响 |
 |---|---|---|
 | 只有 L1 verifier | L2/L3/L4 verifier 未实现 | L2/L3/L4 annotations 全部 insufficient |
-| mock 数值 | SHA256 hash，不是真实数据 | 无法验证真实场景下的行为 |
+| 真实 observations | 50-case 数据尚未冻结 | 尚不能报告论文 benchmark 数字 |
 | FAR risk 公式 | 硬编码加权公式 | 过于保守（rate=1.0 → abstain） |
-| evidence_independence | 硬编码 1.0 | 所有 signals 被视为独立 |
+| evidence_independence | flat 模式仍为简化估计；graph-aware 目前只做 artifact-family 去重 | 独立性建模和 corroboration bonus 仍需在 B4/B5 实验中验证 |
 | evidence_span 精确匹配 | 字符串交集 | 无法处理语义等价但文本不同的 span |
 | `reproduce run` | stub，未连接 pipeline | 无法对单篇论文做端到端审计 |
 | 真实 artifact 解析 | 无 PDF/Excel/代码解析 | 只能处理 mock 数值 |
@@ -566,7 +574,7 @@ uv run python -m cli.main reproduce benchmark --suite smoke_test
 
 | 命令 | 用途 | 关键参数 |
 |---|---|---|
-| `uv run python -m cli.main reproduce benchmark` | 运行 benchmark（默认 mock data） | `--suite`, `--far-alpha`, `--output-dir` |
+| `uv run python -m cli.main reproduce benchmark` | 运行已填充的 benchmark；缺数据时失败 | `--suite`, `--far-alpha`, `--output-dir` |
 | `uv run python -m cli.main reproduce mock` | 生成 mock claims | `--num-claims`, `--output-dir` |
 | `uv run python -m cli.main reproduce run` | 端到端审计（stub） | `--paper`, `--code`, `--output-dir` |
 

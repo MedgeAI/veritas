@@ -1,11 +1,8 @@
 """Integration tests for BenchmarkRunner."""
 
-import pytest
-
 from engine.reproduction.benchmark.case_loader import BenchmarkCaseLoader
 from engine.reproduction.benchmark.metrics import MetricsCalculator
 from engine.reproduction.benchmark.runner import BenchmarkRunner
-from engine.reproduction.mock_data import generate_mock_claims
 
 
 class TestBenchmarkRunner:
@@ -13,22 +10,26 @@ class TestBenchmarkRunner:
 
     def test_runner_creation(self):
         """Test creating a BenchmarkRunner."""
-        loader = BenchmarkCaseLoader()
-        runner = BenchmarkRunner(case_loader=loader)
+        loader = BenchmarkCaseLoader(allow_mock=True)
+        runner = BenchmarkRunner(case_loader=loader, use_mock_verdicts=True)
         assert runner.case_loader is loader
         assert runner.metrics_calculator is not None
 
     def test_runner_with_custom_metrics(self):
         """Test creating runner with custom metrics calculator."""
-        loader = BenchmarkCaseLoader()
+        loader = BenchmarkCaseLoader(allow_mock=True)
         metrics = MetricsCalculator()
-        runner = BenchmarkRunner(case_loader=loader, metrics_calculator=metrics)
+        runner = BenchmarkRunner(
+            case_loader=loader,
+            metrics_calculator=metrics,
+            use_mock_verdicts=True,
+        )
         assert runner.metrics_calculator is metrics
 
     def test_runner_smoke_suite(self):
         """Test running benchmark with smoke_test suite."""
-        loader = BenchmarkCaseLoader()
-        runner = BenchmarkRunner(case_loader=loader)
+        loader = BenchmarkCaseLoader(allow_mock=True)
+        runner = BenchmarkRunner(case_loader=loader, use_mock_verdicts=True)
         result = runner.run(suite_name="smoke_test")
         assert result is not None
         assert result.suite_name == "smoke_test"
@@ -37,8 +38,8 @@ class TestBenchmarkRunner:
 
     def test_runner_metrics_present(self):
         """Test that runner produces all expected metrics."""
-        loader = BenchmarkCaseLoader()
-        runner = BenchmarkRunner(case_loader=loader)
+        loader = BenchmarkCaseLoader(allow_mock=True)
+        runner = BenchmarkRunner(case_loader=loader, use_mock_verdicts=True)
         result = runner.run(suite_name="smoke_test", far_alpha=0.05)
 
         expected_metrics = [
@@ -54,8 +55,8 @@ class TestBenchmarkRunner:
 
     def test_runner_far_alpha_parameter(self):
         """Test that far_alpha parameter affects results."""
-        loader = BenchmarkCaseLoader()
-        runner = BenchmarkRunner(case_loader=loader)
+        loader = BenchmarkCaseLoader(allow_mock=True)
+        runner = BenchmarkRunner(case_loader=loader, use_mock_verdicts=True)
 
         result_strict = runner.run(suite_name="smoke_test", far_alpha=0.01)
         result_relaxed = runner.run(suite_name="smoke_test", far_alpha=0.10)
@@ -66,9 +67,8 @@ class TestBenchmarkRunner:
 
     def test_runner_with_mock_claims(self):
         """Test runner with generated mock claims."""
-        claims = generate_mock_claims(num_claims=5)
-        loader = BenchmarkCaseLoader()
-        runner = BenchmarkRunner(case_loader=loader)
+        loader = BenchmarkCaseLoader(allow_mock=True)
+        runner = BenchmarkRunner(case_loader=loader, use_mock_verdicts=True)
 
         # Run with mock data
         result = runner.run(suite_name="smoke_test")
@@ -82,11 +82,9 @@ class TestBenchmarkRunnerEndToEnd:
     def test_full_pipeline_mock(self):
         """Test full pipeline with mock data."""
         # Generate mock data
-        claims = generate_mock_claims(num_claims=10)
-
         # Create runner
-        loader = BenchmarkCaseLoader()
-        runner = BenchmarkRunner(case_loader=loader)
+        loader = BenchmarkCaseLoader(allow_mock=True)
+        runner = BenchmarkRunner(case_loader=loader, use_mock_verdicts=True)
 
         # Run benchmark
         result = runner.run(suite_name="smoke_test", far_alpha=0.05)
@@ -103,8 +101,8 @@ class TestBenchmarkRunnerEndToEnd:
 
     def test_coverage_and_abstention_complementary(self):
         """Test that coverage + abstention_rate ≈ 1.0."""
-        loader = BenchmarkCaseLoader()
-        runner = BenchmarkRunner(case_loader=loader)
+        loader = BenchmarkCaseLoader(allow_mock=True)
+        runner = BenchmarkRunner(case_loader=loader, use_mock_verdicts=True)
         result = runner.run(suite_name="smoke_test")
 
         coverage = result.metrics.get("coverage", 0)

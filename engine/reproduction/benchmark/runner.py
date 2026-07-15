@@ -10,10 +10,10 @@ and regression testing of the metrics pipeline.
 
 from __future__ import annotations
 
-import hashlib
 import logging
 from collections import defaultdict
-from typing import Any
+from collections.abc import Mapping
+from typing import Any, Literal, Sequence
 
 from engine.reproduction.benchmark.case_loader import BenchmarkCaseLoader
 from engine.reproduction.benchmark.metrics import MetricsCalculator
@@ -32,6 +32,10 @@ from engine.reproduction.verifiers.base import TypedVerifier
 from engine.reproduction.verifiers.numeric_comparator import NumericComparator
 
 logger = logging.getLogger(__name__)
+
+
+class BenchmarkDataError(ValueError):
+    """Raised when a case cannot provide a provenance-anchored observation."""
 
 
 # ------------------------------------------------------------------
@@ -73,19 +77,27 @@ class VeritasAuditor:
         self,
         verifiers: dict[str, TypedVerifier] | None = None,
         far_alpha: float = 0.05,
+        aggregation_policy: Literal["flat", "graph_aware"] = "flat",
     ) -> None:
         if verifiers is None:
             verifiers = {"L1": NumericComparator()}
         self.verifiers = verifiers
-        self.engine = EvidenceGraphEngine(far_alpha=far_alpha)
+        self.engine = EvidenceGraphEngine(
+            far_alpha=far_alpha,
+            aggregation_policy=aggregation_policy,
+        )
 
     def audit_case(self, case: BenchmarkCase) -> list[ClaimVerdict]:
         """Run the full auditing pipeline on a single benchmark case."""
         grouped = _group_annotations_by_claim(case.claims)
         verdicts: list[ClaimVerdict] = []
 
-        for claim_id, annotations in grouped.items():
-            graph = self._build_and_verify_graph(claim_id, annotations)
+        for claim_id, relation_annotations in grouped.items():
+            graph = self._build_and_verify_graph(
+                claim_id,
+                relation_annotations,
+                case.observations,
+            )
             verdict = self.engine.aggregate(graph)
             verdicts.append(verdict)
 
@@ -95,6 +107,7 @@ class VeritasAuditor:
         self,
         claim_id: str,
         annotations: list[ClaimRelationAnnotation],
+        observations: dict[str, Any],
     ) -> EvidenceGraph:
         """Build evidence graph from annotations and run verifiers on edges.
 
@@ -120,12 +133,8 @@ class VeritasAuditor:
             source_node = node_map[ann.source_artifact]
             target_node = node_map[ann.target_artifact]
 
-            # Generate mock values for the verifier
-            source_value = _mock_value_for_artifact(ann.source_artifact)
-            if ann.verdict == "inconsistent":
-                target_value = source_value * 2.5  # 150% diff → critical
-            else:
-                target_value = source_value
+            source_value = _resolve_observation(observations, ann.source_artifact)
+            target_value = _resolve_observation(observations, ann.target_artifact)
 
             # Run verifier
             verifier = self.verifiers.get(ann.relation_type)
@@ -200,9 +209,37 @@ class BenchmarkRunner:
         self,
         suite_name: str = "smoke_test",
         far_alpha: float = 0.05,
+        aggregation_policy: Literal["flat", "graph_aware"] | None = None,
     ) -> BenchmarkResult:
         """Execute *suite_name* and return aggregated metrics."""
         cases = self.case_loader.load_suite(suite_name)
+        return self.run_cases(
+            cases,
+            suite_name=suite_name,
+            far_alpha=far_alpha,
+            aggregation_policy=aggregation_policy,
+        )
+
+    def run_cases(
+        self,
+        cases: Sequence[BenchmarkCase],
+        *,
+        suite_name: str = "inline",
+        far_alpha: float = 0.05,
+        aggregation_policy: Literal["flat", "graph_aware"] | None = None,
+    ) -> BenchmarkResult:
+        """Execute an already loaded case subset.
+
+        Experiment runners use this entry point to isolate one paper-level
+        case per run while retaining the same verifier and metric path as the
+        public suite runner.
+        """
+        # Keep the run-level controls authoritative even when a caller reuses
+        # one runner for strict and relaxed FAR or B4/B5 comparisons.
+        self.auditor.engine.far_alpha = far_alpha
+        if aggregation_policy is not None:
+            self.auditor.engine.set_aggregation_policy(aggregation_policy)
+        cases = list(cases)
         logger.info("Loaded %d cases from suite '%s'", len(cases), suite_name)
 
         all_verdicts: list[ClaimVerdict] = []
@@ -260,14 +297,33 @@ def _group_annotations_by_claim(
     return dict(grouped)
 
 
-def _mock_value_for_artifact(artifact_ref: str) -> float:
-    """Generate a deterministic mock numeric value from an artifact reference.
+def _resolve_observation(observations: Mapping[str, Any], artifact_ref: str) -> Any:
+    """Resolve a verifier input without consulting the ground-truth label."""
 
-    Uses SHA256 hash to generate a stable float in [0.001, 1.0].
-    """
-    h = hashlib.sha256(artifact_ref.encode()).hexdigest()
-    raw = int(h[:8], 16)
-    return 0.001 + (raw / 0xFFFFFFFF) * 0.999
+    if artifact_ref not in observations:
+        raise BenchmarkDataError(
+            f"Missing observation for {artifact_ref!r}; "
+            "paper runs require a provenance-anchored observation"
+        )
+    observation = observations[artifact_ref]
+    if not isinstance(observation, Mapping):
+        raise BenchmarkDataError(f"Observation {artifact_ref!r} must be a mapping")
+    required = ("value", "source_artifact", "source_artifact_hash", "source_span")
+    missing = [
+        key
+        for key in required
+        if key not in observation
+        or observation[key] is None
+        or (
+            key != "value"
+            and (not isinstance(observation[key], str) or not observation[key].strip())
+        )
+    ]
+    if missing:
+        raise BenchmarkDataError(
+            f"Observation {artifact_ref!r} is missing provenance fields: {', '.join(missing)}"
+        )
+    return observation["value"]
 
 
 # ------------------------------------------------------------------
