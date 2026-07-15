@@ -1,0 +1,159 @@
+{
+  "case_id": "rep_detorakis",
+  "paper_title": "[Re] A Generalized Linear Integrate-and-Fire Neural Model Produces Diverse Spiking Behaviours",
+  "paper_authors": [
+    "Georgios Is. Detorakis (ReScience 2017); CODECHECK 2020-006 certified (codechecker Iain Davies)"
+  ],
+  "artifacts": {
+    "neuron_model_py": {
+      "path": "artifacts/neuron_model.py",
+      "sha256": "5c7b40c60522a7758c2e63246de61dffe5785d6a9cae176ea4d40c720fe858b3",
+      "kind": "code"
+    },
+    "run_all_py": {
+      "path": "artifacts/run_all.py",
+      "sha256": "37f2505f6f2ac6c9092e109d4411effe810b9f9488f31e6983c670b5880b17a7",
+      "kind": "code"
+    },
+    "reproduce_detorakis_py": {
+      "path": "artifacts/reproduce_detorakis.py",
+      "sha256": "ded015dc6253f23a84c27ba8bb2ca55f4804e4329be1d321a19bed76d032a3f9",
+      "kind": "code"
+    },
+    "reproduce_output_json": {
+      "path": "artifacts/reproduce_output.json",
+      "sha256": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/reproduce_output.json#tonic_spiking_n_spikes": {
+      "value": 9,
+      "source_artifact": "artifacts/reproduce_output.json",
+      "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
+      "source_span": "reproduce_output.json, key tonic_spiking_n_spikes (Fig1-A 强直放电 spike 数, Iext=1.5, 2000步)"
+    },
+    "artifacts/reproduce_output.json#tonic_spiking_last_spike_step": {
+      "value": 1979,
+      "source_artifact": "artifacts/reproduce_output.json",
+      "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
+      "source_span": "reproduce_output.json, key tonic_spiking_last_spike_step (Fig1-A 最后一次 spike 的步号, 共2000步)"
+    },
+    "artifacts/reproduce_output.json#phasic_spiking_n_spikes": {
+      "value": 5,
+      "source_artifact": "artifacts/reproduce_output.json",
+      "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
+      "source_span": "reproduce_output.json, key phasic_spiking_n_spikes (Fig1-D 相位放电 spike 数, a=0.005, Iext=1.5, 5000步)"
+    },
+    "artifacts/reproduce_output.json#phasic_spiking_last_spike_step": {
+      "value": 1760,
+      "source_artifact": "artifacts/reproduce_output.json",
+      "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
+      "source_span": "reproduce_output.json, key phasic_spiking_last_spike_step (Fig1-D 最后一次 spike 的步号, 共5000步)"
+    },
+    "artifacts/reproduce_output.json#sfa_first_isi_steps": {
+      "value": 155,
+      "source_artifact": "artifacts/reproduce_output.json",
+      "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
+      "source_span": "reproduce_output.json, key sfa_first_isi_steps (Fig1-C 频率适应, 首个 inter-spike interval 步数)"
+    },
+    "artifacts/reproduce_output.json#sfa_last_isi_steps": {
+      "value": 212,
+      "source_artifact": "artifacts/reproduce_output.json",
+      "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
+      "source_span": "reproduce_output.json, key sfa_last_isi_steps (Fig1-C 频率适应, 末个 inter-spike interval 步数)"
+    },
+    "artifacts/reproduce_output.json#tonic_bursting_n_spikes": {
+      "value": 24,
+      "source_artifact": "artifacts/reproduce_output.json",
+      "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
+      "source_span": "reproduce_output.json, key tonic_bursting_n_spikes (Fig1-M 强直爆发, a=0.005/A1=10/A2=-0.6, Iext=2, 5000步)"
+    },
+    "artifacts/reproduce_output.json#phasic_bursting_n_spikes": {
+      "value": 7,
+      "source_artifact": "artifacts/reproduce_output.json",
+      "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
+      "source_span": "reproduce_output.json, key phasic_bursting_n_spikes (Fig1-N 相位爆发, a=0.005/A1=10/A2=-0.6, Iext=1.5, 5000步)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_detorakis_ann_001",
+      "claim_id": "rep_detorakis_claim_001",
+      "claim_atom": "The reproduced MNN model reproduces the tonic-vs-phasic distinction: under a constant stimulus the tonic-spiking regime keeps firing to the end of the stimulus, whereas the phasic-spiking regime ceases firing well before the stimulus ends.",
+      "source_artifact": "artifacts/reproduce_output.json#tonic_spiking_last_spike_step",
+      "target_artifact": "artifacts/reproduce_output.json#phasic_spiking_last_spike_step",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": "tonic: 最后一次 spike 在第1979步/共2000步(几乎放电到底=强直); phasic: 最后一次 spike 在第1760步/共5000步(35%处即停, 尽管输入恒定=相位). 复现出 tonic vs phasic 定性区别=一致.",
+      "_note": "grounding: 须对齐正确的行为(tonic vs phasic)与正确字段(last_spike_step 相对 sim_steps), 不能只看 spike 数(phasic 5 但步长更长易误读)."
+    },
+    {
+      "annotation_id": "rep_detorakis_ann_002",
+      "claim_id": "rep_detorakis_claim_002",
+      "claim_atom": "The spike-frequency-adaptation regime reproduces firing-rate adaptation: the inter-spike interval lengthens across the spike train (the last interval is longer than the first).",
+      "source_artifact": "artifacts/reproduce_output.json#sfa_last_isi_steps",
+      "target_artifact": "artifacts/reproduce_output.json#sfa_first_isi_steps",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": "末 ISI=212步 > 首 ISI=155步 → 放电间隔随时间拉长=频率适应, 与 Fig1-C 定性一致."
+    },
+    {
+      "annotation_id": "rep_detorakis_ann_003",
+      "claim_id": "rep_detorakis_claim_003",
+      "claim_atom": "The tonic-bursting configuration (added intrinsic currents A1=10, A2=-0.6) produces clustered bursts and thus more total spikes than the plain tonic-spiking regular-firing configuration.",
+      "source_artifact": "artifacts/reproduce_output.json#tonic_bursting_n_spikes",
+      "target_artifact": "artifacts/reproduce_output.json#tonic_spiking_n_spikes",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": "tonic bursting=24 spikes(500ms窗)vs tonic spiking=9 spikes(200ms窗); A1/A2 内在电流引入爆发簇=更多 spike, 与 Fig1-M 爆发形态一致.",
+      "_note": "两配置驱动电流/窗长不同, 断言只对比 spike 计数所反映的爆发 vs 规则放电形态, 非同一驱动下的严格计数."
+    },
+    {
+      "annotation_id": "rep_detorakis_ann_004",
+      "claim_id": "rep_detorakis_claim_004",
+      "claim_atom": "Whether the reproduced spike counts numerically match the ORIGINAL Mihalas & Niebur (2009) tabulated spike times cannot be determined from the shipped ReScience artifacts, which reproduce Figure 1 only as qualitative phase/time plots without tabulated original values.",
+      "source_artifact": "artifacts/reproduce_output.json#phasic_bursting_n_spikes",
+      "target_artifact": "artifacts/reproduce_output.json#phasic_spiking_n_spikes",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "evidence_span": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "insufficient: 该 ReScience 复现只交付定性图(figures/*.png)与代码, 未提供原始 Mihalas-Niebur 2009 的逐 spike 数值表, 故无法就'数值级吻合原文'下 consistent/inconsistent 判定. 防止把定性复现过度解读为定量吻合."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_detorakis",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.5281/zenodo.1003214",
+    "_lane": "诚实可复现论文(非造假); claim 全 consistent + 1 insufficient, 考 AI 在多行为/多字段中对齐正确 spiking behavior 与正确指标列(grounding), 并抵抗定性复现被误读为定量吻合(FP陷阱)",
+    "_independent_status": "CODECHECK 2020-006 认证可复现(codechecker Iain Davies, report https://doi.org/10.5281/zenodo.3948353) + 下载窗口独立重跑 neuron_model.mnn_model 得 reproduce_output.json (python3.12 / numpy 2.4.6, 确定性无随机)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_reproduction_env": "server python3.12.3 / numpy 2.4.6; dt=0.1 Forward-Euler; 合成 Iext, 无外部数据依赖"
+  }
+}

@@ -1,8 +1,7 @@
 {
   "schema_version": 1,
-  "benchmark_id": "veritasbench",
-  "case_count": 32,
-  "cases": [
+  "name": "veritasbench_trial32",
+  "case_ids": [
     "ncb_akg",
     "ncb_alkbh7",
     "ncb_baseeditor",

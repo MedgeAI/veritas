@@ -1,9 +1,9 @@
 {
   "ok": true,
   "base_path": "benchmarks/veritasbench",
-  "suite": "veritasbench_trial30",
-  "expected_cases": 30,
-  "actual_cases": 30,
+  "suite": "veritasbench_trial32",
+  "expected_cases": 32,
+  "actual_cases": 32,
   "allow_empty": false,
   "global_errors": [],
   "cases": {
@@ -167,6 +167,14 @@
       "n_clean_claims": 3,
       "errors": []
     },
+    "rep_detorakis": {
+      "ok": true,
+      "n_artifacts": 4,
+      "n_observations": 8,
+      "n_claims": 4,
+      "n_clean_claims": 3,
+      "errors": []
+    },
     "rep_iteval": {
       "ok": true,
       "n_artifacts": 3,
@@ -237,6 +245,14 @@
       "n_observations": 8,
       "n_claims": 5,
       "n_clean_claims": 4,
+      "errors": []
+    },
+    "rep_zebrafish": {
+      "ok": true,
+      "n_artifacts": 4,
+      "n_observations": 5,
+      "n_claims": 4,
+      "n_clean_claims": 3,
       "errors": []
     },
     "usp15_grounding": {

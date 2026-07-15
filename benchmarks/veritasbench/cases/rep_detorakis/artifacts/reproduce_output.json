@@ -1,0 +1,17 @@
+{
+  "_env": {
+    "numpy": "2.4.6",
+    "python": "3.12.3"
+  },
+  "phasic_bursting_n_spikes": 7,
+  "phasic_spiking_last_spike_step": 1760,
+  "phasic_spiking_n_spikes": 5,
+  "phasic_spiking_sim_steps": 5000,
+  "sfa_first_isi_steps": 155,
+  "sfa_last_isi_steps": 212,
+  "sfa_n_spikes": 10,
+  "tonic_bursting_n_spikes": 24,
+  "tonic_spiking_last_spike_step": 1979,
+  "tonic_spiking_n_spikes": 9,
+  "tonic_spiking_sim_steps": 2000
+}

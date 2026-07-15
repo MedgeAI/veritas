@@ -1,0 +1,152 @@
+{
+  "case_id": "rep_zebrafish",
+  "paper_title": "A calibrated optogenetic toolbox of stable zebrafish opsin lines",
+  "paper_authors": [
+    "Antinucci P, Dumitrescu A, Deleuze C, Morley HJ, Leung K, Hagley T, Kubo F, Baier H, Bianco IH, Wyart C (eLife 2020;9:e54937; CODECHECK 2025-023 certified)"
+  ],
+  "artifacts": {
+    "vc_excitatory_master": {
+      "path": "artifacts/VC_excitatory_opsin_master.csv",
+      "sha256": "0b5931f1b167bf754dbdc58f84e5dd0288fff50e8821332701e7f00ae732e268",
+      "kind": "code_output"
+    },
+    "vc_inhibitory_master": {
+      "path": "artifacts/VC_inhibitory_opsin_master.csv",
+      "sha256": "4d18267c40146bb402e7823ad158edb91d37cad6992e442adfe7fff27e15f337",
+      "kind": "code_output"
+    },
+    "repro_script": {
+      "path": "artifacts/repro_zebrafish.py",
+      "sha256": "8168e017b89131a15d63df3937b6e110b9ec3dc1698eed96c1a52ad11108405a",
+      "kind": "code"
+    },
+    "repro_output": {
+      "path": "artifacts/repro_output.json",
+      "sha256": "97780df349d98266002cc0b04ef5475b8c8823bc9983ecd019bf9820eff0cc43",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/VC_excitatory_opsin_master.csv#chrimson_firststim_max_pA": {
+      "value": 223.23443603515625,
+      "source_artifact": "artifacts/VC_excitatory_opsin_master.csv",
+      "source_artifact_hash": "0b5931f1b167bf754dbdc58f84e5dd0288fff50e8821332701e7f00ae732e268",
+      "source_span": "VC_excitatory_opsin_master.csv, trace_number=18n270027_1 (Chrimson), 第1行 (第1次LED刺激) Max_photocurrent_pA. README 4 记录此正确性检查值=223.234 pA"
+    },
+    "artifacts/VC_excitatory_opsin_master.csv#chrimson_overall_max_pA": {
+      "value": 248.2588348388672,
+      "source_artifact": "artifacts/VC_excitatory_opsin_master.csv",
+      "source_artifact_hash": "0b5931f1b167bf754dbdc58f84e5dd0288fff50e8821332701e7f00ae732e268",
+      "source_span": "VC_excitatory_opsin_master.csv, trace_number=18n270027_1 (Chrimson), 该cell所有LED step中 Max_photocurrent_pA 的最大值 (28行取max)"
+    },
+    "artifacts/VC_excitatory_opsin_master.csv#cochr_overall_max_pA": {
+      "value": 555.5231323242189,
+      "source_artifact": "artifacts/VC_excitatory_opsin_master.csv",
+      "source_artifact_hash": "0b5931f1b167bf754dbdc58f84e5dd0288fff50e8821332701e7f00ae732e268",
+      "source_span": "VC_excitatory_opsin_master.csv, trace_number=2019_03_19_0038 (CoChR), 该cell所有LED step中 Max_photocurrent_pA 的最大值 (4行取max)"
+    },
+    "artifacts/VC_inhibitory_opsin_master.csv#nphr_peak_max_pA": {
+      "value": 132.63346862792972,
+      "source_artifact": "artifacts/VC_inhibitory_opsin_master.csv",
+      "source_artifact_hash": "4d18267c40146bb402e7823ad158edb91d37cad6992e442adfe7fff27e15f337",
+      "source_span": "VC_inhibitory_opsin_master.csv, trace_number=183060053_1 (NpHR3.0), Max_photocurrent_pA 峰值 (18行取max)"
+    },
+    "artifacts/VC_inhibitory_opsin_master.csv#nphr_steady_at_peak_pA": {
+      "value": 125.3550262451172,
+      "source_artifact": "artifacts/VC_inhibitory_opsin_master.csv",
+      "source_artifact_hash": "4d18267c40146bb402e7823ad158edb91d37cad6992e442adfe7fff27e15f337",
+      "source_span": "VC_inhibitory_opsin_master.csv, trace_number=183060053_1 (NpHR3.0), 峰值Max_photocurrent所在行的 Steady_photocurrent_pA (稳态光电流)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_zebrafish_ann_001",
+      "claim_id": "rep_zebrafish_claim_001",
+      "claim_atom": "For Chrimson trace 18n270027_1, the first LED stimulation elicits a peak photocurrent of ~223.234 pA (the documented reproduction-check value in the repository README), which is distinct from and lower than that cell's overall maximum photocurrent across LED-power steps (248.259 pA).",
+      "source_artifact": "artifacts/VC_excitatory_opsin_master.csv#chrimson_firststim_max_pA",
+      "target_artifact": "artifacts/VC_excitatory_opsin_master.csv#chrimson_overall_max_pA",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "grounding+FP陷阱: 复现值=223.234 pA 是README 4 明确记录的正确性锚点(第1次LED刺激), 须选'第1行'而非'该cell最大值'(248.259). 223 vs 248 两数字看似应flag不一致, 实为两个不同量(first-stim vs overall-max)各自正确=consistent, 勿误判为矛盾.",
+      "_reproduction": [
+        "chrimson_18n270027_1_firststim_max_pA = 223.23443603515625 (== README 记录 223.234 pA)",
+        "chrimson_18n270027_1_overall_max_pA = 248.2588348388672"
+      ]
+    },
+    {
+      "annotation_id": "rep_zebrafish_ann_002",
+      "claim_id": "rep_zebrafish_claim_002",
+      "claim_atom": "In voltage-clamp recordings, the CoChR opsin cell (trace 2019_03_19_0038) reaches a substantially larger peak photocurrent (~556 pA) than the Chrimson cell (trace 18n270027_1, ~248 pA), consistent with the paper's finding of substantial variation in opsin efficacy.",
+      "source_artifact": "artifacts/VC_excitatory_opsin_master.csv#cochr_overall_max_pA",
+      "target_artifact": "artifacts/VC_excitatory_opsin_master.csv#chrimson_overall_max_pA",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "consistent: CoChR peak 555.52 pA > Chrimson peak 248.26 pA. 对应 abstract 'substantial variation in efficacy'. grounding: 须按 trace_number/cell_type 正确分组, 只用兴奋性VC master.",
+      "_reproduction": [
+        "cochr_2019_03_19_0038_overall_max_pA = 555.5231323242189",
+        "chrimson_18n270027_1_overall_max_pA = 248.2588348388672"
+      ]
+    },
+    {
+      "annotation_id": "rep_zebrafish_ann_003",
+      "claim_id": "rep_zebrafish_claim_003",
+      "claim_atom": "The NpHR3.0 photocurrent (trace 183060053_1) inactivates: within a light step the steady-state photocurrent (~125.4 pA) is lower than the peak photocurrent (~132.6 pA).",
+      "source_artifact": "artifacts/VC_inhibitory_opsin_master.csv#nphr_peak_max_pA",
+      "target_artifact": "artifacts/VC_inhibitory_opsin_master.csv#nphr_steady_at_peak_pA",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "consistent: peak 132.63 pA > steady 125.36 pA (稳态<峰值=inactivation). NpHR3.0 全部18行 Steady<Max 成立. grounding: 抑制性 opsin master 才有 Steady_photocurrent_pA 列, 兴奋性master无此列.",
+      "_reproduction": [
+        "nphr_183060053_1_peak_max_pA = 132.63346862792972",
+        "nphr_183060053_1_steady_at_peak_pA = 125.3550262451172",
+        "nphr_183060053_1_all_steady_lt_max = true"
+      ]
+    },
+    {
+      "annotation_id": "rep_zebrafish_ann_004",
+      "claim_id": "rep_zebrafish_claim_004",
+      "claim_atom": "The abstract's efficacy ranking across all nine transgenic opsin lines (derived from high-throughput behavioural assays) cannot be adjudicated from the shipped voltage-clamp master CSVs, which contain only single representative electrophysiology traces for a subset of opsins.",
+      "source_artifact": "artifacts/VC_excitatory_opsin_master.csv#cochr_overall_max_pA",
+      "target_artifact": "artifacts/VC_excitatory_opsin_master.csv#chrimson_overall_max_pA",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "evidence_span": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "insufficient: shipped master CSV 每个opsin只有单个代表trace的VC记录(Chrimson/CoChR/NpHR/GtACR), 无九系behavioural-assay效力排名的底层数据, 无法从这些artifact裁决 abstract 的跨系排名断言. 非矛盾, 是证据不足."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_zebrafish",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.7554/eLife.54937",
+    "_lane": "诚实可复现论文(非造假); 3个consistent clean claim + 1个insufficient; 考AI从随代码发布的VC光电流中间产物正确grounding关键量并抵抗'first-stim vs overall-max'的FP误判",
+    "_independent_status": "CODECHECK 2025-023 (2026-01-15, Linus Dexter Hackel认证, Figs 4/5/8/9可部分复现); 下载窗口独立重跑 repro_zebrafish.py 得 repro_output.json, 与README 4 记录的223.234 pA一致",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_paper_artifact_status": "paper正文=eLife开放获取, 可后续补 paper_pdf artifact 建真·L1 code->paper-text (如 abstract 'substantial variation in efficacy')"
+  }
+}
