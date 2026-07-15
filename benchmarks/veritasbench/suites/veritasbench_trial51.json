@@ -1,8 +1,7 @@
 {
   "schema_version": 1,
-  "benchmark_id": "veritasbench",
-  "case_count": 51,
-  "cases": [
+  "name": "veritasbench_trial51",
+  "case_ids": [
     "fp_raoyi",
     "lin_grounding",
     "ncb_akg",

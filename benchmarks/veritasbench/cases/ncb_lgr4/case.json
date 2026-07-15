@@ -1,0 +1,149 @@
+{
+  "case_id": "ncb_lgr4",
+  "paper_title": "Targeted activation of ferroptosis in colorectal cancer via LGR4 targeting overcomes acquired drug resistance",
+  "paper_authors": [
+    "Chen Quan (陈佺) 团队 (南开大学; Nature Cancer, 2024)"
+  ],
+  "artifacts": {
+    "source_ed6l": {
+      "path": "artifacts/43018_2023_715_MOESM20_ESM.xlsx",
+      "sha256": "acc90f672af0e986db1577a2c70278ce5eb6b6ec4fa354ee35f92aa3b405ec06",
+      "kind": "source_data"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "c652359bbc25c75b839ec6f3f1a1227767ecc704b24a24cedb1896b5256c8da0",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!B3": {
+      "value": 2.39,
+      "source_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx",
+      "source_artifact_hash": "acc90f672af0e986db1577a2c70278ce5eb6b6ec4fa354ee35f92aa3b405ec06",
+      "source_span": "sheet '6l', B3 (P1 tumor organoid+RSL3 区块; B列=Control+Fer-1; 第1个类器官 EthD-1 阳性面积%)"
+    },
+    "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!D3": {
+      "value": 3.39,
+      "source_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx",
+      "source_artifact_hash": "acc90f672af0e986db1577a2c70278ce5eb6b6ec4fa354ee35f92aa3b405ec06",
+      "source_span": "sheet '6l', D3 (同区块 D列=5-FU+IgG+Fer-1, 第1个类器官; 3.39 与 B3=2.39 仅首位整数不同、小数.39全同)"
+    },
+    "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!B5": {
+      "value": 2.34,
+      "source_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx",
+      "source_artifact_hash": "acc90f672af0e986db1577a2c70278ce5eb6b6ec4fa354ee35f92aa3b405ec06",
+      "source_span": "sheet '6l', B5 (P1 Control+Fer-1, 第3个类器官)"
+    },
+    "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!D5": {
+      "value": 2.34,
+      "source_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx",
+      "source_artifact_hash": "acc90f672af0e986db1577a2c70278ce5eb6b6ec4fa354ee35f92aa3b405ec06",
+      "source_span": "sheet '6l', D5 (P1 5-FU+IgG+Fer-1, 第3个类器官; 与 B5 逐位相同)"
+    },
+    "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!B7": {
+      "value": 2.34,
+      "source_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx",
+      "source_artifact_hash": "acc90f672af0e986db1577a2c70278ce5eb6b6ec4fa354ee35f92aa3b405ec06",
+      "source_span": "sheet '6l', B7 (P1 Control+Fer-1, 第5个类器官; 值2.34在B列多次复现)"
+    },
+    "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!B12": {
+      "value": 2.843,
+      "source_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx",
+      "source_artifact_hash": "acc90f672af0e986db1577a2c70278ce5eb6b6ec4fa354ee35f92aa3b405ec06",
+      "source_span": "sheet '6l', B12 (P1 Control+Fer-1, 第10个类器官; 3位小数)"
+    },
+    "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!D12": {
+      "value": 2.843,
+      "source_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx",
+      "source_artifact_hash": "acc90f672af0e986db1577a2c70278ce5eb6b6ec4fa354ee35f92aa3b405ec06",
+      "source_span": "sheet '6l', D12 (P1 5-FU+IgG+Fer-1, 第10个类器官; 与 B12=2.843 三位小数逐位相同)"
+    },
+    "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!B28": {
+      "value": 2.403,
+      "source_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx",
+      "source_artifact_hash": "acc90f672af0e986db1577a2c70278ce5eb6b6ec4fa354ee35f92aa3b405ec06",
+      "source_span": "sheet '6l', B28 (RSL3 DR P1 区块 Control+Fer-1, 第6个类器官)"
+    },
+    "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!D28": {
+      "value": 2.903,
+      "source_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx",
+      "source_artifact_hash": "acc90f672af0e986db1577a2c70278ce5eb6b6ec4fa354ee35f92aa3b405ec06",
+      "source_span": "sheet '6l', D28 (RSL3 DR P1 5-FU+IgG+Fer-1, 第6个类器官; 2.903 vs B28=2.403 差0.5)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_lgr4_ann_001",
+      "claim_id": "ncb_lgr4_claim_001",
+      "claim_atom": "In Extended Data Fig. 6l the area% value 2.34 recurs across independent organoids (P1 Control+Fer-1 organoids 3 and 5, cells B5 and B7). Given that the readout is EthD-1+ area percentage quantized to two decimals over a narrow ~1.3-5.2% range, recurrence of a common value across independent organoids is an expected consequence of the limited value space and does NOT by itself indicate duplication — the authors' point that terminal-digit / value coincidences can arise from rounding is legitimate for this framing.",
+      "source_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!B5",
+      "target_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!B7",
+      "source_a1_range": "B5:B5",
+      "target_a1_range": "B7:B7",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "合法子断言(consistent): 单看'某些值/末位小数在不同类器官间重合', 在2位小数量化、取值范围窄(~1.3-5.2%)的面积%读数下属正常巧合, 陈佺'四舍五入导致相似性'的辩护对这一框架成立。依刘盼[1]/[2]: 量化/窄域数据的单纯值-重合或末位频率无意义。AI不应仅凭个别值重合报异常。"
+    },
+    {
+      "annotation_id": "ncb_lgr4_ann_002",
+      "claim_id": "ncb_lgr4_claim_002",
+      "claim_atom": "In Extended Data Fig. 6l (block 'P1 tumor organoid+RSL3'), the 5-FU+IgG+Fer-1 column (D, cells D3:D12) reproduces the Control+Fer-1 column (B, cells B3:B12) for 9 of 10 organoids: six are digit-identical (2.34, 2.54, 2.34, 3.03, 2.60, 2.843 — including the 3-decimal value 2.843 at B12=D12), and three differ ONLY in the leading integer digit with identical decimals (B3 2.39 / D3 3.39; B4 2.93 / D4 3.93; B11 2.10 / D11 3.10). Two independent treatment arms (untreated control vs 5-FU + IgG) cannot yield per-organoid EthD-1 area% values identical to two–three decimals; the leading-digit-only edits are a signature of copy-then-alter, which rounding cannot produce.",
+      "source_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!D12",
+      "target_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!B12",
+      "source_a1_range": "D3:D12",
+      "target_a1_range": "B3:B12",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_columns",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "造假核心(inconsistent): 对照组(B)与5-FU+IgG处理组(D)逐类器官数据在P1区块9/10相同或仅改首位整数(小数全同, 如B12=D12=2.843三位小数)。四舍五入解释不了两个独立处理臂的整列复制, 更解释不了'仅改首位整数、小数保留'的伪装编辑(2.39→3.39/2.93→3.93/2.1→3.1)。这是复制-改首位的编造签名。编辑部2026-04-23又发现更多同类异常, 佐证。verdict=inconsistent。",
+      "_pubpeer_note": "吹哨人红框=逐位相同行, 绿框=仅一位数不同行; 与D≈B列复现一致。C列(LGR4-mAb)↔E列(5-FU+LGR4-mAb)在行4/5/6亦重合, 为次级佐证。"
+    },
+    {
+      "annotation_id": "ncb_lgr4_ann_003",
+      "claim_id": "ncb_lgr4_claim_003",
+      "claim_atom": "Whether the borderline entries in the 'RSL3 DR P1' block — e.g. Control 2.403 (B28) vs 5-FU+IgG 2.903 (D28), which share the same decimals but differ by 0.5 — are fabricated by the same copy-then-alter mechanism or are genuine independent measurements cannot be adjudicated from the summary spreadsheet alone. The editorial office reported additional anomalies on 2026-04-23 and Nankai University opened a formal investigation (statement 2026-05-01); resolving these entries requires the original per-organoid EthD-1 fluorescence images / raw measurements held under that ongoing investigation.",
+      "source_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!D28",
+      "target_artifact": "artifacts/43018_2023_715_MOESM20_ESM.xlsx#6l!B28",
+      "source_a1_range": "D28:D28",
+      "target_a1_range": "B28:B28",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "待定(insufficient): RSL3-DR区块的边界行(2.403 vs 2.903, 小数同差0.5)既可能是同款复制-改位、也可能是真独立测量, 仅凭汇总表无法判定; 需原始逐类器官EthD-1荧光图/原始测量, 属南开在查材料(情况说明2026-05-01)。verdict=insufficient。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_lgr4",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "verifier_conflict"
+    ],
+    "source_url": "https://doi.org/10.1038/s43018-023-00715-8",
+    "_lane": "作者已回应型争议案(mixed_boundary三verdict并存): 陈佺回应称相似性由四舍五入所致→对'末位/值重合'子断言成立(consistent);但ED Fig 6l中5-FU+IgG列(D)整列复现Control列(B)、含3位小数逐位相同+仅改首位整数的伪装编辑, 四舍五入解释不了(inconsistent);RSL3-DR边界行与编辑部新增异常待南开调查(insufficient)。",
+    "_author_response": "陈佺2026-04-20后回应: 相似性系'四舍五入(rounding)'导致。",
+    "_timeline": "2026-04-19编辑部筛库发现ED Fig 6l异常; 2026-04-20吹哨/首次披露; 第三方团队上传PubPeer; 陈佺回应四舍五入; 2026-04-23编辑部披露更多数据异常; 2026-05-01南开大学发布情况说明。",
+    "_independent_status": "下载窗口用机构cookie从Nature取ED Fig 6 source data(MOESM20)+正文PDF; 逐单元核验D列≈B列复现(9/10)与3位小数逐位相同(B12=D12=2.843), 真实published source data。",
+    "_pubpeer": "259B374AC411B4F9149076879524DF",
+    "_source_url_refs": [
+      "https://pubpeer.com/publications/259B374AC411B4F9149076879524DF",
+      "https://www.nankai.edu.cn/2026/0501/c17471a594175/page.htm"
+    ],
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}
