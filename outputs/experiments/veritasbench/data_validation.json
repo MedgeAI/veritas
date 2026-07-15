@@ -1,9 +1,9 @@
 {
   "ok": true,
   "base_path": "benchmarks/veritasbench",
-  "suite": "veritasbench_trial36",
-  "expected_cases": 36,
-  "actual_cases": 36,
+  "suite": "veritasbench_trial37",
+  "expected_cases": 37,
+  "actual_cases": 37,
   "allow_empty": false,
   "global_errors": [],
   "cases": {
@@ -267,6 +267,14 @@
       "ok": true,
       "n_artifacts": 4,
       "n_observations": 7,
+      "n_claims": 4,
+      "n_clean_claims": 3,
+      "errors": []
+    },
+    "rep_spatialtx": {
+      "ok": true,
+      "n_artifacts": 3,
+      "n_observations": 5,
       "n_claims": 4,
       "n_clean_claims": 3,
       "errors": []

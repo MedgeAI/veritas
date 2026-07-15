@@ -1,0 +1,143 @@
+{
+  "case_id": "rep_spatialtx",
+  "paper_title": "Systematic evaluation of robustness to cell type mismatch of deconvolution methods for spatial transcriptomics data",
+  "paper_authors": [
+    "Utkarsh M. Mahamune",
+    "Aldo Jongejan",
+    "Antoine van Kampen",
+    "Lisa van Baarsen",
+    "Perry Moerland (bioRxiv 2025; CODECHECK 2025-029 certified)"
+  ],
+  "artifacts": {
+    "corr_matrix_rna_csv": {
+      "path": "artifacts/Correlation_matrix_1.csv",
+      "sha256": "1ef3dd5c33a8b6b99562ff93d89a36f8cca8ee4be89106ea8b4be85cac16cb72",
+      "kind": "code_output"
+    },
+    "corr_matrix_integrated_csv": {
+      "path": "artifacts/Correlation_matrix_2.csv",
+      "sha256": "c0799956773ab51255be0cb655be9a27e277b2a61eef7681afe0e4c0bb98aff8",
+      "kind": "code_output"
+    },
+    "celltype_correlation_r": {
+      "path": "artifacts/Celltype_correlation.R",
+      "sha256": "9940e7359e99a4aaa2aec16d2ee915b02ce90631532290f3eb68ebb6bdc60fe6",
+      "kind": "code"
+    }
+  },
+  "observations": {
+    "artifacts/Correlation_matrix_1.csv#myo_skm": {
+      "value": 0.987107256206626,
+      "source_artifact": "artifacts/Correlation_matrix_1.csv",
+      "source_artifact_hash": "1ef3dd5c33a8b6b99562ff93d89a36f8cca8ee4be89106ea8b4be85cac16cb72",
+      "source_span": "Correlation_matrix_1.csv (RNA assay), row Myocytes x column Skeletal muscle = Pearson r between mean expression profiles (最相似的一对细胞类型)"
+    },
+    "artifacts/Correlation_matrix_1.csv#cd4_cd8": {
+      "value": 0.982582218491286,
+      "source_artifact": "artifacts/Correlation_matrix_1.csv",
+      "source_artifact_hash": "1ef3dd5c33a8b6b99562ff93d89a36f8cca8ee4be89106ea8b4be85cac16cb72",
+      "source_span": "Correlation_matrix_1.csv (RNA assay), row CD4+ T-cells x column CD8+ T-cells (RNA assay中第二高的非对角相关, 用于确认Myo-Skm为最大值)"
+    },
+    "artifacts/Correlation_matrix_1.csv#neu_skm": {
+      "value": 0.455043591794102,
+      "source_artifact": "artifacts/Correlation_matrix_1.csv",
+      "source_artifact_hash": "1ef3dd5c33a8b6b99562ff93d89a36f8cca8ee4be89106ea8b4be85cac16cb72",
+      "source_span": "Correlation_matrix_1.csv (RNA assay), row Neutrophils x column Skeletal muscle = 全矩阵最低非对角相关 (Neutrophils最独特)"
+    },
+    "artifacts/Correlation_matrix_2.csv#myo_skm": {
+      "value": 0.987020938854137,
+      "source_artifact": "artifacts/Correlation_matrix_2.csv",
+      "source_artifact_hash": "c0799956773ab51255be0cb655be9a27e277b2a61eef7681afe0e4c0bb98aff8",
+      "source_span": "Correlation_matrix_2.csv (integrated assay), row Myocytes x column Skeletal muscle (integrated assay下最高非对角相关)"
+    },
+    "artifacts/Correlation_matrix_2.csv#adip_fibro": {
+      "value": 0.970761485918894,
+      "source_artifact": "artifacts/Correlation_matrix_2.csv",
+      "source_artifact_hash": "c0799956773ab51255be0cb655be9a27e277b2a61eef7681afe0e4c0bb98aff8",
+      "source_span": "Correlation_matrix_2.csv (integrated assay), row Adipocytes x column Fibroblasts (integrated assay中第二高的非对角相关, 确认Myo-Skm仍为最大值)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_spatialtx_ann_001",
+      "claim_id": "rep_spatialtx_claim_001",
+      "claim_atom": "In the single-cell reference (RNA assay), the most transcriptionally similar pair of cell types is Myocytes and Skeletal muscle: their mean-expression profiles have the highest off-diagonal Pearson correlation (r = 0.987), exceeding the next-most-similar pair CD4+/CD8+ T-cells (r = 0.983).",
+      "source_artifact": "artifacts/Correlation_matrix_1.csv#myo_skm",
+      "target_artifact": "artifacts/Correlation_matrix_1.csv#cd4_cd8",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "consistent: Myo-Skm 0.98711 > CD4-CD8 0.98258 = 全矩阵非对角最大. grounding: 须在13x13 RNA-assay矩阵中定位全局off-diagonal最大值, 且区分RNA assay (matrix_1) 而非integrated assay (matrix_2).",
+      "_reproduction": [
+        "读Correlation_matrix_1.csv, 取上三角非对角, argmax=(Myocytes,Skeletal muscle)=0.987107256206626, 次高(CD4+,CD8+)=0.982582218491286"
+      ]
+    },
+    {
+      "annotation_id": "rep_spatialtx_ann_002",
+      "claim_id": "rep_spatialtx_claim_002",
+      "claim_atom": "The Myocytes / Skeletal muscle pair is also the most correlated cell-type pair in the integrated-assay reference (r = 0.987), i.e. their high similarity is robust across both the RNA and integrated assays.",
+      "source_artifact": "artifacts/Correlation_matrix_2.csv#myo_skm",
+      "target_artifact": "artifacts/Correlation_matrix_2.csv#adip_fibro",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_stochastic": "FP陷阱: matrix_1与matrix_2是两套不同的相关值 (整合assay抹平了很多免疫细胞相似度, 如CD4-CD8从0.983降到0.951), 单个配对值在两矩阵间差异很大. 但本断言只讲'Myo-Skm仍是最相似对', 在integrated assay中 0.98702 > 次高Adipocytes-Fibroblasts 0.97076 仍成立 = consistent. 勿因两矩阵逐对数值不同而误判inconsistent."
+    },
+    {
+      "annotation_id": "rep_spatialtx_ann_003",
+      "claim_id": "rep_spatialtx_claim_003",
+      "claim_atom": "Neutrophils are the most transcriptionally distinct cell type in the RNA-assay reference: the lowest off-diagonal correlation in the entire matrix is Neutrophils vs Skeletal muscle (r = 0.455), far below the maximum similarity (Myocytes/Skeletal muscle, r = 0.987).",
+      "source_artifact": "artifacts/Correlation_matrix_1.csv#neu_skm",
+      "target_artifact": "artifacts/Correlation_matrix_1.csv#myo_skm",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "consistent: Neutrophils-Skeletal muscle 0.45504 = 全矩阵最低非对角相关. grounding: 定位全局min并与全局max对照. 与论文一致 (Neutrophils在参考中细胞数最少且谱型独特, 是code中nr_cells_cutoff所用类型)."
+    },
+    {
+      "annotation_id": "rep_spatialtx_ann_004",
+      "claim_id": "rep_spatialtx_claim_004",
+      "claim_atom": "These reference expression-similarity correlations by themselves establish which deconvolution method (CARD/RCTD/SCDC/MuSiC/Seurat/SPOTlight/cell2location) is most robust to cell-type mismatch, as measured by JSD/RMSE.",
+      "source_artifact": "artifacts/Correlation_matrix_1.csv#myo_skm",
+      "target_artifact": "artifacts/Correlation_matrix_1.csv#neu_skm",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "evidence_span": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "insufficient: 提供的artifact仅为参考数据的细胞类型相关矩阵. 方法排名(JSD/RMSE per removal scenario)由4_Analysis_results/下游产物(如funky_rank, Median_JSD_RMSE)决定, 不在本案shipped artifacts内, 无法仅凭相关矩阵判定. 这是范围界定, 非造假."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_spatialtx",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.1101/2025.08.12.669903",
+    "_lane": "诚实可复现论文(非造假); 全可判claim=consistent, 难点=在两套13x13相关矩阵(RNA vs integrated assay)中定位正确的定量结论(最大/最小非对角相关), 并抵抗'两矩阵逐对数值不同'造成的FP误判",
+    "_independent_status": "CODECHECK 2025-029 (certificate 2025-029, Zenodo 10.5281/zenodo.17524536): 全部manuscript图在myDRE独立复现. 本案用shipped确定性中间产物Correlation_matrix_{1,2}.csv做下游确定性复现, 未重跑GPU去卷积上游.",
+    "_reproduction_method": "python3 读 Results_figures/Results/Correlation_matrix_{1,2}.csv, 取上三角非对角 argmax/argmin. 值直读CSV无随机性. 生成脚本=5_Post_analysis_work/Code/Celltype_correlation.R (cor(..., method='pearson') on mean expression per blue.main cell type, downsample seed=15).",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_lane_tag": "rep_honest_reproducible",
+    "_independent_status_code": "CODECHECK 2025-029"
+  }
+}
