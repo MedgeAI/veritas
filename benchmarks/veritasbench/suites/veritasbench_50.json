@@ -1,0 +1,7 @@
+{
+  "schema_version": 1,
+  "name": "veritasbench_50",
+  "status": "scaffold",
+  "description": "50-paper evaluation suite; case IDs are filled at data freeze.",
+  "case_ids": []
+}

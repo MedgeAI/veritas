@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "benchmark_id": "veritasbench",
+  "case_count": 3,
+  "cases": [
+    "ncb_eet",
+    "ncb_h3v3",
+    "ncb_wnt"
+  ]
+}
