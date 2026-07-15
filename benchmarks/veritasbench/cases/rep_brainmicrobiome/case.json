@@ -72,7 +72,20 @@
       "value": 0,
       "source_artifact": "artifacts/analysis_correct.csv",
       "source_artifact_hash": "74e66e37d0b82aeca0e1fd9bec024039ccc4e0506176e05ea3568925061383dc",
-      "source_span": "analysis_correct.csv, row metric=n_tumor_associated_reported, column value (批次+污染双伪象校正后，无属可从本交付数据确信为肿瘤特异 → 报告 0 属，tumor_associated_genera_correct.csv 仅表头)"
+      "source_span": "analysis_correct.csv, row metric=n_tumor_associated_reported, column value (批次+污染双伪象校正后，无属可从本交付数据确信为肿瘤特异 → 报告 0 属，tumor_associated_genera_correct.csv 仅表头)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "artifacts/tumor_associated_genera_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "count_rows",
+          "args": {}
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/analysis_correct.csv#n_contaminants_in_significant": {
       "value": 12,
@@ -84,7 +97,24 @@
       "value": 26,
       "source_artifact": "artifacts/analysis_correct.csv",
       "source_artifact_hash": "74e66e37d0b82aeca0e1fd9bec024039ccc4e0506176e05ea3568925061383dc",
-      "source_span": "analysis_correct.csv, row metric=n_naive_significant, column value (tumor-vs-normal Mann-Whitney + BH-FDR<0.05 的属数=26，其中 22 为肿瘤上调)"
+      "source_span": "analysis_correct.csv, row metric=n_naive_significant, column value (tumor-vs-normal Mann-Whitney + BH-FDR<0.05 的属数=26，其中 22 为肿瘤上调)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "artifacts/differential_abundance.csv"
+        ],
+        "method": {
+          "reference_fn": "count_where",
+          "args": {
+            "column": "adjusted_p_value",
+            "op": "<",
+            "thresh": 0.05
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/analysis_naive.csv#n_tumor_associated_reported": {
       "value": 22,

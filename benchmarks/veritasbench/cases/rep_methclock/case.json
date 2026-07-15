@@ -51,7 +51,29 @@
       "value": 0.963,
       "source_artifact": "artifacts/clock_evaluation_correct.csv",
       "source_artifact_hash": "4b333a25df069b41ed64734526b3773472345d08040d1dc9deb69e342a183ebf",
-      "source_span": "clock_evaluation_correct.csv, row metric=pearson_r, column value (严谨复现: strip EPICv2后缀+collapse重复探针后, 时钟预测年龄的Pearson r)"
+      "source_span": "clock_evaluation_correct.csv, row metric=pearson_r, column value (严谨复现: strip EPICv2后缀+collapse重复探针后, 时钟预测年龄的Pearson r)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/predicted_age_correct.csv",
+          "artifacts/sample_metadata.tsv"
+        ],
+        "method": {
+          "reference_fn": "pearson_corr",
+          "args": {
+            "pred_file": "artifacts/predicted_age_correct.csv",
+            "pred_col": "predicted_age",
+            "true_file": "artifacts/sample_metadata.tsv",
+            "true_col": "age",
+            "id_col": "sample_id",
+            "drop_nonnumeric_true": true
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.005
+        }
+      }
     },
     "artifacts/clock_evaluation_correct.csv#MAE_years": {
       "value": 4.02,
@@ -69,7 +91,30 @@
       "value": 0.0,
       "source_artifact": "artifacts/clock_evaluation_naive.csv",
       "source_artifact_hash": "33cff7c2e30f5184a326bb71764ecb2b38006e4264cba28c4d96d3caaa29b154",
-      "source_span": "clock_evaluation_naive.csv, row metric=pearson_r, column value (naive直接匹配探针ID: 0重叠→退化常数预测→r=0)"
+      "source_span": "clock_evaluation_naive.csv, row metric=pearson_r, column value (naive直接匹配探针ID: 0重叠→退化常数预测→r=0)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/predicted_age_naive.csv",
+          "artifacts/sample_metadata.tsv"
+        ],
+        "method": {
+          "reference_fn": "pearson_corr",
+          "args": {
+            "pred_file": "artifacts/predicted_age_naive.csv",
+            "pred_col": "predicted_age",
+            "true_file": "artifacts/sample_metadata.tsv",
+            "true_col": "age",
+            "id_col": "sample_id",
+            "drop_nonnumeric_true": true,
+            "degenerate_returns": 0.0
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.005
+        }
+      }
     },
     "artifacts/clock_evaluation_naive.csv#n_probes": {
       "value": 0,
