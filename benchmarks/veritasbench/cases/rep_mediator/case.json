@@ -48,7 +48,28 @@
       "value": "gene_specific",
       "source_artifact": "artifacts/perturbation_summary_correct.csv",
       "source_artifact_hash": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
-      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_11, column gene_specific_call (论文判定: 正常 mtDNA 下的实质 DE = 真正 gene-specific 程序)"
+      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_11, column gene_specific_call (论文判定: 正常 mtDNA 下的实质 DE = 真正 gene-specific 程序)",
+      "recompute": {
+        "metric_type": "categorical_call",
+        "inputs": [
+          "artifacts/perturbation_summary_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "rule_classify",
+          "args": {
+            "rule": "mediator_call_correct",
+            "key_col": "perturbation",
+            "key": "KO_11",
+            "n_deg_col": "n_deg",
+            "mtdna_col": "mean_mtDNA_copy_number",
+            "depl_thr": 279125,
+            "n_deg_thr": 200
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/perturbation_summary_correct.csv#KO_13_n_deg": {
       "value": 685,
@@ -66,13 +87,53 @@
       "value": "shared",
       "source_artifact": "artifacts/perturbation_summary_correct.csv",
       "source_artifact_hash": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
-      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_13, column gene_specific_call (论文判定: 巨大 DE 但被 mtDNA 耗竭混杂 = 共享的整合应激(ISR)响应, 非 gene-specific)"
+      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_13, column gene_specific_call (论文判定: 巨大 DE 但被 mtDNA 耗竭混杂 = 共享的整合应激(ISR)响应, 非 gene-specific)",
+      "recompute": {
+        "metric_type": "categorical_call",
+        "inputs": [
+          "artifacts/perturbation_summary_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "rule_classify",
+          "args": {
+            "rule": "mediator_call_correct",
+            "key_col": "perturbation",
+            "key": "KO_13",
+            "n_deg_col": "n_deg",
+            "mtdna_col": "mean_mtDNA_copy_number",
+            "depl_thr": 279125,
+            "n_deg_thr": 200
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/perturbation_summary_naive.csv#KO_13_call": {
       "value": "gene_specific",
       "source_artifact": "artifacts/perturbation_summary_naive.csv",
       "source_artifact_hash": "fb7719810e444f0438c849cf44a933826177cb87113b893724f16c2fdcecb131",
-      "source_span": "perturbation_summary_naive.csv, row perturbation=KO_13, column gene_specific_call (naive 审计者按 DE signature 大小排序 → 误判 gene_specific)"
+      "source_span": "perturbation_summary_naive.csv, row perturbation=KO_13, column gene_specific_call (naive 审计者按 DE signature 大小排序 → 误判 gene_specific)",
+      "recompute": {
+        "metric_type": "categorical_call",
+        "inputs": [
+          "artifacts/perturbation_summary_naive.csv"
+        ],
+        "method": {
+          "reference_fn": "rule_classify",
+          "args": {
+            "rule": "mediator_call_naive",
+            "key_col": "perturbation",
+            "key": "KO_13",
+            "n_deg_col": "n_deg",
+            "n_deg_thr": 200
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     }
   },
   "claims": [

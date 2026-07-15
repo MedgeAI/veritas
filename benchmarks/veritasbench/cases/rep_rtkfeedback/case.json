@@ -111,7 +111,31 @@
       "value": "yes",
       "source_artifact": "artifacts/naive_combination_targets.csv",
       "source_artifact_hash": "c88b222f6eab23cecd907da3cbe681093daa8a3be75c6c8cfdc694785db2ca36",
-      "source_span": "naive_combination_targets.csv, row drug_id=Drug_D & model=Model_A, column actionable=yes, target_gene=NEAT1, rationale_tag=largest_response (naive 按响应幅度排序把最大 arrester 当 top actionable, 靶标误报为 lncRNA NEAT1)"
+      "source_span": "naive_combination_targets.csv, row drug_id=Drug_D & model=Model_A, column actionable=yes, target_gene=NEAT1, rationale_tag=largest_response (naive 按响应幅度排序把最大 arrester 当 top actionable, 靶标误报为 lncRNA NEAT1)",
+      "recompute": {
+        "metric_type": "categorical_call",
+        "inputs": [
+          "artifacts/naive_combination_targets.csv"
+        ],
+        "method": {
+          "reference_fn": "rule_classify",
+          "args": {
+            "rule": "top_n_per_group",
+            "group_col": "model",
+            "score_col": "score",
+            "n": 3,
+            "key": {
+              "drug_id": "Drug_D",
+              "model": "Model_A"
+            },
+            "positive": "yes",
+            "negative": "no"
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/naive_combination_targets.csv#DrugA_ModelA_actionable": {
       "value": "no",
