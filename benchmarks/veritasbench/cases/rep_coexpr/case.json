@@ -36,37 +36,179 @@
       "value": 0,
       "source_artifact": "artifacts/de_analysis_correct.csv",
       "source_artifact_hash": "36fff1702065205861d3a5a529b31ea017e95dfc9c823d05451269c8dcfbeeec",
-      "source_span": "de_analysis_correct.csv, 严谨复现: per-donor pseudobulk 差异表达 (stat_unit=donor, 6 control vs 5 T2D), 全部 21761 基因中 padj<0.05 的数目 = 0 (即 beta 细胞 T2D 均值表达层面无 FDR 显著基因)"
+      "source_span": "de_analysis_correct.csv, 严谨复现: per-donor pseudobulk 差异表达 (stat_unit=donor, 6 control vs 5 T2D), 全部 21761 基因中 padj<0.05 的数目 = 0 (即 beta 细胞 T2D 均值表达层面无 FDR 显著基因)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "artifacts/de_analysis_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "count_where",
+          "args": {
+            "column": "padj",
+            "op": "<",
+            "thresh": 0.05
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/de_analysis_correct.csv#mechanism_fdr_sig": {
       "value": 0,
       "source_artifact": "artifacts/de_analysis_correct.csv",
       "source_artifact_hash": "36fff1702065205861d3a5a529b31ea017e95dfc9c823d05451269c8dcfbeeec",
-      "source_span": "de_analysis_correct.csv, 论文 KD/KO 实证的 8 个机制基因 (TMEM176A/B, CEBPG, DBI, DSTN, GABARAP, SPIRE1, ATRAID) 在 per-donor pseudobulk 下 padj 全部 >0.30 → FDR 显著数 = 0/8 (最小 pseudobulk t-test p=0.010, DSTN)"
+      "source_span": "de_analysis_correct.csv, 论文 KD/KO 实证的 8 个机制基因 (TMEM176A/B, CEBPG, DBI, DSTN, GABARAP, SPIRE1, ATRAID) 在 per-donor pseudobulk 下 padj 全部 >0.30 → FDR 显著数 = 0/8 (最小 pseudobulk t-test p=0.010, DSTN)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "artifacts/de_analysis_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "count_where",
+          "args": {
+            "column": "padj",
+            "op": "<",
+            "thresh": 0.05,
+            "row_filter": {
+              "column": "gene",
+              "in": [
+                "TMEM176A",
+                "TMEM176B",
+                "CEBPG",
+                "DBI",
+                "DSTN",
+                "GABARAP",
+                "SPIRE1",
+                "ATRAID"
+              ]
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/de_analysis_naive.csv#frac_transcriptome_p_lt_1e4": {
       "value": 0.25,
       "source_artifact": "artifacts/de_analysis_naive.csv",
       "source_artifact_hash": "337f285a9eba2234f6f245d2413fd864e5e72ef576b81362fba1aba98d33846a",
-      "source_span": "de_analysis_naive.csv, naive per-cell Mann-Whitney DE (stat_unit=cell), 13260 个被检基因中原始 pvalue<1e-4 的比例 = 0.2504 → ~25% 转录组被膨胀到显著 (伪重复 pseudoreplication)"
+      "source_span": "de_analysis_naive.csv, naive per-cell Mann-Whitney DE (stat_unit=cell), 13260 个被检基因中原始 pvalue<1e-4 的比例 = 0.2504 → ~25% 转录组被膨胀到显著 (伪重复 pseudoreplication)",
+      "recompute": {
+        "metric_type": "fraction",
+        "inputs": [
+          "artifacts/de_analysis_naive.csv"
+        ],
+        "method": {
+          "reference_fn": "frac_where",
+          "args": {
+            "column": "pvalue",
+            "op": "<",
+            "thresh": 0.0001
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/de_analysis_naive.csv#n_sig_padj05": {
       "value": 6932,
       "source_artifact": "artifacts/de_analysis_naive.csv",
       "source_artifact_hash": "337f285a9eba2234f6f245d2413fd864e5e72ef576b81362fba1aba98d33846a",
-      "source_span": "de_analysis_naive.csv, naive per-cell DE 下 padj<0.05 的基因数 = 6932 (占被检 13260 基因的 52%), 对照 per-donor pseudobulk 的 0"
+      "source_span": "de_analysis_naive.csv, naive per-cell DE 下 padj<0.05 的基因数 = 6932 (占被检 13260 基因的 52%), 对照 per-donor pseudobulk 的 0",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "artifacts/de_analysis_naive.csv"
+        ],
+        "method": {
+          "reference_fn": "count_where",
+          "args": {
+            "column": "padj",
+            "op": "<",
+            "thresh": 0.05
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/dysregulated_program_naive.csv#hsp_in_top20": {
       "value": 10,
       "source_artifact": "artifacts/dysregulated_program_naive.csv",
       "source_artifact_hash": "7ba0ea97ccd8d0b46b6f6197410dbcfc38319d8226f0a9ca9033e30198e118ca",
-      "source_span": "dysregulated_program_naive.csv, naive pooled 跨细胞差异共表达 top20 中细胞质热激/应激程序基因 (HSPA1A/B, HSP90AA1, DNAJB2, HSPE1, HSPH1, HSPD1 ...) 的数目 = 10/20; top1-5 = HSPA1B, DNAJB2, EIF4A2, HSPA1A, HSPE1"
+      "source_span": "dysregulated_program_naive.csv, naive pooled 跨细胞差异共表达 top20 中细胞质热激/应激程序基因 (HSPA1A/B, HSP90AA1, DNAJB2, HSPE1, HSPH1, HSPD1 ...) 的数目 = 10/20; top1-5 = HSPA1B, DNAJB2, EIF4A2, HSPA1A, HSPE1",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "artifacts/dysregulated_program_naive.csv"
+        ],
+        "method": {
+          "reference_fn": "count_in_top_n",
+          "args": {
+            "rank_col": "rank",
+            "top_n": 20,
+            "gene_col": "gene",
+            "gene_strip": "##",
+            "gene_in": [
+              "HSPA1B",
+              "DNAJB2",
+              "HSPA1A",
+              "HSPE1",
+              "HSPH1",
+              "HSP90AA1",
+              "HSPD1",
+              "CIRBP",
+              "CACYBP",
+              "PTGES3"
+            ]
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/dysregulated_program_correct.csv#hsp_in_top20": {
       "value": 0,
       "source_artifact": "artifacts/dysregulated_program_correct.csv",
       "source_artifact_hash": "0bd5a0ebb67b1c07aff5157489eb59e515837b4a48b12a13675670480ee88d88",
-      "source_span": "dysregulated_program_correct.csv, donor-aware (Simpson 控制) 差异共表达并剔除应激模块后 top20 中热激/应激基因数 = 0/20; top1-5 = NDUFA7, PERP, C4orf3, SCG5, PRDX2 (线粒体/UPR/细胞骨架/增殖真生物学程序)"
+      "source_span": "dysregulated_program_correct.csv, donor-aware (Simpson 控制) 差异共表达并剔除应激模块后 top20 中热激/应激基因数 = 0/20; top1-5 = NDUFA7, PERP, C4orf3, SCG5, PRDX2 (线粒体/UPR/细胞骨架/增殖真生物学程序)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "artifacts/dysregulated_program_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "count_in_top_n",
+          "args": {
+            "rank_col": "rank",
+            "top_n": 20,
+            "gene_col": "gene",
+            "gene_strip": "##",
+            "gene_in": [
+              "HSPA1B",
+              "DNAJB2",
+              "HSPA1A",
+              "HSPE1",
+              "HSPH1",
+              "HSP90AA1",
+              "HSPD1",
+              "CIRBP",
+              "CACYBP",
+              "PTGES3"
+            ]
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     }
   },
   "claims": [

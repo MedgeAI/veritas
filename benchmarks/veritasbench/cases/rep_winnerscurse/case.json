@@ -51,7 +51,24 @@
       "value": 3,
       "source_artifact": "artifacts/driver_calls_correct.csv",
       "source_artifact_hash": "65f52da42e9de995aeb6e8c7d8f349d5aa7c018f84b6fd27dee4e520ff7a1595",
-      "source_span": "driver_calls_correct.csv, 严谨复现(reproducibility across tumors AND baseline-adequate enrichment)后 is_driver=True 的行数=3 (Notch1, Fat1, Trp53)"
+      "source_span": "driver_calls_correct.csv, 严谨复现(reproducibility across tumors AND baseline-adequate enrichment)后 is_driver=True 的行数=3 (Notch1, Fat1, Trp53)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "artifacts/driver_calls_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "count_where",
+          "args": {
+            "column": "is_driver",
+            "op": "==",
+            "value": "True"
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/driver_calls_correct.csv#Notch1_fc_mean": {
       "value": 22.162,

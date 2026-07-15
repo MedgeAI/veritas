@@ -31,7 +31,22 @@
       "value": 0.845179002082301,
       "source_artifact": "artifacts/summary_metrics.csv",
       "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
-      "source_span": "summary_metrics.csv, row model=xgb, column C_mean (XGBoost-AFT C-index均值)"
+      "source_span": "summary_metrics.csv, row model=xgb, column C_mean (XGBoost-AFT C-index均值)",
+      "recompute": {
+        "metric_type": "ci_bounded_stat",
+        "inputs": [
+          "artifacts/pbc.csv"
+        ],
+        "method": {
+          "reference_fn": "c_index",
+          "code_entry": "pbc_surv_tcav.py::c_index_xgb"
+        },
+        "tolerance": {
+          "kind": "ci_interval",
+          "lo_obs": "artifacts/summary_metrics.csv#xgb_C_boot_lo",
+          "hi_obs": "artifacts/summary_metrics.csv#xgb_C_boot_hi"
+        }
+      }
     },
     "artifacts/summary_metrics.csv#xgb_C_boot_lo": {
       "value": 0.8250315072016461,
@@ -49,7 +64,22 @@
       "value": 0.8370431502002689,
       "source_artifact": "artifacts/summary_metrics.csv",
       "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
-      "source_span": "summary_metrics.csv, row model=cox, column C_mean (Cox C-index均值)"
+      "source_span": "summary_metrics.csv, row model=cox, column C_mean (Cox C-index均值)",
+      "recompute": {
+        "metric_type": "ci_bounded_stat",
+        "inputs": [
+          "artifacts/pbc.csv"
+        ],
+        "method": {
+          "reference_fn": "c_index",
+          "code_entry": "pbc_surv_tcav.py::c_index_cox"
+        },
+        "tolerance": {
+          "kind": "ci_interval",
+          "lo_obs": "artifacts/summary_metrics.csv#cox_C_boot_lo",
+          "hi_obs": "artifacts/summary_metrics.csv#cox_C_boot_hi"
+        }
+      }
     },
     "artifacts/summary_metrics.csv#cox_C_boot_lo": {
       "value": 0.8142436128257888,

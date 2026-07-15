@@ -42,13 +42,52 @@
       "value": 6,
       "source_artifact": "artifacts/correct_combination_targets.csv",
       "source_artifact_hash": "8e19e57e138de641da2e8a3c57ac10e8d8108455594e677521c039f7bec9f365",
-      "source_span": "correct_combination_targets.csv, 统计 actionable=yes 的行数 (Drug_A/C/E/F/G/K × Model_A 共 6 条, EGFR logFC 0.288-0.453 且 CAV1 同向; target_gene 全=EGFR)"
+      "source_span": "correct_combination_targets.csv, 统计 actionable=yes 的行数 (Drug_A/C/E/F/G/K × Model_A 共 6 条, EGFR logFC 0.288-0.453 且 CAV1 同向; target_gene 全=EGFR)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "artifacts/correct_combination_targets.csv"
+        ],
+        "method": {
+          "reference_fn": "count_where",
+          "args": {
+            "column": "actionable",
+            "op": "==",
+            "value": "yes"
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/correct_combination_targets.csv#n_actionable_other_models": {
       "value": 0,
       "source_artifact": "artifacts/correct_combination_targets.csv",
       "source_artifact_hash": "8e19e57e138de641da2e8a3c57ac10e8d8108455594e677521c039f7bec9f365",
-      "source_span": "correct_combination_targets.csv, 统计 model∈{Model_B,Model_C} 且 actionable=yes 的行数 = 0 (反馈信号仅 Model_A 患者来源模型可见, 模型特异)"
+      "source_span": "correct_combination_targets.csv, 统计 model∈{Model_B,Model_C} 且 actionable=yes 的行数 = 0 (反馈信号仅 Model_A 患者来源模型可见, 模型特异)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "artifacts/correct_combination_targets.csv"
+        ],
+        "method": {
+          "reference_fn": "count_where",
+          "args": {
+            "column": "actionable",
+            "op": "==",
+            "value": "yes",
+            "row_filter": {
+              "column": "model",
+              "op": "!=",
+              "value": "Model_A"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/correct_combination_targets.csv#DrugD_ModelA_actionable": {
       "value": "no",
