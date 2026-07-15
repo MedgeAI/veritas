@@ -1,0 +1,1 @@
+Cohen's kappa=0.755 po=0.880 pe=0.510 agree=44/50 disagreements=6

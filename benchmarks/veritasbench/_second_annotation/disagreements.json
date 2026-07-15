@@ -1,0 +1,44 @@
+[
+  {
+    "claim_id": "ncb_clonalfish_claim_001",
+    "case_id": "ncb_clonalfish",
+    "wuguandu": "inconsistent",
+    "second": "consistent",
+    "bucket": "mixed_boundary"
+  },
+  {
+    "claim_id": "ncb_fbp1_claim_001",
+    "case_id": "ncb_fbp1",
+    "wuguandu": "inconsistent",
+    "second": "consistent",
+    "bucket": "verifier_conflict"
+  },
+  {
+    "claim_id": "ncb_hdac6_claim_001",
+    "case_id": "ncb_hdac6",
+    "wuguandu": "inconsistent",
+    "second": "consistent",
+    "bucket": "mixed_boundary"
+  },
+  {
+    "claim_id": "ncb_lgr4_claim_002",
+    "case_id": "ncb_lgr4",
+    "wuguandu": "inconsistent",
+    "second": "consistent",
+    "bucket": "mixed_boundary"
+  },
+  {
+    "claim_id": "ncb_spp1_claim_001",
+    "case_id": "ncb_spp1",
+    "wuguandu": "inconsistent",
+    "second": "consistent",
+    "bucket": "mixed_boundary"
+  },
+  {
+    "claim_id": "rep_pbc_claim_003",
+    "case_id": "rep_pbc_surv",
+    "wuguandu": "consistent",
+    "second": "insufficient",
+    "bucket": "false_positive_trap"
+  }
+]
