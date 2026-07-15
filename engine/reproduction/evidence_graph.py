@@ -6,8 +6,8 @@ The engine builds claim-level evidence graphs and aggregates evidence from typed
 to make risk-controlled decisions (flag/pass/abstain) under a false accusation rate constraint.
 """
 
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
+from typing import Any, Literal
 
 from engine.reproduction.models import (
     ClaimVerdict,
@@ -43,13 +43,25 @@ class EvidenceGraphEngine:
     Objective: max Recall s.t. FAR ≤ α
     """
 
-    def __init__(self, far_alpha: float = 0.05):
+    def __init__(
+        self,
+        far_alpha: float = 0.05,
+        aggregation_policy: Literal["flat", "graph_aware"] = "flat",
+    ):
         """Initialize the engine.
 
         Args:
             far_alpha: False accusation rate threshold (default 0.05 = 5%)
         """
         self.far_alpha = far_alpha
+        self.set_aggregation_policy(aggregation_policy)
+
+    def set_aggregation_policy(self, policy: Literal["flat", "graph_aware"]) -> None:
+        """Select the aggregation policy used by subsequent graph decisions."""
+
+        if policy not in {"flat", "graph_aware"}:
+            raise ValueError(f"Unknown aggregation policy: {policy}")
+        self.aggregation_policy = policy
 
     def build_graph(
         self,
@@ -136,8 +148,17 @@ class EvidenceGraphEngine:
                 abstain_reason="No evidence available",
             )
 
+        # Graph-aware mode removes repeated observations of the same artifact
+        # relation before scoring. Conflicting relations remain visible and
+        # therefore increase abstention risk instead of being hidden.
+        aggregation_signals = (
+            self._graph_aware_signals(graph)
+            if self.aggregation_policy == "graph_aware"
+            else verifier_outputs
+        )
+
         # Perform aggregation
-        agg_result = self._aggregate_signals(verifier_outputs)
+        agg_result = self._aggregate_signals(aggregation_signals)
 
         # Make FAR-constrained decision
         verdict, confidence, abstain_reason = self._make_decision(agg_result)
@@ -147,7 +168,7 @@ class EvidenceGraphEngine:
             verdict=verdict,  # type: ignore
             confidence=confidence,
             evidence_graph=graph,
-            aggregated_signals=verifier_outputs,
+            aggregated_signals=aggregation_signals,
             far_risk=agg_result.far_risk_estimate,
             abstain_reason=abstain_reason,
         )
@@ -232,6 +253,47 @@ class EvidenceGraphEngine:
             far_risk_estimate=far_risk,
         )
 
+    def _graph_aware_signals(self, graph: EvidenceGraph) -> list[VerifierOutput]:
+        """Collapse duplicate artifact-relation signals while preserving conflicts.
+
+        Cell/line-level observations from the same source and target artifact
+        family should not count as independent corroboration. A different
+        artifact family remains an independent signal. If the same relation
+        produces conflicting verdicts, verdict is part of the key so both
+        outputs survive and the normal abstention logic sees the conflict.
+        """
+
+        nodes = {node.node_id: node for node in graph.nodes}
+        selected: dict[tuple[str, str, str, str, str], VerifierOutput] = {}
+        for edge in graph.edges:
+            signal = edge.verifier_output
+            if signal is None:
+                continue
+            source = nodes.get(edge.source_node)
+            target = nodes.get(edge.target_node)
+            source_family = self._artifact_family(source.artifact_ref if source else edge.source_node)
+            target_family = self._artifact_family(target.artifact_ref if target else edge.target_node)
+            key = (
+                source_family,
+                target_family,
+                edge.relation_type,
+                signal.verdict,
+                signal.discrepancy_type or "",
+            )
+            previous = selected.get(key)
+            if previous is None or signal.confidence > previous.confidence:
+                selected[key] = signal
+        return list(selected.values())
+
+    @staticmethod
+    def _artifact_family(artifact_ref: Any) -> str:
+        """Normalize row/cell fragments to their immutable artifact family."""
+
+        value = str(artifact_ref)
+        for separator in ("#", "::"):
+            value = value.split(separator, 1)[0]
+        return value
+
     def _make_decision(
         self,
         agg_result: AggregationResult,
@@ -286,8 +348,9 @@ class VerifierAwareEvidenceGraphEngine(EvidenceGraphEngine):
         self,
         verifiers: dict[str, TypedVerifier],
         far_alpha: float = 0.05,
+        aggregation_policy: Literal["flat", "graph_aware"] = "flat",
     ) -> None:
-        super().__init__(far_alpha=far_alpha)
+        super().__init__(far_alpha=far_alpha, aggregation_policy=aggregation_policy)
         self.verifiers = verifiers
 
     def build_and_verify(
@@ -369,7 +432,10 @@ class VerifierAwareEvidenceGraphEngine(EvidenceGraphEngine):
         return artifact
 
 
-def create_default_engine(far_alpha: float = 0.05) -> EvidenceGraphEngine:
+def create_default_engine(
+    far_alpha: float = 0.05,
+    aggregation_policy: Literal["flat", "graph_aware"] = "flat",
+) -> EvidenceGraphEngine:
     """Create a default EvidenceGraphEngine instance.
 
     Args:
@@ -378,4 +444,7 @@ def create_default_engine(far_alpha: float = 0.05) -> EvidenceGraphEngine:
     Returns:
         EvidenceGraphEngine instance
     """
-    return EvidenceGraphEngine(far_alpha=far_alpha)
+    return EvidenceGraphEngine(
+        far_alpha=far_alpha,
+        aggregation_policy=aggregation_policy,
+    )

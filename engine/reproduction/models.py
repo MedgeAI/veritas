@@ -139,8 +139,9 @@ class BenchmarkCase:
     case_id: str
     paper_title: str
     paper_authors: list[str]
-    artifacts: dict[str, str]  # artifact_type -> file_path
+    artifacts: dict[str, Any]  # artifact_id -> artifact metadata
     claims: list[ClaimRelationAnnotation]
+    observations: dict[str, Any] = field(default_factory=dict)
     metadata: dict[str, Any] = field(default_factory=dict)  # language, statistical_method, etc.
 
 

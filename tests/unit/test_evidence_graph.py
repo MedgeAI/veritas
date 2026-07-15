@@ -1,7 +1,5 @@
 """Unit tests for evidence graph engine."""
 
-import pytest
-
 from engine.reproduction.evidence_graph import EvidenceGraphEngine, create_default_engine
 from engine.reproduction.mock_data import generate_mock_evidence_graph, generate_mock_verifier_output
 from engine.reproduction.models import EvidenceEdge, EvidenceGraph, EvidenceNode, VerifierOutput
@@ -201,6 +199,48 @@ class TestEvidenceGraphEngine:
         # Multiple converging signals should increase confidence
         assert len(verdict.aggregated_signals) == 2
         assert verdict.confidence > 0.5
+
+    def test_graph_aware_policy_deduplicates_same_artifact_family(self):
+        engine = EvidenceGraphEngine(far_alpha=0.05, aggregation_policy="graph_aware")
+        nodes = [
+            EvidenceNode(node_id="source", artifact_type="code_output", artifact_ref="run.csv"),
+            EvidenceNode(node_id="target", artifact_type="table_cell", artifact_ref="table.json"),
+        ]
+        signal = generate_mock_verifier_output(
+            verdict="inconsistent",
+            confidence=0.8,
+            discrepancy_type="numeric_mismatch",
+        )
+        graph = EvidenceGraph(
+            claim_id="dedupe",
+            nodes=nodes,
+            edges=[
+                EvidenceEdge(
+                    edge_id="edge_1",
+                    source_node="source",
+                    target_node="target",
+                    relation_type="L1",
+                    verifier_output=signal,
+                ),
+                EvidenceEdge(
+                    edge_id="edge_2",
+                    source_node="source",
+                    target_node="target",
+                    relation_type="L1",
+                    verifier_output=generate_mock_verifier_output(
+                        verdict="inconsistent",
+                        confidence=0.6,
+                        discrepancy_type="numeric_mismatch",
+                    ),
+                ),
+            ],
+        )
+
+        verdict = engine.aggregate(graph)
+
+        assert len(verdict.evidence_graph.edges) == 2
+        assert len(verdict.aggregated_signals) == 1
+        assert verdict.aggregated_signals[0].confidence == 0.8
 
 
 class TestMockDataGeneration:
