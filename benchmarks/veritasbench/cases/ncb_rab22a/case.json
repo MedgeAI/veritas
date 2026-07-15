@@ -1,0 +1,151 @@
+{
+  "case_id": "ncb_rab22a",
+  "paper_title": "Chromosomal translocation-derived aberrant Rab22a drives metastasis of osteosarcoma",
+  "paper_doi": "10.1038/s41556-020-0522-z",
+  "paper_authors": [
+    "Yan Zhou",
+    "Tiebang Kang (corresponding; Sun Yat-sen University Cancer Center, 中山大学)"
+  ],
+  "artifacts": {
+    "source_data_ed6": {
+      "path": "artifacts/source_data_ed6.xlsx",
+      "sha256": "9ba2db02842bf35af791838df7a986fcce081136f9e2955082f14dd9b7458018",
+      "kind": "source_data"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "eef839cc071c846c2812fb962a501f50b284d9294d9931c381f816333174a9e3",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/source_data_ed6.xlsx#ed6h_vector_E": {
+      "value": [
+        0.18,
+        0.19,
+        0.197,
+        0.22,
+        0.187,
+        0.21,
+        0.21
+      ],
+      "source_artifact": "artifacts/source_data_ed6.xlsx",
+      "source_artifact_hash": "9ba2db02842bf35af791838df7a986fcce081136f9e2955082f14dd9b7458018",
+      "source_span": "sheet 'Sheet1', block label 'Extended Data 6h' (B89), header 'lung wet weight(g)' (B90), '143B' (B91); Vector column E (header E91='Vector'), rows 92-98 = 7 per-animal wet lung weights (g)"
+    },
+    "artifacts/source_data_ed6.xlsx#ed6h_sg2mut_M": {
+      "value": [
+        0.18,
+        0.19,
+        0.197,
+        0.22,
+        0.187,
+        0.21,
+        0.21
+      ],
+      "source_artifact": "artifacts/source_data_ed6.xlsx",
+      "source_artifact_hash": "9ba2db02842bf35af791838df7a986fcce081136f9e2955082f14dd9b7458018",
+      "source_span": "sheet 'Sheet1', block 'Extended Data 6h' (143B); column M (header M91='SmgGDS sg2+E254K+D256K'), rows 92-98 = 7 per-animal wet lung weights (g) for the SmgGDS-sg2 rescue arm"
+    },
+    "artifacts/source_data_ed6.xlsx#ed6f_vector_raw_B": {
+      "value": [
+        31,
+        46,
+        40
+      ],
+      "source_artifact": "artifacts/source_data_ed6.xlsx",
+      "source_artifact_hash": "9ba2db02842bf35af791838df7a986fcce081136f9e2955082f14dd9b7458018",
+      "source_span": "sheet 'Sheet1', block 'Extended Data 6f' (B3), '143B adhesion' (C5); Vector raw adhesion counts, column B (header B7='vector'), rows 8-10 = n=3 biological replicates"
+    },
+    "artifacts/source_data_ed6.xlsx#ed6f_vector_fd_C": {
+      "value": [
+        1,
+        1,
+        1
+      ],
+      "source_artifact": "artifacts/source_data_ed6.xlsx",
+      "source_artifact_hash": "9ba2db02842bf35af791838df7a986fcce081136f9e2955082f14dd9b7458018",
+      "source_span": "sheet 'Sheet1', block 'Extended Data 6f'; Vector fold-change column C (header C7='fold change(FD)'), rows 8-10 = normalized fold change of the Vector reference group (n=3)"
+    },
+    "artifacts/paper_main.pdf#fig3f_image": {
+      "value": "Fig. 3f: representative photographic images of tumour-bearing mice (in vivo orthotopic osteosarcoma metastasis model, Rab22a-NeoF1 overexpression arm; 143B). Photographic panel only — no numeric/pixel values deposited in Source Data.",
+      "source_artifact": "artifacts/paper_main.pdf",
+      "source_artifact_hash": "eef839cc071c846c2812fb962a501f50b284d9294d9931c381f816333174a9e3",
+      "source_span": "main text PDF, Fig. 3f (caption: 'f,i, Representative images of mice'; f-h = Rab22a-NeoF1 overexpression, n=6 biologically independent animals)"
+    },
+    "artifacts/paper_main.pdf#fig3i_image": {
+      "value": "Fig. 3i: representative photographic images of tumour-bearing mice (in vivo orthotopic model, RAB22A-NeoF1 knockdown arm; NC / ZOS-M). Photographic panel only — no numeric/pixel values deposited in Source Data.",
+      "source_artifact": "artifacts/paper_main.pdf",
+      "source_artifact_hash": "eef839cc071c846c2812fb962a501f50b284d9294d9931c381f816333174a9e3",
+      "source_span": "main text PDF, Fig. 3i (caption: 'f,i, Representative images of mice'; i-k = RAB22A-NeoF1 knockdown, n=6 biologically independent animals)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_rab22a_ann_001",
+      "claim_id": "ncb_rab22a_claim_001",
+      "claim_atom": "In Extended Data Fig. 6f (143B adhesion, n=3), the fold-change(FD) column of the Vector reference group (column C, rows 8-10) equals exactly 1.0 for every replicate (C8=C9=C10=1). A naive duplication/constant detector may flag 'three identical values = fabricated constant', but this is the mathematical necessity of reference-group normalization: fold change is each group's count divided by the Vector (reference) value, so Vector/Vector = 1 by construction. It is NOT a fabricated or manipulated pattern.",
+      "source_artifact": "artifacts/source_data_ed6.xlsx#ed6f_vector_raw_B",
+      "target_artifact": "artifacts/source_data_ed6.xlsx#ed6f_vector_fd_C",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "source_a1_range": "sheet 'Sheet1' (Extended Data 6f) B8:B10",
+      "target_a1_range": "sheet 'Sheet1' (Extended Data 6f) C8:C10",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_adjudication": "FP陷阱(合法归一化=最重要的clean claim). ED Fig. 6f 的 Vector 组 fold change(FD) 三个重复恒为 1.0(B8/9/10 原始 adhesion 计数 31/46/40, 各除以自身 Vector 参照 → C8=C9=C10=1)。看着可疑(三个重复逐值相同=常数)实为 fold-change 以 Vector 为参照归一化的数学必然:参照组除以自身必=1(全表所有 'fold change(FD)' 块的 vector 列都=1)。AI 若据'Vector 列三值全等即指控造假'=踩 FP 陷阱。本质与 claim_002 的重复列不同:这里是归一化定义导致的必然常数,不是两个应独立分布的样本被误粘为逐值相同。判 consistent + is_clean_claim=true, discrepancy_type=null。值经 openpyxl 真读:C8:C10=[1, 1, 1]。"
+    },
+    {
+      "annotation_id": "ncb_rab22a_ann_002",
+      "claim_id": "ncb_rab22a_claim_002",
+      "claim_atom": "In Extended Data Fig. 6h (143B wet lung weight; caption states n=6 biologically independent animals per arm), the Vector control column (E, rows 92-98) and the SmgGDS-sg2+E254K+D256K rescue column (M, rows 92-98) carry byte-identical per-animal values for ALL 7 listed entries (0.18, 0.19, 0.197, 0.22, 0.187, 0.21, 0.21), giving identical reported means (row 99: E99=M99=0.19914...). Two supposedly independent in-vivo animal cohorts cannot yield value-identical wet lung weights across every animal; this is a duplicated (copy-pasted) column. The same block also shows the RAB22A-NeoF1 column F and the sgNC column G identical in 6 of 7 animals, the sole difference being a rounding artifact (F98=0.264 vs G98=0.265) — the 'same data, rounded differently' signature.",
+      "source_artifact": "artifacts/source_data_ed6.xlsx#ed6h_vector_E",
+      "target_artifact": "artifacts/source_data_ed6.xlsx#ed6h_sg2mut_M",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_columns",
+      "evidence_span": "L1:source_data->source_data",
+      "source_a1_range": "sheet 'Sheet1' (Extended Data 6h) E92:E98",
+      "target_a1_range": "sheet 'Sheet1' (Extended Data 6h) M92:M98",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "Inconsistent(天眼系统披露的数值异常, 有 Author Correction 独立状态实锤). 数据核实:ED Fig. 6h (143B 肺湿重, 图注 n=6 biologically independent animals) 的 Vector 列 E92:E98 与 SmgGDS-sg2+E254K+D256K rescue 列 M92:M98 在全部 7 个动物上逐值完全相同 ([0.18, 0.19, 0.197, 0.22, 0.187, 0.21, 0.21]),均值行亦相同 (E99=M99)。两个应彼此独立的活体动物队列不可能逐动物精确相同 → 重复列 (duplicated column / copy-paste)。同一 block 内 RAB22A-NeoF1 列 F 与 sgNC 列 G 在 7 个动物中 6 个逐值相同,唯一差异 F98=0.264 vs G98=0.265 为四舍五入产物(=天眼披露的'四舍五入同数据'签名)。与 claim_001 的合法归一化本质不同:那里是归一化定义导致的必然常数,这里是两组独立生物学重复被误粘为逐值相同。该论文已有 Author Correction s41556-024-01370-6 作为独立状态实锤。判 inconsistent, discrepancy_type=duplicated_columns。"
+    },
+    {
+      "annotation_id": "ncb_rab22a_ann_003",
+      "claim_id": "ncb_rab22a_claim_003",
+      "claim_atom": "PubPeer/灵镜 flagged that the representative-mouse-image panels Fig. 3f (Rab22a-NeoF1 overexpression, 143B) and Fig. 3i (RAB22A-NeoF1 knockdown, NC/ZOS-M) appear to reuse/overlap the same photographic image. This is an image-level (pixel) duplication and CANNOT be independently adjudicated from the deposited numeric artifacts: the Fig. 3 Source Data workbook (MOESM7) contains numeric tables only for panels 3d, 3e, 3h, 3k, 3l — there is NO numeric/pixel source data for panels 3f or 3i (both are 'Representative images of mice' per the caption). Whether the two photographs are truly the same image can only be resolved by forensic image analysis or author clarification, not from the public numeric Source Data.",
+      "source_artifact": "artifacts/paper_main.pdf#fig3f_image",
+      "target_artifact": "artifacts/paper_main.pdf#fig3i_image",
+      "relation_type": "L3",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "Insufficient(图像层重复, 公开数值 artifacts 无法确证). 灵镜/PubPeer 披露 Fig. 3f (Rab22a-NeoF1 过表达, 143B) 与 Fig. 3i (RAB22A-NeoF1 敲低, NC/ZOS-M) 的代表性小鼠照片疑似重复/重叠。这是像素/图像层的重复,不能仅凭沉积的数值 artifacts 判定:核实 Fig. 3 Source Data (MOESM7) 仅含面板 3d/3e/3h/3k/3l 的数值表,面板 3f、3i 均为 'Representative images of mice'(图注原文)无任何数值/像素源数据沉积。两张照片是否确为同一图像只能靠图像取证或作者澄清,无法从公开数值 Source Data 独立确证 → 判 insufficient,不给 evidence_span。observation 锚定 paper_main.pdf 的两个图像面板(Fig. 3f / Fig. 3i),因数值层不存在。本论文存在 Author Correction s41556-024-01370-6,但更正版图像/数据未在此公开沉积中提供,故仍属证据不足。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_rab22a",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "verifier_conflict",
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.1038/s41556-020-0522-z",
+    "_lane": "混合边界案(周岩/康铁邦 中山大学肿瘤防治中心 2020 Nat Cell Biol, 染色体易位来源异常 Rab22a-NeoF1 驱动骨肉瘤肺转移). 三类 verdict 并存: (1) consistent+clean (FP陷阱): ED Fig. 6f Vector 组 fold-change 恒=1.0, 是参照归一化的数学必然非造假; (2) inconsistent: ED Fig. 6h Vector 列 E 与 SmgGDS-sg2 rescue 列 M 逐值完全相同(7/7)=重复列, 另 F/G 列 6/7 相同带四舍五入签名; (3) insufficient: Fig. 3f/3i 代表性小鼠照片疑似图像重复, 但该两面板无数值 Source Data → 无法从公开数值确证. 考 AI 能否区分'看着可疑但合法归一化'/'真重复列(数值异常)'/'图像层重复证据不足'.",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_pubpeer": "灵镜/天眼系统披露: 图片重复 Fig3f(143B) vs Fig3i(NC/ZOS-M), FigE3I(U2OS/MTX300) vs FigE5G(NC); 天眼 ED Fig 6h & 6j 恒定差/四舍五入同数据(Vector列 vs rescue列).",
+    "_correction": "s41556-024-01370-6",
+    "_verdict_breakdown": "consistent=1 (claim_001, clean/FP normalization); inconsistent=1 (claim_002, duplicated_columns ED6h); insufficient=1 (claim_003, Fig3f/3i image-level)",
+    "_grounding_note": "所有 value 逐 cell 由 openpyxl(data_only) 从 deposited Source Data (MOESM28 = Extended Data 6, 复制为 artifacts/source_data_ed6.xlsx) 真读无编造。consistent: ED6f Vector FD 列 C8:C10=[1, 1, 1] (原始 B8:B10=[31, 46, 40], 各除自身 vector=1 归一化必然)。inconsistent: ED6h Vector 列 E92:E98=[0.18, 0.19, 0.197, 0.22, 0.187, 0.21, 0.21] 与 rescue 列 M92:M98 逐值全等(7/7); F(NeoF1) vs G(sgNC) 相同 6/7, 差异仅 F98=0.264 vs G98=0.265 (四舍五入)。insufficient: Fig3 Source Data (MOESM7) 仅有面板 3d/3e/3h/3k/3l 数值, 无 3f/3i (代表性小鼠照片) → 图像重复无法从数值确证, observation 锚定 paper_main.pdf 图像面板。paper_main.pdf = 主文 39 页 PDF, 供 Fig.3/ED6 图注与命名核对。"
+  }
+}
