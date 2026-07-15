@@ -1,0 +1,165 @@
+{
+  "case_id": "rep_actmeta",
+  "paper_title": "Verification Report of Zhao et al. (2023) 'Effect of Acceptance and Commitment Therapy for depressive disorders: a meta-analysis'",
+  "paper_authors": [
+    "Ian Hussey",
+    "Malte Elson (Verification Report; CODECHECK 2025-005 certified; re-analysis of Zhao et al. 2023, doi:10.1186/s12991-023-00462-1)"
+  ],
+  "artifacts": {
+    "extracted_data_xlsx": {
+      "path": "artifacts/data_zhao_forest_plot_1_extracted.xlsx",
+      "sha256": "a5e30f7ebd497ac92fd97e63c2ff13cbddafe16aa91539a735349beb72184466",
+      "kind": "source_data"
+    },
+    "verification_rmd": {
+      "path": "artifacts/verification_zhao_2023.Rmd",
+      "sha256": "6ddb862fd50ed1ad39262246e166d27c6e4fd62b17a0ae6ac93d28076fc25277",
+      "kind": "code"
+    },
+    "pooled_effects_csv": {
+      "path": "artifacts/pooled_effects.csv",
+      "sha256": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "pooled_effects.csv#fig4_est": {
+      "value": -1.052,
+      "source_artifact": "artifacts/pooled_effects.csv",
+      "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
+      "source_span": "pooled_effects.csv, row model=zhao_fig4_excl_atjak (10 studies, A-Tjak 2018 excluded = Zhao Figure 4 sensitivity model), column smd_est (metafor rma DL 合并 SMD)"
+    },
+    "pooled_effects.csv#fig4_ci_lb": {
+      "value": -1.4447,
+      "source_artifact": "artifacts/pooled_effects.csv",
+      "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
+      "source_span": "pooled_effects.csv, row model=zhao_fig4_excl_atjak, column ci_lb (95%CI 下界)"
+    },
+    "pooled_effects.csv#fig4_ci_ub": {
+      "value": -0.6593,
+      "source_artifact": "artifacts/pooled_effects.csv",
+      "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
+      "source_span": "pooled_effects.csv, row model=zhao_fig4_excl_atjak, column ci_ub (95%CI 上界)"
+    },
+    "pooled_effects.csv#fig4_i2": {
+      "value": 84.0,
+      "source_artifact": "artifacts/pooled_effects.csv",
+      "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
+      "source_span": "pooled_effects.csv, row model=zhao_fig4_excl_atjak, column I2 (异质性 I^2 %)"
+    },
+    "pooled_effects.csv#all11_est": {
+      "value": -0.7548,
+      "source_artifact": "artifacts/pooled_effects.csv",
+      "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
+      "source_span": "pooled_effects.csv, row model=zhao_all11 (全部 11 项研究, Zhao 正文 'eleven studies / 887 patients'), column smd_est"
+    },
+    "pooled_effects.csv#all11_i2": {
+      "value": 93.1,
+      "source_artifact": "artifacts/pooled_effects.csv",
+      "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
+      "source_span": "pooled_effects.csv, row model=zhao_all11, column I2 (Zhao 正文报告 I^2=93%)"
+    },
+    "pooled_effects.csv#reextr10_est": {
+      "value": -0.7831,
+      "source_artifact": "artifacts/pooled_effects.csv",
+      "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
+      "source_span": "pooled_effects.csv, row model=reextracted_10 (重新提取效应量, 剔除重复研究 Ren Zhihong 2012, 10 项), column smd_est"
+    },
+    "pooled_effects.csv#final_est": {
+      "value": -0.6065,
+      "source_artifact": "artifacts/pooled_effects.csv",
+      "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
+      "source_span": "pooled_effects.csv, row model=reextracted_final_excl_zemestani (修正提取错误后最终模型, 再剔除离群 Zemestani 2020, 9 项), column smd_est"
+    },
+    "pooled_effects.csv#final_ci_lb": {
+      "value": -1.0431,
+      "source_artifact": "artifacts/pooled_effects.csv",
+      "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
+      "source_span": "pooled_effects.csv, row model=reextracted_final_excl_zemestani, column ci_lb"
+    },
+    "pooled_effects.csv#final_ci_ub": {
+      "value": -0.17,
+      "source_artifact": "artifacts/pooled_effects.csv",
+      "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
+      "source_span": "pooled_effects.csv, row model=reextracted_final_excl_zemestani, column ci_ub"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_actmeta_ann_001",
+      "claim_id": "rep_actmeta_claim_001",
+      "claim_atom": "Re-running the meta-analysis from the summary statistics extracted from Zhao et al. (2023) Figure 4 (random-effects DerSimonian-Laird, A-Tjak 2018 excluded, 10 studies) reproduces a pooled standardized mean difference of Hedges g = -1.05, and this point estimate lies within its own reported 95% CI [-1.44, -0.66].",
+      "source_artifact": "pooled_effects.csv#fig4_est",
+      "target_artifact": "pooled_effects.csv#fig4_ci_lb",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "GROUNDING: Figure 4 是排除 A-Tjak 2018 后的 10 项敏感性分析, 合并 SMD=-1.052 ∈ [-1.4447, -0.6593], 与论文报告 d=-1.05, 95%CI[-1.44,-0.66] 一致. FP陷阱: Zhao 正文写 'eleven studies/887 patients' (对应 all11 行 est=-0.7548), 但 Figure 4 实为 10 项; 若误取 11 项行会错判 inconsistent. 须定位对的行(模型)."
+    },
+    {
+      "annotation_id": "rep_actmeta_ann_002",
+      "claim_id": "rep_actmeta_claim_002",
+      "claim_atom": "After correcting the three data-extraction errors identified in the re-extraction and re-running Zhao et al.'s analytic workflow (re-extracted effect sizes, duplicate Ren Zhihong 2012 removed, outlier Zemestani 2020 excluded; 9 studies), the corrected pooled effect (g = -0.61) is substantially smaller in magnitude than the Figure-4 reproduction (g = -1.05).",
+      "source_artifact": "pooled_effects.csv#final_est",
+      "target_artifact": "pooled_effects.csv#fig4_est",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "GROUNDING: 修正后最终模型 est=-0.6065 vs Figure4 est=-1.0520 → |−0.6065|/|−1.0520|−1 = −42.3%, 与 notebook 报告 '42.3% smaller' 一致. 须区分 4 个不同合并估计(-0.7548 / -1.0520 / -0.7831 / -0.6065), 只有 final 与 fig4 两行对得上此断言."
+    },
+    {
+      "annotation_id": "rep_actmeta_ann_003",
+      "claim_id": "rep_actmeta_claim_003",
+      "claim_atom": "Heterogeneity in the full 11-study model is very high (I^2 = 93.1%, consistent with Zhao's reported I^2 = 93%) and is higher than in the Figure-4 sensitivity model after excluding the influential study A-Tjak 2018 (I^2 = 84.0%).",
+      "source_artifact": "pooled_effects.csv#all11_i2",
+      "target_artifact": "pooled_effects.csv#fig4_i2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "GROUNDING: all11 I2=93.1 复现 Zhao 正文 I2=93%; 排除 A-Tjak 后 I2 降至 84.0, 佐证其为影响力离群点. 须把两个 I^2 分别对到正确模型行, 别张冠李戴."
+    },
+    {
+      "annotation_id": "rep_actmeta_ann_004",
+      "claim_id": "rep_actmeta_claim_004",
+      "claim_atom": "Whether the three 'indeterminable' studies' summary statistics are accurate cannot be established from the deposited artifacts, because the original source articles were inaccessible (Chinese-language pay-walled or no locatable DOI); the re-extracted pooled estimate assumes them correct.",
+      "source_artifact": "pooled_effects.csv#reextr10_est",
+      "target_artifact": "pooled_effects.csv#final_est",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "evidence_span": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "INSUFFICIENT: notebook 明说 3 项研究原文不可获取(仅中文付费/无 DOI), 其提取值在 liberal 假设下当作正确纳入. 部署 artifacts 无法证实或证伪这 3 项, 故 insufficient — 非造假, 而是可核验证据缺失."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_actmeta",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.1186/s12991-023-00462-1",
+    "_lane": "诚实可复现论文(验证报告, 非造假); 全部实质 claim=consistent + 1 insufficient(证据缺失非冲突). 考 AI 从森林图/多个合并模型中定位对的合并效应量, 并抵抗 FP 误判(11 vs 10 项, 4 个不同 SMD 估计)",
+    "_independent_status": "CODECHECK 2025-005 (Daniel Nust 认证可执行, 证书 doi:10.5281/zenodo.15323262) + 下载窗口独立在 r-base Docker 内重跑 metafor rma(DL) 得 pooled_effects.csv",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_reproduction_env": "r-base:latest (R 4.x) + metafor + readxl; 源数据 data_zhao_forest_plot_1_extracted.xlsx sheets original/reextracted; escalc(measure=SMD)+rma(method=DL)"
+  }
+}

@@ -1,0 +1,5 @@
+model,n_studies,smd_est,ci_lb,ci_ub,I2
+zhao_all11,11,-0.7548,-1.328,-0.1816,93.1
+zhao_fig4_excl_atjak,10,-1.052,-1.4447,-0.6593,84
+reextracted_10,10,-0.7831,-1.2651,-0.3012,88.3
+reextracted_final_excl_zemestani,9,-0.6065,-1.0431,-0.17,84.9

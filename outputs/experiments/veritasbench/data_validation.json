@@ -1,9 +1,9 @@
 {
   "ok": true,
   "base_path": "benchmarks/veritasbench",
-  "suite": "veritasbench_trial28",
-  "expected_cases": 28,
-  "actual_cases": 28,
+  "suite": "veritasbench_trial30",
+  "expected_cases": 30,
+  "actual_cases": 30,
   "allow_empty": false,
   "global_errors": [],
   "cases": {
@@ -151,6 +151,14 @@
       "n_clean_claims": 3,
       "errors": []
     },
+    "rep_actmeta": {
+      "ok": true,
+      "n_artifacts": 3,
+      "n_observations": 10,
+      "n_claims": 4,
+      "n_clean_claims": 3,
+      "errors": []
+    },
     "rep_catcolors": {
       "ok": true,
       "n_artifacts": 5,
@@ -213,6 +221,14 @@
       "n_observations": 11,
       "n_claims": 6,
       "n_clean_claims": 5,
+      "errors": []
+    },
+    "rep_sarscov2": {
+      "ok": true,
+      "n_artifacts": 4,
+      "n_observations": 7,
+      "n_claims": 4,
+      "n_clean_claims": 3,
       "errors": []
     },
     "rep_wkzsn": {

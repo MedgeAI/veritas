@@ -1,0 +1,86 @@
+{
+  "n_genomes_total": 29503,
+  "region_counts": {
+    "Europe": 16579,
+    "Americas": 8291,
+    "Asia": 2826,
+    "Oceania": 1582,
+    "Africa": 225
+  },
+  "top_region": "Europe",
+  "top_region_count": 16579,
+  "n_genomes_netherlands": 1338,
+  "n_samples_full_date_with_mutations": 28294,
+  "n_netherlands_full_date_mut": 1236,
+  "netherlands_top15_variants": {
+    "NSP3:F106F": {
+      "count": 1012,
+      "freq": 0.81877
+    },
+    "NSP12b:P314L": {
+      "count": 1010,
+      "freq": 0.817152
+    },
+    "5'UTR:241": {
+      "count": 1009,
+      "freq": 0.816343
+    },
+    "S:D614G": {
+      "count": 1009,
+      "freq": 0.816343
+    },
+    "ORF3a:Q57H": {
+      "count": 333,
+      "freq": 0.269417
+    },
+    "N:RG203KR": {
+      "count": 253,
+      "freq": 0.204693
+    },
+    "NSP2:S263S": {
+      "count": 193,
+      "freq": 0.156149
+    },
+    "NSP6:A46V": {
+      "count": 193,
+      "freq": 0.156149
+    },
+    "NSP2:D268": {
+      "count": 134,
+      "freq": 0.108414
+    },
+    "M:T175M": {
+      "count": 128,
+      "freq": 0.10356
+    },
+    "NSP1:H83H": {
+      "count": 126,
+      "freq": 0.101942
+    },
+    "NSP2:T85I": {
+      "count": 121,
+      "freq": 0.097896
+    },
+    "S:T1100T": {
+      "count": 101,
+      "freq": 0.081715
+    },
+    "NSP15:L216L": {
+      "count": 79,
+      "freq": 0.063916
+    },
+    "NSP6:L37F": {
+      "count": 78,
+      "freq": 0.063107
+    }
+  },
+  "netherlands_D614G_varnames": [
+    "S:D614G"
+  ],
+  "netherlands_D614G": {
+    "S:D614G": {
+      "count": 1009,
+      "freq": 0.816343
+    }
+  }
+}

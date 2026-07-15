@@ -1,0 +1,174 @@
+{
+  "case_id": "rep_sarscov2",
+  "paper_title": "Emergence of novel SARS-CoV-2 variants in the Netherlands",
+  "paper_authors": [
+    "Aysun Urhan",
+    "Thomas Abeel",
+    "codecheckers/sarscov2-variants (Scientific Reports 2021; CODECHECK 2025-006 certified)"
+  ],
+  "artifacts": {
+    "metadata_tsv": {
+      "path": "artifacts/sarscov2_metadata.tsv",
+      "sha256": "086c2a82b956a5c8f8344a15bda5a1c3ff795bd0f704867771b76976a0619f64",
+      "kind": "source_data"
+    },
+    "coronapp_tsv": {
+      "path": "artifacts/sarscov2_mutations_coronapp.tsv",
+      "sha256": "97060b3d27723152e987681c015c7c44a784d6b16d660f036c04f6090a7ea77e",
+      "kind": "source_data"
+    },
+    "repro_script_py": {
+      "path": "artifacts/repro_sarscov2.py",
+      "sha256": "4dd8c89ec796236c0d3b527753601c8062045c6eb39ca69e254b220bc4b69139",
+      "kind": "code"
+    },
+    "repro_output_json": {
+      "path": "artifacts/repro_output.json",
+      "sha256": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/repro_output.json#n_genomes_total": {
+      "value": 29503,
+      "source_artifact": "artifacts/repro_output.json",
+      "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
+      "source_span": "repro_output.json, key n_genomes_total (metadata行数=数据集基因组总数)"
+    },
+    "artifacts/repro_output.json#region_europe_count": {
+      "value": 16579,
+      "source_artifact": "artifacts/repro_output.json",
+      "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
+      "source_span": "repro_output.json, region_counts.Europe (Fig1A: Europe区域基因组数, 全区域最大)"
+    },
+    "artifacts/repro_output.json#region_americas_count": {
+      "value": 8291,
+      "source_artifact": "artifacts/repro_output.json",
+      "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
+      "source_span": "repro_output.json, region_counts.Americas (Fig1A: 第二大区域, 用于确认Europe为最大)"
+    },
+    "artifacts/repro_output.json#n_genomes_netherlands": {
+      "value": 1338,
+      "source_artifact": "artifacts/repro_output.json",
+      "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
+      "source_span": "repro_output.json, n_genomes_netherlands (country==Netherlands样本数)"
+    },
+    "artifacts/repro_output.json#nl_D614G_count": {
+      "value": 1009,
+      "source_artifact": "artifacts/repro_output.json",
+      "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
+      "source_span": "repro_output.json, netherlands_top15_variants['S:D614G'].count (荷兰含S:D614G样本数, Fig5)"
+    },
+    "artifacts/repro_output.json#nl_D614G_freq": {
+      "value": 0.816343,
+      "source_artifact": "artifacts/repro_output.json",
+      "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
+      "source_span": "repro_output.json, netherlands_top15_variants['S:D614G'].freq (荷兰S:D614G频率≈81.6%)"
+    },
+    "artifacts/repro_output.json#nl_F106F_count": {
+      "value": 1012,
+      "source_artifact": "artifacts/repro_output.json",
+      "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
+      "source_span": "repro_output.json, netherlands_top15_variants['NSP3:F106F'].count (与D614G共现的G分支同义突变C3037T, 荷兰计数最高)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_sarscov2_ann_001",
+      "claim_id": "rep_sarscov2_claim_001",
+      "claim_atom": "The study dataset comprised 29,503 SARS-CoV-2 genome sequences (Wuhan-Hu-1 reference included).",
+      "source_artifact": "artifacts/repro_output.json#n_genomes_total",
+      "target_artifact": "artifacts/repro_output.json#n_genomes_total",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "grounding: 从shipped metadata独立重跑得行数=29503, 与论文/README声明的数据集规模逐位一致=consistent. 确定性计数, 无随机性.",
+      "_reproduction": [
+        "meta.shape[0]=29503; 与论文正文声明的29,503条序列完全一致"
+      ]
+    },
+    {
+      "annotation_id": "rep_sarscov2_ann_002",
+      "claim_id": "rep_sarscov2_claim_002",
+      "claim_atom": "Europe was the most-sampled region in the dataset (Figure 1A).",
+      "source_artifact": "artifacts/repro_output.json#region_europe_count",
+      "target_artifact": "artifacts/repro_output.json#region_americas_count",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_note": "grounding: Europe=16579 > Americas=8291 > Asia2826 > Oceania1582 > Africa225. Europe为唯一最大区域=consistent. FP注意: 须确认Europe是全局最大(而非仅>Americas), 重跑region_counts已确认.",
+      "_reproduction": [
+        "region_counts: Europe 16579 (max), Americas 8291, Asia 2826, Oceania 1582, Africa 225"
+      ]
+    },
+    {
+      "annotation_id": "rep_sarscov2_ann_003",
+      "claim_id": "rep_sarscov2_claim_003",
+      "claim_atom": "Spike D614G, together with its co-occurring G-clade quartet (241, C3037T/NSP3:F106F, C14408T/NSP12b:P314L), is among the near-fixation dominant mutations in the Netherlands, present in ~82% of Dutch genomes.",
+      "source_artifact": "artifacts/repro_output.json#nl_D614G_count",
+      "target_artifact": "artifacts/repro_output.json#nl_F106F_count",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_stochastic": "FP陷阱(false_positive_trap): 荷兰计数最高的突变实为同义的NSP3:F106F=1012, 略高于S:D614G=1009. 天真验证者可能因'D614G不是第一名'而误判inconsistent. 实则241/F106F(C3037T)/P314L(C14408T)/D614G四者共现于同一G分支, 计数近乎相同(1012/1010/1009/1009), 频率均≈81.6-81.9%=近固定. 论文声称D614G属主导近固定突变集=consistent, 勿因排名微差误判.",
+      "_reproduction": [
+        "荷兰top4(1236个有完整日期样本): NSP3:F106F 1012(81.9%), NSP12b:P314L 1010(81.7%), 5'UTR:241 1009(81.6%), S:D614G 1009(81.6%); 四者共现G分支"
+      ]
+    },
+    {
+      "annotation_id": "rep_sarscov2_ann_004",
+      "claim_id": "rep_sarscov2_claim_004",
+      "claim_atom": "The high frequency of the D614G mutation in the Netherlands demonstrates that D614G was positively selected and confers a transmissibility/fitness advantage.",
+      "source_artifact": "artifacts/repro_output.json#nl_D614G_freq",
+      "target_artifact": "artifacts/repro_output.json#nl_D614G_count",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "evidence_span": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_note": "insufficient: 重跑仅给出频率(81.6%)与计数(1009), 属描述性流行度. 由观测频率无法确立正选择/传播优势的因果结论(需founder effect/系统发育/流行病学建模区分). 论文本身也未从该频率单独下因果断言; 此claim_atom为演示'频率≠选择'的证据不足边界, 而非论文错误."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_sarscov2",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.1038/s41598-021-85363-7",
+    "_lane": "诚实可复现论文(非造假); 全实质claim=consistent, 考AI正确grounding重跑值到论文声明+抵抗排名微差FP误判",
+    "_independent_status": "CODECHECK 2025-006 认证(certificate 2025-006, Zenodo 10.5281/zenodo.15520471, Fig1-7可复现); 下载窗口独立用server python3从shipped metadata+coronapp中间数据重跑repro_sarscov2.py得repro_output.json",
+    "_reproduction": {
+      "environment": "server python3 (numpy/pandas), 无需MAFFT/IQ-TREE; 仅用shipped确定性中间数据",
+      "command": "python3 repro_sarscov2.py .  (cwd=artifacts/)",
+      "key_values": {
+        "n_genomes_total": 29503,
+        "region_counts": {"Europe": 16579, "Americas": 8291, "Asia": 2826, "Oceania": 1582, "Africa": 225},
+        "n_genomes_netherlands": 1338,
+        "netherlands_top4": {"NSP3:F106F": 1012, "NSP12b:P314L": 1010, "5'UTR:241": 1009, "S:D614G": 1009},
+        "netherlands_D614G_freq": 0.816343
+      },
+      "determinism": "纯计数/groupby, 无随机种子, 逐次重跑逐位可复现"
+    },
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_paper_artifact_status": "论文正文=Scientific Reports开放获取, 待补PDF作paper_pdf artifact(可加真·L1 code_output->paper-figure)"
+  }
+}
