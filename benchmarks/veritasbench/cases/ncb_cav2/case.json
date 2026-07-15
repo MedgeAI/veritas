@@ -143,7 +143,7 @@
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-15T00:00:00Z",
       "is_clean_claim": false,
-      "_adjudication": "Insufficient(证据不足以判数值对错): 代谢开关的分子层证据依赖蛋白质组学, 但作者在 PubPeer 点4 承认 mouse 样本被误用 human UniProt 库分析(物种数据库不匹配, 已重分析). 本 case 的公开 source data 仅含 Fig8d/8e 的 OCR 表型值, 不含(修正后的)蛋白组定量矩阵. 因此无法从现有 artifacts 判定该机制断言的数值正确性→insufficient. source/target 指向 OCR 表型观测仅作claim锚点, 非该机制的直接证据.",
+      "_adjudication": "Insufficient(证据不足以判数值对错): 代谢开关的分子层证据依赖蛋白质组学, 但作者在 PubPeer 点4 承认 mouse 样本被误用 human UniProt 库分析(物种数据库不匹配, 已重分析). 本 case 的公开 source data 仅含 Fig8d/8e 的 OCR 表型值, 不含(修正后的)蛋白组定量矩阵. 因此无法从现有 artifacts 判定该机制断言的数值正确性→insufficient. source/target 指向 OCR 表型观测仅作claim锚点, 非该机制的直接证据. [2026-07更新] 作者2026-07-10承认误用人类UniProt库有效, 已用Mus musculus重分析并准备上传PRIDE PXD060212; 重分析数据未公开→仍insufficient(无法核验小鼠库结果是否改变蛋白鉴定/机制断言)。",
       "source_a1_range": "sheet 'Figure 8d' C5:C5",
       "target_a1_range": "sheet 'Figure 8e' D5:D5"
     }
@@ -155,10 +155,13 @@
       "false_positive_trap"
     ],
     "source_url": "https://doi.org/10.1038/s41467-025-66914-2",
-    "_lane": "混合型诚实案(非干净造假): 混合 consistent/FP(合法共用组+离散整数巧合) + inconsistent(Fig8d标签颠倒) + insufficient(小鼠样本误用人类UniProt库). 考AI能否区分'看着可疑但作者有合法解释'与'确有展示层错误'与'证据不足'.",
+    "_lane": "混合型诚实案(非干净造假, 作者已回应多项): 混合 consistent/FP(合法共用比较组+离散整数巧合) + inconsistent(Fig8d标签颠倒, 作者已承认) + insufficient(小鼠样本误用人类UniProt库重分析未公开+机制断言). 考AI能否区分'看着可疑但作者有合法解释'与'确有展示层错误'与'证据不足'. ★注: 本案claim_003锚line1/2列(C/D)整数巧合=consistent; 作者另承认的Supp3b'最后两列(line3/4)放错条件'是不同列, 不影响claim_003判定。",
     "_pubpeer": "D2FBCE9FA73566BD54FA6FA5E8A070(作者已承认多项)",
     "_pubpeer_points": "1)Fig8d line2==Fig8e line1三值共用组=合法复用[consistent/FP]; 2)Fig8d两组标签颠倒[inconsistent]; 3)Supp3b末两列放错细胞系条件[已承认制图错]; 4)蛋白组用人类UniProt分析小鼠样本已重分析[insufficient]; 5)Fig5c/Supp3b/Fig4k离散整数偶合=合法[consistent/FP]",
     "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
-    "_paper_artifact_status": "本地下载缺主文 PDF(仅有 Peer Review File / Supplementary Figures / Reporting Summary / GSEA xlsx); 数值取自 Source Data zip (MOESM6) 内 per-figure xlsx, 逐 cell 读取无编造."
+    "_paper_artifact_status": "本地下载缺主文 PDF(仅有 Peer Review File / Supplementary Figures / Reporting Summary / GSEA xlsx); 数值取自 Source Data zip (MOESM6) 内 per-figure xlsx, 逐 cell 读取无编造.",
+    "_author_response": "通讯/一作多轮回应(持续2个月, 截至第13条评论2026-07-12): ①Zhang Ze确认Fig8d第二组与Fig8e第一组来自同一实验条件=两分析共用比较组, 承认Fig8d两组标签颠倒(称底层数据/统计/正文描述正确, 已联系Nature Communications申请更正), 后续承认共用组本应在图注/Source Data注明否则误导; ②Fig5c/Supp3b与Fig4k/Supp4e部分同值: 初解释神经突/轴突分支数为1-5离散整数巧合, 复查后承认Supp3b最后两列部分数据在制图/整理Source Data时放到了错误细胞系条件, 已据原始数据做修正版提交期刊(称趋势/结论不变); ③承认蛋白质组分析误用人类UniProt库(样品主要来自小鼠三叉神经节), 系外部质谱机构只搜Homo sapiens库, 已用Mus musculus重分析并准备上传PRIDE PXD060212(称属探索性分析不影响主结论); ④肿瘤体积: 承认V=V1×V2×V3长方体直乘可能高估(椭球公式更近实形), 终点切除整块舌体/含瘤标本外部三维测量作'肿瘤负荷'估计(未用microCT/MRI/连续切片)。",
+    "_timeline": "2025-12-02发表; 约2026-05起PubPeer讨论(持续2个月); 作者多轮承认Fig8d标签颠倒/8d-8e共用组/Supp3b数据放错条件/蛋白质组误用人类库/肿瘤体积测量方式; 2026-07-10承认物种库问题有效并重分析(PRIDE PXD060212); 2026-07-12第13条评论仍追问肿瘤体积(整块舌体≠肿瘤解剖体积)与Fig8d/8e最终版本; 截至整理Nature Comms页面尚无正式更正。",
+    "_correction_status": "截至2026-07整理, Nature Communications页面尚无正式更正; 作者称多项已'联系期刊申请更正/提交修正版', PRIDE PXD060212重分析数据待公开。"
   }
 }
