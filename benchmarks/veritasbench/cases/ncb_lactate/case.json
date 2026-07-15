@@ -1,0 +1,138 @@
+{
+  "case_id": "ncb_lactate",
+  "paper_title": "Inhibiting macrophage-derived lactate transport restores cGAS-STING signalling and enhances antitumour immunity in glioblastoma",
+  "paper_authors": [
+    "Daqi Li、Xiuxing Wang(汪秀星) 等 (南京医科大学; Nature Cell Biology, 2026)"
+  ],
+  "artifacts": {
+    "source_figs": {
+      "path": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx",
+      "sha256": "739dc320bd295a10e26988a8bb721c8ed193fee1fcce313946404b23332c5255",
+      "kind": "source_data"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "9df84783ccc87109af865fc4de2c11bb7cb0833c5f59bcca91b8736f017bbdb7",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 1!F13": {
+      "value": 61.780736,
+      "source_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx",
+      "source_artifact_hash": "739dc320bd295a10e26988a8bb721c8ed193fee1fcce313946404b23332c5255",
+      "source_span": "sheet 'Figure. 1', F13 (Fig1h '3028+TAM supernatant' 面板, shMCT4-1列, 乳酸检测值; F12区块头, F13起3个重复)"
+    },
+    "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 1!T15": {
+      "value": 61.780736,
+      "source_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx",
+      "source_artifact_hash": "739dc320bd295a10e26988a8bb721c8ed193fee1fcce313946404b23332c5255",
+      "source_span": "sheet 'Figure. 1', T15 (Fig1i '3028+TAM supernatant' 面板, shMCT1-1列; 与Fig1h shMCT4-1的F13逐位相同=不同基因敲低却同值)"
+    },
+    "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 1!F15": {
+      "value": 58.863296,
+      "source_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx",
+      "source_artifact_hash": "739dc320bd295a10e26988a8bb721c8ed193fee1fcce313946404b23332c5255",
+      "source_span": "sheet 'Figure. 1', F15 (Fig1h shMCT4-1, 第2重复)"
+    },
+    "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 1!T17": {
+      "value": 58.863296,
+      "source_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx",
+      "source_artifact_hash": "739dc320bd295a10e26988a8bb721c8ed193fee1fcce313946404b23332c5255",
+      "source_span": "sheet 'Figure. 1', T17 (Fig1i shMCT1-1, 第2重复; 与F15逐位相同)"
+    },
+    "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 1!B13": {
+      "value": 112.349696,
+      "source_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx",
+      "source_artifact_hash": "739dc320bd295a10e26988a8bb721c8ed193fee1fcce313946404b23332c5255",
+      "source_span": "sheet 'Figure. 1', B13 (Fig1h '3028+TAM' shCONT对照列, 第1重复)"
+    },
+    "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 1!P15": {
+      "value": 102.624896,
+      "source_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx",
+      "source_artifact_hash": "739dc320bd295a10e26988a8bb721c8ed193fee1fcce313946404b23332c5255",
+      "source_span": "sheet 'Figure. 1', P15 (Fig1i '3028+TAM' shCONT对照列, 第1重复; 与Fig1h shCONT的B13不同=对照数据真独立)"
+    },
+    "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 2!S32": {
+      "value": 2.901216,
+      "source_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx",
+      "source_artifact_hash": "739dc320bd295a10e26988a8bb721c8ed193fee1fcce313946404b23332c5255",
+      "source_span": "sheet 'Figure. 2', S32 (Fig2h MES28 CellTiter-Glo时间序列, Day5, 某重复列)"
+    },
+    "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 2!W32": {
+      "value": 2.901216,
+      "source_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx",
+      "source_artifact_hash": "739dc320bd295a10e26988a8bb721c8ed193fee1fcce313946404b23332c5255",
+      "source_span": "sheet 'Figure. 2', W32 (Fig2h MES28 Day5, 另一重复列; 与S32逐位相同=被质疑的重复值之一)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_lactate_ann_001",
+      "claim_id": "ncb_lactate_claim_001",
+      "claim_atom": "In the Fig. 1 Source Data, the Fig. 1h shMCT4-1 lactate column (F13,F15,F17 = 61.780736, 58.863296, 75.589952) is byte-identical to six decimals to the Fig. 1i shMCT1-1 column (T15,T17,T19), and the Fig. 1h shMCT4-2 column matches Fig. 1i shMCT1-2 for two of three values. Fig. 1h and Fig. 1i report DIFFERENT gene-knockdown experiments (MCT4 vs MCT1 knockdown), so identical per-replicate values to six decimals cannot both be genuine independent measurements. The first author acknowledged an unintentional copy-paste during Source Data preparation — Fig. 1h data pasted into the Fig. 1i '3028 + TAM supernatant' panel — and provided corrected data.",
+      "source_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 1!F13",
+      "target_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 1!T15",
+      "source_a1_range": "F13:F17",
+      "target_a1_range": "T15:T19",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_columns",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "造假核心-作者已承认(inconsistent): Fig1h shMCT4-1列(F13/F15/F17)与Fig1i shMCT1-1列(T15/T17/T19)6位小数逐位相同, 但1h=shMCT4敲低、1i=shMCT1敲低=不同基因实验, 独立测量不可能逐位同。一作Daqi Li 2026-06-06承认Source Data准备时一次非故意复制粘贴(Fig1h数据误粘入Fig1i '3028+TAM supernatant'面板)并给更正数据。verdict=inconsistent。"
+    },
+    {
+      "annotation_id": "ncb_lactate_ann_002",
+      "claim_id": "ncb_lactate_claim_002",
+      "claim_atom": "Within the same acknowledged panel, the shCONT (control) columns of Fig. 1h (B13,B15,B17 = 112.349696, 116.628608, 113.711168) and Fig. 1i (P15,P17,P19 = 102.624896, 106.903808, 109.237760) are DIFFERENT values, showing the two experiments' control data are genuinely independent. The duplication is therefore a localized copy-paste of the knockdown columns during Source Data assembly, not a wholesale fabrication of the figure; consistent with the author's account that the corrected data do not change the conclusions.",
+      "source_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 1!B13",
+      "target_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 1!P15",
+      "source_a1_range": "B13:B17",
+      "target_a1_range": "P15:P19",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "合法子断言(consistent): 同面板的shCONT对照列两图取值不同(B13-B17 vs P15-P19), 证两实验对照数据真独立→复制粘贴是敲低列的局部错误(Source Data整理阶段), 非整图编造。支持作者'更正不改结论'的说法。AI应把误粘定为局部展示层错误, 不因此判整图造假。"
+    },
+    {
+      "annotation_id": "ncb_lactate_ann_003",
+      "claim_id": "ncb_lactate_claim_003",
+      "claim_atom": "Beyond the acknowledged Fig. 1h/1i copy-paste, later PubPeer comments flagged further repeated values in the Fig. 2h MES28 CellTiter-Glo time-course (e.g. Day-5 replicate values S32 = W32 = 2.901216; commenter reports 4 of 6 replicates reordered/reused between shCONT and shMCT1-2 + MCT1-rescue) and in Extended Data Fig. 3b/3c (Day-1 values identical across different treatment conditions). These have received no author response as of this writing and cannot be adjudicated as additional copy-paste errors, reordering artifacts, or coincidences pending the authors' explanation and any correction.",
+      "source_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 2!S32",
+      "target_artifact": "artifacts/41556_2025_1839_MOESM8_ESM.xlsx#Figure. 2!W32",
+      "source_a1_range": "S32:S32",
+      "target_a1_range": "W32:W32",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "待定(insufficient): Fig2h MES28 CellTiter时间序列有重复值(如Day5 S32=W32=2.901216), 评论者称shCONT与shMCT1-2+rescue间4/6重复被重排复用; ED Fig3b/3c Day1跨条件同值。截至整理均无作者回应, 无法判定是否另有复制/重排错误还是巧合, 待作者解释与可能的更正。verdict=insufficient。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_lactate",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "verifier_conflict"
+    ],
+    "source_url": "https://doi.org/10.1038/s41556-025-01839-y",
+    "_lane": "作者已承认复制粘贴错误型mixed(三verdict): ①inconsistent=Fig1h shMCT4-1列与Fig1i shMCT1-1列6位小数逐位相同(不同基因敲低), 一作承认Source Data准备时误粘并给更正; ②consistent=同面板shCONT对照列两图真不同→局部误粘非整图造假; ③insufficient=Fig2h MES28重复值+ED3b/3c跨条件同值尚无作者回应待定。考AI区分'作者已认的局部展示层错'、'证明是局部而非整体的合法反证'、'尚无回应的待定项'。",
+    "_author_response": "一作Daqi Li 2026-06-06回复: 重查Source Data与图版后确认Source Data准备中一次非故意复制粘贴重复(Fig1h乳酸数据与Fig1i同存一Excel, 误粘入Fig1i '3028+TAM supernatant'面板), 列出更正数据, 称不改结论; 另称个别重复值(如115.07264/66.837632)可能与浓度换算/标准曲线/检测计算有关。Fig2h(2026-06-16评论)/ED3b/3c(2026-06-20评论)截至整理无作者回应。",
+    "_timeline": "2026-01(NCB发表); 2026-05-29 PubPeer首评(Fig1h/1i 6位小数同值); 2026-06-06一作承认Fig1h→1i复制粘贴+更正数据; 2026-06-16评论Fig2h MES28 Day5 4/6重排复用; 2026-06-20评论ED3b/3c Day1跨条件同值; Fig2h/ED3暂无作者回应。",
+    "_independent_status": "下载窗口机构cookie取Source Data Figs1-6(MOESM8)+正文PDF。本地核验: Fig1h shMCT4-1(F13/F15/F17=61.780736/58.863296/75.589952)=Fig1i shMCT1-1(T15/T17/T19)逐位同; shCONT对照列B13≠P15(112.35 vs 102.62)证局部; Fig2 MES28 Day5 S32=W32=2.901216。",
+    "_pubpeer": "48957C70097BF35B535BA9558B1118",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}
