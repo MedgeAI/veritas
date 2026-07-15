@@ -1,0 +1,114 @@
+{
+  "case_id": "ncb_neurexin",
+  "paper_title": "Distinct neurexin-cerebellin complexes control AMPA- and NMDA-receptor responses in a circuit-dependent manner",
+  "paper_authors": [
+    "Jinye Dai, Kif Liakath-Ali, Samantha Rose Golf, Thomas C. Südhof, Yukiko Goda (eLife, 2022)"
+  ],
+  "artifacts": {
+    "orig_v3": {
+      "path": "artifacts/elife-78649-fig5-data1-v3-original.xlsx",
+      "sha256": "44d7b83ae30b52a7c119336f5676da50f553f07a17cda3740909a22089243803",
+      "kind": "source_data"
+    },
+    "corrected_v4": {
+      "path": "artifacts/elife-78649-fig5-data1-v4-corrected.xlsx",
+      "sha256": "56f4543dbc1a00d3aae581442463f2a80cc397986f0071746d7afb4df91c080f",
+      "kind": "source_data"
+    }
+  },
+  "observations": {
+    "artifacts/elife-78649-fig5-data1-v3-original.xlsx#Sheet1!O19": {
+      "value": 2.41868,
+      "source_artifact": "artifacts/elife-78649-fig5-data1-v3-original.xlsx",
+      "source_artifact_hash": "44d7b83ae30b52a7c119336f5676da50f553f07a17cda3740909a22089243803",
+      "source_span": "sheet 'Sheet1', O19 (Figure5C NMDAR EPSC, Cbln12f/f条件 cell17, interstimulus interval 20ms; N19='cell17', O19:S19=五个ISI 20/80/200/800/2000ms)"
+    },
+    "artifacts/elife-78649-fig5-data1-v3-original.xlsx#Sheet1!O43": {
+      "value": 2.41868,
+      "source_artifact": "artifacts/elife-78649-fig5-data1-v3-original.xlsx",
+      "source_artifact_hash": "44d7b83ae30b52a7c119336f5676da50f553f07a17cda3740909a22089243803",
+      "source_span": "sheet 'Sheet1', O43 (Figure5C, Cbln12dcko条件 cell18; N43='cell18'; O43:S43 与 f/f cell17(O19:S19)逐位相同=不同基因型却同值)"
+    },
+    "artifacts/elife-78649-fig5-data1-v3-original.xlsx#Sheet1!O42": {
+      "value": 1.26286,
+      "source_artifact": "artifacts/elife-78649-fig5-data1-v3-original.xlsx",
+      "source_artifact_hash": "44d7b83ae30b52a7c119336f5676da50f553f07a17cda3740909a22089243803",
+      "source_span": "sheet 'Sheet1', O42 (Figure5C Cbln12dcko cell17; N42='cell17'; 与f/f cell17不同=dcko区块真实数据)"
+    },
+    "artifacts/elife-78649-fig5-data1-v4-corrected.xlsx#Sheet1!O43": {
+      "value": 2.62051,
+      "source_artifact": "artifacts/elife-78649-fig5-data1-v4-corrected.xlsx",
+      "source_artifact_hash": "56f4543dbc1a00d3aae581442463f2a80cc397986f0071746d7afb4df91c080f",
+      "source_span": "sheet 'Sheet1', O43 (更正版: Cbln12dcko cell18 已改为2.62051, 不再等于f/f cell17)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_neurexin_ann_001",
+      "claim_id": "ncb_neurexin_claim_001",
+      "claim_atom": "In the original Figure 5C Source Data (v3), the Cbln12dcko cell 18 NMDAR-EPSC values (O43:S43 = 2.41868, 1.5132, 1.32901, 1.20165, 1.05549 across interstimulus intervals 20/80/200/800/2000 ms) are byte-identical to the Cbln12f/f cell 17 values (O19:S19). These are two DIFFERENT genotype conditions (double-conditional Cbln1/2 knockout vs floxed control), so identical per-interval values cannot be independent measurements. The authors acknowledged and eLife published a Correction (eLife 94305) stating cell 18 data were 'erroneously copy-pasted from cell 17 of the Cbln12f/f condition.'",
+      "source_artifact": "artifacts/elife-78649-fig5-data1-v3-original.xlsx#Sheet1!O43",
+      "target_artifact": "artifacts/elife-78649-fig5-data1-v3-original.xlsx#Sheet1!O19",
+      "source_a1_range": "O43:S43",
+      "target_a1_range": "O19:S19",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_row",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "造假核心-作者+eLife已认(inconsistent): 原始v3中Cbln12dcko cell18(O43:S43)与Cbln12f/f cell17(O19:S19)5个ISI值逐位相同, 但两者不同基因型。eLife Correction 94305明确: cell18数据'erroneously copy-pasted from cell17 of Cbln12f/f'。v3→v4 diff证仅此5单元被改。verdict=inconsistent。"
+    },
+    {
+      "annotation_id": "ncb_neurexin_ann_002",
+      "claim_id": "ncb_neurexin_claim_002",
+      "claim_atom": "The Cbln12dcko block is otherwise genuine: its cell 17 (O42:S42 = 1.26286, 1.23014, 0.859223, 0.882152, 0.975086) differs from the Cbln12f/f cell 17 (O19:S19), and the v3->v4 diff shows only the five cell-18 cells changed. The duplication was thus an isolated single-cell copy-paste during Source Data assembly, not wholesale fabrication of the condition; the authors state 'none of the corrections change the conclusions of the paper.'",
+      "source_artifact": "artifacts/elife-78649-fig5-data1-v3-original.xlsx#Sheet1!O42",
+      "target_artifact": "artifacts/elife-78649-fig5-data1-v3-original.xlsx#Sheet1!O19",
+      "source_a1_range": "O42:S42",
+      "target_a1_range": "O19:S19",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "合法子断言(consistent): dcko区块除cell18外真实(cell17 O42:S42≠f/f cell17), v3→v4仅5单元变=孤立单细胞误粘, 非整条件编造。作者称不改结论。AI应把此定为孤立展示层错误。"
+    },
+    {
+      "annotation_id": "ncb_neurexin_ann_003",
+      "claim_id": "ncb_neurexin_claim_003",
+      "claim_atom": "The corrected v4 cell-18 values (O43 = 2.62051, ...) are the authors' asserted true measurements, but because the raw electrophysiology traces are not deposited — and the parallel Figure 1B/1F/1G corrections describe values 'mistakenly copied from a previously analysed dataset that used different EPSC trace selection criteria', whose source is likewise not deposited — whether the corrected values are themselves the correct underlying measurements cannot be independently verified from the Source Data files alone.",
+      "source_artifact": "artifacts/elife-78649-fig5-data1-v4-corrected.xlsx#Sheet1!O43",
+      "target_artifact": "artifacts/elife-78649-fig5-data1-v3-original.xlsx#Sheet1!O43",
+      "source_a1_range": "O43:S43",
+      "target_a1_range": "O43:S43",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "待定(insufficient): 更正后的v4 cell18值(2.62051...)是作者主张的真值, 但原始电生理trace未存, 且Fig1B/1F/1G更正涉及'copied from a previously analysed dataset with different criteria'的未存底材, 故更正值本身是否为真测量无法仅凭Source Data独立核验。verdict=insufficient。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_neurexin",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "verifier_conflict"
+    ],
+    "source_url": "https://doi.org/10.7554/eLife.78649",
+    "_lane": "作者+期刊已认并已更正型mixed(三verdict, before/after双版本): ①inconsistent=原始Fig5C Cbln12dcko cell18=Cbln12f/f cell17逐位复制(不同基因型), eLife Correction 94305明认copy-paste; ②consistent=dcko区块除cell18外真实(cell17真不同)+仅5单元被改=孤立误粘非整条件造假, 结论不变; ③insufficient=更正值是作者主张真值但原始trace/Fig1底材未存无法独立核验。开放eLife source data含更正前v3+更正后v4双版本可diff。",
+    "_author_response": "作者承认Source Data多处孤立copy-paste错误, eLife发布Correction(article 94305, PMC10635641): Fig1B cell3/10@100μA(Cbln2+/+)误复制自旧数据集(不同EPSC trace选择标准); Fig1F cell6(Cbln2+/+)复制自cell5+标签错; Fig1G cell1/2/3/7/8/13@100μA复制自旧数据集; Fig5C cell18(Cbln12dcko)复制自cell17(Cbln12f/f); Fig1-figsupp1 CV计算错误重算。作者声明'None of the corrections change the conclusions of the paper'。",
+    "_independent_status": "下载窗口取eLife开放CDN两版本: fig5-data1-v3(更正前)+v4(更正后)。本地核验: v3 Cbln12dcko cell18(O43:S43)==Cbln12f/f cell17(O19:S19)逐位同; v3→v4仅O43:S43五单元变(2.41868→2.62051等); dcko cell17(O42)真不同。坐实eLife Correction所述copy-paste。",
+    "_pubpeer": "(eLife Correction 94305; source data重复值经PubPeer提出后作者更正)",
+    "_correction_status": "eLife已发布正式Correction(article 94305, 2023/2024)。此案用更正前v3+更正后v4双版本。",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}
