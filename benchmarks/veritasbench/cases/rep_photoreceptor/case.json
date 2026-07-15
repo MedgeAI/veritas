@@ -82,7 +82,8 @@
       "is_clean_claim": true,
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-15T00:00:00Z",
-      "evidence_span": "L1:code_output->code_output"
+      "evidence_span": "L1:code_output->code_output",
+      "claim_atom": "The overall mean melanopic irradiance (Emel) across measurements is 9.669 W/m^2, as reported in the shipped statistics table."
     },
     {
       "annotation_id": "ann_C2_medi_mean",
@@ -94,7 +95,8 @@
       "is_clean_claim": true,
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-15T00:00:00Z",
-      "evidence_span": "L1:code_output->code_output"
+      "evidence_span": "L1:code_output->code_output",
+      "claim_atom": "The overall mean melanopic EDI (MEDI) across measurements is 7288.5 lx, as reported in the shipped statistics table."
     },
     {
       "annotation_id": "ann_C3_melrad_mean",
@@ -106,7 +108,8 @@
       "is_clean_claim": true,
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-15T00:00:00Z",
-      "evidence_span": "L1:code_output->code_output"
+      "evidence_span": "L1:code_output->code_output",
+      "claim_atom": "The overall mean melanopsin-weighted average radiance is 1.6048, as reported in the shipped statistics table."
     },
     {
       "annotation_id": "ann_C4_pixel_melanopic_corr",
@@ -117,7 +120,8 @@
       "target_artifact": "obs_pixelcorr_shipped",
       "is_clean_claim": false,
       "annotator_id": "wuguandu",
-      "annotation_timestamp": "2026-07-15T00:00:00Z"
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "claim_atom": "The paper headline pixel-wise Melanopsin-Rods correlation (outdoor) is 0.9813; it cannot be re-derived from the shipped per-measurement intermediates."
     }
   ],
   "metadata": {

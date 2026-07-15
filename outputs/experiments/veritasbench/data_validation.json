@@ -1,9 +1,9 @@
 {
-  "ok": false,
+  "ok": true,
   "base_path": "benchmarks/veritasbench",
   "suite": "veritasbench_trial38",
   "expected_cases": 38,
-  "actual_cases": 37,
+  "actual_cases": 38,
   "allow_empty": false,
   "global_errors": [],
   "cases": {
@@ -248,17 +248,12 @@
       "errors": []
     },
     "rep_photoreceptor": {
-      "ok": false,
+      "ok": true,
       "n_artifacts": 5,
       "n_observations": 7,
       "n_claims": 4,
       "n_clean_claims": 3,
-      "errors": [
-        "claim ann_C1_emel_mean missing field 'claim_atom'",
-        "claim ann_C2_medi_mean missing field 'claim_atom'",
-        "claim ann_C3_melrad_mean missing field 'claim_atom'",
-        "claim ann_C4_pixel_melanopic_corr missing field 'claim_atom'"
-      ]
+      "errors": []
     },
     "rep_pone": {
       "ok": true,

@@ -50,7 +50,7 @@ for ok, o in obs.items():
 # 6/7. claim 字段/枚举/引用/evidence span
 clean_cnt = 0
 for cl in claims:
-    for req in ("annotation_id","claim_id","relation_type","verdict","annotator_id","annotation_timestamp"):
+    for req in ("annotation_id","claim_id","claim_atom","relation_type","verdict","source_artifact","target_artifact","annotator_id","annotation_timestamp"):
         if req not in cl: errs.append(f"claim {cl.get('claim_id')}: 缺 {req}")
     if cl.get("relation_type") not in ENUM_REL:
         errs.append(f"claim {cl.get('claim_id')}: relation 非法")
