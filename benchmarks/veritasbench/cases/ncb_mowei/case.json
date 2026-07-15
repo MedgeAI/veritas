@@ -1,0 +1,135 @@
+{
+  "case_id": "ncb_mowei",
+  "paper_title": "Gut stem cell necroptosis by genome instability triggers bowel inflammation",
+  "paper_doi": "10.1038/s41586-020-2127-x",
+  "paper_authors": [
+    "Ruicong Wang",
+    "Hongda Li",
+    "Jianfeng Wu",
+    "Jiahuai Han (corresponding; Xiamen University)",
+    "Wei Mo (corresponding; Xiamen University)"
+  ],
+  "artifacts": {
+    "source_data_ed7f": {
+      "path": "artifacts/source_data_ed7f.xlsx",
+      "sha256": "8d86211dc0d372aefad6ce1d8b83275a9e514fca742fbf50f82d0cca59341f88",
+      "kind": "source_data"
+    },
+    "source_data_ed8e": {
+      "path": "artifacts/source_data_ed8e.xlsx",
+      "sha256": "d180994e8017bd9a0bef1d4fdfb9d56f8b6dca19b2517af72bacc41a4dc1bcee",
+      "kind": "source_data"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "0bb83299ce87f2149204bc6cd0a1b7364b160a52c6886380fe39f56474c8b7aa",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/source_data_ed7f.xlsx#ed7f_zbp1_wt1": {
+      "value": 0.993069,
+      "source_artifact": "artifacts/source_data_ed7f.xlsx",
+      "source_artifact_hash": "8d86211dc0d372aefad6ce1d8b83275a9e514fca742fbf50f82d0cca59341f88",
+      "source_span": "sheet 'Extended Data Fig. 7f', cell C3 (ISG=ZBP1 [B3]; WT replicate 1, header C2='1#WT'; normalized relative expression, n=2 WT)"
+    },
+    "artifacts/source_data_ed7f.xlsx#ed7f_zbp1_wt2": {
+      "value": 1.006931,
+      "source_artifact": "artifacts/source_data_ed7f.xlsx",
+      "source_artifact_hash": "8d86211dc0d372aefad6ce1d8b83275a9e514fca742fbf50f82d0cca59341f88",
+      "source_span": "sheet 'Extended Data Fig. 7f', cell D3 (ISG=ZBP1 [B3]; WT replicate 2, header D2='2#WT'; normalized relative expression, n=2 WT)"
+    },
+    "artifacts/source_data_ed8e.xlsx#ed8e_irf7_wtcolD": {
+      "value": 1.194333,
+      "source_artifact": "artifacts/source_data_ed8e.xlsx",
+      "source_artifact_hash": "d180994e8017bd9a0bef1d4fdfb9d56f8b6dca19b2517af72bacc41a4dc1bcee",
+      "source_span": "sheet 'Extended Data Fig. 8e', cell D4 (ISG=Irf7 [A4]; WT replicate 3 of n=7, WT block header B2='WT')"
+    },
+    "artifacts/source_data_ed8e.xlsx#ed8e_irf7_wtcolG": {
+      "value": 1.194333,
+      "source_artifact": "artifacts/source_data_ed8e.xlsx",
+      "source_artifact_hash": "d180994e8017bd9a0bef1d4fdfb9d56f8b6dca19b2517af72bacc41a4dc1bcee",
+      "source_span": "sheet 'Extended Data Fig. 8e', cell G4 (ISG=Irf7 [A4]; WT replicate 6 of n=7, WT block header B2='WT')"
+    },
+    "artifacts/source_data_ed8e.xlsx#ed8e_zbp1_wtcolB": {
+      "value": 1.064041,
+      "source_artifact": "artifacts/source_data_ed8e.xlsx",
+      "source_artifact_hash": "d180994e8017bd9a0bef1d4fdfb9d56f8b6dca19b2517af72bacc41a4dc1bcee",
+      "source_span": "sheet 'Extended Data Fig. 8e', cell B3 (ISG=Zbp1 [A3]; WT replicate 1 of n=7, WT block header B2='WT')"
+    },
+    "artifacts/source_data_ed8e.xlsx#ed8e_zbp1_wtcolH": {
+      "value": 1.319099,
+      "source_artifact": "artifacts/source_data_ed8e.xlsx",
+      "source_artifact_hash": "d180994e8017bd9a0bef1d4fdfb9d56f8b6dca19b2517af72bacc41a4dc1bcee",
+      "source_span": "sheet 'Extended Data Fig. 8e', cell H3 (ISG=Zbp1 [A3]; WT replicate 7 of n=7, last WT column before HET block header I2='HET')"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_mowei_ann_001",
+      "claim_id": "ncb_mowei_claim_001",
+      "claim_atom": "In Extended Data Fig. 7f, for every ISG the two WT control columns (C='1#WT', D='2#WT') sum to exactly 2.0 (ZBP1 0.993069+1.006931=2.0; IRF7 0.828427+1.171573=2.0; ISG15 0.691535+1.308465=2.0; IFI44 0.81166+1.18834=2.0; OASL1 0.666667+1.333333=2.0; OAS3 1.051939+0.948061=2.0). This constant sum-to-2 is the mathematical necessity of mean-normalization: each WT value is divided by the mean of the two WT biological replicates, so the two normalized WT values must sum to n=2. It is NOT a fabricated/manipulated pattern.",
+      "source_artifact": "artifacts/source_data_ed7f.xlsx#ed7f_zbp1_wt1",
+      "target_artifact": "artifacts/source_data_ed7f.xlsx#ed7f_zbp1_wt2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "source_a1_range": "sheet 'Extended Data Fig. 7f' C3:C8",
+      "target_a1_range": "sheet 'Extended Data Fig. 7f' D3:D8",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_adjudication": "FP陷阱(合法归一化=最重要的clean). 作者对问题2的回复原话: ED Fig. 7f 两列WT归一化值之和恒为2, 这是归一化的数学必然——WT1、WT2 是对照组两个生物学重复, 归一化值=各组表达量/((WT1+WT2)/2 的均值), 因此 WT1归一 + WT2归一 = 2(若对照有n个则和为n). 看着可疑(每行两WT恰好互补加和为常数)实为均值归一化定义导致的必然, 不是造假. AI 若据'两列加和恒为2'即指控数据造假=踩FP陷阱. 判 consistent + is_clean_claim=true, discrepancy_type=null."
+    },
+    {
+      "annotation_id": "ncb_mowei_ann_002",
+      "claim_id": "ncb_mowei_claim_002",
+      "claim_atom": "In Extended Data Fig. 8e (WT vs HET ISG qPCR, n=7 WT), the WT column D (replicate 3) and WT column G (replicate 6) carry value-identical entries for 4 of the 6 ISGs — Irf7 (D4=G4=1.194333), Isg15 (D5=G5=1.046568), Ifl44l (D6=G6=1.14536) and Oasl1 (D7=G7=1.314954) — i.e. these values each appear twice within the WT block, while Zbp1 (D3=0.757624 vs G3=0.932744) and Ifnb1 (D8=1.381622 vs G8=0.911531) differ. Two supposedly independent WT biological replicates thus carry duplicated (copy-pasted) values across most genes.",
+      "source_artifact": "artifacts/source_data_ed8e.xlsx#ed8e_irf7_wtcolD",
+      "target_artifact": "artifacts/source_data_ed8e.xlsx#ed8e_irf7_wtcolG",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_columns",
+      "evidence_span": "L1:source_data->source_data",
+      "source_a1_range": "sheet 'Extended Data Fig. 8e' D3:D8",
+      "target_a1_range": "sheet 'Extended Data Fig. 8e' G3:G8",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "Inconsistent(作者已承认真错). 作者对问题3的回复原话: ED Fig. 8e 部分WT对照数值重复, 标黄的两列确系重复, 是数据处理误操作导致的重复粘贴; 去除一组后剩6组独立重复仍支持结论. 独立生物学重复不应逐值精确相同→重复列(copy-paste/duplicated column). 数据核实: 归一化源数据中 WT列D与WT列G 在 Irf7/Isg15/Ifl44l/Oasl1 四个ISG上逐值相同(每值出现两次), Zbp1/Ifnb1 不同(=部分粘贴). 这是作者已承认的真实错误, 与 claim_001 的合法归一化本质不同: 那里是归一化定义导致的必然常数, 这里是两个应独立的WT重复列被误粘为相同. 判 inconsistent, discrepancy_type=duplicated_columns."
+    },
+    {
+      "annotation_id": "ncb_mowei_ann_003",
+      "claim_id": "ncb_mowei_claim_003",
+      "claim_atom": "The author-flagged Extended Data Fig. 2e concern — the panel plots 3 WT samples but its Source Data reportedly lists 6 WT — cannot be independently adjudicated from the deposited artifacts: NONE of the 14 deposited Source Data workbooks (MOESM3-16) contains an 'Extended Data Fig. 2' sheet (main 'Fig. 2e' is an unrelated IHC-intensity chart of IBD patients). The only deposited WT ISG source data (Extended Data Fig. 8e, anchored here at B3 the first WT replicate and H3 the seventh) documents n=7 WT columns, but ED Fig. 2e's own numeric values are absent, so whether the extra WT columns are mis-pasted unrelated test data can only be resolved by author clarification.",
+      "source_artifact": "artifacts/source_data_ed8e.xlsx#ed8e_zbp1_wtcolB",
+      "target_artifact": "artifacts/source_data_ed8e.xlsx#ed8e_zbp1_wtcolH",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "Insufficient(需作者澄清; ED Fig. 2e 源数据未沉积). 作者对问题1的回复原话: ED Fig. 2e 图上WT组3样品但Source Data有6个WT, 红框标注的 WT-1/WT-2/WT-3 是整理数据时误粘入的无关测试数据, 真正用于分析的是绿框 W1/W2/W3. 数据核实: 本论文14个Source Data工作簿(MOESM3-16)均无 'Extended Data Fig. 2' 任何面板的数值表(仅主图 Fig. 2e 存在, 内容是IBD患者 γH2AX IHC强度分级, 与WT/HET ISG无关), 因此ED Fig. 2e的'3 vs 6 WT'差异无法仅凭公开artifacts确证到底是误粘无关数据还是其他. anchor 借用同论文唯一沉积的WT ISG源数据(ED Fig. 8e 的 WT首列B3与末列H3, 共n=7 WT)作为WT重复结构的上下文参照, 但ED Fig. 2e本身数据缺失→判 insufficient, 不给 evidence_span, 依赖作者澄清(作者承认红框为误粘无关数据可支持 inconsistent 方向, 但公开数据不足以独立确证)."
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_mowei",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "false_positive_trap",
+      "verifier_conflict"
+    ],
+    "source_url": "https://doi.org/10.1038/s41586-020-2127-x",
+    "_lane": "混合边界诚实案(莫玮/韩家淮 厦门大学 2020 Nature, 肠干细胞坏死性凋亡→肠炎). 三类verdict并存, 全部依据作者2026-07-06对PubPeer三个问题的逐条回复: (1)consistent+clean(FP陷阱): ED Fig.7f 两WT归一化列逐行和=2, 是均值归一化的数学必然非造假; (2)inconsistent: ED Fig.8e WT列D与G逐值重复(4/6 ISG), 作者承认为重复粘贴误操作; (3)insufficient: ED Fig.2e '3 vs 6 WT' 因该面板数值未沉积无法独立确证, 需作者澄清. 考 AI 能否区分'看着可疑但合法归一化'/'作者承认的真重复列'/'证据不足需澄清'.",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_pubpeer": "E3E89A0BA6CDF18913237B3B768464",
+    "_author_response": "作者(莫玮团队)2026-07-06 逐条回复三问: 问题2(ED7f 两WT归一列和恒=2)=归一化数学必然非造假[→consistent/clean/FP]; 问题3(ED8e 部分WT数值重复)=承认标黄两列系重复粘贴误操作, 去除一组后余6组独立重复仍支持结论[→inconsistent/duplicated_columns]; 问题1(ED2e 图上3 WT但源数据6 WT)=承认红框WT-1/2/3为整理时误粘入的无关测试数据, 真分析用绿框W1/W2/W3[→insufficient, 因ED2e源数据未沉积无法独立确证].",
+    "_verdict_breakdown": "consistent=1 (claim_001, clean/FP); inconsistent=1 (claim_002, duplicated_columns); insufficient=1 (claim_003)",
+    "_grounding_note": "所有 value 逐 cell 由 openpyxl(data_only) 从 deposited Source Data 读出无编造: ED7f=MOESM14, ED8e=MOESM15. consistent 两WT列 C3:C8+D3:D8 逐行和经核验=2.0(6/6 ISG). inconsistent 的 D列==G列 逐值命中 4/6 ISG(Irf7/Isg15/Ifl44l/Oasl1), Zbp1/Ifnb1 不同=部分粘贴. ED Fig.2e 无任何沉积数值表(14个MOESM工作簿均无ED Fig.2面板)→insufficient 的 anchor 借 ED8e WT 首/末列作WT结构参照并在 _adjudication 显式声明. paper_main.pdf=SI(MOESM1)供图注/命名核对(主文PDF未获取, ED图注不在SI内)."
+  }
+}

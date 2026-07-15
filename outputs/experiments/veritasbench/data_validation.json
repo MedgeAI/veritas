@@ -1,9 +1,9 @@
 {
   "ok": true,
   "base_path": "benchmarks/veritasbench",
-  "suite": "veritasbench_trial32",
-  "expected_cases": 32,
-  "actual_cases": 32,
+  "suite": "veritasbench_trial33",
+  "expected_cases": 33,
+  "actual_cases": 33,
   "allow_empty": false,
   "global_errors": [],
   "cases": {
@@ -84,6 +84,14 @@
       "n_artifacts": 2,
       "n_observations": 24,
       "n_claims": 2,
+      "n_clean_claims": 1,
+      "errors": []
+    },
+    "ncb_mowei": {
+      "ok": true,
+      "n_artifacts": 3,
+      "n_observations": 6,
+      "n_claims": 3,
       "n_clean_claims": 1,
       "errors": []
     },
