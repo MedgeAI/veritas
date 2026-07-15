@@ -54,9 +54,25 @@ def _obs_value(observations: dict, artifact_prefix: str, loc: str):
     return o["value"] if o else None
 
 
+_RANGE_IN_FIELD = re.compile(r"([A-Z]+\d+):([A-Z]+\d+)")
+_SHEET_IN_FIELD = re.compile(r"sheet\s*'([^']+)'")
+
+
+def _parse_range_field(field: str, default_sheet: str) -> tuple[str, str] | None:
+    """Extract (sheet, 'A1:B2') from a range field. Handles bare 'F5:F12' and the sheet-prefixed
+    'sheet \\'Fig.4a\\' F5:F12' dialect. Returns None if no A1 range is present (caller drops)."""
+    m = _RANGE_IN_FIELD.search(field or "")
+    if not m:
+        return None
+    sm = _SHEET_IN_FIELD.search(field or "")
+    return (sm.group(1) if sm else default_sheet), f"{m.group(1)}:{m.group(2)}"
+
+
 def _expand_a1_range(sheet: str, rng: str) -> list[str]:
-    a, b = rng.split(":")
-    (ca, ra), (cb, rb) = re.match(r"([A-Z]+)(\d+)", a).groups(), re.match(r"([A-Z]+)(\d+)", b).groups()
+    m = re.match(r"([A-Z]+)(\d+):([A-Z]+)(\d+)$", rng.strip())
+    if not m:  # unparseable range -> empty, so the claim drops (never crash)
+        return []
+    ca, ra, cb, rb = m.groups()
     ci0, ci1 = sorted((column_index_from_string(ca), column_index_from_string(cb)))
     ri0, ri1 = sorted((int(ra), int(rb)))
     return [f"{sheet}!{get_column_letter(c)}{r}"
@@ -76,12 +92,15 @@ def _series_for_locus(observations: dict, cellref: str, atom: str, which: str,
     m0 = _A1_CELL.match(loc)
     sheet = m0["sheet"] if m0 else loc.split("!")[0]
 
-    # method 'range' (preferred): explicit contract range on the artifact's sheet.
+    # method 'range' (preferred): explicit contract range (bare 'A1:B2' or "sheet 'X' A1:B2").
     if explicit_range:
-        vals = [_obs_value(observations, prefix, c) for c in _expand_a1_range(sheet, explicit_range)]
-        vals = [v for v in vals if v is not None]
-        if vals:
-            return vals, "range"
+        parsed = _parse_range_field(explicit_range, sheet)
+        if parsed:
+            rsheet, rng = parsed
+            vals = [_obs_value(observations, prefix, c) for c in _expand_a1_range(rsheet, rng)]
+            vals = [v for v in vals if v is not None]
+            if vals:
+                return vals, "range"
 
     # method 'range' (legacy): an A1 range embedded in the atom text.
     ranges = _A1_RANGE.findall(atom or "")
@@ -126,11 +145,15 @@ def _locus_label(cellref: str, atom: str, which: str) -> str:
 
 
 def _neutral_claim_text(src_label: str, tgt_label: str) -> str:
-    """Oracle-safe candidate: states what the PAPER asserts, never the gold verdict/discrepancy."""
+    """Oracle-safe candidate: states ONLY what the paper asserts, then asks to verify it.
+
+    Deliberately names NO failure mode — no 'suspicious', 'duplicate', 'exact relationship', 'fraud'.
+    Telling the agent what pattern to hunt for would leak the task; it must reach 'these identical
+    values contradict independence' on its own. Stating the claim ('independent measurements') is the
+    question, not a hint."""
     return (
         f"The paper presents the value series at '{src_label}' and at '{tgt_label}' as two "
-        f"independent measurements (L1 source-data internal consistency). Decide whether the data "
-        f"is consistent with that, or shows a suspicious exact relationship between the two series."
+        f"independent measurements. Assess whether the underlying data supports this claim."
     )
 
 

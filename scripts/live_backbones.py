@@ -61,8 +61,12 @@ def _responses_call(client: OpenAI, model: str, prompt: str, max_tokens: int) ->
     return "".join(chunks)
 
 
-def model_call(prompt: str, *, model: str, temperature: float = 0.0, max_tokens: int = 2000) -> str:
-    """One completion via the model's routed provider/endpoint; returns raw text."""
+def model_call(prompt: str, *, model: str, temperature: float = 0.0, max_tokens: int = 2000,
+               usage_sink: list | None = None) -> str:
+    """One completion via the model's routed provider/endpoint; returns raw text.
+
+    If `usage_sink` is given, append this call's token usage to it — lets a caller record per-run
+    token totals + cost for the job manifest (mirrors the MedgeBench jobs' cost accounting)."""
     client = _client(_route(model))
     if model.startswith("gpt-5"):
         return _responses_call(client, model, prompt, max_tokens)
@@ -70,6 +74,13 @@ def model_call(prompt: str, *, model: str, temperature: float = 0.0, max_tokens:
         model=model, messages=[{"role": "user", "content": prompt}],
         temperature=temperature, max_tokens=max_tokens,
     )
+    if usage_sink is not None:
+        u = getattr(resp, "usage", None)
+        usage_sink.append({
+            "prompt_tokens": getattr(u, "prompt_tokens", None),
+            "completion_tokens": getattr(u, "completion_tokens", None),
+            "total_tokens": getattr(u, "total_tokens", None),
+        } if u else {})
     return resp.choices[0].message.content or ""
 
 
