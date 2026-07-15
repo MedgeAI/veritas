@@ -1,0 +1,145 @@
+{
+  "case_id": "rep_mediator",
+  "paper_title": "Single-cell CRISPR perturbation of nuclear genes in heteroplasmic mtDNA-mutant fibroblasts distinguishes gene-specific programs from a shared mtDNA-depletion stress response",
+  "paper_authors": [
+    "MitoPerturb-Seq study (Nature Structural & Molecular Biology, 2026)"
+  ],
+  "artifacts": {
+    "code": {
+      "path": "artifacts/solve.py",
+      "sha256": "6286961cc41c0a414545fee2463dd6e48acd8c8c4d36a09def7273741af4242a",
+      "kind": "code"
+    },
+    "summary_correct": {
+      "path": "artifacts/perturbation_summary_correct.csv",
+      "sha256": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
+      "kind": "code_output"
+    },
+    "summary_naive": {
+      "path": "artifacts/perturbation_summary_naive.csv",
+      "sha256": "fb7719810e444f0438c849cf44a933826177cb87113b893724f16c2fdcecb131",
+      "kind": "code_output"
+    },
+    "gene_specific_correct": {
+      "path": "artifacts/gene_specific_correct.csv",
+      "sha256": "75963a273e19f7575e7497b24fad341dda0d7e1ca4ffea157eb9ae273a9e8085",
+      "kind": "code_output"
+    },
+    "gene_specific_naive": {
+      "path": "artifacts/gene_specific_naive.csv",
+      "sha256": "56747d30a2c2bdd9cc4a1182a3e31d70b201b8460b621d5ada9007a7f13c704c",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/perturbation_summary_correct.csv#KO_11_n_deg": {
+      "value": 212,
+      "source_artifact": "artifacts/perturbation_summary_correct.csv",
+      "source_artifact_hash": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
+      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_11, column n_deg (中介混杂控制后复现: KO_11=masked Atg5 的 DE 基因数, Welch t |t|>3)"
+    },
+    "artifacts/perturbation_summary_correct.csv#KO_11_mtDNA": {
+      "value": 478431,
+      "source_artifact": "artifacts/perturbation_summary_correct.csv",
+      "source_artifact_hash": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
+      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_11, column mean_mtDNA_copy_number (KO_11 平均 mtDNA 拷贝数, 与 control 中位数 372167 相当, 无耗竭)"
+    },
+    "artifacts/perturbation_summary_correct.csv#KO_11_call": {
+      "value": "gene_specific",
+      "source_artifact": "artifacts/perturbation_summary_correct.csv",
+      "source_artifact_hash": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
+      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_11, column gene_specific_call (论文判定: 正常 mtDNA 下的实质 DE = 真正 gene-specific 程序)"
+    },
+    "artifacts/perturbation_summary_correct.csv#KO_13_n_deg": {
+      "value": 685,
+      "source_artifact": "artifacts/perturbation_summary_correct.csv",
+      "source_artifact_hash": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
+      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_13, column n_deg (KO_13=masked Tfam, 全 panel 最大 DE 签名)"
+    },
+    "artifacts/perturbation_summary_correct.csv#KO_13_mtDNA": {
+      "value": 89051,
+      "source_artifact": "artifacts/perturbation_summary_correct.csv",
+      "source_artifact_hash": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
+      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_13, column mean_mtDNA_copy_number (KO_13 平均 mtDNA 拷贝数 89051, 远低于 control 中位数 372167 且低于 0.75x 耗竭阈值 279125 = 最强 mtDNA depleter)"
+    },
+    "artifacts/perturbation_summary_correct.csv#KO_13_call": {
+      "value": "shared",
+      "source_artifact": "artifacts/perturbation_summary_correct.csv",
+      "source_artifact_hash": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
+      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_13, column gene_specific_call (论文判定: 巨大 DE 但被 mtDNA 耗竭混杂 = 共享的整合应激(ISR)响应, 非 gene-specific)"
+    },
+    "artifacts/gene_specific_naive.csv#KO_13_call": {
+      "value": "gene_specific",
+      "source_artifact": "artifacts/gene_specific_naive.csv",
+      "source_artifact_hash": "56747d30a2c2bdd9cc4a1182a3e31d70b201b8460b621d5ada9007a7f13c704c",
+      "source_span": "gene_specific_naive.csv, row perturbation=KO_13, column confidence=high (naive 审计: 不控 mtDNA 中介, 按 DEG 数排序把 685-DEG 的 KO_13 判为最强 gene_specific → 红鲱鱼)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_mediator_ann_001",
+      "claim_id": "rep_mediator_claim_001",
+      "claim_atom": "After accounting for the measured mtDNA-copy-number mediator, KO_11 drives a substantial transcriptional program (212 DEGs vs control) while keeping mtDNA copy number at near-control levels (478431 vs control median ~372167, above the 0.75x depletion threshold of 279125). A large DE signature that is NOT accompanied by mtDNA depletion is a genuinely gene-specific, perturbation-specific response — KO_11 is the confidently gene-specific knockout.",
+      "source_artifact": "artifacts/perturbation_summary_correct.csv#KO_11_n_deg",
+      "target_artifact": "artifacts/perturbation_summary_correct.csv#KO_11_mtDNA",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "log-CPM 归一化后 per-KO Welch t vs control (|t|>3): KO_11 n_deg=212, mean_mtDNA=478431 ≈ control median 372167 (overlap_ctrl 0.91). 大签名+正常 mtDNA = gene_specific. 与论文一致."
+      ]
+    },
+    {
+      "annotation_id": "rep_mediator_ann_002",
+      "claim_id": "rep_mediator_claim_002",
+      "claim_atom": "A naive audit that ranks knockouts purely by DE-signature size declares KO_13 — which has the largest signature (685 DEGs) — a top gene-specific program. This does NOT overturn the paper: KO_13 is the strongest mtDNA depleter (mean mtDNA 89051, far below the control median ~372167 and below the 0.75x depletion threshold), so its large DE is the SHARED mtDNA-depletion (integrated stress) response, and the paper correctly classifies KO_13 as shared/confounded rather than gene-specific. The paper's mediator-controlled conclusion is consistent.",
+      "source_artifact": "artifacts/gene_specific_naive.csv#KO_13_call",
+      "target_artifact": "artifacts/perturbation_summary_correct.csv#KO_13_call",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "★FP陷阱(核心): naive 审计者不控制实测的 mtDNA 拷贝数中介(mediator), 按 DE 基因数排序 → 685-DEG 的 KO_13(masked Tfam)看着是最强 gene-specific 程序, 极易误判'论文漏掉了 KO_13 / 论文只提名 KO_11 是错的'. 实为红鲱鱼: KO_13 的 mtDNA 拷贝数仅 89051, 远低于 control 中位 372167 且低于 0.75x 耗竭阈值 279125(与 control 的分布 overlap 仅 0.24), 它是 panel 里最强的 mtDNA depleter; 其巨大 DE 签名是 mtDNA 耗竭触发的共享整合应激响应(ISR), 对所有强 depleter 都出现, 并非 KO_13 的 gene-specific 程序. 论文用中介控制(比较 KO 与 control 的 mtDNA 拷贝数, 把 depleter 的签名标为 shared/confounded)后, 正确地把 KO_13 判为 shared, 只提名正常 mtDNA 下仍有大签名的 KO_11(Atg5)为 gene_specific. 因此 naive 的红鲱鱼 gene_specific 提名不能推翻论文控混杂后的结论; verdict=consistent, is_clean_claim=false. AI 审计者不应因 naive DEG 排序把 KO_13/KO_05 顶上来就报论文异常."
+    },
+    {
+      "annotation_id": "rep_mediator_ann_003",
+      "claim_id": "rep_mediator_claim_003",
+      "claim_atom": "The paper's classification is internally consistent with the mediator structure: KO_13 has the largest raw DE signature (685 DEGs) yet is labeled shared, precisely because it shows the most severe mtDNA depletion (mean mtDNA 89051 << control median ~372167). DE magnitude tracking mtDNA depletion is the signature of the shared depletion response, so the largest-DE knockout being classified shared rather than gene-specific is the correct, non-contradictory call.",
+      "source_artifact": "artifacts/perturbation_summary_correct.csv#KO_13_n_deg",
+      "target_artifact": "artifacts/perturbation_summary_correct.csv#KO_13_mtDNA",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "KO_13 n_deg=685(最大) 但 mean_mtDNA=89051(最低, <0.75x control 阈值 279125) → 判 shared. DE 大小与 mtDNA 耗竭同向 = 共享耗竭响应. 与论文 gene_specific_call 一致, 无矛盾."
+      ]
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_mediator",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41594-026-01779-7",
+    "_lane": "诚实可复现(非造假): 全 claim=consistent. 考 AI 面对'naive 不控实测 mtDNA 拷贝数中介、按 DEG 大小把 KO_13/KO_05 顶为最强 gene-specific'的红鲱鱼, 不误报论文的中介控制结论(只 KO_11=gene_specific). 底材=medgebench task medge-082-1 真实数据(MitoPerturb-Seq 单细胞 CRISPR, GSE297418 multiome; KO 基因名已 de-leak relabel 为 KO_01..KO_13).",
+    "_independent_status": "本地重跑 medge-082-1 solve.py(中介控制: DE 大小 vs mtDNA 耗竭)得 KO_11 gene_specific / KO_13,KO_05 shared, 及 naive_solve.py(纯按 DEG 排序)得 KO_13,KO_05,KO_11 全 gene_specific 两份 code_output; 与 tests/gt_artifacts.json 完全一致(control_median_mtDNA=372167, depleter_threshold=279125, gene_specific_correct=[KO_11], decoy_depleters=[KO_05,KO_13])",
+    "_source_task": "medge-082-1 (paper_doi 10.1038/s41594-026-01779-7, trap=measured_mediator_confound; 原始表达矩阵 25MB 不入 case, 仅存 <5MB code_output/code)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_mechanism": [
+      "confounding"
+    ]
+  }
+}

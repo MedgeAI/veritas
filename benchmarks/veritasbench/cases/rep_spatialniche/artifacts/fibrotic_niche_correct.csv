@@ -1,0 +1,47 @@
+cell_type,in_fibrotic_niche,score,evidence
+AT1,no,0.747,not_specifically_enriched
+AT2,no,0.918,not_specifically_enriched
+Activated Fibrotic FBs,yes,1.79,reciprocal_enrichment_in_disease
+Adventitial FBs,no,0.267,not_specifically_enriched
+Alveolar FBs,no,0.711,not_specifically_enriched
+Alveolar Macrophages,yes,1.62,reciprocal_enrichment_in_disease
+Arteriole,no,0.227,not_specifically_enriched
+B cells,no,0.235,not_specifically_enriched
+Basal,no,1.741,not_specifically_enriched
+Basophils,no,1.037,not_specifically_enriched
+CD4+ T-cells,no,0.577,not_specifically_enriched
+CD8+ T-cells,no,0.711,not_specifically_enriched
+Capillary,no,0.429,not_specifically_enriched
+Goblet,no,0.306,not_specifically_enriched
+Inflammatory FBs,no,0.391,not_specifically_enriched
+Interstitial Macrophages,no,1.166,not_specifically_enriched
+KRT5-/KRT17+,yes,13.219,reciprocal_enrichment_in_disease
+Langerhans cells,no,0.571,not_specifically_enriched
+Lymphatic,no,0.37,not_specifically_enriched
+Macrophages - IFN-activated,no,1.22,not_specifically_enriched
+Mast,no,0.617,not_specifically_enriched
+Migratory DCs,no,1.009,not_specifically_enriched
+Monocytes/MDMs,no,0.934,not_specifically_enriched
+Multiciliated,no,0.173,not_specifically_enriched
+Myofibroblasts,no,1.121,not_specifically_enriched
+NK/NKT,no,0.512,not_specifically_enriched
+Neutrophils,no,0.6,not_specifically_enriched
+PNEC,no,0.153,not_specifically_enriched
+Plasma,no,0.294,not_specifically_enriched
+Proliferating AT2,yes,1.106,reciprocal_enrichment_in_disease
+Proliferating Airway,no,1.026,not_specifically_enriched
+Proliferating B cells,no,0.028,not_specifically_enriched
+Proliferating FBs,no,0.95,not_specifically_enriched
+Proliferating Myeloid,yes,2.176,reciprocal_enrichment_in_disease
+Proliferating NK/NKT,no,0.18,not_specifically_enriched
+Proliferating T-cells,no,0.596,not_specifically_enriched
+RASC,no,1.646,not_specifically_enriched
+SMCs/Pericytes,no,0.353,not_specifically_enriched
+SPP1+ Macrophages,yes,4.809,reciprocal_enrichment_in_disease
+Secretory,no,0.301,not_specifically_enriched
+Subpleural FBs,no,0.18,not_specifically_enriched
+Transitional AT2,yes,1.633,reciprocal_enrichment_in_disease
+Tregs,no,0.783,not_specifically_enriched
+Venous,no,0.381,not_specifically_enriched
+cDCs,no,1.361,not_specifically_enriched
+pDCs,no,1.028,not_specifically_enriched

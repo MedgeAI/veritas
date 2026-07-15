@@ -1,0 +1,47 @@
+cell_type,in_fibrotic_niche,score,evidence
+AT1,no,1477,infrequent
+AT2,no,8568,infrequent
+Activated Fibrotic FBs,yes,33946,frequent_raw_neighbor
+Adventitial FBs,no,370,infrequent
+Alveolar FBs,yes,36188,frequent_raw_neighbor
+Alveolar Macrophages,no,1866,infrequent
+Arteriole,no,440,infrequent
+B cells,no,3119,infrequent
+Basal,no,1809,infrequent
+Basophils,no,77,infrequent
+CD4+ T-cells,no,8321,infrequent
+CD8+ T-cells,yes,10604,frequent_raw_neighbor
+Capillary,yes,12161,frequent_raw_neighbor
+Goblet,no,176,infrequent
+Inflammatory FBs,no,1900,infrequent
+Interstitial Macrophages,yes,18337,frequent_raw_neighbor
+KRT5-/KRT17+,no,1907,infrequent
+Langerhans cells,no,8,infrequent
+Lymphatic,no,1547,infrequent
+Macrophages - IFN-activated,no,388,infrequent
+Mast,no,5322,infrequent
+Migratory DCs,no,1685,infrequent
+Monocytes/MDMs,no,4634,infrequent
+Multiciliated,no,341,infrequent
+Myofibroblasts,no,966,infrequent
+NK/NKT,no,1998,infrequent
+Neutrophils,no,1950,infrequent
+PNEC,no,3,infrequent
+Plasma,no,4117,infrequent
+Proliferating AT2,no,309,infrequent
+Proliferating Airway,no,30,infrequent
+Proliferating B cells,no,11,infrequent
+Proliferating FBs,no,2665,infrequent
+Proliferating Myeloid,no,799,infrequent
+Proliferating NK/NKT,no,5,infrequent
+Proliferating T-cells,no,197,infrequent
+RASC,no,700,infrequent
+SMCs/Pericytes,yes,9200,frequent_raw_neighbor
+SPP1+ Macrophages,no,2794,infrequent
+Secretory,no,168,infrequent
+Subpleural FBs,no,71,infrequent
+Transitional AT2,no,2413,infrequent
+Tregs,no,1559,infrequent
+Venous,no,7671,infrequent
+cDCs,no,1065,infrequent
+pDCs,no,329,infrequent

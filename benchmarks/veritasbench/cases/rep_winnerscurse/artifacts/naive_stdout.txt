@@ -1,0 +1,24 @@
+=== NAIVE top-15 by raw enrichment ratio (tumor/baseline) ===
+guide_target    target_type  fc_mean  tumor_representation  baseline_representation  enrichment  is_driver_naive
+       Trp63            CNV    0.038                 0.388                    0.001     491.214             True
+       Zmat3            CNV    0.749                 3.030                    0.034      89.428             True
+       Prkdc Mutated_in_SCC    0.458                 2.008                    0.032      62.342             True
+        Myh8 Mutated_in_SCC    0.715                 1.001                    0.016      60.747             True
+         Kdr Mutated_in_SCC    0.608                 1.228                    0.021      57.877             True
+       Dnah3 Mutated_in_SCC    0.425                 1.386                    0.025      55.785             True
+       Ahnak Mutated_in_SCC    0.986                 2.851                    0.053      53.802             True
+       Muc16 Mutated_in_SCC    0.745                 1.839                    0.034      53.770             True
+        Dgkb Mutated_in_SCC    0.710                 1.327                    0.025      52.113             True
+      Notch1 Mutated_in_SCC   22.162                36.477                    0.737      49.491             True
+       Dnah8 Mutated_in_SCC    0.501                 0.668                    0.014      48.074             True
+       Cdh10 Mutated_in_SCC    1.546                 1.230                    0.027      45.545             True
+      Zfp469 Mutated_in_SCC    0.865                 1.124                    0.025      44.193             True
+       Csmd1 Mutated_in_SCC    0.661                 1.421                    0.034      41.416             True
+        Aspm Mutated_in_SCC    0.465                 1.109                    0.028      40.279             True
+
+NAIVE #1 'driver' = Trp63: enrichment=491.2x but baseline=0.0010, fc_mean=0.038 (fold-change DEPLETED -> pure winner's-curse artifact)
+
+Where the real drivers rank by this naive metric:
+  Notch1  naive-rank #10 (enrichment=49.5)
+  Fat1    naive-rank #19 (enrichment=36.4)
+  Trp53   naive-rank #47 (enrichment=20.0)

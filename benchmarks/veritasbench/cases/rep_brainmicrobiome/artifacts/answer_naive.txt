@@ -1,0 +1,1 @@
+The strongest gene-specific transcriptional programs are KO_13, KO_05, KO_11, which have the largest number of differentially expressed genes vs control.

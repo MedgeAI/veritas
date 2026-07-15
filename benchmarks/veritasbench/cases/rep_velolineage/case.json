@@ -1,0 +1,120 @@
+{
+  "case_id": "rep_velolineage",
+  "paper_title": "Clonal lineage tracing (CARLIN barcoding) of antigen-specific CD8 T cells defines a Tcf7-high stem-like progenitor state",
+  "paper_authors": [
+    "(bioRxiv, 2024; GSE241403)"
+  ],
+  "artifacts": {
+    "code": {
+      "path": "artifacts/solve_reference.py",
+      "sha256": "b6896065f26cd96cebff01e2b8b9cc213edc391748cd87b6553c822e31d30c3c",
+      "kind": "code"
+    },
+    "state_correct": {
+      "path": "artifacts/state_analysis_correct.csv",
+      "sha256": "a84ca18ddd9fb5e7bd175649f8c127f25ce355739269ac7ed54ee781278ec9da",
+      "kind": "code_output"
+    },
+    "traj_naive": {
+      "path": "artifacts/trajectory_naive_velocity.csv",
+      "sha256": "582fe3008b42d6b3c82848d54e3b4d3c6dbfa990367b03aaa14aef8e0dad9228",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/state_analysis_correct.csv#StateC_stem_score": {
+      "value": 1.302,
+      "source_artifact": "artifacts/state_analysis_correct.csv",
+      "source_artifact_hash": "a84ca18ddd9fb5e7bd175649f8c127f25ce355739269ac7ed54ee781278ec9da",
+      "source_span": "state_analysis_correct.csv, row cell_state=State_C, column stem_score (Tcf7/Sell/Ccr7/Il7r/Lef1/Bcl2 干性marker平均分, 6态中最高; 次高State_B仅0.387)"
+    },
+    "artifacts/state_analysis_correct.csv#StateC_role": {
+      "value": "progenitor",
+      "source_artifact": "artifacts/state_analysis_correct.csv",
+      "source_artifact_hash": "a84ca18ddd9fb5e7bd175649f8c127f25ce355739269ac7ed54ee781278ec9da",
+      "source_span": "state_analysis_correct.csv, row cell_state=State_C, column role (=progenitor; 由marker表型+CARLIN克隆判定为分化起点)"
+    },
+    "artifacts/trajectory_naive_velocity.csv#StateC_velocity_pseudotime": {
+      "value": 0.941,
+      "source_artifact": "artifacts/trajectory_naive_velocity.csv",
+      "source_artifact_hash": "582fe3008b42d6b3c82848d54e3b4d3c6dbfa990367b03aaa14aef8e0dad9228",
+      "source_span": "trajectory_naive_velocity.csv, row cell_state=State_C, column velocity_pseudotime (=0.941, 6态中最高→scVelo判其为TERMINAL终末态)"
+    },
+    "artifacts/trajectory_naive_velocity.csv#velocity_root_state": {
+      "value": "State_E",
+      "source_artifact": "artifacts/trajectory_naive_velocity.csv",
+      "source_artifact_hash": "582fe3008b42d6b3c82848d54e3b4d3c6dbfa990367b03aaa14aef8e0dad9228",
+      "source_span": "trajectory_naive_velocity.csv, row role=progenitor, column cell_state (=State_E, velocity_pseudotime=0.038最低→scVelo判其为root/progenitor)"
+    },
+    "artifacts/trajectory_naive_velocity.csv#corr_pseudotime_stem": {
+      "value": 0.435,
+      "source_artifact": "artifacts/trajectory_naive_velocity.csv",
+      "source_artifact_hash": "582fe3008b42d6b3c82848d54e3b4d3c6dbfa990367b03aaa14aef8e0dad9228",
+      "source_span": "trajectory_naive_velocity.csv, row cell_state=corr_pseudotime_stem_percell, column velocity_pseudotime (=+0.435, 逐细胞 velocity pseudotime 与干性score正相关: 越干→pseudotime越高=方向倒置signature)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_velolineage_ann_001",
+      "claim_id": "rep_velolineage_claim_001",
+      "claim_atom": "State_C is the progenitor (origin) of the antigen-specific CD8 T-cell response: it carries by far the highest stem-like signature (Tcf7/Sell/Ccr7/Lef1 score 1.302, vs <=0.387 for every other state), identifying it as the quiescent stem-like state from which effectors arise.",
+      "source_artifact": "artifacts/state_analysis_correct.csv#StateC_stem_score",
+      "target_artifact": "artifacts/state_analysis_correct.csv#StateC_role",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "solve_reference.py (marker打分, DATA_DIR=environment/data) 复现: State_C stem_score=1.302 全局最高, role=progenitor; 与论文Tcf7-high stem-like progenitor结论一致"
+      ]
+    },
+    {
+      "annotation_id": "rep_velolineage_ann_002",
+      "claim_id": "rep_velolineage_claim_002",
+      "claim_atom": "A standard RNA-velocity re-analysis places State_C (the highest-stemness state) at the HIGHEST velocity pseudotime (0.941, i.e. terminal), with the per-cell correlation between velocity pseudotime and stemness positive (+0.435). Taken at face value this looks like the paper's designated progenitor is actually the terminal state (velocity direction reversed). This is a KNOWN RNA-velocity artifact for quiescent stem-like cells (low unspliced RNA), NOT evidence that the paper's progenitor assignment is wrong or unreproducible; the CARLIN lineage barcodes and stem-marker phenotype establish State_C as the origin.",
+      "source_artifact": "artifacts/trajectory_naive_velocity.csv#corr_pseudotime_stem",
+      "target_artifact": "artifacts/state_analysis_correct.csv#StateC_stem_score",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "★FP陷阱(核心): naive审计者跑标准scVelo pipeline, 得velocity pseudotime把State_C(干性最高0.949, Tcf7/Sell/Ccr7高)排在最高位=terminal, 逐细胞corr(pseudotime, stem)=+0.435正相关, 方向看起来完全倒置——极易误判'论文把progenitor/terminal搞反了/轨迹不可复现/结论造假'. 实为合法且已知的velocity伪影: 静止(quiescent)干性细胞unspliced转录本极低, 使velocity误将其置于终末pseudotime(见Bergen 2021/Lange 2022讨论). 论文并未依赖velocity方向, 而是用CARLIN谱系条码(克隆siblings跨态共享祖先)+干性marker表型确立State_C为origin. 因此velocity的倒置数字虽真实可复现, 却不能推翻论文结论; 论文的progenitor=State_C判定=consistent. AI不应因naive velocity方向倒置而对论文报异常. 隐蔽点: velocity不报错、pipeline跑得通、数字自洽, 陷阱在于把成名方法(RNA velocity)的输出当作方向真值."
+    },
+    {
+      "annotation_id": "rep_velolineage_ann_003",
+      "claim_id": "rep_velolineage_claim_003",
+      "claim_atom": "Under the naive RNA-velocity pipeline the inferred root (lowest velocity pseudotime, 0.038) is State_E and the highest-pseudotime state is State_C (0.941); these velocity numbers themselves reproduce faithfully as computed — the disagreement with the marker/lineage-based progenitor call is one of direction interpretation, not a data or reproducibility failure.",
+      "source_artifact": "artifacts/trajectory_naive_velocity.csv#StateC_velocity_pseudotime",
+      "target_artifact": "artifacts/trajectory_naive_velocity.csv#velocity_root_state",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "build-time scVelo grounding (GSE241403 loom→velocity, deterministic模式)复现: velocity root=State_E(pt=0.038), State_C=最高pt=0.941; naive_solve.py按velocity取root/terminal的输出与此一致. 数字本身可复现, 仅方向解读是陷阱"
+      ]
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_velolineage",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1101/2024.03.21.586160",
+    "_lane": "诚实可复现(非造假): 全claim=consistent. 考AI面对'naive用RNA velocity重算得到方向完全倒置(把干性progenitor State_C判成terminal, corr(pt,stem)=+0.435)、看着像论文轨迹搞反/不可复现'时, 不误报论文的progenitor=State_C结论. 底材=medgebench task medge-ext019-1真实数据(GSE241403, 8913个抗原特异CD8 T细胞, spliced/unspliced + CARLIN谱系条码).",
+    "_independent_status": "下载窗口本地重跑 solve_reference.py (marker+lineage, DATA_DIR=environment/data) 得 State_C stem_score=1.302/role=progenitor (correct); naive velocity path 由build-time scVelo grounding权威值复现 State_C pt=0.941(terminal)/root=State_E(0.038)/corr(pt,stem)=+0.435 (naive红鲱鱼). 注: 本地无scvelo, naive velocity数字取自medge-ext019-1构建时的scVelo grounding闸门(gt_artifacts.json), 该闸门PASS.",
+    "_source_task": "medge-ext019-1 (paper_doi 10.1101/2024.03.21.586160, trap=rna_velocity_reversed_vs_lineage_barcode_truth). 原始 expression.h5ad (~100MB, 8913 cells x spliced/unspliced) 未随case装载, 底材留在 medge-ext019-1/environment/data.",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}

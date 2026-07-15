@@ -1,0 +1,171 @@
+{
+  "case_id": "rep_winnerscurse",
+  "paper_title": "In vivo pooled CRISPR screening identifies positive-selection drivers of squamous-cell carcinoma growth",
+  "paper_authors": [
+    "Nature (2024), s41586-024-07663-y"
+  ],
+  "artifacts": {
+    "per_tumor": {
+      "path": "artifacts/screen_per_tumor.csv",
+      "sha256": "403ddc92e4cc9992dc4e5926ddeb77a1898a55192eda6d3f89d9736741789a56",
+      "kind": "source_data"
+    },
+    "representation": {
+      "path": "artifacts/guide_representation.csv",
+      "sha256": "01f2fd397407eac573101ddc499832e6ff1d50e6a09e77fba65b703b91f7bef5",
+      "kind": "source_data"
+    },
+    "code_correct": {
+      "path": "artifacts/solve.py",
+      "sha256": "ec76bb05e9e9d891f8dc8206dade4fba972bb3f9992cfef9ec73f08299087f29",
+      "kind": "code"
+    },
+    "code_naive": {
+      "path": "artifacts/naive_solve.py",
+      "sha256": "304259c059b12d2ae532bf7f36385724767c7ee5fc6fd6e9bb850c8fd1c62b2d",
+      "kind": "code"
+    },
+    "driver_calls_correct": {
+      "path": "artifacts/driver_calls_correct.csv",
+      "sha256": "65f52da42e9de995aeb6e8c7d8f349d5aa7c018f84b6fd27dee4e520ff7a1595",
+      "kind": "code_output"
+    },
+    "correct_stdout": {
+      "path": "artifacts/correct_stdout.txt",
+      "sha256": "4fa8f70b7bb50f8f052c9ec51166a31c71a8b1fc2ee3dc1d89602847faedfcfd",
+      "kind": "code_output"
+    },
+    "driver_calls_naive": {
+      "path": "artifacts/driver_calls_naive.csv",
+      "sha256": "3725afa3d484f35886dd504a00b0f6788f0a8792a3afe8d969c62d8ac7d02c95",
+      "kind": "code_output"
+    },
+    "naive_stdout": {
+      "path": "artifacts/naive_stdout.txt",
+      "sha256": "8656c23faa05ff16faef5423d0745960e0b1a407d0658edd94051ae24558578e",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/driver_calls_correct.csv#n_drivers": {
+      "value": 3,
+      "source_artifact": "artifacts/driver_calls_correct.csv",
+      "source_artifact_hash": "65f52da42e9de995aeb6e8c7d8f349d5aa7c018f84b6fd27dee4e520ff7a1595",
+      "source_span": "driver_calls_correct.csv, 严谨复现(reproducibility across tumors AND baseline-adequate enrichment)后 is_driver=True 的行数=3 (Notch1, Fat1, Trp53)"
+    },
+    "artifacts/driver_calls_correct.csv#Notch1_fc_mean": {
+      "value": 22.162,
+      "source_artifact": "artifacts/driver_calls_correct.csv",
+      "source_artifact_hash": "65f52da42e9de995aeb6e8c7d8f349d5aa7c018f84b6fd27dee4e520ff7a1595",
+      "source_span": "driver_calls_correct.csv, row guide_target=Notch1, column fc_mean=22.162 (n_elevated=8/8, baseline=0.737 充足, is_driver=True)"
+    },
+    "artifacts/driver_calls_correct.csv#Fat1_fc_mean": {
+      "value": 14.801,
+      "source_artifact": "artifacts/driver_calls_correct.csv",
+      "source_artifact_hash": "65f52da42e9de995aeb6e8c7d8f349d5aa7c018f84b6fd27dee4e520ff7a1595",
+      "source_span": "driver_calls_correct.csv, row guide_target=Fat1, column fc_mean=14.801 (n_elevated=8/8, baseline=0.665 充足, is_driver=True)"
+    },
+    "artifacts/driver_calls_correct.csv#Trp53_fc_mean": {
+      "value": 3.59,
+      "source_artifact": "artifacts/driver_calls_correct.csv",
+      "source_artifact_hash": "65f52da42e9de995aeb6e8c7d8f349d5aa7c018f84b6fd27dee4e520ff7a1595",
+      "source_span": "driver_calls_correct.csv, row guide_target=Trp53, column fc_mean=3.59 (n_elevated=7/8, baseline=0.173 充足, is_driver=True)"
+    },
+    "artifacts/driver_calls_correct.csv#Trp63_is_driver": {
+      "value": "False",
+      "source_artifact": "artifacts/driver_calls_correct.csv",
+      "source_artifact_hash": "65f52da42e9de995aeb6e8c7d8f349d5aa7c018f84b6fd27dee4e520ff7a1595",
+      "source_span": "driver_calls_correct.csv, row guide_target=Trp63, column is_driver=False, artifact=low_baseline_winnerscurse (fc_mean=0.038 实为耗竭, 论文正确未列为driver)"
+    },
+    "artifacts/driver_calls_naive.csv#Trp63_enrichment": {
+      "value": 491.214,
+      "source_artifact": "artifacts/driver_calls_naive.csv",
+      "source_artifact_hash": "3725afa3d484f35886dd504a00b0f6788f0a8792a3afe8d969c62d8ac7d02c95",
+      "source_span": "driver_calls_naive.csv, row guide_target=Trp63, column enrichment=491.214 (naive 按原始 tumor/baseline 比值排序时的 #1)"
+    },
+    "artifacts/driver_calls_naive.csv#Trp63_baseline": {
+      "value": 0.001,
+      "source_artifact": "artifacts/driver_calls_naive.csv",
+      "source_artifact_hash": "3725afa3d484f35886dd504a00b0f6788f0a8792a3afe8d969c62d8ac7d02c95",
+      "source_span": "driver_calls_naive.csv, row guide_target=Trp63, column baseline_representation=0.001 (近零起始池基线 → 比值爆炸的分母)"
+    },
+    "artifacts/driver_calls_naive.csv#Trp63_fc_mean": {
+      "value": 0.038,
+      "source_artifact": "artifacts/driver_calls_naive.csv",
+      "source_artifact_hash": "3725afa3d484f35886dd504a00b0f6788f0a8792a3afe8d969c62d8ac7d02c95",
+      "source_span": "driver_calls_naive.csv, row guide_target=Trp63, column fc_mean=0.038 (<1 = 体内实际耗竭, 与其 491x enrichment 相矛盾)"
+    },
+    "artifacts/naive_stdout.txt#Notch1_naive_rank": {
+      "value": 10,
+      "source_artifact": "artifacts/naive_stdout.txt",
+      "source_artifact_hash": "8656c23faa05ff16faef5423d0745960e0b1a407d0658edd94051ae24558578e",
+      "source_span": "naive_stdout.txt, 'Notch1 naive-rank #10' (真driver Notch1 在 naive 比值排序里落到第10, 排在 Trp63/Zmat3/Prkdc 等 winner's-curse 红鲱鱼之后)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_winnerscurse_ann_001",
+      "claim_id": "rep_winnerscurse_claim_001",
+      "claim_atom": "A rigorous multi-metric analysis of the in vivo SCC screen — requiring reproducible per-tumor elevation above the non-targeting-control null AND cohort enrichment over an adequate starting-pool baseline — calls exactly 3 genuine positive-selection drivers: Notch1 (fc_mean=22.2, elevated in 8/8 tumors), Fat1 (fc_mean=14.8, 8/8), and Trp53 (fc_mean=3.6, 7/8), each with an adequate baseline. This matches the paper's reported driver set.",
+      "source_artifact": "artifacts/driver_calls_correct.csv#n_drivers",
+      "target_artifact": "artifacts/driver_calls_correct.csv#Notch1_fc_mean",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "本地跑 solve.py (DATA_DIR/OUTPUT_DIR): 控制-guide null (per-tumor FC 95th=2.29) + baseline floor (10th pct=0.0176), reproducible(n_elevated>=5 且 fc_median>agg_null) AND enriched_real(enrichment>1 且 baseline>=floor) => is_driver=True 恰 3 个: Notch1/Fat1/Trp53"
+      ]
+    },
+    {
+      "annotation_id": "rep_winnerscurse_ann_002",
+      "claim_id": "rep_winnerscurse_claim_002",
+      "claim_atom": "A naive audit that ranks guides by the raw cohort enrichment ratio (tumor_representation / baseline_representation) flags Trp63 as the #1 hit at 491x enrichment. This does NOT overturn the paper's driver list: Trp63's 491x is a winner's-curse artifact of a near-zero starting-pool baseline (0.001), and Trp63 is in fact fold-change DEPLETED in vivo (fc_mean=0.038). The paper correctly did not call Trp63 a driver.",
+      "source_artifact": "artifacts/driver_calls_naive.csv#Trp63_enrichment",
+      "target_artifact": "artifacts/driver_calls_correct.csv#Trp63_is_driver",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "★FP陷阱(核心): naive审计者用低基线的比值(enrichment=tumor/baseline)排序, Trp63 以 491x 高居榜首, 极易误判'论文漏了最强的driver Trp63'或'论文driver列表有误/挑选'. 实为红鲱鱼(winner's curse): Trp63 的起始池基线 baseline=0.001 近乎为零, 任何微小的 tumor_representation 除以它都会得到爆炸性比值; 而 Trp63 的体内 per-tumor fold_change 均值只有 0.038 (<1, 实为被耗竭/负选择), n_elevated=0. 两个读数彼此矛盾时, 低基线的比值不可信, per-tumor 可复现性才是。论文用 enrichment+多指标(基线充足度+跨瘤可复现性)交叉校验, 正确地把 Trp63 排除, is_driver=False (artifact=low_baseline_winnerscurse). 因此 naive 的 491x '大发现' 不能推翻论文, 全 claim=consistent。AI 不应因 naive 单指标比值排序的红鲱鱼而给论文报 inconsistent。同类低基线红鲱鱼还有 Zmat3(89x, base0.034, fc0.75)、Prkdc(62x, base0.032, fc0.46), 均 fold-change 耗竭。"
+    },
+    {
+      "annotation_id": "rep_winnerscurse_ann_003",
+      "claim_id": "rep_winnerscurse_claim_003",
+      "claim_atom": "Under the naive raw-ratio ranking the genuine driver Notch1 falls to rank #10, sitting below low-baseline decoys (Trp63, Zmat3, Prkdc, ...); yet the rigorous call still recovers Notch1/Fat1/Trp53 as drivers because their signal is BOTH reproducible across tumors AND backed by an adequate baseline (0.737 / 0.665 / 0.173), unlike the near-zero-baseline decoys. The naive ordering therefore does not contradict the paper's conclusions.",
+      "source_artifact": "artifacts/naive_stdout.txt#Notch1_naive_rank",
+      "target_artifact": "artifacts/driver_calls_correct.csv#Fat1_fc_mean",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "naive_solve.py 输出: 真driver 在 raw-ratio 排序里 Notch1 #10 / Fat1 #19 / Trp53 #47, 全落在低基线红鲱鱼之后; 但 correct 分析里三者 baseline=0.737/0.665/0.173 充足且跨瘤可复现 (n_elevated 8/8/7), 故仍被正确判为 driver。naive 排序错乱 != 论文错误。"
+      ]
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_winnerscurse",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [
+      "grounding"
+    ],
+    "source_url": "https://doi.org/10.1038/s41586-024-07663-y",
+    "_lane": "诚实可复现(非造假): 全claim=consistent. 考AI面对'naive低基线比值排序把 Trp63(491x) 顶到第一、看着像论文漏了最强driver'的 winner's-curse 红鲱鱼, 不误判论文严谨的 enrichment+多指标 driver call. 底材=medgebench task medge-150-1 真实数据 (Nature 2024 s41586-024-07663-y, in vivo pooled CRISPR SCC screen).",
+    "_independent_status": "下载窗口本地重跑 solve.py (control-null + baseline-floor + 跨瘤可复现) 得 3 drivers Notch1/Fat1/Trp53 (correct code_output), 与 naive_solve.py (按原始 tumor/baseline 比值 top-15) 得 Trp63 491x 红鲱鱼榜首 (naive code_output) 两份 code_output",
+    "_source_task": "medge-150-1 (paper_doi 10.1038/s41586-024-07663-y, trap=conflicting-flawed-metrics-bottleneck-winnerscurse)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}

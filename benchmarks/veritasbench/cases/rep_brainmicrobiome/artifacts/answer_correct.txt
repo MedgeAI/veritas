@@ -1,0 +1,1 @@
+Genuinely gene-specific: KO_11 — large DE program at near-control mtDNA copy number. The KOs with the LARGEST raw DE (KO_13, KO_05, KO_03) are strong mtDNA depleters; their signatures are the shared mtDNA-depletion response, not gene-specific, so ranking perturbations by DE size mis-identifies them.

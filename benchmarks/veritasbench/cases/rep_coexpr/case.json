@@ -1,0 +1,140 @@
+{
+  "case_id": "rep_coexpr",
+  "paper_title": "Differential gene co-expression analysis reveals beta-cell dysregulation programs in type 2 diabetes (dGCNA)",
+  "paper_authors": [
+    "Martinez-Lopez et al. (Nature Communications, 2025)"
+  ],
+  "artifacts": {
+    "de_correct": {
+      "path": "artifacts/de_analysis_correct.csv",
+      "sha256": "36fff1702065205861d3a5a529b31ea017e95dfc9c823d05451269c8dcfbeeec",
+      "kind": "code_output"
+    },
+    "de_naive": {
+      "path": "artifacts/de_analysis_naive.csv",
+      "sha256": "337f285a9eba2234f6f245d2413fd864e5e72ef576b81362fba1aba98d33846a",
+      "kind": "code_output"
+    },
+    "program_correct": {
+      "path": "artifacts/dysregulated_program_correct.csv",
+      "sha256": "0bd5a0ebb67b1c07aff5157489eb59e515837b4a48b12a13675670480ee88d88",
+      "kind": "code_output"
+    },
+    "program_naive": {
+      "path": "artifacts/dysregulated_program_naive.csv",
+      "sha256": "7ba0ea97ccd8d0b46b6f6197410dbcfc38319d8226f0a9ca9033e30198e118ca",
+      "kind": "code_output"
+    },
+    "code": {
+      "path": "artifacts/solve.py",
+      "sha256": "0330360eecda693709259263a13d7695c34d6e3b891d9532c03444759938023d",
+      "kind": "code"
+    }
+  },
+  "observations": {
+    "artifacts/de_analysis_correct.csv#n_sig_donor_padj05": {
+      "value": 0,
+      "source_artifact": "artifacts/de_analysis_correct.csv",
+      "source_artifact_hash": "36fff1702065205861d3a5a529b31ea017e95dfc9c823d05451269c8dcfbeeec",
+      "source_span": "de_analysis_correct.csv, 严谨复现: per-donor pseudobulk 差异表达 (stat_unit=donor, 6 control vs 5 T2D), 全部 21761 基因中 padj<0.05 的数目 = 0 (即 beta 细胞 T2D 均值表达层面无 FDR 显著基因)"
+    },
+    "artifacts/de_analysis_correct.csv#mechanism_fdr_sig": {
+      "value": 0,
+      "source_artifact": "artifacts/de_analysis_correct.csv",
+      "source_artifact_hash": "36fff1702065205861d3a5a529b31ea017e95dfc9c823d05451269c8dcfbeeec",
+      "source_span": "de_analysis_correct.csv, 论文 KD/KO 实证的 8 个机制基因 (TMEM176A/B, CEBPG, DBI, DSTN, GABARAP, SPIRE1, ATRAID) 在 per-donor pseudobulk 下 padj 全部 >0.30 → FDR 显著数 = 0/8 (最小 pseudobulk t-test p=0.010, DSTN)"
+    },
+    "artifacts/de_analysis_naive.csv#frac_transcriptome_p_lt_1e4": {
+      "value": 0.25,
+      "source_artifact": "artifacts/de_analysis_naive.csv",
+      "source_artifact_hash": "337f285a9eba2234f6f245d2413fd864e5e72ef576b81362fba1aba98d33846a",
+      "source_span": "de_analysis_naive.csv, naive per-cell Mann-Whitney DE (stat_unit=cell), 13260 个被检基因中原始 pvalue<1e-4 的比例 = 0.2504 → ~25% 转录组被膨胀到显著 (伪重复 pseudoreplication)"
+    },
+    "artifacts/de_analysis_naive.csv#n_sig_padj05": {
+      "value": 6932,
+      "source_artifact": "artifacts/de_analysis_naive.csv",
+      "source_artifact_hash": "337f285a9eba2234f6f245d2413fd864e5e72ef576b81362fba1aba98d33846a",
+      "source_span": "de_analysis_naive.csv, naive per-cell DE 下 padj<0.05 的基因数 = 6932 (占被检 13260 基因的 52%), 对照 per-donor pseudobulk 的 0"
+    },
+    "artifacts/dysregulated_program_naive.csv#hsp_in_top20": {
+      "value": 10,
+      "source_artifact": "artifacts/dysregulated_program_naive.csv",
+      "source_artifact_hash": "7ba0ea97ccd8d0b46b6f6197410dbcfc38319d8226f0a9ca9033e30198e118ca",
+      "source_span": "dysregulated_program_naive.csv, naive pooled 跨细胞差异共表达 top20 中细胞质热激/应激程序基因 (HSPA1A/B, HSP90AA1, DNAJB2, HSPE1, HSPH1, HSPD1 ...) 的数目 = 10/20; top1-5 = HSPA1B, DNAJB2, EIF4A2, HSPA1A, HSPE1"
+    },
+    "artifacts/dysregulated_program_correct.csv#hsp_in_top20": {
+      "value": 0,
+      "source_artifact": "artifacts/dysregulated_program_correct.csv",
+      "source_artifact_hash": "0bd5a0ebb67b1c07aff5157489eb59e515837b4a48b12a13675670480ee88d88",
+      "source_span": "dysregulated_program_correct.csv, donor-aware (Simpson 控制) 差异共表达并剔除应激模块后 top20 中热激/应激基因数 = 0/20; top1-5 = NDUFA7, PERP, C4orf3, SCG5, PRDX2 (线粒体/UPR/细胞骨架/增殖真生物学程序)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_coexpr_ann_001",
+      "claim_id": "rep_coexpr_claim_001",
+      "claim_atom": "With donors as the unit of replication (per-donor pseudobulk DE, 6 control vs 5 T2D), zero genes pass FDR<0.05 in beta cells, and the paper's KD/KO-validated mechanism genes (TMEM176A/B, CEBPG, DBI, DSTN, GABARAP, SPIRE1, ATRAID) are all non-significant (0/8 at FDR). This is consistent with the paper's central claim that beta-cell T2D dysregulation is a co-expression / coordination phenomenon that is not captured by mean differential expression.",
+      "source_artifact": "artifacts/de_analysis_correct.csv#n_sig_donor_padj05",
+      "target_artifact": "artifacts/de_analysis_correct.csv#mechanism_fdr_sig",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "per-donor pseudobulk (donor=unit) Welch t-test + BH: 0/21761 基因 padj<0.05; 8 个机制基因 pseudobulk p 全 >0.03, FDR 0/8 (DSTN 最小 p=0.0101→padj=0.302). 论文'DE 无信号、机制在共表达'成立 → consistent"
+      ]
+    },
+    {
+      "annotation_id": "rep_coexpr_ann_002",
+      "claim_id": "rep_coexpr_claim_002",
+      "claim_atom": "A naive audit rerun that uses per-cell DE (treating cells as independent) and a pooled cross-cell differential co-expression contrast inflates ~25% of the transcriptome to significance and returns a top-20 program dominated by cytosolic heat-shock / dissociation-stress genes (10/20: HSPA1A/B, HSP90AA1, DNAJB2, HSPE1, HSPH1, HSPD1), which reads as a 'stress-response program activated in T2D beta cells'. This is a pseudoreplication + Simpson (between-donor mixing) artifact, NOT evidence that the paper's UPR/mitochondrial/cytoskeleton program is wrong or unreproducible: donor-aware (Simpson-controlled) differential co-expression depletes the stress module to 0/20 in the top program and recovers the paper's biological signal. The paper's reported program is consistent.",
+      "source_artifact": "artifacts/dysregulated_program_naive.csv#hsp_in_top20",
+      "target_artifact": "artifacts/dysregulated_program_correct.csv#hsp_in_top20",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "★FP陷阱(核心): naive 审计者用 per-cell DE(伪重复)+ pooled 跨细胞共表达重算, 得到 top20 里 10/20 个热激/应激基因(HSPA1A/B, HSP90, DNAJB2...)霸榜, 极易误判为'T2D beta 细胞的主程序是应激反应'或反过来指控论文的 UPR/线粒体/细胞骨架程序'无法复现/挑错基因'. 实为合法: 单细胞混合了 11 个 donor, pooled 相关对比被 donor 间差异(Simpson 悖论)+ 组织解离产生的细胞质热激/即刻早期应激程序污染, 是技术假象非生物学. donor-centering(控 Simpson)+ 剔除应激模块后热激程序从 top20 清零(0/20), 回到论文报告的线粒体/UPR/细胞骨架/增殖程序. 论文用严谨 donor-aware dGCNA 报的结论=consistent. AI 不应因 naive 侧的应激霸榜/25% DE 膨胀就报异常. 隐蔽点: naive 分析不报错、结果'看着干净且有生物学故事(应激)', 静默走偏."
+    },
+    {
+      "annotation_id": "rep_coexpr_ann_003",
+      "claim_id": "rep_coexpr_claim_003",
+      "claim_atom": "The gap between the naive per-cell analysis (~25% of the transcriptome significant) and the correct per-donor pseudobulk analysis (0 genes FDR-significant) is a pseudoreplication signature, not a real difference in the underlying biology: cells within a donor are not independent, so treating them as replicates inflates significance. The correct donor-level test finding no mean-expression signal is what motivates the co-expression analysis, and is consistent with the paper.",
+      "source_artifact": "artifacts/de_analysis_naive.csv#frac_transcriptome_p_lt_1e4",
+      "target_artifact": "artifacts/de_analysis_correct.csv#n_sig_donor_padj05",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "naive per-cell MWU: 25.0% 基因 p<1e-4 (6932/13260 padj<0.05); per-donor pseudobulk: 0 基因 padj<0.05. 差异=伪重复(细胞非独立复制单元), 非生物学差异. 论文用 donor 层复现→consistent"
+      ]
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_coexpr",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41467-025-65060-z",
+    "_lane": "诚实可复现(非造假): 全 claim=consistent. 论文(Nat Commun 2025 dGCNA, Martinez-Lopez et al)用严谨 donor-aware 差异共表达报正确的 beta 细胞 T2D 失调程序(UPR/线粒体/细胞骨架/增殖). 考 AI 面对 naive 审计者的两重红鲱鱼: (1) per-cell DE 反射把 ~25% 转录组膨胀到显著, (2) pooled 跨细胞共表达被细胞质热激/解离应激程序(HSPA1A/B, HSP90, DNAJB)霸榜(10/20), 不误报论文'无法复现/挑错程序'. 底材=medgebench task medge-ext008-1 真实数据(GSE153855, 11 donor 人胰岛单细胞, beta 细胞~550).",
+    "_independent_status": "下载窗口本地重跑 solution/solve.py(严谨: per-donor pseudobulk + donor-centered 差异共表达 + 剔应激) 与 solution/naive_solve.py(per-cell DE + pooled 共表达, 不控 donor 不剔应激), 得两份 de_analysis 与两份 dysregulated_program code_output. 关键量化: 严谨侧 donor DE 0 显著、机制基因 FDR 0/8、donor-centered 程序 top20 热激 0/20; naive 侧 per-cell 25% 转录组 p<1e-4、6932 padj<0.05、pooled 程序 top20 热激 10/20.",
+    "_source_task": "medge-ext008-1 (paper_doi 10.1038/s41467-025-65060-z, trap=de_reflex_plus_simpson_coexpression_artifact). 原始 counts 矩阵(GSE153855, ~29MB gz)不随 case 打包, 仅 ship 复现产出的 code_output 与 solve.py.",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_mechanism": [
+      "pseudoreplication",
+      "simpson_paradox"
+    ]
+  }
+}

@@ -1,0 +1,1560 @@
+center_cell_type,neighbor_cell_type,enrichment_score
+AT1,AT2,0.155
+AT1,Venous,0.027
+AT1,Interstitial Macrophages,0.079
+AT1,Capillary,0.156
+AT1,NK/NKT,0.019
+AT1,Activated Fibrotic FBs,0.057
+AT1,Alveolar FBs,0.116
+AT1,Neutrophils,0.016
+AT1,Monocytes/MDMs,0.024
+AT1,CD4+ T-cells,0.028
+AT1,SMCs/Pericytes,0.045
+AT1,CD8+ T-cells,0.018
+AT1,Proliferating AT2,0.004
+AT1,SPP1+ Macrophages,0.022
+AT1,KRT5-/KRT17+,0.012
+AT1,Proliferating Myeloid,0.006
+AT1,Transitional AT2,0.035
+AT1,Proliferating FBs,0.008
+AT1,Tregs,0.004
+AT1,AT1,0.05
+AT1,Mast,0.013
+AT1,Plasma,0.007
+AT1,Alveolar Macrophages,0.043
+AT1,Inflammatory FBs,0.012
+AT1,Myofibroblasts,0.008
+AT1,Migratory DCs,0.003
+AT1,Macrophages - IFN-activated,0.001
+AT1,Lymphatic,0.003
+AT1,pDCs,0.001
+AT1,cDCs,0.005
+AT1,Arteriole,0.004
+AT1,Multiciliated,0.001
+AT1,RASC,0.007
+AT1,Basal,0.003
+AT1,B cells,0.002
+AT1,Secretory,0.001
+AT2,Interstitial Macrophages,0.084
+AT2,SPP1+ Macrophages,0.024
+AT2,Capillary,0.102
+AT2,Monocytes/MDMs,0.017
+AT2,AT2,0.247
+AT2,Proliferating FBs,0.007
+AT2,SMCs/Pericytes,0.031
+AT2,Adventitial FBs,0.001
+AT2,Activated Fibrotic FBs,0.05
+AT2,Proliferating AT2,0.008
+AT2,Transitional AT2,0.057
+AT2,Alveolar FBs,0.114
+AT2,Inflammatory FBs,0.009
+AT2,CD4+ T-cells,0.026
+AT2,NK/NKT,0.014
+AT2,CD8+ T-cells,0.021
+AT2,AT1,0.023
+AT2,Neutrophils,0.01
+AT2,Tregs,0.003
+AT2,Venous,0.023
+AT2,Mast,0.019
+AT2,Proliferating Myeloid,0.006
+AT2,Arteriole,0.002
+AT2,Alveolar Macrophages,0.029
+AT2,Migratory DCs,0.003
+AT2,Lymphatic,0.003
+AT2,Basal,0.012
+AT2,Macrophages - IFN-activated,0.002
+AT2,Proliferating T-cells,0.001
+AT2,Plasma,0.008
+AT2,pDCs,0.001
+AT2,KRT5-/KRT17+,0.007
+AT2,Basophils,0.002
+AT2,Myofibroblasts,0.009
+AT2,B cells,0.003
+AT2,cDCs,0.004
+AT2,Multiciliated,0.002
+AT2,RASC,0.013
+AT2,Goblet,0.001
+AT2,Langerhans cells,0.001
+AT2,Secretory,0.001
+AT2,Proliferating Airway,0.0
+Activated Fibrotic FBs,Interstitial Macrophages,0.094
+Activated Fibrotic FBs,Activated Fibrotic FBs,0.175
+Activated Fibrotic FBs,Monocytes/MDMs,0.024
+Activated Fibrotic FBs,Venous,0.039
+Activated Fibrotic FBs,Alveolar FBs,0.186
+Activated Fibrotic FBs,AT2,0.044
+Activated Fibrotic FBs,Proliferating FBs,0.014
+Activated Fibrotic FBs,SPP1+ Macrophages,0.014
+Activated Fibrotic FBs,SMCs/Pericytes,0.047
+Activated Fibrotic FBs,Tregs,0.008
+Activated Fibrotic FBs,Capillary,0.063
+Activated Fibrotic FBs,Mast,0.027
+Activated Fibrotic FBs,Proliferating T-cells,0.001
+Activated Fibrotic FBs,NK/NKT,0.01
+Activated Fibrotic FBs,Subpleural FBs,0.0
+Activated Fibrotic FBs,AT1,0.008
+Activated Fibrotic FBs,CD4+ T-cells,0.043
+Activated Fibrotic FBs,CD8+ T-cells,0.055
+Activated Fibrotic FBs,Adventitial FBs,0.002
+Activated Fibrotic FBs,Neutrophils,0.01
+Activated Fibrotic FBs,Proliferating Myeloid,0.004
+Activated Fibrotic FBs,B cells,0.016
+Activated Fibrotic FBs,Basal,0.009
+Activated Fibrotic FBs,Plasma,0.021
+Activated Fibrotic FBs,Macrophages - IFN-activated,0.002
+Activated Fibrotic FBs,cDCs,0.005
+Activated Fibrotic FBs,Alveolar Macrophages,0.01
+Activated Fibrotic FBs,Transitional AT2,0.012
+Activated Fibrotic FBs,Lymphatic,0.008
+Activated Fibrotic FBs,KRT5-/KRT17+,0.01
+Activated Fibrotic FBs,Proliferating AT2,0.002
+Activated Fibrotic FBs,pDCs,0.002
+Activated Fibrotic FBs,Inflammatory FBs,0.01
+Activated Fibrotic FBs,Arteriole,0.002
+Activated Fibrotic FBs,Migratory DCs,0.009
+Activated Fibrotic FBs,Myofibroblasts,0.005
+Activated Fibrotic FBs,Multiciliated,0.002
+Activated Fibrotic FBs,Basophils,0.0
+Activated Fibrotic FBs,RASC,0.004
+Activated Fibrotic FBs,Secretory,0.001
+Activated Fibrotic FBs,Goblet,0.001
+Activated Fibrotic FBs,Proliferating Airway,0.0
+Adventitial FBs,Inflammatory FBs,0.009
+Adventitial FBs,Alveolar FBs,0.202
+Adventitial FBs,NK/NKT,0.006
+Adventitial FBs,Interstitial Macrophages,0.107
+Adventitial FBs,CD4+ T-cells,0.04
+Adventitial FBs,Activated Fibrotic FBs,0.051
+Adventitial FBs,Capillary,0.039
+Adventitial FBs,Adventitial FBs,0.108
+Adventitial FBs,AT2,0.023
+Adventitial FBs,Mast,0.027
+Adventitial FBs,Proliferating FBs,0.008
+Adventitial FBs,Venous,0.053
+Adventitial FBs,SMCs/Pericytes,0.087
+Adventitial FBs,CD8+ T-cells,0.036
+Adventitial FBs,Proliferating Myeloid,0.003
+Adventitial FBs,Tregs,0.009
+Adventitial FBs,Neutrophils,0.037
+Adventitial FBs,Plasma,0.024
+Adventitial FBs,B cells,0.015
+Adventitial FBs,Lymphatic,0.015
+Adventitial FBs,Subpleural FBs,0.013
+Adventitial FBs,Monocytes/MDMs,0.039
+Adventitial FBs,Myofibroblasts,0.003
+Adventitial FBs,SPP1+ Macrophages,0.003
+Adventitial FBs,Migratory DCs,0.004
+Adventitial FBs,Transitional AT2,0.005
+Adventitial FBs,cDCs,0.008
+Adventitial FBs,Macrophages - IFN-activated,0.003
+Adventitial FBs,Basal,0.004
+Alveolar FBs,Activated Fibrotic FBs,0.07
+Alveolar FBs,CD8+ T-cells,0.06
+Alveolar FBs,Interstitial Macrophages,0.088
+Alveolar FBs,Proliferating T-cells,0.001
+Alveolar FBs,Venous,0.065
+Alveolar FBs,Alveolar FBs,0.183
+Alveolar FBs,Monocytes/MDMs,0.021
+Alveolar FBs,Proliferating FBs,0.008
+Alveolar FBs,CD4+ T-cells,0.063
+Alveolar FBs,NK/NKT,0.012
+Alveolar FBs,SMCs/Pericytes,0.063
+Alveolar FBs,AT1,0.006
+Alveolar FBs,AT2,0.038
+Alveolar FBs,Capillary,0.066
+Alveolar FBs,SPP1+ Macrophages,0.007
+Alveolar FBs,Arteriole,0.005
+Alveolar FBs,Migratory DCs,0.008
+Alveolar FBs,Mast,0.036
+Alveolar FBs,Alveolar Macrophages,0.007
+Alveolar FBs,Tregs,0.011
+Alveolar FBs,Subpleural FBs,0.001
+Alveolar FBs,Adventitial FBs,0.003
+Alveolar FBs,Inflammatory FBs,0.014
+Alveolar FBs,Neutrophils,0.011
+Alveolar FBs,Proliferating Myeloid,0.003
+Alveolar FBs,B cells,0.041
+Alveolar FBs,Proliferating AT2,0.001
+Alveolar FBs,Lymphatic,0.008
+Alveolar FBs,Plasma,0.059
+Alveolar FBs,cDCs,0.005
+Alveolar FBs,Macrophages - IFN-activated,0.002
+Alveolar FBs,Transitional AT2,0.008
+Alveolar FBs,pDCs,0.002
+Alveolar FBs,Basophils,0.001
+Alveolar FBs,Myofibroblasts,0.004
+Alveolar FBs,KRT5-/KRT17+,0.002
+Alveolar FBs,Multiciliated,0.002
+Alveolar FBs,Basal,0.007
+Alveolar FBs,Goblet,0.001
+Alveolar FBs,RASC,0.003
+Alveolar FBs,Proliferating B cells,0.0
+Alveolar FBs,Secretory,0.001
+Alveolar FBs,Langerhans cells,0.0
+Alveolar FBs,Proliferating Airway,0.0
+Alveolar Macrophages,SPP1+ Macrophages,0.104
+Alveolar Macrophages,AT2,0.062
+Alveolar Macrophages,Capillary,0.052
+Alveolar Macrophages,Interstitial Macrophages,0.114
+Alveolar Macrophages,SMCs/Pericytes,0.014
+Alveolar Macrophages,Neutrophils,0.008
+Alveolar Macrophages,Monocytes/MDMs,0.017
+Alveolar Macrophages,Alveolar Macrophages,0.425
+Alveolar Macrophages,Macrophages - IFN-activated,0.006
+Alveolar Macrophages,Venous,0.009
+Alveolar Macrophages,Alveolar FBs,0.043
+Alveolar Macrophages,CD4+ T-cells,0.014
+Alveolar Macrophages,Proliferating Myeloid,0.031
+Alveolar Macrophages,Proliferating FBs,0.003
+Alveolar Macrophages,CD8+ T-cells,0.007
+Alveolar Macrophages,Tregs,0.003
+Alveolar Macrophages,NK/NKT,0.007
+Alveolar Macrophages,Activated Fibrotic FBs,0.023
+Alveolar Macrophages,KRT5-/KRT17+,0.007
+Alveolar Macrophages,Proliferating AT2,0.001
+Alveolar Macrophages,Inflammatory FBs,0.003
+Alveolar Macrophages,AT1,0.014
+Alveolar Macrophages,Transitional AT2,0.009
+Alveolar Macrophages,cDCs,0.003
+Alveolar Macrophages,Migratory DCs,0.002
+Alveolar Macrophages,Mast,0.006
+Alveolar Macrophages,Arteriole,0.001
+Alveolar Macrophages,B cells,0.001
+Alveolar Macrophages,Plasma,0.002
+Alveolar Macrophages,Lymphatic,0.001
+Alveolar Macrophages,Proliferating T-cells,0.0
+Alveolar Macrophages,Basal,0.001
+Alveolar Macrophages,Myofibroblasts,0.001
+Alveolar Macrophages,RASC,0.001
+Alveolar Macrophages,Multiciliated,0.001
+Alveolar Macrophages,pDCs,0.0
+Arteriole,Alveolar FBs,0.118
+Arteriole,AT1,0.005
+Arteriole,Capillary,0.126
+Arteriole,Activated Fibrotic FBs,0.021
+Arteriole,SMCs/Pericytes,0.261
+Arteriole,Venous,0.053
+Arteriole,Proliferating FBs,0.013
+Arteriole,Mast,0.014
+Arteriole,Interstitial Macrophages,0.046
+Arteriole,CD8+ T-cells,0.023
+Arteriole,Neutrophils,0.018
+Arteriole,Arteriole,0.14
+Arteriole,CD4+ T-cells,0.031
+Arteriole,Plasma,0.033
+Arteriole,Lymphatic,0.006
+Arteriole,Monocytes/MDMs,0.022
+Arteriole,Tregs,0.007
+Arteriole,SPP1+ Macrophages,0.002
+Arteriole,AT2,0.013
+Arteriole,Transitional AT2,0.002
+Arteriole,Inflammatory FBs,0.007
+Arteriole,Proliferating Myeloid,0.002
+Arteriole,NK/NKT,0.007
+Arteriole,Alveolar Macrophages,0.004
+Arteriole,B cells,0.011
+Arteriole,Macrophages - IFN-activated,0.002
+Arteriole,cDCs,0.003
+Arteriole,pDCs,0.002
+Arteriole,Migratory DCs,0.003
+B cells,Proliferating Myeloid,0.001
+B cells,Interstitial Macrophages,0.032
+B cells,Capillary,0.013
+B cells,Neutrophils,0.003
+B cells,CD8+ T-cells,0.072
+B cells,Alveolar FBs,0.068
+B cells,Activated Fibrotic FBs,0.01
+B cells,SPP1+ Macrophages,0.001
+B cells,Venous,0.029
+B cells,SMCs/Pericytes,0.013
+B cells,Proliferating FBs,0.002
+B cells,AT2,0.002
+B cells,CD4+ T-cells,0.166
+B cells,Monocytes/MDMs,0.005
+B cells,Mast,0.013
+B cells,Lymphatic,0.004
+B cells,Migratory DCs,0.007
+B cells,Alveolar Macrophages,0.0
+B cells,Plasma,0.052
+B cells,Myofibroblasts,0.0
+B cells,Arteriole,0.001
+B cells,B cells,0.45
+B cells,Inflammatory FBs,0.004
+B cells,Adventitial FBs,0.0
+B cells,NK/NKT,0.008
+B cells,Tregs,0.016
+B cells,AT1,0.0
+B cells,Transitional AT2,0.0
+B cells,pDCs,0.003
+B cells,cDCs,0.003
+B cells,Proliferating T-cells,0.005
+B cells,Macrophages - IFN-activated,0.002
+B cells,KRT5-/KRT17+,0.0
+B cells,Proliferating B cells,0.013
+B cells,Goblet,0.0
+B cells,RASC,0.0
+B cells,Basal,0.001
+B cells,Basophils,0.0
+B cells,Multiciliated,0.0
+B cells,Secretory,0.0
+Basal,Alveolar Macrophages,0.002
+Basal,Interstitial Macrophages,0.062
+Basal,Capillary,0.012
+Basal,Neutrophils,0.007
+Basal,Mast,0.018
+Basal,Activated Fibrotic FBs,0.029
+Basal,SPP1+ Macrophages,0.013
+Basal,Monocytes/MDMs,0.006
+Basal,AT2,0.034
+Basal,Alveolar FBs,0.06
+Basal,Proliferating AT2,0.004
+Basal,CD4+ T-cells,0.013
+Basal,AT1,0.001
+Basal,KRT5-/KRT17+,0.009
+Basal,SMCs/Pericytes,0.013
+Basal,Proliferating FBs,0.002
+Basal,Transitional AT2,0.037
+Basal,RASC,0.083
+Basal,CD8+ T-cells,0.024
+Basal,NK/NKT,0.003
+Basal,pDCs,0.001
+Basal,Proliferating T-cells,0.001
+Basal,Migratory DCs,0.002
+Basal,Basal,0.197
+Basal,Venous,0.017
+Basal,Inflammatory FBs,0.003
+Basal,Multiciliated,0.145
+Basal,Lymphatic,0.001
+Basal,Plasma,0.012
+Basal,Proliferating Myeloid,0.006
+Basal,Basophils,0.01
+Basal,Tregs,0.003
+Basal,Secretory,0.052
+Basal,Myofibroblasts,0.022
+Basal,Goblet,0.076
+Basal,Macrophages - IFN-activated,0.001
+Basal,Adventitial FBs,0.0
+Basal,cDCs,0.008
+Basal,B cells,0.004
+Basal,Proliferating Airway,0.005
+Basal,PNEC,0.001
+Basophils,AT2,0.069
+Basophils,Alveolar FBs,0.071
+Basophils,SMCs/Pericytes,0.01
+Basophils,Interstitial Macrophages,0.058
+Basophils,Mast,0.061
+Basophils,CD4+ T-cells,0.017
+Basophils,CD8+ T-cells,0.03
+Basophils,Myofibroblasts,0.012
+Basophils,Proliferating Myeloid,0.007
+Basophils,Basophils,0.051
+Basophils,Capillary,0.019
+Basophils,Plasma,0.012
+Basophils,Transitional AT2,0.043
+Basophils,Neutrophils,0.008
+Basophils,Activated Fibrotic FBs,0.017
+Basophils,Venous,0.025
+Basophils,Multiciliated,0.051
+Basophils,Basal,0.137
+Basophils,RASC,0.148
+Basophils,Goblet,0.031
+Basophils,Secretory,0.05
+Basophils,Tregs,0.005
+Basophils,SPP1+ Macrophages,0.023
+Basophils,B cells,0.005
+Basophils,cDCs,0.007
+CD4+ T-cells,Proliferating T-cells,0.004
+CD4+ T-cells,Alveolar FBs,0.094
+CD4+ T-cells,SMCs/Pericytes,0.023
+CD4+ T-cells,Capillary,0.027
+CD4+ T-cells,Monocytes/MDMs,0.013
+CD4+ T-cells,CD4+ T-cells,0.234
+CD4+ T-cells,CD8+ T-cells,0.11
+CD4+ T-cells,AT2,0.013
+CD4+ T-cells,Activated Fibrotic FBs,0.024
+CD4+ T-cells,Interstitial Macrophages,0.07
+CD4+ T-cells,Adventitial FBs,0.001
+CD4+ T-cells,Arteriole,0.002
+CD4+ T-cells,Plasma,0.057
+CD4+ T-cells,NK/NKT,0.014
+CD4+ T-cells,Venous,0.037
+CD4+ T-cells,AT1,0.002
+CD4+ T-cells,Neutrophils,0.006
+CD4+ T-cells,Macrophages - IFN-activated,0.002
+CD4+ T-cells,Alveolar Macrophages,0.003
+CD4+ T-cells,SPP1+ Macrophages,0.009
+CD4+ T-cells,Lymphatic,0.008
+CD4+ T-cells,Proliferating FBs,0.003
+CD4+ T-cells,Proliferating AT2,0.0
+CD4+ T-cells,KRT5-/KRT17+,0.001
+CD4+ T-cells,pDCs,0.004
+CD4+ T-cells,Mast,0.02
+CD4+ T-cells,Basophils,0.0
+CD4+ T-cells,Proliferating Myeloid,0.003
+CD4+ T-cells,Tregs,0.024
+CD4+ T-cells,Inflammatory FBs,0.006
+CD4+ T-cells,Migratory DCs,0.019
+CD4+ T-cells,RASC,0.001
+CD4+ T-cells,B cells,0.149
+CD4+ T-cells,cDCs,0.006
+CD4+ T-cells,Transitional AT2,0.003
+CD4+ T-cells,Myofibroblasts,0.001
+CD4+ T-cells,Multiciliated,0.001
+CD4+ T-cells,Basal,0.002
+CD4+ T-cells,Subpleural FBs,0.0
+CD4+ T-cells,Proliferating B cells,0.004
+CD4+ T-cells,Goblet,0.0
+CD4+ T-cells,Secretory,0.0
+CD8+ T-cells,Proliferating T-cells,0.003
+CD8+ T-cells,Alveolar FBs,0.129
+CD8+ T-cells,SMCs/Pericytes,0.029
+CD8+ T-cells,Capillary,0.033
+CD8+ T-cells,Monocytes/MDMs,0.016
+CD8+ T-cells,CD4+ T-cells,0.161
+CD8+ T-cells,AT2,0.015
+CD8+ T-cells,Proliferating Myeloid,0.004
+CD8+ T-cells,Interstitial Macrophages,0.077
+CD8+ T-cells,B cells,0.094
+CD8+ T-cells,Activated Fibrotic FBs,0.045
+CD8+ T-cells,Arteriole,0.002
+CD8+ T-cells,CD8+ T-cells,0.132
+CD8+ T-cells,Neutrophils,0.007
+CD8+ T-cells,Plasma,0.07
+CD8+ T-cells,Venous,0.042
+CD8+ T-cells,Lymphatic,0.005
+CD8+ T-cells,cDCs,0.006
+CD8+ T-cells,Macrophages - IFN-activated,0.002
+CD8+ T-cells,Proliferating FBs,0.005
+CD8+ T-cells,NK/NKT,0.015
+CD8+ T-cells,Alveolar Macrophages,0.002
+CD8+ T-cells,Migratory DCs,0.014
+CD8+ T-cells,Tregs,0.019
+CD8+ T-cells,Mast,0.025
+CD8+ T-cells,Basophils,0.001
+CD8+ T-cells,Proliferating AT2,0.0
+CD8+ T-cells,Transitional AT2,0.004
+CD8+ T-cells,pDCs,0.004
+CD8+ T-cells,Inflammatory FBs,0.009
+CD8+ T-cells,SPP1+ Macrophages,0.006
+CD8+ T-cells,RASC,0.003
+CD8+ T-cells,AT1,0.002
+CD8+ T-cells,Adventitial FBs,0.001
+CD8+ T-cells,Myofibroblasts,0.002
+CD8+ T-cells,Multiciliated,0.003
+CD8+ T-cells,KRT5-/KRT17+,0.001
+CD8+ T-cells,Subpleural FBs,0.0
+CD8+ T-cells,Goblet,0.001
+CD8+ T-cells,Basal,0.006
+CD8+ T-cells,Proliferating B cells,0.001
+CD8+ T-cells,Secretory,0.002
+CD8+ T-cells,Proliferating Airway,0.0
+Capillary,AT2,0.077
+Capillary,Activated Fibrotic FBs,0.054
+Capillary,Alveolar FBs,0.152
+Capillary,Capillary,0.162
+Capillary,NK/NKT,0.019
+Capillary,SMCs/Pericytes,0.078
+Capillary,Arteriole,0.012
+Capillary,Proliferating FBs,0.009
+Capillary,AT1,0.018
+Capillary,Mast,0.023
+Capillary,Interstitial Macrophages,0.085
+Capillary,Alveolar Macrophages,0.018
+Capillary,CD8+ T-cells,0.035
+Capillary,Venous,0.048
+Capillary,Monocytes/MDMs,0.026
+Capillary,Tregs,0.007
+Capillary,Lymphatic,0.004
+Capillary,Neutrophils,0.015
+Capillary,CD4+ T-cells,0.041
+Capillary,Proliferating T-cells,0.001
+Capillary,Proliferating AT2,0.002
+Capillary,SPP1+ Macrophages,0.009
+Capillary,B cells,0.018
+Capillary,Proliferating Myeloid,0.004
+Capillary,Basal,0.003
+Capillary,Macrophages - IFN-activated,0.001
+Capillary,KRT5-/KRT17+,0.002
+Capillary,Migratory DCs,0.005
+Capillary,Inflammatory FBs,0.015
+Capillary,pDCs,0.001
+Capillary,Myofibroblasts,0.004
+Capillary,Transitional AT2,0.012
+Capillary,Plasma,0.027
+Capillary,RASC,0.003
+Capillary,cDCs,0.005
+Capillary,Adventitial FBs,0.001
+Capillary,Basophils,0.0
+Capillary,Multiciliated,0.001
+Capillary,Goblet,0.0
+Capillary,Subpleural FBs,0.0
+Capillary,Proliferating B cells,0.0
+Capillary,Secretory,0.001
+Goblet,Capillary,0.003
+Goblet,SPP1+ Macrophages,0.004
+Goblet,Interstitial Macrophages,0.027
+Goblet,Alveolar FBs,0.016
+Goblet,Venous,0.007
+Goblet,SMCs/Pericytes,0.004
+Goblet,AT2,0.004
+Goblet,CD8+ T-cells,0.01
+Goblet,Multiciliated,0.339
+Goblet,Goblet,0.255
+Goblet,Secretory,0.065
+Goblet,Basal,0.154
+Goblet,Basophils,0.005
+Goblet,RASC,0.044
+Goblet,Plasma,0.004
+Goblet,Inflammatory FBs,0.001
+Goblet,Myofibroblasts,0.017
+Goblet,B cells,0.004
+Goblet,cDCs,0.004
+Goblet,Proliferating Airway,0.001
+Goblet,Mast,0.006
+Goblet,CD4+ T-cells,0.004
+Goblet,Proliferating Myeloid,0.003
+Goblet,Transitional AT2,0.003
+Goblet,Activated Fibrotic FBs,0.006
+Goblet,PNEC,0.001
+Goblet,Proliferating FBs,0.001
+Goblet,Neutrophils,0.003
+Goblet,Tregs,0.001
+Goblet,NK/NKT,0.001
+Goblet,KRT5-/KRT17+,0.001
+Inflammatory FBs,Transitional AT2,0.007
+Inflammatory FBs,Interstitial Macrophages,0.087
+Inflammatory FBs,Neutrophils,0.011
+Inflammatory FBs,Alveolar FBs,0.189
+Inflammatory FBs,Capillary,0.091
+Inflammatory FBs,Activated Fibrotic FBs,0.05
+Inflammatory FBs,Proliferating T-cells,0.001
+Inflammatory FBs,Inflammatory FBs,0.027
+Inflammatory FBs,Proliferating Myeloid,0.003
+Inflammatory FBs,CD4+ T-cells,0.056
+Inflammatory FBs,SMCs/Pericytes,0.066
+Inflammatory FBs,CD8+ T-cells,0.057
+Inflammatory FBs,Proliferating FBs,0.008
+Inflammatory FBs,Mast,0.034
+Inflammatory FBs,NK/NKT,0.016
+Inflammatory FBs,AT2,0.041
+Inflammatory FBs,pDCs,0.002
+Inflammatory FBs,SPP1+ Macrophages,0.004
+Inflammatory FBs,Myofibroblasts,0.003
+Inflammatory FBs,AT1,0.008
+Inflammatory FBs,Venous,0.074
+Inflammatory FBs,Monocytes/MDMs,0.022
+Inflammatory FBs,Plasma,0.053
+Inflammatory FBs,Adventitial FBs,0.002
+Inflammatory FBs,Proliferating AT2,0.001
+Inflammatory FBs,Alveolar Macrophages,0.007
+Inflammatory FBs,Arteriole,0.004
+Inflammatory FBs,Lymphatic,0.009
+Inflammatory FBs,KRT5-/KRT17+,0.001
+Inflammatory FBs,Multiciliated,0.001
+Inflammatory FBs,Migratory DCs,0.008
+Inflammatory FBs,Tregs,0.012
+Inflammatory FBs,Subpleural FBs,0.001
+Inflammatory FBs,cDCs,0.006
+Inflammatory FBs,B cells,0.029
+Inflammatory FBs,Macrophages - IFN-activated,0.003
+Inflammatory FBs,Basal,0.005
+Inflammatory FBs,RASC,0.002
+Inflammatory FBs,Secretory,0.001
+Inflammatory FBs,Goblet,0.001
+Interstitial Macrophages,Alveolar FBs,0.143
+Interstitial Macrophages,Activated Fibrotic FBs,0.058
+Interstitial Macrophages,AT2,0.045
+Interstitial Macrophages,Capillary,0.061
+Interstitial Macrophages,Venous,0.046
+Interstitial Macrophages,Migratory DCs,0.009
+Interstitial Macrophages,Interstitial Macrophages,0.118
+Interstitial Macrophages,SMCs/Pericytes,0.043
+Interstitial Macrophages,Alveolar Macrophages,0.029
+Interstitial Macrophages,SPP1+ Macrophages,0.042
+Interstitial Macrophages,CD4+ T-cells,0.077
+Interstitial Macrophages,AT1,0.006
+Interstitial Macrophages,Monocytes/MDMs,0.026
+Interstitial Macrophages,Inflammatory FBs,0.01
+Interstitial Macrophages,Mast,0.026
+Interstitial Macrophages,Adventitial FBs,0.002
+Interstitial Macrophages,CD8+ T-cells,0.058
+Interstitial Macrophages,Proliferating Myeloid,0.008
+Interstitial Macrophages,Neutrophils,0.013
+Interstitial Macrophages,KRT5-/KRT17+,0.004
+Interstitial Macrophages,Proliferating FBs,0.007
+Interstitial Macrophages,Arteriole,0.003
+Interstitial Macrophages,Proliferating AT2,0.001
+Interstitial Macrophages,NK/NKT,0.012
+Interstitial Macrophages,Macrophages - IFN-activated,0.003
+Interstitial Macrophages,cDCs,0.007
+Interstitial Macrophages,Transitional AT2,0.012
+Interstitial Macrophages,Lymphatic,0.006
+Interstitial Macrophages,Plasma,0.041
+Interstitial Macrophages,pDCs,0.002
+Interstitial Macrophages,Tregs,0.011
+Interstitial Macrophages,Myofibroblasts,0.004
+Interstitial Macrophages,Proliferating T-cells,0.002
+Interstitial Macrophages,Basophils,0.001
+Interstitial Macrophages,Multiciliated,0.007
+Interstitial Macrophages,B cells,0.032
+Interstitial Macrophages,RASC,0.007
+Interstitial Macrophages,Basal,0.012
+Interstitial Macrophages,Goblet,0.003
+Interstitial Macrophages,Subpleural FBs,0.001
+Interstitial Macrophages,Langerhans cells,0.0
+Interstitial Macrophages,Proliferating B cells,0.0
+Interstitial Macrophages,Secretory,0.003
+Interstitial Macrophages,Proliferating Airway,0.0
+KRT5-/KRT17+,SPP1+ Macrophages,0.083
+KRT5-/KRT17+,Capillary,0.025
+KRT5-/KRT17+,NK/NKT,0.005
+KRT5-/KRT17+,CD4+ T-cells,0.021
+KRT5-/KRT17+,AT2,0.081
+KRT5-/KRT17+,Proliferating AT2,0.004
+KRT5-/KRT17+,Monocytes/MDMs,0.019
+KRT5-/KRT17+,AT1,0.02
+KRT5-/KRT17+,Alveolar Macrophages,0.037
+KRT5-/KRT17+,Interstitial Macrophages,0.079
+KRT5-/KRT17+,Proliferating Myeloid,0.009
+KRT5-/KRT17+,Activated Fibrotic FBs,0.127
+KRT5-/KRT17+,Alveolar FBs,0.081
+KRT5-/KRT17+,Transitional AT2,0.035
+KRT5-/KRT17+,Venous,0.011
+KRT5-/KRT17+,SMCs/Pericytes,0.015
+KRT5-/KRT17+,KRT5-/KRT17+,0.193
+KRT5-/KRT17+,Proliferating FBs,0.008
+KRT5-/KRT17+,Migratory DCs,0.005
+KRT5-/KRT17+,Neutrophils,0.006
+KRT5-/KRT17+,cDCs,0.009
+KRT5-/KRT17+,Macrophages - IFN-activated,0.003
+KRT5-/KRT17+,Mast,0.011
+KRT5-/KRT17+,Inflammatory FBs,0.002
+KRT5-/KRT17+,CD8+ T-cells,0.021
+KRT5-/KRT17+,pDCs,0.002
+KRT5-/KRT17+,Multiciliated,0.003
+KRT5-/KRT17+,Myofibroblasts,0.008
+KRT5-/KRT17+,Basal,0.037
+KRT5-/KRT17+,Tregs,0.005
+KRT5-/KRT17+,RASC,0.019
+KRT5-/KRT17+,Plasma,0.006
+KRT5-/KRT17+,B cells,0.004
+KRT5-/KRT17+,Goblet,0.002
+Langerhans cells,AT2,0.242
+Langerhans cells,Interstitial Macrophages,0.079
+Langerhans cells,Alveolar FBs,0.086
+Langerhans cells,Transitional AT2,0.236
+Lymphatic,AT2,0.017
+Lymphatic,Alveolar FBs,0.169
+Lymphatic,Tregs,0.012
+Lymphatic,Capillary,0.04
+Lymphatic,Lymphatic,0.117
+Lymphatic,Interstitial Macrophages,0.072
+Lymphatic,Activated Fibrotic FBs,0.062
+Lymphatic,CD8+ T-cells,0.048
+Lymphatic,CD4+ T-cells,0.107
+Lymphatic,SMCs/Pericytes,0.059
+Lymphatic,Proliferating FBs,0.008
+Lymphatic,Mast,0.027
+Lymphatic,Plasma,0.06
+Lymphatic,Migratory DCs,0.017
+Lymphatic,Proliferating Myeloid,0.003
+Lymphatic,Monocytes/MDMs,0.017
+Lymphatic,AT1,0.003
+Lymphatic,Macrophages - IFN-activated,0.003
+Lymphatic,NK/NKT,0.009
+Lymphatic,Venous,0.052
+Lymphatic,Myofibroblasts,0.002
+Lymphatic,Inflammatory FBs,0.013
+Lymphatic,Neutrophils,0.008
+Lymphatic,B cells,0.045
+Lymphatic,Arteriole,0.005
+Lymphatic,pDCs,0.001
+Lymphatic,Alveolar Macrophages,0.003
+Lymphatic,SPP1+ Macrophages,0.003
+Lymphatic,Transitional AT2,0.002
+Lymphatic,Adventitial FBs,0.004
+Lymphatic,cDCs,0.004
+Lymphatic,Subpleural FBs,0.002
+Lymphatic,Basal,0.001
+Lymphatic,Proliferating T-cells,0.001
+Macrophages - IFN-activated,Alveolar FBs,0.119
+Macrophages - IFN-activated,CD4+ T-cells,0.069
+Macrophages - IFN-activated,Macrophages - IFN-activated,0.06
+Macrophages - IFN-activated,AT2,0.025
+Macrophages - IFN-activated,Activated Fibrotic FBs,0.037
+Macrophages - IFN-activated,Interstitial Macrophages,0.088
+Macrophages - IFN-activated,Capillary,0.032
+Macrophages - IFN-activated,CD8+ T-cells,0.049
+Macrophages - IFN-activated,Monocytes/MDMs,0.018
+Macrophages - IFN-activated,SPP1+ Macrophages,0.057
+Macrophages - IFN-activated,Alveolar Macrophages,0.042
+Macrophages - IFN-activated,Lymphatic,0.007
+Macrophages - IFN-activated,NK/NKT,0.009
+Macrophages - IFN-activated,AT1,0.003
+Macrophages - IFN-activated,SMCs/Pericytes,0.052
+Macrophages - IFN-activated,Proliferating FBs,0.005
+Macrophages - IFN-activated,Transitional AT2,0.008
+Macrophages - IFN-activated,cDCs,0.005
+Macrophages - IFN-activated,KRT5-/KRT17+,0.004
+Macrophages - IFN-activated,Mast,0.029
+Macrophages - IFN-activated,Neutrophils,0.014
+Macrophages - IFN-activated,Plasma,0.099
+Macrophages - IFN-activated,Venous,0.059
+Macrophages - IFN-activated,Arteriole,0.003
+Macrophages - IFN-activated,Inflammatory FBs,0.01
+Macrophages - IFN-activated,Proliferating Myeloid,0.008
+Macrophages - IFN-activated,Tregs,0.011
+Macrophages - IFN-activated,B cells,0.051
+Macrophages - IFN-activated,Migratory DCs,0.004
+Macrophages - IFN-activated,Adventitial FBs,0.002
+Macrophages - IFN-activated,RASC,0.003
+Macrophages - IFN-activated,Basal,0.007
+Mast,CD4+ T-cells,0.069
+Mast,Migratory DCs,0.008
+Mast,Alveolar FBs,0.19
+Mast,Mast,0.056
+Mast,NK/NKT,0.01
+Mast,Interstitial Macrophages,0.084
+Mast,CD8+ T-cells,0.061
+Mast,Proliferating T-cells,0.001
+Mast,Capillary,0.052
+Mast,SMCs/Pericytes,0.052
+Mast,Activated Fibrotic FBs,0.054
+Mast,SPP1+ Macrophages,0.006
+Mast,Proliferating FBs,0.007
+Mast,AT1,0.003
+Mast,Alveolar Macrophages,0.005
+Mast,Inflammatory FBs,0.013
+Mast,Plasma,0.072
+Mast,AT2,0.033
+Mast,Neutrophils,0.01
+Mast,B cells,0.04
+Mast,Lymphatic,0.007
+Mast,Monocytes/MDMs,0.019
+Mast,cDCs,0.006
+Mast,Tregs,0.014
+Mast,Arteriole,0.003
+Mast,pDCs,0.003
+Mast,Basophils,0.003
+Mast,Proliferating Myeloid,0.004
+Mast,Proliferating AT2,0.001
+Mast,Adventitial FBs,0.002
+Mast,Venous,0.064
+Mast,Transitional AT2,0.01
+Mast,KRT5-/KRT17+,0.002
+Mast,Myofibroblasts,0.005
+Mast,Macrophages - IFN-activated,0.003
+Mast,Multiciliated,0.004
+Mast,Basal,0.011
+Mast,Subpleural FBs,0.001
+Mast,Proliferating B cells,0.0
+Mast,RASC,0.007
+Mast,Secretory,0.002
+Mast,Goblet,0.002
+Migratory DCs,SMCs/Pericytes,0.024
+Migratory DCs,Alveolar FBs,0.118
+Migratory DCs,Capillary,0.037
+Migratory DCs,AT2,0.016
+Migratory DCs,Interstitial Macrophages,0.084
+Migratory DCs,Activated Fibrotic FBs,0.05
+Migratory DCs,CD8+ T-cells,0.096
+Migratory DCs,Plasma,0.042
+Migratory DCs,CD4+ T-cells,0.203
+Migratory DCs,Migratory DCs,0.05
+Migratory DCs,Mast,0.025
+Migratory DCs,Neutrophils,0.007
+Migratory DCs,NK/NKT,0.012
+Migratory DCs,Proliferating T-cells,0.003
+Migratory DCs,Tregs,0.025
+Migratory DCs,Venous,0.035
+Migratory DCs,Monocytes/MDMs,0.017
+Migratory DCs,Lymphatic,0.013
+Migratory DCs,Proliferating Myeloid,0.004
+Migratory DCs,SPP1+ Macrophages,0.01
+Migratory DCs,KRT5-/KRT17+,0.002
+Migratory DCs,Alveolar Macrophages,0.005
+Migratory DCs,Transitional AT2,0.005
+Migratory DCs,AT1,0.003
+Migratory DCs,Proliferating FBs,0.005
+Migratory DCs,cDCs,0.014
+Migratory DCs,Inflammatory FBs,0.009
+Migratory DCs,B cells,0.066
+Migratory DCs,Myofibroblasts,0.002
+Migratory DCs,Adventitial FBs,0.001
+Migratory DCs,pDCs,0.004
+Migratory DCs,Basal,0.005
+Migratory DCs,RASC,0.002
+Migratory DCs,Macrophages - IFN-activated,0.001
+Migratory DCs,Proliferating B cells,0.001
+Migratory DCs,Arteriole,0.002
+Migratory DCs,Multiciliated,0.001
+Monocytes/MDMs,Interstitial Macrophages,0.108
+Monocytes/MDMs,Activated Fibrotic FBs,0.062
+Monocytes/MDMs,Monocytes/MDMs,0.057
+Monocytes/MDMs,Proliferating T-cells,0.002
+Monocytes/MDMs,Venous,0.06
+Monocytes/MDMs,Alveolar FBs,0.146
+Monocytes/MDMs,AT2,0.039
+Monocytes/MDMs,Proliferating FBs,0.007
+Monocytes/MDMs,Capillary,0.078
+Monocytes/MDMs,CD4+ T-cells,0.06
+Monocytes/MDMs,CD8+ T-cells,0.05
+Monocytes/MDMs,NK/NKT,0.018
+Monocytes/MDMs,Neutrophils,0.03
+Monocytes/MDMs,SMCs/Pericytes,0.051
+Monocytes/MDMs,KRT5-/KRT17+,0.004
+Monocytes/MDMs,SPP1+ Macrophages,0.038
+Monocytes/MDMs,Alveolar Macrophages,0.018
+Monocytes/MDMs,AT1,0.008
+Monocytes/MDMs,Macrophages - IFN-activated,0.003
+Monocytes/MDMs,Proliferating AT2,0.001
+Monocytes/MDMs,Lymphatic,0.006
+Monocytes/MDMs,Arteriole,0.006
+Monocytes/MDMs,pDCs,0.002
+Monocytes/MDMs,Tregs,0.008
+Monocytes/MDMs,Transitional AT2,0.01
+Monocytes/MDMs,Proliferating Myeloid,0.006
+Monocytes/MDMs,RASC,0.004
+Monocytes/MDMs,Plasma,0.03
+Monocytes/MDMs,B cells,0.022
+Monocytes/MDMs,cDCs,0.007
+Monocytes/MDMs,Migratory DCs,0.008
+Monocytes/MDMs,Inflammatory FBs,0.011
+Monocytes/MDMs,Mast,0.025
+Monocytes/MDMs,Basal,0.005
+Monocytes/MDMs,Myofibroblasts,0.003
+Monocytes/MDMs,Adventitial FBs,0.004
+Monocytes/MDMs,Subpleural FBs,0.001
+Monocytes/MDMs,Multiciliated,0.001
+Monocytes/MDMs,Secretory,0.001
+Multiciliated,Capillary,0.003
+Multiciliated,Neutrophils,0.002
+Multiciliated,AT2,0.005
+Multiciliated,CD8+ T-cells,0.008
+Multiciliated,CD4+ T-cells,0.003
+Multiciliated,Inflammatory FBs,0.001
+Multiciliated,Alveolar FBs,0.015
+Multiciliated,Venous,0.004
+Multiciliated,Proliferating AT2,0.0
+Multiciliated,Activated Fibrotic FBs,0.004
+Multiciliated,NK/NKT,0.0
+Multiciliated,Mast,0.004
+Multiciliated,Interstitial Macrophages,0.027
+Multiciliated,KRT5-/KRT17+,0.001
+Multiciliated,Plasma,0.001
+Multiciliated,Myofibroblasts,0.014
+Multiciliated,SMCs/Pericytes,0.004
+Multiciliated,AT1,0.0
+Multiciliated,SPP1+ Macrophages,0.002
+Multiciliated,Basophils,0.003
+Multiciliated,Proliferating FBs,0.001
+Multiciliated,Transitional AT2,0.003
+Multiciliated,Alveolar Macrophages,0.001
+Multiciliated,Basal,0.109
+Multiciliated,Multiciliated,0.505
+Multiciliated,Goblet,0.126
+Multiciliated,Secretory,0.104
+Multiciliated,RASC,0.037
+Multiciliated,Monocytes/MDMs,0.001
+Multiciliated,PNEC,0.001
+Multiciliated,cDCs,0.003
+Multiciliated,B cells,0.001
+Multiciliated,Tregs,0.0
+Multiciliated,Proliferating Airway,0.001
+Multiciliated,Proliferating Myeloid,0.003
+Multiciliated,Migratory DCs,0.0
+Myofibroblasts,Interstitial Macrophages,0.071
+Myofibroblasts,Alveolar FBs,0.122
+Myofibroblasts,Capillary,0.052
+Myofibroblasts,SPP1+ Macrophages,0.008
+Myofibroblasts,AT1,0.012
+Myofibroblasts,AT2,0.094
+Myofibroblasts,CD8+ T-cells,0.025
+Myofibroblasts,Activated Fibrotic FBs,0.057
+Myofibroblasts,Mast,0.027
+Myofibroblasts,Proliferating Myeloid,0.005
+Myofibroblasts,Proliferating FBs,0.005
+Myofibroblasts,Neutrophils,0.007
+Myofibroblasts,Venous,0.032
+Myofibroblasts,Lymphatic,0.003
+Myofibroblasts,NK/NKT,0.008
+Myofibroblasts,SMCs/Pericytes,0.041
+Myofibroblasts,Proliferating AT2,0.004
+Myofibroblasts,Tregs,0.004
+Myofibroblasts,Plasma,0.018
+Myofibroblasts,CD4+ T-cells,0.023
+Myofibroblasts,Inflammatory FBs,0.006
+Myofibroblasts,Transitional AT2,0.06
+Myofibroblasts,Monocytes/MDMs,0.013
+Myofibroblasts,Myofibroblasts,0.036
+Myofibroblasts,Basophils,0.003
+Myofibroblasts,Multiciliated,0.067
+Myofibroblasts,KRT5-/KRT17+,0.007
+Myofibroblasts,Migratory DCs,0.003
+Myofibroblasts,B cells,0.007
+Myofibroblasts,Adventitial FBs,0.001
+Myofibroblasts,Alveolar Macrophages,0.007
+Myofibroblasts,cDCs,0.004
+Myofibroblasts,RASC,0.028
+Myofibroblasts,Basal,0.078
+Myofibroblasts,Secretory,0.023
+Myofibroblasts,Goblet,0.03
+NK/NKT,AT2,0.051
+NK/NKT,NK/NKT,0.027
+NK/NKT,Interstitial Macrophages,0.084
+NK/NKT,Capillary,0.091
+NK/NKT,CD8+ T-cells,0.076
+NK/NKT,SPP1+ Macrophages,0.01
+NK/NKT,Alveolar FBs,0.133
+NK/NKT,CD4+ T-cells,0.105
+NK/NKT,Proliferating Myeloid,0.004
+NK/NKT,AT1,0.011
+NK/NKT,Neutrophils,0.018
+NK/NKT,Activated Fibrotic FBs,0.043
+NK/NKT,Transitional AT2,0.013
+NK/NKT,Mast,0.022
+NK/NKT,SMCs/Pericytes,0.042
+NK/NKT,Monocytes/MDMs,0.029
+NK/NKT,Lymphatic,0.005
+NK/NKT,Venous,0.061
+NK/NKT,Proliferating FBs,0.007
+NK/NKT,KRT5-/KRT17+,0.002
+NK/NKT,Plasma,0.039
+NK/NKT,Tregs,0.011
+NK/NKT,Inflammatory FBs,0.013
+NK/NKT,Macrophages - IFN-activated,0.002
+NK/NKT,Alveolar Macrophages,0.011
+NK/NKT,Migratory DCs,0.008
+NK/NKT,Proliferating AT2,0.002
+NK/NKT,cDCs,0.006
+NK/NKT,pDCs,0.002
+NK/NKT,Adventitial FBs,0.001
+NK/NKT,Myofibroblasts,0.003
+NK/NKT,Proliferating T-cells,0.002
+NK/NKT,Arteriole,0.003
+NK/NKT,Multiciliated,0.001
+NK/NKT,B cells,0.051
+NK/NKT,Subpleural FBs,0.001
+NK/NKT,Basal,0.005
+NK/NKT,Proliferating B cells,0.001
+NK/NKT,Goblet,0.001
+NK/NKT,Secretory,0.001
+NK/NKT,RASC,0.004
+Neutrophils,Proliferating Myeloid,0.006
+Neutrophils,Capillary,0.081
+Neutrophils,NK/NKT,0.019
+Neutrophils,Alveolar FBs,0.133
+Neutrophils,Activated Fibrotic FBs,0.045
+Neutrophils,B cells,0.025
+Neutrophils,Alveolar Macrophages,0.015
+Neutrophils,SPP1+ Macrophages,0.025
+Neutrophils,AT2,0.039
+Neutrophils,Neutrophils,0.091
+Neutrophils,AT1,0.009
+Neutrophils,Monocytes/MDMs,0.052
+Neutrophils,Interstitial Macrophages,0.096
+Neutrophils,CD4+ T-cells,0.045
+Neutrophils,SMCs/Pericytes,0.049
+Neutrophils,Venous,0.076
+Neutrophils,Proliferating AT2,0.001
+Neutrophils,pDCs,0.002
+Neutrophils,CD8+ T-cells,0.039
+Neutrophils,Transitional AT2,0.01
+Neutrophils,Inflammatory FBs,0.009
+Neutrophils,Proliferating T-cells,0.001
+Neutrophils,Mast,0.023
+Neutrophils,Proliferating FBs,0.006
+Neutrophils,KRT5-/KRT17+,0.002
+Neutrophils,Arteriole,0.009
+Neutrophils,Lymphatic,0.005
+Neutrophils,Macrophages - IFN-activated,0.003
+Neutrophils,Tregs,0.007
+Neutrophils,Migratory DCs,0.006
+Neutrophils,cDCs,0.006
+Neutrophils,Basal,0.01
+Neutrophils,Plasma,0.03
+Neutrophils,Myofibroblasts,0.003
+Neutrophils,Adventitial FBs,0.006
+Neutrophils,Basophils,0.001
+Neutrophils,Subpleural FBs,0.002
+Neutrophils,Multiciliated,0.003
+Neutrophils,RASC,0.006
+Neutrophils,Secretory,0.001
+Neutrophils,Goblet,0.002
+PNEC,Multiciliated,0.387
+PNEC,Goblet,0.142
+PNEC,Basal,0.123
+Plasma,Alveolar FBs,0.146
+Plasma,Neutrophils,0.006
+Plasma,Arteriole,0.003
+Plasma,CD8+ T-cells,0.08
+Plasma,Activated Fibrotic FBs,0.02
+Plasma,AT2,0.007
+Plasma,Capillary,0.029
+Plasma,SMCs/Pericytes,0.036
+Plasma,CD4+ T-cells,0.095
+Plasma,Plasma,0.239
+Plasma,Interstitial Macrophages,0.063
+Plasma,Mast,0.034
+Plasma,pDCs,0.003
+Plasma,Migratory DCs,0.007
+Plasma,NK/NKT,0.009
+Plasma,Tregs,0.018
+Plasma,AT1,0.001
+Plasma,Inflammatory FBs,0.01
+Plasma,Venous,0.068
+Plasma,Lymphatic,0.007
+Plasma,Proliferating FBs,0.004
+Plasma,Proliferating AT2,0.0
+Plasma,Myofibroblasts,0.001
+Plasma,SPP1+ Macrophages,0.002
+Plasma,Proliferating Myeloid,0.002
+Plasma,Monocytes/MDMs,0.011
+Plasma,Transitional AT2,0.002
+Plasma,Multiciliated,0.001
+Plasma,Alveolar Macrophages,0.001
+Plasma,B cells,0.078
+Plasma,Adventitial FBs,0.001
+Plasma,Basophils,0.0
+Plasma,Proliferating T-cells,0.002
+Plasma,Macrophages - IFN-activated,0.005
+Plasma,cDCs,0.004
+Plasma,KRT5-/KRT17+,0.0
+Plasma,Subpleural FBs,0.0
+Plasma,Basal,0.003
+Plasma,Proliferating B cells,0.001
+Plasma,RASC,0.001
+Plasma,Secretory,0.0
+Plasma,Goblet,0.001
+Proliferating AT2,CD4+ T-cells,0.022
+Proliferating AT2,Proliferating FBs,0.009
+Proliferating AT2,Monocytes/MDMs,0.013
+Proliferating AT2,AT1,0.018
+Proliferating AT2,SPP1+ Macrophages,0.035
+Proliferating AT2,Alveolar FBs,0.083
+Proliferating AT2,AT2,0.22
+Proliferating AT2,KRT5-/KRT17+,0.01
+Proliferating AT2,Capillary,0.065
+Proliferating AT2,Neutrophils,0.009
+Proliferating AT2,Interstitial Macrophages,0.077
+Proliferating AT2,NK/NKT,0.013
+Proliferating AT2,SMCs/Pericytes,0.018
+Proliferating AT2,Myofibroblasts,0.011
+Proliferating AT2,Activated Fibrotic FBs,0.052
+Proliferating AT2,Proliferating Myeloid,0.01
+Proliferating AT2,CD8+ T-cells,0.017
+Proliferating AT2,Mast,0.014
+Proliferating AT2,Proliferating AT2,0.033
+Proliferating AT2,Inflammatory FBs,0.005
+Proliferating AT2,Transitional AT2,0.111
+Proliferating AT2,Plasma,0.01
+Proliferating AT2,Alveolar Macrophages,0.014
+Proliferating AT2,cDCs,0.007
+Proliferating AT2,Multiciliated,0.004
+Proliferating AT2,Venous,0.018
+Proliferating AT2,Basal,0.045
+Proliferating AT2,RASC,0.032
+Proliferating AT2,Secretory,0.004
+Proliferating Airway,Multiciliated,0.076
+Proliferating Airway,Secretory,0.08
+Proliferating Airway,Goblet,0.026
+Proliferating Airway,Basal,0.256
+Proliferating Airway,RASC,0.111
+Proliferating Airway,SPP1+ Macrophages,0.032
+Proliferating Airway,CD8+ T-cells,0.021
+Proliferating Airway,Transitional AT2,0.071
+Proliferating Airway,Interstitial Macrophages,0.052
+Proliferating Airway,Alveolar FBs,0.046
+Proliferating Airway,AT2,0.025
+Proliferating Airway,Activated Fibrotic FBs,0.027
+Proliferating Airway,Proliferating Airway,0.032
+Proliferating B cells,NK/NKT,0.005
+Proliferating B cells,Interstitial Macrophages,0.019
+Proliferating B cells,Tregs,0.009
+Proliferating B cells,CD8+ T-cells,0.039
+Proliferating B cells,CD4+ T-cells,0.184
+Proliferating B cells,B cells,0.497
+Proliferating B cells,Plasma,0.024
+Proliferating B cells,Alveolar FBs,0.019
+Proliferating B cells,Venous,0.012
+Proliferating B cells,Proliferating B cells,0.138
+Proliferating B cells,Proliferating T-cells,0.029
+Proliferating B cells,Capillary,0.005
+Proliferating B cells,Migratory DCs,0.006
+Proliferating B cells,SMCs/Pericytes,0.003
+Proliferating B cells,Mast,0.004
+Proliferating FBs,Monocytes/MDMs,0.02
+Proliferating FBs,Interstitial Macrophages,0.086
+Proliferating FBs,AT2,0.043
+Proliferating FBs,Activated Fibrotic FBs,0.104
+Proliferating FBs,Alveolar FBs,0.17
+Proliferating FBs,Arteriole,0.011
+Proliferating FBs,Capillary,0.077
+Proliferating FBs,SMCs/Pericytes,0.095
+Proliferating FBs,Proliferating Myeloid,0.008
+Proliferating FBs,CD8+ T-cells,0.046
+Proliferating FBs,Proliferating FBs,0.023
+Proliferating FBs,SPP1+ Macrophages,0.017
+Proliferating FBs,CD4+ T-cells,0.044
+Proliferating FBs,Venous,0.057
+Proliferating FBs,Transitional AT2,0.007
+Proliferating FBs,Proliferating AT2,0.002
+Proliferating FBs,Neutrophils,0.01
+Proliferating FBs,KRT5-/KRT17+,0.005
+Proliferating FBs,Inflammatory FBs,0.011
+Proliferating FBs,NK/NKT,0.012
+Proliferating FBs,Lymphatic,0.008
+Proliferating FBs,B cells,0.021
+Proliferating FBs,Tregs,0.009
+Proliferating FBs,pDCs,0.002
+Proliferating FBs,RASC,0.002
+Proliferating FBs,Plasma,0.03
+Proliferating FBs,Proliferating T-cells,0.002
+Proliferating FBs,Mast,0.028
+Proliferating FBs,AT1,0.008
+Proliferating FBs,Myofibroblasts,0.003
+Proliferating FBs,Adventitial FBs,0.002
+Proliferating FBs,Alveolar Macrophages,0.01
+Proliferating FBs,Macrophages - IFN-activated,0.002
+Proliferating FBs,Migratory DCs,0.006
+Proliferating FBs,cDCs,0.005
+Proliferating FBs,Basal,0.006
+Proliferating FBs,Multiciliated,0.003
+Proliferating FBs,Goblet,0.001
+Proliferating Myeloid,Alveolar FBs,0.082
+Proliferating Myeloid,Capillary,0.044
+Proliferating Myeloid,Interstitial Macrophages,0.11
+Proliferating Myeloid,Neutrophils,0.013
+Proliferating Myeloid,SMCs/Pericytes,0.026
+Proliferating Myeloid,B cells,0.019
+Proliferating Myeloid,CD8+ T-cells,0.038
+Proliferating Myeloid,Activated Fibrotic FBs,0.037
+Proliferating Myeloid,AT2,0.045
+Proliferating Myeloid,SPP1+ Macrophages,0.151
+Proliferating Myeloid,CD4+ T-cells,0.056
+Proliferating Myeloid,Proliferating FBs,0.009
+Proliferating Myeloid,Inflammatory FBs,0.005
+Proliferating Myeloid,Tregs,0.008
+Proliferating Myeloid,Proliferating Myeloid,0.042
+Proliferating Myeloid,Mast,0.016
+Proliferating Myeloid,pDCs,0.001
+Proliferating Myeloid,Alveolar Macrophages,0.114
+Proliferating Myeloid,Monocytes/MDMs,0.022
+Proliferating Myeloid,NK/NKT,0.008
+Proliferating Myeloid,Myofibroblasts,0.004
+Proliferating Myeloid,Basophils,0.001
+Proliferating Myeloid,Venous,0.025
+Proliferating Myeloid,Transitional AT2,0.013
+Proliferating Myeloid,cDCs,0.006
+Proliferating Myeloid,KRT5-/KRT17+,0.006
+Proliferating Myeloid,Proliferating T-cells,0.002
+Proliferating Myeloid,Migratory DCs,0.006
+Proliferating Myeloid,Proliferating AT2,0.003
+Proliferating Myeloid,Lymphatic,0.003
+Proliferating Myeloid,Plasma,0.024
+Proliferating Myeloid,Arteriole,0.001
+Proliferating Myeloid,AT1,0.007
+Proliferating Myeloid,Adventitial FBs,0.001
+Proliferating Myeloid,Macrophages - IFN-activated,0.004
+Proliferating Myeloid,Basal,0.018
+Proliferating Myeloid,RASC,0.009
+Proliferating Myeloid,Secretory,0.003
+Proliferating Myeloid,Goblet,0.004
+Proliferating Myeloid,Multiciliated,0.011
+Proliferating T-cells,Activated Fibrotic FBs,0.025
+Proliferating T-cells,Monocytes/MDMs,0.014
+Proliferating T-cells,Interstitial Macrophages,0.064
+Proliferating T-cells,Venous,0.034
+Proliferating T-cells,Alveolar FBs,0.095
+Proliferating T-cells,Capillary,0.032
+Proliferating T-cells,Proliferating T-cells,0.012
+Proliferating T-cells,NK/NKT,0.012
+Proliferating T-cells,SMCs/Pericytes,0.024
+Proliferating T-cells,CD4+ T-cells,0.177
+Proliferating T-cells,CD8+ T-cells,0.083
+Proliferating T-cells,Neutrophils,0.008
+Proliferating T-cells,Inflammatory FBs,0.006
+Proliferating T-cells,Mast,0.017
+Proliferating T-cells,Migratory DCs,0.015
+Proliferating T-cells,Proliferating FBs,0.007
+Proliferating T-cells,Proliferating Myeloid,0.006
+Proliferating T-cells,SPP1+ Macrophages,0.008
+Proliferating T-cells,AT2,0.02
+Proliferating T-cells,Alveolar Macrophages,0.004
+Proliferating T-cells,cDCs,0.01
+Proliferating T-cells,pDCs,0.004
+Proliferating T-cells,Tregs,0.016
+Proliferating T-cells,Plasma,0.058
+Proliferating T-cells,Basal,0.004
+Proliferating T-cells,Transitional AT2,0.007
+Proliferating T-cells,B cells,0.19
+Proliferating T-cells,Lymphatic,0.003
+Proliferating T-cells,Proliferating B cells,0.03
+Proliferating T-cells,RASC,0.004
+RASC,CD4+ T-cells,0.012
+RASC,Monocytes/MDMs,0.007
+RASC,Capillary,0.019
+RASC,CD8+ T-cells,0.02
+RASC,Proliferating FBs,0.002
+RASC,Interstitial Macrophages,0.057
+RASC,AT2,0.058
+RASC,AT1,0.004
+RASC,Activated Fibrotic FBs,0.018
+RASC,Alveolar FBs,0.047
+RASC,SMCs/Pericytes,0.01
+RASC,Venous,0.01
+RASC,Transitional AT2,0.056
+RASC,Basal,0.133
+RASC,Alveolar Macrophages,0.002
+RASC,KRT5-/KRT17+,0.008
+RASC,cDCs,0.006
+RASC,Myofibroblasts,0.012
+RASC,RASC,0.239
+RASC,Migratory DCs,0.002
+RASC,Tregs,0.002
+RASC,Neutrophils,0.007
+RASC,Mast,0.018
+RASC,Proliferating AT2,0.005
+RASC,Basophils,0.018
+RASC,Multiciliated,0.078
+RASC,Secretory,0.062
+RASC,Goblet,0.035
+RASC,SPP1+ Macrophages,0.024
+RASC,Plasma,0.007
+RASC,Inflammatory FBs,0.001
+RASC,pDCs,0.001
+RASC,Proliferating T-cells,0.001
+RASC,B cells,0.003
+RASC,Proliferating Myeloid,0.005
+RASC,NK/NKT,0.004
+RASC,Macrophages - IFN-activated,0.001
+RASC,Proliferating Airway,0.003
+SMCs/Pericytes,Alveolar FBs,0.158
+SMCs/Pericytes,NK/NKT,0.009
+SMCs/Pericytes,AT2,0.026
+SMCs/Pericytes,Activated Fibrotic FBs,0.045
+SMCs/Pericytes,Capillary,0.085
+SMCs/Pericytes,SMCs/Pericytes,0.24
+SMCs/Pericytes,Arteriole,0.027
+SMCs/Pericytes,Venous,0.071
+SMCs/Pericytes,Myofibroblasts,0.003
+SMCs/Pericytes,Proliferating FBs,0.012
+SMCs/Pericytes,Migratory DCs,0.004
+SMCs/Pericytes,Interstitial Macrophages,0.066
+SMCs/Pericytes,CD4+ T-cells,0.038
+SMCs/Pericytes,Alveolar Macrophages,0.005
+SMCs/Pericytes,CD8+ T-cells,0.033
+SMCs/Pericytes,Mast,0.025
+SMCs/Pericytes,Adventitial FBs,0.003
+SMCs/Pericytes,Proliferating AT2,0.001
+SMCs/Pericytes,Proliferating Myeloid,0.003
+SMCs/Pericytes,Monocytes/MDMs,0.019
+SMCs/Pericytes,Neutrophils,0.01
+SMCs/Pericytes,Plasma,0.036
+SMCs/Pericytes,AT1,0.006
+SMCs/Pericytes,Macrophages - IFN-activated,0.003
+SMCs/Pericytes,SPP1+ Macrophages,0.004
+SMCs/Pericytes,cDCs,0.004
+SMCs/Pericytes,Tregs,0.007
+SMCs/Pericytes,pDCs,0.001
+SMCs/Pericytes,Lymphatic,0.007
+SMCs/Pericytes,Inflammatory FBs,0.012
+SMCs/Pericytes,B cells,0.02
+SMCs/Pericytes,KRT5-/KRT17+,0.001
+SMCs/Pericytes,Multiciliated,0.002
+SMCs/Pericytes,Transitional AT2,0.005
+SMCs/Pericytes,Proliferating T-cells,0.001
+SMCs/Pericytes,Basophils,0.0
+SMCs/Pericytes,Goblet,0.001
+SMCs/Pericytes,Subpleural FBs,0.001
+SMCs/Pericytes,Basal,0.004
+SMCs/Pericytes,RASC,0.002
+SMCs/Pericytes,Proliferating B cells,0.0
+SMCs/Pericytes,Secretory,0.001
+SPP1+ Macrophages,SPP1+ Macrophages,0.432
+SPP1+ Macrophages,AT1,0.006
+SPP1+ Macrophages,Migratory DCs,0.003
+SPP1+ Macrophages,KRT5-/KRT17+,0.012
+SPP1+ Macrophages,AT2,0.04
+SPP1+ Macrophages,Activated Fibrotic FBs,0.028
+SPP1+ Macrophages,Capillary,0.019
+SPP1+ Macrophages,SMCs/Pericytes,0.008
+SPP1+ Macrophages,Alveolar FBs,0.034
+SPP1+ Macrophages,Proliferating Myeloid,0.032
+SPP1+ Macrophages,Proliferating FBs,0.004
+SPP1+ Macrophages,Interstitial Macrophages,0.13
+SPP1+ Macrophages,Alveolar Macrophages,0.082
+SPP1+ Macrophages,Neutrophils,0.011
+SPP1+ Macrophages,Mast,0.006
+SPP1+ Macrophages,NK/NKT,0.005
+SPP1+ Macrophages,Monocytes/MDMs,0.028
+SPP1+ Macrophages,cDCs,0.005
+SPP1+ Macrophages,Macrophages - IFN-activated,0.006
+SPP1+ Macrophages,Venous,0.006
+SPP1+ Macrophages,CD4+ T-cells,0.03
+SPP1+ Macrophages,Proliferating AT2,0.002
+SPP1+ Macrophages,Transitional AT2,0.016
+SPP1+ Macrophages,Tregs,0.006
+SPP1+ Macrophages,Inflammatory FBs,0.001
+SPP1+ Macrophages,Myofibroblasts,0.001
+SPP1+ Macrophages,CD8+ T-cells,0.013
+SPP1+ Macrophages,Arteriole,0.0
+SPP1+ Macrophages,pDCs,0.001
+SPP1+ Macrophages,B cells,0.002
+SPP1+ Macrophages,Proliferating T-cells,0.001
+SPP1+ Macrophages,Plasma,0.004
+SPP1+ Macrophages,Lymphatic,0.001
+SPP1+ Macrophages,Goblet,0.001
+SPP1+ Macrophages,Multiciliated,0.002
+SPP1+ Macrophages,Basal,0.008
+SPP1+ Macrophages,Adventitial FBs,0.0
+SPP1+ Macrophages,Secretory,0.002
+SPP1+ Macrophages,RASC,0.009
+SPP1+ Macrophages,Basophils,0.001
+SPP1+ Macrophages,Proliferating Airway,0.0
+Secretory,Multiciliated,0.346
+Secretory,Secretory,0.157
+Secretory,RASC,0.098
+Secretory,Goblet,0.08
+Secretory,Capillary,0.007
+Secretory,Basal,0.129
+Secretory,Venous,0.006
+Secretory,NK/NKT,0.002
+Secretory,Monocytes/MDMs,0.003
+Secretory,Interstitial Macrophages,0.033
+Secretory,CD8+ T-cells,0.016
+Secretory,Basophils,0.01
+Secretory,Myofibroblasts,0.016
+Secretory,Transitional AT2,0.011
+Secretory,Mast,0.008
+Secretory,Inflammatory FBs,0.001
+Secretory,Plasma,0.002
+Secretory,CD4+ T-cells,0.006
+Secretory,Alveolar FBs,0.021
+Secretory,B cells,0.001
+Secretory,SPP1+ Macrophages,0.007
+Secretory,Tregs,0.001
+Secretory,AT1,0.001
+Secretory,SMCs/Pericytes,0.006
+Secretory,AT2,0.01
+Secretory,Activated Fibrotic FBs,0.007
+Secretory,Proliferating Myeloid,0.003
+Secretory,Proliferating AT2,0.001
+Secretory,Proliferating Airway,0.004
+Secretory,cDCs,0.003
+Secretory,Neutrophils,0.002
+Subpleural FBs,Venous,0.088
+Subpleural FBs,Alveolar FBs,0.188
+Subpleural FBs,Inflammatory FBs,0.017
+Subpleural FBs,CD8+ T-cells,0.043
+Subpleural FBs,Interstitial Macrophages,0.113
+Subpleural FBs,SMCs/Pericytes,0.119
+Subpleural FBs,CD4+ T-cells,0.035
+Subpleural FBs,NK/NKT,0.015
+Subpleural FBs,Adventitial FBs,0.049
+Subpleural FBs,Activated Fibrotic FBs,0.037
+Subpleural FBs,Neutrophils,0.034
+Subpleural FBs,Capillary,0.03
+Subpleural FBs,Mast,0.026
+Subpleural FBs,Monocytes/MDMs,0.043
+Subpleural FBs,Lymphatic,0.021
+Subpleural FBs,Subpleural FBs,0.045
+Subpleural FBs,Plasma,0.02
+Subpleural FBs,Tregs,0.014
+Transitional AT2,SPP1+ Macrophages,0.031
+Transitional AT2,AT2,0.189
+Transitional AT2,NK/NKT,0.011
+Transitional AT2,AT1,0.017
+Transitional AT2,Interstitial Macrophages,0.072
+Transitional AT2,Neutrophils,0.008
+Transitional AT2,Inflammatory FBs,0.005
+Transitional AT2,Alveolar FBs,0.08
+Transitional AT2,Capillary,0.051
+Transitional AT2,Activated Fibrotic FBs,0.047
+Transitional AT2,Monocytes/MDMs,0.015
+Transitional AT2,KRT5-/KRT17+,0.01
+Transitional AT2,cDCs,0.005
+Transitional AT2,CD4+ T-cells,0.019
+Transitional AT2,SMCs/Pericytes,0.02
+Transitional AT2,pDCs,0.001
+Transitional AT2,Alveolar Macrophages,0.015
+Transitional AT2,CD8+ T-cells,0.019
+Transitional AT2,Migratory DCs,0.003
+Transitional AT2,Proliferating Myeloid,0.006
+Transitional AT2,Proliferating FBs,0.004
+Transitional AT2,Arteriole,0.001
+Transitional AT2,Transitional AT2,0.179
+Transitional AT2,Proliferating AT2,0.013
+Transitional AT2,Macrophages - IFN-activated,0.002
+Transitional AT2,Venous,0.017
+Transitional AT2,Mast,0.019
+Transitional AT2,Myofibroblasts,0.02
+Transitional AT2,Plasma,0.007
+Transitional AT2,Lymphatic,0.001
+Transitional AT2,Basophils,0.004
+Transitional AT2,B cells,0.002
+Transitional AT2,Tregs,0.004
+Transitional AT2,RASC,0.042
+Transitional AT2,Basal,0.044
+Transitional AT2,Proliferating T-cells,0.001
+Transitional AT2,Multiciliated,0.005
+Transitional AT2,Adventitial FBs,0.001
+Transitional AT2,Secretory,0.005
+Transitional AT2,Goblet,0.002
+Transitional AT2,Langerhans cells,0.002
+Transitional AT2,Proliferating Airway,0.002
+Tregs,Interstitial Macrophages,0.074
+Tregs,Venous,0.048
+Tregs,Alveolar FBs,0.118
+Tregs,SMCs/Pericytes,0.032
+Tregs,Activated Fibrotic FBs,0.033
+Tregs,Capillary,0.032
+Tregs,AT2,0.012
+Tregs,AT1,0.002
+Tregs,CD8+ T-cells,0.097
+Tregs,CD4+ T-cells,0.178
+Tregs,Proliferating Myeloid,0.004
+Tregs,Migratory DCs,0.018
+Tregs,Mast,0.029
+Tregs,Neutrophils,0.006
+Tregs,NK/NKT,0.011
+Tregs,Monocytes/MDMs,0.013
+Tregs,pDCs,0.003
+Tregs,Proliferating FBs,0.005
+Tregs,Tregs,0.029
+Tregs,Arteriole,0.003
+Tregs,Plasma,0.079
+Tregs,Lymphatic,0.006
+Tregs,SPP1+ Macrophages,0.013
+Tregs,Alveolar Macrophages,0.004
+Tregs,Myofibroblasts,0.002
+Tregs,Adventitial FBs,0.001
+Tregs,cDCs,0.008
+Tregs,Inflammatory FBs,0.009
+Tregs,Proliferating T-cells,0.003
+Tregs,B cells,0.109
+Tregs,Transitional AT2,0.004
+Tregs,KRT5-/KRT17+,0.002
+Tregs,Macrophages - IFN-activated,0.002
+Tregs,RASC,0.002
+Tregs,Subpleural FBs,0.001
+Tregs,Proliferating B cells,0.002
+Tregs,Basal,0.004
+Tregs,Secretory,0.0
+Tregs,Basophils,0.0
+Tregs,Multiciliated,0.001
+Tregs,Goblet,0.0
+Venous,Activated Fibrotic FBs,0.038
+Venous,Proliferating T-cells,0.001
+Venous,Alveolar FBs,0.166
+Venous,CD8+ T-cells,0.05
+Venous,Monocytes/MDMs,0.022
+Venous,AT2,0.02
+Venous,Capillary,0.054
+Venous,Venous,0.166
+Venous,Interstitial Macrophages,0.073
+Venous,Neutrophils,0.016
+Venous,NK/NKT,0.014
+Venous,AT1,0.003
+Venous,Mast,0.031
+Venous,CD4+ T-cells,0.064
+Venous,Proliferating FBs,0.007
+Venous,SMCs/Pericytes,0.073
+Venous,Tregs,0.011
+Venous,cDCs,0.005
+Venous,Plasma,0.071
+Venous,pDCs,0.002
+Venous,SPP1+ Macrophages,0.003
+Venous,Alveolar Macrophages,0.004
+Venous,Proliferating Myeloid,0.003
+Venous,Arteriole,0.006
+Venous,KRT5-/KRT17+,0.001
+Venous,Inflammatory FBs,0.014
+Venous,Lymphatic,0.006
+Venous,Adventitial FBs,0.002
+Venous,Myofibroblasts,0.003
+Venous,Migratory DCs,0.006
+Venous,Transitional AT2,0.004
+Venous,Multiciliated,0.002
+Venous,B cells,0.045
+Venous,Subpleural FBs,0.001
+Venous,Proliferating AT2,0.001
+Venous,Goblet,0.001
+Venous,Basophils,0.001
+Venous,Macrophages - IFN-activated,0.003
+Venous,RASC,0.002
+Venous,Basal,0.005
+Venous,Proliferating B cells,0.0
+Venous,Secretory,0.001
+cDCs,Macrophages - IFN-activated,0.002
+cDCs,SMCs/Pericytes,0.034
+cDCs,Activated Fibrotic FBs,0.047
+cDCs,SPP1+ Macrophages,0.023
+cDCs,Interstitial Macrophages,0.104
+cDCs,Alveolar Macrophages,0.011
+cDCs,Monocytes/MDMs,0.024
+cDCs,Alveolar FBs,0.125
+cDCs,Venous,0.045
+cDCs,CD8+ T-cells,0.064
+cDCs,Capillary,0.048
+cDCs,NK/NKT,0.013
+cDCs,CD4+ T-cells,0.098
+cDCs,Transitional AT2,0.012
+cDCs,pDCs,0.004
+cDCs,Proliferating Myeloid,0.006
+cDCs,Mast,0.027
+cDCs,AT2,0.032
+cDCs,Neutrophils,0.011
+cDCs,KRT5-/KRT17+,0.006
+cDCs,Migratory DCs,0.021
+cDCs,cDCs,0.039
+cDCs,Proliferating AT2,0.002
+cDCs,AT1,0.005
+cDCs,Proliferating FBs,0.006
+cDCs,Tregs,0.017
+cDCs,Inflammatory FBs,0.011
+cDCs,Proliferating T-cells,0.004
+cDCs,Lymphatic,0.004
+cDCs,Plasma,0.04
+cDCs,Myofibroblasts,0.003
+cDCs,RASC,0.011
+cDCs,B cells,0.047
+cDCs,Arteriole,0.003
+cDCs,Adventitial FBs,0.003
+cDCs,Basal,0.022
+cDCs,Goblet,0.005
+cDCs,Multiciliated,0.012
+cDCs,Secretory,0.004
+cDCs,Basophils,0.001
+pDCs,Plasma,0.077
+pDCs,Interstitial Macrophages,0.081
+pDCs,CD4+ T-cells,0.145
+pDCs,Alveolar FBs,0.123
+pDCs,AT2,0.015
+pDCs,Mast,0.029
+pDCs,Activated Fibrotic FBs,0.037
+pDCs,Capillary,0.038
+pDCs,SMCs/Pericytes,0.027
+pDCs,CD8+ T-cells,0.11
+pDCs,Proliferating Myeloid,0.003
+pDCs,Neutrophils,0.008
+pDCs,NK/NKT,0.011
+pDCs,Monocytes/MDMs,0.018
+pDCs,Tregs,0.019
+pDCs,Inflammatory FBs,0.007
+pDCs,Proliferating FBs,0.005
+pDCs,AT1,0.003
+pDCs,cDCs,0.01
+pDCs,Transitional AT2,0.006
+pDCs,SPP1+ Macrophages,0.009
+pDCs,Venous,0.045
+pDCs,KRT5-/KRT17+,0.003
+pDCs,Lymphatic,0.003
+pDCs,Proliferating T-cells,0.004
+pDCs,Migratory DCs,0.016
+pDCs,B cells,0.108
+pDCs,Basal,0.004
+pDCs,pDCs,0.016
+pDCs,Arteriole,0.004
+pDCs,RASC,0.003
+pDCs,Alveolar Macrophages,0.004

@@ -1,0 +1,8 @@
+cell_state,velocity_pseudotime,role
+State_E,0.038,progenitor
+State_D,0.075,intermediate
+State_B,0.076,intermediate
+State_F,0.077,intermediate
+State_A,0.117,intermediate
+State_C,0.941,terminal
+corr_pseudotime_stem_percell,0.435,diagnostic

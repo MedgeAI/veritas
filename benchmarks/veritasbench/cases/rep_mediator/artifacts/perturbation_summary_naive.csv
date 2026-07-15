@@ -1,0 +1,14 @@
+perturbation,n_cells,n_deg,mean_mtDNA_copy_number,gene_specific_call
+KO_13,272,685,89051,gene_specific
+KO_05,308,462,265986,gene_specific
+KO_11,314,212,478431,gene_specific
+KO_07,303,118,471131,uncertain
+KO_10,370,83,445762,uncertain
+KO_03,289,81,219266,uncertain
+KO_01,285,74,472945,uncertain
+KO_06,404,61,458225,uncertain
+KO_04,352,60,485876,uncertain
+KO_08,376,46,454593,uncertain
+KO_12,469,44,450140,uncertain
+KO_09,319,29,475119,uncertain
+KO_02,439,24,445576,uncertain

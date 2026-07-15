@@ -1,0 +1,21 @@
+control per-tumor FC: median=0.76 95th=2.29 max=7.00
+baseline floor (10th pct)=0.0176
+
+=== reference drivers (is_driver=True) ===
+guide_target    target_type  fc_mean  fc_median  n_elevated  domination  tumor_representation  baseline_representation  enrichment  is_driver artifact
+      Notch1 Mutated_in_SCC   22.162     17.047           8       3.439                36.477                    0.737      49.491       True         
+        Fat1 Mutated_in_SCC   14.801      9.359           8       5.077                24.235                    0.665      36.449       True         
+       Trp53 Mutated_in_SCC    3.590      3.688           7       1.438                 3.450                    0.173      19.997       True         
+
+=== clear CASE CHECK ===
+  Notch1   driver=True  fc_mean= 22.16 n_elev=8 enrich=  49.49 base=0.7370 
+  Fat1     driver=True  fc_mean= 14.80 n_elev=8 enrich=  36.45 base=0.6650 
+  Trp53    driver=True  fc_mean=  3.59 n_elev=7 enrich=  20.00 base=0.1730 
+  Trp63    driver=False fc_mean=  0.04 n_elev=0 enrich= 491.21 base=0.0010 low_baseline_winnerscurse
+  Adgrl2   driver=False fc_mean=  2.70 n_elev=2 enrich=   3.79 base=0.0220 bottleneck_singletumor
+  Xirp2    driver=False fc_mean=  3.81 n_elev=2 enrich=  10.37 base=0.0860 bottleneck_singletumor
+  Ttn      driver=False fc_mean=  1.68 n_elev=2 enrich=   4.28 base=0.0660 bottleneck_singletumor
+  Myh2     driver=False fc_mean=  3.26 n_elev=2 enrich=   8.65 base=0.0660 bottleneck_singletumor
+  Zmat3    driver=False fc_mean=  0.75 n_elev=0 enrich=  89.43 base=0.0340 
+  Prkdc    driver=False fc_mean=  0.46 n_elev=0 enrich=  62.34 base=0.0320 
+  Notch2   driver=False fc_mean=  2.68 n_elev=3 enrich=  20.81 base=0.1350 bottleneck_singletumor

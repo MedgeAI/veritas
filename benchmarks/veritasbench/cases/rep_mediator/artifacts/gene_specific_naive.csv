@@ -1,0 +1,4 @@
+perturbation,confidence,justification
+KO_13,high,Largest differential-expression signature vs control
+KO_05,high,Largest differential-expression signature vs control
+KO_11,high,Largest differential-expression signature vs control

@@ -1,0 +1,158 @@
+sample_id,sample_type,microbiome_sample_type,specimen_type,x16s_seq_batch,seq_center,tumor_category,glioma_type,grade,glioma_idh_mutation,sex,age_at_surgery,is_control
+1267525.CP04857,sample,Tumor,FFPE,Batch 5,Cosmos-ID,Glioma,GBM,IV,Wild,M,58.0,--
+1267525C.CP04857,sample control,sample ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,--
+1269112C.CP04857,sample control,sample ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,--
+1281963C.CP04857,sample control,sample ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,False
+1282497.CP04857,sample,Tumor,OCT,Batch 5,Cosmos-ID,Glioma,GBM,IV,Wild,M,79.0,False
+1282497C.CP04857,sample control,sample ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,False
+1282918.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,GBM,IV,Mutant,M,50.0,False
+1283987.CP04857,sample,Tumor,FFPE,Batch 5,Cosmos-ID,Glioma,GBM,IV,Wild,M,81.0,--
+1283987C.CP04857,sample control,sample ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,--
+1284001.CP04857,sample,Tumor,FFPE,Batch 5,Cosmos-ID,Glioma,GBM,IV,Wild,M,72.0,--
+1284001C.CP04857,sample control,sample ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,--
+1289120C.CP04857,sample control,sample ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,--
+1289833.CP04857,sample,Tumor,OCT,Batch 5,Cosmos-ID,Glioma,Astrocytoma,Unknown,Wild,M,71.0,False
+1289833C.CP04857,sample control,sample ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,False
+1295700.CP04857,sample,Tumor,OCT,Batch 5,Cosmos-ID,Glioma,Oligodendroglioma,Unknown,Mutant,M,51.0,False
+1295700C.CP04857,sample control,sample ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,False
+1295967.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,Oligodendroglioma,Unknown,Mutant,M,68.0,False
+1300515C.CP04857,sample control,sample ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,False
+1306536.CP04857,sample,Tumor,FFPE,Batch 5,Cosmos-ID,Glioma,Oligodendroglioma,Unknown,Mutant,M,55.0,--
+1306536C.CP04857,sample control,sample ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,--
+1309656.CP04857,sample,Tumor,OCT,Batch 5,Cosmos-ID,Glioma,Astrocytoma,Unknown,Mutant,F,35.0,False
+1309656C.CP04857,sample control,sample ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,False
+1393831.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,GBM,IV,Wild,M,59.0,False
+1393930.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,Astrocytoma,II,Mutant,M,26.0,False
+1401877.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,Anaplastic Astrocytoma,III,Mutant,M,38.0,False
+1402115.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,Diffuse Astrocytoma,II,Mutant,F,52.0,False
+1402764.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,Diffuse Astrocytoma,II,Mutant,F,35.0,False
+1403939.CP04857,sample,Tumor,FFPE,Batch 5,Cosmos-ID,Glioma,GBM,IV,Wild,M,56.0,--
+1403939C.CP04857,sample control,sample ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,--
+1405546.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,Anaplastic Astrocytoma,III,Mutant,F,28.0,False
+1410126.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,GBM,IV,Wild,F,54.0,False
+1411970.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,Oligodendroglioma,II,Mutant,M,48.0,False
+1421774.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,Anaplastic Oligodendroglioma,III,Mutant,M,53.0,False
+1424568.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,GBM,IV,Mutant,M,53.0,False
+1425812.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,GBM,IV,Mutant,M,35.0,False
+1434242.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,Oligodendroglioma,III,Mutant,M,52.0,False
+1486633.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,Astrocytoma,Unknown,Mutant,M,33.0,False
+1513110.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,GBM,IV,Wild,M,41.0,False
+1540662.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,Diffuse Astrocytoma,IV,Mutant,M,42.0,False
+1546660.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,GBM,IV,Wild,F,71.0,False
+1549256.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Glioma,GBM,IV,Mutant,M,37.0,False
+BTMT002.CP04265.S1,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM,IV,Wild,M,76.54444444444445,False
+BTMT005.CP04265.S2,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM,IV,Wild,F,68.41388888888889,False
+BTMT008.CP04265.S3,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Met,None,None,None,F,61.84166666666667,False
+BTMT009.CP04265.S4,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Met,None,None,None,M,65.5,False
+BTMT012.CP04265.S5,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,Glioma + Treatment Changes,Unknown,Wild,F,45.202777777777776,False
+BTMT014.CP04265.S6,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM + Radiation necrosis,IV,Wild,F,49.88055555555555,False
+BTMT015.CP04265.S7,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM + Radiation necrosis,IV,Wild,M,65.14166666666667,False
+BTMT016.CP04265.S8,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Met,None,None,None,F,59.91944444444445,False
+BTMT017.CP04265.S9,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Met,None,None,None,F,53.99166666666667,False
+BTMT021.CP04265.S11,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM,IV,Wild,M,63.06388888888889,False
+BTMT023.CP04265.S12,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Met,None,None,None,M,48.93055555555556,False
+BTMT024.CP04265.S13,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM + Radiation necrosis,IV,Wild,F,51.916666666666664,False
+BTMT026.CP04265.S14,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Met,None,None,None,F,61.458333333333336,False
+BTMT031.CP04265.S15,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM,IV,Wild,M,58.166666666666664,False
+BTMT034.CP04265.S17,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM,IV,Wild,F,46.016666666666666,False
+BTMT037.CP04265.S19,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM,IV,Wild,F,50.91388888888889,False
+BTMT042.CP04265.S20,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM,IV,Wild,F,66.93055555555556,False
+BTMT043.CP04265.S21,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM,IV,Wild,F,66.97777777777777,False
+BTMT045.CP04265.S22,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Met,None,None,None,M,63.8,False
+BTMT050.CP04265.S23,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Met,None,None,None,M,69.06944444444444,False
+BTMT056.CP04265.S30,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM,IV,Wild,F,63.83055555555555,False
+BTMT058.CP04265.S24,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Met,None,None,None,M,44.99166666666667,False
+BTMT059.CP04265.S25,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Met,None,None,None,M,37.75555555555555,False
+BTMT060.CP04265.S26,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Met,None,None,None,M,19.636111111111113,False
+BTMT069.CP04265.S27,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM,IV,Wild,F,69.67222222222222,False
+BTMT075.CP04265.S28,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM,IV,Wild,M,30.258333333333333,False
+BTMT076.CP04265.S29,sample,Tumor,Frozen,Batch 3,Cosmos-ID,Glioma,GBM,IV,Wild,M,48.41944444444445,False
+Ext.NTC.CIDL20645,Negative control,Extraction ctrl,Control,Batch 9,Cosmos-ID,None,None,None,None,None,nan,--
+Ext.PTC.CIDL20645,sample,Positive_control,Control,Batch 9,Cosmos-ID,None,None,None,None,None,nan,False
+Extraction.NTC,Negative control,Extraction ctrl,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,--
+Extraction.PTC,sample,Positive_control,Control,Batch 5,Cosmos-ID,None,None,None,None,None,nan,False
+LP.0506.CP04633,Library control,Library prep ctrl,Control,Batch 4,Cosmos-ID,None,None,None,None,None,nan,--
+LP.0507.CP04633,Library control,Library prep ctrl,Control,Batch 4,Cosmos-ID,None,None,None,None,None,nan,True
+LP.NTC.CIDL20645,Negative control,Library prep ctrl,Control,Batch 9,Cosmos-ID,None,None,None,None,None,nan,True
+NFW1.CIDL20401.S38,Water control,Blank ctrl,Control,Batch 3,Cosmos-ID,None,None,None,None,None,nan,True
+NFW2.CIDL20401.S39,Water control,Blank ctrl,Control,Batch 3,Cosmos-ID,None,None,None,None,None,nan,True
+NFW3.CIDL20401.S40,Water control,Blank ctrl,Control,Batch 3,Cosmos-ID,None,None,None,None,None,nan,True
+NTCDNA1.CIDL20401.S44,Negative control,Extraction ctrl,Control,Batch 3,Cosmos-ID,None,None,None,None,None,nan,--
+NTCDNA2.CIDL20401.S45,Negative control,Extraction ctrl,Control,Batch 3,Cosmos-ID,None,None,None,None,None,nan,--
+NTCDNA3.CIDL20401.S46,Negative control,Extraction ctrl,Control,Batch 3,Cosmos-ID,None,None,None,None,None,nan,--
+T004.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Met,None,None,None,M,77.44444444444444,False
+T020.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Gliosarcoma,IV,Wild,M,78.41666666666667,False
+T048.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Astrocytoma,II,Mutant,M,36.19722222222222,False
+T052.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Oligodendroglioma,II,Mutant,M,44.358333333333334,False
+T053.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,M,76.20555555555555,False
+T054.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,F,41.83055555555555,False
+T055.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Oligodendroglioma,II,Mutant,F,58.391666666666666,False
+T061.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Anaplastic Oligodendroglioma,III,Mutant,F,43.375,False
+T062.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Oligodendroglioma,II,Mutant,M,38.727777777777774,False
+T071.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Met,None,None,None,M,69.125,False
+T073.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Met,None,None,None,M,44.827777777777776,False
+T074.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Met,None,None,None,M,28.01944444444445,False
+T078.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,M,59.24444444444445,False
+T079.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,F,45.86944444444445,False
+T087.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,F,50.575,False
+T088.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Met,None,None,None,F,69.21944444444445,False
+T089.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,F,60.99166666666667,False
+T090.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Met,None,None,None,F,54.077777777777776,False
+T092.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,M,65.26944444444445,False
+T093.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Oligodendroglioma,II,Mutant,M,45.016666666666666,False
+T098.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Met,None,None,None,M,41.65555555555556,False
+T099.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,M,52.916666666666664,False
+T1026.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,F,51.0,False
+T1057.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,F,67.0,False
+T1115.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,M,64.0,False
+T119.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,M,60.28888888888889,False
+T121.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,F,51.641666666666666,False
+T122.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Oligodendroglioma,III,Mutant,M,68.50555555555556,False
+T124.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,M,50.21666666666667,False
+T125.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Met,None,None,None,M,64.7388888888889,False
+T127.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,M,62.96111111111111,False
+T128.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Oligodendroglioma,III,Mutant,F,37.81666666666667,False
+T131.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Oligodendroglioma,III,Wild,F,36.99166666666667,False
+T132.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Met,None,None,None,F,61.986111111111114,False
+T133.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,M,70.49722222222222,False
+T135.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,F,54.01111111111111,False
+T169.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Astrocytoma,II,Mutant,F,30.41111111111111,False
+T170.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Met,None,None,None,M,71.18333333333334,False
+T171.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Oligodendroglioma,III,Mutant,M,38.31388888888889,False
+T177.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Diffuse Astrocytoma,III,Mutant,M,31.32777777777778,False
+T180.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,M,53.725,False
+T181.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Astrocytoma,II,Mutant,M,41.99722222222222,False
+T185.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,M,76.20277777777778,False
+T186.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,M,74.40277777777777,False
+T187.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,Gangliogloma,I,Unknown,F,27.941666666666663,False
+T188.CP04633,sample,Tumor,Frozen,Batch 4,Cosmos-ID,Glioma,GBM,IV,Wild,M,61.50277777777778,False
+T215.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,M,59.0,False
+T218.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,F,69.0,False
+T541.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,M,60.0,False
+T830.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,F,64.0,False
+T855.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,F,58.0,False
+T857.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,M,67.0,False
+T859.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,F,66.0,False
+T861.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,M,83.0,False
+T873.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,M,77.0,False
+T891.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,F,78.0,False
+T931.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,F,70.0,False
+T956.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,F,68.0,False
+T957.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,M,79.0,False
+T959.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,F,65.0,False
+T961.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,F,66.0,False
+T976.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,M,71.0,False
+T978.CP04857,sample,Tumor,Frozen,Batch 5,Cosmos-ID,Met,None,None,None,F,59.0,False
+TCE022,sample,Normal brain,Frozen,Batch 9,Cosmos-ID,No tumor,None,None,None,M,72.0,False
+TCT042,sample,Normal brain,Frozen,Batch 9,Cosmos-ID,No tumor,None,None,None,M,73.0,False
+TCT078,sample,Normal brain,Frozen,Batch 9,Cosmos-ID,No tumor,None,None,None,M,23.0,False
+TCT085,sample,Normal brain,Frozen,Batch 9,Cosmos-ID,No tumor,None,None,None,M,22.0,False
+TCT099,sample,Normal brain,Frozen,Batch 9,Cosmos-ID,No tumor,None,None,None,F,50.0,False
+TCT102,sample,Normal brain,Frozen,Batch 9,Cosmos-ID,No tumor,None,None,None,F,59.0,False
+TCT109,sample,Normal brain,Frozen,Batch 9,Cosmos-ID,No tumor,None,None,None,M,41.0,False
+TCT40,sample,Normal brain,Frozen,Batch 9,Cosmos-ID,No tumor,None,None,None,M,23.0,False
+TCT51,sample,Normal brain,Frozen,Batch 9,Cosmos-ID,No tumor,None,None,None,M,22.0,False
+TCT60,sample,Normal brain,Frozen,Batch 9,Cosmos-ID,No tumor,None,None,None,M,25.0,False
+TCT75,sample,Normal brain,Frozen,Batch 9,Cosmos-ID,No tumor,None,None,None,M,23.0,False
+TCT79,sample,Normal brain,Frozen,Batch 9,Cosmos-ID,No tumor,None,None,None,M,20.0,False
+TS175,sample,Normal brain,Frozen,Batch 9,Cosmos-ID,No tumor,None,None,None,F,34.0,False

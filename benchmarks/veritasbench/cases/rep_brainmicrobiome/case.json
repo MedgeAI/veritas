@@ -1,0 +1,163 @@
+{
+  "case_id": "rep_brainmicrobiome",
+  "paper_title": "Microbial signals in primary and metastatic brain tumors (Nature Medicine, 2025)",
+  "paper_authors": [
+    "Nature Medicine (2025), gmorad.braintumors analysis repo"
+  ],
+  "artifacts": {
+    "genus_counts": {
+      "path": "artifacts/genus_counts.csv",
+      "sha256": "5aa934d8084ea8bfa7fdd093ec3a500f0583fd66ea412a3f7d8f853adce0568d",
+      "kind": "source_data"
+    },
+    "metadata": {
+      "path": "artifacts/sample_metadata.csv",
+      "sha256": "6dfe9cd4241c75532b2f948de2fc28561876edecc3cff19d8eb71064e6fe51c0",
+      "kind": "source_data"
+    },
+    "code": {
+      "path": "artifacts/solve.py",
+      "sha256": "1a72ec13f3d60ffb9829c5f333a9122be227a911be4eacc923e3b3f84af858e1",
+      "kind": "code"
+    },
+    "differential_abundance": {
+      "path": "artifacts/differential_abundance.csv",
+      "sha256": "9131d148e00278647d8820bb2c8ffb02bf822425869540b61c4723c1a4c3b572",
+      "kind": "code_output"
+    },
+    "tumor_associated_correct": {
+      "path": "artifacts/tumor_associated_genera_correct.csv",
+      "sha256": "b3ada24891c901c3441d55290caaea9c079739041054364df248a9e3569dc0fd",
+      "kind": "code_output"
+    },
+    "tumor_associated_naive": {
+      "path": "artifacts/tumor_associated_genera_naive.csv",
+      "sha256": "79e191570b152653a7330e89e868e6e3f2fab3ae5c495ae20010f0aa89c1f7e6",
+      "kind": "code_output"
+    },
+    "trace_correct": {
+      "path": "artifacts/trace_correct.md",
+      "sha256": "e81032aee54ce988264ad43741e8eb4e631a3c6d18260e386a7d5bb1c26b543c",
+      "kind": "code_output"
+    },
+    "answer_correct": {
+      "path": "artifacts/answer_correct.txt",
+      "sha256": "a5c538566736f66d1ad570f26dcace768e5de6e431fe097dde0ed1c1aca330a2",
+      "kind": "code_output"
+    },
+    "answer_naive": {
+      "path": "artifacts/answer_naive.txt",
+      "sha256": "f5838f29b4bea9184754af20ba5f65eec57986be9fe4da1b0a10f661aabaaa05",
+      "kind": "code_output"
+    },
+    "analysis_correct": {
+      "path": "artifacts/analysis_correct.csv",
+      "sha256": "74e66e37d0b82aeca0e1fd9bec024039ccc4e0506176e05ea3568925061383dc",
+      "kind": "code_output"
+    },
+    "analysis_naive": {
+      "path": "artifacts/analysis_naive.csv",
+      "sha256": "4410457615000f54dafc7c9525f33dbaa0fa6e0dc08ea6f4929d2daac4237c9b",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "artifacts/analysis_correct.csv#batch_overlap_count": {
+      "value": 0,
+      "source_artifact": "artifacts/analysis_correct.csv",
+      "source_artifact_hash": "74e66e37d0b82aeca0e1fd9bec024039ccc4e0506176e05ea3568925061383dc",
+      "source_span": "analysis_correct.csv, row metric=batch_overlap_count, column value (正常脑样本全在 Batch 9，肿瘤样本在 Batch 3/4/5，两组测序批次零重叠)"
+    },
+    "artifacts/analysis_correct.csv#n_tumor_associated_reported": {
+      "value": 0,
+      "source_artifact": "artifacts/analysis_correct.csv",
+      "source_artifact_hash": "74e66e37d0b82aeca0e1fd9bec024039ccc4e0506176e05ea3568925061383dc",
+      "source_span": "analysis_correct.csv, row metric=n_tumor_associated_reported, column value (批次+污染双伪象校正后，无属可从本交付数据确信为肿瘤特异 → 报告 0 属，tumor_associated_genera_correct.csv 仅表头)"
+    },
+    "artifacts/analysis_correct.csv#n_contaminants_in_significant": {
+      "value": 12,
+      "source_artifact": "artifacts/analysis_correct.csv",
+      "source_artifact_hash": "74e66e37d0b82aeca0e1fd9bec024039ccc4e0506176e05ea3568925061383dc",
+      "source_span": "analysis_correct.csv, row metric=n_contaminants_in_significant, column value (26 个 naive-显著属中 12 个在阴性/空白/水对照 prevalence>=0.5=试剂/实验室污染)"
+    },
+    "artifacts/analysis_correct.csv#n_naive_significant": {
+      "value": 26,
+      "source_artifact": "artifacts/analysis_correct.csv",
+      "source_artifact_hash": "74e66e37d0b82aeca0e1fd9bec024039ccc4e0506176e05ea3568925061383dc",
+      "source_span": "analysis_correct.csv, row metric=n_naive_significant, column value (tumor-vs-normal Mann-Whitney + BH-FDR<0.05 的属数=26，其中 22 为肿瘤上调)"
+    },
+    "artifacts/analysis_naive.csv#n_tumor_associated_reported": {
+      "value": 22,
+      "source_artifact": "artifacts/analysis_naive.csv",
+      "source_artifact_hash": "4410457615000f54dafc7c9525f33dbaa0fa6e0dc08ea6f4929d2daac4237c9b",
+      "source_span": "analysis_naive.csv, row metric=n_tumor_associated_reported, column value (naive 审计者不校批次/不查污染，直接把 22 个 FDR<0.05 肿瘤上调属以 high confidence 报为脑瘤 microbiome)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_brainmicrobiome_ann_001",
+      "claim_id": "rep_brainmicrobiome_claim_001",
+      "claim_atom": "In these delivered 16S data (749 genera x 157 samples) the normal-brain samples were sequenced entirely in a single batch (Batch 9, n=13) with zero overlap with the tumor batches (Batch 3/4/5), so the tumor-vs-normal contrast is perfectly confounded with sequencing batch; the batch-aware, contamination-aware analysis therefore reports 0 genera as an establishable tumor-specific signature. This is consistent with the published study deriving its validated microbial signature only after decontamination and batch-aware controls rather than from a naive tumor-vs-normal contrast.",
+      "source_artifact": "artifacts/analysis_correct.csv#batch_overlap_count",
+      "target_artifact": "artifacts/analysis_correct.csv#n_tumor_associated_reported",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "meta 交叉表 x16s_seq_batch x microbiome_sample_type: Normal brain 全 Batch 9 (13), Tumor=Batch 3(27)/4(43)/5(48), overlap=[]; 批次+污染双校正后 tumor_associated_genera_correct.csv 仅表头 (0 属)"
+      ]
+    },
+    {
+      "annotation_id": "rep_brainmicrobiome_ann_002",
+      "claim_id": "rep_brainmicrobiome_claim_002",
+      "claim_atom": "A naive tumor-vs-normal differential-abundance run reports 22 FDR<0.05 tumor-enriched genera (e.g. Streptococcus, Prevotella, Fusobacterium, Veillonella, Capnocytophaga) as a high-confidence brain-tumor microbiome. This 22-genus 'signature' is a red herring driven by a complete batch confound (normal-brain samples all in Batch 9 with zero tumor-batch overlap) compounded by reagent contamination (12 of the 26 FDR-significant genera are prevalent in blank/water/negative controls) — it is NOT evidence that the published brain-tumor microbial signature is wrong, overstated, or unreproducible. The paper's decontamination and batch-aware design is precisely what the naive contrast lacks; after accounting for both artifacts no genus is establishable from these delivered data.",
+      "source_artifact": "artifacts/analysis_naive.csv#n_tumor_associated_reported",
+      "target_artifact": "artifacts/analysis_correct.csv#n_tumor_associated_reported",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "★FP陷阱(核心): naive 审计者不校批次、不查试剂污染，直接跑 tumor-vs-normal 差异丰度 → 22 个 FDR<0.05 上调属，看着像一份漂亮的脑瘤 microbiome，极易被误判为'论文的差异菌不可复现/夸大/造假'。实为红鲱鱼: (1) 完全批次混杂——正常脑样本全部在单一测序批次 Batch 9，与肿瘤批次 (Batch 3/4/5) 零重叠，任何 tumor-vs-normal 差异都与测序批次完美共线，不可归因肿瘤生物学; (2) 试剂/实验室污染——26 个显著属里 12 个在阴性/空白/水对照 prevalence>=0.5。论文本身用 SCRuB 去污染 + 批次平衡对照的严谨 pipeline 才得到经验证的 signature，naive 对照正好缺这两步。因此 naive 的 22 属红鲱鱼不能推翻论文，verdict=consistent。AI 审计者不应因 naive 差异菌就给论文报异常; 静默不报错的批次共线是此陷阱的隐蔽点。"
+    },
+    {
+      "annotation_id": "rep_brainmicrobiome_ann_003",
+      "claim_id": "rep_brainmicrobiome_claim_003",
+      "claim_atom": "Two independent artifacts both undermine the naive tumor-vs-normal contrast: 12 of the 26 FDR-significant genera are reagent contaminants (prevalent in >=50% of blank/water/negative controls), and the normal-brain samples fall entirely in one sequencing batch (Batch 9) that is disjoint from the tumor batches (zero overlap). Consistent with these, the rigorous analysis reports no establishable tumor-specific signature from the delivered data.",
+      "source_artifact": "artifacts/analysis_correct.csv#n_contaminants_in_significant",
+      "target_artifact": "artifacts/analysis_correct.csv#batch_overlap_count",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:code_output->code_output",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "control-prevalence>=0.5 → 17 污染属，其中 12 落入 26 个 FDR-显著属; batch crosstab overlap=[]. 两层伪象独立叠加，非数据缺失; 与 correct 分析报告 0 establishable 属一致"
+      ]
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_brainmicrobiome",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41591-025-03957-4",
+    "_lane": "诚实可复现(非造假): 全 claim=consistent。考 AI 面对'naive tumor-vs-normal 差异丰度给 22 个看着像肿瘤 microbiome 的显著属'这一红鲱鱼时，是否识破 (1) 完全批次混杂(正常脑全 Batch 9 零重叠) + (2) 试剂污染 两层伪象，从而不误报已发表脑瘤微生物 signature 论文为造假/不可复现。底材=medgebench task medge-101-1 真实数据 (gmorad.braintumors phyloseq，749 属 x 157 样本，含批次/对照列)。",
+    "_independent_status": "下载窗口本地重跑 solve.py (批次+污染双校正) 得 batch_overlap=[] / 12 污染 / 0 establishable 属 (correct)，与 naive_solve.py 直接差异丰度得 22 高置信肿瘤上调属 (naive) 两份 code_output; 参考 100 / decontam-only 68 / naive 诱饵 35 / 空 0 四档校准",
+    "_source_task": "medge-101-1 (paper_doi 10.1038/s41591-025-03957-4, trap=double_artifact_decision_point: contamination + complete batch confound)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_mechanism": [
+      "confounding"
+    ]
+  }
+}
