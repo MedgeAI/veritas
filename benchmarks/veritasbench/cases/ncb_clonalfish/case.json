@@ -1,0 +1,131 @@
+{
+  "case_id": "ncb_clonalfish",
+  "paper_title": "Behavioural individuality in clonal fish arises despite near-identical rearing conditions",
+  "paper_authors": [
+    "David Bierbach, Kate L. Laskowski, Max Wolf (Nature Communications, 2017)"
+  ],
+  "artifacts": {
+    "orig_v1": {
+      "path": "artifacts/Bierbach_clonal_molly_SL_v1_original.xlsx",
+      "sha256": "0712465df2505d8084714f1b3c4bc10848a760f464de226d2dd9864a4f621a1c",
+      "kind": "source_data"
+    },
+    "corrected_v2": {
+      "path": "artifacts/Clonal_molly_SL_corrected_v2.csv",
+      "sha256": "c97865fd60bb3d1f6d33720069d45fef98aed18d778f3e90ada1689d438e139a",
+      "kind": "source_data"
+    }
+  },
+  "observations": {
+    "artifacts/Bierbach_clonal_molly_SL_v1_original.xlsx#Clonal molly behavioral individ!D2": {
+      "value": 21.21,
+      "source_artifact": "artifacts/Bierbach_clonal_molly_SL_v1_original.xlsx",
+      "source_artifact_hash": "0712465df2505d8084714f1b3c4bc10848a760f464de226d2dd9864a4f621a1c",
+      "source_span": "sheet 'Clonal molly behavioral individ', cell D2 = SL (standard length / body size, mm) for Fish.ID 5, observation Obs=1 (col A=Fish.ID, B=Trt, C=Obs, D=SL, E=Total.distance; Fish.ID 5 occupies rows 2-5, its four behavioural observations)"
+    },
+    "artifacts/Bierbach_clonal_molly_SL_v1_original.xlsx#Clonal molly behavioral individ!D3": {
+      "value": 20.22,
+      "source_artifact": "artifacts/Bierbach_clonal_molly_SL_v1_original.xlsx",
+      "source_artifact_hash": "0712465df2505d8084714f1b3c4bc10848a760f464de226d2dd9864a4f621a1c",
+      "source_span": "sheet 'Clonal molly behavioral individ', cell D3 = SL for the SAME Fish.ID 5, observation Obs=2 (D2=21.21, D3=20.22, D4=22.66, D5=21.96 all belong to one individual yet differ, whereas SL is a single per-fish body-size measurement)"
+    },
+    "artifacts/Bierbach_clonal_molly_SL_v1_original.xlsx#Clonal molly behavioral individ!E2": {
+      "value": 143.994,
+      "source_artifact": "artifacts/Bierbach_clonal_molly_SL_v1_original.xlsx",
+      "source_artifact_hash": "0712465df2505d8084714f1b3c4bc10848a760f464de226d2dd9864a4f621a1c",
+      "source_span": "sheet 'Clonal molly behavioral individ', cell E2 = Total.distance (behavioural outcome, the trait used for individuality/repeatability) for Fish.ID 5, Obs=1"
+    },
+    "artifacts/Clonal_molly_SL_corrected_v2.csv#row5!Bad.SL": {
+      "value": 21.21,
+      "source_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv",
+      "source_artifact_hash": "c97865fd60bb3d1f6d33720069d45fef98aed18d778f3e90ada1689d438e139a",
+      "source_span": "data row for ID=5, Obs=1, column 'Bad.SL' (5th column; file line 254 counting the header as line 1). columns = ID,Mom.ID,Trt,Obs,Bad.SL,Total.distance,Correct.SL. 'Bad.SL'=21.21 reproduces the original (mis-assigned) SL from v1 cell D2 and is paired with Total.distance=143.994, matching v1 E2"
+    },
+    "artifacts/Clonal_molly_SL_corrected_v2.csv#row5!Total.distance": {
+      "value": 143.994,
+      "source_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv",
+      "source_artifact_hash": "c97865fd60bb3d1f6d33720069d45fef98aed18d778f3e90ada1689d438e139a",
+      "source_span": "data row for ID=5, Obs=1, column 'Total.distance' (6th column; file line 254). Total.distance=143.994 is byte-identical to v1 cell E2: the behavioural measurements were carried over unchanged; the correction rebuilt only the SL column"
+    },
+    "artifacts/Clonal_molly_SL_corrected_v2.csv#row2!Correct.SL": {
+      "value": 23.66,
+      "source_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv",
+      "source_artifact_hash": "c97865fd60bb3d1f6d33720069d45fef98aed18d778f3e90ada1689d438e139a",
+      "source_span": "data row for ID=1, Obs=1, column 'Correct.SL' (7th column; first data row, file line 2). Correct.SL=23.66 is CONSTANT across all four rows of ID=1 (a single body-size per fish), unlike the Bad.SL column which varies row-to-row"
+    },
+    "artifacts/Clonal_molly_SL_corrected_v2.csv#row2!Bad.SL": {
+      "value": 21.08,
+      "source_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv",
+      "source_artifact_hash": "c97865fd60bb3d1f6d33720069d45fef98aed18d778f3e90ada1689d438e139a",
+      "source_span": "data row for ID=1, Obs=1, column 'Bad.SL' (5th column; file line 2). Bad.SL for ID=1 = 21.08, 20.48, 22.58, 22.18 across its four rows (varies within one fish = the deposited misalignment), whereas Correct.SL is fixed at 23.66"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_clonalfish_ann_001",
+      "claim_id": "ncb_clonalfish_claim_001",
+      "claim_atom": "In the original Dryad deposit (v1, 2020), the body-size column SL is misaligned to Fish.ID: for Fish.ID 5 the four rows (its four behavioural observations) carry DIFFERENT SL values (D2=21.21, D3=20.22, D4=22.66, D5=21.96 mm), which is impossible because standard length (SL) is a single per-individual body-size measurement that cannot change across the four repeated behavioural trials of the same fish. 78 of 94 fish show the same within-individual SL variation. The corrected 2026 deposit makes the error explicit by carrying two columns, 'Bad.SL' (the original mis-assigned values, e.g. ID=1 row = 21.08/20.48/22.58/22.18) and 'Correct.SL' (constant per fish, e.g. 23.66 for all four rows of ID=1). The authors acknowledged on PubPeer that the Dryad body-size/SL data were misaligned to Fish ID and updated the deposited data and the paper.",
+      "source_artifact": "artifacts/Bierbach_clonal_molly_SL_v1_original.xlsx#Clonal molly behavioral individ!D3",
+      "target_artifact": "artifacts/Bierbach_clonal_molly_SL_v1_original.xlsx#Clonal molly behavioral individ!D2",
+      "source_a1_range": "D3 (Fish.ID 5, Obs=2)",
+      "target_a1_range": "D2 (Fish.ID 5, Obs=1)",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "misaligned_records",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "错位核心-作者已认(inconsistent): 原始v1 Dryad中SL(体长/body-size)列相对Fish.ID错位。Fish.ID 5的四行(=同一鱼的四次行为观测)SL各不相同(D2=21.21, D3=20.22, D4=22.66, D5=21.96), 但SL是每尾鱼一次的固定体长测量, 不可能跨同鱼的四次重复观测而变化; 全体94尾中78尾都有此同鱼内SL变化。更正版v2以'Bad.SL'(原错位值)与'Correct.SL'(每鱼恒定, 如ID=1四行皆23.66)双列坐实。作者在PubPeer承认Dryad body-size↔Fish ID错位并更新数据与论文。verdict=inconsistent。"
+    },
+    {
+      "annotation_id": "ncb_clonalfish_ann_002",
+      "claim_id": "ncb_clonalfish_claim_002",
+      "claim_atom": "The misalignment is confined to the SL (body-size) covariate; the behavioural outcome Total.distance is untouched. The Total.distance value for Fish.ID 5 / Obs=1 is 143.994 in the original v1 (cell E2) and 143.994 in the corrected v2 (ID=5, Obs=1, line 254), byte-identical, and the full Total.distance multiset is identical across the two deposits. Because behavioural individuality is estimated from the repeatability of Total.distance (among- vs within-individual variance), and SL entered only as a covariate, correcting the SL alignment does not change the behaviour data on which the headline finding rests. Consistent with the authors' statement that after re-running the model the main conclusion (behavioural individuality among near-clonal fish) is essentially unchanged.",
+      "source_artifact": "artifacts/Bierbach_clonal_molly_SL_v1_original.xlsx#Clonal molly behavioral individ!E2",
+      "target_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv#row5!Total.distance",
+      "source_a1_range": "E2 (Fish.ID 5, Obs=1, Total.distance)",
+      "target_a1_range": "line 254, column 'Total.distance' (ID=5, Obs=1)",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "合法反证(consistent, clean): 错位只在SL(体长)协变量; 行为结局Total.distance未动。Fish.ID 5/Obs=1的Total.distance在v1(E2)=143.994, 在v2(ID=5 Obs=1, 第254行)=143.994逐位相同, 且全表Total.distance多重集两版一致。行为个体性由Total.distance的重复度(个体间vs个体内方差)估计, SL仅作协变量, 故校正SL对齐不改变支撑headline的行为数据。呼应作者'重跑模型后主结论(近克隆鱼的行为个体性)基本不变'。AI应把SL错位定为不影响核心结论的协变量层错误。"
+    },
+    {
+      "annotation_id": "ncb_clonalfish_ann_003",
+      "claim_id": "ncb_clonalfish_claim_003",
+      "claim_atom": "Whether the corrected SL-to-Fish.ID assignment is now fully correct, and whether the paper's Table 1 body-size-related values recompute exactly, cannot be verified from the deposit alone. The correction did not add new measurements: the Correct.SL column re-assigns the SAME pool of 84 distinct SL values that were in the original (the multiset of SL values is identical before and after; e.g. ID=1's Bad.SL is 21.08/20.48/22.58/22.18 while its Correct.SL 23.66 is a value drawn from that same pool but originally sitting on a different fish's rows). No independent raw record with unambiguous fish tags is deposited to confirm that each Correct.SL truly belongs to that individual, so the correctness of the re-alignment and the final Table 1 values remain unadjudicable from the available files.",
+      "source_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv#row2!Correct.SL",
+      "target_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv#row2!Bad.SL",
+      "source_a1_range": "line 2, column 'Correct.SL' (ID=1)",
+      "target_a1_range": "line 2, column 'Bad.SL' (ID=1)",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "待定(insufficient): 更正后的SL↔Fish.ID对齐是否完全正确、以及论文Table 1体长相关值能否精确重算, 仅凭该deposit无法核验。更正未引入新测量: Correct.SL列只是把原有的同一批84个SL值重新分配(SL值多重集前后完全一致; 如ID=1的Bad.SL=21.08/20.48/22.58/22.18, 其Correct.SL=23.66来自同一批值但原本落在别的鱼行上)。没有带明确鱼标签的独立原始记录来确认每个Correct.SL确属该个体, 故重对齐的正确性与Table 1最终值无法从现有文件裁定。verdict=insufficient。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_clonalfish",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "verifier_conflict"
+    ],
+    "source_url": "https://doi.org/10.1038/ncomms15361",
+    "_lane": "作者已认并已更正的Dryad错位型mixed(三verdict, before/after双版本): (1)inconsistent=原始v1 Dryad中SL(体长)列相对Fish.ID错位, 同一鱼四行SL各异(Fish.ID 5: D2=21.21/D3=20.22/D4=22.66/D5=21.96), 而SL为每鱼固定测量不可能跨同鱼重复观测而变(94尾中78尾如此); 更正v2以Bad.SL/Correct.SL双列坐实。(2)consistent=错位仅在SL协变量, 行为结局Total.distance两版逐位一致(E2=143.994==v2第254行), 行为个体性由Total.distance重复度估计, 结论不变。(3)insufficient=更正只是把同一批84个SL值重分配(SL多重集前后一致), 无带鱼标签的独立原始记录, 故重对齐是否完全正确/Table 1最终值无法从deposit裁定。Dryad开放双版本(v1 2020-06-24原始xlsx + v2 2026-02-05 SL_CORRECTED csv)可diff。",
+    "_author_response": "作者在PubPeer(D1769F3E32035DFA98B422B27F8C86)确认: Dryad中的body-size/SL数据与Fish ID错位(mislabelled/misaligned), 重跑模型后主要结论(近克隆molly鱼的行为个体性)基本不变, 并已更新Dryad数据(新增v2, 文件名含'SL_CORRECTED', 带Bad.SL与Correct.SL双列及corrected的Rmd/PDF分析代码)以及论文相应部分。",
+    "_independent_status": "下载窗口经Dryad API zip_assembly端点绕过Anubis直下两版本(dataset DOI 10.5061/dryad.td3sj, id 16328): v1=version 16385(2020-06-24, 'Bierbach et al clonal molly behav development_data for deposit.xlsx', 373数据行, 列Fish.ID/Trt/Obs/SL/Total.distance); v2=version 423653(2026-02-05, '..._SL_corrected.csv', 373行, 列ID/Mom.ID/Trt/Obs/Bad.SL/Total.distance/Correct.SL)。本地核验: v1同鱼内SL变化(Fish.ID5 D2:D5=21.21/20.22/22.66/21.96)且78/94尾如此; v2 Correct.SL 94/94尾恒定、Bad.SL 78/94尾同鱼内变化; Total.distance多重集两版完全一致(E2=143.994匹配v2第254行); SL值多重集两版一致(各84个distinct)证更正=重分配非新测量。",
+    "_pubpeer": "D1769F3E32035DFA98B422B27F8C86",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}
