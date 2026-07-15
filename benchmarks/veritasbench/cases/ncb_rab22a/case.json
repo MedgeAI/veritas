@@ -19,7 +19,7 @@
     }
   },
   "observations": {
-    "artifacts/source_data_ed6.xlsx#ed6h_vector_E": {
+    "artifacts/source_data_ed6.xlsx#Sheet1!E92:E98": {
       "value": [
         0.18,
         0.19,
@@ -33,7 +33,7 @@
       "source_artifact_hash": "9ba2db02842bf35af791838df7a986fcce081136f9e2955082f14dd9b7458018",
       "source_span": "sheet 'Sheet1', block label 'Extended Data 6h' (B89), header 'lung wet weight(g)' (B90), '143B' (B91); Vector column E (header E91='Vector'), rows 92-98 = 7 per-animal wet lung weights (g)"
     },
-    "artifacts/source_data_ed6.xlsx#ed6h_sg2mut_M": {
+    "artifacts/source_data_ed6.xlsx#Sheet1!M92:M98": {
       "value": [
         0.18,
         0.19,
@@ -47,7 +47,7 @@
       "source_artifact_hash": "9ba2db02842bf35af791838df7a986fcce081136f9e2955082f14dd9b7458018",
       "source_span": "sheet 'Sheet1', block 'Extended Data 6h' (143B); column M (header M91='SmgGDS sg2+E254K+D256K'), rows 92-98 = 7 per-animal wet lung weights (g) for the SmgGDS-sg2 rescue arm"
     },
-    "artifacts/source_data_ed6.xlsx#ed6f_vector_raw_B": {
+    "artifacts/source_data_ed6.xlsx#Sheet1!B8:B10": {
       "value": [
         31,
         46,
@@ -57,7 +57,7 @@
       "source_artifact_hash": "9ba2db02842bf35af791838df7a986fcce081136f9e2955082f14dd9b7458018",
       "source_span": "sheet 'Sheet1', block 'Extended Data 6f' (B3), '143B adhesion' (C5); Vector raw adhesion counts, column B (header B7='vector'), rows 8-10 = n=3 biological replicates"
     },
-    "artifacts/source_data_ed6.xlsx#ed6f_vector_fd_C": {
+    "artifacts/source_data_ed6.xlsx#Sheet1!C8:C10": {
       "value": [
         1,
         1,
@@ -85,8 +85,8 @@
       "annotation_id": "ncb_rab22a_ann_001",
       "claim_id": "ncb_rab22a_claim_001",
       "claim_atom": "In Extended Data Fig. 6f (143B adhesion, n=3), the fold-change(FD) column of the Vector reference group (column C, rows 8-10) equals exactly 1.0 for every replicate (C8=C9=C10=1). A naive duplication/constant detector may flag 'three identical values = fabricated constant', but this is the mathematical necessity of reference-group normalization: fold change is each group's count divided by the Vector (reference) value, so Vector/Vector = 1 by construction. It is NOT a fabricated or manipulated pattern.",
-      "source_artifact": "artifacts/source_data_ed6.xlsx#ed6f_vector_raw_B",
-      "target_artifact": "artifacts/source_data_ed6.xlsx#ed6f_vector_fd_C",
+      "source_artifact": "artifacts/source_data_ed6.xlsx#Sheet1!B8:B10",
+      "target_artifact": "artifacts/source_data_ed6.xlsx#Sheet1!C8:C10",
       "relation_type": "L1",
       "verdict": "consistent",
       "discrepancy_type": null,
@@ -103,8 +103,8 @@
       "annotation_id": "ncb_rab22a_ann_002",
       "claim_id": "ncb_rab22a_claim_002",
       "claim_atom": "In Extended Data Fig. 6h (143B wet lung weight; caption states n=6 biologically independent animals per arm), the Vector control column (E, rows 92-98) and the SmgGDS-sg2+E254K+D256K rescue column (M, rows 92-98) carry byte-identical per-animal values for ALL 7 listed entries (0.18, 0.19, 0.197, 0.22, 0.187, 0.21, 0.21), giving identical reported means (row 99: E99=M99=0.19914...). Two supposedly independent in-vivo animal cohorts cannot yield value-identical wet lung weights across every animal; this is a duplicated (copy-pasted) column. The same block also shows the RAB22A-NeoF1 column F and the sgNC column G identical in 6 of 7 animals, the sole difference being a rounding artifact (F98=0.264 vs G98=0.265) — the 'same data, rounded differently' signature.",
-      "source_artifact": "artifacts/source_data_ed6.xlsx#ed6h_vector_E",
-      "target_artifact": "artifacts/source_data_ed6.xlsx#ed6h_sg2mut_M",
+      "source_artifact": "artifacts/source_data_ed6.xlsx#Sheet1!E92:E98",
+      "target_artifact": "artifacts/source_data_ed6.xlsx#Sheet1!M92:M98",
       "relation_type": "L1",
       "verdict": "inconsistent",
       "discrepancy_type": "duplicated_columns",

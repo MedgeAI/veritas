@@ -40,49 +40,49 @@
     }
   },
   "observations": {
-    "artifacts/source_data_fig4.xlsx#fig4a_emx1sg2p_hyeA3A_c6": {
+    "artifacts/source_data_fig4.xlsx#Fig.4a!F6": {
       "value": 54.1,
       "source_artifact": "artifacts/source_data_fig4.xlsx",
       "source_artifact_hash": "23263761239e6fb984c6edf67d8f9639cb39c87235feb94f159d686a022e520e",
       "source_span": "sheet 'Fig.4a', cell F6 (block A4='EMX1-sg2p', target C6; editor header F2='hyeA3A-BE4max', replicate F3='Rep.1')"
     },
-    "artifacts/source_data_extdatafig3.xlsx#ed3_emx1sg2p_hyeA3A_c6": {
+    "artifacts/source_data_extdatafig3.xlsx#Extended Data Fig.3!B22": {
       "value": 54.1,
       "source_artifact": "artifacts/source_data_extdatafig3.xlsx",
       "source_artifact_hash": "2d22dc3ecbfcacf66b24d74cfe841894a1227ca0b9c6c70d48585343a0f44ccd",
       "source_span": "sheet 'Extended Data Fig.3', cell B22 (block A20='EMX1-sg2p', target C6; editor header B2='hyeA3A-BE4max', replicate B3='Rep.1')"
     },
-    "artifacts/source_data_fig2.xlsx#fig2a_emx1sg2p_a3abe4_c3": {
+    "artifacts/source_data_fig2.xlsx#Fig.2a!E55": {
       "value": 33.5,
       "source_artifact": "artifacts/source_data_fig2.xlsx",
       "source_artifact_hash": "39a1aa3b93f8a9743d2ee26e178bcb6767530b4c2a3be0fe96bcccf33bb80a82",
       "source_span": "sheet 'Fig.2a', cell E55 (block A54='EMX1-sg2p', target C3; editor header E2='A3A-BE4max', replicate Rep.1)"
     },
-    "artifacts/source_data_extdatafig3.xlsx#ed3_emx1sg2p_a3abe4_c3": {
+    "artifacts/source_data_extdatafig3.xlsx#Extended Data Fig.3!F21": {
       "value": 33.5,
       "source_artifact": "artifacts/source_data_extdatafig3.xlsx",
       "source_artifact_hash": "2d22dc3ecbfcacf66b24d74cfe841894a1227ca0b9c6c70d48585343a0f44ccd",
       "source_span": "sheet 'Extended Data Fig.3', cell F21 (block A20='EMX1-sg2p', target C3; editor header F2='A3A-BE4max', replicate F3='Rep.1')"
     },
-    "artifacts/source_data_fig1.xlsx#fig1c_tim3sg1_brca2ob2_rep1_c3": {
+    "artifacts/source_data_fig1.xlsx#Fig.1c!T9": {
       "value": 9.2,
       "source_artifact": "artifacts/source_data_fig1.xlsx",
       "source_artifact_hash": "48374ec3867bc056fd6e36334800aab636aa092912d57a152935df96fe1a1ff4",
       "source_span": "sheet 'Fig.1c', cell T9 (block A7='Tim3-sg1', target C3; editor header T2='BRCA2-OB2-BE4max', replicate T3='Rep.1')"
     },
-    "artifacts/source_data_fig1.xlsx#fig1c_tim3sg1_brca2ob2_rep2_c3": {
+    "artifacts/source_data_fig1.xlsx#Fig.1c!U9": {
       "value": 9.2,
       "source_artifact": "artifacts/source_data_fig1.xlsx",
       "source_artifact_hash": "48374ec3867bc056fd6e36334800aab636aa092912d57a152935df96fe1a1ff4",
       "source_span": "sheet 'Fig.1c', cell U9 (block A7='Tim3-sg1', target C3; editor header T2='BRCA2-OB2-BE4max', replicate U3='Rep.2')"
     },
-    "artifacts/source_data_fig5.xlsx#fig5f_hyBE4max_cell8": {
+    "artifacts/source_data_fig5.xlsx#Fig.5f!C11": {
       "value": 0.376315,
       "source_artifact": "artifacts/source_data_fig5.xlsx",
       "source_artifact_hash": "64c8a247510b89fdaa657749b7f276329483b582c4d45b84f0c9170c209f62a0",
       "source_span": "sheet 'Fig.5f', cell C11 (comet-assay tail moment; editor header C3='hyBE4max', single-cell measurement #8 of n=50)"
     },
-    "artifacts/source_data_fig5.xlsx#fig5f_hyBE4max_cell9": {
+    "artifacts/source_data_fig5.xlsx#Fig.5f!C12": {
       "value": 0.0883697,
       "source_artifact": "artifacts/source_data_fig5.xlsx",
       "source_artifact_hash": "64c8a247510b89fdaa657749b7f276329483b582c4d45b84f0c9170c209f62a0",
@@ -94,8 +94,8 @@
       "annotation_id": "ncb_baseeditor_ann_001",
       "claim_id": "ncb_baseeditor_claim_001",
       "claim_atom": "The hyeA3A-BE4max editing values for EMX1-sg2p in Fig.4a (F5:F12 = 0.3, 54.1, 7.4, 4.9, 0.8, 0.1, 0.1, 0.1) are byte-identical to the hyeA3A-BE4max values for the same locus in Extended Data Fig.3 (B21:B28), because hyeA3A-BE4max is the shared reference editor arm re-plotted across two comparison panels (Fig.4a eA3A-vs-hyeA3A; ED Fig.3 A3A-BE4-vs-hyeA3A).",
-      "source_artifact": "artifacts/source_data_fig4.xlsx#fig4a_emx1sg2p_hyeA3A_c6",
-      "target_artifact": "artifacts/source_data_extdatafig3.xlsx#ed3_emx1sg2p_hyeA3A_c6",
+      "source_artifact": "artifacts/source_data_fig4.xlsx#Fig.4a!F6",
+      "target_artifact": "artifacts/source_data_extdatafig3.xlsx#Extended Data Fig.3!B22",
       "relation_type": "L1",
       "verdict": "consistent",
       "discrepancy_type": null,
@@ -112,8 +112,8 @@
       "annotation_id": "ncb_baseeditor_ann_002",
       "claim_id": "ncb_baseeditor_claim_002",
       "claim_atom": "The A3A-BE4max editing values for EMX1-sg2p in Fig.2a (E55:E62 = 33.5, 46.4, 34, 30.6, 14.8, 4.4, 2.4, 1.1) are identical to the A3A-BE4max values for the same locus in Extended Data Fig.3 (F21:F28), because A3A-BE4max is the shared parental-editor reference arm re-shown in both comparison figures.",
-      "source_artifact": "artifacts/source_data_fig2.xlsx#fig2a_emx1sg2p_a3abe4_c3",
-      "target_artifact": "artifacts/source_data_extdatafig3.xlsx#ed3_emx1sg2p_a3abe4_c3",
+      "source_artifact": "artifacts/source_data_fig2.xlsx#Fig.2a!E55",
+      "target_artifact": "artifacts/source_data_extdatafig3.xlsx#Extended Data Fig.3!F21",
       "relation_type": "L1",
       "verdict": "consistent",
       "discrepancy_type": null,
@@ -130,8 +130,8 @@
       "annotation_id": "ncb_baseeditor_ann_003",
       "claim_id": "ncb_baseeditor_claim_003",
       "claim_atom": "In Fig.1c (BRCA2-OB2-BE4max at Tim3-sg1), replicate 1 (T9:T14 = 9.2, 9.3, 7.9, 7.3, 6.2, 5.6) is byte-for-byte identical to replicate 2 (U9:U14) across all six target cytosines, while replicate 3 (V9:V14 = 8.8, 9.0, 7.4, 7.0, 5.6, 4.7) differs — indicating two supposedly independent HTS replicates carry identical values.",
-      "source_artifact": "artifacts/source_data_fig1.xlsx#fig1c_tim3sg1_brca2ob2_rep1_c3",
-      "target_artifact": "artifacts/source_data_fig1.xlsx#fig1c_tim3sg1_brca2ob2_rep2_c3",
+      "source_artifact": "artifacts/source_data_fig1.xlsx#Fig.1c!T9",
+      "target_artifact": "artifacts/source_data_fig1.xlsx#Fig.1c!U9",
       "relation_type": "L1",
       "verdict": "inconsistent",
       "discrepancy_type": "duplicated_replicate",
@@ -148,8 +148,8 @@
       "annotation_id": "ncb_baseeditor_ann_004",
       "claim_id": "ncb_baseeditor_claim_004",
       "claim_atom": "The two near-zero hyBE4max comet-assay tail moments in Fig.5f (C11 = 0.376315 and C12 = 0.0883697), which sit ~2 orders of magnitude below the surrounding single-cell values (~34, ~101), are among the flagged Fig.5f anomalies and demonstrate data fabrication.",
-      "source_artifact": "artifacts/source_data_fig5.xlsx#fig5f_hyBE4max_cell8",
-      "target_artifact": "artifacts/source_data_fig5.xlsx#fig5f_hyBE4max_cell9",
+      "source_artifact": "artifacts/source_data_fig5.xlsx#Fig.5f!C11",
+      "target_artifact": "artifacts/source_data_fig5.xlsx#Fig.5f!C12",
       "relation_type": "L1",
       "verdict": "insufficient",
       "discrepancy_type": "measurement_precision_limit",
@@ -157,7 +157,9 @@
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-15T00:00:00Z",
       "is_clean_claim": false,
-      "_adjudication": "Insufficient(证据不足以定性): Fig.5f 是单细胞 comet assay 尾矩(n=50/编辑器), 灵镜披露该单图约 18 处异常. hyBE4max 列出现极低值(C11=0.376, C12=0.088)夹在正常量级(C10=34.1, C13=101.5)之间, 表面像离群/异常. 但 comet 尾矩本身跨度极大(单个近乎无损伤细胞可给出接近 0 的尾矩), 且源数据仅是最终数值表, 不含原始 comet 图像/像素级测量. 无法仅凭公开 source data 确定性判定这些近零值是造假、软件测量下限伪影、还是真实近零细胞. 属方法学/精度限制→insufficient(不给 evidence_span). source/target 指向两个近零观测仅作 claim 锚点, 非造假的确证证据."
+      "_adjudication": "Insufficient(证据不足以定性): Fig.5f 是单细胞 comet assay 尾矩(n=50/编辑器), 灵镜披露该单图约 18 处异常. hyBE4max 列出现极低值(C11=0.376, C12=0.088)夹在正常量级(C10=34.1, C13=101.5)之间, 表面像离群/异常. 但 comet 尾矩本身跨度极大(单个近乎无损伤细胞可给出接近 0 的尾矩), 且源数据仅是最终数值表, 不含原始 comet 图像/像素级测量. 无法仅凭公开 source data 确定性判定这些近零值是造假、软件测量下限伪影、还是真实近零细胞. 属方法学/精度限制→insufficient(不给 evidence_span). source/target 指向两个近零观测仅作 claim 锚点, 非造假的确证证据.",
+      "source_a1_range": "sheet 'Fig.5f' C11:C11",
+      "target_a1_range": "sheet 'Fig.5f' C12:C12"
     }
   ],
   "metadata": {

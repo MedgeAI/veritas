@@ -27,37 +27,37 @@
     }
   },
   "observations": {
-    "artifacts/source_data_ed7f.xlsx#ed7f_zbp1_wt1": {
+    "artifacts/source_data_ed7f.xlsx#Extended Data Fig. 7f!C3": {
       "value": 0.993069,
       "source_artifact": "artifacts/source_data_ed7f.xlsx",
       "source_artifact_hash": "8d86211dc0d372aefad6ce1d8b83275a9e514fca742fbf50f82d0cca59341f88",
       "source_span": "sheet 'Extended Data Fig. 7f', cell C3 (ISG=ZBP1 [B3]; WT replicate 1, header C2='1#WT'; normalized relative expression, n=2 WT)"
     },
-    "artifacts/source_data_ed7f.xlsx#ed7f_zbp1_wt2": {
+    "artifacts/source_data_ed7f.xlsx#Extended Data Fig. 7f!D3": {
       "value": 1.006931,
       "source_artifact": "artifacts/source_data_ed7f.xlsx",
       "source_artifact_hash": "8d86211dc0d372aefad6ce1d8b83275a9e514fca742fbf50f82d0cca59341f88",
       "source_span": "sheet 'Extended Data Fig. 7f', cell D3 (ISG=ZBP1 [B3]; WT replicate 2, header D2='2#WT'; normalized relative expression, n=2 WT)"
     },
-    "artifacts/source_data_ed8e.xlsx#ed8e_irf7_wtcolD": {
+    "artifacts/source_data_ed8e.xlsx#Extended Data Fig. 8e!D4": {
       "value": 1.194333,
       "source_artifact": "artifacts/source_data_ed8e.xlsx",
       "source_artifact_hash": "d180994e8017bd9a0bef1d4fdfb9d56f8b6dca19b2517af72bacc41a4dc1bcee",
       "source_span": "sheet 'Extended Data Fig. 8e', cell D4 (ISG=Irf7 [A4]; WT replicate 3 of n=7, WT block header B2='WT')"
     },
-    "artifacts/source_data_ed8e.xlsx#ed8e_irf7_wtcolG": {
+    "artifacts/source_data_ed8e.xlsx#Extended Data Fig. 8e!G4": {
       "value": 1.194333,
       "source_artifact": "artifacts/source_data_ed8e.xlsx",
       "source_artifact_hash": "d180994e8017bd9a0bef1d4fdfb9d56f8b6dca19b2517af72bacc41a4dc1bcee",
       "source_span": "sheet 'Extended Data Fig. 8e', cell G4 (ISG=Irf7 [A4]; WT replicate 6 of n=7, WT block header B2='WT')"
     },
-    "artifacts/source_data_ed8e.xlsx#ed8e_zbp1_wtcolB": {
+    "artifacts/source_data_ed8e.xlsx#Extended Data Fig. 8e!B3": {
       "value": 1.064041,
       "source_artifact": "artifacts/source_data_ed8e.xlsx",
       "source_artifact_hash": "d180994e8017bd9a0bef1d4fdfb9d56f8b6dca19b2517af72bacc41a4dc1bcee",
       "source_span": "sheet 'Extended Data Fig. 8e', cell B3 (ISG=Zbp1 [A3]; WT replicate 1 of n=7, WT block header B2='WT')"
     },
-    "artifacts/source_data_ed8e.xlsx#ed8e_zbp1_wtcolH": {
+    "artifacts/source_data_ed8e.xlsx#Extended Data Fig. 8e!H3": {
       "value": 1.319099,
       "source_artifact": "artifacts/source_data_ed8e.xlsx",
       "source_artifact_hash": "d180994e8017bd9a0bef1d4fdfb9d56f8b6dca19b2517af72bacc41a4dc1bcee",
@@ -69,8 +69,8 @@
       "annotation_id": "ncb_mowei_ann_001",
       "claim_id": "ncb_mowei_claim_001",
       "claim_atom": "In Extended Data Fig. 7f, for every ISG the two WT control columns (C='1#WT', D='2#WT') sum to exactly 2.0 (ZBP1 0.993069+1.006931=2.0; IRF7 0.828427+1.171573=2.0; ISG15 0.691535+1.308465=2.0; IFI44 0.81166+1.18834=2.0; OASL1 0.666667+1.333333=2.0; OAS3 1.051939+0.948061=2.0). This constant sum-to-2 is the mathematical necessity of mean-normalization: each WT value is divided by the mean of the two WT biological replicates, so the two normalized WT values must sum to n=2. It is NOT a fabricated/manipulated pattern.",
-      "source_artifact": "artifacts/source_data_ed7f.xlsx#ed7f_zbp1_wt1",
-      "target_artifact": "artifacts/source_data_ed7f.xlsx#ed7f_zbp1_wt2",
+      "source_artifact": "artifacts/source_data_ed7f.xlsx#Extended Data Fig. 7f!C3",
+      "target_artifact": "artifacts/source_data_ed7f.xlsx#Extended Data Fig. 7f!D3",
       "relation_type": "L1",
       "verdict": "consistent",
       "discrepancy_type": null,
@@ -87,8 +87,8 @@
       "annotation_id": "ncb_mowei_ann_002",
       "claim_id": "ncb_mowei_claim_002",
       "claim_atom": "In Extended Data Fig. 8e (WT vs HET ISG qPCR, n=7 WT), the WT column D (replicate 3) and WT column G (replicate 6) carry value-identical entries for 4 of the 6 ISGs — Irf7 (D4=G4=1.194333), Isg15 (D5=G5=1.046568), Ifl44l (D6=G6=1.14536) and Oasl1 (D7=G7=1.314954) — i.e. these values each appear twice within the WT block, while Zbp1 (D3=0.757624 vs G3=0.932744) and Ifnb1 (D8=1.381622 vs G8=0.911531) differ. Two supposedly independent WT biological replicates thus carry duplicated (copy-pasted) values across most genes.",
-      "source_artifact": "artifacts/source_data_ed8e.xlsx#ed8e_irf7_wtcolD",
-      "target_artifact": "artifacts/source_data_ed8e.xlsx#ed8e_irf7_wtcolG",
+      "source_artifact": "artifacts/source_data_ed8e.xlsx#Extended Data Fig. 8e!D4",
+      "target_artifact": "artifacts/source_data_ed8e.xlsx#Extended Data Fig. 8e!G4",
       "relation_type": "L1",
       "verdict": "inconsistent",
       "discrepancy_type": "duplicated_columns",
@@ -105,8 +105,8 @@
       "annotation_id": "ncb_mowei_ann_003",
       "claim_id": "ncb_mowei_claim_003",
       "claim_atom": "The author-flagged Extended Data Fig. 2e concern — the panel plots 3 WT samples but its Source Data reportedly lists 6 WT — cannot be independently adjudicated from the deposited artifacts: NONE of the 14 deposited Source Data workbooks (MOESM3-16) contains an 'Extended Data Fig. 2' sheet (main 'Fig. 2e' is an unrelated IHC-intensity chart of IBD patients). The only deposited WT ISG source data (Extended Data Fig. 8e, anchored here at B3 the first WT replicate and H3 the seventh) documents n=7 WT columns, but ED Fig. 2e's own numeric values are absent, so whether the extra WT columns are mis-pasted unrelated test data can only be resolved by author clarification.",
-      "source_artifact": "artifacts/source_data_ed8e.xlsx#ed8e_zbp1_wtcolB",
-      "target_artifact": "artifacts/source_data_ed8e.xlsx#ed8e_zbp1_wtcolH",
+      "source_artifact": "artifacts/source_data_ed8e.xlsx#Extended Data Fig. 8e!B3",
+      "target_artifact": "artifacts/source_data_ed8e.xlsx#Extended Data Fig. 8e!H3",
       "relation_type": "L1",
       "verdict": "insufficient",
       "discrepancy_type": null,
@@ -114,7 +114,9 @@
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-15T00:00:00Z",
       "is_clean_claim": false,
-      "_adjudication": "Insufficient(需作者澄清; ED Fig. 2e 源数据未沉积). 作者对问题1的回复原话: ED Fig. 2e 图上WT组3样品但Source Data有6个WT, 红框标注的 WT-1/WT-2/WT-3 是整理数据时误粘入的无关测试数据, 真正用于分析的是绿框 W1/W2/W3. 数据核实: 本论文14个Source Data工作簿(MOESM3-16)均无 'Extended Data Fig. 2' 任何面板的数值表(仅主图 Fig. 2e 存在, 内容是IBD患者 γH2AX IHC强度分级, 与WT/HET ISG无关), 因此ED Fig. 2e的'3 vs 6 WT'差异无法仅凭公开artifacts确证到底是误粘无关数据还是其他. anchor 借用同论文唯一沉积的WT ISG源数据(ED Fig. 8e 的 WT首列B3与末列H3, 共n=7 WT)作为WT重复结构的上下文参照, 但ED Fig. 2e本身数据缺失→判 insufficient, 不给 evidence_span, 依赖作者澄清(作者承认红框为误粘无关数据可支持 inconsistent 方向, 但公开数据不足以独立确证)."
+      "_adjudication": "Insufficient(需作者澄清; ED Fig. 2e 源数据未沉积). 作者对问题1的回复原话: ED Fig. 2e 图上WT组3样品但Source Data有6个WT, 红框标注的 WT-1/WT-2/WT-3 是整理数据时误粘入的无关测试数据, 真正用于分析的是绿框 W1/W2/W3. 数据核实: 本论文14个Source Data工作簿(MOESM3-16)均无 'Extended Data Fig. 2' 任何面板的数值表(仅主图 Fig. 2e 存在, 内容是IBD患者 γH2AX IHC强度分级, 与WT/HET ISG无关), 因此ED Fig. 2e的'3 vs 6 WT'差异无法仅凭公开artifacts确证到底是误粘无关数据还是其他. anchor 借用同论文唯一沉积的WT ISG源数据(ED Fig. 8e 的 WT首列B3与末列H3, 共n=7 WT)作为WT重复结构的上下文参照, 但ED Fig. 2e本身数据缺失→判 insufficient, 不给 evidence_span, 依赖作者澄清(作者承认红框为误粘无关数据可支持 inconsistent 方向, 但公开数据不足以独立确证).",
+      "source_a1_range": "sheet 'Extended Data Fig. 8e' B3:B3",
+      "target_a1_range": "sheet 'Extended Data Fig. 8e' H3:H3"
     }
   ],
   "metadata": {
