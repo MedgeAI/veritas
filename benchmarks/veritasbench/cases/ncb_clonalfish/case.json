@@ -35,29 +35,29 @@
       "source_artifact_hash": "0712465df2505d8084714f1b3c4bc10848a760f464de226d2dd9864a4f621a1c",
       "source_span": "sheet 'Clonal molly behavioral individ', cell E2 = Total.distance (behavioural outcome, the trait used for individuality/repeatability) for Fish.ID 5, Obs=1"
     },
-    "artifacts/Clonal_molly_SL_corrected_v2.csv#row5!Bad.SL": {
+    "artifacts/Clonal_molly_SL_corrected_v2.csv#L254:Bad.SL": {
       "value": 21.21,
       "source_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv",
       "source_artifact_hash": "c97865fd60bb3d1f6d33720069d45fef98aed18d778f3e90ada1689d438e139a",
-      "source_span": "data row for ID=5, Obs=1, column 'Bad.SL' (5th column; file line 254 counting the header as line 1). columns = ID,Mom.ID,Trt,Obs,Bad.SL,Total.distance,Correct.SL. 'Bad.SL'=21.21 reproduces the original (mis-assigned) SL from v1 cell D2 and is paired with Total.distance=143.994, matching v1 E2"
+      "source_span": "CSV line 254 (ID=5, Obs=1), column Bad.SL (错位体长, =xlsx v1 D2)"
     },
-    "artifacts/Clonal_molly_SL_corrected_v2.csv#row5!Total.distance": {
+    "artifacts/Clonal_molly_SL_corrected_v2.csv#L254:Total.distance": {
       "value": 143.994,
       "source_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv",
       "source_artifact_hash": "c97865fd60bb3d1f6d33720069d45fef98aed18d778f3e90ada1689d438e139a",
-      "source_span": "data row for ID=5, Obs=1, column 'Total.distance' (6th column; file line 254). Total.distance=143.994 is byte-identical to v1 cell E2: the behavioural measurements were carried over unchanged; the correction rebuilt only the SL column"
+      "source_span": "CSV line 254 (ID=5, Obs=1), column Total.distance (行为结局, 两版逐位一致)"
     },
-    "artifacts/Clonal_molly_SL_corrected_v2.csv#row2!Correct.SL": {
+    "artifacts/Clonal_molly_SL_corrected_v2.csv#L2:Correct.SL": {
       "value": 23.66,
       "source_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv",
       "source_artifact_hash": "c97865fd60bb3d1f6d33720069d45fef98aed18d778f3e90ada1689d438e139a",
-      "source_span": "data row for ID=1, Obs=1, column 'Correct.SL' (7th column; first data row, file line 2). Correct.SL=23.66 is CONSTANT across all four rows of ID=1 (a single body-size per fish), unlike the Bad.SL column which varies row-to-row"
+      "source_span": "CSV line 2 (ID=1, Obs=1), column Correct.SL (更正后每鱼恒定体长)"
     },
-    "artifacts/Clonal_molly_SL_corrected_v2.csv#row2!Bad.SL": {
+    "artifacts/Clonal_molly_SL_corrected_v2.csv#L2:Bad.SL": {
       "value": 21.08,
       "source_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv",
       "source_artifact_hash": "c97865fd60bb3d1f6d33720069d45fef98aed18d778f3e90ada1689d438e139a",
-      "source_span": "data row for ID=1, Obs=1, column 'Bad.SL' (5th column; file line 2). Bad.SL for ID=1 = 21.08, 20.48, 22.58, 22.18 across its four rows (varies within one fish = the deposited misalignment), whereas Correct.SL is fixed at 23.66"
+      "source_span": "CSV line 2 (ID=1, Obs=1), column Bad.SL (更正前体长)"
     }
   },
   "claims": [
@@ -84,7 +84,7 @@
       "claim_id": "ncb_clonalfish_claim_002",
       "claim_atom": "The misalignment is confined to the SL (body-size) covariate; the behavioural outcome Total.distance is untouched. The Total.distance value for Fish.ID 5 / Obs=1 is 143.994 in the original v1 (cell E2) and 143.994 in the corrected v2 (ID=5, Obs=1, line 254), byte-identical, and the full Total.distance multiset is identical across the two deposits. Because behavioural individuality is estimated from the repeatability of Total.distance (among- vs within-individual variance), and SL entered only as a covariate, correcting the SL alignment does not change the behaviour data on which the headline finding rests. Consistent with the authors' statement that after re-running the model the main conclusion (behavioural individuality among near-clonal fish) is essentially unchanged.",
       "source_artifact": "artifacts/Bierbach_clonal_molly_SL_v1_original.xlsx#Clonal molly behavioral individ!E2",
-      "target_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv#row5!Total.distance",
+      "target_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv#L254:Total.distance",
       "source_a1_range": "E2 (Fish.ID 5, Obs=1, Total.distance)",
       "target_a1_range": "line 254, column 'Total.distance' (ID=5, Obs=1)",
       "relation_type": "L1",
@@ -101,8 +101,8 @@
       "annotation_id": "ncb_clonalfish_ann_003",
       "claim_id": "ncb_clonalfish_claim_003",
       "claim_atom": "Whether the corrected SL-to-Fish.ID assignment is now fully correct, and whether the paper's Table 1 body-size-related values recompute exactly, cannot be verified from the deposit alone. The correction did not add new measurements: the Correct.SL column re-assigns the SAME pool of 84 distinct SL values that were in the original (the multiset of SL values is identical before and after; e.g. ID=1's Bad.SL is 21.08/20.48/22.58/22.18 while its Correct.SL 23.66 is a value drawn from that same pool but originally sitting on a different fish's rows). No independent raw record with unambiguous fish tags is deposited to confirm that each Correct.SL truly belongs to that individual, so the correctness of the re-alignment and the final Table 1 values remain unadjudicable from the available files.",
-      "source_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv#row2!Correct.SL",
-      "target_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv#row2!Bad.SL",
+      "source_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv#L2:Correct.SL",
+      "target_artifact": "artifacts/Clonal_molly_SL_corrected_v2.csv#L2:Bad.SL",
       "source_a1_range": "line 2, column 'Correct.SL' (ID=1)",
       "target_a1_range": "line 2, column 'Bad.SL' (ID=1)",
       "relation_type": "L1",

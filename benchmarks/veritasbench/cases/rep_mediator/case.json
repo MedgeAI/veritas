@@ -68,11 +68,11 @@
       "source_artifact_hash": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
       "source_span": "perturbation_summary_correct.csv, row perturbation=KO_13, column gene_specific_call (论文判定: 巨大 DE 但被 mtDNA 耗竭混杂 = 共享的整合应激(ISR)响应, 非 gene-specific)"
     },
-    "artifacts/gene_specific_naive.csv#KO_13_call": {
+    "artifacts/perturbation_summary_naive.csv#KO_13_call": {
       "value": "gene_specific",
-      "source_artifact": "artifacts/gene_specific_naive.csv",
-      "source_artifact_hash": "56747d30a2c2bdd9cc4a1182a3e31d70b201b8460b621d5ada9007a7f13c704c",
-      "source_span": "gene_specific_naive.csv, row perturbation=KO_13, column confidence=high (naive 审计: 不控 mtDNA 中介, 按 DEG 数排序把 685-DEG 的 KO_13 判为最强 gene_specific → 红鲱鱼)"
+      "source_artifact": "artifacts/perturbation_summary_naive.csv",
+      "source_artifact_hash": "fb7719810e444f0438c849cf44a933826177cb87113b893724f16c2fdcecb131",
+      "source_span": "perturbation_summary_naive.csv, row perturbation=KO_13, column gene_specific_call (naive 审计者按 DE signature 大小排序 → 误判 gene_specific)"
     }
   },
   "claims": [
@@ -98,7 +98,7 @@
       "annotation_id": "rep_mediator_ann_002",
       "claim_id": "rep_mediator_claim_002",
       "claim_atom": "A naive audit that ranks knockouts purely by DE-signature size declares KO_13 — which has the largest signature (685 DEGs) — a top gene-specific program. This does NOT overturn the paper: KO_13 is the strongest mtDNA depleter (mean mtDNA 89051, far below the control median ~372167 and below the 0.75x depletion threshold), so its large DE is the SHARED mtDNA-depletion (integrated stress) response, and the paper correctly classifies KO_13 as shared/confounded rather than gene-specific. The paper's mediator-controlled conclusion is consistent.",
-      "source_artifact": "artifacts/gene_specific_naive.csv#KO_13_call",
+      "source_artifact": "artifacts/perturbation_summary_naive.csv#KO_13_call",
       "target_artifact": "artifacts/perturbation_summary_correct.csv#KO_13_call",
       "relation_type": "L1",
       "verdict": "consistent",
