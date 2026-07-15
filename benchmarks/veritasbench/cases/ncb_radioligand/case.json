@@ -1,0 +1,138 @@
+{
+  "case_id": "ncb_radioligand",
+  "paper_title": "Covalent targeted radioligands potentiate radionuclide therapy",
+  "paper_authors": [
+    "Zhibo Liu (刘志博) 团队 (北京大学; Nature, 2024)"
+  ],
+  "artifacts": {
+    "source_ed4a": {
+      "path": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx",
+      "sha256": "376cab46ba21ef62792596ad109c762a18524cbdaafecb58e5e0e97ea720f503",
+      "kind": "source_data"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "73aa2e54eecbd0439941481a711429d4181480e0da2090b8303d8bff7f5f7bf5",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41586_2024_7461_MOESM10_ESM.xlsx#Extended Data Figure 4a!D5813": {
+      "value": 15.57867,
+      "source_artifact": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "376cab46ba21ef62792596ad109c762a18524cbdaafecb58e5e0e97ea720f503",
+      "source_span": "sheet 'Extended Data Figure 4a', D5813 (FAPI-mFS red curve, t=580.8s; 数据从行5起, 行4为曲线标签; 此值起连续497点完全相同)"
+    },
+    "artifacts/41586_2024_7461_MOESM10_ESM.xlsx#Extended Data Figure 4a!D6309": {
+      "value": 15.57867,
+      "source_artifact": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "376cab46ba21ef62792596ad109c762a18524cbdaafecb58e5e0e97ea720f503",
+      "source_span": "sheet 'Extended Data Figure 4a', D6309 (FAPI-mFS, t=630.4s; 497连续相同RU的末点, 与D5813逐位相同, 跨~49.6s平直)"
+    },
+    "artifacts/41586_2024_7461_MOESM10_ESM.xlsx#Extended Data Figure 4a!B6": {
+      "value": 1.869,
+      "source_artifact": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "376cab46ba21ef62792596ad109c762a18524cbdaafecb58e5e0e97ea720f503",
+      "source_span": "sheet 'Extended Data Figure 4a', B6 (FAPI-04 black curve, t=0.1s)"
+    },
+    "artifacts/41586_2024_7461_MOESM10_ESM.xlsx#Extended Data Figure 4a!B7": {
+      "value": 1.869337,
+      "source_artifact": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "376cab46ba21ef62792596ad109c762a18524cbdaafecb58e5e0e97ea720f503",
+      "source_span": "sheet 'Extended Data Figure 4a', B7 (FAPI-04, t=0.2s; 较B6增量0.000337)"
+    },
+    "artifacts/41586_2024_7461_MOESM10_ESM.xlsx#Extended Data Figure 4a!B8": {
+      "value": 1.869675,
+      "source_artifact": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "376cab46ba21ef62792596ad109c762a18524cbdaafecb58e5e0e97ea720f503",
+      "source_span": "sheet 'Extended Data Figure 4a', B8 (FAPI-04, t=0.3s; 较B7增量0.000338, 段内恒定增量=完美线性)"
+    },
+    "artifacts/41586_2024_7461_MOESM10_ESM.xlsx#Extended Data Figure 4a!C4202": {
+      "value": 13.90583,
+      "source_artifact": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "376cab46ba21ef62792596ad109c762a18524cbdaafecb58e5e0e97ea720f503",
+      "source_span": "sheet 'Extended Data Figure 4a', C4202 (FAPI-pFS blue curve, t=419.7s; 起连续31点完全相同RU)"
+    },
+    "artifacts/41586_2024_7461_MOESM10_ESM.xlsx#Extended Data Figure 4a!B5": {
+      "value": 0,
+      "source_artifact": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "376cab46ba21ef62792596ad109c762a18524cbdaafecb58e5e0e97ea720f503",
+      "source_span": "sheet 'Extended Data Figure 4a', B5 (FAPI-04, t=0s; 基线起点)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_radioligand_ann_001",
+      "claim_id": "ncb_radioligand_claim_001",
+      "claim_atom": "The near-perfectly-linear association segments in the ED Fig. 4a Source Data — e.g. FAPI-04 rising by an exactly constant increment of ~0.000337 RU per 0.1 s step within each segment (B6->B7->B8) — and the smooth, zero-noise appearance of all four traces are consistent with the authors' stated provenance that these are FITTED / analysis-report curves exported from the Biacore Insight software (as companion Fig. 1l is explicitly labelled 'fitted curves'), not raw double-referenced measurement points. Fitted/model curves are smooth by construction, so their regularity does not by itself establish fabrication; for a fast, tight covalent binder a near-linear early association is plausible.",
+      "source_artifact": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx#Extended Data Figure 4a!B6",
+      "target_artifact": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx#Extended Data Figure 4a!B8",
+      "source_a1_range": "B6:B6",
+      "target_a1_range": "B8:B8",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "合法子断言(consistent): 曲线过度规则/近完美线性, 若理解为作者所述的'Biacore拟合曲线导出点'则完全正常(拟合曲线本就光滑无噪)。Fig1l已明确标fitted, 同类SPR数据。共价快结合分子早段近线性association合理。AI不应仅凭'曲线太整齐'就判造假——这正是拟合曲线的预期形态。陈述性辩护成立。"
+    },
+    {
+      "annotation_id": "ncb_radioligand_ann_002",
+      "claim_id": "ncb_radioligand_claim_002",
+      "claim_atom": "The ED Fig. 4a Source Data are presented as the SPR sensorgrams underlying a figure whose Methods state the curves were fit to a 1:1 Langmuir or two-state (non-linear kinetic) model, yet the legend does NOT label the plotted traces as fitted curves, and the Source Data itself contains fitted-line-sampled points rather than the raw double-referenced measurements Nature Source Data is required to provide for reproduction: the FAPI-mFS trace holds a byte-identical 15.57867 RU across 497 consecutive points (t=580.8-630.4 s, D5813=D6309), and FAPI-pFS holds an identical 13.90583 RU across 31 points — patterns impossible for raw measured sensorgrams. The corresponding author acknowledged the ED Fig. 4a legend does not state 'fitted curves'. Thus the implicit claim that these Source Data are the underlying measured sensorgrams is inconsistent with their actual fitted-curve provenance (an author-acknowledged documentation/provenance mismatch).",
+      "source_artifact": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx#Extended Data Figure 4a!D5813",
+      "target_artifact": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx#Extended Data Figure 4a!D6309",
+      "source_a1_range": "D5813:D5813",
+      "target_a1_range": "D6309:D6309",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "provenance_mismatch",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "造假边界-作者已承认的provenance不一致(inconsistent但非high): 图注/方法称拟合1:1 Langmuir/two-state(非线性)模型却未标plotted=fitted, 且Nature要求Source Data支持从原始测量复现, 而此Source Data实为拟合线采样点(FAPI-mFS 497点恒15.57867/FAPI-pFS 31点恒13.90583, 原始sensorgram不可能)。作者6月15日承认ED4a图注未标fitted。故'Source Data=底层实测sensorgram'的隐含断言与其拟合来源不一致。此前另有Publisher Correction(2025-12-18)确认EWG→EDG/pFS→mFS标签错误+Supp Fig31 LNCaP误复制22RV1位, 佐证文内存在已确认的呈现类错误。",
+      "_note": "discrepancy_type=provenance_mismatch(角色倒置/标签缺失), 非数值伪造指控——作者对regularity给出拟合曲线解释(见claim_001);此条只判'Source Data as measured data'这一provenance断言不成立。"
+    },
+    {
+      "annotation_id": "ncb_radioligand_ann_003",
+      "claim_id": "ncb_radioligand_claim_003",
+      "claim_atom": "Whether the underlying RAW double-referenced sensorgrams actually support the reported binding kinetics and apparent affinities, whether the FAPI-04 pre-injection baseline is stable (author reports mean -0.0035 RU, s.d. 0.0126 RU, n=112 over -12.0 to -0.8 s) or masks instability, and whether a 1:1 Langmuir model yields physically meaningful apparent constants for this two-step covalent (cyano-Ser624 imidate + SuFEx proximity ligation) system, cannot be independently adjudicated from the published Source Data: the raw Biacore .BIDrun files and analysis reports were submitted to the journal editor but are NOT publicly available (only overlay screenshots exist on PubPeer). Nature has posted an Editor's Note and the editorial investigation is ongoing.",
+      "source_artifact": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx#Extended Data Figure 4a!B5",
+      "target_artifact": "artifacts/41586_2024_7461_MOESM10_ESM.xlsx#Extended Data Figure 4a!B6",
+      "source_a1_range": "B5:B5",
+      "target_a1_range": "B6:B6",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "待定(insufficient): 原始双参考sensorgram/基线稳定性/1:1 Langmuir对两步共价体系的适配性, 仅凭已公开的拟合型Source Data无法判定; 原始.BIDrun文件与分析报告只提交编辑部未公开(PubPeer仅有叠加截图)。Nature已挂Editor's Note, 编辑部调查进行中。verdict=insufficient。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_radioligand",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "verifier_conflict"
+    ],
+    "source_url": "https://doi.org/10.1038/s41586-024-07461-6",
+    "_lane": "公开质疑+作者多轮回应型mixed(三verdict并存): SPR ED Fig4a曲线过度规则→若=作者所述拟合曲线导出则合法(consistent);但图注未标fitted+Source Data用拟合点顶替原始测量(角色倒置, 作者已承认图注问题)=provenance不一致(inconsistent);原始.BIDrun/基线/模型适配性无原始数据判不了+编辑部调查中(insufficient)。",
+    "_author_response": "刘志博以作者身份多轮回应(2026-06-06/15/28): ①数据点为Biacore软件拟合曲线导出非原始测量; ②承认ED4a图注未标'fitted curves'(称Fig1l已标同类); ③承认对共价体系用1:1 Langmuir得apparent constants且未过度解释; ④提供pre-fit/fitted叠加图+FAPI-04基线放大导出值(-0.0035±0.0126 RU,n=112)+称原始文件已交编辑部。",
+    "_publisher_correction": "2025-12-18 Nature Publisher Correction(10.1038/s41586-025-09982-0): Fig1e EWG→EDG(2处)/Fig3b pFS→mFS(2处)标签更正; Supp Fig31误将Supp Fig30a的LNCaP肿瘤图复制到应为22RV1处, 已恢复22RV1图。=文内已确认的呈现类错误。",
+    "_timeline": "2024-05-22在线发表; 2024-11-18 PubPeer首条(Fig1e化学结构标签); 2025-12-18 Publisher Correction; 2026-06-03 SPR ED4a源数据集中质疑; 2026-06-06/15/28作者三轮回应; Nature挂Editor's Note调查中。",
+    "_independent_status": "下载窗口机构cookie取ED Fig4 source data(MOESM10, 25481点SPR时间序列)+正文PDF。本地核验: FAPI-mFS 497点恒15.57867(t580.8-630.4s)/FAPI-pFS 31点恒13.90583/FAPI-04段内恒增量0.000337——坐实'分段完美线性零噪'(既合拟合曲线解释, 又与'原始measured sensorgram'角色不符)。",
+    "_pubpeer": "F1F1018F9F9B9B55B682C5CFEA467C",
+    "_source_url_refs": [
+      "https://pubpeer.com/publications/F1F1018F9F9B9B55B682C5CFEA467C",
+      "https://www.nature.com/articles/s41586-025-09982-0"
+    ],
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}
