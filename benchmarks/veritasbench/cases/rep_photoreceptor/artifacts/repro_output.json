@@ -1,0 +1,9 @@
+{
+  "Emel_overall_mean": 9.669001490312965,
+  "Emel_overall_median": 1.9,
+  "MEDI_overall_mean": 7288.514456035768,
+  "Illuminance_overall_mean": 8005.208494783904,
+  "avgrad_Melanopsin_overall_mean": 1.604800596125186,
+  "corr_Mel_Rods_Outdoor_raw_from_avgradiances": 0.9385073101575798,
+  "_note": "First five values recomputed from merged_wp_jeti_metadata_df.csv (n=671) via pandas mean/median; corr_Mel_Rods_Outdoor_raw is a naive Pearson on per-measurement average_radiances and is NOT the paper's pixel-by-pixel melanopic correlation (0.9813) which requires per-pixel image data absent from shipped intermediates."
+}

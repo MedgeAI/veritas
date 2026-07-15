@@ -1,0 +1,76 @@
+Row,Column,Value,view
+L cones,L cones,1.0,Outdoor view
+M cones,L cones,0.9764057435464827,Outdoor view
+S cones,L cones,0.9377806792344657,Outdoor view
+Rods,L cones,0.9700782637643297,Outdoor view
+Melanopsin,L cones,0.9600708425152102,Outdoor view
+L cones,M cones,0.9764057435464827,Outdoor view
+M cones,M cones,1.0,Outdoor view
+S cones,M cones,0.9535959153825063,Outdoor view
+Rods,M cones,0.9642935830947816,Outdoor view
+Melanopsin,M cones,0.9632041020152501,Outdoor view
+L cones,S cones,0.9377806792344654,Outdoor view
+M cones,S cones,0.9535959153825063,Outdoor view
+S cones,S cones,1.0,Outdoor view
+Rods,S cones,0.9656739883710794,Outdoor view
+Melanopsin,S cones,0.970281726836018,Outdoor view
+L cones,Rods,0.9700782637643295,Outdoor view
+M cones,Rods,0.9642935830947814,Outdoor view
+S cones,Rods,0.9656739883710794,Outdoor view
+Rods,Rods,1.0,Outdoor view
+Melanopsin,Rods,0.9813378671160505,Outdoor view
+L cones,Melanopsin,0.9600708425152102,Outdoor view
+M cones,Melanopsin,0.9632041020152501,Outdoor view
+S cones,Melanopsin,0.970281726836018,Outdoor view
+Rods,Melanopsin,0.9813378671160505,Outdoor view
+Melanopsin,Melanopsin,1.0,Outdoor view
+L cones,L cones,1.0,Indoor w/ window view
+M cones,L cones,0.981921479567865,Indoor w/ window view
+S cones,L cones,0.9613602048544707,Indoor w/ window view
+Rods,L cones,0.9794500390690899,Indoor w/ window view
+Melanopsin,L cones,0.9719096031466368,Indoor w/ window view
+L cones,M cones,0.981921479567865,Indoor w/ window view
+M cones,M cones,1.0,Indoor w/ window view
+S cones,M cones,0.9692306621459943,Indoor w/ window view
+Rods,M cones,0.9754005298109313,Indoor w/ window view
+Melanopsin,M cones,0.9732818821040861,Indoor w/ window view
+L cones,S cones,0.9613602048544708,Indoor w/ window view
+M cones,S cones,0.9692306621459942,Indoor w/ window view
+S cones,S cones,1.0,Indoor w/ window view
+Rods,S cones,0.9742129979437217,Indoor w/ window view
+Melanopsin,S cones,0.9752383196817204,Indoor w/ window view
+L cones,Rods,0.9794500390690899,Indoor w/ window view
+M cones,Rods,0.9754005298109314,Indoor w/ window view
+S cones,Rods,0.9742129979437215,Indoor w/ window view
+Rods,Rods,1.0,Indoor w/ window view
+Melanopsin,Rods,0.9856702167506379,Indoor w/ window view
+L cones,Melanopsin,0.971909603146637,Indoor w/ window view
+M cones,Melanopsin,0.9732818821040861,Indoor w/ window view
+S cones,Melanopsin,0.9752383196817206,Indoor w/ window view
+Rods,Melanopsin,0.9856702167506378,Indoor w/ window view
+Melanopsin,Melanopsin,1.0,Indoor w/ window view
+L cones,L cones,1.0,Indoor w/o window view
+M cones,L cones,0.9913259258532583,Indoor w/o window view
+S cones,L cones,0.9453662831451068,Indoor w/o window view
+Rods,L cones,0.9873205027948619,Indoor w/o window view
+Melanopsin,L cones,0.9766994277844512,Indoor w/o window view
+L cones,M cones,0.9913259258532583,Indoor w/o window view
+M cones,M cones,1.0,Indoor w/o window view
+S cones,M cones,0.9555550244553889,Indoor w/o window view
+Rods,M cones,0.9868894586751931,Indoor w/o window view
+Melanopsin,M cones,0.981374882300523,Indoor w/o window view
+L cones,S cones,0.9453662831451068,Indoor w/o window view
+M cones,S cones,0.9555550244553889,Indoor w/o window view
+S cones,S cones,1.0,Indoor w/o window view
+Rods,S cones,0.9758789872830327,Indoor w/o window view
+Melanopsin,S cones,0.9784389858015481,Indoor w/o window view
+L cones,Rods,0.9873205027948617,Indoor w/o window view
+M cones,Rods,0.9868894586751931,Indoor w/o window view
+S cones,Rods,0.9758789872830327,Indoor w/o window view
+Rods,Rods,1.0,Indoor w/o window view
+Melanopsin,Rods,0.9924182484034983,Indoor w/o window view
+L cones,Melanopsin,0.9766994277844513,Indoor w/o window view
+M cones,Melanopsin,0.981374882300523,Indoor w/o window view
+S cones,Melanopsin,0.9784389858015481,Indoor w/o window view
+Rods,Melanopsin,0.9924182484034985,Indoor w/o window view
+Melanopsin,Melanopsin,1.0,Indoor w/o window view

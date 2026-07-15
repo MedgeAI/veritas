@@ -1,0 +1,135 @@
+{
+  "case_id": "rep_photoreceptor",
+  "artifacts": {
+    "merged_intermediate": {
+      "path": "artifacts/merged_wp_jeti_metadata_df.csv",
+      "sha256": "5363794d19cac1a17521d250778b45b6fd69e88a2eb547317c040fdccb16c953",
+      "kind": "code_output"
+    },
+    "jeti_stats_overall": {
+      "path": "artifacts/jeti_statistics_overall.csv",
+      "sha256": "b42c5a72d63463364e1998cd30c6f30a436d887939e718507b03d004b600d0f0",
+      "kind": "table"
+    },
+    "wp_stats_overall": {
+      "path": "artifacts/wp_statistics_overall.csv",
+      "sha256": "3b84b021ee1a70c8d77b31a5e79c6a3ce0f817b44d758a7ec50943bf9bfd4c21",
+      "kind": "table"
+    },
+    "pixel_corr_table": {
+      "path": "artifacts/average_pixels_correlation_df.csv",
+      "sha256": "aeb4b75a75661bbe3de15c78fda793358a1d49105e03b434091cf6e56e99d126",
+      "kind": "table"
+    },
+    "repro_output": {
+      "path": "artifacts/repro_output.json",
+      "sha256": "b785164d3f0fd110b1f16cbbc71b60dcf7f15e82a0609b5fe7866f5248a44fd0",
+      "kind": "code_output"
+    }
+  },
+  "observations": {
+    "obs_emel_mean_repro": {
+      "value": "9.669001490312965",
+      "source_artifact": "artifacts/repro_output.json",
+      "source_artifact_hash": "b785164d3f0fd110b1f16cbbc71b60dcf7f15e82a0609b5fe7866f5248a44fd0",
+      "source_span": "repro_output.json key 'Emel_overall_mean' (recomputed mean of column 'Emel [W/sqm]' over n=671 rows of merged intermediate)"
+    },
+    "obs_emel_mean_shipped": {
+      "value": "9.669001490312965",
+      "source_artifact": "artifacts/jeti_statistics_overall.csv",
+      "source_artifact_hash": "b42c5a72d63463364e1998cd30c6f30a436d887939e718507b03d004b600d0f0",
+      "source_span": "jeti_statistics_overall.csv row 'Emel [W/sqm]', column overall_mean"
+    },
+    "obs_medi_mean_repro": {
+      "value": "7288.514456035768",
+      "source_artifact": "artifacts/repro_output.json",
+      "source_artifact_hash": "b785164d3f0fd110b1f16cbbc71b60dcf7f15e82a0609b5fe7866f5248a44fd0",
+      "source_span": "repro_output.json key 'MEDI_overall_mean' (recomputed mean of column 'X v,mel,D65 (MEDI) [lx]')"
+    },
+    "obs_medi_mean_shipped": {
+      "value": "7288.514456035768",
+      "source_artifact": "artifacts/jeti_statistics_overall.csv",
+      "source_artifact_hash": "b42c5a72d63463364e1998cd30c6f30a436d887939e718507b03d004b600d0f0",
+      "source_span": "jeti_statistics_overall.csv row 'X v,mel,D65 (MEDI) [lx]', column overall_mean"
+    },
+    "obs_melrad_mean_repro": {
+      "value": "1.604800596125186",
+      "source_artifact": "artifacts/repro_output.json",
+      "source_artifact_hash": "b785164d3f0fd110b1f16cbbc71b60dcf7f15e82a0609b5fe7866f5248a44fd0",
+      "source_span": "repro_output.json key 'avgrad_Melanopsin_overall_mean' (recomputed mean of column 'average_radiances_Melanopsin')"
+    },
+    "obs_melrad_mean_shipped": {
+      "value": "1.604800596125186",
+      "source_artifact": "artifacts/wp_statistics_overall.csv",
+      "source_artifact_hash": "3b84b021ee1a70c8d77b31a5e79c6a3ce0f817b44d758a7ec50943bf9bfd4c21",
+      "source_span": "wp_statistics_overall.csv row index 'average_radiances_Melanopsin', column overall_mean"
+    },
+    "obs_pixelcorr_shipped": {
+      "value": "0.9813378671160505",
+      "source_artifact": "artifacts/average_pixels_correlation_df.csv",
+      "source_artifact_hash": "aeb4b75a75661bbe3de15c78fda793358a1d49105e03b434091cf6e56e99d126",
+      "source_span": "average_pixels_correlation_df.csv Row='Rods', Column='Melanopsin', view='Outdoor view' (pixel-by-pixel alpha-opic correlation)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ann_C1_emel_mean",
+      "claim_id": "C1_emel_mean",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "source_artifact": "obs_emel_mean_repro",
+      "target_artifact": "obs_emel_mean_shipped",
+      "is_clean_claim": true,
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "evidence_span": "L1:code_output->code_output"
+    },
+    {
+      "annotation_id": "ann_C2_medi_mean",
+      "claim_id": "C2_medi_mean",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "source_artifact": "obs_medi_mean_repro",
+      "target_artifact": "obs_medi_mean_shipped",
+      "is_clean_claim": true,
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "evidence_span": "L1:code_output->code_output"
+    },
+    {
+      "annotation_id": "ann_C3_melrad_mean",
+      "claim_id": "C3_melrad_mean",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "source_artifact": "obs_melrad_mean_repro",
+      "target_artifact": "obs_melrad_mean_shipped",
+      "is_clean_claim": true,
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "evidence_span": "L1:code_output->code_output"
+    },
+    {
+      "annotation_id": "ann_C4_pixel_melanopic_corr",
+      "claim_id": "C4_pixel_melanopic_corr",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "source_artifact": "obs_pixelcorr_shipped",
+      "target_artifact": "obs_pixelcorr_shipped",
+      "is_clean_claim": false,
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z"
+    }
+  ],
+  "metadata": {
+    "paper_split": "reproduction",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.1016/j.isci.2026.116661",
+    "paper_title": "Photoreceptor-specific scene statistics reveal melanopic structure in natural environments",
+    "_signed_by": "wuguandu",
+    "_lane": "honest-reproducible",
+    "_independent_status": "CODECHECK 2026-019"
+  }
+}
