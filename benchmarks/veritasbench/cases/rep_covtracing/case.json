@@ -1,0 +1,207 @@
+{
+  "case_id": "rep_covtracing",
+  "paper_title": "Effectiveness of isolation, testing, contact tracing, and physical distancing on reducing transmission of SARS-CoV-2 in different settings",
+  "paper_authors": [
+    "Adam J Kucharski",
+    "Petra Klepac",
+    "Andrew J K Conlan",
+    "et al. (CMMID COVID-19 working group)",
+    "Lancet Infect Dis 2020; CODECHECK 2020-009 certified"
+  ],
+  "artifacts": {
+    "RR_no_measures_csv": {
+      "path": "artifacts/RR_no_measures.csv",
+      "sha256": "b14cf617df9ccad58f5d8dc9eb7c50cc5942529d1b07ab0692afa47b79ef79b4",
+      "kind": "code_output"
+    },
+    "RR_isolation_only_csv": {
+      "path": "artifacts/RR_isolation_only.csv",
+      "sha256": "cb732bf8d9bd738400f4156ea754e5d0d0e8f9c18ca93da6d5707b232ac1a22c",
+      "kind": "code_output"
+    },
+    "RR_isolation_manual_tracing_csv": {
+      "path": "artifacts/RR_isolation_manual_tracing.csv",
+      "sha256": "5fac8ab39f2b9f7b99787bf5e3a8b9d673d5690fa754094b4b74900f505a8263",
+      "kind": "code_output"
+    },
+    "RR_isolation_manual_tracing_met_limit_csv": {
+      "path": "artifacts/RR_isolation_manual_tracing_met_limit.csv",
+      "sha256": "59f6649595677bc391477bd91278787456e6c5434e1068720a7e1829c3ada3b4",
+      "kind": "code_output"
+    },
+    "RR_pop_testing_csv": {
+      "path": "artifacts/RR_pop_testing.csv",
+      "sha256": "f86f74e2672b287c73ae15c58ed0f27ae3461bb4c7717b329befcf6503f9a0b0",
+      "kind": "code_output"
+    },
+    "model_functions_R": {
+      "path": "artifacts/model_functions.R",
+      "sha256": "3b36ae043636edc23ddc90a68bcd657d586cb7c9723bf19c388b0fdee3849373",
+      "kind": "code"
+    },
+    "contact_model_R": {
+      "path": "artifacts/contact_model.R",
+      "sha256": "20f4a18cb668ee01015fe90c3c823157f26cb0114804d366a59de18ef92d3bfb",
+      "kind": "code"
+    }
+  },
+  "observations": {
+    "artifacts/RR_no_measures.csv#mean_rr": {
+      "value": 2.5577,
+      "source_artifact": "artifacts/RR_no_measures.csv",
+      "source_artifact_hash": "b14cf617df9ccad58f5d8dc9eb7c50cc5942529d1b07ab0692afa47b79ef79b4",
+      "source_span": "RR_no_measures.csv, mean of column rr over 10000 iterations (无措施基线繁殖数 R)"
+    },
+    "artifacts/RR_no_measures.csv#p_controlled": {
+      "value": 0.4953,
+      "source_artifact": "artifacts/RR_no_measures.csv",
+      "source_artifact_hash": "b14cf617df9ccad58f5d8dc9eb7c50cc5942529d1b07ab0692afa47b79ef79b4",
+      "source_span": "RR_no_measures.csv, fraction of rows with rr_reduced<=1 (个案受控概率, 无措施)"
+    },
+    "artifacts/RR_isolation_only.csv#mean_rr_reduced": {
+      "value": 1.7559,
+      "source_artifact": "artifacts/RR_isolation_only.csv",
+      "source_artifact_hash": "cb732bf8d9bd738400f4156ea754e5d0d0e8f9c18ca93da6d5707b232ac1a22c",
+      "source_span": "RR_isolation_only.csv, mean of column rr_reduced (仅自我隔离下有效繁殖数)"
+    },
+    "artifacts/RR_isolation_manual_tracing.csv#mean_rr_reduced": {
+      "value": 1.0129,
+      "source_artifact": "artifacts/RR_isolation_manual_tracing.csv",
+      "source_artifact_hash": "5fac8ab39f2b9f7b99787bf5e3a8b9d673d5690fa754094b4b74900f505a8263",
+      "source_span": "RR_isolation_manual_tracing.csv, mean of column rr_reduced (隔离+人工追踪有效繁殖数)"
+    },
+    "artifacts/RR_isolation_manual_tracing.csv#mean_rr": {
+      "value": 2.6459,
+      "source_artifact": "artifacts/RR_isolation_manual_tracing.csv",
+      "source_artifact_hash": "5fac8ab39f2b9f7b99787bf5e3a8b9d673d5690fa754094b4b74900f505a8263",
+      "source_span": "RR_isolation_manual_tracing.csv, mean of column rr (同场景未干预基础繁殖数, FP陷阱列)"
+    },
+    "artifacts/RR_isolation_manual_tracing_met_limit.csv#mean_rr_reduced": {
+      "value": 0.9227,
+      "source_artifact": "artifacts/RR_isolation_manual_tracing_met_limit.csv",
+      "source_artifact_hash": "59f6649595677bc391477bd91278787456e6c5434e1068720a7e1829c3ada3b4",
+      "source_span": "RR_isolation_manual_tracing_met_limit.csv, mean of column rr_reduced (隔离+追踪+限制非家庭接触)"
+    },
+    "artifacts/RR_isolation_manual_tracing_met_limit.csv#p_controlled": {
+      "value": 0.7999,
+      "source_artifact": "artifacts/RR_isolation_manual_tracing_met_limit.csv",
+      "source_artifact_hash": "59f6649595677bc391477bd91278787456e6c5434e1068720a7e1829c3ada3b4",
+      "source_span": "RR_isolation_manual_tracing_met_limit.csv, fraction rr_reduced<=1 (个案受控概率)"
+    },
+    "artifacts/RR_pop_testing.csv#mean_rr_reduced": {
+      "value": 2.5883,
+      "source_artifact": "artifacts/RR_pop_testing.csv",
+      "source_artifact_hash": "f86f74e2672b287c73ae15c58ed0f27ae3461bb4c7717b329befcf6503f9a0b0",
+      "source_span": "RR_pop_testing.csv, mean of column rr_reduced (仅大规模检测有效繁殖数)"
+    },
+    "artifacts/RR_pop_testing.csv#mean_rr": {
+      "value": 2.6446,
+      "source_artifact": "artifacts/RR_pop_testing.csv",
+      "source_artifact_hash": "f86f74e2672b287c73ae15c58ed0f27ae3461bb4c7717b329befcf6503f9a0b0",
+      "source_span": "RR_pop_testing.csv, mean of column rr (大规模检测场景基础繁殖数)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "rep_cov_ann_001",
+      "claim_id": "rep_cov_claim_001",
+      "claim_atom": "Combining self-isolation, contact tracing and physical distancing (limiting non-household contacts) reduces the mean effective reproduction number from ~2.6 without measures to below 1 (~0.92), bringing transmission under control.",
+      "source_artifact": "artifacts/RR_no_measures.csv#mean_rr",
+      "target_artifact": "artifacts/RR_isolation_manual_tracing_met_limit.csv#mean_rr_reduced",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "evidence_span": "L1:code_output->code_output",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "no_measures mean_rr=2.5577; isolation_manual_tracing_met_limit mean_rr_reduced=0.9227 (<1) => 组合措施使有效R跌破1"
+      ],
+      "_note": "GROUNDING: 须在10个rr_out场景中定位met_limit变体, 且用rr_reduced列(非rr). 论文headline: 单一措施不足, 叠加限制接触才控住."
+    },
+    {
+      "annotation_id": "rep_cov_ann_002",
+      "claim_id": "rep_cov_claim_002",
+      "claim_atom": "Self-isolation alone is insufficient to control transmission: the mean effective reproduction number under isolation-only (~1.76) is reduced from the ~2.6 no-measures baseline but remains above the threshold of 1.",
+      "source_artifact": "artifacts/RR_isolation_only.csv#mean_rr_reduced",
+      "target_artifact": "artifacts/RR_no_measures.csv#mean_rr",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "evidence_span": "L1:code_output->code_output",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "isolation_only mean_rr_reduced=1.7559 > 1; no_measures mean_rr=2.5577 => 部分降低但未控住"
+      ]
+    },
+    {
+      "annotation_id": "rep_cov_ann_003",
+      "claim_id": "rep_cov_claim_003",
+      "claim_atom": "In the isolation+manual-tracing scenario the effective reproduction number (rr_reduced ~1.0) sits at the control threshold, whereas the un-mitigated reproduction number (rr ~2.6) for the same simulated cases is far higher; the intervention effect is captured only by the rr_reduced column.",
+      "source_artifact": "artifacts/RR_isolation_manual_tracing.csv#mean_rr_reduced",
+      "target_artifact": "artifacts/RR_isolation_manual_tracing.csv#mean_rr",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "evidence_span": "L1:code_output->code_output",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "同文件: mean_rr_reduced=1.0129 vs mean_rr=2.6459"
+      ],
+      "_note": "FALSE-POSITIVE TRAP: 若审计者读错列(用rr=2.65而非rr_reduced=1.01)会误判'措施无效/不一致'. 两列都真实存在, 有效繁殖数在rr_reduced. verdict=consistent."
+    },
+    {
+      "annotation_id": "rep_cov_ann_004",
+      "claim_id": "rep_cov_claim_004",
+      "claim_atom": "Mass population testing alone has negligible impact on transmission: its mean effective reproduction number (~2.59) is essentially unchanged from the no-measures baseline (~2.56).",
+      "source_artifact": "artifacts/RR_pop_testing.csv#mean_rr_reduced",
+      "target_artifact": "artifacts/RR_no_measures.csv#mean_rr",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "evidence_span": "L1:code_output->code_output",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "pop_testing mean_rr_reduced=2.5883 ~= no_measures mean_rr=2.5577 => 单纯检测几乎不降R"
+      ],
+      "_note": "GROUNDING: 在10个场景CSV中挑对pop_testing文件; 别与tracing场景混淆."
+    },
+    {
+      "annotation_id": "rep_cov_ann_005",
+      "claim_id": "rep_cov_claim_005",
+      "claim_atom": "The absolute number of contacts that must be quarantined per new case per week (a headline operational figure) cannot be determined from the per-case rr_out reproduction-number distributions alone; it requires baseline incidence and p_tested parameters not contained in these outputs.",
+      "source_artifact": "artifacts/RR_isolation_manual_tracing_met_limit.csv#p_controlled",
+      "target_artifact": "artifacts/RR_no_measures.csv#p_controlled",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "_note": "INSUFFICIENT: rr_out仅含个案繁殖数分布(rr/rr_reduced/total_traced/inf_p), 人群层接触配额需baseline_incident_cases与p_tested(在table*.csv/正文), 这些rr_out无法支撑=证据不足, 非矛盾."
+    }
+  ],
+  "metadata": {
+    "paper_split": "rep_covtracing",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.1016/S1473-3099(20)30457-6",
+    "_lane": "诚实可复现论文(非造假); 全claim=consistent(+1 insufficient), 考AI在10个多情景rr_out CSV中定位正确场景/列并抵抗随机值与错列误判",
+    "_independent_status": "CODECHECK 2020-009",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_reproduction_notes": "所有观测值确定性重算自shipped outputs/rr_out/*.csv(n=10000/场景, contact_model.R set.seed(201)); 未重跑随机仿真, 直接聚合已交付CSV. mean(rr)=基础繁殖数, mean(rr_reduced)=有效繁殖数, P(rr_reduced<=1)=个案受控概率."
+  }
+}

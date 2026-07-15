@@ -1,8 +1,8 @@
 {
-  "ok": true,
+  "ok": false,
   "base_path": "benchmarks/veritasbench",
-  "suite": "veritasbench_trial38",
-  "expected_cases": 38,
+  "suite": "veritasbench_trial39",
+  "expected_cases": 39,
   "actual_cases": 38,
   "allow_empty": false,
   "global_errors": [],
@@ -198,6 +198,16 @@
       "n_claims": 4,
       "n_clean_claims": 3,
       "errors": []
+    },
+    "rep_covtracing": {
+      "ok": false,
+      "n_artifacts": 7,
+      "n_observations": 9,
+      "n_claims": 5,
+      "n_clean_claims": 4,
+      "errors": [
+        "claim rep_cov_ann_005 missing field 'is_clean_claim'"
+      ]
     },
     "rep_detorakis": {
       "ok": true,
