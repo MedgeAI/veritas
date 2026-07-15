@@ -1,0 +1,178 @@
+{
+  "case_id": "ncb_baseeditor",
+  "paper_title": "Increasing the efficiency and targeting range of cytidine base editors through fusion of a single-stranded DNA-binding protein domain",
+  "paper_doi": "10.1038/s41556-020-0518-8",
+  "paper_authors": [
+    "Chenxin Wang",
+    "Liang Chen",
+    "Dali Li (corresponding; East China Normal University, Shanghai)"
+  ],
+  "artifacts": {
+    "source_data_fig1": {
+      "path": "artifacts/source_data_fig1.xlsx",
+      "sha256": "48374ec3867bc056fd6e36334800aab636aa092912d57a152935df96fe1a1ff4",
+      "kind": "source_data"
+    },
+    "source_data_fig2": {
+      "path": "artifacts/source_data_fig2.xlsx",
+      "sha256": "39a1aa3b93f8a9743d2ee26e178bcb6767530b4c2a3be0fe96bcccf33bb80a82",
+      "kind": "source_data"
+    },
+    "source_data_fig4": {
+      "path": "artifacts/source_data_fig4.xlsx",
+      "sha256": "23263761239e6fb984c6edf67d8f9639cb39c87235feb94f159d686a022e520e",
+      "kind": "source_data"
+    },
+    "source_data_fig5": {
+      "path": "artifacts/source_data_fig5.xlsx",
+      "sha256": "64c8a247510b89fdaa657749b7f276329483b582c4d45b84f0c9170c209f62a0",
+      "kind": "source_data"
+    },
+    "source_data_extdatafig3": {
+      "path": "artifacts/source_data_extdatafig3.xlsx",
+      "sha256": "2d22dc3ecbfcacf66b24d74cfe841894a1227ca0b9c6c70d48585343a0f44ccd",
+      "kind": "source_data"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "cc14ca03fd050ff86a59f8cb1d954d1b79ae6d011f54471ea21bf3d05400fad8",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/source_data_fig4.xlsx#fig4a_emx1sg2p_hyeA3A_c6": {
+      "value": 54.1,
+      "source_artifact": "artifacts/source_data_fig4.xlsx",
+      "source_artifact_hash": "23263761239e6fb984c6edf67d8f9639cb39c87235feb94f159d686a022e520e",
+      "source_span": "sheet 'Fig.4a', cell F6 (block A4='EMX1-sg2p', target C6; editor header F2='hyeA3A-BE4max', replicate F3='Rep.1')"
+    },
+    "artifacts/source_data_extdatafig3.xlsx#ed3_emx1sg2p_hyeA3A_c6": {
+      "value": 54.1,
+      "source_artifact": "artifacts/source_data_extdatafig3.xlsx",
+      "source_artifact_hash": "2d22dc3ecbfcacf66b24d74cfe841894a1227ca0b9c6c70d48585343a0f44ccd",
+      "source_span": "sheet 'Extended Data Fig.3', cell B22 (block A20='EMX1-sg2p', target C6; editor header B2='hyeA3A-BE4max', replicate B3='Rep.1')"
+    },
+    "artifacts/source_data_fig2.xlsx#fig2a_emx1sg2p_a3abe4_c3": {
+      "value": 33.5,
+      "source_artifact": "artifacts/source_data_fig2.xlsx",
+      "source_artifact_hash": "39a1aa3b93f8a9743d2ee26e178bcb6767530b4c2a3be0fe96bcccf33bb80a82",
+      "source_span": "sheet 'Fig.2a', cell E55 (block A54='EMX1-sg2p', target C3; editor header E2='A3A-BE4max', replicate Rep.1)"
+    },
+    "artifacts/source_data_extdatafig3.xlsx#ed3_emx1sg2p_a3abe4_c3": {
+      "value": 33.5,
+      "source_artifact": "artifacts/source_data_extdatafig3.xlsx",
+      "source_artifact_hash": "2d22dc3ecbfcacf66b24d74cfe841894a1227ca0b9c6c70d48585343a0f44ccd",
+      "source_span": "sheet 'Extended Data Fig.3', cell F21 (block A20='EMX1-sg2p', target C3; editor header F2='A3A-BE4max', replicate F3='Rep.1')"
+    },
+    "artifacts/source_data_fig1.xlsx#fig1c_tim3sg1_brca2ob2_rep1_c3": {
+      "value": 9.2,
+      "source_artifact": "artifacts/source_data_fig1.xlsx",
+      "source_artifact_hash": "48374ec3867bc056fd6e36334800aab636aa092912d57a152935df96fe1a1ff4",
+      "source_span": "sheet 'Fig.1c', cell T9 (block A7='Tim3-sg1', target C3; editor header T2='BRCA2-OB2-BE4max', replicate T3='Rep.1')"
+    },
+    "artifacts/source_data_fig1.xlsx#fig1c_tim3sg1_brca2ob2_rep2_c3": {
+      "value": 9.2,
+      "source_artifact": "artifacts/source_data_fig1.xlsx",
+      "source_artifact_hash": "48374ec3867bc056fd6e36334800aab636aa092912d57a152935df96fe1a1ff4",
+      "source_span": "sheet 'Fig.1c', cell U9 (block A7='Tim3-sg1', target C3; editor header T2='BRCA2-OB2-BE4max', replicate U3='Rep.2')"
+    },
+    "artifacts/source_data_fig5.xlsx#fig5f_hyBE4max_cell8": {
+      "value": 0.376315,
+      "source_artifact": "artifacts/source_data_fig5.xlsx",
+      "source_artifact_hash": "64c8a247510b89fdaa657749b7f276329483b582c4d45b84f0c9170c209f62a0",
+      "source_span": "sheet 'Fig.5f', cell C11 (comet-assay tail moment; editor header C3='hyBE4max', single-cell measurement #8 of n=50)"
+    },
+    "artifacts/source_data_fig5.xlsx#fig5f_hyBE4max_cell9": {
+      "value": 0.0883697,
+      "source_artifact": "artifacts/source_data_fig5.xlsx",
+      "source_artifact_hash": "64c8a247510b89fdaa657749b7f276329483b582c4d45b84f0c9170c209f62a0",
+      "source_span": "sheet 'Fig.5f', cell C12 (comet-assay tail moment; editor header C3='hyBE4max', single-cell measurement #9 of n=50)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_baseeditor_ann_001",
+      "claim_id": "ncb_baseeditor_claim_001",
+      "claim_atom": "The hyeA3A-BE4max editing values for EMX1-sg2p in Fig.4a (F5:F12 = 0.3, 54.1, 7.4, 4.9, 0.8, 0.1, 0.1, 0.1) are byte-identical to the hyeA3A-BE4max values for the same locus in Extended Data Fig.3 (B21:B28), because hyeA3A-BE4max is the shared reference editor arm re-plotted across two comparison panels (Fig.4a eA3A-vs-hyeA3A; ED Fig.3 A3A-BE4-vs-hyeA3A).",
+      "source_artifact": "artifacts/source_data_fig4.xlsx#fig4a_emx1sg2p_hyeA3A_c6",
+      "target_artifact": "artifacts/source_data_extdatafig3.xlsx#ed3_emx1sg2p_hyeA3A_c6",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "source_a1_range": "sheet 'Fig.4a' F5:F12",
+      "target_a1_range": "sheet 'Extended Data Fig.3' B21:B28",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_adjudication": "FP陷阱(合法互补视图): Fig.4a 与 Extended Data Fig.3 逐值相同(EMX1-sg2p 的 hyeA3A-BE4max: 0.3/54.1/7.4/4.9/0.8/0.1/0.1/0.1). 表面像跨图重复=可疑. 但 hyeA3A-BE4max 是两图共用的同一参照编辑器臂: Fig.4a 对比 eA3A-BE4max vs hyeA3A-BE4max, ED Fig.3 对比 A3A-BE4max vs hyeA3A-BE4max, 两图共享同一批 hyeA3A-BE4max 实测数据. dup_scan_candidates 命中 EXACT len=8. 同一实验在两个比较图里作为共同参照复用=合法, 判 consistent + clean. AI 若据跨图同值即指控造假=踩FP陷阱."
+    },
+    {
+      "annotation_id": "ncb_baseeditor_ann_002",
+      "claim_id": "ncb_baseeditor_claim_002",
+      "claim_atom": "The A3A-BE4max editing values for EMX1-sg2p in Fig.2a (E55:E62 = 33.5, 46.4, 34, 30.6, 14.8, 4.4, 2.4, 1.1) are identical to the A3A-BE4max values for the same locus in Extended Data Fig.3 (F21:F28), because A3A-BE4max is the shared parental-editor reference arm re-shown in both comparison figures.",
+      "source_artifact": "artifacts/source_data_fig2.xlsx#fig2a_emx1sg2p_a3abe4_c3",
+      "target_artifact": "artifacts/source_data_extdatafig3.xlsx#ed3_emx1sg2p_a3abe4_c3",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "source_a1_range": "sheet 'Fig.2a' E55:E62",
+      "target_a1_range": "sheet 'Extended Data Fig.3' F21:F28",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_adjudication": "FP陷阱(合法参照臂复用): Fig.2a(对比 A3A-BE4max vs hyA3A-BE4max) 与 ED Fig.3(对比 A3A-BE4max vs hyeA3A-BE4max) 共用同一 A3A-BE4max 参照编辑器数据, EMX1-sg2p 逐值相同(33.5/46.4/34/30.6/14.8/4.4/2.4/1.1). dup_scan EXACT len=8. 这与 claim_001 是同一机制(共享参照臂), 用不同编辑器(A3A-BE4max)佐证跨图复用是该论文的系统性合法排版方式而非个例, 判 consistent + clean."
+    },
+    {
+      "annotation_id": "ncb_baseeditor_ann_003",
+      "claim_id": "ncb_baseeditor_claim_003",
+      "claim_atom": "In Fig.1c (BRCA2-OB2-BE4max at Tim3-sg1), replicate 1 (T9:T14 = 9.2, 9.3, 7.9, 7.3, 6.2, 5.6) is byte-for-byte identical to replicate 2 (U9:U14) across all six target cytosines, while replicate 3 (V9:V14 = 8.8, 9.0, 7.4, 7.0, 5.6, 4.7) differs — indicating two supposedly independent HTS replicates carry identical values.",
+      "source_artifact": "artifacts/source_data_fig1.xlsx#fig1c_tim3sg1_brca2ob2_rep1_c3",
+      "target_artifact": "artifacts/source_data_fig1.xlsx#fig1c_tim3sg1_brca2ob2_rep2_c3",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_replicate",
+      "evidence_span": "L1:source_data->source_data",
+      "source_a1_range": "sheet 'Fig.1c' T9:T14",
+      "target_a1_range": "sheet 'Fig.1c' U9:U14",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "Inconsistent(真异常/展示层错误): Fig.1c 中 BRCA2-OB2-BE4max @ Tim3-sg1 的 Rep.1(T9:T14) 与 Rep.2(U9:U14) 六个位点全部逐值相同(9.2/9.3/7.9/7.3/6.2/5.6), 而 Rep.3(V) 明显不同. 独立生物/技术重复不应精确到一位小数完全相同→重复列(copy-paste/replicate duplication). Fig.1c 属灵镜披露的异常图之一, 作者已于 2026-06-17 对部分数据异常发布更正. 这是有据可查的真实错误(非 gotcha), 与 claim_001/002 的合法参照复用有本质区别: 那里是同一编辑器在两个图共用, 这里是同一图内两个应独立的重复列相同. 判 inconsistent."
+    },
+    {
+      "annotation_id": "ncb_baseeditor_ann_004",
+      "claim_id": "ncb_baseeditor_claim_004",
+      "claim_atom": "The two near-zero hyBE4max comet-assay tail moments in Fig.5f (C11 = 0.376315 and C12 = 0.0883697), which sit ~2 orders of magnitude below the surrounding single-cell values (~34, ~101), are among the flagged Fig.5f anomalies and demonstrate data fabrication.",
+      "source_artifact": "artifacts/source_data_fig5.xlsx#fig5f_hyBE4max_cell8",
+      "target_artifact": "artifacts/source_data_fig5.xlsx#fig5f_hyBE4max_cell9",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": "measurement_precision_limit",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "Insufficient(证据不足以定性): Fig.5f 是单细胞 comet assay 尾矩(n=50/编辑器), 灵镜披露该单图约 18 处异常. hyBE4max 列出现极低值(C11=0.376, C12=0.088)夹在正常量级(C10=34.1, C13=101.5)之间, 表面像离群/异常. 但 comet 尾矩本身跨度极大(单个近乎无损伤细胞可给出接近 0 的尾矩), 且源数据仅是最终数值表, 不含原始 comet 图像/像素级测量. 无法仅凭公开 source data 确定性判定这些近零值是造假、软件测量下限伪影、还是真实近零细胞. 属方法学/精度限制→insufficient(不给 evidence_span). source/target 指向两个近零观测仅作 claim 锚点, 非造假的确证证据."
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_baseeditor",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "verifier_conflict",
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.1038/s41556-020-0518-8",
+    "_lane": "混合型诚实案(碱基编辑器, 李大力/华东师大 2020 NCB): 并存三类 verdict — consistent/FP(Fig.4a↔ED Fig.3 的 hyeA3A-BE4max 与 Fig.2a↔ED Fig.3 的 A3A-BE4max 均为跨图共享参照编辑器臂=合法复用) + inconsistent(Fig.1c BRCA2-OB2-BE4max@Tim3-sg1 的 Rep.1==Rep.2 逐值相同=真重复列, 作者已部分更正) + insufficient(Fig.5f comet 尾矩近零值, 无原始图像无法确证造假). 考 AI 能否区分'看着可疑但是合法参照复用'/'确有重复列错误'/'证据不足'.",
+    "_pubpeer": "灵镜披露疑数据异常: Fig1c/1d/2b/2d/5e/5f/7d, ED Fig5e; Fig5f 单图 18 处异常(0/0.1 等小数不计).",
+    "_correction": "作者(李大力团队)已于 2026-06-17 对部分数据异常发布更正 → 部分真错的独立状态实锤(inconsistent 素材来源).",
+    "_verdict_breakdown": "consistent=2 (claim_001, claim_002); inconsistent=1 (claim_003); insufficient=1 (claim_004)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_grounding_note": "所有 value 逐 cell 从 source_data xlsx (openpyxl data_only) 读出无编造. consistent 两条经 dup_scan_candidates.json EXACT len=8 命中并人工核对为共享参照臂. inconsistent 的 Rep.1==Rep.2 由 dup_scan (Fig.1c colT==colU) 命中并核对 Rep.3 不同以排除全组恒定. 主文 PDF (paper_main.pdf) 附为图注/编辑器命名核对用."
+  }
+}

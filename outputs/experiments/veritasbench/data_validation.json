@@ -1,9 +1,9 @@
 {
   "ok": true,
   "base_path": "benchmarks/veritasbench",
-  "suite": "veritasbench_trial27",
-  "expected_cases": 27,
-  "actual_cases": 27,
+  "suite": "veritasbench_trial28",
+  "expected_cases": 28,
+  "actual_cases": 28,
   "allow_empty": false,
   "global_errors": [],
   "cases": {
@@ -21,6 +21,14 @@
       "n_observations": 63,
       "n_claims": 2,
       "n_clean_claims": 1,
+      "errors": []
+    },
+    "ncb_baseeditor": {
+      "ok": true,
+      "n_artifacts": 6,
+      "n_observations": 8,
+      "n_claims": 4,
+      "n_clean_claims": 2,
       "errors": []
     },
     "ncb_cav2": {
