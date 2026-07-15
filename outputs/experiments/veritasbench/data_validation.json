@@ -1,12 +1,20 @@
 {
   "ok": true,
   "base_path": "benchmarks/veritasbench",
-  "suite": "veritasbench_trial33",
-  "expected_cases": 33,
-  "actual_cases": 33,
+  "suite": "veritasbench_trial34",
+  "expected_cases": 34,
+  "actual_cases": 34,
   "allow_empty": false,
   "global_errors": [],
   "cases": {
+    "fp_raoyi": {
+      "ok": true,
+      "n_artifacts": 2,
+      "n_observations": 30,
+      "n_claims": 3,
+      "n_clean_claims": 3,
+      "errors": []
+    },
     "ncb_akg": {
       "ok": true,
       "n_artifacts": 2,

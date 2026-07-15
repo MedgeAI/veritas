@@ -1,0 +1,327 @@
+{
+  "case_id": "fp_raoyi",
+  "paper_title": "Calcium/calmodulin-dependent protein kinase II alpha and beta differentially regulate mammalian sleep",
+  "paper_authors": [
+    "Rao Yi (饶毅) 团队 (Communications Biology, 2025)"
+  ],
+  "artifacts": {
+    "source_xlsx": {
+      "path": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "sha256": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "kind": "source_data"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "a01e530e2bafc031e6f40957cce40ae1deb6b88ca3c726dee0190a3546d47676",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A3": {
+      "value": 878.88,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1H', A3 (total wake duration min, Camk2a+/+-24h; A2 表头; 878.88 = 14648x0.06min, epoch 量化整数倍)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A4": {
+      "value": 872.34,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1H', A4 (total wake duration min, Camk2a+/+-24h; A2 表头; 872.34 = 14539x0.06min, epoch 量化整数倍)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A5": {
+      "value": 802.56,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1H', A5 (total wake duration min, Camk2a+/+-24h; A2 表头; 802.56 = 13376x0.06min, epoch 量化整数倍)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A6": {
+      "value": 804.24,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1H', A6 (total wake duration min, Camk2a+/+-24h; A2 表头; 804.24 = 13404x0.06min, epoch 量化整数倍)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A7": {
+      "value": 850.2,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1H', A7 (total wake duration min, Camk2a+/+-24h; A2 表头; 850.2 = 14170x0.06min, epoch 量化整数倍)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A8": {
+      "value": 859.74,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1H', A8 (total wake duration min, Camk2a+/+-24h; A2 表头; 859.74 = 14329x0.06min, epoch 量化整数倍)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A9": {
+      "value": 791.1,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1H', A9 (total wake duration min, Camk2a+/+-24h; A2 表头; 791.1 = 13185x0.06min, epoch 量化整数倍)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y15": {
+      "value": 60,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', Y15 (wake duration min/h; V2='Camk2a -/-' 起, Y=第4只 -/- 动物; ZT12 暗期/活跃期; 60 = 每小时上限(整小时清醒)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y16": {
+      "value": 60,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', Y16 (wake duration min/h; V2='Camk2a -/-' 起, Y=第4只 -/- 动物; ZT13 暗期/活跃期; 60 = 每小时上限(整小时清醒)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y17": {
+      "value": 60,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', Y17 (wake duration min/h; V2='Camk2a -/-' 起, Y=第4只 -/- 动物; ZT14 暗期/活跃期; 60 = 每小时上限(整小时清醒)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y18": {
+      "value": 60,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', Y18 (wake duration min/h; V2='Camk2a -/-' 起, Y=第4只 -/- 动物; ZT15 暗期/活跃期; 60 = 每小时上限(整小时清醒)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y19": {
+      "value": 60,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', Y19 (wake duration min/h; V2='Camk2a -/-' 起, Y=第4只 -/- 动物; ZT16 暗期/活跃期; 60 = 每小时上限(整小时清醒)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y20": {
+      "value": 60,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', Y20 (wake duration min/h; V2='Camk2a -/-' 起, Y=第4只 -/- 动物; ZT17 暗期/活跃期; 60 = 每小时上限(整小时清醒)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y21": {
+      "value": 60,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', Y21 (wake duration min/h; V2='Camk2a -/-' 起, Y=第4只 -/- 动物; ZT18 暗期/活跃期; 60 = 每小时上限(整小时清醒)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G10": {
+      "value": 18.42,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', G10 (wake duration min/h; B2='Camk2a +/+' 起, G=第6只 +/+ 动物; ZT7; 18.42 = 307x0.06min, 量化值)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G13": {
+      "value": 18.42,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', G13 (wake duration min/h; B2='Camk2a +/+' 起, G=第6只 +/+ 动物; ZT10; 18.42 = 307x0.06min, 量化值)"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y22": {
+      "value": 37.14,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', Y22"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y23": {
+      "value": 13.86,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', Y23"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y24": {
+      "value": 60.0,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', Y24"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y25": {
+      "value": 60.0,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', Y25"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y26": {
+      "value": 58.44,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', Y26"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G11": {
+      "value": 12.54,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', G11"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G12": {
+      "value": 34.98,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', G12"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G14": {
+      "value": 27.54,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', G14"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G15": {
+      "value": 60.0,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', G15"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G16": {
+      "value": 60.0,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', G16"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G17": {
+      "value": 60.0,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', G17"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G18": {
+      "value": 60.0,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', G18"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G19": {
+      "value": 34.56,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', G19"
+    },
+    "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G20": {
+      "value": 57.96,
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "072eff1ba8b2bc4575abbbc27c4fbdd38fdeb77dc712fb6e1b0f3b0a5fa9e034",
+      "source_span": "sheet 'Fig1E', G20"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "fp_raoyi_ann_001",
+      "claim_id": "fp_raoyi_claim_001",
+      "claim_atom": "In Fig1H the seven Camk2a+/+ 24h total-wake-duration values (878.88, 872.34, 802.56, 804.24, 850.2, 859.74, 791.1 min) are all exact integer multiples of a 0.06-min epoch quantum, giving a restricted terminal-digit distribution (only even hundredths); this is a mechanical artifact of epoch-based sleep scoring, not fabricated digit patterning.",
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A3",
+      "target_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A9",
+      "source_a1_range": "A3:A3",
+      "target_a1_range": "A9:A9",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_clean_pairs": [
+        [
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A3",
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A9"
+        ],
+        [
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A4",
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A9"
+        ],
+        [
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A5",
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A9"
+        ],
+        [
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A6",
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A9"
+        ],
+        [
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A7",
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A9"
+        ],
+        [
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A8",
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1H!A9"
+        ]
+      ],
+      "_adjudication": "★FP陷阱: 尾数/末位数字频率检验会发现这 7 个值(及整张表 78/78)的末两位只落在 0.06 的整数倍上(全为偶数百分位), 分布高度非均匀, 易被误判为'编造/凑数'. 实为合法: 睡眠按固定 epoch 打分, 总时长 = epoch 数 x epoch 长度(此处公倍量 0.06 min), 天然量化, 末位数字必然受限. 依刘盼条款[1](归一化/机器计算数据的单纯尾数频率无意义)+[5](此类计算/记录数据偶合正常). 编辑部/灵镜 12365 点检测判无异常. verdict=consistent, AI 不应因末位数字非均匀而报异常."
+    },
+    {
+      "annotation_id": "fp_raoyi_ann_002",
+      "claim_id": "fp_raoyi_claim_002",
+      "claim_atom": "In Fig1E the Camk2a-/- animal in column Y shows seven consecutive identical values of 60 min/h across ZT12-ZT18 (Y15:Y21); this run of repeated identical numbers is censoring at the per-hour ceiling (a fully awake hour during the active dark phase), not copy-paste block duplication.",
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y15",
+      "target_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y21",
+      "source_a1_range": "Y15:Y20",
+      "target_a1_range": "Y21:Y26",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_clean_pairs": [
+        [
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y15",
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y21"
+        ],
+        [
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y16",
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y21"
+        ],
+        [
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y17",
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y21"
+        ],
+        [
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y18",
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y21"
+        ],
+        [
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y19",
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y21"
+        ],
+        [
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y20",
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!Y21"
+        ]
+      ],
+      "_adjudication": "★FP陷阱: 同一列连续 7 个完全相同的 60, 像整块复制粘贴的伪造. 实为合法: 该指标是 'wake duration (min/h)', 上限即 60 min/h(整小时清醒); ZT12-18 是夜行小鼠的暗期/活跃期, 连续数小时清醒饱和 → 在 60 处删失(right-censoring), 重复 60 是天花板效应而非重复数据. 依刘盼条款[1](此类数据必然产生大量相同值)+[5](人工/生理记录偶合正常). 编辑部/灵镜检测判无异常. verdict=consistent, AI 不应把删失导致的相同值当伪造."
+    },
+    {
+      "annotation_id": "fp_raoyi_ann_003",
+      "claim_id": "fp_raoyi_claim_003",
+      "claim_atom": "In Fig1E the Camk2a+/+ animal in column G has two identical non-ceiling values of 18.42 min/h at ZT7 (G10) and ZT10 (G13); this coincidental exact duplicate arises because the data are epoch-quantized to a finite discrete value space, so occasional identical values across hundreds of points are expected, not duplicated data.",
+      "source_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G10",
+      "target_artifact": "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G13",
+      "source_a1_range": "G10:G17",
+      "target_a1_range": "G13:G20",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "_clean_pairs": [
+        [
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G10",
+          "artifacts/42003_2024_7449_MOESM3_ESM.xlsx#Fig1E!G13"
+        ]
+      ],
+      "_adjudication": "★FP陷阱: 同一动物在两个非天花板时点出现完全相同的 18.42, 像重复/搬运的数据点. 实为合法: 数据按 0.06 min 量化, 取值空间离散有限(0-60 内约 1000 个格点); 本图约 648 个数据点, 在有限量化格点上偶然出现相同值属大样本必然巧合. 依刘盼条款[2](数据量足够大, 组内必然偶合等值/等比等差, 无参照即无意义)+[5](量化/记录数据偶合正常). 编辑部/灵镜检测判无异常. verdict=consistent, AI 不应把大样本量化数据的偶合重复判为伪造."
+    }
+  ],
+  "metadata": {
+    "paper_split": "fp_raoyi",
+    "primary_failure_mode": "false_positive_trap",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s42003-024-07449-y",
+    "_lane": "清白案(非造假): 全 consistent / is_clean_claim 三条, 考 AI 面对'看着可疑其实合法'的睡眠打分数据不误报. 三条分别对应 epoch 量化尾数分布 / 天花板删失重复 / 大样本量化偶合重复.",
+    "_pubpeer": "0AC0B99643E8F8F1DFCC6F6398188E",
+    "_independent_status": "编辑部/灵镜检测 12365 点判无数据异常(独立依据, 三条均判 consistent)",
+    "_note": "被 PubPeer 指控实为清白, 考 AI 不误报(false positive)",
+    "_adjudication_principles": "刘盼原则: [1]归一化/机器计算数据单纯尾数频率无意义; [2]无参照的组内偶合等比/等差在大样本必然出现无意义; [5]人工/生理记录数据偶合正常",
+    "_signed_by": "wuguandu @ 2026-07-15"
+  }
+}
