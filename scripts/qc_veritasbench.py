@@ -39,6 +39,8 @@ from pathlib import Path
 
 import openpyxl
 
+from engine.benchmark.recompute_verifier import recompute_verify
+
 DEFAULT_BASE = Path("benchmarks/veritasbench/cases")
 DUAL_VERSION = {"ncb_neurexin", "ncb_teneurin", "ncb_clonalfish"}
 
@@ -99,8 +101,19 @@ def run_mirror(case_dir: Path, mirror: str | None) -> tuple[bool | None, int]:
     return ("RESULT: PASS" in out), (int(m.group(1)) if m else 1)
 
 
-def _extract_obs(cdir: Path, okey: str, o: dict, wb_cache: dict, csv_cache: dict, line_cache: dict) -> str:
-    """Return 'ok' / 'nonaddr:<why>' / 'fail:<detail>' for one observation."""
+def _extract_obs(cdir: Path, okey: str, o: dict, wb_cache: dict, csv_cache: dict,
+                 line_cache: dict, obs_index: dict) -> str:
+    """Return 'ok' / 'nonaddr:<why>' / 'pending:<why>' / 'fail:<detail>' for one observation.
+
+    An obs carrying a `recompute` contract is dispatched to the recompute verifier; a code_entry
+    method that needs the deferred sandbox comes back as 'pending' (UNVERIFIED — not a pass)."""
+    if o.get("recompute"):
+        v = recompute_verify(o, cdir, obs_index)
+        if v.startswith("skip:code_entry"):
+            return f"pending:{v[5:]}"          # needs the deferred sandbox (path A)
+        if v.startswith("skip:"):
+            return f"gap:{v[5:]}"              # missing reference_fn / method — w1 registry TODO
+        return v
     relpath, loc = okey.split("#", 1)
     val = o["value"]
     art = cdir / relpath
@@ -161,8 +174,8 @@ def check_case(cid: str, base: Path, mirror: str | None) -> dict:
     cdir = base / cid
     doc = json.loads((cdir / "case.json").read_text(encoding="utf-8"))
     arts, obs, claims = doc.get("artifacts", {}), doc.get("observations", {}), doc.get("claims", [])
-    r = {"case": cid, "ok": 0, "total": 0, "fails": [], "nonaddr": [], "hash_fail": [],
-         "a1_missing": [], "evspan_missing": [], "notes": []}
+    r = {"case": cid, "ok": 0, "total": 0, "fails": [], "nonaddr": [], "pending": [], "gap": [],
+         "hash_fail": [], "a1_missing": [], "evspan_missing": [], "notes": []}
 
     r["mirror_pass"], r["mirror_errors"] = run_mirror(cdir, mirror)
 
@@ -177,13 +190,17 @@ def check_case(cid: str, base: Path, mirror: str | None) -> dict:
     for okey, o in obs.items():
         r["total"] += 1
         try:
-            verdict = _extract_obs(cdir, okey, o, wb_cache, csv_cache, line_cache)
+            verdict = _extract_obs(cdir, okey, o, wb_cache, csv_cache, line_cache, obs)
         except Exception as e:  # noqa: BLE001
             verdict = f"fail:ERR {str(e)[:50]}"
         if verdict == "ok":
             r["ok"] += 1
         elif verdict.startswith("nonaddr:"):
             r["nonaddr"].append(f"{okey} ({verdict[8:]})")
+        elif verdict.startswith("pending:"):
+            r["pending"].append(f"{okey} ({verdict[8:]})")
+        elif verdict.startswith("gap:"):
+            r["gap"].append(f"{okey} ({verdict[4:]})")
         else:
             r["fails"].append(f"{okey}: {verdict[5:]}")
 
@@ -235,7 +252,9 @@ def main(argv=None) -> int:
             mp = "n/a" if r["mirror_pass"] is None else ("PASS" if r["mirror_pass"] else f"FAIL{r['mirror_errors']}")
             a1 = "ok" if not r["a1_missing"] else f"MISS{len(r['a1_missing'])}"
             h = "ok" if not r["hash_fail"] else "FAIL"
-            note = ([f"{len(r['nonaddr'])}non-addr"] if r["nonaddr"] else []) + r["notes"]
+            note = ([f"{len(r['nonaddr'])}non-addr"] if r["nonaddr"] else []) \
+                + ([f"{len(r['pending'])}PENDING-sandbox"] if r["pending"] else []) \
+                + ([f"{len(r['gap'])}REGISTRY-GAP"] if r["gap"] else []) + r["notes"]
             print(f"{r['case']:22} {mp:8} {r['ok']:>3}/{r['total']:<5} {a1:>5} {h:>5}  {'; '.join(note)}")
             for e in r["fails"][:6] + [f"hash {x}" for x in r["hash_fail"]] + [f"a1 {x}" for x in r["a1_missing"][:4]]:
                 print(f"    x {e}")
