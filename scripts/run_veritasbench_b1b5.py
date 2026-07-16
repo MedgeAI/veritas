@@ -21,7 +21,6 @@ from __future__ import annotations
 
 import json
 import os
-import random
 from pathlib import Path
 
 from engine.benchmark.agent_harness import (
@@ -63,28 +62,26 @@ def _dispatch_render():
     return render
 
 
+SPLIT_FILE = Path("benchmarks/veritasbench/splits/l1_dev_test.json")
+
+
 def _load_corpus():
-    """Load combined ncb_+rep_ L1 cases; return (dev_cases, test_cases) split BY CASE."""
+    """Load combined ncb_+rep_ L1 cases; return (dev_cases, test_cases) per the FIXED split file."""
+    split = json.loads(SPLIT_FILE.read_text(encoding="utf-8"))
+    dev_ids, test_ids = set(split["dev"]), set(split["test"])
     if os.environ.get("EVAL_ALL"):
         ncb = sorted(p.name for p in CASES_ROOT.iterdir() if p.name.startswith("ncb_"))
         rep = sorted(p.name for p in CASES_ROOT.iterdir() if p.name.startswith("rep_"))
     else:
         ncb, rep = PILOT["ncb"], PILOT["rep"]
-    cases = []
-    for cid in ncb:
-        c, rep_report = load_veritasbench_case(CASES_ROOT / cid)
-        if c.claims:
-            cases.append(c)
-    for cid in rep:
-        c, _ = load_rep_case(CASES_ROOT / cid)
-        if c.claims:
-            cases.append(c)
-    # deterministic case-level dev/test split (~1/3 dev for B5 threshold calibration)
-    rng = random.Random(0)
-    order = sorted(cases, key=lambda c: c.case_id)
-    rng.shuffle(order)
-    k = max(1, len(order) // 3)
-    return order[:k], order[k:]
+    dev, test = [], []
+    for cid in ncb + rep:
+        loader = load_veritasbench_case if cid.startswith("ncb_") else load_rep_case
+        c, _ = loader(CASES_ROOT / cid)
+        if not c.claims:
+            continue
+        (dev if c.case_id in dev_ids else test if c.case_id in test_ids else test).append(c)
+    return dev, test
 
 
 def _flat(by_case):
