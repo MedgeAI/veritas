@@ -127,6 +127,22 @@ def init_db(engine: Engine | None = None) -> None:
     from . import models as _models  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
+    apply_lightweight_migrations(engine)
+
+
+def apply_lightweight_migrations(engine: Engine) -> None:
+    """Apply explicit additive migrations that ``create_all`` cannot perform.
+
+    Uses PostgreSQL-specific syntax (``ADD COLUMN IF NOT EXISTS``).
+    Only runs in production/development where PostgreSQL is the database backend.
+    """
+    # NOTE: PostgreSQL-only syntax. SQLite does not support IF NOT EXISTS for ALTER TABLE.
+    # This is intentional — the project requires PostgreSQL 16+ (see CLAUDE.md).
+    with engine.connect() as conn:
+        conn.execute(
+            text("ALTER TABLE cases ADD COLUMN IF NOT EXISTS paper_pdf VARCHAR(512)")
+        )
+        conn.commit()
 
 
 def check_connection(engine: Engine | None = None) -> bool:
@@ -162,3 +178,47 @@ def check_db_or_raise(engine: Engine | None = None) -> None:
             "  make db-up\n"
             "Or set VERITAS_DATABASE_URL to point at your database."
         ) from exc
+
+
+_global_engine: Engine | None = None
+
+
+def get_or_create_engine(database_url: str | None = None) -> Engine:
+    """Return a process-wide shared engine, creating it on first call.
+
+    Used by the web app to ensure CaseStore and AppDependencies share
+    the same connection pool.  Also usable by SSE/celery code paths
+    that need an engine without creating a new pool per call.
+    """
+    global _global_engine
+    if _global_engine is None:
+        _global_engine = create_db_engine(database_url)
+    return _global_engine
+
+
+def setup_pgvector(engine: Engine) -> None:
+    """Register the pgvector extension on engine.
+
+    Called at app startup to ensure the extension is available before
+    any model that uses vector columns is queried.  Safe to call
+    multiple times (CREATE EXTENSION IF NOT EXISTS is idempotent).
+    """
+    with engine.connect() as conn:
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+        conn.commit()
+
+
+def check_db(engine: Engine | None = None) -> bool:
+    """Return True if the database is reachable, False otherwise.
+
+    Non-raising version of check_db_or_raise.  Use for health-check
+    endpoints that should return 200 with status='degraded' rather
+    than 500 when the DB is unreachable.
+    """
+    eng = engine or create_db_engine()
+    try:
+        with eng.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return True
+    except Exception:
+        return False

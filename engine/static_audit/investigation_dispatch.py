@@ -28,6 +28,7 @@ from engine.investigation.opencode_agent import (
     write_agent_result,
 )
 from engine.static_audit.investigation_tools import ADAPTERS, tool_output_filename
+from engine.static_audit.audit_config import resolve_role_timeout
 
 # ---------------------------------------------------------------------------
 # Shared utilities (previously in orchestrator.py, now in _shared.py).
@@ -412,6 +413,7 @@ def run_agent_roles(
     timeout_seconds: int,
     max_retries: int,
     progress: ProgressCallback | None = None,
+    enabled_roles: frozenset[str] | None = None,
 ) -> tuple[list[StepResult], list[dict[str, Any]]]:
     steps: list[StepResult] = []
     role_manifest: list[dict[str, Any]] = []
@@ -467,6 +469,33 @@ def run_agent_roles(
             )
             continue
 
+        # Benchmark tier filter: skip roles not enabled for this tier
+        if enabled_roles is not None and role.role_id not in enabled_roles:
+            trace = skipped_trace(
+                role, f"Benchmark tier does not include role '{role.role_id}'."
+            )
+            trace.output_path = str(output_path)
+            write_reserved_role_output(workdir, role, trace)
+            write_role_trace(workdir, trace)
+            role_manifest.append(
+                {
+                    "role_id": role.role_id,
+                    "status": trace.status,
+                    "output": str(output_path),
+                }
+            )
+            record_step(
+                steps,
+                StepResult(
+                    f"agent_role_{role.role_id}",
+                    f"opencode Agent role: {role.title}",
+                    "skipped",
+                    trace.detail,
+                ),
+                progress,
+            )
+            continue
+
         step_key = f"agent_role_{role.role_id}"
         if not agent_enabled:
             trace = AgentTrace(
@@ -501,6 +530,41 @@ def run_agent_roles(
 
         roles_to_run.append((role, output_path, trace_path))
 
+    # Before Phase 2, build grounding_index if claim_extractor will run
+    roles_to_run_ids = {rd[0].role_id for rd in roles_to_run}
+    if "claim_extractor" in roles_to_run_ids:
+        try:
+            from engine.static_audit.tools.grounding_index import (
+                build_grounding_index,
+                save_grounding_index,
+            )
+
+            full_md_path = resolve_artifact_path(workdir, "full.md")
+            evidence_ledger_path = resolve_artifact_path(
+                workdir, "evidence_ledger.json"
+            )
+            source_data_dir = resolve_artifact_path(workdir, "source_data")
+            if full_md_path.exists():
+                idx = build_grounding_index(
+                    full_md_path=full_md_path,
+                    evidence_ledger_path=(
+                        evidence_ledger_path
+                        if evidence_ledger_path.exists()
+                        else None
+                    ),
+                    source_data_dir=(
+                        source_data_dir if source_data_dir.exists() else None
+                    ),
+                )
+                gi_path = workdir / "grounding_index.json"
+                save_grounding_index(idx, gi_path)
+        except Exception:  # noqa: BLE001
+            import logging
+
+            logging.getLogger(__name__).warning(
+                "grounding_index build failed", exc_info=True
+            )
+
     # Phase 2: Run roles in dependency order (respecting input_artifacts)
     if roles_to_run:
 
@@ -521,7 +585,7 @@ def run_agent_roles(
                 env=env,
                 model=model,
                 opencode_bin=opencode_bin,
-                timeout_seconds=timeout_seconds,
+                timeout_seconds=resolve_role_timeout(role.role_id, timeout_seconds),
                 max_retries=max_retries,
             )
             payload = write_role_agent_result(output_path, role, case_id, result)
@@ -546,8 +610,59 @@ def run_agent_roles(
                 futures = {executor.submit(_run_single_role, rd): rd[0] for rd in layer}
                 for future in as_completed(futures):
                     step, metadata = future.result()
-                    steps.append(step)
+                    record_step(steps, step, progress)
                     role_manifest.append(metadata)
+
+    # After Phase 2, enrich claim_extractor output if needed
+    if "claim_extractor" in roles_to_run_ids:
+        try:
+            from engine.static_audit.tools.claim_enricher import enrich_claims
+
+            claim_output_path = resolve_artifact_path(
+                workdir, "agent_claim_extractor.json"
+            )
+            if claim_output_path.exists():
+                payload = json.loads(claim_output_path.read_text(encoding="utf-8"))
+                claims = payload.get("claims", [])
+                needs_enrichment = any(
+                    "mentioned_refs" in c and "paper_location" not in c
+                    for c in claims
+                )
+                if needs_enrichment:
+                    gi_path = workdir / "grounding_index.json"
+                    grounding_index_data: dict[str, Any] = {}
+                    if gi_path.exists():
+                        grounding_index_data = json.loads(
+                            gi_path.read_text(encoding="utf-8")
+                        )
+                    el_path = resolve_artifact_path(
+                        workdir, "evidence_ledger.json"
+                    )
+                    evidence_ledger_data = None
+                    if el_path.exists():
+                        evidence_ledger_data = json.loads(
+                            el_path.read_text(encoding="utf-8")
+                        )
+                    full_md_path = resolve_artifact_path(workdir, "full.md")
+                    enriched = enrich_claims(
+                        raw_claims=claims,
+                        grounding_index=grounding_index_data,
+                        evidence_ledger=evidence_ledger_data,
+                        full_md_path=(
+                            full_md_path if full_md_path.exists() else None
+                        ),
+                        case_id=case_id,
+                    )
+                    claim_output_path.write_text(
+                        json.dumps(enriched, ensure_ascii=False, indent=2),
+                        encoding="utf-8",
+                    )
+        except Exception:  # noqa: BLE001
+            import logging
+
+            logging.getLogger(__name__).warning(
+                "claim enrichment failed", exc_info=True
+            )
 
     return steps, role_manifest
 

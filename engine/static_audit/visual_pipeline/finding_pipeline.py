@@ -20,6 +20,9 @@ from engine.static_audit.tools.visual_finding_pipeline import (
     build_visual_findings,
     visual_review_queue,
 )
+from engine.static_audit.visual_pipeline.provenance_relationships import (
+    write_provenance_relationship_artifacts,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -310,6 +313,65 @@ def run_visual_finding_pipeline(
         forged_region_evidence=forged_region_items,
     )
 
+    # --- Phase 0: Demotion filter ------------------------------------------------
+    # Split findings into promoted vs demoted based on corroboration rules.
+    # Demoted findings are preserved in visual/candidates/demoted_candidates.json
+    # but excluded from clusters, review_queue, and the main report.
+    from engine.static_audit.audit_config import visual_demotion_config
+    from engine.static_audit.visual_pipeline.demotion_filter import (
+        _CATEGORY_TO_FAMILY,
+        _scope_key,
+        classify_findings,
+        DEFAULT_DEMOTION_RULES,
+    )
+    from engine.static_audit.visual_schemas import DemotedCandidate
+    from datetime import UTC, datetime
+
+    demotion_cfg = visual_demotion_config()
+    if demotion_cfg.get("enabled", True):
+        promoted_findings, demoted_findings = classify_findings(findings)
+    else:
+        promoted_findings, demoted_findings = list(findings), []
+
+    # Build DemotedCandidate records and persist to candidates artifact.
+    demoted_candidates: list[dict[str, Any]] = []
+    if demoted_findings:
+        candidates_dir = resolve_artifact_path(
+            workdir, "demoted_candidates.json"
+        ).parent
+        candidates_dir.mkdir(parents=True, exist_ok=True)
+        now_iso = datetime.now(UTC).isoformat()
+        reason_map = {r.category: r.reason for r in DEFAULT_DEMOTION_RULES}
+        for idx, demoted_f in enumerate(demoted_findings, start=1):
+            category = demoted_f.get("category", "")
+            family = _CATEGORY_TO_FAMILY.get(category, "unknown")
+            candidate = DemotedCandidate(
+                candidate_id=f"DC-{idx:04d}",
+                detector_source=family,
+                raw_output=demoted_f,
+                demotion_reason=reason_map.get(category, "uncorroborated finding"),
+                visible_in_report=False,
+                demoted_at=now_iso,
+                scope_key=_scope_key(demoted_f),
+            )
+            demoted_candidates.append(candidate.to_dict())
+        candidates_output = resolve_artifact_path(workdir, "demoted_candidates.json")
+        write_json_artifact(
+            candidates_output,
+            {
+                "schema_version": "1.0",
+                "created_by": (
+                    "engine/static_audit/visual_pipeline/demotion_filter.py"
+                ),
+                "candidate_count": len(demoted_candidates),
+                "candidates": demoted_candidates,
+            },
+        )
+
+    # Replace findings with promoted-only for downstream cluster/review_queue.
+    findings = promoted_findings
+    # --- End Phase 0 demotion filter -------------------------------------------
+
     # Count skipped relationships and TruFor findings due to code-generated modality
     skipped_relationships = [r for r in relationships if "skipped" in r]
     skipped_trufor = [
@@ -328,6 +390,44 @@ def run_visual_finding_pipeline(
     limitations = [
         "Visual relationships are screening signals and require manual review before escalation.",
     ]
+    provenance_graph = (
+        read_json(resolve_artifact_path(workdir, "provenance_graph.json")) or {}
+    )
+    relationship_findings: list[dict[str, Any]] = []
+    provenance_filtered: dict[str, Any] = {}
+    if provenance_graph:
+        (
+            relationship_findings,
+            _relationship_doc,
+            provenance_filtered,
+        ) = write_provenance_relationship_artifacts(workdir, provenance_graph)
+        findings.extend(relationship_findings)
+        if relationship_findings:
+            start_index = len(review_queue) + 1
+            for index, finding in enumerate(relationship_findings, start=start_index):
+                review_queue.append(
+                    {
+                        "task_id": f"VRT-{index:03d}",
+                        "priority": finding.get("risk_level", "medium"),
+                        "cluster_id": None,
+                        "category": finding.get("category"),
+                        "scope": "cross_figure",
+                        "figure_ids": [
+                            finding.get("source_figure"),
+                            finding.get("target_figure"),
+                        ],
+                        "finding_count": 1,
+                        "relationship_count": 1,
+                        "panel_extraction_quality": "figure_level",
+                        "question": finding.get("review_question"),
+                        "evidence_refs": finding.get("evidence_refs") or [],
+                        "representative_finding_ids": [finding.get("finding_id")],
+                    }
+                )
+        elif provenance_filtered.get("total_edges", 0) > 0:
+            limitations.append(
+                "Provenance graph produced edges, but none passed the configured relationship threshold."
+            )
     if len(skipped_panels) > 0:
         limitations.append(
             f"{len(skipped_panels)} panels skipped due to code-generated modality (Graphs/Flow Cytometry); "
@@ -378,9 +478,12 @@ def run_visual_finding_pipeline(
         "finding_count": len(findings),
         "finding_cluster_count": len(finding_clusters),
         "review_queue_count": len(review_queue),
+        "visual_relationship_finding_count": len(relationship_findings),
+        "demoted_candidate_count": len(demoted_candidates),
         "findings": findings,
         "finding_clusters": finding_clusters,
         "review_queue": review_queue,
+        "provenance_edge_filter": provenance_filtered,
         "errors": errors,
         "limitations": limitations,
     }
@@ -401,7 +504,12 @@ def run_visual_finding_pipeline(
         "visual_finding_pipeline",
         "视觉证据聚合管线",
         "ran",
-        f"relationships={len(relationships)} visual_findings={len(findings)} visual_review_queue={len(review_queue)}",
+        (
+            f"relationships={len(relationships)} "
+            f"visual_findings={len(findings)} "
+            f"demoted_candidates={len(demoted_candidates)} "
+            f"visual_review_queue={len(review_queue)}"
+        ),
     )
     record_step(steps, step, progress)
     return steps, {
@@ -413,6 +521,9 @@ def run_visual_finding_pipeline(
             "finding_count": len(findings),
             "finding_cluster_count": len(finding_clusters),
             "review_queue_count": len(review_queue),
+            "visual_relationship_finding_count": len(relationship_findings),
+            "demoted_candidate_count": len(demoted_candidates),
+            "provenance_edge_filter": provenance_filtered,
             "copy_move_status": copy_move_result.get("status"),
             "overlay_cleanup": cleanup_stats,
         }

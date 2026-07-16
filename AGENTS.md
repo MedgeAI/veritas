@@ -36,16 +36,33 @@ Third-party        (third_party/)      — 能力吸收区，必须通过 adapte
 
 ### Evidence First
 
-报告必须从结构化 evidence event 生成，不能从 Agent 自然语言总结生成。至少支持：`file_evidence`、`execution_evidence`、`claim_match`、`figure_evidence`。
+报告必须从结构化 evidence event 生成，不能从 Agent 自然语言总结生成。至少支持：`file_evidence`、`execution_evidence`、`extraction_evidence`、`claim_match`、`figure_evidence`。
 
-### 只讲事实，不讲观点
+LLM 可以作为受约束的证据提取器处理非预期输出，但 LLM 输出本身不是原始证据源，必须转化为带 provenance 的 `extraction_evidence` / `derived_observation`：
 
-报告解释层只呈现从结构化数据动态生成的事实描述。LLM 只允许输出结构化 JSON（trace、claim mapping、finding review），不进入报告正文。每个 finding 给出"建议行动"（如"要求学生解释"），不给结论。
+- 每个 LLM 提取值必须锚定不可变原始 artifact（stdout/stderr、输出文件、notebook cell）及其 hash
+- 每个 LLM 提取值必须包含 `source_artifact`、`source_artifact_hash`、`source_span`、`source_snippet`、`model_id`、`prompt_version`、`schema_version`、`extraction_confidence`、`validation_status`
+- 没有 artifact anchor、没有 source span、schema 校验失败或置信度不足的提取结果，不得进入确定性事实层；对应 cell 必须标记为 `unextractable` 或 `needs_review`
+- Verdict 必须区分 extraction confidence（值是否确实来自执行输出）和 comparison verdict（提取值与论文值是否一致）
+- LLM 可以扩大可提取范围，但不能扩大结论确定性
+
+### 只讲事实，LLM 解释层辅助理解
+
+报告采用双层结构：
+
+1. **事实层**：从结构化 evidence event 生成，呈现客观检测数据。至少支持：`file_evidence`、`execution_evidence`、`extraction_evidence`、`claim_match`、`figure_evidence`。事实层不允许 LLM 生成自由文本。
+   - LLM-mediated extraction 属于结构化事实层的派生观察：LLM 只能生成带 provenance 的 `extraction_evidence`，不能直接生成 Finding 结论或自由文本事实。
+2. **解释层**：LLM 基于证据生成解释性文本（`review_question`、`benign_explanations`、`relation_text`、Judge summary），帮助用户理解证据的含义。解释层是有意设计的——充分利用 LLM 智能降低用户理解成本，同时通过证据锚定减少幻觉误判。
+
+品质护栏：
+- `HUMAN_TEXT_REPLACEMENTS` 对解释层文本执行术语规范化（如"造假" → "数据完整性问题"），确保解释层措辞符合产品定位——只解释事实，不下结论。
+- 解释层文本必须基于当前 finding 的 evidence 数据，不允许 LLM 引入报告上下文中不存在的信息。
+- 每个 finding 给出"建议行动"（如"要求学生解释"），不给最终结论。
 
 ### Agent 边界
 
-Agent **可以**：映射 claim→代码、选 Tool Registry 允许的 tool_id、生成结构化 JSON trace、写入 `outputs/`。
-Agent **不可以**：编辑源码、应用 patch、判定学术不端、绕过 Tool Registry。
+Agent **可以**：映射 claim→代码、选 Tool Registry 允许的 tool_id、生成结构化 JSON trace、生成带 provenance 的 extraction proposal/evidence、写入 `outputs/`。
+Agent **不可以**：编辑源码、应用 patch、判定学术不端、绕过 Tool Registry、在没有原始 artifact anchor 的情况下补全或推测事实值。
 输出必须结构化；校验失败时反馈给 Agent 重试，仍失败则记录 failed trace，不覆盖确定性证据。
 
 ### Runtime 边界
@@ -82,6 +99,7 @@ Runtime 负责执行命令和记录证据（command manifest、stdout/stderr、e
 | 数据库 | PostgreSQL 16 + pgvector（`make db-up`，`veritas_dev@5433`） | PostgreSQL 16 + pgvector（`deploy/.env` 凭据，`5432` 内部） |
 | Celery broker | Redis 7（`make db-up`，`localhost:6379`） | Redis 7（compose 内部服务 `redis:6379`） |
 | 审计执行 | 线程池（同步） | Celery worker（异步） |
+| 视觉取证长驻服务 | `make forensics-up`（本地 `sila-dense:8770`、`elis-forensic:8771`） | 主生产 compose 内部服务 `sila-dense:8770`、`elis-forensic:8771` |
 | 前端 | Vite dev server（HMR）或 `npm run build` | Docker 构建阶段 `npm run build` |
 | Auth | `none` | `none`（可在 `.env` 中切换） |
 | 文件路径 | 相对路径 `web_data/`、`outputs/` | 容器内绝对路径 `/app/web_data/` |
@@ -118,6 +136,37 @@ make deploy-rebuild    # 构建 + 启动 + 自动冒烟测试
 2. `/api/health/deep` — MinerU 脚本、opencode 二进制、Python imports、数据目录权限
 3. `/api/cases` — API 路由正常
 
+### 生产诊断与 Agent 反馈闭环
+
+生产环境报错或审计结果异常时，先生成诊断包，再分析修复：
+
+```bash
+make prod-diagnose
+```
+
+输出固定位置：
+
+```text
+web_data/diagnostics/latest.json
+web_data/diagnostics/latest.md
+```
+
+Agent 观测生产问题的最佳顺序：
+
+```text
+先看 per-run diagnostics
+→ 再看 make prod-diagnose
+→ 最后才 tail docker compose logs
+```
+
+1. **per-run diagnostics**：优先读取最新 run 的 `outputs/{case_id}/research-integrity-audit/diagnostics/latest.json`，以及同目录下的 `agent_debug.json`、`run_quality.json`、`artifact_summary.json`、`performance.json`、`model_calls.json`。这是审计质量和 Agent 失败分析的第一入口。
+2. **`make prod-diagnose`**：当 run diagnostics 不足以解释问题，或需要容器状态、health、模型、mount 权限等生产环境上下文时运行。输出固定在 `web_data/diagnostics/latest.json` 和 `web_data/diagnostics/latest.md`。
+3. **原始日志**：只有需要实时观察或诊断包无法覆盖时，再使用 `make deploy-logs` / `docker compose logs` / `docker logs` tail 原始日志。
+
+原始日志适合实时观察；真正给 Agent 修 bug，应优先喂结构化 diagnostics。`make prod-diagnose` 诊断包包含 compose 状态、`/api/health/deep`、最近错误日志、host bind mount、模型权重、最新 audit manifest 和失败节点；命令只读生产容器，不重启、不修改服务。
+
+生产视觉取证服务必须通过 compose service name 访问：`SILA_DENSE_URL=http://sila-dense:8770`、`ELIS_FORENSIC_URL=http://elis-forensic:8771`。不要在生产容器里使用 `localhost:8770/8771` 指向这些服务；容器内 `localhost` 只表示当前容器自身。
+
 **关键约束**：`.dockerignore` 放行 `third_party/research-integrity-auditor/`、`third_party/elis/system_modules/`、`third_party/paperconan/`（审计核心依赖）；排除 `AsyncReview/` 和 `deepwiki-open/`（参考仓库，运行时不需要）。`Dockerfile` 有对应的 `COPY` 行。新增 third_party 依赖时必须同步更新这两处。
 
 ### 验证一致性
@@ -137,7 +186,6 @@ engine/
 ├── follow_up/        Follow-up 行动生成
 └── tools/registry.py Tool Registry（核心契约）
 runtime/              本地执行后端
-protocols/            垂直领域规则
 configs/              opencode 上下文、methodology、运行配置
 web/
 ├── backend/          FastAPI backend + routers

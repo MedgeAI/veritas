@@ -30,10 +30,16 @@ from engine.static_audit.tools.source_data_findings import (
 from engine.static_audit.tools.source_data_pair_forensics import (
     PairForensicsParams,
     analyze_xlsx_root,
+    binary_arithmetic_relation_findings,
     cluster_pair_forensics_findings,
+    decimal_tail_match_shifted_findings,
     duplicate_row_vector_findings,
     paired_ratio_reuse_findings,
     pair_forensics_review_tasks,
+    strict_linear_relation_findings,
+)
+from engine.static_audit.tools.source_data_pair_forensics._shared import (
+    same_fraction_integer_delta,
 )
 
 
@@ -88,7 +94,7 @@ def test_pattern_strength_complete_35_of_35():
         == "fixed_difference=0.3 covers 35/35 overlapping rows"
     )
     assert result["support_rate"] == 1.0
-    assert result["risk_level"] == "medium"  # 35 < 100, so medium
+    assert result["risk_level"] == "critical"  # Q1: 100% support + 35 rows >= 20
 
 
 def test_pattern_strength_strong_80_percent():
@@ -128,7 +134,7 @@ def test_pattern_strength_strong_80_percent():
         == "fixed_difference=0.5 covers 80/100 overlapping rows"
     )
     assert result["support_rate"] == 0.8
-    assert result["risk_level"] == "medium"  # 80 < 100, so medium
+    assert result["risk_level"] == "high"  # Q1: 80% support + 100 rows >= 30
 
 
 def test_pattern_strength_high_when_support_rows_ge_100():
@@ -341,7 +347,7 @@ def test_mean_sum_labels_without_integer_n_relationship_are_not_downgraded() -> 
     )
     finding = next(item for item in findings if item["category"] == "fixed_ratio")
 
-    assert finding["risk_level"] == "medium"
+    assert finding["risk_level"] == "high"  # Q1: 100% support + 10 rows → escalated
     assert finding["artifact_likelihood"] == "unknown"
     assert finding["pressure_test_result"] == "needs_semantics_and_formula_review"
 
@@ -438,6 +444,70 @@ def write_minimal_xlsx(path: Path, rows: list[list[float | int | None]]) -> None
             "</Relationships>",
         )
         zf.writestr("xl/worksheets/sheet1.xml", sheet_xml)
+
+
+def write_two_sheet_xlsx(
+    path: Path,
+    first_rows: list[list[float | int | None]],
+    second_rows: list[list[float | int | None]],
+) -> None:
+    def sheet_xml(rows: list[list[float | int | None]]) -> str:
+        sheet_rows = []
+        for row_index, values in enumerate(rows, start=1):
+            cells = []
+            for col_index, value in enumerate(values, start=1):
+                if value is None:
+                    continue
+                col = chr(64 + col_index)
+                cells.append(f'<c r="{col}{row_index}"><v>{value}</v></c>')
+            sheet_rows.append(f'<row r="{row_index}">{"".join(cells)}</row>')
+        return (
+            '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+            '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+            f"<sheetData>{''.join(sheet_rows)}</sheetData>"
+            "</worksheet>"
+        )
+
+    with zipfile.ZipFile(path, "w") as zf:
+        zf.writestr(
+            "[Content_Types].xml",
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+            '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+            '<Default Extension="xml" ContentType="application/xml"/>'
+            '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+            '<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+            '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'
+            "</Types>",
+        )
+        zf.writestr(
+            "_rels/.rels",
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+            "</Relationships>",
+        )
+        zf.writestr(
+            "xl/workbook.xml",
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '
+            'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+            "<sheets>"
+            '<sheet name="Fig. 2e" sheetId="1" r:id="rId1"/>'
+            '<sheet name="Fig. 7e" sheetId="2" r:id="rId2"/>'
+            "</sheets>"
+            "</workbook>",
+        )
+        zf.writestr(
+            "xl/_rels/workbook.xml.rels",
+            '<?xml version="1.0" encoding="UTF-8"?>'
+            '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+            '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>'
+            '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet2.xml"/>'
+            "</Relationships>",
+        )
+        zf.writestr("xl/worksheets/sheet1.xml", sheet_xml(first_rows))
+        zf.writestr("xl/worksheets/sheet2.xml", sheet_xml(second_rows))
 
 
 def write_mixed_xlsx(path: Path, rows: list[list[float | int | str | None]]) -> None:
@@ -625,6 +695,216 @@ def test_pair_forensics_detects_cross_block_paired_diff_too_narrow(tmp_path) -> 
         task["category"] == "cross_block_paired_diff_too_narrow"
         for task in result["review_tasks"]
     )
+
+
+def test_pair_forensics_detects_cross_sheet_fractional_tail_reuse(tmp_path) -> None:
+    write_two_sheet_xlsx(
+        tmp_path / "source.xlsx",
+        [[5.438083, 6.141738, 6.692767, 7.018653, 6.952622, 4.667768]],
+        [[5.838083, 6.041738, 6.592767, 6.018653, 6.152622, 7.467768]],
+    )
+
+    result = analyze_xlsx_root(
+        tmp_path,
+        PairForensicsParams(max_findings_per_category=20),
+    )
+
+    findings = [
+        item
+        for item in result["findings"]
+        if item["category"] == "cross_sheet_fractional_tail_reuse"
+    ]
+    assert findings
+    assert findings[0]["matched_pairs"] == 6
+    assert findings[0]["finding_id"].startswith("CFT-")
+    assert result["summary"]["cross_sheet_fractional_tail_reuse_findings"] == len(
+        findings
+    )
+    assert any(
+        task["category"] == "cross_sheet_fractional_tail_reuse"
+        for task in result["review_tasks"]
+    )
+
+
+def test_pair_forensics_detects_small_n_publication_patterns(tmp_path) -> None:
+    write_minimal_xlsx(
+        tmp_path / "small_n.xlsx",
+        [
+            [1.234567, 10.0, 10.5, 1.123456],
+            [2.345678, 20.0, 20.5, 2.223456],
+            [1.234567, 30.0, 30.5, 3.323456],
+            [1.234567, 40.0, 40.5, 4.423456],
+        ],
+    )
+
+    result = analyze_xlsx_root(
+        tmp_path,
+        PairForensicsParams(max_findings_per_category=20),
+    )
+    categories = {item["category"] for item in result["findings"]}
+
+    assert "repeated_measurement_value" in categories
+    assert "fractional_tail_reuse" in categories
+    assert "small_n_fixed_difference" in categories
+    assert result["summary"]["repeated_measurement_value_findings"] >= 1
+    assert result["summary"]["fractional_tail_reuse_findings"] >= 1
+    assert result["summary"]["small_n_fixed_relationship_findings"] >= 1
+    assert any(
+        item["finding_id"].startswith("RMV-")
+        for item in result["findings"]
+        if item["category"] == "repeated_measurement_value"
+    )
+
+
+def test_same_fraction_integer_delta_requires_decimal_fraction() -> None:
+    assert same_fraction_integer_delta(Decimal("1"), Decimal("5")) is None
+    assert same_fraction_integer_delta(Decimal("-1.2"), Decimal("2.2")) is None
+    assert same_fraction_integer_delta(Decimal("1.234"), Decimal("5.234")) == 4
+
+
+def test_binary_arithmetic_relation_deduplicates_equivalent_forms() -> None:
+    rows = range(1, 6)
+    sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Fig.1",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            1: {row: Decimal(row + 1) for row in rows},
+            2: {row: Decimal(row + 2) for row in rows},
+            3: {row: Decimal((row + 1) * (row + 2)) for row in rows},
+        },
+        text_columns={},
+        formulas_by_column={},
+        cell_count=15,
+        numeric_cell_count=15,
+    )
+
+    findings = binary_arithmetic_relation_findings(
+        sheet,
+        PairForensicsParams(max_findings_per_category=20),
+    )
+
+    assert len(findings) == 1
+    assert findings[0]["category"] == "binary_arithmetic_relation"
+    assert findings[0]["columns"] == ["A", "B", "C"]
+    assert findings[0]["operation"] == "A*B=C"
+
+
+def test_decimal_tail_match_shifted_uses_five_digit_windows() -> None:
+    rows = range(1, 5)
+    sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Fig.1",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            1: {
+                1: Decimal("1.123456"),
+                2: Decimal("2.123457"),
+                3: Decimal("3.123458"),
+                4: Decimal("4.123459"),
+            },
+            2: {
+                1: Decimal("5.912345"),
+                2: Decimal("6.912345"),
+                3: Decimal("7.912345"),
+                4: Decimal("8.912345"),
+            },
+        },
+        text_columns={},
+        formulas_by_column={},
+        cell_count=8,
+        numeric_cell_count=8,
+    )
+
+    findings = decimal_tail_match_shifted_findings(
+        sheet,
+        PairForensicsParams(max_findings_per_category=20),
+    )
+
+    assert findings
+    finding = findings[0]
+    assert finding["category"] == "decimal_tail_match_shifted"
+    assert finding["shift"] == 1
+    assert finding["tail_token"] == "12345"
+    assert finding["support_rows"] == len(list(rows))
+
+
+def test_strict_linear_relation_suppresses_fixed_ratio_and_difference() -> None:
+    rows = range(1, 8)
+    fixed_ratio_sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Fixed ratio",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            1: {row: Decimal(row) for row in rows},
+            2: {row: Decimal(row * 2) for row in rows},
+        },
+        text_columns={},
+        formulas_by_column={},
+        cell_count=14,
+        numeric_cell_count=14,
+    )
+    fixed_difference_sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Fixed difference",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            1: {row: Decimal(row) for row in rows},
+            2: {row: Decimal(row + 3) for row in rows},
+        },
+        text_columns={},
+        formulas_by_column={},
+        cell_count=14,
+        numeric_cell_count=14,
+    )
+    offset_linear_sheet = SheetVectors(
+        workbook="source.xlsx",
+        workbook_path="source.xlsx",
+        sheet="Offset linear",
+        sheet_path="xl/worksheets/sheet1.xml",
+        numeric_columns={
+            1: {row: Decimal(row) for row in rows},
+            2: {row: Decimal(row * 2) + Decimal("0.3") for row in rows},
+        },
+        text_columns={},
+        formulas_by_column={},
+        cell_count=14,
+        numeric_cell_count=14,
+    )
+
+    params = PairForensicsParams(max_findings_per_category=20)
+    assert strict_linear_relation_findings(fixed_ratio_sheet, params) == []
+    assert strict_linear_relation_findings(fixed_difference_sheet, params) == []
+    findings = strict_linear_relation_findings(offset_linear_sheet, params)
+    assert len(findings) == 1
+    assert findings[0]["category"] == "strict_linear_relation"
+
+
+def test_pair_forensics_summary_includes_performance_and_detector_skips(
+    tmp_path,
+) -> None:
+    write_minimal_xlsx(
+        tmp_path / "source.xlsx",
+        [
+            [1.123456, 2.234567, 3.345678],
+            [2.123456, 3.234567, 4.345678],
+            [3.123456, 4.234567, 5.345678],
+        ],
+    )
+
+    result = analyze_xlsx_root(
+        tmp_path,
+        PairForensicsParams(min_pairs=3, max_findings_per_category=20),
+    )
+
+    assert "performance" in result["summary"]
+    assert "detector_skips" in result["summary"]
+    assert isinstance(result["detector_skips"], list)
+    assert result["summary"]["performance"]["numeric_index_sheets"] == 1
 
 
 def test_pair_forensics_cross_block_requires_real_separator_and_narrow_diffs(

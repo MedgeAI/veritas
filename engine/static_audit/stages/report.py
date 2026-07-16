@@ -47,4 +47,5 @@ def run(
         ),
         optional_lanes=optional_lanes,
         progress=progress,
+        reproducibility_tier=getattr(args, "reproducibility_tier", "full"),
     )

@@ -22,7 +22,7 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
   const [materials, setMaterials] = useState(null);
 
   // Fetch steps from backend for dynamic progress rendering
-  const { steps } = useRunSteps(selectedCaseId, effectiveRunId);
+  const { steps, progress } = useRunSteps(selectedCaseId, effectiveRunId);
 
   const selectedCaseRef = useRef(selectedCase);
   useEffect(() => { selectedCaseRef.current = selectedCase; }, [selectedCase]);
@@ -101,7 +101,12 @@ function MissionControlPage({ selectedCase, selectedRunId, onSelectRun, onRefres
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
       {run ? (
         <div className="xl:col-span-2">
-          <ProgressTracker steps={steps} runStatus={run.status} caseId={selectedCaseId} />
+          <ProgressTracker
+            steps={steps}
+            progress={progress}
+            runStatus={run.status}
+            caseId={selectedCaseId}
+          />
         </div>
       ) : null}
 

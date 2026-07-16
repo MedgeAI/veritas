@@ -64,6 +64,7 @@ export default function ClientLayout({ activeTab, onTabChange, children }) {
 
   return (
     <div className="min-h-screen bg-paper-50">
+      <a href="#main-content" className="skip-link">跳转到主要内容</a>
       <ClientHeader activeTab={activeTab} onTabChange={onTabChange} />
       <main id="main-content" className="max-w-[980px] mx-auto pt-16 px-14 pb-25">
         {children}

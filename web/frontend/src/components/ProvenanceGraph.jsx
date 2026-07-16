@@ -96,6 +96,8 @@ function truncate(text, maxLen = 14) {
   return text.length > maxLen ? `${text.slice(0, maxLen - 1)}…` : text;
 }
 
+const dashedLegendStyle = { borderTop: '1px dashed #cbd5e1' };
+
 // ---------------------------------------------------------------------------
 // ProvenanceGraph Component
 // ---------------------------------------------------------------------------
@@ -468,7 +470,7 @@ export default function ProvenanceGraph({
             <span className="text-ink-500">MST Edge</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-6 h-0.5 bg-ink-300 rounded" style={{ borderTop: '1px dashed #cbd5e1' }} />
+            <div className="w-6 h-0.5 bg-ink-300 rounded" style={dashedLegendStyle} />
             <span className="text-ink-500">Non-MST Edge</span>
           </div>
         </div>

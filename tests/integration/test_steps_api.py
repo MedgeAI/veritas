@@ -14,12 +14,10 @@ from __future__ import annotations
 
 from typing import Any
 
-import pytest
-
 from tests.helpers.asgi_client import LocalASGITestClient as TestClient
 from web.backend.veritas_web.auth import NoAuthProvider
 from web.backend.veritas_web.dependencies import AppDependencies, get_app_dependencies
-from web.backend.veritas_web.models import CaseRecord
+from web.backend.veritas_web.models import AuditRunRecord, CaseRecord
 from web.backend.veritas_web.routers import cases as cases_router
 
 
@@ -39,9 +37,11 @@ class _StubCaseStore:
         self,
         case: CaseRecord,
         events_by_run: dict[str, list[dict[str, Any]]] | None = None,
+        runs_by_id: dict[str, AuditRunRecord] | None = None,
     ) -> None:
         self._case = case
         self._events_by_run = dict(events_by_run or {})
+        self._runs_by_id = dict(runs_by_id or {})
 
     def get_case(self, case_id: str, user_id: str | None = None) -> CaseRecord:
         if case_id != self._case.case_id:
@@ -50,6 +50,11 @@ class _StubCaseStore:
 
     def list_events(self, case_id: str, run_id: str) -> list[dict[str, Any]]:
         return list(self._events_by_run.get(run_id, []))
+
+    def get_run(self, case_id: str, run_id: str) -> AuditRunRecord:
+        if run_id in self._runs_by_id:
+            return self._runs_by_id[run_id]
+        return AuditRunRecord(run_id=run_id, case_id=case_id, status="running")
 
 
 # ---------------------------------------------------------------------------
@@ -88,6 +93,21 @@ def _make_case(case_id: str = "case-1") -> CaseRecord:
         latest_run_id=None,
         created_at="2026-01-01T00:00:00Z",
         updated_at="2026-01-01T00:00:00Z",
+    )
+
+
+def _make_run(
+    run_id: str = "run-1",
+    case_id: str = "case-1",
+    status: str = "running",
+) -> AuditRunRecord:
+    return AuditRunRecord(
+        run_id=run_id,
+        case_id=case_id,
+        status=status,
+        started_at="2026-06-26T00:00:00Z",
+        completed_at="2026-06-26T00:10:00Z" if status == "completed" else None,
+        last_event_at="2026-06-26T00:10:00Z",
     )
 
 
@@ -174,6 +194,41 @@ class TestGetRunSteps:
         assert durations["numeric_forensics"] == 60.0
         assert durations["visual_tru_for"] == 1.0
         assert durations["evidence_ledger"] is None  # running
+
+    def test_terminal_run_does_not_return_orphan_steps_as_running(self):
+        """A completed run with orphan step_start events surfaces warnings."""
+        events = [
+            {
+                "event": "step_start",
+                "key": "source_data_verdict",
+                "timestamp": "2026-06-26T00:01:00Z",
+            },
+            {
+                "event": "step_result",
+                "key": "report",
+                "status": "ran",
+                "timestamp": "2026-06-26T00:10:00Z",
+            },
+        ]
+        case = _make_case()
+        run = _make_run(status="completed")
+        store = _StubCaseStore(
+            case,
+            events_by_run={"run-1": events},
+            runs_by_id={"run-1": run},
+        )
+        app = _build_app(store)
+        client = TestClient(app)
+
+        resp = client.get("/api/cases/case-1/runs/run-1/steps")
+
+        assert resp.status_code == 200
+        body = resp.json()
+        statuses = {step["key"]: step["status"] for step in body["steps"]}
+        assert statuses["source_data_verdict"] == "warning"
+        assert body["running"] == 0
+        assert body["warnings"] == 1
+        assert "terminal status" in body["steps"][0]["detail"]
 
     def test_unknown_step_key_gets_fallback_label(self):
         """An unknown step key falls back through the real ``get_step_label``."""

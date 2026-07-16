@@ -39,3 +39,24 @@ def test_material_inventory_records_unsupported_csv_without_executable_lane(
     assert inventory["candidate_source_roots"][0]["executable_in_mvp"] is False
     assert lanes[0]["status"] == "missing_material"
     assert "XLSX" in lanes[0]["reason"]
+
+
+def test_material_inventory_records_paper_pdf_selection_metadata(tmp_path) -> None:
+    paper_pdf = tmp_path / "paper.pdf"
+    paper_pdf.write_bytes(b"%PDF-1.4\n")
+
+    inventory = build_material_inventory(
+        tmp_path,
+        paper_pdf,
+        paper_pdf_relative_path="paper.pdf",
+        paper_pdf_selection_source="explicit",
+        paper_pdf_candidates=[
+            {"path": "paper.pdf", "name": "paper.pdf", "size_bytes": 9}
+        ],
+    )
+
+    assert inventory["paper_pdf_relative_path"] == "paper.pdf"
+    assert inventory["paper_pdf_selection_source"] == "explicit"
+    assert inventory["paper_pdf_candidates"] == [
+        {"path": "paper.pdf", "name": "paper.pdf", "size_bytes": 9}
+    ]

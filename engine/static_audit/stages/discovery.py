@@ -21,6 +21,7 @@ from engine.static_audit._shared import (
     resolve_artifact_path,
 )
 from engine.static_audit.cli_driver import (
+    PaperPdfSelection,
     discover_pdf,
     load_env,
     safe_remove_workdir,
@@ -43,6 +44,21 @@ class DiscoveryResult:
     material_inventory: dict[str, Any]
     mi_path: Path
     steps: list[StepResult]
+
+
+def _build_material_inventory(
+    paper_dir: Path,
+    paper_pdf: Path,
+    pdf_selection: PaperPdfSelection,
+) -> dict[str, Any]:
+    """Build material inventory with paper PDF selection metadata."""
+    return build_material_inventory(
+        paper_dir,
+        paper_pdf,
+        paper_pdf_relative_path=pdf_selection.relative_path,
+        paper_pdf_selection_source=pdf_selection.source,
+        paper_pdf_candidates=pdf_selection.candidate_dicts(),
+    )
 
 
 def run(
@@ -87,7 +103,12 @@ def run(
     ensure_output_subdirs(workdir)
 
     # --- PDF discovery + env ----------------------------------------------
-    paper_pdf = discover_pdf(paper_dir)
+    pdf_selection = discover_pdf(
+        paper_dir,
+        explicit_pdf=getattr(args, "paper_pdf", None),
+        explicit_source=getattr(args, "paper_pdf_selection_source", None),
+    )
+    paper_pdf = pdf_selection.path
     env = load_env(not args.no_env_file)
     steps: list[StepResult] = []
 
@@ -106,27 +127,54 @@ def run(
             "discover",
             "发现输入材料",
             "ran",
-            f"PDF={paper_pdf}; optional data lanes will be selected from material_inventory.json",
+            f"PDF={paper_pdf} ({pdf_selection.source}); optional data lanes will be selected from material_inventory.json",
         ),
         progress,
     )
 
     # --- Material inventory -----------------------------------------------
     mi_path = resolve_artifact_path(workdir, "material_inventory.json")
+
     if mi_path.exists() and not args.force:
         material_inventory = read_json(mi_path) or {}
-        record_step(
-            steps,
-            StepResult(
-                "material_inventory",
-                "材料清单扫描",
-                "reused",
-                "Existing material_inventory.json found.",
-            ),
-            progress,
-        )
+        if material_inventory.get("paper_pdf") != str(paper_pdf):
+            material_inventory = _build_material_inventory(
+                paper_dir, paper_pdf, pdf_selection
+            )
+            write_material_inventory(mi_path, material_inventory)
+            record_step(
+                steps,
+                StepResult(
+                    "material_inventory",
+                    "材料清单扫描",
+                    "ran",
+                    "Rebuilt because selected paper_pdf changed.",
+                ),
+                progress,
+            )
+        else:
+            material_inventory.setdefault(
+                "paper_pdf_relative_path", pdf_selection.relative_path
+            )
+            material_inventory.setdefault("paper_pdf_selection_source", pdf_selection.source)
+            material_inventory.setdefault(
+                "paper_pdf_candidates", pdf_selection.candidate_dicts()
+            )
+            write_material_inventory(mi_path, material_inventory)
+            record_step(
+                steps,
+                StepResult(
+                    "material_inventory",
+                    "材料清单扫描",
+                    "reused",
+                    "Existing material_inventory.json found.",
+                ),
+                progress,
+            )
     else:
-        material_inventory = build_material_inventory(paper_dir, paper_pdf)
+        material_inventory = _build_material_inventory(
+            paper_dir, paper_pdf, pdf_selection
+        )
         write_material_inventory(mi_path, material_inventory)
         record_step(
             steps,

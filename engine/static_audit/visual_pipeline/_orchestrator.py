@@ -8,6 +8,7 @@ from engine.exceptions import VeritasError
 from engine.static_audit._shared import (
     ProgressCallback,
     StepResult,
+    emit_progress,
     emit_step_start,
     read_json,
     record_step,
@@ -16,6 +17,16 @@ from engine.static_audit._shared import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _resolve_provenance_timeout(
+    *, figure_count: int, configured_timeout: int | None
+) -> int:
+    """Return a bounded ELIS timeout scaled to the number of pair matches."""
+    pair_count = max(0, figure_count * (figure_count - 1) // 2)
+    dynamic_timeout = max(120, 60 + pair_count // 25)
+    dynamic_timeout = min(dynamic_timeout, 600)
+    return max(configured_timeout or 0, dynamic_timeout)
 
 
 def _visual_status(values: list[str]) -> str:
@@ -369,13 +380,66 @@ def run_provenance_graph(
             "provenance_graph": {"status": "skipped", "detail": "insufficient figures"}
         }
 
+    # Preflight: check that enough figures have valid image paths.
+    valid_path_count = sum(
+        1
+        for fig in figures
+        if fig.get("source_image_path")
+        and (workdir / str(fig["source_image_path"])).exists()
+    )
+    if valid_path_count < 2:
+        record_step(
+            steps,
+            StepResult(
+                "visual_provenance_graph",
+                "溯源图构建",
+                "skipped",
+                f"Only {valid_path_count}/{len(figures)} figures have valid image paths.",
+            ),
+            progress,
+        )
+        return steps, {
+            "provenance_graph": {
+                "status": "skipped",
+                "detail": "insufficient valid image paths",
+                "valid_path_count": valid_path_count,
+                "total_figures": len(figures),
+            }
+        }
+
+    # Preflight: if panel extraction was 100% fallback, provenance quality is degraded.
+    panel_quality_path = resolve_artifact_path(workdir, "panel_extraction_quality.json")
+    if panel_quality_path.exists():
+        panel_quality = read_json(panel_quality_path) or {}
+        fallback_rate = panel_quality.get("fallback_rate", 0.0)
+        if isinstance(fallback_rate, (int, float)) and fallback_rate >= 1.0:
+            logger.warning(
+                "Panel extraction fallback_rate=%.1f; provenance will be degraded.",
+                fallback_rate,
+            )
+
     try:
         from engine.static_audit.tools.provenance_graph import build_provenance_graph
 
-        # Build kwargs, passing elis_timeout if provided
-        kwargs: dict[str, Any] = {"workdir": workdir}
-        if elis_timeout is not None:
-            kwargs["timeout"] = elis_timeout
+        pair_count = len(figures) * (len(figures) - 1) // 2
+        timeout = _resolve_provenance_timeout(
+            figure_count=len(figures),
+            configured_timeout=elis_timeout,
+        )
+        emit_progress(
+            progress,
+            "step_progress",
+            key="visual_provenance_graph",
+            title="溯源图构建",
+            detail=(
+                f"Running ELIS provenance analysis on {len(figures)} figures "
+                f"({pair_count} candidate pairs, timeout={timeout}s)."
+            ),
+            figure_count=len(figures),
+            pair_count=pair_count,
+            timeout_seconds=timeout,
+        )
+        kwargs: dict[str, Any] = {"workdir": workdir, "timeout": timeout}
         result = build_provenance_graph(figures, **kwargs)
     except (OSError, VeritasError) as e:
         result = {

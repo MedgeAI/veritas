@@ -47,7 +47,7 @@ LOCAL_DATABASE_URL ?= $(VERITAS_DEV_DB_URL)
 
 .PHONY: help show-config sync install setup \
 	up down rebuild restart logs ps shell health docker-health \
-	deploy-up deploy-down deploy-rebuild deploy-logs \
+	deploy-runtime-dirs deploy-models deploy-forensics-images deploy-preflight deploy-up deploy-down deploy-rebuild deploy-logs prod-diagnose \
 	db-up db-down db-init db-migrate db-reset \
 	precheck run report demo audit audit-off audit-fresh report-path \
 	web-backend web-backend-reload celery-worker web-frontend web-install web-build web-preview dev dev-up dev-down \
@@ -129,13 +129,96 @@ docker-health: ## Check Docker web service health via container exec
 
 # -- Cloudflare Tunnel Deploy --------------------------------------------
 
-deploy-up: ## Start all services with Cloudflare Tunnel
+deploy-runtime-dirs: ## Prepare host bind-mount directories used by runtime containers
+	@echo "━━━ Runtime directory check ━━━"
+	@mkdir -p "$(CURDIR)/web_data/.opencode/data" "$(CURDIR)/outputs"
+	@chmod 775 "$(CURDIR)/web_data" "$(CURDIR)/web_data/.opencode" "$(CURDIR)/web_data/.opencode/data" "$(CURDIR)/outputs"
+	@for dir in "$(CURDIR)/web_data" "$(CURDIR)/web_data/.opencode/data" "$(CURDIR)/outputs"; do \
+		if [ ! -w "$$dir" ]; then \
+			echo "  ✗ $$dir is not writable by UID:GID $$(id -u):$$(id -g)"; \
+			echo "    Fix: sudo chown -R $$(id -u):$$(id -g) $(CURDIR)/web_data $(CURDIR)/outputs"; \
+			exit 2; \
+		fi; \
+	done
+	@echo "  ✓ Runtime bind-mount directories are writable"
+
+deploy-models: ## Verify host model weights mounted into runtime containers
+	@echo "━━━ Model weight check ━━━"
+	@missing=0; \
+	for file in \
+		"$(CURDIR)/models/panel_extraction/model_5_class.pt" \
+		"$(CURDIR)/models/trufor/weights/trufor.pth.tar"; do \
+		if [ ! -r "$$file" ]; then \
+			echo "  ✗ $$file missing or not readable"; \
+			missing=1; \
+		else \
+			echo "  ✓ $$file"; \
+		fi; \
+	done; \
+	if [ "$$missing" = "1" ]; then \
+		echo ""; \
+		echo "  Run: make download-models"; \
+		exit 2; \
+	fi
+
+deploy-forensics-images: ## Verify visual forensics base images required by production services
+	@echo "━━━ Forensics image check ━━━"
+	@missing=0; \
+	if docker image inspect veritas-sila-dense:latest >/dev/null 2>&1; then \
+		echo "  ✓ veritas-sila-dense:latest"; \
+	else \
+		echo "  ✗ veritas-sila-dense:latest missing"; \
+		echo "    Build: docker build -t veritas-sila-dense:latest third_party/elis/system_modules/copy-move-detection/"; \
+		missing=1; \
+	fi; \
+	if docker image inspect veritas-elis-provenance:latest >/dev/null 2>&1; then \
+		echo "  ✓ veritas-elis-provenance:latest"; \
+	else \
+		echo "  ✗ veritas-elis-provenance:latest missing"; \
+		echo "    Build: make build-elis-provenance"; \
+		missing=1; \
+	fi; \
+	if [ "$$missing" = "1" ]; then \
+		exit 2; \
+	fi
+
+deploy-preflight: ## Check required environment variables for deployment
+	@echo "━━━ Deploy pre-flight check ━━━"
+	@missing=0; \
+	for var in CLOUDFLARE_TUNNEL_TOKEN MINERU_API_TOKEN; do \
+		val=$$(grep -E "^$$var=" $(CURDIR)/.env 2>/dev/null | head -1 | cut -d= -f2-); \
+		if [ -z "$$val" ]; then \
+			echo "  ✗ $$var is empty or missing in .env"; \
+			missing=1; \
+		else \
+			echo "  ✓ $$var is set"; \
+		fi; \
+	done; \
+	pg_val=$$(grep -E "^POSTGRES_PASSWORD=" $(CURDIR)/deploy/.env 2>/dev/null | head -1 | cut -d= -f2-); \
+	if [ -z "$$pg_val" ]; then \
+		echo "  ✗ POSTGRES_PASSWORD is empty or missing in deploy/.env"; \
+		missing=1; \
+	else \
+		echo "  ✓ POSTGRES_PASSWORD is set (in deploy/.env)"; \
+	fi; \
+	if [ "$$missing" = "1" ]; then \
+		echo ""; \
+		echo "  ⚠ Missing required variables. Fix before deploying."; \
+		echo "  See .env.example and deploy/cloudflare.md for reference."; \
+		exit 2; \
+	fi
+	@echo "  ✓ All required variables present"
+	@$(MAKE) --no-print-directory deploy-runtime-dirs
+	@$(MAKE) --no-print-directory deploy-models
+	@$(MAKE) --no-print-directory deploy-forensics-images
+
+deploy-up: deploy-preflight ## Start all services with Cloudflare Tunnel
 	$(COMPOSE_DEPLOY) up --build -d
 
 deploy-down: ## Stop all services including Cloudflare Tunnel
 	$(COMPOSE_DEPLOY) down
 
-deploy-rebuild: ## Rebuild and restart all services with Cloudflare Tunnel
+deploy-rebuild: deploy-preflight ## Rebuild and restart all services with Cloudflare Tunnel
 	$(COMPOSE_DEPLOY) up --build -d --force-recreate
 	@echo ""
 	@echo "Waiting for services to be healthy..."
@@ -148,12 +231,18 @@ deploy-rebuild: ## Rebuild and restart all services with Cloudflare Tunnel
 	@echo "Running post-deploy smoke tests..."
 	@$(COMPOSE_DEPLOY) exec -T veritas curl -sf http://localhost:8765/api/health | $(PYTHON) -m json.tool || echo "⚠ /api/health failed"
 	@$(COMPOSE_DEPLOY) exec -T veritas curl -sf http://localhost:8765/api/health/deep | $(PYTHON) -m json.tool || echo "⚠ /api/health/deep failed"
-	@$(COMPOSE_DEPLOY) exec -T veritas curl -sf http://localhost:8765/api/cases | $(PYTHON) -c "import sys,json; d=json.load(sys.stdin); print(f'✓ /api/cases OK ({len(d.get(\"cases\",[]))} cases)')" || echo "⚠ /api/cases failed"
+	@$(COMPOSE_DEPLOY) exec -T veritas sh -c 'code=$$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8765/api/cases); if [ "$$code" = "401" ]; then echo "✓ Auth enforced (401 without JWT)"; elif [ "$$code" = "200" ]; then echo "✓ /api/cases OK (no auth)"; else echo "⚠ /api/cases unexpected: $$code"; fi'
 	@echo ""
 	@echo "Deploy complete. Check cloudflared logs: make deploy-logs"
 
-deploy-logs: ## Show cloudflared container logs
-	$(COMPOSE_DEPLOY) logs --tail=100 -f cloudflared
+deploy-logs: ## Show production service logs
+	$(COMPOSE_DEPLOY) logs --tail=100 -f veritas celery-worker sila-dense elis-forensic cloudflared
+
+prod-diagnose: ## Collect an agent-friendly production diagnostic bundle
+	$(PYTHON) scripts/prod_diagnose.py $(PROD_DIAG_ARGS)
+
+architecture-audit: ## Generate architecture health metrics to outputs/architecture_health.md
+	$(PYTHON) scripts/architecture_health.py
 
 # -- ELIS Provenance Container -------------------------------------------
 
@@ -354,7 +443,7 @@ test-model: ## Model tests: TruFor/SSCD/SILA/Docker/GPU (not in CI fast gate)
 lint: lint-python lint-web ## Run Python and frontend lint checks
 
 lint-python: ## Run ruff checks
-	$(PY_ENV) $(RUFF) check cli engine runtime protocols web/backend tests scripts
+	$(PY_ENV) $(RUFF) check cli engine runtime web/backend tests scripts
 
 lint-web: ## Run frontend eslint
 	cd $(FRONTEND_DIR) && npm run lint
@@ -367,13 +456,13 @@ deslop: ## Full entropy control: Ruff fix/format + Vulture + import-linter + Bio
 	@echo "━━━ Layer 2: Python surface entropy ━━━"
 	@echo ""
 	@echo "▸ Ruff: auto-fix unused imports + lint"
-	-$(PY_ENV) $(RUFF) check --fix cli engine runtime protocols web/backend tests scripts
+	-$(PY_ENV) $(RUFF) check --fix cli engine runtime web/backend tests scripts
 	@echo ""
 	@echo "▸ Ruff: format"
-	-$(PY_ENV) $(RUFF) format cli engine runtime protocols web/backend tests scripts
+	-$(PY_ENV) $(RUFF) format cli engine runtime web/backend tests scripts
 	@echo ""
 	@echo "▸ Vulture: dead code scan (80%+ confidence)"
-	-uv run vulture cli/ engine/ runtime/ protocols/ web/backend/ scripts/ \
+	-uv run vulture cli/ engine/ runtime/ web/backend/ scripts/ \
 		--exclude engine/static_audit/upstream/ \
 		--min-confidence 80 --sort-by-size
 	@echo ""
@@ -408,7 +497,7 @@ deslop: ## Full entropy control: Ruff fix/format + Vulture + import-linter + Bio
 	@echo "━━━ Verification ━━━"
 	@echo ""
 	@echo "▸ Pyright: type check (errors only)"
-	-uv run pyright cli/ engine/ runtime/ protocols/ web/backend/ 2>&1 | grep -E '(error|Error)' | head -20 || true
+	-uv run pyright cli/ engine/ runtime/ web/backend/ 2>&1 | grep -E '(error|Error)' | head -20 || true
 	@echo ""
 	@echo "╔══════════════════════════════════════════════════════╗"
 	@echo "║  Deslop complete. Review [needs-human] items above. ║"

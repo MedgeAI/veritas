@@ -55,6 +55,7 @@ from engine.static_audit._shared import (
 # Re-exports from pipeline.py (core orchestration)
 # ---------------------------------------------------------------------------
 from engine.static_audit.pipeline import (
+    AuditConfig,
     _run_static_audit_from_args,
     material_plan_from_inventory,
     optional_lanes_from_material_plan,
@@ -157,6 +158,7 @@ __all__ = [
     "safe_action_dir_name",
     "source_finding_params_from_plan",
     # pipeline
+    "AuditConfig",
     "_run_static_audit_from_args",
     "material_plan_from_inventory",
     "optional_lanes_from_material_plan",

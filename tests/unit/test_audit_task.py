@@ -258,6 +258,36 @@ class TestRunAuditImplStatusTransitions:
         assert mock_row.completed_at is not None
         assert mock_row.celery_task_id == "task-001"
 
+    def test_paper_pdf_options_passed_to_audit_config(self, tmp_path: Path):
+        """Verify Celery path passes paper_pdf selection into AuditConfig."""
+        mock_self = _make_mock_self(task_id="task-paper-pdf")
+        mock_row = _make_mock_row(run_id="run-paper", status="queued")
+        mock_session = _make_mock_session(row=mock_row)
+        mock_factory = _make_mock_session_factory(mock_session)
+        mock_summary = {"exit_code": 0, "failed_steps": []}
+
+        with patch("engine.tasks.audit_task._get_session_factory", return_value=mock_factory):
+            with patch("engine.tasks.audit_task._compute_stages", return_value=[]):
+                with patch("engine.tasks.audit_task._notify_progress"):
+                    with patch(
+                        "engine.static_audit.pipeline.run_static_audit",
+                        return_value=mock_summary,
+                    ) as mock_run:
+                        _run_audit_impl(
+                            mock_self,
+                            "run-paper",
+                            "case-paper",
+                            str(tmp_path),
+                            {
+                                "paper_pdf": "main.pdf",
+                                "paper_pdf_selection_source": "explicit",
+                            },
+                        )
+
+        config = mock_run.call_args.args[0]
+        assert config.paper_pdf == "main.pdf"
+        assert config.paper_pdf_selection_source == "explicit"
+
     def test_failure_sets_failed_status(self, tmp_path: Path):
         """Verify pipeline failure sets status to 'failed'."""
         mock_self = _make_mock_self()

@@ -31,6 +31,7 @@ from engine.static_audit._shared import (
     StepResult,
     emit_step_start,
     existing_artifact_path,
+    read_json,
     record_step,
     resolve_artifact_path,
     write_json_artifact,
@@ -125,6 +126,58 @@ def parse_figure_legends(full_md_text: str) -> dict[str, str]:
             legends[label] = legend_text.strip()
 
     return legends
+
+
+def _weak_legends_from_ledger(workdir: Path) -> dict[str, str]:
+    ledger = read_json(resolve_artifact_path(workdir, "evidence_ledger.json")) or {}
+    try:
+        from engine.static_audit.tools.panel_extraction import (
+            build_figure_evidence_from_ledger,
+        )
+
+        figures = build_figure_evidence_from_ledger(workdir, ledger)
+    except (OSError, ValueError):
+        figures = []
+    weak: dict[str, str] = {}
+    for index, figure in enumerate(figures, start=1):
+        label = str(figure.get("label") or figure.get("figure_id") or f"Figure {index}")
+        source = Path(str(figure.get("source_image_path") or "")).stem
+        weak[label] = (
+            f"Weak legend inferred from figure order and image filename: {source or label}."
+        )
+    return weak
+
+
+def _write_legend_extraction_artifact(
+    workdir: Path,
+    legends: dict[str, str],
+    *,
+    status: str,
+    source: str,
+) -> None:
+    output_path = resolve_artifact_path(workdir, "figure_legend_extraction.json")
+    figure_count = len(legends)
+    write_json_artifact(
+        output_path,
+        {
+            "schema_version": "figure_legend_extraction.v1",
+            "summary": {
+                "figure_count": figure_count,
+                "legend_count": figure_count,
+                "coverage": 1.0 if figure_count else 0.0,
+                "status": status,
+            },
+            "legends": [
+                {
+                    "figure_id": label,
+                    "text": text,
+                    "source": source,
+                    "confidence": "medium" if source == "full_md_regex" else "low",
+                }
+                for label, text in legends.items()
+            ],
+        },
+    )
 
 
 def _normalize_figure_label(label: str) -> str:
@@ -826,6 +879,19 @@ def run_figure_classification_step(
     # Parse legends from full.md
     full_md_text = full_md.read_text(encoding="utf-8")
     legends = parse_figure_legends(full_md_text)
+    legend_status = "ran"
+    legend_source = "full_md_regex"
+
+    if not legends:
+        legends = _weak_legends_from_ledger(workdir)
+        legend_status = "partial" if legends else "skipped"
+        legend_source = "evidence_ledger_weak_binding"
+    _write_legend_extraction_artifact(
+        workdir,
+        legends,
+        status=legend_status,
+        source=legend_source,
+    )
 
     if not legends:
         record_step(
@@ -834,14 +900,14 @@ def run_figure_classification_step(
                 "figure_classification",
                 "LLM 图注分类",
                 "skipped",
-                "No figure legends found in full.md.",
+                "No figure legends or weak figure bindings found.",
             ),
             progress,
         )
         return steps, {
             "figure_classification": {
                 "status": "skipped",
-                "detail": "no figure legends found",
+                "detail": "no figure legends or weak bindings found",
             }
         }
 
@@ -871,11 +937,16 @@ def run_figure_classification_step(
     # Build output artifact
     artifact = {
         "schema_version": "1.0",
-        "status": "ran",
+        "status": "degraded" if legend_status == "partial" else "ran",
         "figure_count": len(legends),
         "classified_panel_count": sum(type_counts.values()),
         "type_counts": type_counts,
         "legends_extracted": list(legends.keys()),
+        "legend_coverage": {
+            "status": legend_status,
+            "source": legend_source,
+            "legend_count": len(legends),
+        },
         "classifications": classifications,
         "figure_id_to_paper_label": figure_id_to_paper_label,
         "errors": [],
@@ -884,11 +955,17 @@ def run_figure_classification_step(
     write_json_artifact(output_path, artifact)
 
     detail = (
-        f"figures={len(legends)} panels={sum(type_counts.values())} types={type_counts}"
+        f"figures={len(legends)} panels={sum(type_counts.values())} "
+        f"types={type_counts} legend_status={legend_status}"
     )
     record_step(
         steps,
-        StepResult("figure_classification", "LLM 图注分类", "ran", detail),
+        StepResult(
+            "figure_classification",
+            "LLM 图注分类",
+            "warning" if legend_status == "partial" else "ran",
+            detail,
+        ),
         progress,
     )
 

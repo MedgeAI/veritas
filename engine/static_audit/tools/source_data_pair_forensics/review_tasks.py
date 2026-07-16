@@ -5,6 +5,8 @@ from __future__ import annotations
 from collections import Counter, defaultdict
 from typing import Any
 
+from engine.static_audit.finding_categories import get as _get_category_defn
+
 from ._shared import risk_rank
 
 
@@ -20,13 +22,25 @@ def assign_ids(findings: list[dict[str, Any]]) -> None:
         "row_offset_partial_copy_rounding_bias": "RBR",
         "paired_difference_too_narrow": "PDS",
         "cross_block_paired_diff_too_narrow": "CBD",
+        "repeated_measurement_value": "RMV",
+        "fractional_tail_reuse": "FTR",
+        "small_n_fixed_difference": "SNF",
+        "small_n_fixed_ratio": "SNR",
+        "cross_sheet_fractional_tail_reuse": "CFT",
+        "binary_arithmetic_relation": "BAR",
+        "shifted_paste": "SHP",
+        "copy_paste_modify": "CPM",
+        "internal_sequence_relation": "ISR",
+        "decimal_tail_match_shifted": "DTS",
+        "strict_linear_relation": "SLR",
     }
     for finding in findings:
         category = finding["category"]
         counters[category] += 1
-        finding["finding_id"] = (
-            f"{prefixes.get(category, 'PF')}-{counters[category]:04d}"
-        )
+        # Priority: registry definition > hardcoded prefix > default "PF"
+        defn = _get_category_defn(category)
+        prefix = defn.id_prefix if defn is not None else prefixes.get(category, "PF")
+        finding["finding_id"] = f"{prefix}-{counters[category]:04d}"
 
 
 def _finding_offset(finding: dict[str, Any]) -> Any:
@@ -87,6 +101,17 @@ def _cluster_key(finding: dict[str, Any]) -> tuple[str, str, str, str, str]:
         "row_offset_exact_reuse",
         "long_format_within_pair_ratio_enrichment",
         "row_offset_partial_copy_rounding_bias",
+        "repeated_measurement_value",
+        "fractional_tail_reuse",
+        "small_n_fixed_difference",
+        "small_n_fixed_ratio",
+        "cross_sheet_fractional_tail_reuse",
+        "binary_arithmetic_relation",
+        "shifted_paste",
+        "copy_paste_modify",
+        "internal_sequence_relation",
+        "decimal_tail_match_shifted",
+        "strict_linear_relation",
     }:
         signature = f"offset={offset};relationship={_finding_relationship(finding)}"
     elif category == "duplicate_row_vector":
@@ -97,6 +122,10 @@ def _cluster_key(finding: dict[str, Any]) -> tuple[str, str, str, str, str]:
 
 
 def _category_review_question(category: str) -> str:
+    # Priority: registry definition > hardcoded questions > default
+    defn = _get_category_defn(category)
+    if defn is not None:
+        return defn.review_question
     questions = {
         "paired_ratio_reuse": "同一 sheet 内多组列对在固定行偏移下复用相同比例，需确认这些行是否为独立样本或合法派生。",
         "long_format_paired_ratio_reuse": "long-format pair 在固定 pair id 偏移下复用相同比例，需确认 pair id 是否代表独立样本/患者。",
@@ -107,6 +136,17 @@ def _category_review_question(category: str) -> str:
         "row_offset_partial_copy_rounding_bias": "固定行偏移同时出现精度变化和部分复用，需确认后半区是否为独立原始记录。",
         "paired_difference_too_narrow": "配对列之间的差异分布异常狭窄，需确认配对测量是否来自独立生物学重复或高精度技术重复。",
         "cross_block_paired_diff_too_narrow": "被文本分隔行分开的两个数据块中，对应位置的列值差异异常狭窄，需确认两个块是否代表独立实验条件。",
+        "repeated_measurement_value": "多个 cell 出现相同展示值，需确认它们是否为独立样本、合法重复测量或四舍五入后的重复。",
+        "fractional_tail_reuse": "同一 sheet 内多个不同数值复用相同小数尾部，需确认是否由相同分母、归一化或展示规则导致。",
+        "small_n_fixed_difference": "短向量列之间存在精确固定差值，需确认是否为合法派生关系或独立条件间的异常一致。",
+        "small_n_fixed_ratio": "短向量列之间存在精确固定倍率，需确认是否为合法单位换算/归一化或独立条件间的异常一致。",
+        "cross_sheet_fractional_tail_reuse": "不同 sheet 的同类数值序列连续复用小数尾部，需确认这些 figure 是否独立以及原始未舍入值是否支持该模式。",
+        "binary_arithmetic_relation": "三列之间存在精确乘除关系（A*B=C / A/B=C / B/A=C），需确认是否为独立测量或合法派生列。",
+        "shifted_paste": "列对之间存在位移粘贴关系（平移后小数部分一致、整数部分固定偏移），需确认是否为独立数据或复制移位。",
+        "copy_paste_modify": "列对之间小数部分相同但整数部分存在固定差值，需确认是否为合法修改或机械复制。",
+        "internal_sequence_relation": "单列内出现等差或等比序列，需确认是否为独立测量或人为填充。",
+        "decimal_tail_match_shifted": "不同数值在位移 ±1 位后小数尾部仍然匹配，需确认是否由计算过程或单位换算导致。",
+        "strict_linear_relation": "列对之间存在严格线性关系（R² ≥ 0.999999），需确认是否为独立测量或派生列。",
     }
     return questions.get(
         category, "该 Source Data pattern 需要结合样本语义和原始记录人工复核。"

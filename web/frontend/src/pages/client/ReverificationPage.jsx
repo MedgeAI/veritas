@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react';
 import { FiChevronLeft, FiShield } from 'react-icons/fi';
 import { getReverificationCost, getVersionHistory, submitReverification } from '../../services/api.js';
-import LineItem from '../../components/client/LineItem.jsx';
+import { IncludedLineItem, OptionalLineItem, PrimaryLineItem } from '../../components/client/LineItem.jsx';
 import ClientEmptyState from '../../components/client/ClientEmptyState.jsx';
+
+const italicStyle = { fontStyle: 'italic' };
+const subtitleStyle = { fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic' };
 
 /**
  * ReverificationPage — client-facing reverification/payment page.
@@ -102,9 +105,9 @@ export default function ReverificationPage({ caseId, onNavigate }) {
         </div>
         <h1 className="font-display text-[56px] font-normal leading-[1.15] tracking-[-0.5px] text-ink-900">
           修订完成后的<br />
-          <em className="font-normal text-accent-500" style={{ fontStyle: 'italic' }}>重新核查</em>
+          <em className="font-normal text-accent-500" style={italicStyle}>重新核查</em>
         </h1>
-        <p className="mt-6 max-w-[540px] font-display text-[16px] leading-[1.7] text-ink-700" style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic' }}>
+        <p className="mt-6 max-w-[540px] font-display text-[16px] leading-[1.7] text-ink-700" style={subtitleStyle}>
           上传修订后的稿件与代码，系统将对修改部分增量复核，并出具新版报告。<br />
           新版本保留原编号链路，标注为 v{costData?.next_version || '?' }。旧版本仍可查证。
         </p>
@@ -116,34 +119,28 @@ export default function ReverificationPage({ caseId, onNavigate }) {
       <section className="mb-16">
         <SectionLabel num="—" title="核查清单" sub="Items" />
         <div className="border-t border-ink-100">
-          <LineItem
-            included
-            isMain
+          <PrimaryLineItem
             label="修订内容增量复核"
             detail={`仅核对修改部分，约 ${costData?.finding_count || 0} 处变更`}
             price={`${currency} ${costData?.base_fee || 0}`}
           />
-          <LineItem
-            included
+          <IncludedLineItem
             label="逐项验证修复"
             detail="确认每项已正确解决"
             price="已含"
           />
-          <LineItem
-            included
+          <IncludedLineItem
             label="重新评定等级"
             detail="基于修复结果重新计算认证等级"
             price="已含"
           />
-          <LineItem
-            included
+          <IncludedLineItem
             label="新版 PDF 证书"
             detail={`保留原编号链路，标注 v${costData?.next_version || '?'}`}
             price="已含"
           />
           {costData?.optional_addon_label && (
-            <LineItem
-              included={false}
+            <OptionalLineItem
               label={costData.optional_addon_label}
               detail="自动修复代码层面的问题（可选）"
               price={`+ ${currency} ${costData.optional_addon_price}`}

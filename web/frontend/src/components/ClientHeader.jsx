@@ -19,7 +19,10 @@ const TABS = [
 
 export default function ClientHeader({ activeTab, onTabChange }) {
   return (
-    <header className="sticky top-0 z-50 bg-paper-50 border-b border-ink-900/10">
+    <header
+      className="sticky top-0 z-50 bg-paper-50 border-b border-ink-900/10"
+      style={{ viewTransitionName: 'client-header' }}
+    >
       <div className="max-w-[980px] mx-auto px-14 py-5 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center gap-3.5">
@@ -39,10 +42,10 @@ export default function ClientHeader({ activeTab, onTabChange }) {
           {TABS.map((tab) => {
             const isActive = activeTab === tab.id;
             return (
-              <button
+              <a
                 key={tab.id}
-                type="button"
-                onClick={() => onTabChange(tab.id)}
+                href={`?tab=${tab.id}`}
+                onClick={(e) => { e.preventDefault(); onTabChange(tab.id); }}
                 aria-current={isActive ? 'page' : undefined}
                 className={`
                   bg-transparent cursor-pointer px-3 py-1.5 text-xs rounded-[2px]
@@ -55,7 +58,7 @@ export default function ClientHeader({ activeTab, onTabChange }) {
                 `}
               >
                 {tab.label}
-              </button>
+              </a>
             );
           })}
         </nav>

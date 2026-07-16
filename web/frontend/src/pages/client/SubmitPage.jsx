@@ -1,8 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FiArrowRight, FiCode, FiDatabase, FiFileText, FiLock, FiPlay, FiShield, FiUpload, FiUploadCloud, FiX } from 'react-icons/fi';
-import { createCase, submitAudit, uploadInputsParallel } from '../../services/api.js';
+import { createCase, submitAudit, updateCase, uploadInputsParallel } from '../../services/api.js';
+import PaperPdfSelector from '../../components/PaperPdfSelector.jsx';
 import TierRow from '../../components/client/TierRow.jsx';
 import ServiceRow from '../../components/client/ServiceRow.jsx';
+import { ambiguousPaperPdfCandidates, pdfCandidatesFromUploadResults, PAPER_PDF_MESSAGES } from '../../utils/paperPdf.js';
+import { usePaperPdfSelector } from '../../hooks/usePaperPdfSelector.js';
 
 const ACCEPTED_EXTENSIONS = '.pdf,.xlsx,.xlsm,.csv,.tsv,.png,.jpg,.jpeg,.tif,.tiff,.bmp,.webp,.zip,.tar,.gz,.tgz';
 const ACCEPTED_EXT_SET = new Set(['pdf', 'xlsx', 'xlsm', 'csv', 'tsv', 'png', 'jpg', 'jpeg', 'tif', 'tiff', 'bmp', 'webp', 'zip', 'tar', 'gz', 'tgz']);
@@ -17,6 +20,9 @@ const DEFAULT_PARAMS = {
 };
 
 const FILE_SIZE_FORMATTER = new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 });
+
+const italicStyle = { fontStyle: 'italic' };
+const subtitleStyle = { fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic' };
 
 const TIERS = [
   { value: 'full', badge: 'A', name: 'Full', desc: '数据 + 代码 + 环境 + 完整 run 历史' },
@@ -59,6 +65,10 @@ function formatMB(bytes) {
   return `${Math.round(bytes / (1024 * 1024))} MB`;
 }
 
+function fileKeyFor(file) {
+  return file.webkitRelativePath || file.name;
+}
+
 // Pure function: file → category bucket.  Lifted to module scope so its
 // identity is stable across renders — safe to include in useCallback deps.
 function categorizeFile(file) {
@@ -94,7 +104,9 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
   const [overallProgress, setOverallProgress] = useState(-1);
   const [fileCategories, setFileCategories] = useState(new Map());
   const [dragOverSlot, setDragOverSlot] = useState(null);
+  const { open: pdfSelectorOpen, candidates: pdfSelectorCandidates, requestSelection, close: closePdfSelector } = usePaperPdfSelector();
   const abortRef = useRef(null);
+  const uploadCancelledRef = useRef(false);
   const fileInputRef = useRef(null);
   const dirInputRef = useRef(null);
   const dragCounter = useRef(0);
@@ -144,20 +156,16 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
 
     if (validFiles.length) {
       // Files + categories MUST be updated from the same `current` snapshot,
-      // otherwise a rapid second drop would compute start indices against a
-      // stale array length and mis-align categories.  setFiles updater gives
-      // us the LATEST files; we derive both the new array and the new
-      // categories Map inside it, then flush categories via setFileCategories.
+      // otherwise a rapid second drop can race with the previous render.
       setFiles((current) => {
-        const existingKeys = new Set(current.map((f) => f.webkitRelativePath || f.name));
-        const unique = validFiles.filter((f) => !existingKeys.has(f.webkitRelativePath || f.name));
+        const existingKeys = new Set(current.map(fileKeyFor));
+        const unique = validFiles.filter((f) => !existingKeys.has(fileKeyFor(f)));
         if (!unique.length) return current;
-        const startIndex = current.length;
         setFileCategories((prevCategories) => {
           const next = new Map(prevCategories);
-          unique.forEach((file, i) => {
+          unique.forEach((file) => {
             const category = defaultCategory || categorizeFile(file);
-            next.set(startIndex + i, category);
+            next.set(fileKeyFor(file), category);
           });
           return next;
         });
@@ -176,7 +184,34 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
   }, []);
 
   function removeFile(index) {
-    setFiles((current) => current.filter((_, i) => i !== index));
+    setFiles((current) => {
+      const removed = current[index];
+      if (!removed) return current;
+      const removedKey = fileKeyFor(removed);
+      const nextFiles = current.filter((_, i) => i !== index);
+      setFileCategories((currentCategories) => {
+        const next = new Map(currentCategories);
+        next.delete(removedKey);
+        return next;
+      });
+      setFileStatuses((currentStatuses) => {
+        const next = new Map(currentStatuses);
+        next.delete(removedKey);
+        return next;
+      });
+      setFileErrors((currentErrors) => {
+        const next = new Map(currentErrors);
+        next.delete(removedKey);
+        next.delete(removed.name);
+        return next;
+      });
+      setUploadProgress((currentProgress) => {
+        const { [removedKey]: _removed, ...next } = currentProgress;
+        return next;
+      });
+      setHasUnsavedFiles(nextFiles.length > 0);
+      return nextFiles;
+    });
   }
 
   const handleDragEnter = useCallback((e) => {
@@ -252,29 +287,58 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
 
   function handleCancelUpload() {
     if (abortRef.current) {
+      uploadCancelledRef.current = true;
       abortRef.current();
       abortRef.current = null;
     }
   }
 
+  async function choosePaperPdfIfNeeded(candidates) {
+    if (candidates.length === 0) return null;
+    if (candidates.length === 1) return candidates[0].path;
+    const selected = await requestSelection(candidates);
+    if (!selected) throw new Error(PAPER_PDF_MESSAGES.SELECT_REQUIRED);
+    return selected;
+  }
+
+  async function submitAuditWithPaperPdf(caseId, paperPdf) {
+    try {
+      return await submitAudit(caseId, { options: DEFAULT_PARAMS, paperPdf }, tier);
+    } catch (submitError) {
+      const candidates = ambiguousPaperPdfCandidates(submitError);
+      if (!candidates) throw submitError;
+      const selected = await requestSelection(candidates);
+      if (!selected) throw new Error(PAPER_PDF_MESSAGES.SELECT_REQUIRED);
+      await updateCase(caseId, { paper_pdf: selected });
+      return submitAudit(caseId, { options: DEFAULT_PARAMS, paperPdf: selected }, tier);
+    }
+  }
+
   async function handleSubmit() {
-    setBusy(true);
     setError('');
+    if (!files.length) {
+      setError('请至少上传一个 PDF 或材料文件，请添加后重试');
+      return;
+    }
+    if (!pdfCount) {
+      setError('输入中必须包含论文 PDF，请添加后重试');
+      return;
+    }
+
+    setBusy(true);
+    uploadCancelledRef.current = false;
     try {
       let cid;
       if (isExistingCase) {
         cid = existingCaseId;
       } else {
-        const payload = { paper_title: paperTitle || undefined, owner: 'operator' };
+        const payload = {
+          paper_title: paperTitle || undefined,
+          owner: 'operator',
+          reproducibility_tier: tier,
+        };
         const record = await createCase(payload);
         cid = record.case_id;
-      }
-
-      if (!files.length) {
-        throw new Error('请至少上传一个 PDF 或材料文件');
-      }
-      if (!pdfCount) {
-        throw new Error('输入中必须包含论文 PDF');
       }
       setUploadProgress({});
       setFileStatuses(new Map());
@@ -308,9 +372,12 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
       const firstPdf = files.find((f) => f.name.toLowerCase().endsWith('.pdf'));
       if (firstPdf && !paperTitle) setExtractingTitle(true);
 
-      const { errors: uploadErrors } = await promise;
+      const { results: uploadResults, errors: uploadErrors } = await promise;
       abortRef.current = null;
       setExtractingTitle(false);
+      if (uploadCancelledRef.current) {
+        throw new Error('上传已取消，请重新提交');
+      }
       setOverallProgress(100);
 
       if (uploadErrors.length === files.length) {
@@ -320,12 +387,21 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
         setError(`${uploadErrors.length} 个文件上传失败，其余文件将继续审查`);
       }
 
-      const job = await submitAudit(cid, { options: DEFAULT_PARAMS }, tier);
+      const pdfCandidates = pdfCandidatesFromUploadResults(uploadResults);
+      const paperPdf = await choosePaperPdfIfNeeded(pdfCandidates);
+      if (paperPdf) {
+        await updateCase(cid, { paper_pdf: paperPdf });
+      }
+
+      const job = await submitAuditWithPaperPdf(cid, paperPdf);
       setHasUnsavedFiles(false);
       onNavigate?.('progress', { case: cid, run: job.job_id });
     } catch (nextError) {
       const msg = nextError.message || String(nextError);
       setError(msg.endsWith('重试') ? msg : `${msg}，请稍后重试`);
+      setOverallProgress(-1);
+      abortRef.current = null;
+      uploadCancelledRef.current = false;
     } finally {
       setBusy(false);
     }
@@ -337,6 +413,12 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
 
   return (
     <div className="mx-auto max-w-[980px] px-14 py-16 pb-24">
+      <PaperPdfSelector
+        open={pdfSelectorOpen}
+        candidates={pdfSelectorCandidates}
+        onCancel={() => closePdfSelector(null)}
+        onConfirm={(value) => closePdfSelector(value)}
+      />
       {/* Hero block */}
       <div className="mb-16">
         <div className="mb-5 text-[10px] font-medium uppercase tracking-[2.5px] text-ink-500">
@@ -344,9 +426,9 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
         </div>
         <h1 className="font-display text-[56px] font-normal leading-[1.15] tracking-[-0.5px] text-ink-900">
           为您的研究<br />
-          <em className="font-normal not-italic text-accent-500" style={{ fontStyle: 'italic' }}>开具一份可信证明</em>
+          <em className="font-normal not-italic text-accent-500" style={italicStyle}>开具一份可信证明</em>
         </h1>
-        <p className="mt-6 max-w-[540px] font-display text-[16px] leading-[1.7] text-ink-700" style={{ fontFamily: '"Cormorant Garamond", serif', fontStyle: 'italic' }}>
+        <p className="mt-6 max-w-[540px] font-display text-[16px] leading-[1.7] text-ink-700" style={subtitleStyle}>
           我们不评价您的研究有多好，<br />
           我们只证明您说的是真的。
         </p>
@@ -378,43 +460,49 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
       <section className="mb-16">
         <SectionLabel num="02" title="提交材料" sub="Submission" />
         <div
-          className={`mt-5 rounded-sm border-2 border-dashed p-8 transition-colors ${
-            isDragging ? 'border-accent-500 bg-accent-50' : 'border-ink-900/15 bg-white/45 hover:border-ink-900/25'
+          className={`mt-5 rounded-sm border-2 border-dashed transition-[border-color,background-color,box-shadow,transform] duration-300 ease-out motion-reduce:transform-none motion-reduce:transition-none ${
+            isDragging
+              ? 'scale-[1.01] border-accent-500 bg-accent-100/40 shadow-lg shadow-accent-500/10 [user-select:none]'
+              : 'border-ink-900/15 bg-white/45 hover:border-accent-500/40 hover:bg-accent-50/30 hover:shadow-md'
           }`}
           onDragEnter={handleDragEnter}
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
         >
-          <div className="flex flex-col items-center gap-4 text-center">
-            <div className="grid h-14 w-14 place-items-center rounded-sm bg-accent-50 text-accent-500">
+          <button
+            type="button"
+            className="flex w-full cursor-pointer flex-col items-center gap-4 rounded-sm p-8 text-center transition-[background-color] hover:bg-accent-50/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 disabled:cursor-not-allowed disabled:opacity-60"
+            onClick={() => { if (!busy) fileInputRef.current?.click(); }}
+            disabled={busy}
+          >
+            <div className={`grid h-14 w-14 place-items-center rounded-sm bg-accent-50 text-accent-500 transition-[background-color,transform] duration-300 motion-reduce:transform-none motion-reduce:transition-none ${
+              isDragging ? 'scale-125 rotate-6 bg-accent-100' : ''
+            }`}>
               <FiUploadCloud className="text-2xl" aria-hidden="true" />
             </div>
             <div>
-              <p className="font-semibold text-ink-900">
-                {isDragging ? '松开以上传文件' : '拖放文件到这里'}
+              <p className={`font-semibold transition-colors duration-200 ${
+                isDragging ? 'text-accent-600' : 'text-ink-900'
+              }`}>
+                {isDragging ? '松开鼠标上传文件' : '拖放文件到这里，或点击选择'}
               </p>
-              <div className="mt-3 flex flex-col items-center gap-1.5">
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-sm bg-ink-900 px-5 py-2.5 text-sm font-medium text-paper-50 transition hover:bg-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 disabled:opacity-50"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={busy}
-                >
-                  <FiUpload className="h-4 w-4" aria-hidden="true" />
-                  选择文件
-                </button>
-                <button
-                  type="button"
-                  className="text-xs text-ink-400 transition hover:text-ink-600 focus-visible:outline-none focus-visible:underline"
-                  onClick={() => dirInputRef.current?.click()}
-                  disabled={busy}
-                >
-                  或选择整个目录上传
-                </button>
+              <div className="mt-3 inline-flex items-center gap-2 rounded-sm bg-ink-900 px-5 py-2.5 text-sm font-medium text-paper-50">
+                <FiUpload className="h-4 w-4" aria-hidden="true" />
+                选择文件
               </div>
               <p className="mt-3 text-xs text-ink-400">PDF · XLSX · CSV · 图片 · ZIP · 最大 200 MB</p>
             </div>
+          </button>
+          <div className="flex justify-center pb-8">
+            <button
+              type="button"
+              className="text-xs text-ink-400 transition hover:text-ink-600 focus-visible:outline-none focus-visible:underline"
+              onClick={() => { if (!busy) dirInputRef.current?.click(); }}
+              disabled={busy}
+            >
+              或选择整个目录上传
+            </button>
           </div>
           <input ref={fileInputRef} type="file" multiple accept={ACCEPTED_EXTENSIONS} className="hidden" onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} disabled={busy} aria-label="选择文件" />
           <input ref={dirInputRef} type="file" multiple accept={ACCEPTED_EXTENSIONS} className="hidden" {...({ webkitdirectory: '', directory: '' })} onChange={(e) => { addFiles(e.target.files); e.target.value = ''; }} disabled={busy} aria-label="选择目录" />
@@ -426,7 +514,7 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
                 icon={FiFileText}
                 title="论文稿件"
                 hint="PDF"
-                files={files.filter((_, i) => fileCategories.get(i) === 'paper')}
+                files={files.filter((file) => fileCategories.get(fileKeyFor(file)) === 'paper')}
                 category="paper"
                 isDragging={dragOverSlot === 'paper'}
                 onDragEnter={() => setDragOverSlot('paper')}
@@ -437,7 +525,7 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
                 icon={FiCode}
                 title="代码仓库"
                 hint="PY · R · ZIP"
-                files={files.filter((_, i) => fileCategories.get(i) === 'code')}
+                files={files.filter((file) => fileCategories.get(fileKeyFor(file)) === 'code')}
                 category="code"
                 isDragging={dragOverSlot === 'code'}
                 onDragEnter={() => setDragOverSlot('code')}
@@ -448,7 +536,7 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
                 icon={FiDatabase}
                 title="数据"
                 hint="XLSX · CSV"
-                files={files.filter((_, i) => fileCategories.get(i) === 'data')}
+                files={files.filter((file) => fileCategories.get(fileKeyFor(file)) === 'data')}
                 category="data"
                 isDragging={dragOverSlot === 'data'}
                 onDragEnter={() => setDragOverSlot('data')}
@@ -473,12 +561,12 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
               )}
               <div className="max-h-40 overflow-auto">
                 {files.map((file, index) => {
-                  const fileKey = file.webkitRelativePath || file.name;
+                  const fileKey = fileKeyFor(file);
                   const status = fileStatuses.get(fileKey);
-                  const category = fileCategories.get(index);
+                  const category = fileCategories.get(fileKey);
                   const CategoryIcon = category === 'paper' ? FiFileText : category === 'code' ? FiCode : category === 'data' ? FiDatabase : FiFileText;
                   return (
-                    <div key={`${file.name}-${file.size}-${file.lastModified}`} className="flex items-center justify-between gap-3 rounded-sm px-2 py-1.5 text-xs transition hover:bg-white/50">
+                    <div key={`${fileKey}-${file.size}-${file.lastModified}`} className="flex items-center justify-between gap-3 rounded-sm px-2 py-1.5 text-xs transition hover:bg-white/50">
                       <div className="flex min-w-0 items-center gap-2">
                         <CategoryIcon className="h-3.5 w-3.5 shrink-0 text-ink-400" aria-hidden="true" />
                         <span className="min-w-0 truncate text-ink-700">{fileKey}</span>
@@ -489,7 +577,7 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
                         {status === 'uploading' && <span className="text-accent-500">{uploadProgress[fileKey] || 0}%</span>}
                         <span className="text-ink-400">{FILE_SIZE_FORMATTER.format(Math.ceil(file.size / 1024))} KB</span>
                         {!busy && (
-                          <button type="button" className="rounded p-0.5 text-ink-300 transition hover:bg-risk-50 hover:text-risk-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40" aria-label={`移除 ${file.name}`} onClick={() => removeFile(index)}>
+                          <button type="button" className="rounded p-0.5 text-ink-300 transition hover:bg-risk-50 hover:text-risk-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-500/40" aria-label={`移除 ${fileKey}`} onClick={() => removeFile(index)}>
                             <FiX className="text-sm" aria-hidden="true" />
                           </button>
                         )}
@@ -586,17 +674,17 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
           <div className="mt-1 flex items-center gap-1.5 text-[11px] text-paper-300">
             {security === 'standard' ? (
               <>
-                <FiShield className="h-3 w-3 shrink-0" />
+                <FiShield className="h-3 w-3 shrink-0" aria-hidden="true" />
                 云端 API 零数据保留 · 24h 自销
               </>
             ) : security === 'confidential' ? (
               <>
-                <FiLock className="h-3 w-3 shrink-0" />
+                <FiLock className="h-3 w-3 shrink-0" aria-hidden="true" />
                 端到端加密 · 作者持有密钥
               </>
             ) : (
               <>
-                <FiLock className="h-3 w-3 shrink-0" />
+                <FiLock className="h-3 w-3 shrink-0" aria-hidden="true" />
                 私有 VPC 部署 · 数据不出网络
               </>
             )}
@@ -606,16 +694,16 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
           type="button"
           className="shrink-0 inline-flex items-center gap-2 rounded-full bg-paper-50 px-6 py-3 text-sm font-semibold text-ink-900 transition hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50"
           onClick={handleSubmit}
-          disabled={busy || overallProgress >= 0}
+          disabled={busy}
         >
           {busy ? (
             <>
-              <div className="h-4 w-4 animate-spin rounded-full border-2 border-ink-900/20 border-t-ink-900" />
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-ink-900/20 border-t-ink-900" aria-hidden="true" />
               上传中 ({overallProgress >= 0 ? `${overallProgress}%` : '…'})
             </>
           ) : (
             <>
-              <FiPlay className="h-4 w-4" />
+              <FiPlay className="h-4 w-4" aria-hidden="true" />
               开始核查
             </>
           )}
@@ -623,7 +711,7 @@ export default function SubmitPage({ caseId: existingCaseId, runId: _existingRun
       </div>
 
       {error && (
-        <div ref={errorRef} tabIndex={-1} className="mt-5 rounded-sm border border-risk-300/45 bg-risk-50/70 p-4 text-sm text-risk-700">
+        <div ref={errorRef} tabIndex={-1} role="alert" className="mt-5 rounded-sm border border-risk-300/45 bg-risk-50/70 p-4 text-sm text-risk-700">
           {error}
         </div>
       )}
@@ -649,7 +737,7 @@ function SectionLabel({ num, title, sub }) {
   );
 }
 
-function UploadSlot({ icon: Icon, title, hint, files, category: _category, isDragging, onDragEnter, onDragLeave, onDrop }) {
+function UploadSlot({ icon: Icon, title, hint, files, category, isDragging, onDragEnter, onDragLeave, onDrop }) {
   const hasFiles = files && files.length > 0;
 
   function handleDragOver(e) {
@@ -695,6 +783,7 @@ function UploadSlot({ icon: Icon, title, hint, files, category: _category, isDra
 
   return (
     <div
+      data-testid={`upload-slot-${category}`}
       className={`flex flex-col items-start gap-3 rounded-sm border-2 p-5 transition-colors ${
         isDragging
           ? 'border-accent-500 bg-accent-50'
@@ -707,7 +796,7 @@ function UploadSlot({ icon: Icon, title, hint, files, category: _category, isDra
       onDragOver={handleDragOver}
       onDrop={handleDrop}
     >
-      <Icon size={18} strokeWidth={1.4} className={hasFiles || isDragging ? 'text-ink-900' : 'text-ink-400'} />
+      <Icon size={18} strokeWidth={1.4} className={hasFiles || isDragging ? 'text-ink-900' : 'text-ink-400'} aria-hidden="true" />
       <div className="w-full">
         <div className="text-sm font-medium text-ink-900">{title}</div>
         <div className="mt-0.5 text-xs text-ink-400">{hint}</div>

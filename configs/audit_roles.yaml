@@ -1,0 +1,50 @@
+# Agent/runtime tuning shared by static-audit pipeline steps.
+role_timeouts:
+  agent_material_plan: 120
+  agent_plan: 180
+  claim_extractor: 300
+  source_data_auditor: 300
+  judge: 180
+  agent_review: 180
+
+provenance_edge_threshold: 0.85
+provenance_max_relationships: 30
+
+priority_scoring:
+  cross_sheet_fractional_tail_reuse:
+    min_consecutive_matches: 5
+    min_decimal_places: 5
+    review_priority: high
+  repeated_measurement_value:
+    min_repeats: 3
+    min_decimal_places: 4
+    review_priority: high
+  fractional_tail_reuse:
+    min_decimal_places: 5
+    review_priority: medium
+  small_n_fixed_difference:
+    review_priority: medium
+  small_n_fixed_ratio:
+    review_priority: medium
+  low_information_numeric:
+    review_priority: low
+    filter: true
+
+# Visual finding demotion rules.
+# Findings in these categories are demoted to visual/candidates/ when they
+# lack corroboration from the specified detector families.
+visual_demotion:
+  enabled: true
+  rules:
+    exact_duplicate:
+      requires_any_of: [copy_move, overlap_reuse]
+      reason: "SHA-256 exact match without geometric verification"
+    dhash_similar:
+      requires_any_of: [copy_move, overlap_reuse]
+      reason: "dHash perceptual similarity without geometric verification"
+    forged_region_suspicious:
+      requires_any_of: [copy_move, overlap_reuse]
+      reason: "TruFor-alone without overlap verification"
+    visual_provenance_relationship:
+      requires_any_of: [copy_move, overlap_reuse, dhash_similar, exact_duplicate]
+      reason: "Provenance-alone without other detector corroboration"

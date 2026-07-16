@@ -67,6 +67,8 @@ def _build_role_outputs_section(
             if isinstance(claim_output, dict)
             else "missing",
             "claim_count": len(claims),
+            "mapped_claim_count": len(mappings),
+            "unmapped_claim_count": max(0, len(claims) - len(mappings)),
             "sample_claims": [
                 _compact_claim_for_judge(item)
                 for item in claims[:12]

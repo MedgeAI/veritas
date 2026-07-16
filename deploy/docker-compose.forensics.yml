@@ -15,7 +15,7 @@
 services:
   sila-dense:
     build: ./forensics/sila-dense
-    image: veritas-sila-service:latest
+    image: veritas-sila-service:${FORENSICS_VERSION:-latest}
     container_name: veritas-sila-service
     ports:
       - "8770:8770"
@@ -31,7 +31,7 @@ services:
 
   elis-forensic:
     build: ./forensics/elis-forensic
-    image: veritas-elis-forensic-service:latest
+    image: veritas-elis-forensic-service:${FORENSICS_VERSION:-latest}
     container_name: veritas-elis-forensic-service
     ports:
       - "8771:8771"

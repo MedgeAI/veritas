@@ -9,6 +9,8 @@ Phase 2 (XSS escaping) comes after.
 
 from __future__ import annotations
 
+from engine.static_audit.finding_categories import all_definitions
+
 # =============================================================================
 # Display Limits (How many items to show in various sections)
 # =============================================================================
@@ -229,26 +231,9 @@ STATUS_LABELS = {
     "not_available": "不可用",
 }
 
-#: Category labels for finding types
-CATEGORY_LABELS = {
-    "duplicate_numeric_columns": "数值列重复",
-    "fixed_difference": "固定差关系",
-    "fixed_ratio": "固定比例关系",
-    "formula_derived_columns": "公式派生列",
-    "row_offset_scalar_multiple": "固定行偏移标量关系",
-    "long_format_paired_ratio_reuse": "配对比例复用",
-    "duplicate_row_vector": "行向量重复",
-    "long_format_within_pair_ratio_enrichment": "配对内部比例富集",
-    "row_offset_partial_copy_rounding_bias": "行偏移复制/舍入偏差",
-    "copy_move_single": "单图内局部相似",
-    "copy_move_cross": "跨图局部相似",
-    "exact_duplicate": "字节级完全重复",
-    "dhash_similar": "感知哈希相似",
-    "overlap_reuse_cross_panel": "跨 Panel 局部重叠",
-    "forged_region_suspicious": "区域完整性记录",
-    "paperfraud.methodology_review": "方法学提示",
-    "paperfraud.fraud_detection": "数值取证提示",
-}
+#: Category labels for finding types (derived from registry).
+#: New code should use finding_categories.get(category).label.
+CATEGORY_LABELS = {d.category: d.label for d in all_definitions()}
 
 #: Confidence badge HTML for source type indicators
 CONFIDENCE_BADGES = {
@@ -286,6 +271,11 @@ PATTERN_DEFINITIONS = {
         "title": "部分复制或舍入偏差候选",
         "thesis": "Source Data 中出现行偏移后的部分复用或舍入后相似；需要追溯导出、四舍五入、格式化和上游计算过程。",
         "review_question": "核对这些相似行/列是否由合法四舍五入、格式化导出或批量处理产生，并要求提供上游原始表格或脚本。",
+    },
+    "small_n_publication_patterns": {
+        "title": "小样本数值复用候选",
+        "thesis": "Source Data 中出现重复展示值、小数尾部复用或短向量固定关系；这些模式需要结合原始计数、归一化公式和展示精度复核。",
+        "review_question": "核对这些 cell 是否对应独立样本/独立实验，并要求提供原始未舍入数值、计数分母和生成脚本。",
     },
     "formula_derivation": {
         "title": "公式派生列与固定倍数转换",
@@ -328,6 +318,7 @@ SOURCE_DATA_PATTERN_KEYS = {
     "row_vector_reuse",
     "duplicate_numeric_columns",
     "partial_copy_rounding_bias",
+    "small_n_publication_patterns",
     "formula_derivation",
 }
 
@@ -337,25 +328,22 @@ PATTERN_SORT_ORDER = {
     "row_vector_reuse": 1,
     "duplicate_numeric_columns": 2,
     "partial_copy_rounding_bias": 3,
-    "row_vector_reuse_rounding": 4,
-    "formula_derivation": 5,
-    "visual_forensics": 6,
-    "numeric_forensics": 7,
-    "execution_evidence": 8,
-    "other": 9,
+    "small_n_publication_patterns": 4,
+    "row_vector_reuse_rounding": 5,
+    "formula_derivation": 6,
+    "visual_forensics": 7,
+    "numeric_forensics": 8,
+    "execution_evidence": 9,
+    "other": 10,
 }
 
 #: Categories that trigger context-only display (lower priority)
+#: @deprecated: New code should use finding_categories.get(category).context_only.
 CONTEXT_ONLY_CATEGORIES = {"duplicate_row_vector"}
 
-#: Pair forensics categories that belong to pair analysis
-PAIR_FORENSICS_CATEGORIES = {
-    "row_offset_scalar_multiple",
-    "long_format_paired_ratio_reuse",
-    "duplicate_row_vector",
-    "long_format_within_pair_ratio_enrichment",
-    "row_offset_partial_copy_rounding_bias",
-}
+#: Pair forensics categories that belong to pair analysis (derived from registry).
+#: New code should use finding_categories.pair_forensics_categories().
+PAIR_FORENSICS_CATEGORIES = {d.category for d in all_definitions() if d.is_pair_forensics}
 
 # =============================================================================
 # Text Replacement Rules (for cleaning report text)
@@ -403,6 +391,11 @@ HUMAN_TEXT_REPLACEMENTS = (
     ("duplicate_row_vector", "行向量重复"),
     ("paired_difference_too_narrow", "配对差异过窄"),
     ("paired_ratio_reuse", "配对比例复用"),
+    ("repeated_measurement_value", "重复展示数值"),
+    ("fractional_tail_reuse", "小数尾部复用"),
+    ("small_n_fixed_difference", "小样本固定差关系"),
+    ("small_n_fixed_ratio", "小样本固定倍率关系"),
+    ("cross_sheet_fractional_tail_reuse", "跨 Sheet 小数尾部复用"),
     ("row_offset_exact_reuse", "固定行偏移重复"),
     ("paperfraud.fraud_detection", "数值取证提示"),
     ("paperfraud.methodology_review", "方法学提示"),

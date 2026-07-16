@@ -1,0 +1,16 @@
+{
+  "identifier": "10.5061/dryad.abc123",
+  "title": "Test Dryad Dataset",
+  "_embedded": {
+    "processSteps": [
+      {
+        "files": [
+          {
+            "fileName": "data_from_code.csv",
+            "downloadPath": "https://datadryad.org/api/v2/file/data_from_code.csv"
+          }
+        ]
+      }
+    ]
+  }
+}

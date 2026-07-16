@@ -11,8 +11,18 @@ from engine.static_audit.visual_pipeline._orchestrator import (
     run_overlap_reuse_detection,
     run_provenance_graph,
 )
+from engine.static_audit.visual_pipeline.demotion_filter import (
+    classify_findings,
+)
 from engine.static_audit.visual_pipeline.finding_pipeline import (
     run_visual_finding_pipeline,
+)
+from engine.static_audit.visual_pipeline.gates import (
+    GATE_PIPELINE,
+    GateContext,
+    GateResult,
+    GateVerdict,
+    run_gate_pipeline,
 )
 from engine.static_audit.visual_pipeline.panel_extraction import (
     extract_panels_batch,
@@ -26,7 +36,13 @@ from engine.static_audit.visual_pipeline.tru_for import (
 )
 
 __all__ = [
+    "GATE_PIPELINE",
+    "GateContext",
+    "GateResult",
+    "GateVerdict",
+    "classify_findings",
     "extract_panels_batch",
+    "run_gate_pipeline",
     "run_image_quality_detection",
     "run_overlap_reuse_detection",
     "run_provenance_graph",

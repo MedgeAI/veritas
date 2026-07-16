@@ -1,5 +1,76 @@
 # CHANGELOG
 
+## 2026-07-06
+
+- **PaperConan 设计哲学吸收 PRD 实施（WP0-WP10 全部代码落地）**：6 个 worktree 并行实现，全部合并到 master。共 ~4300 行新代码，246 个新测试。
+  - **WP0 Coverage Matrix**：`configs/paperconan_detector_coverage.yaml` 声明式列出所有 PaperConan detector kind 及其 Veritas 覆盖状态（translated/native_equivalent/native_superset/planned/not_applicable）。
+  - **WP1 Canonical Numeric Signal Schema**：`engine/static_audit/numeric_signal_schema.py` 定义 `NumericSignal` frozen dataclass，包含 identity/detector output/profile-prefilter/applicability/evidence/provenance/WP8 claim-impact 全字段。`validate_numeric_signal()` 覆盖必填 provenance 字段。`NumericSignalSet` 支持集合操作。
+  - **WP2 PaperConan Translator**：`engine/static_audit/adapters/paperconan_adapter/translator.py` 将 `paperconan_scan.json` 翻译为 canonical `NumericSignal`，覆盖 relations/progressions/equal_pairs/row_pairs/within_col/grim/cross_sheet/digit_distribution/decimal_endings/scan_errors 全部 family。输出 translation skip ledger 记录未翻译项。
+  - **WP3 Profile/Prefilter Ledger**：`engine/static_audit/tools/source_data_prefilter/`（prefilter/ledger/profiles）实现 forensic/review/triage 三级 profile 合约。drop 不删除 signal，只影响 visibility/priority/LLM routing。hidden signal 必须出现在 diagnostics 和 downloadable ledger。
+  - **WP4 Detector Family Coverage**：`finding_categories.py` 新增 9 个 PaperConan detector category（grim_inconsistent/grimmer_inconsistent/last_digit_chi_square/row_pair_digit_coupling/integer_diff_shared_fraction/partial_constant_offset/cross_sheet_decimal_tail_reuse/within_table_fraction_reuse/recurring_row_vector）。GRIM/GRIMMER 有 applicability_premise gating（integer-valued check）。
+  - **WP5 Public Source Data Fetch**：`engine/static_audit/source_acquisition/`（fetcher/manifest/providers）+ `engine/tools/source_data_fetch.py`（tool_id: source_data.fetch_public）+ `runtime/http_fetch.py`。支持 Nature ESM/Zenodo/Figshare/Dryad/Europe PMC/direct URL。弱匹配必须 manual_confirmation_required=True。输出 `source_acquisition_manifest.json`（含 sha256/size/source_url）。no_data_found 不等于论文干净。
+  - **WP6 Evidence Window Builder**：`engine/static_audit/evidence_windows/`（locator/window_builder/manifest）。根据 evidence_locator 从原始 XLSX/CSV/TSV 重建 bounded window，支持 highlight rows/cols。同 signal 重跑结果稳定。文件缺失或 hash mismatch 时 fail loud。
+  - **WP7 Review Dossier + Red-Team Refute**：`engine/static_audit/dossiers/`（review_dossier/red_team_refute/refute_checklist）。10 项 schema 化 refute checklist。`requires_refute()` 对 tier 1/2 返回 True，配合 review_status="pending" 阻止进入高优先级区。refute 输出包含 review_status/refute_attempts/strongest_benign_explanation/remaining_uncertainty/recommended_final_status/needs_author_data。
+  - **WP8 Claim/Impact Fusion**：`engine/static_audit/claim_fusion.py`。`build_claim_index()` 从 paper metadata 构建查找索引；`fuse_signal_to_claims()` 通过 evidence locator 映射 signal 到 claim；`enrich_signal_with_claim_mapping()` 返回填充 WP8 字段的新 NumericSignal。无法映射时 impact_scope="unknown"（绝不默认 "peripheral"）。
+  - **WP9 Cross-Modal Dossier**：`engine/static_audit/cross_modal_dossier.py`。`CrossModalDossier` 按 claim 聚合 numeric/image/code evidence。red-team refute checklist 可按 modality 扩展（默认 9 numeric + 4 image + 4 code）。
+  - **WP10 Report/Diagnostics 模块**：`engine/reporting/` 新增 5 个独立报告模块：`numeric_forensics_report.py`、`paperconan_coverage_report.py`、`prefilter_ledger_report.py`、`red_team_report.py`、`source_acquisition_report.py`。只消费 canonical signals，不直接读 PaperConan raw shape。
+
+## 2026-07-05
+
+- **流水线 8 阶段重构**：`engine/static_audit/pipeline.py` 从单体函数重构为 8 个阶段模块（`stages/`：discovery → planning → mineru → source_data → visual → investigation → roles → report），每阶段返回 frozen dataclass（如 `DiscoveryResult`、`PlanningResult`），阶段间通过 typed 结果传递数据。
+- **StageExecutor 声明式框架**：新增 `stage_executor.py`（`StepDefinition`/`StagePlan`/`StageExecutor`），source_data 阶段已迁移（8 步骤：profile → findings → pair_forensics → cross_sheet → cross_sheet_filter → paperconan → briefings → verdict）。`fail_policy` 控制失败行为（stop/skip_downstream/continue）。
+- **AuditConfig 数据类**：`config.py` 封装 14 个配置参数为 frozen dataclass，替代散落的 kwargs 传递。
+- **Paper PDF 显式选择**：当上传多个 PDF 时，前端通过 `AMBIGUOUS_PAPER_PDF` 错误码触发 `PaperPdfSelector` 弹窗。后端新增 `paper_pdf.py` 模块处理歧义检测和路径验证。`CaseModel` 新增 `paper_pdf` 字段。
+- **Source Data 取证扩展至 20 种检测模式**：新增 binary_arithmetic_relation（A*B=C 三列关系）、copy_paste_modify（复制后修改）、shifted_paste（位移粘贴）、internal_sequence_relation（列内等差/等比数列）、decimal_tail_match_shifted（位移小数尾匹配）、strict_linear_relation（严格线性关系）。所有新检测器使用 `SheetNumericIndex` 预计算索引。
+- **认证分级引擎**：`grade_engine.py` 实现 A/B/C/D 四维评分（Reproducibility/Numerical/Methodology/Interpretation），最差维度决定等级，可复现性 tier 可施加 cap（full→A, partial→B, code_only→C, static→C-）。
+- **确定性三层架构**：`certainty_enrichment.py` 为每个 finding 生成 FACT（客观事实）/ INFERENCE（AI 推断，带免责声明）/ SUGGESTION（修复建议）三层信息。
+- **Run Diagnostics 系统**：`run_diagnostics.py` 聚合 5 类诊断子 artifact（agent_debug、run_quality、artifact_summary、performance、model_calls），写入 `recommended_next_actions.md` 和 `run_diagnostics.json`。
+- **Typed Adapters**：`typed_adapters.py` 提供 4 种 artifact typed adapter（PairForensics、SourceData、Visual、NumericForensics），消除 dict.get 链，向后兼容字段别名。
+- **Finding Categories 注册表**：`finding_categories.py` 声明式注册 22 个 finding category，添加 category 只需一个 `register()` 调用。
+- **Investigation Tools 注册表分发**：`investigation_tools.py` 替代 600 行 elif 链，8 个 adapter 函数按 tool_id 分发。
+- **Tool Registry 重构**：26 个 ToolDefinition，引入声明式 `param_schema` + auto coercer，`execution_phase` 四层分类。
+- **LLM 配置集中化**：`engine/llm/config.py` 为 `DEFAULT_LLM_MODEL`/`DEFAULT_LLM_BASE_URL` 单一事实源，消除散落硬编码。
+- **Web 数据库 Schema 扩展**：新增 7 张 ORM 表（`InvestigationRecordModel`、`ReviewDecisionModel`、`ArtifactModel`、`FindingModel`、`RunDiagnosticsSummaryModel`、`ToolRegistryModel`、`CloudflareUserModel`），`RunModel` 新增 `celery_task_id`/`stages`/`current_stage`，扩展状态枚举。
+- **Engine/Web 分离（P1-5）**：`engine.reporting.risk`、`engine.reporting.review_queue`、`engine.reporting.finding_details` 承载领域逻辑，Web 层 risk/review_queue 变为瘦适配层。
+- **Runtime 统一（P0-1）**：所有 subprocess 调用统一到 `runtime/executors/subprocess_executor.py`，typed `ExecutionRequest`/`ExecutionResult`。
+- **视觉取证服务容器化**：sila-dense（:8770）和 elis-forensic（:8771）作为长驻 HTTP 容器服务，新增 `deploy/docker-compose.forensics.yml` 独立开发 compose。
+- **Client 前端完整页面体系**：新增 6 个 client 页面（SubmitPage、ProgressPage、ReportPage、IssuePage、ReverificationPage、VerifyPage），新增 PaperPdfSelector 组件、usePaperPdfSelector hook、paperPdf 工具函数。
+- **Source Data 工具扩展**：新增 `image_quality.py`（像素级质量检查）、`source_data_query.py`（语义查询）、`source_data_sheet_briefing.py`（sheet 结构简报）。`source_data_pair_forensics` 重构为包（13 个文件）。
+- **visual_pipeline 包重构**：从单文件拆分为 6 个源文件（`_orchestrator.py`、`finding_pipeline.py`、`panel_extraction.py`、`sila_dense.py`、`tru_for.py`、`provenance_relationships.py`）。
+- **context_pack 包重构**：从单文件拆分为包（`_shared.py`、`claims.py`、`deterministic.py`、`evidence.py`、`role_outputs.py`）。
+- **engine/shared/ 共享模块**：`types.py`（StepStatus/StepResult/InvestigationAction/ProgressCallback）、`constants.py`（OUTPUT_DIRS/ARTIFACT_PATH_MAP/STEP_TOOL_IDS）、`helpers.py`（finding 层级分类/event 合约/step 进度发射）。
+- **engine/reporting/ 扩展**：新增 `finding_details.py`、`layers.py`、`render_json.py`、`review_queue.py`、`risk.py`。
+- **engine/static_audit/adapters/ 扩展**：新增 `numeric_forensics_adapter/`（upstream 包装 + schema enrichment）、`paperfraud_knowledge/`（YAML 规则匹配）。
+- **Adapters 三模块**：`paperconan_adapter/`（GRIM/GRIMMER 扫描 + Veritas-shaped findings）、`paperfraud_knowledge/`（YAML 规则 + reviewer form）、`numeric_forensics_adapter/`（upstream enrichment + limitations）。
+- **HTML 报告样式增强**：`_styles.py` 大幅重构（+429 行），certainty layers 视觉样式。
+- **Pipeline 步骤状态修复（P0-1）**：warning → failed 状态语义统一。
+- **异常处理修复（P0-2）**：消除静默异常吞掉。
+- **循环依赖修复（P1-2）**：消除 runtime→engine 循环依赖。
+- **LLM 配置集中（P1-3）**：`DEFAULT_LLM_MODEL` 替代散落硬编码。
+- **Engine→Runtime Facade（P1-4）**：`_call_audit_func` 桥接新旧接口。
+- **参数封装（P1-6）**：`AuditConfig` 替代 14 个散落 kwargs。
+
+## 2026-07-01
+
+- **审计档案（Audit Profiles）**：新增 fast/standard/full 三档审计档案，控制工具执行深度和范围。通过 `pipeline.py` 的 profile 参数传递，影响 Tool Registry 中哪些工具被执行。
+- **Stale Run Watchdog**：新增 `engine/tasks/stale_run_watchdog.py`，监控长时间无心跳的审计运行，自动恢复或标记失败。
+- **Investigation 性能优化**：`investigation_dispatch.py` 中依赖层叠从 O(R²×A) 降至 O(R×A)——预先构建 artifact→producer 索引，避免对每个 input_artifact 扫描所有角色。
+- **LLM markdown fence 剥离**：`engine/llm/client.py` 新增 markdown 代码块围栏自动剥离，避免 LLM 返回 JSON 时包裹 ```json``` 导致解析失败。
+- **LLM async enrichment**：`engine/reporting/text_generator.py` 重构为 dataclass 驱动的并发 LLM 调用，提升报告生成中上下文构建的吞吐。
+- **Verify Store case index**：`verify_store.py` 新增 case index 支持版本化查询，`context_pack.py` 重构以支持可注入的 `_read` callable 提升可测试性。
+- **扩展运行状态与决策类型**：Web 后端新增扩展的 run status 枚举和 decision type 模型，`routers/cases.py` 增强 case 查询接口。
+- **视觉取证 pipeline 重构**：`visual_pipeline.py` 和 figure classification 大规模重构，强化 copy-move 检测测试和 provenance runner 覆盖。
+- **HTML 报告 hero header + certainty layers**：报告头部重设计，新增 certainty layers 视觉样式，`_styles.py` 和 `_patterns.py` 增强。
+- **Client Workspace 三入口路由**：前端实现 client/ops/verify 三入口分流（`entrypoint.js`），client 端独立工作台、主题刷新、ClientFooter/ClientHeader 组件。
+- **Redis broker 迁移**：Celery broker 从文件/内存迁移到 Redis，`app.py` 更新 broker URL 配置。
+- **Proxy stripping**：图片处理链路中代理路径自动剥离，确保 canonical artifact 路径一致性。
+- **前端 SSE 重连内存泄漏修复**：SSE 重连时旧 EventSource 未正确关闭导致内存泄漏，已修复。
+- **React 视图过渡**：前端实现 `viewTransitions.js` 工具模块，页面切换使用 View Transitions API。
+- **前端内联样式提取与懒加载优化**：将内联 style 对象提取到独立常量，组件 lazy import 统一优化。
+- **前端空状态统一**：所有页面空态组件统一为 `EmptyState`，消除散落的状态展示逻辑。
+- **anti_overfit 双正则修复**：`anti_overfit.py` 修复每行双重正则搜索的性能问题。
+- **代码审查 PRD 修复（Phases 1-6）**：安全、架构、重构三方面的全量代码审查修复，涉及 93 个文件。
+
 ## 2026-06-25
 
 - **MinerU 早失败机制**：MinerU PDF 解析失败后立即终止审计流水线，标记所有 17 个后续步骤为 `failed`，而非跳过 dependent 步骤后继续盲跑。

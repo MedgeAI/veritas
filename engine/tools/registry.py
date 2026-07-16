@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
+from typing import Any, Callable
 
 
 SOURCE_DATA_FINDINGS_TOOL_ID = "source_data.findings"
@@ -21,6 +21,7 @@ TOOL_ID_IMAGE_QUALITY = "visual.image_quality"
 TOOL_ID_OVERLAP_REUSE = "visual.overlap_reuse"
 SOURCE_DATA_VERDICT_TOOL_ID = "source_data.verdict"
 SOURCE_DATA_QUERY_TOOL_ID = "source_data.query"
+SOURCE_DATA_FETCH_PUBLIC_TOOL_ID = "source_data.fetch_public"
 
 
 class ExecutionPhase(str, Enum):
@@ -59,6 +60,7 @@ class ToolDefinition:
     input_artifacts: tuple[str, ...] = ()
     output_artifacts: tuple[str, ...] = ()
     param_schema: dict[str, dict[str, Any]] = field(default_factory=dict)
+    param_coercer: Callable[[dict[str, Any]], dict[str, Any]] | None = None
 
     def __post_init__(self) -> None:
         # Backward-compatible agent_selectable derived from execution_phase.
@@ -77,6 +79,178 @@ class ToolDefinition:
         Kept as a read-only property for backward compatibility.
         """
         return self._agent_selectable
+
+
+# ---------------------------------------------------------------------------
+# Parameter coercion helpers
+# ---------------------------------------------------------------------------
+
+
+def _bounded_int(value: Any, key: str, minimum: int, maximum: int) -> int:
+    try:
+        parsed = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{key} must be an integer") from exc
+    if parsed < minimum or parsed > maximum:
+        raise ValueError(f"{key} must be between {minimum} and {maximum}")
+    return parsed
+
+
+def _bounded_float(value: Any, key: str, minimum: float, maximum: float) -> float:
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(f"{key} must be a float") from exc
+    if parsed < minimum or parsed > maximum:
+        raise ValueError(f"{key} must be between {minimum} and {maximum}")
+    return parsed
+
+
+def _make_schema_coercer(
+    param_schema: dict[str, dict[str, Any]],
+    defaults: dict[str, Any],
+) -> Callable[[dict[str, Any]], dict[str, Any]]:
+    """Build a coercer from param_schema + parameter_defaults.
+
+    Handles integer (bounded), number (bounded float), boolean, and string
+    (with optional enum validation).  String enum values are lowered to match
+    existing case-insensitive validation behavior.
+    """
+
+    def coercer(params: dict[str, Any]) -> dict[str, Any]:
+        result: dict[str, Any] = {}
+        for key, spec in param_schema.items():
+            ptype = spec.get("type", "string")
+            minimum = spec.get("minimum")
+            maximum = spec.get("maximum")
+            enum_values = spec.get("enum")
+            default = defaults.get(key)
+            raw = params.get(key, default)
+
+            if ptype == "integer":
+                result[key] = _bounded_int(raw, key, minimum, maximum)
+            elif ptype == "number":
+                result[key] = _bounded_float(raw, key, minimum, maximum)
+            elif ptype == "boolean":
+                result[key] = bool(raw)
+            elif ptype == "string":
+                if enum_values is not None:
+                    parsed = str(raw).lower() if raw is not None else ""
+                    if parsed not in enum_values:
+                        raise ValueError(
+                            f"{key} must be one of {sorted(enum_values)}, got {parsed!r}"
+                        )
+                    result[key] = parsed
+                else:
+                    result[key] = str(raw) if raw is not None else ""
+        return result
+
+    return coercer
+
+
+def _empty_coercer(params: dict[str, Any]) -> dict[str, Any]:
+    return {}
+
+
+def _coerce_source_data_query_params(params: dict[str, Any]) -> dict[str, Any]:
+    valid_types = {"compare_groups", "extract_block", "find_cross_group_reuse"}
+    query_type = str(params.get("query_type", "")).strip()
+    if query_type not in valid_types:
+        raise ValueError(
+            f"query_type must be one of {sorted(valid_types)}, got {query_type!r}"
+        )
+    return {
+        "query_type": query_type,
+        "workbook": str(params.get("workbook", "")).strip(),
+        "sheet": str(params.get("sheet", "")).strip(),
+        "group_a": str(params.get("group_a", "")).strip(),
+        "group_b": str(params.get("group_b", "")).strip(),
+        "column_block": str(params.get("column_block", "")).strip(),
+        "columns": str(params.get("columns", "")).strip(),
+        "group": str(params.get("group", "")).strip(),
+    }
+
+
+def _coerce_copy_move_params(params: dict[str, Any]) -> dict[str, Any]:
+    defaults = TOOLS[TOOL_ID_COPY_MOVE].parameter_defaults
+    method = str(
+        params.get("method", defaults.get("method", "rootsift_magsac"))
+    ).lower()
+    if method not in {"rootsift_magsac"}:
+        raise ValueError(f"method must be 'rootsift_magsac', got {method!r}")
+    return {
+        "method": method,
+        "min_matches": _bounded_int(
+            params.get(
+                "min_matches",
+                params.get("min_keypoints", defaults.get("min_matches", 20)),
+            ),
+            "min_matches",
+            4,
+            200,
+        ),
+        "min_score": _bounded_float(
+            params.get("min_score", defaults.get("min_score", 0.05)),
+            "min_score",
+            0.0,
+            1.0,
+        ),
+        "max_relationships": _bounded_int(
+            params.get("max_relationships", defaults.get("max_relationships", 500)),
+            "max_relationships",
+            1,
+            5000,
+        ),
+    }
+
+
+def _coerce_overlap_reuse_params(params: dict[str, Any]) -> dict[str, Any]:
+    defaults = TOOLS[TOOL_ID_OVERLAP_REUSE].parameter_defaults
+    return {
+        "tile_size": _bounded_int(
+            params.get("tile_size", defaults.get("tile_size", 128)),
+            "tile_size",
+            64,
+            512,
+        ),
+        "tile_stride": _bounded_int(
+            params.get("tile_stride", defaults.get("tile_stride", 64)),
+            "tile_stride",
+            32,
+            512,
+        ),
+        "candidate_method": str(
+            params.get(
+                "candidate_method", defaults.get("candidate_method", "dhash_tile")
+            )
+        ),
+        "max_candidate_pairs": _bounded_int(
+            params.get(
+                "max_candidate_pairs", defaults.get("max_candidate_pairs", 500)
+            ),
+            "max_candidate_pairs",
+            10,
+            10000,
+        ),
+        "min_inliers": _bounded_int(
+            params.get("min_inliers", defaults.get("min_inliers", 10)),
+            "min_inliers",
+            4,
+            200,
+        ),
+        "min_overlap_area": _bounded_float(
+            params.get("min_overlap_area", defaults.get("min_overlap_area", 0.01)),
+            "min_overlap_area",
+            0.0,
+            1.0,
+        ),
+        "max_relationships": _bounded_int(
+            params.get("max_relationships", defaults.get("max_relationships", 500)),
+            "max_relationships",
+            1,
+            5000,
+        ),
+    }
 
 
 TOOLS: dict[str, ToolDefinition] = {
@@ -164,6 +338,7 @@ TOOLS: dict[str, ToolDefinition] = {
         execution_phase=ExecutionPhase.CONDITIONAL_BASELINE,
         input_artifacts=("materials/agent_material_plan.json",),
         output_artifacts=("source_data/profile.json",),
+        param_coercer=_empty_coercer,
     ),
     SOURCE_DATA_FINDINGS_TOOL_ID: ToolDefinition(
         tool_id=SOURCE_DATA_FINDINGS_TOOL_ID,
@@ -277,6 +452,7 @@ TOOLS: dict[str, ToolDefinition] = {
             "columns": {"type": "string"},
             "group": {"type": "string"},
         },
+        param_coercer=_coerce_source_data_query_params,
     ),
     PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID: ToolDefinition(
         tool_id=PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID,
@@ -293,6 +469,21 @@ TOOLS: dict[str, ToolDefinition] = {
         output_artifacts=("numeric/paperconan_scan.json",),
         param_schema={
             "profile": {"type": "string", "enum": ["review", "forensic", "triage"]},
+        },
+    ),
+    SOURCE_DATA_FETCH_PUBLIC_TOOL_ID: ToolDefinition(
+        tool_id=SOURCE_DATA_FETCH_PUBLIC_TOOL_ID,
+        step_key="source_data_fetch_public",
+        title="公开 Source Data 拉取",
+        source="engine/static_audit/source_acquisition",
+        description="Fetch public source data from Nature ESM, Zenodo, Figshare, Dryad, Europe PMC, or direct URL given a DOI, title, or URL.",
+        expected_outputs=("source_acquisition_manifest.json",),
+        execution_phase=ExecutionPhase.CONDITIONAL_BASELINE,
+        output_artifacts=("source_acquisition_manifest.json",),
+        param_schema={
+            "doi": {"type": "string"},
+            "title": {"type": "string"},
+            "url": {"type": "string"},
         },
     ),
     "image.exact_duplicates": ToolDefinition(
@@ -313,6 +504,7 @@ TOOLS: dict[str, ToolDefinition] = {
         source="engine/static_audit/tools",
         description="Find deterministic near-duplicate image candidates with dHash when Pillow is available.",
         expected_outputs=("visual/similarity_candidates.json",),
+        parameter_defaults={"max_distance": 8, "max_candidates": 200},
         input_artifacts=("visual/images/",),
         output_artifacts=("visual/similarity_candidates.json",),
         param_schema={
@@ -330,6 +522,7 @@ TOOLS: dict[str, ToolDefinition] = {
         execution_phase=ExecutionPhase.MANDATORY_BASELINE,
         input_artifacts=("visual/images/",),
         output_artifacts=("visual/evidence.json", "visual/panel_evidence.json"),
+        param_coercer=_empty_coercer,
     ),
     TOOL_ID_COPY_MOVE: ToolDefinition(
         tool_id=TOOL_ID_COPY_MOVE,
@@ -352,6 +545,7 @@ TOOLS: dict[str, ToolDefinition] = {
             "min_score": {"type": "number", "minimum": 0.0, "maximum": 1.0},
             "max_relationships": {"type": "integer", "minimum": 1, "maximum": 5000},
         },
+        param_coercer=_coerce_copy_move_params,
     ),
     TOOL_ID_FINDING_PIPELINE: ToolDefinition(
         tool_id=TOOL_ID_FINDING_PIPELINE,
@@ -367,6 +561,7 @@ TOOLS: dict[str, ToolDefinition] = {
             "visual/exact_duplicates.json",
         ),
         output_artifacts=("visual/relationships.json", "visual/findings.json"),
+        param_coercer=_empty_coercer,
     ),
     TOOL_ID_TRU_FOR: ToolDefinition(
         tool_id=TOOL_ID_TRU_FOR,
@@ -443,6 +638,7 @@ TOOLS: dict[str, ToolDefinition] = {
         execution_phase=ExecutionPhase.MANDATORY_BASELINE,
         input_artifacts=("visual/evidence.json",),
         output_artifacts=("visual/image_quality.json",),
+        param_coercer=_empty_coercer,
     ),
     TOOL_ID_OVERLAP_REUSE: ToolDefinition(
         tool_id=TOOL_ID_OVERLAP_REUSE,
@@ -475,6 +671,7 @@ TOOLS: dict[str, ToolDefinition] = {
             "min_overlap_area": {"type": "number", "minimum": 0.0, "maximum": 1.0},
             "max_relationships": {"type": "integer", "minimum": 1, "maximum": 5000},
         },
+        param_coercer=_coerce_overlap_reuse_params,
     ),
     "static_audit.bundle": ToolDefinition(
         tool_id="static_audit.bundle",
@@ -573,7 +770,38 @@ TOOLS: dict[str, ToolDefinition] = {
         ),
         output_artifacts=("reports/final_audit_report.html",),
     ),
+    "auditor.evidence_graph": ToolDefinition(
+        tool_id="auditor.evidence_graph",
+        step_key="auditor_evidence_graph",
+        title="Veritas-Auditor 证据图构建",
+        source="veritas_auditor",
+        description="Build and aggregate evidence graph from paper and source data.",
+        deterministic=True,
+        execution_phase=ExecutionPhase.CONDITIONAL_BASELINE,
+        input_artifacts=("paper.pdf", "source_data/"),
+        output_artifacts=("evidence_graph.json", "claim_verdicts.json"),
+    ),
+    "auditor.benchmark": ToolDefinition(
+        tool_id="auditor.benchmark",
+        step_key="auditor_benchmark",
+        title="VeritasBench 评测",
+        source="veritas_auditor",
+        description="Run VeritasBench evaluation.",
+        deterministic=True,
+        execution_phase=ExecutionPhase.REPORT_ONLY,
+        input_artifacts=(),
+        output_artifacts=("benchmark_results.json",),
+    ),
 }
+
+# Auto-attach schema-based coercers to tools without custom coercers.
+for _tool in TOOLS.values():
+    if _tool.param_coercer is None and _tool.param_schema:
+        object.__setattr__(
+            _tool,
+            "param_coercer",
+            _make_schema_coercer(_tool.param_schema, _tool.parameter_defaults),
+        )
 
 PAPER_STATIC_AUDIT_TOOL_IDS = (
     "mineru.parse_pdf",
@@ -711,257 +939,9 @@ def validate_investigation_tool_action(action: dict[str, Any]) -> dict[str, Any]
 
 
 def coerce_tool_params(tool_id: str, params: dict[str, Any]) -> dict[str, Any]:
-    if tool_id == SOURCE_DATA_FINDINGS_TOOL_ID:
-        return _coerce_source_data_findings_params(params)
-    if tool_id == SOURCE_DATA_PAIR_FORENSICS_TOOL_ID:
-        defaults = TOOLS[tool_id].parameter_defaults
-        return {
-            "min_pairs": _bounded_int(
-                params.get("min_pairs", defaults["min_pairs"]), "min_pairs", 2, 100
-            ),
-            "min_support": _bounded_float(
-                params.get("min_support", defaults["min_support"]),
-                "min_support",
-                0.50,
-                1.0,
-            ),
-            "ratio_places": _bounded_int(
-                params.get("ratio_places", defaults["ratio_places"]),
-                "ratio_places",
-                1,
-                8,
-            ),
-            "max_offset": _bounded_int(
-                params.get("max_offset", defaults["max_offset"]), "max_offset", 1, 500
-            ),
-            "max_findings_per_category": _bounded_int(
-                params.get(
-                    "max_findings_per_category", defaults["max_findings_per_category"]
-                ),
-                "max_findings_per_category",
-                1,
-                500,
-            ),
-            "min_duplicate_row_width": _bounded_int(
-                params.get(
-                    "min_duplicate_row_width", defaults["min_duplicate_row_width"]
-                ),
-                "min_duplicate_row_width",
-                2,
-                20,
-            ),
-        }
-    if tool_id == IMAGE_SIMILARITY_TOOL_ID:
-        return {
-            "max_distance": _bounded_int(
-                params.get("max_distance", 8), "max_distance", 0, 32
-            ),
-            "max_candidates": _bounded_int(
-                params.get("max_candidates", 200), "max_candidates", 1, 1000
-            ),
-        }
-    if tool_id == SOURCE_DATA_CROSS_SHEET_TOOL_ID:
-        defaults = TOOLS[tool_id].parameter_defaults
-        return {
-            "min_overlap": _bounded_int(
-                params.get("min_overlap", defaults["min_overlap"]), "min_overlap", 5, 50
-            ),
-            "min_support_rate": _bounded_float(
-                params.get("min_support_rate", defaults["min_support_rate"]),
-                "min_support_rate",
-                0.5,
-                1.0,
-            ),
-            "max_findings": _bounded_int(
-                params.get("max_findings", defaults["max_findings"]),
-                "max_findings",
-                10,
-                200,
-            ),
-        }
-    if tool_id == SOURCE_DATA_QUERY_TOOL_ID:
-        valid_types = {"compare_groups", "extract_block", "find_cross_group_reuse"}
-        query_type = str(params.get("query_type", "")).strip()
-        if query_type not in valid_types:
-            raise ValueError(
-                f"query_type must be one of {sorted(valid_types)}, got {query_type!r}"
-            )
-        return {
-            "query_type": query_type,
-            "workbook": str(params.get("workbook", "")).strip(),
-            "sheet": str(params.get("sheet", "")).strip(),
-            "group_a": str(params.get("group_a", "")).strip(),
-            "group_b": str(params.get("group_b", "")).strip(),
-            "column_block": str(params.get("column_block", "")).strip(),
-            "columns": str(params.get("columns", "")).strip(),
-            "group": str(params.get("group", "")).strip(),
-        }
-    if tool_id == PAPERCONAN_NUMERIC_FORENSICS_TOOL_ID:
-        defaults = TOOLS[tool_id].parameter_defaults
-        profile = str(params.get("profile", defaults.get("profile", "review"))).lower()
-        if profile not in {"review", "forensic", "triage"}:
-            raise ValueError(
-                f"profile must be one of ['review', 'forensic', 'triage'], got {profile!r}"
-            )
-        return {"profile": profile}
-    if tool_id == "source_data.profile":
-        return {}
-    if tool_id == TOOL_ID_PANEL_EXTRACTION:
-        return {}
-    if tool_id == TOOL_ID_COPY_MOVE:
-        defaults = TOOLS[tool_id].parameter_defaults
-        method = str(
-            params.get("method", defaults.get("method", "rootsift_magsac"))
-        ).lower()
-        if method not in {"rootsift_magsac"}:
-            raise ValueError(f"method must be 'rootsift_magsac', got {method!r}")
-        return {
-            "method": method,
-            "min_matches": _bounded_int(
-                params.get(
-                    "min_matches",
-                    params.get("min_keypoints", defaults.get("min_matches", 20)),
-                ),
-                "min_matches",
-                4,
-                200,
-            ),
-            "min_score": _bounded_float(
-                params.get("min_score", defaults.get("min_score", 0.05)),
-                "min_score",
-                0.0,
-                1.0,
-            ),
-            "max_relationships": _bounded_int(
-                params.get("max_relationships", defaults.get("max_relationships", 500)),
-                "max_relationships",
-                1,
-                5000,
-            ),
-        }
-    if tool_id == TOOL_ID_FINDING_PIPELINE:
-        return {}
-    if tool_id == TOOL_ID_IMAGE_QUALITY:
-        return {}
-    if tool_id == TOOL_ID_TRU_FOR:
-        defaults = TOOLS[tool_id].parameter_defaults
-        return {
-            "score_threshold": _bounded_float(
-                params.get("score_threshold", defaults.get("score_threshold", 0.5)),
-                "score_threshold",
-                0.0,
-                1.0,
-            ),
-        }
-    if tool_id == TOOL_ID_PROVENANCE_GRAPH:
-        defaults = TOOLS[tool_id].parameter_defaults
-        descriptor_type = str(
-            params.get("descriptor_type", defaults.get("descriptor_type", "cv_rsift"))
-        ).lower()
-        if descriptor_type not in {"cv_rsift", "cv_sift", "vlfeat_sift_heq"}:
-            raise ValueError(
-                f"descriptor_type must be one of ['cv_rsift', 'cv_sift', 'vlfeat_sift_heq'], "
-                f"got {descriptor_type!r}"
-            )
-        return {
-            "descriptor_type": descriptor_type,
-            "min_keypoints": _bounded_int(
-                params.get("min_keypoints", defaults.get("min_keypoints", 20)),
-                "min_keypoints",
-                4,
-                200,
-            ),
-            "min_area": _bounded_float(
-                params.get("min_area", defaults.get("min_area", 0.01)),
-                "min_area",
-                0.0,
-                1.0,
-            ),
-            "max_depth": _bounded_int(
-                params.get("max_depth", defaults.get("max_depth", 3)),
-                "max_depth",
-                1,
-                10,
-            ),
-            "check_flip": bool(
-                params.get("check_flip", defaults.get("check_flip", True))
-            ),
-            "max_workers": _bounded_int(
-                params.get("max_workers", defaults.get("max_workers", 4)),
-                "max_workers",
-                1,
-                16,
-            ),
-        }
-    if tool_id == TOOL_ID_SILA_DENSE:
-        defaults = TOOLS[tool_id].parameter_defaults
-        return {
-            "min_score": _bounded_float(
-                params.get("min_score", defaults.get("min_score", 0.05)),
-                "min_score",
-                0.0,
-                1.0,
-            ),
-            "max_relationships": _bounded_int(
-                params.get("max_relationships", defaults.get("max_relationships", 500)),
-                "max_relationships",
-                1,
-                5000,
-            ),
-            "max_panels": _bounded_int(
-                params.get("max_panels", defaults.get("max_panels", 20)),
-                "max_panels",
-                1,
-                50,
-            ),
-        }
-    if tool_id == TOOL_ID_OVERLAP_REUSE:
-        defaults = TOOLS[tool_id].parameter_defaults
-        return {
-            "tile_size": _bounded_int(
-                params.get("tile_size", defaults.get("tile_size", 128)),
-                "tile_size",
-                64,
-                512,
-            ),
-            "tile_stride": _bounded_int(
-                params.get("tile_stride", defaults.get("tile_stride", 64)),
-                "tile_stride",
-                32,
-                512,
-            ),
-            "candidate_method": str(
-                params.get(
-                    "candidate_method", defaults.get("candidate_method", "dhash_tile")
-                )
-            ),
-            "max_candidate_pairs": _bounded_int(
-                params.get(
-                    "max_candidate_pairs", defaults.get("max_candidate_pairs", 500)
-                ),
-                "max_candidate_pairs",
-                10,
-                10000,
-            ),
-            "min_inliers": _bounded_int(
-                params.get("min_inliers", defaults.get("min_inliers", 10)),
-                "min_inliers",
-                4,
-                200,
-            ),
-            "min_overlap_area": _bounded_float(
-                params.get("min_overlap_area", defaults.get("min_overlap_area", 0.01)),
-                "min_overlap_area",
-                0.0,
-                1.0,
-            ),
-            "max_relationships": _bounded_int(
-                params.get("max_relationships", defaults.get("max_relationships", 500)),
-                "max_relationships",
-                1,
-                5000,
-            ),
-        }
+    tool = TOOLS.get(tool_id)
+    if tool is not None and tool.param_coercer is not None:
+        return tool.param_coercer(params)
     return dict(params)
 
 
@@ -996,6 +976,7 @@ def source_data_findings_params_from_plan(
     params = dict(SOURCE_DATA_FINDINGS_DEFAULT_PARAMS)
     if not plan:
         return params
+    _coerce = TOOLS[SOURCE_DATA_FINDINGS_TOOL_ID].param_coercer
     selected_tools = plan.get("selected_tools")
     if isinstance(selected_tools, list):
         for item in selected_tools:
@@ -1006,13 +987,13 @@ def source_data_findings_params_from_plan(
                 continue
             tool_params = item.get("params")
             if isinstance(tool_params, dict):
-                params.update(_coerce_source_data_findings_params(tool_params))
+                params.update(_coerce(tool_params))
                 return params
     script_parameters = plan.get("script_parameters")
     if isinstance(script_parameters, dict):
         legacy_params = script_parameters.get("source_data_findings")
         if isinstance(legacy_params, dict):
-            params.update(_coerce_source_data_findings_params(legacy_params))
+            params.update(_coerce(legacy_params))
     return params
 
 
@@ -1083,50 +1064,8 @@ def validate_plan_tools(data: dict[str, Any]) -> dict[str, Any]:
 
 
 def _coerce_source_data_findings_params(params: dict[str, Any]) -> dict[str, Any]:
-    return {
-        "min_overlap": _bounded_int(
-            params.get(
-                "min_overlap", SOURCE_DATA_FINDINGS_DEFAULT_PARAMS["min_overlap"]
-            ),
-            "min_overlap",
-            8,
-            50,
-        ),
-        "min_support": _bounded_float(
-            params.get(
-                "min_support", SOURCE_DATA_FINDINGS_DEFAULT_PARAMS["min_support"]
-            ),
-            "min_support",
-            0.90,
-            1.0,
-        ),
-        "max_findings_per_category": _bounded_int(
-            params.get(
-                "max_findings_per_category",
-                SOURCE_DATA_FINDINGS_DEFAULT_PARAMS["max_findings_per_category"],
-            ),
-            "max_findings_per_category",
-            20,
-            500,
-        ),
-    }
+    """Deprecated: delegates to TOOLS[SOURCE_DATA_FINDINGS_TOOL_ID].param_coercer.
 
-
-def _bounded_int(value: Any, key: str, minimum: int, maximum: int) -> int:
-    try:
-        parsed = int(value)
-    except (TypeError, ValueError) as exc:
-        raise ValueError(f"{key} must be an integer") from exc
-    if parsed < minimum or parsed > maximum:
-        raise ValueError(f"{key} must be between {minimum} and {maximum}")
-    return parsed
-
-
-def _bounded_float(value: Any, key: str, minimum: float, maximum: float) -> float:
-    try:
-        parsed = float(value)
-    except (TypeError, ValueError) as exc:
-        raise ValueError(f"{key} must be a float") from exc
-    if parsed < minimum or parsed > maximum:
-        raise ValueError(f"{key} must be between {minimum} and {maximum}")
-    return parsed
+    Kept for backward compatibility. Will be removed in a future release.
+    """
+    return TOOLS[SOURCE_DATA_FINDINGS_TOOL_ID].param_coercer(params)

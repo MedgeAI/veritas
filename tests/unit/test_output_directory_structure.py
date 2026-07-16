@@ -25,6 +25,7 @@ def test_output_dirs_has_expected_categories() -> None:
         "numeric",
         "agents",
         "reports",
+        "diagnostics",
     }
     assert set(OUTPUT_DIRS.keys()) == expected
 
@@ -138,12 +139,17 @@ def test_artifact_path_map_consistency() -> None:
         "source_data_findings.json",
         "source_data_findings_verdict.json",
         "visual_evidence.json",
+        "figure_legend_extraction.json",
         "panel_evidence.json",
+        "panel_extraction_quality.json",
+        "visual_relationship_findings.json",
+        "provenance_edge_filtered.json",
         "numeric_forensics.json",
         "agent_review.json",
         "final_audit_report.html",
         "static_audit_bundle.json",
         "audit_run_manifest.json",
+        "run_diagnostics.json",
     ]
     for artifact in required_mappings:
         assert artifact in ARTIFACT_PATH_MAP, f"Missing mapping for {artifact}"

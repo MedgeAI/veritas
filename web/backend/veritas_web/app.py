@@ -11,6 +11,7 @@ from __future__ import annotations
 import logging
 import mimetypes
 import os
+import uuid as _uuid
 from pathlib import Path
 from typing import Any
 
@@ -40,7 +41,7 @@ from .artifacts import ArtifactService
 from .auth import AuthContext, AuthProvider, NoAuthProvider
 from .case_store import CaseStore
 from .config import AuthConfig, create_auth_provider
-from .database import create_db_engine, get_database_url
+from .database import check_db_or_raise, create_db_engine, get_database_url
 from .dependencies import AppDependencies, get_auth_context, set_dependencies
 from .investigations import WebInvestigationService
 from .runner import AuditRunner
@@ -63,8 +64,70 @@ from .tool_catalog import seed_tool_registry
 logger = logging.getLogger(__name__)
 
 
+def _opencode_data_dir_health(repo_root: Path) -> tuple[bool, dict[str, Any]]:
+    opencode_data = repo_root / ".opencode" / "data"
+    exists = opencode_data.exists()
+    is_dir = opencode_data.is_dir()
+    writable = is_dir and os.access(str(opencode_data), os.W_OK | os.X_OK)
+
+    if exists and is_dir and writable:
+        detail = "ok"
+    elif not exists and opencode_data.is_symlink():
+        detail = (
+            "missing symlink target — create web_data/.opencode/data before "
+            "starting containers"
+        )
+    elif not exists:
+        detail = "missing directory — create web_data/.opencode/data"
+    elif not is_dir:
+        detail = "not a directory"
+    else:
+        detail = "not writable by runtime user"
+
+    check = {
+        "ok": exists and is_dir and writable,
+        "path": str(opencode_data),
+        "resolved_path": str(opencode_data.resolve(strict=False)),
+        "detail": detail,
+    }
+    return bool(check["ok"]), check
+
+
+def _http_service_health(name: str, url: str) -> tuple[bool, dict[str, Any]]:
+    """Check a local-network HTTP dependency without using proxy env vars."""
+    endpoint = url.rstrip("/") + "/health"
+    try:
+        import httpx
+
+        with httpx.Client(timeout=3.0, trust_env=False) as client:
+            response = client.get(endpoint)
+    except Exception as exc:
+        check = {
+            "ok": False,
+            "url": url,
+            "endpoint": endpoint,
+            "detail": f"{name} unreachable: {exc}",
+        }
+        return False, check
+
+    ok = response.status_code == 200
+    check = {
+        "ok": ok,
+        "url": url,
+        "endpoint": endpoint,
+        "status_code": response.status_code,
+        "detail": "ok" if ok else f"{name} /health returned {response.status_code}",
+    }
+    return ok, check
+
+
 class VeritasWebApp:
-    """Kept for backward compat — some modules import this class."""
+    """DEPRECATED — kept only for backward compat with modules that import this class.
+
+    New code should use ``create_app()`` which uses the lifespan-based
+    engine lifecycle.  This class does NOT use the shared engine pattern
+    and is not guaranteed to remain functional across releases.
+    """
 
     def __init__(
         self,
@@ -73,9 +136,15 @@ class VeritasWebApp:
         frontend_dist: str | Path | None = None,
         database_url: str | None = None,
     ) -> None:
-        self.store = CaseStore(
-            data_root, database_url=_resolve_database_url(data_root, database_url)
+        import warnings
+
+        warnings.warn(
+            "VeritasWebApp is deprecated; use create_app() instead.",
+            DeprecationWarning,
+            stacklevel=2,
         )
+        resolved_url = database_url or get_database_url()
+        self.store = CaseStore(data_root, database_url=resolved_url)
         self.runner = AuditRunner(self.store, output_root=output_root)
         self.recovered_interrupted_runs = self.runner.recover_interrupted_runs()
         self.artifacts = ArtifactService(self.store, output_root=output_root)
@@ -96,46 +165,70 @@ def create_app(
 ) -> FastAPI:
     """Build and return the configured FastAPI application."""
     logging_config.configure_logging()
-    app = FastAPI(title="Veritas Web P1", version="0.1.0")
 
-    # Log database configuration with redacted credentials
-    resolved_database_url = _resolve_database_url(data_root, database_url)
-    logger.info(logging_config.redact_dsn(resolved_database_url))
-    store = CaseStore(data_root, database_url=resolved_database_url)
-    runner = AuditRunner(store, output_root=output_root)
-    artifacts_svc = ArtifactService(store, output_root=output_root)
-    investigations_svc = WebInvestigationService(store, artifacts_svc)
-    auth = auth_provider or create_auth_provider(AuthConfig.from_env())
+    # --- Eager setup (runs at create_app time for both tests and prod) ---
+    resolved_url = database_url or get_database_url()
+    db_engine = create_db_engine(resolved_url)
+    check_db_or_raise(db_engine)
 
-    # --- Dependency injection -----------------------------------------
-    # Use CaseStore's engine if it has one (keeps apps on one connection pool).
-    engine = getattr(store, "_engine", None) or (
-        create_db_engine() if (database_url or store.sql_mode) else None
-    )
+    store = CaseStore(data_root, database_url=resolved_url, engine=db_engine)
+    auth_prov = auth_provider or create_auth_provider(AuthConfig.from_env())
+    audit_runner = AuditRunner(store, output_root=output_root, engine=db_engine)
+    artifact_svc = ArtifactService(store, output_root=output_root)
+    investigation_svc = WebInvestigationService(store, artifact_svc)
+
     deps = AppDependencies(
         store=store,
-        auth_provider=auth,
-        engine=engine,
-        runner=runner,
-        artifacts=artifacts_svc,
-        investigations=investigations_svc,
+        auth_provider=auth_prov,
+        engine=db_engine,
+        runner=audit_runner,
+        artifacts=artifact_svc,
+        investigations=investigation_svc,
     )
-    app.state.dependencies = deps
-    set_dependencies(deps)
 
+    # Seed tool registry from the shared engine session
     if deps._session_factory is not None:
-        from .database import check_db_or_raise
-
-        check_db_or_raise(engine)
         session = deps._session_factory()
         try:
             seed_tool_registry(session)
         finally:
             session.close()
 
-    recovered = runner.recover_interrupted_runs()
+    recovered = audit_runner.recover_interrupted_runs()
+    if recovered:
+        logger.info("Recovered %d interrupted run(s) from previous session", recovered)
+
+    app = FastAPI(title="Veritas Web P1", version="0.1.0")
+    app.state.dependencies = deps
+    app.state.db_engine = db_engine
+    app.state.recovered_interrupted_runs = recovered
+    set_dependencies(deps)
+
+    @app.on_event("shutdown")
+    async def _dispose_engine() -> None:
+        db_engine.dispose()
+        logger.info("Veritas web backend shutdown complete")
+
+    # Log database configuration with redacted credentials
+    logger.info("Database: %s", logging_config.redact_dsn(database_url or get_database_url()))
 
     # --- Middleware ----------------------------------------------------
+    # Request ID — added before CORS and request logging so every record
+    # carries a traceable identifier.
+    @app.middleware("http")
+    async def _add_request_id(request: Request, call_next):
+        from . import logging_config as _lc
+
+        request_id = request.headers.get("X-Request-ID") or _uuid.uuid4().hex
+        token = _lc._request_id_var.set(request_id)
+        try:
+            request.state.request_id = request_id
+            response = await call_next(request)
+            response.headers["X-Request-ID"] = request_id
+            return response
+        finally:
+            _lc._request_id_var.reset(token)
+
     # Request logging — must be added BEFORE CORS so it sees the original request.
     @app.middleware("http")
     async def log_requests(request: Request, call_next):
@@ -175,10 +268,16 @@ def create_app(
         )
         return response
 
+    cors_origins_raw = get_env("VERITAS_CORS_ORIGINS", required=False, default="")
+    cors_origins = (
+        [o.strip() for o in cors_origins_raw.split(",") if o.strip()]
+        if cors_origins_raw
+        else ["*"]  # dev default
+    )
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
-        allow_credentials=False,
+        allow_origins=cors_origins,
+        allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
@@ -222,7 +321,7 @@ def create_app(
 
     # --- Health endpoint -----------------------------------------------
     @app.get("/api/health")
-    async def health() -> dict[str, Any]:
+    async def health(request: Request) -> dict[str, Any]:
         runner_mode = (
             "celery"
             if get_env("VERITAS_USE_CELERY", required=False, default="").lower()
@@ -232,7 +331,9 @@ def create_app(
         return {
             "status": "ok",
             "runner_mode": runner_mode,
-            "recovered_interrupted_runs": recovered,
+            "recovered_interrupted_runs": getattr(
+                request.app.state, "recovered_interrupted_runs", 0
+            ),
         }
 
     @app.get("/api/health/deep")
@@ -293,12 +394,59 @@ def create_app(
                 "engine.static_audit.adapters.paperconan_adapter"
             )
             getattr(paperconan_adapter, "run_paperconan_scan")
+            # Fail-loud: cv2 is required for visual forensics (texture scores,
+            # panel extraction, copy-move). Missing cv2 must not silently degrade.
+            importlib.import_module("cv2")
+            # Fail-loud: TruFor checks timm before loading weights; missing timm
+            # causes the step to be skipped after the audit has already started.
+            importlib.import_module("timm")
         except (AttributeError, ImportError) as exc:
             import_ok = False
             checks["python_imports"] = {"ok": False, "detail": str(exc)}
             all_ok = False
         if import_ok:
             checks["python_imports"] = {"ok": True}
+
+        # 5. Visual forensics model weights
+        # Fail-loud: missing weights cause silent step-level failures deep in
+        # the pipeline. Catching them here means deploy smoke tests reject the
+        # image before any audit runs with degraded capabilities.
+        _repo = Path(__file__).resolve().parents[3]
+        for name, rel in [
+            ("panel_extraction_weights", "models/panel_extraction/model_5_class.pt"),
+            ("trufor_weights", "models/trufor/weights/trufor.pth.tar"),
+        ]:
+            p = _repo / rel
+            ok = p.is_file()
+            checks[name] = {
+                "ok": ok,
+                "path": str(p),
+                "detail": "ok" if ok else "missing — run `make download-models`",
+            }
+            if not ok:
+                all_ok = False
+
+        # 6. opencode runtime data directory writable
+        # opencode writes under .opencode/data/opencode. In Docker this path is
+        # a symlink into the bind-mounted data root, so health must verify the
+        # symlink target exists and is writable after volumes are mounted.
+        opencode_data_ok, checks["opencode_data_dir"] = _opencode_data_dir_health(
+            _repo
+        )
+        if not opencode_data_ok:
+            all_ok = False
+
+        # 7. Long-running visual forensics services
+        # These are separate compose services in production. Catch network/DNS
+        # mistakes here instead of failing halfway through an audit.
+        for check_name, display_name, env_name in [
+            ("sila_dense_service", "SILA dense service", "SILA_DENSE_URL"),
+            ("elis_forensic_service", "ELIS forensic service", "ELIS_FORENSIC_URL"),
+        ]:
+            url = get_env(env_name, required=False, default="")
+            ok, checks[check_name] = _http_service_health(display_name, url)
+            if not ok:
+                all_ok = False
 
         return {
             "status": "ok" if all_ok else "degraded",
@@ -357,14 +505,6 @@ def create_app(
             )
 
     return app
-
-
-def _resolve_database_url(
-    data_root: str | Path, database_url: str | None = None
-) -> str:
-    if database_url:
-        return database_url
-    return get_database_url()
 
 
 # Module-level app — created lazily so that test imports don't trigger DB connections.

@@ -1,0 +1,23 @@
+{
+  "id": 1234567,
+  "doi": "10.5281/zenodo.1234567",
+  "title": "Test Dataset for Veritas",
+  "files": [
+    {
+      "key": "source_data_fig4.xlsx",
+      "size": 45678,
+      "mimetype": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "links": {
+        "self": "https://zenodo.org/api/files/abc123/source_data_fig4.xlsx"
+      }
+    },
+    {
+      "key": "readme.txt",
+      "size": 256,
+      "mimetype": "text/plain",
+      "links": {
+        "self": "https://zenodo.org/api/files/abc123/readme.txt"
+      }
+    }
+  ]
+}

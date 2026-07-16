@@ -103,6 +103,9 @@ async function request(path, options = {}) {
     console.error(`[API] ${method} ${path} → ${response.status}`, payload);
     const error = new Error(translateError(response.status, payload));
     error.status = response.status;
+    error.payload = payload;
+    error.detail = payload?.detail;
+    error.code = payload?.detail?.code;
     throw error;
   }
 
@@ -120,6 +123,13 @@ export async function checkHealth() {
 export async function createCase(payload) {
   return request('/api/cases', {
     method: 'POST',
+    body: payload,
+  });
+}
+
+export async function updateCase(caseId, payload) {
+  return request(`/api/cases/${encodeURIComponent(caseId)}`, {
+    method: 'PATCH',
     body: payload,
   });
 }
@@ -392,10 +402,19 @@ export async function deleteCase(caseId) {
 // ---------------------------------------------------------------------------
 
 export async function submitAudit(caseId, options = {}, reproducibilityTier = 'full') {
+  const { signal, options: nestedOptions, paperPdf, paper_pdf: paperPdfSnake, ...directOptions } = options || {};
+  const auditOptions = {
+    ...(nestedOptions || directOptions),
+    reproducibility_tier: reproducibilityTier,
+  };
   return request(`/api/audit`, {
     method: 'POST',
-    body: { case_id: caseId, reproducibility_tier: reproducibilityTier, ...options },
-    signal: options.signal,
+    body: {
+      case_id: caseId,
+      options: auditOptions,
+      paper_pdf: paperPdf || paperPdfSnake || undefined,
+    },
+    signal,
   });
 }
 
@@ -404,7 +423,7 @@ export async function getAuditJob(jobId) {
 }
 
 export async function cancelAuditJob(jobId) {
-  return request(`/api/audit/${encodeURIComponent(jobId)}/cancel`, { method: 'POST' });
+  return request(`/api/audit/${encodeURIComponent(jobId)}`, { method: 'DELETE' });
 }
 
 export async function getAuditQueue() {
@@ -415,21 +434,29 @@ export async function getAuditQueue() {
 // Current user info
 // ---------------------------------------------------------------------------
 
+let _inflightGetUser = null;
+
 export async function getCurrentUser() {
-  try {
-    const me = await request('/api/me');
-    return {
-      email: me.email,
-      roles: me.roles || [],
-      isAdmin: me.is_admin || false,
-    };
-  } catch (e) {
-    if (e.status === 401) {
-      clearAuthCredentials();
-      return null;
+  if (_inflightGetUser) return _inflightGetUser;
+  _inflightGetUser = (async () => {
+    try {
+      const me = await request('/api/me');
+      return {
+        email: me.email,
+        roles: me.roles || [],
+        isAdmin: me.is_admin || false,
+      };
+    } catch (e) {
+      if (e.status === 401) {
+        clearAuthCredentials();
+        return null;
+      }
+      throw e;
     }
-    throw e;
-  }
+  })();
+  return _inflightGetUser.finally(() => {
+    queueMicrotask(() => { _inflightGetUser = null; });
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -481,4 +508,3 @@ export async function getReverificationCost(caseId) {
 export async function fetchClientReport(caseId) {
   return request(`/api/cases/${encodeURIComponent(caseId)}/client-report`);
 }
-

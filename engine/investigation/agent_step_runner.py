@@ -17,8 +17,17 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
-from engine.env import load_project_env
 from engine.investigation.agent_models import AgentErrorCategory, AgentRunResult
+from engine.investigation.agent_step_components import (
+    AgentCommandInvoker,
+    AgentGroundingChecker,
+    AgentOutputParser,
+    AgentOutputValidator,
+    AgentTraceWriter,
+    _RetryState,
+)
+from engine.llm.config import DEFAULT_LLM_MODEL
+from engine.tools.executor import run_simple_command
 
 
 def extract_json(text: str) -> dict:
@@ -38,12 +47,12 @@ class AgentStepRunner:
     def __init__(
         self,
         project_root: Path,
-        model: str = "dashscope/qwen3.7-plus",
+        model: str | None = None,
         opencode_bin: str | Path = "opencode",
         env: dict[str, str] | None = None,
     ):
         self.project_root = Path(project_root)
-        self.model = model
+        self.model = model or DEFAULT_LLM_MODEL
         self.opencode_bin = str(opencode_bin)
         self.env = env or {}
         # Grounding info from the last run, for trace artifact
@@ -63,185 +72,273 @@ class AgentStepRunner:
     ) -> AgentRunResult:
         """Execute opencode with retry and structured error handling.
 
-        Returns AgentRunResult with status="success" on first valid output,
-        or status="failed" after all retries exhausted.
-
-        Args:
-            workdir: Audit output directory for canonical finding ID grounding.
+        Facade that composes AgentCommandInvoker, AgentOutputParser,
+        AgentOutputValidator, AgentGroundingChecker, and AgentTraceWriter
+        in the exact control flow order from PRD §WP2.
         """
-        command = [
-            self.opencode_bin,
-            "run",
-            prompt,
-            "--format",
-            "json",
-            "--model",
-            self.model,
-            "--dir",
-            str(self.project_root),
-        ]
+        invoker = AgentCommandInvoker(
+            self.project_root, self.opencode_bin, self.env, run_simple_command
+        )
+        parser = AgentOutputParser()
+        validator = AgentOutputValidator()
+        grounding_checker = AgentGroundingChecker()
+        trace_writer = AgentTraceWriter(self)
 
-        env = load_project_env(self.project_root, base_env=self.env)
-        env.setdefault("XDG_DATA_HOME", str(self.project_root / ".opencode" / "data"))
+        command = invoker.build_command(prompt, self.model, files, context_pack_path)
+        env = invoker.load_env()
 
-        for path in files or []:
-            if Path(path).exists():
-                command.extend(["--file", str(path)])
-
-        if context_pack_path and Path(context_pack_path).exists():
-            command.extend(["--file", str(context_pack_path)])
-
-        last_error_category: AgentErrorCategory | None = None
-        last_detail = ""
-        last_stdout = ""
-        last_stderr = ""
+        state = _RetryState()
         start_all = time.monotonic()
 
         for attempt in range(max_retries + 1):
-            attempt_prompt = prompt
-            if attempt and last_detail:
-                attempt_prompt = (
-                    f"{prompt}\n\nPrevious attempt failed: {last_detail}\n"
-                    "Please fix the issue and return valid JSON."
-                )
-                command[2] = attempt_prompt
+            if attempt and state.last_detail:
+                command[2] = self._build_retry_prompt(prompt, state)
 
-            try:
-                completed = subprocess.run(
-                    command,
-                    cwd=self.project_root,
-                    env=env,
-                    text=True,
-                    encoding="utf-8",
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    timeout=timeout_seconds,
-                    check=False,
-                )
-            except subprocess.TimeoutExpired:
-                last_error_category = "timeout"
-                last_detail = f"opencode timed out after {timeout_seconds}s"
-                last_stdout = ""
-                last_stderr = ""
-                continue
-            except OSError as exc:
-                last_error_category = "non_zero_exit"
-                last_detail = f"opencode launch failed: {exc}"
-                last_stdout = ""
-                last_stderr = ""
+            invoke_result = invoker.invoke(command, env, timeout_seconds)
+            if invoke_result.completed is None:
                 break
 
-            last_stdout = completed.stdout or ""
-            last_stderr = completed.stderr or ""
+            classification = self._classify_invocation(
+                invoke_result.completed, state, timeout_seconds
+            )
+            if classification == "continue":
+                continue
+            if classification == "break":
+                break
 
-            if completed.returncode != 0:
-                last_error_category = self._classify_exit_error(last_stderr)
-                last_detail = (
-                    f"opencode exit_code={completed.returncode} "
-                    f"stderr_tail={last_stderr[-1000:]!r}"
+            parse_result = parser.parse(state.last_stdout)
+            if parse_result.parsed is None:
+                state.record_failure(
+                    attempt,
+                    "schema_validation",
+                    f"JSON extraction failed: {type(parse_result.error).__name__}: {parse_result.error}",
                 )
                 continue
 
-            opencode_error = self._extract_opencode_error_detail(last_stdout)
-            if opencode_error:
-                last_error_category = "model_failure"
-                last_detail = f"opencode error event: {opencode_error}"
+            validation_result = validator.validate(
+                parse_result.parsed, output_validator
+            )
+            if validation_result.validated is None:
+                state.record_failure(
+                    attempt,
+                    "schema_validation",
+                    f"validation failed: {validation_result.error}",
+                )
                 continue
 
-            try:
-                parsed = extract_json(last_stdout)
-            except Exception as exc:  # Deliberately broad: JSON extraction from LLM output may raise various parse errors
-                last_error_category = "schema_validation"
-                last_detail = f"JSON extraction failed: {type(exc).__name__}: {exc}"
-                continue
+            validated = validation_result.validated
 
-            try:
-                validated = output_validator(parsed)
-            except ValueError as exc:
-                last_error_category = "schema_validation"
-                last_detail = f"validation failed: {exc}"
-                continue
-
-            # Grounding check: validate finding_ids against canonical artifacts
             if workdir is not None:
-                grounding = self._run_grounding_check(validated, Path(workdir))
-                unknown_ids = grounding.get("unknown_finding_ids") or []
-                if unknown_ids:
-                    last_error_category = "grounding_failure"
-                    last_detail = (
-                        f"agent cited {len(unknown_ids)} finding_id(s) not in canonical "
-                        f"artifacts: {unknown_ids[:5]}"
-                    )
-                    # Store grounding info for trace
-                    self._last_grounding = grounding
+                grounding_result = grounding_checker.check(validated, Path(workdir))
+                if not grounding_result.passed:
+                    detail = f"agent cited {len(grounding_result.unknown_finding_ids)} finding_id(s) not in canonical artifacts: {grounding_result.unknown_finding_ids[:5]}"
+                    self._last_grounding = grounding_result.grounding_info
+                    state.record_failure(attempt, "grounding_failure", detail)
                     continue
 
-            total_runtime = time.monotonic() - start_all
-            log_ref = None
-            trace_ref = None
-            grounding_info: dict | None = None
-            if log_dir:
-                log_ref, trace_ref, grounding_info = self._write_log_artifact(
-                    log_dir=log_dir,
-                    role=role,
-                    command=command,
-                    prompt_text=prompt,
-                    stdout=last_stdout,
-                    stderr=last_stderr,
-                    error_category=None,
-                    attempt=attempt,
-                    context_pack_path=context_pack_path,
-                    validated_output=validated,
-                    workdir=Path(workdir) if workdir else None,
-                )
+            # Hallucination gate (N2): block output that cites finding_ids
+            # not present in the context_pack top_n_findings.
+            hallucination = self._run_hallucination_checks(validated, context_pack_path)
+            if not hallucination["all_passed"]:
+                detail = f"hallucination gate: {hallucination['warnings'][:2]}"
+                state.record_failure(attempt, "hallucination_failure", detail)
+                continue
 
-            result_metadata: dict = {
-                "model": self.model,
-                "runtime_seconds": total_runtime,
-                "attempts": attempt + 1,
-                "trace_ref": trace_ref,
-            }
-            if grounding_info:
-                result_metadata["grounding"] = grounding_info
-
-            return AgentRunResult(
-                status="success",
-                role=role,
-                output=validated,
-                error_category=None,
-                runtime_seconds=total_runtime,
-                log_ref=log_ref,
-                metadata=result_metadata,
+            return self._build_success_result(
+                role,
+                validated,
+                state,
+                trace_writer,
+                log_dir,
+                command,
+                prompt,
+                context_pack_path,
+                workdir,
+                timeout_seconds,
+                attempt,
+                start_all,
             )
 
+        return self._build_failed_result(
+            role,
+            state,
+            trace_writer,
+            log_dir,
+            command,
+            prompt,
+            context_pack_path,
+            workdir,
+            timeout_seconds,
+            max_retries,
+            start_all,
+        )
+
+    def _build_retry_prompt(self, prompt: str, state: _RetryState) -> str:
+        """Construct retry prompt with previous error context."""
+        raw_tail = state.last_stdout[-2000:] if state.last_stdout else ""
+        return f"{prompt}\n\nPrevious attempt failed: {state.last_detail}\nRaw output tail:\n{raw_tail}\n\nPlease repair the JSON only. Return one valid JSON object."
+
+    def _classify_invocation(
+        self,
+        completed: subprocess.CompletedProcess,
+        state: _RetryState,
+        timeout_seconds: int,
+    ) -> str:
+        """Classify invocation result. Returns 'continue', 'break', or 'proceed'."""
+        if completed.returncode == 124:
+            state.last_error_category = "timeout"
+            state.last_detail = f"opencode timed out after {timeout_seconds}s"
+            state.last_stdout = ""
+            state.last_stderr = ""
+            state.record_failure(
+                len(state.repair_history), "timeout", state.last_detail
+            )
+            return "continue"
+        if completed.returncode == 127:
+            state.last_error_category = "non_zero_exit"
+            state.last_detail = f"opencode launch failed: {completed.stderr}"
+            state.last_stdout = ""
+            state.last_stderr = ""
+            state.record_failure(
+                len(state.repair_history), "non_zero_exit", state.last_detail
+            )
+            return "break"
+
+        state.last_stdout = completed.stdout or ""
+        state.last_stderr = completed.stderr or ""
+
+        if completed.returncode != 0:
+            state.last_error_category = self._classify_exit_error(state.last_stderr)
+            state.last_detail = f"opencode exit_code={completed.returncode} stderr_tail={state.last_stderr[-1000:]!r}"
+            state.record_failure(
+                len(state.repair_history), state.last_error_category, state.last_detail
+            )
+            return "continue"
+
+        opencode_error = self._extract_opencode_error_detail(state.last_stdout)
+        if opencode_error:
+            state.last_error_category = "model_failure"
+            state.last_detail = f"opencode error event: {opencode_error}"
+            state.record_failure(
+                len(state.repair_history), "model_failure", state.last_detail
+            )
+            return "continue"
+
+        return "proceed"
+
+    def _build_success_result(
+        self,
+        role: str,
+        validated: dict,
+        state: _RetryState,
+        trace_writer: AgentTraceWriter,
+        log_dir: Path | None,
+        command: list[str],
+        prompt: str,
+        context_pack_path: Path | None,
+        workdir: Path | None,
+        timeout_seconds: int,
+        attempt: int,
+        start_all: float,
+    ) -> AgentRunResult:
+        """Construct success AgentRunResult."""
         total_runtime = time.monotonic() - start_all
-        log_ref = None
-        trace_ref = None
-        grounding_info = self._last_grounding
+        trace_refs = None
         if log_dir:
-            log_ref, trace_ref, grounding_info_from_trace = self._write_log_artifact(
+            trace_refs = trace_writer.write(
                 log_dir=log_dir,
                 role=role,
                 command=command,
                 prompt_text=prompt,
-                stdout=last_stdout,
-                stderr=last_stderr,
-                error_category=last_error_category or "non_zero_exit",
+                stdout=state.last_stdout,
+                stderr=state.last_stderr,
+                error_category=None,
+                attempt=attempt,
+                context_pack_path=context_pack_path,
+                validated_output=validated,
+                workdir=Path(workdir) if workdir else None,
+                timeout_seconds=timeout_seconds,
+                repair_history=state.repair_history,
+                last_detail=None,
+            )
+
+        result_metadata: dict = {
+            "model": self.model,
+            "runtime_seconds": total_runtime,
+            "attempts": attempt + 1,
+            "trace_ref": trace_refs.trace_ref if trace_refs else None,
+        }
+        if trace_refs and trace_refs.grounding_info:
+            result_metadata["grounding"] = trace_refs.grounding_info
+        if state.repair_history:
+            result_metadata["repair_history"] = state.repair_history
+            result_metadata["repair_attempts"] = len(state.repair_history)
+        if trace_refs:
+            result_metadata.update(trace_refs.validation_artifacts)
+
+        return AgentRunResult(
+            status="success",
+            role=role,
+            output=validated,
+            error_category=None,
+            runtime_seconds=total_runtime,
+            log_ref=trace_refs.log_ref if trace_refs else None,
+            metadata=result_metadata,
+        )
+
+    def _build_failed_result(
+        self,
+        role: str,
+        state: _RetryState,
+        trace_writer: AgentTraceWriter,
+        log_dir: Path | None,
+        command: list[str],
+        prompt: str,
+        context_pack_path: Path | None,
+        workdir: Path | None,
+        timeout_seconds: int,
+        max_retries: int,
+        start_all: float,
+    ) -> AgentRunResult:
+        """Construct failed AgentRunResult."""
+        total_runtime = time.monotonic() - start_all
+        trace_refs = None
+        grounding_info = self._last_grounding
+        if log_dir:
+            trace_refs = trace_writer.write(
+                log_dir=log_dir,
+                role=role,
+                command=command,
+                prompt_text=prompt,
+                stdout=state.last_stdout,
+                stderr=state.last_stderr,
+                error_category=state.last_error_category or "non_zero_exit",
                 attempt=max_retries,
                 context_pack_path=context_pack_path,
                 validated_output=None,
                 workdir=Path(workdir) if workdir else None,
+                timeout_seconds=timeout_seconds,
+                repair_history=state.repair_history,
+                last_detail=state.last_detail,
             )
-            if grounding_info_from_trace:
-                grounding_info = grounding_info_from_trace
+            if trace_refs.grounding_info:
+                grounding_info = trace_refs.grounding_info
 
         failed_metadata: dict = {
+            "schema_version": "agent_output_validation.v1",
+            "role_id": role,
             "model": self.model,
             "runtime_seconds": total_runtime,
             "attempts": max_retries + 1,
-            "last_detail": last_detail,
-            "trace_ref": trace_ref,
+            "last_detail": state.last_detail,
+            "trace_ref": trace_refs.trace_ref if trace_refs else None,
+            "failure_type": state.last_error_category or "non_zero_exit",
+            "timeout_seconds": timeout_seconds,
+            "repair_attempts": len(state.repair_history),
+            "repair_history": state.repair_history,
         }
+        if trace_refs:
+            failed_metadata.update(trace_refs.validation_artifacts)
         if grounding_info:
             failed_metadata["grounding"] = grounding_info
 
@@ -249,9 +346,9 @@ class AgentStepRunner:
             status="failed",
             role=role,
             output=None,
-            error_category=last_error_category or "non_zero_exit",
+            error_category=state.last_error_category or "non_zero_exit",
             runtime_seconds=total_runtime,
-            log_ref=log_ref,
+            log_ref=trace_refs.log_ref if trace_refs else None,
             metadata=failed_metadata,
         )
 
@@ -308,7 +405,10 @@ class AgentStepRunner:
         context_pack_path: Path | None = None,
         validated_output: dict | None = None,
         workdir: Path | None = None,
-    ) -> tuple[str, str | None, dict | None]:
+        timeout_seconds: int | None = None,
+        repair_history: list[dict[str, Any]] | None = None,
+        last_detail: str | None = None,
+    ) -> tuple[str, str | None, dict | None, dict[str, Any]]:
         """Write enhanced log artifact + structured trace JSON.
 
         Returns (log_ref, trace_ref, grounding_info) — relative paths to the log
@@ -324,6 +424,24 @@ class AgentStepRunner:
         # Extract token usage from JSONL stdout
         token_usage = self._extract_token_usage(stdout)
         runtime_seconds = self._extract_runtime(stdout)
+        raw_path = log_dir / f"{role}_{timestamp}.raw.txt"
+        raw_path.write_text(stdout or "", encoding="utf-8")
+        validation_path = log_dir / f"{role}_{timestamp}.validation.json"
+        validation_payload = {
+            "schema_version": "agent_output_validation.v1",
+            "role_id": role,
+            "status": "success" if error_category is None else "failed",
+            "failure_type": error_category,
+            "timeout_seconds": timeout_seconds,
+            "last_detail": last_detail,
+            "raw_output_path": str(raw_path),
+            "repair_attempts": len(repair_history or []),
+            "repair_history": repair_history or [],
+        }
+        validation_path.write_text(
+            json.dumps(validation_payload, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
 
         # Build enhanced header
         header_lines = self._build_log_header(
@@ -363,6 +481,11 @@ class AgentStepRunner:
             runtime_seconds=runtime_seconds,
             stdout=stdout,
             workdir=workdir,
+            timeout_seconds=timeout_seconds,
+            repair_history=repair_history or [],
+            raw_output_path=raw_path,
+            validation_error_path=validation_path,
+            last_detail=last_detail,
         )
 
         try:
@@ -370,7 +493,11 @@ class AgentStepRunner:
         except ValueError:
             log_ref = str(log_path)
 
-        return log_ref, trace_ref, grounding_info
+        artifact_meta = {
+            "raw_output_path": str(raw_path),
+            "validation_error_path": str(validation_path),
+        }
+        return log_ref, trace_ref, grounding_info, artifact_meta
 
     def _build_log_header(
         self,
@@ -407,8 +534,7 @@ class AgentStepRunner:
             )
             if step_count or cache_read:
                 lines.append(
-                    f"Token detail: steps={step_count:,} "
-                    f"cache_read={cache_read:,}"
+                    f"Token detail: steps={step_count:,} cache_read={cache_read:,}"
                 )
 
         # Prompt summary (first 500 chars, not hashed)
@@ -669,6 +795,11 @@ class AgentStepRunner:
         runtime_seconds: float,
         stdout: str,
         workdir: Path | None = None,
+        timeout_seconds: int | None = None,
+        repair_history: list[dict[str, Any]] | None = None,
+        raw_output_path: Path | None = None,
+        validation_error_path: Path | None = None,
+        last_detail: str | None = None,
     ) -> tuple[str | None, dict | None]:
         """Write structured trace JSON for machine-readable observability.
 
@@ -722,6 +853,18 @@ class AgentStepRunner:
             "token_usage": token_usage,
             "token_ledger": token_ledger,
             "hallucination_checks": hallucination_checks,
+            "validation": {
+                "schema_version": "agent_output_validation.v1",
+                "failure_type": error_category,
+                "timeout_seconds": timeout_seconds,
+                "last_detail": last_detail,
+                "raw_output_path": str(raw_output_path) if raw_output_path else None,
+                "validation_error_path": str(validation_error_path)
+                if validation_error_path
+                else None,
+                "repair_attempts": len(repair_history or []),
+                "repair_history": repair_history or [],
+            },
         }
 
         trace_path.write_text(
@@ -810,7 +953,7 @@ class AgentStepRunner:
 
         # Build backref map for known IDs
         artifact_backrefs: dict[str, str] = {}
-        for fid in (cited_ids - unknown_ids):
+        for fid in cited_ids - unknown_ids:
             backref = get_artifact_backref(fid, workdir)
             if backref:
                 artifact_backrefs[fid] = backref

@@ -52,6 +52,7 @@ def run(
         timeout_seconds=args.agent_timeout_seconds,
         max_retries=args.agent_max_retries,
         progress=progress,
+        enabled_roles=getattr(args, "enabled_roles", None),
     )
     steps.extend(role_steps)
     agent_manifest["roles"] = role_manifest

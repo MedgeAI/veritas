@@ -405,6 +405,10 @@ class CloudflareAccessProvider(AuthProvider):
             try:
                 signing_key = self._find_signing_key(token, jwks)
                 if signing_key is None:
+                    logger.debug(
+                        "Cloudflare JWT: signing key not found in JWKS (attempt %d)",
+                        attempt + 1,
+                    )
                     if attempt == 0:
                         continue  # refresh JWKS and retry
                     return None

@@ -35,6 +35,8 @@ from pathlib import Path
 from typing import Any
 
 from engine.exceptions import AgentError
+from engine.llm.config import DEFAULT_LLM_MODEL
+from engine.static_audit.audit_config import priority_scoring_config
 from engine.static_audit.paths import resolve_artifact_path
 from engine.static_audit.tools.source_data_sheet_briefing import build_sheet_briefing
 
@@ -77,6 +79,16 @@ available context is insufficient to make a confident verdict.
 - Two measurement columns (not index/stats) with 100% identical values across all rows
 - Ratio reuse in independently measured value columns (not descriptive stats)
 
+## New Source Data Categories
+
+Treat these newer deterministic categories with category-specific reasoning:
+
+- `cross_sheet_fractional_tail_reuse`: high-priority review when independent sheets/cohorts share long decimal tails across consecutive values. Check whether the values could come from the same rounded/truncated source, unit conversion, or reused source table.
+- `repeated_measurement_value`: high-priority review when three or more independent measurement rows repeat the same high-precision value. Downgrade integers, reference values such as 1.0, control constants, or low-information discrete counts.
+- `fractional_tail_reuse`: medium-priority review when long decimal suffixes repeat within a sheet; evaluate whether rounding/truncation or instrument precision explains it.
+- `small_n_fixed_difference` / `small_n_fixed_ratio`: review whether the relationship is a legitimate unit conversion, normalization, or paired design before marking suspicious.
+- `low_information_numeric`: do not escalate to high priority; it is usually a context or filtering signal.
+
 ## Priority Assignment
 
 For each finding, assign a priority based on its impact on the paper's conclusions:
@@ -96,6 +108,13 @@ and how decisive those claims are for the paper's conclusions.
 4. Consider the WHOLE table structure — not just the flagged columns, but all columns together
 5. Provide a clear, specific explanation for each verdict that cites actual data values from the table
 6. Use source_data.query tool if you need to verify a hypothesis about cross-group patterns or column relationships
+
+## High-Support Pattern Constraint (MANDATORY)
+When a fixed_difference, fixed_ratio, or constant_offset pattern covers >= 10 rows with support_rate >= 80%:
+- "Experimental design naturally produces fixed relationships" is NOT a sufficient benign explanation by itself.
+- You MUST cite a specific formula column, unit conversion factor, normalization formula, or design matrix that explains the exact numerical relationship.
+- Without concrete evidence of a benign mechanism, mark the finding as **uncertain** (not false_positive).
+- If paperconan independently detected the same relationship (e.g. constant_offset with matching value), treat it as corroborating evidence and do NOT mark false_positive without strong counter-evidence.
 
 ## Input
 Sheet context is in the attached JSON file. It contains:
@@ -175,7 +194,9 @@ def read_xlsx_column_context(
     try:
         wb = openpyxl.load_workbook(str(xlsx_path), read_only=True, data_only=True)
     except Exception:  # Deliberately broad: openpyxl raises InvalidFileException, XML parsing errors, etc.
-        logger.debug("Failed to open workbook for column context: %s", xlsx_path, exc_info=True)
+        logger.debug(
+            "Failed to open workbook for column context: %s", xlsx_path, exc_info=True
+        )
         return None
 
     try:
@@ -237,13 +258,22 @@ def read_xlsx_column_context(
             "columns": columns,
         }
     except Exception:  # Deliberately broad: openpyxl cell access raises various undocumented exceptions
-        logger.debug("Failed to read XLSX column context for %s/%s", xlsx_path.name, sheet_name, exc_info=True)
+        logger.debug(
+            "Failed to read XLSX column context for %s/%s",
+            xlsx_path.name,
+            sheet_name,
+            exc_info=True,
+        )
         return None
     finally:
         try:
             wb.close()
         except OSError:
-            logger.debug("Failed to close workbook after reading column context: %s", xlsx_path, exc_info=True)
+            logger.debug(
+                "Failed to close workbook after reading column context: %s",
+                xlsx_path,
+                exc_info=True,
+            )
 
 
 # ── Sheet context builder ────────────────────────────────────────────
@@ -372,7 +402,7 @@ def get_sheet_verdict(
     *,
     project_root: Path,
     env: dict[str, str],
-    model: str = "dashscope/qwen3.7-plus",
+    model: str = DEFAULT_LLM_MODEL,
     opencode_bin: str = "opencode",
     timeout_seconds: int = 300,
     max_retries: int = 2,
@@ -410,7 +440,9 @@ def get_sheet_verdict(
 
             has_query_tool = "source_data.query" in TOOLS
         except (ImportError, AttributeError):
-            logger.debug("Failed to check tool registry for source_data.query", exc_info=True)
+            logger.debug(
+                "Failed to check tool registry for source_data.query", exc_info=True
+            )
             has_query_tool = False
 
     # Build prompt with enriched context
@@ -439,6 +471,24 @@ def get_sheet_verdict(
             "See the attached JSON for details including claim_decisiveness and expected_source_data."
         )
 
+    prefilter_context = sheet_context.get("prefilter_context", [])
+    if prefilter_context:
+        pf_lines = [
+            "## Deterministic Prefilter Context",
+            f"The following {len(prefilter_context)} signal(s) on this sheet have already been "
+            "downgraded or hidden by the deterministic prefilter based on structural benign "
+            "explanations. You do NOT need to re-analyze these as suspicious — treat them as "
+            "lower priority unless you see evidence the prefilter missed:",
+        ]
+        for pf in prefilter_context:
+            ctx_tags = ", ".join(pf.get("false_positive_context", [])) or "n/a"
+            pf_lines.append(
+                f"- [{pf.get('prefilter_action')}/{pf.get('profile_action')}] "
+                f"{pf.get('signal_id', '?')}: {pf.get('prefilter_reason', 'no reason')} "
+                f"(context: {ctx_tags})"
+            )
+        prompt_parts.append("\n".join(pf_lines))
+
     prompt_parts.append(
         "\nRead the attached JSON file for full table structure and findings. "
         f"Context path: {ctx_path}. "
@@ -461,7 +511,9 @@ def get_sheet_verdict(
         try:
             ctx_path.unlink(missing_ok=True)
         except OSError:
-            logger.debug("Failed to clean up verdict context file: %s", ctx_path, exc_info=True)
+            logger.debug(
+                "Failed to clean up verdict context file: %s", ctx_path, exc_info=True
+            )
 
     if result.status == "success" and result.output:
         output = dict(result.output)
@@ -514,23 +566,39 @@ def _expand_cluster_verdicts(
 
     # If the LLM returned individual finding verdicts (not cluster-level),
     # pass them through unchanged
-    if len(cluster_verdicts) == finding_count:
-        return cluster_verdicts
+    pattern_categories = {str(pattern.get("category") or "") for pattern in patterns}
+    if len(cluster_verdicts) == finding_count and not any(
+        str(item.get("id") or "") in pattern_categories for item in cluster_verdicts
+    ):
+        return [
+            {
+                **item,
+                "finding_id": item.get("finding_id") or item.get("id"),
+            }
+            for item in cluster_verdicts
+        ]
 
     # If no briefing patterns, return cluster verdicts as-is
     if not patterns:
         return cluster_verdicts
 
-    # Expand: each finding in a cluster gets the cluster's verdict
+    # Expand: each finding in a cluster gets the cluster's verdict while
+    # preserving real detector IDs such as CFT-0001/RMV-0001.
     expanded: list[dict[str, Any]] = []
     for pattern in patterns:
         cat = pattern.get("category", "unknown")
         count = pattern.get("count", 1)
+        finding_ids = [
+            str(fid) for fid in (pattern.get("finding_ids") or []) if str(fid)
+        ]
+        while len(finding_ids) < count:
+            finding_ids.append(f"{cat}-{len(finding_ids) + 1:04d}")
         cv = verdict_by_category.get(cat, {})
-        for i in range(count):
+        for fid in finding_ids[:count]:
             expanded.append(
                 {
-                    "id": f"{cat}-{i + 1:04d}",
+                    "id": fid,
+                    "finding_id": fid,
                     "category": cat,
                     "verdict": cv.get("verdict", "uncertain"),
                     "confidence": cv.get("confidence", 0.0),
@@ -541,6 +609,158 @@ def _expand_cluster_verdicts(
                 }
             )
     return expanded
+
+
+def _priority_for_category(category: str, fallback: str = "medium") -> str:
+    rules = priority_scoring_config().get(category) or {}
+    priority = str(rules.get("review_priority") or fallback)
+    return priority if priority in {"critical", "high", "medium", "low"} else fallback
+
+
+def _apply_priority_scoring(findings: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    scored: list[dict[str, Any]] = []
+    for finding in findings:
+        item = dict(finding)
+        category = str(item.get("category") or "")
+        current = str(item.get("priority") or "medium")
+        item["priority"] = _priority_for_category(category, current)
+        scored.append(item)
+    return scored
+
+
+# ── Q2: Deterministic guardrail for high-support FP overrides ──────
+
+_RISK_SCORES = {"critical": 4, "high": 3, "medium": 2, "low": 1, "info": 0}
+
+
+def _risk_score(risk: str) -> int:
+    """Map risk level string to numeric score for comparison."""
+    return _RISK_SCORES.get(risk, 0)
+
+
+_HIGH_SUPPORT_CATEGORIES = frozenset(
+    {
+        "fixed_difference",
+        "fixed_ratio",
+        "small_n_fixed_difference",
+        "small_n_fixed_ratio",
+        "constant_offset",
+        "sum_constant",
+    }
+)
+
+_BENIGN_EVIDENCE_KEYWORDS = (
+    "formula",
+    "unit conversion",
+    "normalization",
+    "design matrix",
+    "derived from",
+    "calculated",
+    "percentage",
+    "fold-change",
+    "mean ×",
+    "mean *",
+    "n ×",
+    "n *",
+    "summary statistic",
+    "per-group",
+)
+
+
+def _apply_high_support_guardrail(
+    findings: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    """Post-check: override FP verdicts for high-support patterns lacking evidence.
+
+    Q2: When the LLM marks a high-support fixed relationship as FP without
+    citing specific benign evidence (formula, unit conversion, etc.),
+    override to uncertain. This prevents the "experimental design naturally
+    produces fixed relationships" hand-waving from suppressing true signals.
+    """
+    result: list[dict[str, Any]] = []
+    for finding in findings:
+        item = dict(finding)
+        category = str(item.get("category") or "")
+        verdict = str(item.get("verdict") or "")
+
+        if verdict != "false_positive" or category not in _HIGH_SUPPORT_CATEGORIES:
+            result.append(item)
+            continue
+
+        support_rate = float(item.get("support_rate", 0))
+        overlap_rows = int(item.get("overlap_rows", 0))
+        reason = str(item.get("reason", "")).lower()
+
+        if support_rate < 0.8 or overlap_rows < 10:
+            result.append(item)
+            continue
+
+        # Check if the reason cites specific benign evidence
+        has_concrete_evidence = any(kw in reason for kw in _BENIGN_EVIDENCE_KEYWORDS)
+        if has_concrete_evidence:
+            result.append(item)
+            continue
+
+        # Override: FP → uncertain with guardrail reason
+        item["verdict"] = "uncertain"
+        item["guardrail_reason"] = (
+            f"High-support {category} ({support_rate:.0%}, {overlap_rows} rows) "
+            f"marked FP without specific benign evidence. "
+            f"Override to uncertain pending human review."
+        )
+        logger.info(
+            "Guardrail: %s finding %s FP→uncertain (support=%.0f%%, rows=%d)",
+            category,
+            item.get("id", item.get("finding_id", "?")),
+            support_rate * 100,
+            overlap_rows,
+        )
+        result.append(item)
+    return result
+
+
+def _category_verdict_summary(
+    sheet_verdicts: list[dict[str, Any]],
+) -> dict[str, dict[str, Any]]:
+    summary: dict[str, dict[str, Any]] = {}
+    for sheet in sheet_verdicts:
+        for finding in sheet.get("findings") or []:
+            if not isinstance(finding, dict):
+                continue
+            category = str(finding.get("category") or "unknown")
+            verdict = str(finding.get("verdict") or "uncertain")
+            entry = summary.setdefault(
+                category,
+                {
+                    "true_positive": 0,
+                    "false_positive": 0,
+                    "uncertain": 0,
+                    "review_priority": _priority_for_category(category),
+                },
+            )
+            if verdict in {"true_positive", "false_positive", "uncertain"}:
+                entry[verdict] += 1
+            else:
+                entry["uncertain"] += 1
+    return summary
+
+
+def _verdict_grounding(sheet_verdicts: list[dict[str, Any]]) -> list[dict[str, str]]:
+    grounding: list[dict[str, str]] = []
+    for sheet in sheet_verdicts:
+        for finding in sheet.get("findings") or []:
+            if not isinstance(finding, dict):
+                continue
+            fid = str(finding.get("finding_id") or finding.get("id") or "")
+            if not fid:
+                continue
+            reason = str(
+                finding.get("reason")
+                or finding.get("explanation")
+                or f"{finding.get('category', 'source_data')} requires review"
+            )
+            grounding.append({"finding_id": fid, "reason": reason[:500]})
+    return grounding
 
 
 # ── Grouping logic ───────────────────────────────────────────────────
@@ -614,6 +834,51 @@ def _filter_claims_for_sheet(
     return matching
 
 
+def _filter_prefilter_for_sheet(
+    entries: list[dict],
+    workbook_name: str,
+    sheet_name: str,
+) -> list[dict]:
+    """Filter prefilter ledger entries relevant to the given workbook/sheet.
+
+    An entry is relevant if its evidence_locator.source_path matches the
+    workbook name AND evidence_locator.sheet matches the sheet name.
+
+    Returns compact prefilter summaries for LLM context — only entries
+    that were downgraded/hidden (action != keep/kept), since those are
+    the ones that provide FP context.
+    """
+    if not entries:
+        return []
+
+    wb_lower = workbook_name.lower()
+    sh_lower = sheet_name.lower()
+
+    matching: list[dict] = []
+    for entry in entries:
+        evidence = entry.get("evidence_locator") or {}
+        src_path = str(evidence.get("source_path", "")).lower()
+        src_sheet = str(evidence.get("sheet", "")).lower()
+        if wb_lower not in src_path and sh_lower not in src_sheet:
+            continue
+        # Only surface entries that had a deterministic FP context
+        action = entry.get("prefilter_action", "keep")
+        profile_action = entry.get("profile_action", "kept")
+        if action == "keep" and profile_action == "kept":
+            continue
+        matching.append(
+            {
+                "signal_id": entry.get("signal_id", ""),
+                "prefilter_action": action,
+                "profile_action": profile_action,
+                "false_positive_context": entry.get("false_positive_context", []),
+                "prefilter_reason": entry.get("prefilter_reason", ""),
+            }
+        )
+
+    return matching
+
+
 # ── Main entry point ─────────────────────────────────────────────────
 
 
@@ -623,7 +888,7 @@ def run_source_data_verdict(
     source_data_dir: Path,
     project_root: Path,
     env: dict[str, str],
-    model: str = "dashscope/qwen3.7-plus",
+    model: str = DEFAULT_LLM_MODEL,
     opencode_bin: str = "opencode",
     force: bool = False,
     progress: Any = None,
@@ -679,6 +944,35 @@ def run_source_data_verdict(
 
     grouped = _group_findings_by_sheet(findings_data, pair_forensics_data)
 
+    # P2-2: Skip sheets with only low/info risk findings — no LLM call needed.
+    # These sheets have no actionable signal; deterministic detection already
+    # classified them as low priority.
+    skipped_sheets: list[dict[str, Any]] = []
+    actionable_groups: dict[tuple[str, str], list[dict[str, Any]]] = {}
+    for (wb, sh), fs in grouped.items():
+        max_risk = max(
+            (_risk_score(str(f.get("risk_level", "low"))) for f in fs),
+            default=0,
+        )
+        if max_risk <= 1:  # low=1, info=0 — no high/critical/medium findings
+            skipped_sheets.append(
+                {
+                    "workbook": wb,
+                    "sheet": sh,
+                    "reason": "only_low_risk_findings",
+                    "finding_count": len(fs),
+                }
+            )
+        else:
+            actionable_groups[(wb, sh)] = fs
+
+    if skipped_sheets:
+        logger.info(
+            "Skipping %d sheets with only low-risk findings (LLM verdict not needed)",
+            len(skipped_sheets),
+        )
+    grouped = actionable_groups
+
     # Profile for per-sheet statistics
     profile_path = resolve_artifact_path(workdir, "source_data_profile.json")
     profile = (
@@ -703,12 +997,31 @@ def run_source_data_verdict(
         except (json.JSONDecodeError, ValueError, KeyError) as e:
             logger.warning("Failed to load enriched claims: %s", e)
 
+    # Load deterministic prefilter ledger (WP3 integration)
+    prefilter_entries: list[dict] = []
+    prefilter_path = resolve_artifact_path(
+        workdir, "numeric/numeric_prefilter_ledger.json"
+    )
+    if prefilter_path.exists():
+        try:
+            prefilter_data = json.loads(prefilter_path.read_text(encoding="utf-8"))
+            prefilter_entries = prefilter_data.get("entries", [])
+            logger.info(
+                "Loaded %d prefilter entries for verdict context",
+                len(prefilter_entries),
+            )
+        except (json.JSONDecodeError, ValueError, KeyError) as e:
+            logger.warning("Failed to load prefilter ledger: %s", e)
+
     # Build sheet contexts
     sheet_contexts: list[dict[str, Any]] = []
     for (wb, sh), fs in sorted(grouped.items()):
         # Filter enriched claims that reference this workbook/sheet
         sheet_claims = _filter_claims_for_sheet(enriched_claims, wb, sh)
+        # Filter prefilter entries relevant to this sheet
+        sheet_prefilter = _filter_prefilter_for_sheet(prefilter_entries, wb, sh)
         ctx = _build_sheet_context(wb, sh, fs, source_data_dir, profile, sheet_claims)
+        ctx["prefilter_context"] = sheet_prefilter
         sheet_contexts.append(ctx)
 
     # Parallel LLM calls
@@ -778,6 +1091,8 @@ def run_source_data_verdict(
                 verdict.get("findings", []),
                 ctx.get("briefing", {}),
             )
+            verdict["findings"] = _apply_priority_scoring(verdict["findings"])
+            verdict["findings"] = _apply_high_support_guardrail(verdict["findings"])
             sheet_verdicts.append(verdict)
 
     # Stable ordering by (workbook, sheet)
@@ -800,8 +1115,14 @@ def run_source_data_verdict(
         "created_by": "engine/static_audit/tools/source_data_verdict.py",
         "model": model,
         "sheets": sheet_verdicts,
+        "skipped_sheets": skipped_sheets,
+        "category_verdicts": _category_verdict_summary(sheet_verdicts),
+        "priority_scoring_config": "configs/audit_roles.yaml:priority_scoring",
+        "grounding": _verdict_grounding(sheet_verdicts),
         "summary": {
-            "total_sheets": len(sheet_verdicts),
+            "total_sheets": len(sheet_verdicts) + len(skipped_sheets),
+            "verdict_sheets": len(sheet_verdicts),
+            "skipped_sheets": len(skipped_sheets),
             "total_findings": tp + fp + un,
             "true_positive": tp,
             "false_positive": fp,

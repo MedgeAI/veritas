@@ -20,18 +20,20 @@ import argparse
 import logging
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, overload
 
 PROJECT_ROOT_PATH = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT_PATH) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT_PATH))
 
+from engine.llm.config import DEFAULT_LLM_MODEL
 from engine.static_audit._shared import (
     ProgressCallback,
     StepResult,
     record_step,
     resolve_artifact_path,
 )
+from engine.static_audit.config import AuditConfig
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +41,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Audit profiles — three preset configurations controlling pipeline depth.
 #
-# fast:     Web default. Minimal agent rounds, short ELIS timeout, no LLM
+# fast:     Web default. Minimal agent rounds, bounded ELIS timeout, no LLM
 #           enrichment. Suitable for quick triage.
 # standard: Balanced. Moderate agent rounds and timeouts.
 # full:     CLI default. Maximum agent rounds, long timeouts, full LLM
@@ -49,10 +51,10 @@ logger = logging.getLogger(__name__)
 AUDIT_PROFILES: dict[str, dict[str, Any]] = {
     "fast": {
         "agent_timeout_seconds": 120,
-        "agent_max_retries": 0,
+        "agent_max_retries": 1,
         "agent_max_rounds": 2,
         "agent_max_actions_per_round": 5,
-        "elis_timeout_seconds": 60,
+        "elis_timeout_seconds": 180,
         "llm_enrichment": False,
         "investigation_rounds": 1,
     },
@@ -93,6 +95,58 @@ def resolve_audit_profile(
 
 
 # ---------------------------------------------------------------------------
+# Benchmark tier constants — control which pipeline stages run.
+#
+# Each tier is a progressive subset of the full pipeline, mapping to the
+# paper's B1-B5 ablation experiment.  When benchmark_tier is None (default),
+# all stages run — backward compatible with existing behaviour.
+# ---------------------------------------------------------------------------
+
+TIER_ENABLED_STAGES: dict[str, frozenset[str]] = {
+    "bare": frozenset({"discovery", "planning", "mineru", "roles", "report"}),
+    "structured": frozenset({"discovery", "planning", "mineru", "roles", "report"}),
+    "artifact": frozenset({
+        "discovery", "planning", "mineru",
+        "source_data", "visual", "investigation", "roles", "report",
+    }),
+    "provenance": frozenset({
+        "discovery", "planning", "mineru",
+        "source_data", "visual", "investigation", "roles",
+        "reproduction", "report",
+    }),
+    "dual-layer": frozenset({
+        "discovery", "planning", "mineru",
+        "source_data", "visual", "investigation", "roles",
+        "reproduction", "report",
+    }),
+}
+
+TIER_ENABLED_ROLES: dict[str, frozenset[str]] = {
+    "bare": frozenset({"judge"}),
+    "structured": frozenset({"claim_extractor", "judge"}),
+    "artifact": frozenset({"claim_extractor", "source_data_auditor", "judge"}),
+    "provenance": frozenset({"claim_extractor", "source_data_auditor", "judge"}),
+    "dual-layer": frozenset({"claim_extractor", "source_data_auditor", "judge"}),
+}
+
+TIER_AGENT_MODE: dict[str, str] = {
+    "bare": "plan",
+    "structured": "plan",
+    "artifact": "full",
+    "provenance": "full",
+    "dual-layer": "full",
+}
+
+TIER_AUDIT_PROFILE: dict[str, str] = {
+    "bare": "fast",
+    "structured": "fast",
+    "artifact": "fast",
+    "provenance": "fast",
+    "dual-layer": "full",
+}
+
+
+# ---------------------------------------------------------------------------
 # Backward-compatible re-exports — helpers moved to stages/planning.py.
 # ---------------------------------------------------------------------------
 
@@ -105,6 +159,7 @@ from engine.static_audit.stages.planning import (  # noqa: E402
 )
 
 __all__ = [
+    "AuditConfig",
     "run_static_audit",
     "resolve_audit_profile",
     "AUDIT_PROFILES",
@@ -133,10 +188,17 @@ def _run_static_audit_from_args(
         mineru,
         planning,
         report,
+        reproduction,
         roles,
         source_data,
         visual,
     )
+
+    stage_filter: frozenset[str] | None = getattr(args, "stage_filter", None)
+    tier_label = getattr(args, "benchmark_tier", None)
+
+    def _skip(key: str, title: str) -> StepResult:
+        return StepResult(key, title, "skipped", f"benchmark tier {tier_label}")
 
     # --- Phase 1: Discovery -----------------------------------------------
     d = discovery.run(args, progress)
@@ -187,6 +249,7 @@ def _run_static_audit_from_args(
             ("visual_copy_move_dense", "密集 Copy-Move 检测 (SILA)"),
             ("visual_trufor", "TruFor 伪造检测"),
             ("visual_overlap_reuse", "图像复用检测"),
+            ("reproduction", "Reproduction / Veritas-Auditor"),
             ("investigation", "Agent 调查轮次"),
             ("investigation_fallback", "调查 fallback 工具"),
             ("agent_review", "Agent 结构化复核"),
@@ -212,53 +275,79 @@ def _run_static_audit_from_args(
         )
 
     # --- Phase 4: Source data ---------------------------------------------
-    sd = source_data.run(
-        args,
-        workdir=d.workdir,
-        source_lane=p.source_lane,
-        source_data_dir=p.source_data_dir,
-        sfp=p.sfp,
-        env=d.env,
-        progress=progress,
-    )
-    steps.extend(sd.steps)
+    if stage_filter is None or "source_data" in stage_filter:
+        sd = source_data.run(
+            args,
+            workdir=d.workdir,
+            source_lane=p.source_lane,
+            source_data_dir=p.source_data_dir,
+            sfp=p.sfp,
+            env=d.env,
+            progress=progress,
+        )
+        steps.extend(sd.steps)
+    else:
+        record_step(steps, _skip("source_data", "Source Data analysis"), progress)
 
     # --- Phase 5: Visual --------------------------------------------------
     images_dir = resolve_artifact_path(d.workdir, "images")
-    v = visual.run(
-        args,
-        workdir=d.workdir,
-        images_dir=images_dir,
-        env=d.env,
-        agent_manifest=p.agent_manifest,
-        progress=progress,
-    )
-    steps.extend(v.steps)
+    if stage_filter is None or "visual" in stage_filter:
+        v = visual.run(
+            args,
+            workdir=d.workdir,
+            images_dir=images_dir,
+            env=d.env,
+            agent_manifest=p.agent_manifest,
+            progress=progress,
+        )
+        steps.extend(v.steps)
+        fc_manifest_data = v.figure_classification
+    else:
+        record_step(steps, _skip("visual", "Visual forensics"), progress)
+        fc_manifest_data = None
 
     # --- Phase 6: Investigation -------------------------------------------
-    inv = investigation.run(
-        args,
-        workdir=d.workdir,
-        case_id=d.case_id,
-        source_data_dir=p.source_data_dir,
-        images_dir=images_dir,
-        env=d.env,
-        agent_manifest=p.agent_manifest,
-        fc_manifest_data=v.figure_classification,
-        progress=progress,
-    )
-    steps.extend(inv.steps)
+    if stage_filter is None or "investigation" in stage_filter:
+        inv = investigation.run(
+            args,
+            workdir=d.workdir,
+            case_id=d.case_id,
+            source_data_dir=p.source_data_dir,
+            images_dir=images_dir,
+            env=d.env,
+            agent_manifest=p.agent_manifest,
+            fc_manifest_data=fc_manifest_data,
+            progress=progress,
+        )
+        steps.extend(inv.steps)
+    else:
+        record_step(steps, _skip("investigation", "Agent investigation rounds"), progress)
 
     # --- Phase 7: Roles ---------------------------------------------------
-    r = roles.run(
-        args,
-        workdir=d.workdir,
-        case_id=d.case_id,
-        env=d.env,
-        agent_manifest=p.agent_manifest,
-        progress=progress,
-    )
-    steps.extend(r.steps)
+    if stage_filter is None or "roles" in stage_filter:
+        r = roles.run(
+            args,
+            workdir=d.workdir,
+            case_id=d.case_id,
+            env=d.env,
+            agent_manifest=p.agent_manifest,
+            progress=progress,
+        )
+        steps.extend(r.steps)
+    else:
+        record_step(steps, _skip("roles", "Agent roles"), progress)
+
+    # --- Phase 7.5: Reproduction ------------------------------------------
+    if stage_filter is None or "reproduction" in stage_filter:
+        rep = reproduction.run(
+            args,
+            workdir=d.workdir,
+            agent_manifest=p.agent_manifest,
+            progress=progress,
+        )
+        steps.extend(rep.steps)
+    else:
+        record_step(steps, _skip("reproduction", "Reproduction / Veritas-Auditor"), progress)
 
     # --- Phase 8: Report --------------------------------------------------
     return report.run(
@@ -281,6 +370,15 @@ def _run_static_audit_from_args(
 # ---------------------------------------------------------------------------
 
 
+@overload
+def run_static_audit(
+    config: AuditConfig,
+    *,
+    progress: ProgressCallback | None = None,
+) -> dict[str, Any]: ...
+
+
+@overload
 def run_static_audit(
     paper_dir: str | Path,
     *,
@@ -290,33 +388,70 @@ def run_static_audit(
     force: bool = False,
     no_env_file: bool = False,
     agent_mode: str = "full",
-    agent_model: str = "dashscope/qwen3.7-plus",
+    agent_model: str = DEFAULT_LLM_MODEL,
     opencode_bin: str = "opencode",
     agent_timeout_seconds: int = 600,
     agent_max_retries: int = 1,
     reproducibility_tier: str = "full",
     skip_unavailable_tools: bool = False,
-    llm_only_ablation: bool = False,
     audit_profile: str = "fast",
+    benchmark_tier: str | None = None,
     progress: ProgressCallback | None = None,
+) -> dict[str, Any]: ...
+
+
+def run_static_audit(
+    config_or_paper_dir: AuditConfig | str | Path,
+    *,
+    progress: ProgressCallback | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
-    profile = resolve_audit_profile(audit_profile)
+    """Execute the full static-audit pipeline.
+
+    Accepts either an :class:`AuditConfig` dataclass (preferred) or individual
+    keyword arguments (backward compatibility).  The keyword form constructs an
+    ``AuditConfig`` internally — new callers should pass the dataclass directly.
+    """
+    if isinstance(config_or_paper_dir, AuditConfig):
+        config = config_or_paper_dir
+    else:
+        config = AuditConfig(paper_dir=config_or_paper_dir, **kwargs)
+
+    profile = resolve_audit_profile(config.audit_profile)
+
+    # Apply benchmark tier overrides
+    tier = config.benchmark_tier
+    if tier and tier in TIER_ENABLED_STAGES:
+        agent_mode = TIER_AGENT_MODE[tier]
+        profile_name = TIER_AUDIT_PROFILE[tier]
+        profile = resolve_audit_profile(profile_name)
+        stage_filter = TIER_ENABLED_STAGES[tier]
+        enabled_roles = TIER_ENABLED_ROLES[tier]
+    else:
+        agent_mode = config.agent_mode
+        stage_filter = None
+        enabled_roles = None
+
     args = argparse.Namespace(
-        paper_dir=str(paper_dir),
-        case_id=case_id,
-        output_root=output_root,
-        fresh=fresh,
-        force=force,
-        no_env_file=no_env_file,
+        paper_dir=str(config.paper_dir),
+        paper_pdf=config.paper_pdf,
+        paper_pdf_selection_source=config.paper_pdf_selection_source,
+        case_id=config.case_id,
+        output_root=config.output_root,
+        fresh=config.fresh,
+        force=config.force,
+        no_env_file=config.no_env_file,
         agent_mode=agent_mode,
-        agent_model=agent_model,
-        opencode_bin=opencode_bin,
-        agent_timeout_seconds=agent_timeout_seconds,
-        agent_max_retries=agent_max_retries,
-        reproducibility_tier=reproducibility_tier,
-        skip_unavailable_tools=skip_unavailable_tools,
-        llm_only_ablation=llm_only_ablation,
-        audit_profile=audit_profile,
+        agent_model=config.agent_model,
+        opencode_bin=config.opencode_bin,
+        agent_timeout_seconds=config.agent_timeout_seconds,
+        agent_max_retries=config.agent_max_retries,
+        reproducibility_tier=config.reproducibility_tier,
+        skip_unavailable_tools=config.skip_unavailable_tools,
+        audit_profile=config.audit_profile,
         profile=profile,
+        benchmark_tier=tier,
+        stage_filter=stage_filter,
+        enabled_roles=enabled_roles,
     )
     return _run_static_audit_from_args(args, progress=progress)

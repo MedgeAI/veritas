@@ -493,7 +493,9 @@ def test_static_audit_html_report_keeps_duplicate_row_vector_out_of_top_patterns
 
     html = render_static_audit_html(tmp_path, "case-row-vector-context")
     # Check that DRV findings are not in the "top-patterns" section (PRD2-T7: layer view)
-    top_patterns_section = html.split('<section class="section" id="top-patterns">', 1)[1].split('<section class="section" id="secondary-patterns">', 1)[0]
+    top_patterns_section = html.split('<section class="section" id="top-patterns">', 1)[
+        1
+    ].split('<section class="section" id="secondary-patterns">', 1)[0]
     top_patterns = html.split('<section class="panel section" id="noise-ledger">', 1)[0]
 
     assert "未形成重点事实摘要" in top_patterns
@@ -720,3 +722,88 @@ def test_static_audit_html_report_removes_emoji_badges_and_corrects_stale_judge_
     assert "HTML 已按产物计数校正" in html
     assert "论文表述=1" in html
     assert "Source Data 映射=1" in html
+
+
+# ── P0-1 Regression: _extract_signals list/dict compatibility ──
+
+
+def test_extract_signals_accepts_raw_list() -> None:
+    """_extract_signals returns list as-is when given a raw list."""
+    from engine.static_audit.html_report._numeric_forensics import _extract_signals
+
+    raw = [{"signal_id": "FD-0001", "risk_level_raw": "medium"}]
+    assert _extract_signals(raw) == raw
+
+
+def test_extract_signals_accepts_dict_wrapper() -> None:
+    """_extract_signals extracts 'signals' key from a dict wrapper."""
+    from engine.static_audit.html_report._numeric_forensics import _extract_signals
+
+    wrapper = {
+        "total_signals": 1,
+        "signals": [{"signal_id": "FD-0001"}],
+    }
+    assert _extract_signals(wrapper) == [{"signal_id": "FD-0001"}]
+
+
+def test_extract_signals_returns_empty_for_invalid_input() -> None:
+    """_extract_signals returns [] for None, string, or other non-list/dict."""
+    from engine.static_audit.html_report._numeric_forensics import _extract_signals
+
+    assert _extract_signals(None) == []
+    assert _extract_signals("not a list") == []
+    assert _extract_signals(42) == []
+    assert _extract_signals({}) == []
+
+
+def test_numeric_forensics_summary_renders_raw_list_artifact() -> None:
+    """numeric_forensics_summary renders without error when given raw list."""
+    from engine.static_audit.html_report._numeric_forensics import (
+        numeric_forensics_summary,
+    )
+
+    artifacts = {
+        "paperconan_signals": [
+            {
+                "signal_id": "FD-0001",
+                "detector_family": "structural",
+                "raw_kind": "fixed_difference",
+                "risk_level_raw": "medium",
+                "profile_action": "kept",
+                "impact_scope": "unknown",
+                "claim_refs": [],
+            }
+        ]
+    }
+    html = numeric_forensics_summary(artifacts)
+    assert "FD-0001" in html
+    assert "Numeric Forensics Summary" in html
+
+
+def test_numeric_forensics_summary_renders_dict_wrapper_artifact() -> None:
+    """numeric_forensics_summary renders without error when given dict wrapper."""
+    from engine.static_audit.html_report._numeric_forensics import (
+        numeric_forensics_summary,
+    )
+
+    artifacts = {
+        "paperconan_signals": {
+            "total_signals": 1,
+            "counts_by_family": {"structural": 1},
+            "counts_by_risk": {"medium": 1},
+            "signals": [
+                {
+                    "signal_id": "FD-0001",
+                    "detector_family": "structural",
+                    "raw_kind": "fixed_difference",
+                    "risk_level_raw": "medium",
+                    "profile_action": "kept",
+                    "impact_scope": "unknown",
+                    "claim_refs": [],
+                }
+            ],
+        }
+    }
+    html = numeric_forensics_summary(artifacts)
+    assert "FD-0001" in html
+    assert "Total canonical signals: <strong>1</strong>" in html

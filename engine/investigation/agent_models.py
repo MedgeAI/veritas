@@ -35,6 +35,7 @@ AgentErrorCategory = Literal[
     "model_failure",
     "non_zero_exit",
     "grounding_failure",  # Added for PRD3-T7 agent review grounding
+    "hallucination_failure",  # N2: auditor cited finding_ids not in context_pack
 ]
 
 AgentRunStatus = Literal["success", "failed", "skipped"]

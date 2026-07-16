@@ -17,7 +17,31 @@ const MOCK_RESPONSE = {
   completed: 20,
   running: 1,
   failed: 0,
+  skipped: 0,
+  warnings: 0,
   progress_pct: 67,
+  run_status: 'running',
+  timing_status: 'active',
+  current_step: {
+    key: 'visual_tru_for',
+    title: 'TruFor 伪造检测',
+    phase: '视觉取证',
+    status: 'running',
+    started_at: '2026-06-26T00:01:00Z',
+  },
+  latest_step: {
+    key: 'visual_tru_for',
+    title: 'TruFor 伪造检测',
+    phase: '视觉取证',
+    status: 'running',
+    started_at: '2026-06-26T00:01:00Z',
+  },
+  elapsed_seconds: 420,
+  last_event_at: '2026-06-26T00:07:00Z',
+  seconds_since_last_event: 20,
+  stale_after_seconds: 300,
+  is_stale: false,
+  eta: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -132,13 +156,20 @@ describe('useRunSteps', () => {
 
     expect(result.current.loading).toBe(false);
     expect(result.current.steps).toEqual(MOCK_STEPS);
-    expect(result.current.progress).toEqual({
+    expect(result.current.progress).toEqual(expect.objectContaining({
       total: 30,
       completed: 20,
       running: 1,
       failed: 0,
+      skipped: 0,
+      warnings: 0,
       progress_pct: 67,
-    });
+      run_status: 'running',
+      timing_status: 'active',
+      elapsed_seconds: 420,
+      eta: null,
+    }));
+    expect(result.current.progress.current_step).toEqual(MOCK_RESPONSE.current_step);
     expect(result.current.error).toBeNull();
   });
 
@@ -173,7 +204,7 @@ describe('useRunSteps', () => {
     expect(instances[0].url).toContain('events=lifecycle');
   });
 
-  it('registers event listeners for all 8 lifecycle event types', async () => {
+  it('registers event listeners for lifecycle event types', async () => {
     const { MockEventSource, instances } = createMockEventSource();
     vi.stubGlobal('EventSource', MockEventSource);
 
@@ -193,6 +224,9 @@ describe('useRunSteps', () => {
       'progress.update',
       'pipeline.complete',
       'pipeline.failed',
+      'completed',
+      'failed',
+      'cancelled',
     ];
 
     for (const eventType of expectedEvents) {
@@ -267,6 +301,117 @@ describe('useRunSteps', () => {
     });
 
     expect(result.current.progress.progress_pct).toBe(85);
+  });
+
+  it('updates current step detail on step.progress SSE event', async () => {
+    const { MockEventSource, dispatchEvent } = createMockEventSource();
+    vi.stubGlobal('EventSource', MockEventSource);
+
+    const { result } = renderHook(() => useRunSteps('c1', 'r1'));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    await act(async () => {
+      dispatchEvent(0, 'step.progress', {
+        step_key: 'visual_tru_for',
+        title: 'TruFor 伪造检测',
+        detail: 'processing 103 figures',
+      });
+    });
+
+    expect(result.current.progress.current_step.detail).toBe('processing 103 figures');
+    const updatedStep = result.current.steps.find((s) => s.key === 'visual_tru_for');
+    expect(updatedStep.detail).toBe('processing 103 figures');
+  });
+
+  it('keeps reconciling /steps snapshots while SSE is connected', async () => {
+    const { MockEventSource } = createMockEventSource();
+    vi.stubGlobal('EventSource', MockEventSource);
+
+    renderHook(() => useRunSteps('c1', 'r1'));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not stop snapshot reconciliation when an optional step failed', async () => {
+    vi.stubGlobal('fetch', mockFetchOk({
+      ...MOCK_RESPONSE,
+      failed: 1,
+      run_status: 'running',
+      progress_pct: 72,
+    }));
+    const { MockEventSource } = createMockEventSource();
+    vi.stubGlobal('EventSource', MockEventSource);
+
+    renderHook(() => useRunSteps('c1', 'r1'));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not mark the whole run failed on a single step.failed event', async () => {
+    const { MockEventSource, dispatchEvent } = createMockEventSource();
+    vi.stubGlobal('EventSource', MockEventSource);
+
+    const { result } = renderHook(() => useRunSteps('c1', 'r1'));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    await act(async () => {
+      dispatchEvent(0, 'step.failed', {
+        step_key: 'visual_tru_for',
+        title: 'TruFor 伪造检测',
+        phase: '视觉取证',
+        error: 'optional timeout',
+      });
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.progress.timing_status).toBe('active');
+    expect(result.current.progress.latest_step.status).toBe('failed');
+  });
+
+  it('keeps step.warning as a terminal step state without failing the run', async () => {
+    const { MockEventSource, dispatchEvent } = createMockEventSource();
+    vi.stubGlobal('EventSource', MockEventSource);
+
+    const { result } = renderHook(() => useRunSteps('c1', 'r1'));
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    await act(async () => {
+      dispatchEvent(0, 'step.complete', {
+        step_key: 'visual_tru_for',
+        title: 'TruFor 伪造检测',
+        phase: '视觉取证',
+        status: 'warning',
+      });
+    });
+
+    expect(result.current.error).toBeNull();
+    expect(result.current.steps.find((s) => s.key === 'visual_tru_for').status).toBe('warning');
+    expect(result.current.progress.latest_step.status).toBe('warning');
   });
 
   it('sets error on pipeline.failed SSE event and marks terminated', async () => {

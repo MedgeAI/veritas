@@ -1,0 +1,12 @@
+{
+  "resultList": {
+    "result": [
+      {
+        "pmcid": "PMC12345678",
+        "pmid": "99999999",
+        "doi": "10.1038/s41558-024-01234-x",
+        "title": "Test Nature Paper"
+      }
+    ]
+  }
+}

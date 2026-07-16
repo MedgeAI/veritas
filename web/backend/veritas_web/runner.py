@@ -1,21 +1,65 @@
 from __future__ import annotations
 
+import logging
 import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from inspect import signature
 from pathlib import Path
 from typing import Any, Callable
 
 from fastapi import HTTPException
 
 from engine.env import get_env
-from engine.static_audit.orchestrator import run_static_audit
+from engine.llm.config import DEFAULT_LLM_MODEL
+from engine.static_audit.orchestrator import AuditConfig, run_static_audit
 
 from .case_store import CaseStore
 from .models import STALE_RUN_THRESHOLD_SECONDS, AuditRunRecord, utc_now
 from .risk import load_static_audit_bundle, risk_rank, summarize_findings
 
+logger = logging.getLogger(__name__)
+
 AuditFunction = Callable[..., dict[str, Any]]
+
+
+def _expects_audit_config(audit_func: AuditFunction) -> bool:
+    if audit_func is run_static_audit:
+        return True
+    try:
+        params = list(signature(audit_func).parameters.values())
+    except (TypeError, ValueError):
+        return True
+    if not params:
+        return True
+    first = params[0]
+    return first.name == "config" or first.annotation is AuditConfig
+
+
+def _call_audit_func(
+    audit_func: AuditFunction,
+    config: AuditConfig,
+    *,
+    progress: Callable[[dict[str, Any]], None],
+) -> dict[str, Any]:
+    if _expects_audit_config(audit_func):
+        return audit_func(config, progress=progress)
+    return audit_func(
+        config.paper_dir,
+        case_id=config.case_id,
+        output_root=config.output_root,
+        fresh=config.fresh,
+        force=config.force,
+        no_env_file=config.no_env_file,
+        agent_mode=config.agent_mode,
+        agent_model=config.agent_model,
+        opencode_bin=config.opencode_bin,
+        agent_timeout_seconds=config.agent_timeout_seconds,
+        agent_max_retries=config.agent_max_retries,
+        reproducibility_tier=config.reproducibility_tier,
+        audit_profile=config.audit_profile,
+        progress=progress,
+    )
 
 
 def _resolve_max_concurrent() -> int:
@@ -35,10 +79,12 @@ class AuditRunner:
         audit_func: AuditFunction = run_static_audit,
         output_root: str | Path = "outputs",
         max_workers: int | None = None,
+        engine: Any | None = None,
     ) -> None:
         self.store = store
         self.audit_func = audit_func
         self.output_root = str(output_root)
+        self._engine = engine  # shared engine; None = create per-operation
         resolved_workers = (
             max_workers if max_workers is not None else _resolve_max_concurrent()
         )
@@ -47,22 +93,18 @@ class AuditRunner:
             max_workers=resolved_workers, thread_name_prefix="audit"
         )
 
-    def _active_runs_count(self) -> int:
-        """Count runs with status='running' across all cases."""
-        return sum(1 for run in self.store.list_all_runs() if run.status == "running")
-
     def start(
         self, case_id: str, params: dict[str, Any] | None = None
     ) -> AuditRunRecord:
-        if self._active_runs_count() >= self._max_concurrent:
-            raise HTTPException(
-                status_code=429,
-                detail=(f"Too many concurrent audits (max={self._max_concurrent})"),
-            )
         params = params or {}
-        run = self.store.create_run(
-            case_id, agent_mode=str(params.get("agent_mode", "review"))
-        )
+        try:
+            run = self.store.try_start_run(
+                case_id,
+                agent_mode=str(params.get("agent_mode", "review")),
+                max_concurrent=self._max_concurrent,
+            )
+        except RuntimeError as exc:
+            raise HTTPException(status_code=429, detail=str(exc)) from exc
         if get_env("VERITAS_USE_CELERY", required=False, default="").lower() in (
             "1",
             "true",
@@ -91,22 +133,29 @@ class AuditRunner:
             self.store.append_event(case_id, run_id, event)
 
         try:
-            summary = self.audit_func(
-                self.store.inputs_dir(case_id),
+            config = AuditConfig(
+                paper_dir=self.store.inputs_dir(case_id),
                 case_id=case_id,
                 output_root=str(params.get("output_root", self.output_root)),
                 fresh=bool(params.get("fresh", True)),
                 force=bool(params.get("force", True)),
                 no_env_file=bool(params.get("no_env_file", False)),
                 agent_mode=str(params.get("agent_mode", "review")),
-                agent_model=str(params.get("agent_model", "dashscope/qwen3.7-plus")),
+                agent_model=str(params.get("agent_model", DEFAULT_LLM_MODEL)),
+                paper_pdf=params.get("paper_pdf"),
+                paper_pdf_selection_source=params.get("paper_pdf_selection_source"),
                 opencode_bin=str(
                     params.get("opencode_bin")
                     or get_env("OPENCODE_BIN", required=False, default="opencode")
                 ),
                 agent_timeout_seconds=int(params.get("agent_timeout_seconds", 300)),
                 agent_max_retries=int(params.get("agent_max_retries", 1)),
+                reproducibility_tier=str(params.get("reproducibility_tier", "full")),
                 audit_profile=str(params.get("audit_profile", "fast")),
+            )
+            summary = _call_audit_func(
+                self.audit_func,
+                config,
                 progress=progress,
             )
             run.summary = summary
@@ -195,12 +244,15 @@ class AuditRunner:
             "no_env_file": bool(params.get("no_env_file", False)),
             "agent_mode": str(params.get("agent_mode", "review")),
             "agent_model": str(params.get("agent_model", "dashscope/qwen3.7-plus")),
+            "paper_pdf": params.get("paper_pdf"),
+            "paper_pdf_selection_source": params.get("paper_pdf_selection_source"),
             "opencode_bin": str(
                 params.get("opencode_bin")
                 or get_env("OPENCODE_BIN", required=False, default="opencode")
             ),
             "agent_timeout_seconds": int(params.get("agent_timeout_seconds", 300)),
             "agent_max_retries": int(params.get("agent_max_retries", 1)),
+            "reproducibility_tier": str(params.get("reproducibility_tier", "full")),
             "audit_profile": str(params.get("audit_profile", "fast")),
         }
 
@@ -247,8 +299,8 @@ class AuditRunner:
                 from engine.tasks.celery_app import celery_app
 
                 celery_app.control.revoke(celery_task_id, terminate=True)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("Celery revoke failed: %s", e)
 
         run.status = "cancelled"
         run.completed_at = utc_now()
@@ -259,8 +311,8 @@ class AuditRunner:
                 from engine.tasks.process_cleanup import cleanup_audit_processes
 
                 cleanup_audit_processes(run_id, case_id)
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning("Process cleanup failed: %s", e)
 
         self._update_case_after_run(run)
         return run
@@ -303,8 +355,8 @@ class AuditRunner:
                             run.summary = {}
                         run.summary["certification_grade"] = grade_data
                         self.store.save_run(run)
-                    except Exception:
-                        pass
+                    except (OSError, json.JSONDecodeError) as e:
+                        logger.warning("Failed to load certification grade: %s", e)
         elif run.status == "failed":
             case_record.status = "Review Needed"
             case_record.review_needed_count = max(case_record.review_needed_count, 1)

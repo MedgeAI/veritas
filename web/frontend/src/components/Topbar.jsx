@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react';
+import { startTransition, useEffect, useRef, useState } from 'react';
 import { FaSignOutAlt, FaUser } from 'react-icons/fa';
 import { FiExternalLink, FiRefreshCw } from 'react-icons/fi';
 import StatusPill from './StatusPill.jsx';
+import { ScaleTransition } from './ViewTransitions.jsx';
 import { reportHtmlUrl } from '../services/api.js';
 import { translateStatus } from '../utils/piLabels.js';
 
@@ -10,6 +11,8 @@ function Topbar({ selectedCase, selectedRunId, onRefresh, currentUser, onLogout 
   const logoutRef = useRef(null);
   const cancelBtnRef = useRef(null);
   const confirmBtnRef = useRef(null);
+  const closeLogoutConfirm = () => startTransition(() => setShowLogoutConfirm(false));
+  const toggleLogoutConfirm = () => startTransition(() => setShowLogoutConfirm((value) => !value));
 
   useEffect(() => {
     if (!showLogoutConfirm) return;
@@ -19,7 +22,7 @@ function Topbar({ selectedCase, selectedRunId, onRefresh, currentUser, onLogout 
 
     function handleKeyDown(event) {
       if (event.key === 'Escape') {
-        setShowLogoutConfirm(false);
+        closeLogoutConfirm();
         return;
       }
       if (event.key === 'Tab' && logoutRef.current) {
@@ -51,14 +54,17 @@ function Topbar({ selectedCase, selectedRunId, onRefresh, currentUser, onLogout 
     if (!showLogoutConfirm) return;
     function handleClickOutside(e) {
       if (logoutRef.current && !logoutRef.current.contains(e.target)) {
-        setShowLogoutConfirm(false);
+        closeLogoutConfirm();
       }
     }
     document.addEventListener('click', handleClickOutside);
     return () => { document.removeEventListener('click', handleClickOutside); };
   }, [showLogoutConfirm]);
   return (
-    <header className="mb-6 flex flex-col gap-4 border-b border-ink-900/10 pb-5 md:flex-row md:items-center md:justify-between">
+    <header
+      className="mb-6 flex flex-col gap-4 border-b border-ink-900/10 pb-5 md:flex-row md:items-center md:justify-between"
+      style={{ viewTransitionName: 'persistent-topbar' }}
+    >
       <div className="min-w-0">
         <p className="metric-label">当前审查项目</p>
         <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -85,7 +91,7 @@ function Topbar({ selectedCase, selectedRunId, onRefresh, currentUser, onLogout 
             <button
               type="button"
               className="btn-ghost focus-visible:ring-2 focus-visible:ring-ink-500 focus-visible:ring-offset-2"
-              onClick={() => setShowLogoutConfirm((v) => !v)}
+              onClick={toggleLogoutConfirm}
               aria-expanded={showLogoutConfirm}
               aria-haspopup="dialog"
               title="登出当前用户"
@@ -94,32 +100,34 @@ function Topbar({ selectedCase, selectedRunId, onRefresh, currentUser, onLogout 
               登出
             </button>
             {showLogoutConfirm && (
-              <div
-                className="absolute right-0 top-full z-20 mt-2 w-48 rounded-xl border border-ink-900/10 bg-paper-50 p-3 shadow-lg"
-                role="dialog"
-                aria-modal="true"
-                aria-label="确认登出"
-              >
-                <p className="text-sm text-ink-700">确定登出？</p>
-                <div className="mt-2 flex gap-2">
-                  <button
-                    ref={confirmBtnRef}
-                    type="button"
-                    className="flex-1 rounded-lg bg-ink-900 px-3 py-1.5 text-xs font-semibold text-paper-50 hover:bg-ink-700"
-                    onClick={() => { onLogout(); setShowLogoutConfirm(false); }}
-                  >
-                    确定
-                  </button>
-                  <button
-                    ref={cancelBtnRef}
-                    type="button"
-                    className="flex-1 rounded-lg border border-ink-900/10 px-3 py-1.5 text-xs font-semibold text-ink-500 hover:bg-ink-900/5"
-                    onClick={() => setShowLogoutConfirm(false)}
-                  >
-                    取消
-                  </button>
+              <ScaleTransition>
+                <div
+                  className="absolute right-0 top-full z-20 mt-2 w-48 rounded-xl border border-ink-900/10 bg-paper-50 p-3 shadow-lg"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-label="确认登出"
+                >
+                  <p className="text-sm text-ink-700">确定登出？</p>
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      ref={confirmBtnRef}
+                      type="button"
+                      className="flex-1 rounded-lg bg-ink-900 px-3 py-1.5 text-xs font-semibold text-paper-50 hover:bg-ink-700"
+                      onClick={() => { onLogout(); closeLogoutConfirm(); }}
+                    >
+                      确定
+                    </button>
+                    <button
+                      ref={cancelBtnRef}
+                      type="button"
+                      className="flex-1 rounded-lg border border-ink-900/10 px-3 py-1.5 text-xs font-semibold text-ink-500 hover:bg-ink-900/5"
+                      onClick={closeLogoutConfirm}
+                    >
+                      取消
+                    </button>
+                  </div>
                 </div>
-              </div>
+              </ScaleTransition>
             )}
           </div>
         ) : null}

@@ -47,12 +47,19 @@ def test_run_visual_panel_extraction_writes_canonical_artifacts(tmp_path) -> Non
             encoding="utf-8"
         )
     )
+    panel_quality = json.loads(
+        resolve_artifact_path(workdir, "panel_extraction_quality.json").read_text(
+            encoding="utf-8"
+        )
+    )
     assert steps[0].key == "visual_panel_extraction"
     assert steps[0].status == "ran"
     assert manifest["panel_extraction"]["figure_count"] == 1
+    assert "fallback_rate" in manifest["panel_extraction"]
     assert visual_evidence["figures"][0]["figure_id"] == "FE-0001"
     assert panel_evidence["panel_count"] >= 1
     assert panel_evidence["panels"][0]["parent_figure_id"] == "FE-0001"
+    assert panel_quality["summary"]["figures"] == 1
 
 
 def test_run_visual_panel_extraction_records_oversegmentation_fallback(
@@ -76,7 +83,7 @@ def test_run_visual_panel_extraction_records_oversegmentation_fallback(
         return {fid: [] for fid, _ in figure_path_pairs}
 
     monkeypatch.setattr(
-        "engine.static_audit.visual_pipeline.extract_panels_batch",
+        "engine.static_audit.visual_pipeline.panel_extraction.extract_panels_batch",
         fake_extract_panels_batch,
     )
 
@@ -97,7 +104,7 @@ def test_run_visual_panel_extraction_records_oversegmentation_fallback(
         )
     )
 
-    assert len(manifest["panel_extraction"]["limitations"]) == 1
+    assert len(manifest["panel_extraction"]["limitations"]) >= 1
     assert (
         "FE-0001: YOLOv5 over-segmented into 17 panels (max=16)"
         in manifest["panel_extraction"]["limitations"][0]

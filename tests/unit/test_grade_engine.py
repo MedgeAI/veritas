@@ -6,6 +6,8 @@ reproducibility, numerical fidelity, methodology, interpretation.
 
 from __future__ import annotations
 
+import pytest
+
 from engine.static_audit.grade_engine import (
     CertificationGrade,
     compute_grade,
@@ -20,6 +22,7 @@ from engine.static_audit.models import (
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_bundle(
     *,
@@ -198,9 +201,7 @@ class TestGradeC:
     def test_critical_consistency_fail_grade_c(self) -> None:
         """Critical consistency finding → fail in numerical fidelity → grade C."""
         findings = [
-            _make_finding(
-                "F001", risk_level="critical", issue_category="consistency"
-            ),
+            _make_finding("F001", risk_level="critical", issue_category="consistency"),
         ]
         bundle = _make_bundle(
             findings=findings,
@@ -298,12 +299,8 @@ class TestMixedFindings:
     def test_consistency_and_methodology_findings(self) -> None:
         """Consistency (critical) + completeness (high) → worst is C."""
         findings = [
-            _make_finding(
-                "F001", risk_level="critical", issue_category="consistency"
-            ),
-            _make_finding(
-                "F002", risk_level="high", issue_category="completeness"
-            ),
+            _make_finding("F001", risk_level="critical", issue_category="consistency"),
+            _make_finding("F002", risk_level="high", issue_category="completeness"),
         ]
         bundle = _make_bundle(
             findings=findings,
@@ -325,9 +322,7 @@ class TestMixedFindings:
     def test_reproducibility_fail_overrides_consistency_fail(self) -> None:
         """Reproducibility fail + consistency fail → D (reproducibility wins)."""
         findings = [
-            _make_finding(
-                "F001", risk_level="critical", issue_category="consistency"
-            ),
+            _make_finding("F001", risk_level="critical", issue_category="consistency"),
         ]
         bundle = _make_bundle(
             findings=findings,
@@ -350,12 +345,8 @@ class TestMixedFindings:
                 risk_level="high",
                 issue_category="matching",
             ),
-            _make_finding(
-                "F002", risk_level="medium", issue_category="consistency"
-            ),
-            _make_finding(
-                "F003", risk_level="high", issue_category="completeness"
-            ),
+            _make_finding("F002", risk_level="medium", issue_category="consistency"),
+            _make_finding("F003", risk_level="high", issue_category="completeness"),
         ]
         bundle = _make_bundle(
             findings=findings,
@@ -429,13 +420,15 @@ class TestDimensionScoreStructure:
             ],
         )
         grade = compute_grade(bundle)
-        assert len(grade.dimensions) == 4
+        assert len(grade.dimensions) == 6
         names = {d.name for d in grade.dimensions}
         assert names == {
             "reproducibility",
             "numerical_fidelity",
             "methodology",
             "interpretation",
+            "review_gate",
+            "claim_independence",
         }
 
     def test_dimension_labels_are_chinese(self) -> None:
@@ -449,19 +442,22 @@ class TestDimensionScoreStructure:
             ],
         )
         grade = compute_grade(bundle)
-        expected_labels = {"可复现性", "数字一致性", "方法学", "解读合理性"}
+        expected_labels = {
+            "可复现性",
+            "数字一致性",
+            "方法学",
+            "解读合理性",
+            "独立审查门",
+            "Claim 独立性",
+        }
         actual_labels = {d.label for d in grade.dimensions}
         assert actual_labels == expected_labels
 
     def test_finding_refs_populated(self) -> None:
         """Findings contributing to a dimension should appear in finding_refs."""
         findings = [
-            _make_finding(
-                "F001", risk_level="critical", issue_category="consistency"
-            ),
-            _make_finding(
-                "F002", risk_level="medium", issue_category="consistency"
-            ),
+            _make_finding("F001", risk_level="critical", issue_category="consistency"),
+            _make_finding("F002", risk_level="medium", issue_category="consistency"),
         ]
         bundle = _make_bundle(
             findings=findings,
@@ -476,3 +472,67 @@ class TestDimensionScoreStructure:
         nf = next(d for d in grade.dimensions if d.name == "numerical_fidelity")
         assert "F001" in nf.finding_refs
         assert "F002" in nf.finding_refs
+
+
+# ---------------------------------------------------------------------------
+# Reproducibility tier grade cap
+# ---------------------------------------------------------------------------
+
+
+class TestReproducibilityTierCap:
+    """Reproducibility tier caps the best possible final grade."""
+
+    def test_partial_tier_caps_clean_a_to_b(self) -> None:
+        bundle = _make_bundle(
+            tool_runs=[
+                _make_tool_run("discover"),
+                _make_tool_run("material_inventory"),
+                _make_tool_run("mineru"),
+                _make_tool_run("evidence_ledger"),
+            ],
+        )
+
+        grade = compute_grade(bundle, reproducibility_tier="partial")
+
+        assert grade.raw_grade == "A"
+        assert grade.grade == "B"
+        assert grade.grade_cap == "B"
+        assert grade.reproducibility_tier == "partial"
+
+    def test_static_tier_caps_clean_a_to_c(self) -> None:
+        bundle = _make_bundle(
+            tool_runs=[
+                _make_tool_run("discover"),
+                _make_tool_run("material_inventory"),
+                _make_tool_run("mineru"),
+                _make_tool_run("evidence_ledger"),
+            ],
+        )
+
+        grade = compute_grade(bundle, reproducibility_tier="static")
+
+        assert grade.raw_grade == "A"
+        assert grade.grade == "C"
+        assert grade.grade_cap == "C"
+
+    def test_tier_cap_does_not_improve_failed_grade(self) -> None:
+        bundle = _make_bundle(
+            tool_runs=[
+                _make_tool_run("discover"),
+                _make_tool_run("material_inventory"),
+                _make_tool_run("mineru", "failed"),
+                _make_tool_run("evidence_ledger"),
+            ],
+        )
+
+        grade = compute_grade(bundle, reproducibility_tier="partial")
+
+        assert grade.raw_grade == "D"
+        assert grade.grade == "D"
+        assert grade.grade_cap == "B"
+
+    def test_invalid_tier_fails_loudly(self) -> None:
+        bundle = _make_bundle()
+
+        with pytest.raises(ValueError, match="Invalid reproducibility_tier"):
+            compute_grade(bundle, reproducibility_tier="unknown")

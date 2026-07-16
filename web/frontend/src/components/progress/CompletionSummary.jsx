@@ -15,8 +15,6 @@ function formatDuration(seconds) {
 
 export default function CompletionSummary({
   totalDuration,
-  totalSteps,
-  completedSteps,
   failedSteps,
   onViewReport,
 }) {
@@ -48,14 +46,13 @@ export default function CompletionSummary({
           <span className="text-sm text-ink-600">
             耗时 {formatDuration(totalDuration)}
           </span>
-          <span className="text-sm text-ink-600">
-            完成 {completedSteps}/{totalSteps} 步
-            {hasFailures && (
-              <>
-                （<span className="text-risk-600">{failedSteps} 步失败</span>）
-              </>
-            )}
-          </span>
+          {hasFailures ? (
+            <span className="text-sm text-risk-600">
+              {failedSteps} 个步骤需要复核
+            </span>
+          ) : (
+            <span className="text-sm text-ink-600">报告已就绪</span>
+          )}
         </div>
 
         {/* Action button */}
@@ -71,8 +68,6 @@ export default function CompletionSummary({
 
 CompletionSummary.propTypes = {
   totalDuration: PropTypes.number,
-  totalSteps: PropTypes.number,
-  completedSteps: PropTypes.number,
   failedSteps: PropTypes.number,
   onViewReport: PropTypes.func,
 };

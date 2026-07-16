@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import math
 import re
 import zipfile
 from collections import Counter, defaultdict
@@ -187,6 +188,10 @@ def profile_sheet(zf: zipfile.ZipFile, sheet: dict, shared: list[str]) -> dict:
             )
 
     terminal_total = sum(terminal_digits.values())
+
+    # N4: Benford first-digit distribution analysis on XLSX numeric data
+    benford_result = _benford_first_digit_analysis(numeric)
+
     return {
         "name": sheet["name"],
         "path": sheet["path"],
@@ -212,6 +217,64 @@ def profile_sheet(zf: zipfile.ZipFile, sheet: dict, shared: list[str]) -> dict:
             if count > 1
         ],
         "duplicate_numeric_rows": duplicate_rows,
+        "benford_first_digit": benford_result,
+    }
+
+
+def _benford_first_digit_analysis(numeric: list[dict]) -> dict:
+    """N4: Compute Benford first-digit distribution from XLSX numeric cells.
+
+    Returns per-digit observed/expected frequencies, MAD, and per-digit deviation.
+    """
+    first_digits: list[int] = []
+    for item in numeric:
+        raw = item.get("raw", "")
+        if not raw:
+            continue
+        try:
+            val = abs(float(raw))
+        except (ValueError, TypeError):
+            continue
+        if val == 0:
+            continue
+        # Extract first significant digit
+        s = f"{val:.15e}"
+        mantissa = float(s.split("e")[0])
+        if mantissa == 0:
+            continue
+        first_d = (
+            int(str(int(mantissa))[0])
+            if mantissa >= 1
+            else int(f"{mantissa:.10f}".lstrip("0").lstrip(".")[0])
+        )
+        if 1 <= first_d <= 9:
+            first_digits.append(first_d)
+
+    n = len(first_digits)
+    if n < 20:
+        return {
+            "applicability": "not_applicable",
+            "reason": f"insufficient values (n={n})",
+            "sample_size": n,
+        }
+
+    counts = Counter(first_digits)
+    expected = {str(d): math.log10(1 + 1 / d) for d in range(1, 10)}
+    observed = {str(d): counts.get(d, 0) / n for d in range(1, 10)}
+    mad = sum(abs(observed[str(d)] - expected[str(d)]) for d in range(1, 10)) / 9
+    per_digit_deviation = {
+        str(d): observed[str(d)] - expected[str(d)] for d in range(1, 10)
+    }
+    max_dev_digit = max(per_digit_deviation, key=lambda k: abs(per_digit_deviation[k]))
+    return {
+        "applicability": "applicable" if n >= 100 else "marginal",
+        "sample_size": n,
+        "observed": observed,
+        "expected": expected,
+        "mean_absolute_deviation": mad,
+        "per_digit_deviation": per_digit_deviation,
+        "max_digit_deviation": abs(per_digit_deviation[max_dev_digit]),
+        "max_digit_deviation_digit": max_dev_digit,
     }
 
 

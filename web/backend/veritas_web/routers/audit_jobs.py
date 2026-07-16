@@ -16,6 +16,7 @@ GET    /api/audit/queue        Queue depth summary.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from typing import Any
 
@@ -31,6 +32,12 @@ from ..dependencies import (
     AppDependencies,
     get_app_dependencies,
     get_auth_context,
+)
+from ..models import REPRODUCIBILITY_TIERS
+from ..paper_pdf import (
+    ambiguous_paper_pdf_error,
+    pdf_candidate_payloads,
+    validate_paper_pdf_relative,
 )
 from ..runner import AuditRunner
 from ..sse import sse_event_stream
@@ -48,6 +55,10 @@ router = APIRouter(prefix="/audit", tags=["audit-jobs"])
 class AuditSubmitRequest(BaseModel):
     case_id: str
     options: dict[str, Any] = Field(default_factory=dict)
+    # Backward compatibility for older clients that sent the tier at the top
+    # level instead of inside options.
+    reproducibility_tier: str | None = None
+    paper_pdf: str | None = None
 
 
 class AuditJobResponse(BaseModel):
@@ -150,27 +161,18 @@ def _get_runner(deps: AppDependencies) -> AuditRunner:
 # ---------------------------------------------------------------------------
 
 
-@router.post("", status_code=202)
-async def submit_audit(
-    payload: AuditSubmitRequest,
-    auth: AuthContext = Depends(get_auth_context),
-    deps: AppDependencies = Depends(get_app_dependencies),
+def _submit_audit_sync(
+    case_id: str,
+    uid: str | None,
+    store: Any,
+    runner: AuditRunner,
+    options: dict[str, Any],
+    paper_pdf: str | None = None,
 ) -> dict[str, Any]:
-    """Submit a new audit job for *case_id*.
-
-    * Validates that the case has at least one input file (PDF).
-    * Rejects with 409 if there is already an active run for the case.
-    * Rejects with 429 if the global concurrent-audit limit is reached.
-    * Returns 202 with the newly created job record.
-    """
-    case_id = payload.case_id
-    store = deps.store
-    runner = _get_runner(deps)
-
+    """Synchronous business logic for submit_audit (runs in executor)."""
     # Verify case exists and is owned by the caller (admin bypasses check).
-    uid = None if auth.is_admin() else auth.user_id
     try:
-        store.get_case(case_id, user_id=uid)
+        case_record = store.get_case(case_id, user_id=uid)
     except PermissionError:
         raise HTTPException(status_code=403, detail=f"not the owner of case {case_id}")
     except FileNotFoundError:
@@ -179,7 +181,7 @@ async def submit_audit(
     # Validate PDF exists in inputs (search recursively — uploads may
     # be organised into subdirectories via relative_path).
     inputs_dir = store.inputs_dir(case_id)
-    pdfs = list(inputs_dir.rglob("*.pdf"))
+    pdfs = pdf_candidate_payloads(inputs_dir)
     if not pdfs:
         raise HTTPException(
             status_code=400,
@@ -215,15 +217,51 @@ async def submit_audit(
             detail=f"audit queue full (max={max_queue_size})",
         )
 
+    case_paper_pdf = getattr(case_record, "paper_pdf", None)
+    selection_source: str | None = None
+    effective_paper_pdf = paper_pdf or case_paper_pdf
+    if paper_pdf:
+        selection_source = "explicit"
+    elif case_paper_pdf:
+        selection_source = "case_record"
+
+    if effective_paper_pdf:
+        relative_paper_pdf = validate_paper_pdf_relative(
+            inputs_dir,
+            str(effective_paper_pdf),
+        )
+        options["paper_pdf"] = relative_paper_pdf
+        options["paper_pdf_selection_source"] = selection_source or "explicit"
+        if relative_paper_pdf != case_paper_pdf:
+            store.update_case(case_id, {"paper_pdf": relative_paper_pdf}, user_id=uid)
+    elif len(pdfs) > 1:
+        raise ambiguous_paper_pdf_error(inputs_dir)
+    else:
+        relative_paper_pdf = str(pdfs[0]["path"])
+        options["paper_pdf"] = relative_paper_pdf
+        options["paper_pdf_selection_source"] = "single_pdf"
+        store.update_case(case_id, {"paper_pdf": relative_paper_pdf}, user_id=uid)
+
     # Save reproducibility_tier on case if provided
-    tier = payload.options.get("reproducibility_tier")
-    if tier and tier in ("full", "partial", "code_only", "static"):
+    tier = options.get("reproducibility_tier") or getattr(
+        case_record, "reproducibility_tier", "full"
+    )
+    if not isinstance(tier, str) or tier not in REPRODUCIBILITY_TIERS:
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                f"Invalid reproducibility_tier: {tier}. "
+                f"Must be one of: {', '.join(REPRODUCIBILITY_TIERS.keys())}"
+            ),
+        )
+    options["reproducibility_tier"] = tier
+    if tier != getattr(case_record, "reproducibility_tier", "full"):
         store.update_case(case_id, {"reproducibility_tier": tier}, user_id=uid)
 
     # Create the run row.
     run = store.create_run(
         case_id,
-        agent_mode=str(payload.options.get("agent_mode", "review")),
+        agent_mode=str(options.get("agent_mode", "review")),
     )
 
     # Version tracking: if this case has previous runs, increment version
@@ -248,7 +286,7 @@ async def submit_audit(
         )
 
     if _use_celery():
-        run = runner._dispatch_celery_task(run, case_id, payload.options)
+        run = runner._dispatch_celery_task(run, case_id, options)
     else:
         # Thread-pool path: create_run already inserted the row;
         # submit the work to the executor (start() would create a
@@ -257,10 +295,51 @@ async def submit_audit(
             runner.run_sync,
             case_id,
             run.run_id,
-            payload.options,
+            options,
         )
 
     return _run_to_job_dict(run, store)
+
+
+@router.post("", status_code=202)
+async def submit_audit(
+    payload: AuditSubmitRequest,
+    auth: AuthContext = Depends(get_auth_context),
+    deps: AppDependencies = Depends(get_app_dependencies),
+) -> dict[str, Any]:
+    """Submit a new audit job for *case_id*.
+
+    * Validates that the case has at least one input file (PDF).
+    * Rejects with 409 if there is already an active run for the case.
+    * Rejects with 429 if the global concurrent-audit limit is reached.
+    * Returns 202 with the newly created job record.
+    """
+    uid = None if auth.is_admin() else auth.user_id
+    store = deps.store
+    runner = _get_runner(deps)
+    options = dict(payload.options)
+    if "paper_pdf" in options:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "code": "PAPER_PDF_MUST_BE_TOP_LEVEL",
+                "message": "paper_pdf must be sent as a top-level request field.",
+            },
+        )
+    if payload.reproducibility_tier:
+        options.setdefault("reproducibility_tier", payload.reproducibility_tier)
+
+    return await asyncio.get_event_loop().run_in_executor(
+        None,
+        lambda: _submit_audit_sync(
+            payload.case_id,
+            uid,
+            store,
+            runner,
+            options,
+            paper_pdf=payload.paper_pdf,
+        ),
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -279,8 +358,9 @@ async def queue_status(
     store = deps.store
     runner = _get_runner(deps)
 
-    queued = store.count_queued_runs()
-    running = store.count_running_runs()
+    loop = asyncio.get_event_loop()
+    queued = await loop.run_in_executor(None, store.count_queued_runs)
+    running = await loop.run_in_executor(None, store.count_running_runs)
     max_queue_size = int(get_env("AUDIT_MAX_QUEUE_SIZE", required=False, default="10"))
 
     return {
@@ -304,9 +384,14 @@ async def get_audit_status(
 ) -> dict[str, Any]:
     """Return the current status of job *job_id*, including stage progress."""
     store = deps.store
-    run_model = _get_run_model(store, job_id)
-    _verify_case_ownership(store, run_model.case_id, auth.user_id, is_admin=auth.is_admin())
-    return _run_model_to_dict(run_model)
+    loop = asyncio.get_event_loop()
+
+    def _get_status_sync():
+        run_model = _get_run_model(store, job_id)
+        _verify_case_ownership(store, run_model.case_id, auth.user_id, is_admin=auth.is_admin())
+        return _run_model_to_dict(run_model)
+
+    return await loop.run_in_executor(None, _get_status_sync)
 
 
 # ---------------------------------------------------------------------------
@@ -328,17 +413,22 @@ async def cancel_audit(
     """
     store = deps.store
     runner = _get_runner(deps)
-    run_model = _get_run_model(store, job_id)
-    _verify_case_ownership(store, run_model.case_id, auth.user_id, is_admin=auth.is_admin())
+    loop = asyncio.get_event_loop()
 
-    if run_model.status not in ("queued", "running"):
-        raise HTTPException(
-            status_code=409,
-            detail=f"job {job_id} is not active (status={run_model.status})",
-        )
+    def _cancel_sync():
+        run_model = _get_run_model(store, job_id)
+        _verify_case_ownership(store, run_model.case_id, auth.user_id, is_admin=auth.is_admin())
 
-    run = runner.cancel_run(job_id, run_model.case_id)
-    return _run_to_job_dict(run, store)
+        if run_model.status not in ("queued", "running"):
+            raise HTTPException(
+                status_code=409,
+                detail=f"job {job_id} is not active (status={run_model.status})",
+            )
+
+        run = runner.cancel_run(job_id, run_model.case_id)
+        return _run_to_job_dict(run, store)
+
+    return await loop.run_in_executor(None, _cancel_sync)
 
 
 # ---------------------------------------------------------------------------
@@ -374,8 +464,14 @@ async def stream_audit_progress(
         from the event with id strictly greater than the supplied value.
     """
     store = deps.store
-    run_model = _get_run_model(store, job_id)
-    _verify_case_ownership(store, run_model.case_id, auth.user_id, is_admin=auth.is_admin())
+    loop = asyncio.get_event_loop()
+
+    def _validate_and_get_run():
+        run_model = _get_run_model(store, job_id)
+        _verify_case_ownership(store, run_model.case_id, auth.user_id, is_admin=auth.is_admin())
+        return run_model
+
+    await loop.run_in_executor(None, _validate_and_get_run)
 
     # Validate events parameter.
     level = events if events in ("lifecycle", "agent", "debug") else "lifecycle"

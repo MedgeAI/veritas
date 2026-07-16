@@ -21,6 +21,6 @@
     "third_party/elis/system_modules/trufor",
     "third_party/paperconan"
   ],
-  "include": ["engine", "web", "cli", "runtime", "protocols", "tests"],
+  "include": ["engine", "web", "cli", "runtime", "tests"],
   "exclude": ["**/node_modules", "**/__pycache__", "**/third_party", ".venv", "outputs", "web_data"]
 }

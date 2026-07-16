@@ -6,7 +6,9 @@ ARG BUILD_VERSION=dev
 
 WORKDIR /build
 COPY web/frontend/package*.json ./
-RUN npm ci --silent
+# --legacy-peer-deps: 允许 @testing-library/react peer dep 与 react 18/19 的松散匹配
+# lockfile 在本地 npm 宽松模式下生成，Docker 的 npm 10 默认更严格
+RUN npm ci --silent --legacy-peer-deps
 
 COPY web/frontend/ ./
 RUN npm run build && echo "Built version: ${BUILD_VERSION}"
@@ -41,7 +43,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ARG OPENCODE_NPM_PACKAGE=opencode-ai@1.17.11
 RUN npm install -g "${OPENCODE_NPM_PACKAGE}"
 
+# Install uv for deterministic dependency resolution from uv.lock
+# Pinned version prevents surprise breakages on image rebuild
+# Binary placed in /usr/local/bin (in PATH for all users including non-root)
+ARG UV_VERSION=0.6.14
+RUN curl -LsSf "https://github.com/astral-sh/uv/releases/download/${UV_VERSION}/uv-x86_64-unknown-linux-gnu.tar.gz" \
+    | tar xz -C /tmp \
+    && mv /tmp/uv-x86_64-unknown-linux-gnu/uv /usr/local/bin/uv \
+    && chmod +x /usr/local/bin/uv \
+    && rm -rf /tmp/uv-*
+
 ENV VIRTUAL_ENV=/opt/venv
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv
 ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
 ENV VERITAS_HOST=0.0.0.0
 ENV VERITAS_PORT=8765
@@ -52,11 +65,40 @@ ENV VERITAS_LOG_DIR=/app/logs
 
 WORKDIR /app
 
-# Install Python dependencies (from pyproject.toml)
-COPY pyproject.toml .
+# ── Directory layout: code vs data boundary ─────────────────────────
+# /app/                 — application code (read-only for veritas)
+# /app/web_data/        — runtime data root (veritas-writable, bind mount target)
+# /app/outputs/         — audit artifacts (veritas-writable, bind mount target)
+# /app/logs/            — log files (veritas-writable)
+#
+# Runtime writes must stay under explicit data/log roots. The code copied into
+# /app remains root-owned and read-only for the non-root runtime user.
+RUN mkdir -p /app/web_data /app/outputs /app/logs \
+    && chown -R $USERNAME:$USERNAME /app/web_data /app/outputs /app/logs
+
+# ── Layer ordering: dependency install BEFORE source code ─────────────
+# uv sync only reads pyproject.toml + uv.lock — it does NOT scan source code.
+# By running uv sync BEFORE copying engine/, web/, etc., source-only changes
+# (the common case) reuse the cached uv sync layer (~309MB, ~60-90s).
+#
+# Cache boundary: uv sync re-runs ONLY when pyproject.toml or uv.lock change.
+COPY pyproject.toml uv.lock ./
+# uv sync --frozen: install exactly what uv.lock specifies, no resolution drift
+# UV_PROJECT_ENVIRONMENT (set above) tells uv to install into /opt/venv,
+# preventing it from creating its own .venv in the project directory.
+#
+# --mount=type=cache: BuildKit cache mount for uv's package download cache.
+#   - Persists across Docker builds (stored in BuildKit's volume, NOT in image layers).
+#   - First build: downloads all packages (~270s). Subsequent builds: reuses cache (~5-15s).
+#   - Removed from final image — zero impact on image size.
+#   - Requires BuildKit (DOCKER_BUILDKIT=1 or docker buildx), default in Docker 23+.
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --extra web --extra pg --extra visual --extra models
+
+# ── Source code (changes here do NOT invalidate the uv sync layer) ────
 COPY cli/ ./cli/
+COPY common/ ./common/
 COPY engine/ ./engine/
-COPY protocols/ ./protocols/
 COPY runtime/ ./runtime/
 COPY configs/ ./configs/
 COPY web/backend/ ./web/backend/
@@ -71,22 +113,26 @@ COPY third_party/paperconan/ ./third_party/paperconan/
 COPY opencode.json .
 COPY .opencode/skills/ ./.opencode/skills/
 COPY README.md .
-RUN python3 -m venv "${VIRTUAL_ENV}" \
-    && pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -e ".[web,pg]"
+
+# ── Runtime data: code vs data separation ───────────────────────────
+# .opencode/ is created by COPY above (root:root). opencode writes session
+# data to .opencode/data/ at runtime. We redirect this to web_data/ via symlink
+# so all runtime-writable state lives under the data volume.
+#
+# Layout:
+#   /app/.opencode/skills/          — read-only, root:root (image code)
+#   /app/.opencode/data -> symlink  — points to /app/web_data/.opencode/data
+#   /app/web_data/.opencode/data/   — veritas:veritas (runtime data volume)
+RUN mkdir -p /app/web_data/.opencode/data /app/outputs \
+    && chown -R $USERNAME:$USERNAME /app/web_data /app/outputs /app/logs \
+    && ln -s /app/web_data/.opencode/data /app/.opencode/data
 
 # Copy frontend build artifacts from stage 1
 COPY --from=frontend-builder /build/dist ./web/frontend/dist
 
-# Create data directories and set ownership
-RUN mkdir -p /app/web_data /app/outputs \
-    && chown -R $USERNAME:$USERNAME /app
-
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
-ENV VERITAS_HOST=0.0.0.0
-ENV VERITAS_PORT=8765
 
 # Set timezone
 ENV TZ=Asia/Shanghai

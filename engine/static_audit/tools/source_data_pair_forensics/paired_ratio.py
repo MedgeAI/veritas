@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from collections import Counter, defaultdict
+from decimal import Decimal
+from itertools import combinations
 from typing import Any
 
 from engine.static_audit.tools.source_data_findings import (
@@ -16,13 +18,19 @@ from engine.static_audit.tools.source_data_profile import normalized_number
 
 from ._shared import (
     PairForensicsParams,
+    SheetNumericIndex,
+    bitset_to_rows,
     candidate_offsets,
+    common_rows as index_common_rows,
     common_offset_pairs,
     decimal_places,
+    ensure_sheet_numeric_index,
+    has_consecutive_run,
     is_low_information_numeric_column,
     numeric_value_diversity,
     ratio_key,
     risk_rank,
+    same_fraction_integer_delta,
 )
 from .profile_helpers import _is_semantic_equivalent_pair
 
@@ -553,4 +561,474 @@ def row_offset_rounding_bias_findings(
     return sorted(
         findings,
         key=lambda item: (-risk_rank(item["risk_level"]), -item["exact_reuse_pairs"]),
+    )[: params.max_findings_per_category]
+
+
+def copy_paste_modify_findings(
+    source: SheetVectors | SheetNumericIndex,
+    params: PairForensicsParams,
+    *,
+    performance: dict[str, Any] | None = None,
+    detector_skips: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+    """Detect column pairs where values share the same fractional part but differ by a constant integer.
+
+    This is the P2 detector: when a column is copy-pasted and only the integer
+    part is modified (e.g., 3.14 -> 7.14), the fractional part is preserved and
+    the integer delta is constant across matched rows.
+    """
+    del detector_skips
+    index = ensure_sheet_numeric_index(source, params)
+    sheet = index.sheet
+    findings = []
+    for left_col, right_col in combinations(index.valid_columns, 2):
+        left_values = index.values_by_col[left_col]
+        right_values = index.values_by_col[right_col]
+        common = index_common_rows(index, left_col, right_col)
+        if len(common) < 3:
+            continue
+        if performance is not None:
+            performance["copy_paste_modify_column_pairs"] = (
+                int(performance.get("copy_paste_modify_column_pairs", 0)) + 1
+            )
+        delta_groups: dict[int, list[int]] = defaultdict(list)
+        shared_fraction_keys = (
+            set(index.frac_rows_by_col.get(left_col, {}))
+            & set(index.frac_rows_by_col.get(right_col, {}))
+        )
+        for fraction_key in shared_fraction_keys:
+            # A decimal fraction of exactly zero is extremely common in exported
+            # spreadsheets and tends to represent formatting, not pasted mantissas.
+            if fraction_key == "0":
+                continue
+            candidate_bits = (
+                index.frac_rows_by_col[left_col][fraction_key]
+                & index.frac_rows_by_col[right_col][fraction_key]
+            )
+            for row in bitset_to_rows(candidate_bits):
+                delta = same_fraction_integer_delta(
+                    left_values[row], right_values[row]
+                )
+                if delta is not None:
+                    delta_groups[delta].append(row)
+        common_positions = {row: i for i, row in enumerate(common)}
+        for delta, matched_rows in delta_groups.items():
+            count = len(matched_rows)
+            comparable = len(common)
+            rate = count / comparable if comparable else 0.0
+            positions = [common_positions[r] for r in matched_rows]
+            if not (
+                has_consecutive_run(positions, min_run=3)
+                or (count >= 5 and rate >= 0.6)
+            ):
+                continue
+            risk = "high" if (count >= 10 and rate >= 0.95) else "medium"
+            confidence = "high" if rate >= 0.95 else "medium"
+            formula_involved = (
+                left_col in sheet.formulas_by_column
+                or right_col in sheet.formulas_by_column
+            )
+            if formula_involved:
+                risk = "low"
+            matched_row_set = sorted(matched_rows)
+            summary_pair = is_summary_statistic_pair(
+                sheet, left_col, right_col, matched_row_set
+            )
+            left_lbl = column_label(sheet, left_col)
+            right_lbl = column_label(sheet, right_col)
+            semantic_pair = _is_semantic_equivalent_pair(left_lbl, right_lbl)
+            if summary_pair or semantic_pair:
+                artifact_likelihood = "high"
+                if summary_pair:
+                    artifact_reason = (
+                        f"summary-statistic pair: {left_lbl} vs {right_lbl}"
+                    )
+                else:
+                    artifact_reason = (
+                        f"semantic-equivalent pair: {left_lbl} vs {right_lbl}"
+                    )
+            else:
+                artifact_likelihood = "unknown"
+                artifact_reason = None
+            findings.append(
+                {
+                    "finding_id": None,
+                    "category": "copy_paste_modify",
+                    "risk_level": risk,
+                    "confidence": confidence,
+                    "workbook": sheet.workbook,
+                    "sheet": sheet.sheet,
+                    "support_rows": count,
+                    "overlap_rows": comparable,
+                    "support_rate": round(rate, 4),
+                    "columns": [col_to_name(left_col), col_to_name(right_col)],
+                    "column_labels": [left_lbl, right_lbl],
+                    "relationship_value": str(delta),
+                    "sample_pairs": [
+                        {
+                            "row": row,
+                            "left": normalized_number(left_values[row]),
+                            "right": normalized_number(right_values[row]),
+                            "delta": delta,
+                        }
+                        for row in matched_rows[:20]
+                    ],
+                    "benign_explanations": [
+                        "可能是合法的单位换算（如 kg→g，整数部分改变但小数部分保留）。",
+                        "可能是数据归一化或基线校正的结果。",
+                    ],
+                    "pressure_test_result": "needs_copy_paste_modify_review",
+                    "next_steps": [
+                        "确认两列是否代表不同的测量条件或单位。",
+                        "核对整数差值是否有物理解释。",
+                        "要求学生解释两列数据的来源关系。",
+                    ],
+                    "raw_data_samples": _extract_raw_data_samples(
+                        sheet, matched_row_set
+                    ),
+                    "artifact_likelihood": artifact_likelihood,
+                    "artifact_reason": artifact_reason,
+                }
+            )
+    return sorted(
+        findings,
+        key=lambda item: (-risk_rank(item["risk_level"]), -item["support_rows"]),
+    )[: params.max_findings_per_category]
+
+
+def shifted_paste_findings(
+    source: SheetVectors | SheetNumericIndex,
+    params: PairForensicsParams,
+    *,
+    performance: dict[str, Any] | None = None,
+    detector_skips: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+    """Detect column pairs with copy-paste-modify at a positional lag offset.
+
+    This is the P1 detector: when a column is copy-pasted into another column
+    but shifted by a fixed number of rows (e.g., pasted starting at row 5
+    instead of row 2), the fractional parts still match but values are compared
+    at a row offset rather than at the same row.
+    """
+    del detector_skips
+    index = ensure_sheet_numeric_index(source, params)
+    sheet = index.sheet
+    findings = []
+    for left_col, right_col in combinations(index.valid_columns, 2):
+        left_values = index.values_by_col[left_col]
+        right_values = index.values_by_col[right_col]
+        for lag in (-3, -2, -1, 1, 2, 3):
+            right_aligned_bits = (
+                index.row_bitset_by_col[right_col] >> lag
+                if lag > 0
+                else index.row_bitset_by_col[right_col] << (-lag)
+            )
+            comparable_bits = index.row_bitset_by_col[left_col] & right_aligned_bits
+            comparable_rows = bitset_to_rows(comparable_bits)
+            if len(comparable_rows) < 3:
+                continue
+            if performance is not None:
+                performance["shifted_paste_column_lags"] = (
+                    int(performance.get("shifted_paste_column_lags", 0)) + 1
+                )
+            # Group matched rows by (lag, delta).
+            delta_groups: dict[int, list[int]] = defaultdict(list)
+            shared_fraction_keys = (
+                set(index.frac_rows_by_col.get(left_col, {}))
+                & set(index.frac_rows_by_col.get(right_col, {}))
+            )
+            for fraction_key in shared_fraction_keys:
+                if fraction_key == "0":
+                    continue
+                right_fraction_bits = index.frac_rows_by_col[right_col][fraction_key]
+                right_fraction_aligned = (
+                    right_fraction_bits >> lag
+                    if lag > 0
+                    else right_fraction_bits << (-lag)
+                )
+                candidate_bits = (
+                    index.frac_rows_by_col[left_col][fraction_key]
+                    & right_fraction_aligned
+                    & comparable_bits
+                )
+                for row in bitset_to_rows(candidate_bits):
+                    delta = same_fraction_integer_delta(
+                        left_values[row], right_values[row + lag]
+                    )
+                    if delta is not None:
+                        delta_groups[delta].append(row)
+            # Build position index for consecutive-run check.
+            comparable_positions = {
+                row: i for i, row in enumerate(comparable_rows)
+            }
+            for delta, matched_rows in delta_groups.items():
+                count = len(matched_rows)
+                comparable = len(comparable_rows)
+                rate = count / comparable if comparable else 0.0
+                positions = [comparable_positions[r] for r in matched_rows]
+                if not (
+                    has_consecutive_run(positions, min_run=4)
+                    or (count >= 5 and rate >= 0.6)
+                ):
+                    continue
+                risk = "high" if (count >= 10 and rate >= 0.95) else "medium"
+                confidence = "high" if rate >= 0.95 else "medium"
+                formula_involved = (
+                    left_col in sheet.formulas_by_column
+                    or right_col in sheet.formulas_by_column
+                )
+                if formula_involved:
+                    risk = "low"
+                matched_row_set = sorted(matched_rows)
+                summary_pair = is_summary_statistic_pair(
+                    sheet, left_col, right_col, matched_row_set
+                )
+                left_lbl = column_label(sheet, left_col)
+                right_lbl = column_label(sheet, right_col)
+                semantic_pair = _is_semantic_equivalent_pair(left_lbl, right_lbl)
+                if summary_pair or semantic_pair:
+                    artifact_likelihood = "high"
+                    if summary_pair:
+                        artifact_reason = (
+                            f"summary-statistic pair: {left_lbl} vs {right_lbl}"
+                        )
+                    else:
+                        artifact_reason = (
+                            f"semantic-equivalent pair: {left_lbl} vs {right_lbl}"
+                        )
+                else:
+                    artifact_likelihood = "unknown"
+                    artifact_reason = None
+                findings.append(
+                    {
+                        "finding_id": None,
+                        "category": "shifted_paste",
+                        "risk_level": risk,
+                        "confidence": confidence,
+                        "workbook": sheet.workbook,
+                        "sheet": sheet.sheet,
+                        "row_offset": lag,
+                        "support_rows": count,
+                        "overlap_rows": comparable,
+                        "support_rate": round(rate, 4),
+                        "columns": [
+                            col_to_name(left_col),
+                            col_to_name(right_col),
+                        ],
+                        "column_labels": [left_lbl, right_lbl],
+                        "relationship_value": str(delta),
+                        "sample_pairs": [
+                            {
+                                "left_row": row,
+                                "right_row": row + lag,
+                                "left": normalized_number(left_values[row]),
+                                "right": normalized_number(
+                                    right_values[row + lag]
+                                ),
+                                "delta": delta,
+                            }
+                            for row in matched_rows[:20]
+                        ],
+                        "benign_explanations": [
+                            "可能是复制粘贴时的行错位（如从第5行粘贴到第8行）。",
+                            "可能是数据整理过程中的移位操作。",
+                        ],
+                        "pressure_test_result": "needs_shifted_paste_review",
+                        "next_steps": [
+                            "确认两列数据的粘贴来源和起始行。",
+                            "核对位移量是否与已知的数据操作一致。",
+                            "要求学生解释两列数据的对应关系。",
+                        ],
+                        "raw_data_samples": _extract_raw_data_samples(
+                            sheet, sorted(matched_rows)
+                        ),
+                        "artifact_likelihood": artifact_likelihood,
+                        "artifact_reason": artifact_reason,
+                    }
+                )
+    return sorted(
+        findings,
+        key=lambda item: (-risk_rank(item["risk_level"]), -item["support_rows"]),
+    )[: params.max_findings_per_category]
+
+
+def _sample_common_rows(rows: tuple[int, ...], limit: int = 7) -> list[int]:
+    if len(rows) <= limit:
+        return list(rows)
+    step = (len(rows) - 1) / (limit - 1)
+    return [rows[round(index * step)] for index in range(limit)]
+
+
+def strict_linear_relation_findings(
+    source: SheetVectors | SheetNumericIndex,
+    params: PairForensicsParams,
+    *,
+    performance: dict[str, Any] | None = None,
+    detector_skips: list[dict[str, Any]] | None = None,
+) -> list[dict[str, Any]]:
+    """Detect column pairs with strict linear relationship y = ax + b (R^2 >= 0.999999)."""
+    del detector_skips
+    index = ensure_sheet_numeric_index(source, params)
+    sheet = index.sheet
+    findings: list[dict[str, Any]] = []
+    for x_col, y_col in combinations(index.valid_columns, 2):
+        values_x = index.floats_by_col[x_col]
+        values_y = index.floats_by_col[y_col]
+        common_rows = index_common_rows(index, x_col, y_col)
+        if len(common_rows) < 3:
+            continue
+        if performance is not None:
+            performance["strict_linear_sampled_pairs"] = (
+                int(performance.get("strict_linear_sampled_pairs", 0)) + 1
+            )
+        distinct_x = len({values_x[r] for r in common_rows})
+        if distinct_x < 2:
+            continue
+
+        sample_rows = _sample_common_rows(common_rows)
+        sample_pair: tuple[int, int] | None = None
+        for left_index, left_row in enumerate(sample_rows):
+            for right_row in sample_rows[left_index + 1 :]:
+                if abs(values_x[right_row] - values_x[left_row]) > 1e-12:
+                    sample_pair = (left_row, right_row)
+                    break
+            if sample_pair is not None:
+                break
+        if sample_pair is None:
+            continue
+
+        left_row, right_row = sample_pair
+        sample_factor = (values_y[right_row] - values_y[left_row]) / (
+            values_x[right_row] - values_x[left_row]
+        )
+        sample_intercept = values_y[left_row] - sample_factor * values_x[left_row]
+        sample_limit = 1e-6 * max(
+            1.0, max(abs(values_y[row]) for row in sample_rows)
+        )
+        if any(
+            abs(values_y[row] - (sample_factor * values_x[row] + sample_intercept))
+            > sample_limit
+            for row in sample_rows
+        ):
+            continue
+
+        if performance is not None:
+            performance["strict_linear_verified_pairs"] = (
+                int(performance.get("strict_linear_verified_pairs", 0)) + 1
+            )
+
+        # Least-squares linear fit: y = factor * x + intercept
+        n = len(common_rows)
+        sum_x = sum(values_x[r] for r in common_rows)
+        sum_y = sum(values_y[r] for r in common_rows)
+        sum_xy = sum(values_x[r] * values_y[r] for r in common_rows)
+        sum_x2 = sum(values_x[r] ** 2 for r in common_rows)
+        denom = n * sum_x2 - sum_x ** 2
+        if abs(denom) < 1e-15:
+            continue
+        factor = (n * sum_xy - sum_x * sum_y) / denom
+        intercept = (sum_y - factor * sum_x) / n
+
+        # R-squared and max residual
+        y_mean = sum_y / n
+        ss_tot = sum((values_y[r] - y_mean) ** 2 for r in common_rows)
+        ss_res = sum(
+            (values_y[r] - (factor * values_x[r] + intercept)) ** 2
+            for r in common_rows
+        )
+        r2 = 1.0 - ss_res / ss_tot if ss_tot > 1e-15 else 0.0
+        max_abs_residual = max(
+            abs(values_y[r] - (factor * values_x[r] + intercept))
+            for r in common_rows
+        )
+
+        # Threshold check
+        max_abs_y = max(abs(v) for v in values_y.values())
+        residual_limit = 1e-6 * max(1.0, max_abs_y)
+        if not (r2 >= 0.999999 and max_abs_residual <= residual_limit):
+            continue
+        if abs(intercept) <= residual_limit or abs(factor - 1.0) <= 1e-6:
+            continue
+
+        # Risk and confidence
+        risk = "high" if (n >= 10 and r2 >= 0.9999999) else "medium"
+        confidence = "high" if r2 >= 0.9999999 else "medium"
+
+        # Artifact degradation: formula column
+        formula_involved = (
+            x_col in sheet.formulas_by_column
+            or y_col in sheet.formulas_by_column
+        )
+        if formula_involved:
+            risk = "low"
+
+        # Artifact classification: summary pair / semantic pair
+        common_row_set = sorted(common_rows)
+        summary_pair = is_summary_statistic_pair(
+            sheet, x_col, y_col, common_row_set
+        )
+        x_lbl = column_label(sheet, x_col)
+        y_lbl = column_label(sheet, y_col)
+        semantic_pair = _is_semantic_equivalent_pair(x_lbl, y_lbl)
+
+        if summary_pair or semantic_pair:
+            artifact_likelihood = "high"
+            if summary_pair:
+                artifact_reason = f"summary-statistic pair: {x_lbl} vs {y_lbl}"
+            else:
+                artifact_reason = f"semantic-equivalent pair: {x_lbl} vs {y_lbl}"
+        else:
+            artifact_likelihood = "unknown"
+            artifact_reason = None
+
+        # Build sample pairs (up to 20)
+        sample_pairs = [
+            {
+                "row": row,
+                "x": values_x[row],
+                "y": values_y[row],
+                "predicted": factor * values_x[row] + intercept,
+                "residual": values_y[row] - (factor * values_x[row] + intercept),
+            }
+            for row in common_rows[:20]
+        ]
+
+        findings.append(
+            {
+                "finding_id": None,
+                "category": "strict_linear_relation",
+                "risk_level": risk,
+                "confidence": confidence,
+                "workbook": sheet.workbook,
+                "sheet": sheet.sheet,
+                "support_rows": n,
+                "overlap_rows": n,
+                "support_rate": 1.0,
+                "columns": [col_to_name(x_col), col_to_name(y_col)],
+                "column_labels": [x_lbl, y_lbl],
+                "factor": str(factor),
+                "intercept": str(intercept),
+                "r_squared": round(r2, 10),
+                "max_abs_residual": str(max_abs_residual),
+                "sample_pairs": sample_pairs,
+                "benign_explanations": [
+                    "可能是合法的校准曲线或标准曲线关系。",
+                    "可能是仪器的线性响应特性。",
+                    "可能是已知的物理/化学线性关系（如 Beer-Lambert 定律）。",
+                ],
+                "pressure_test_result": "needs_strict_linear_independence_review",
+                "next_steps": [
+                    "确认 y 列是否为 x 列的线性派生（如校准、归一化）。",
+                    "核对截距是否有物理意义（非零截距可能暗示系统误差）。",
+                    "要求学生说明两列数据的独立测量过程。",
+                ],
+                "raw_data_samples": _extract_raw_data_samples(sheet, common_row_set),
+                "artifact_likelihood": artifact_likelihood,
+                "artifact_reason": artifact_reason,
+            }
+        )
+
+    return sorted(
+        findings,
+        key=lambda item: (-risk_rank(item["risk_level"]), -item["support_rows"]),
     )[: params.max_findings_per_category]

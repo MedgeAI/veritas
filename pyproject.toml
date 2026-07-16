@@ -14,6 +14,7 @@ dependencies = [
     "openpyxl>=3.1.0",
     "yacs>=0.1.8",
     "litellm>=1.83.0",
+    "python-calamine>=0.7.0",
 ]
 
 [project.optional-dependencies]
@@ -55,7 +56,7 @@ veritas = "cli.main:main"
 py-modules = []
 
 [tool.setuptools.packages.find]
-include = ["cli*", "engine*", "runtime*", "protocols*", "web*"]
+include = ["cli*", "engine*", "runtime*", "web*"]
 where = ["."]
 
 [tool.pytest.ini_options]

@@ -9,6 +9,7 @@ if __package__ in {None, ""}:
 
 from engine._logging import configure_logging
 from cli.commands import audit_paper, precheck, report, run
+from cli import reproduce as reproduce_cmd
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -63,6 +64,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     audit_parser.add_argument("--case-id", help="Case id used under outputs/<case-id>.")
     audit_parser.add_argument(
+        "--paper-pdf",
+        default=None,
+        help="Paper PDF relative path inside paper_dir. Required when multiple PDFs exist.",
+    )
+    audit_parser.add_argument(
         "--output-root", default="outputs", help="Output root directory."
     )
     audit_parser.add_argument(
@@ -115,16 +121,26 @@ def build_parser() -> argparse.ArgumentParser:
         "Without this flag, environment failures abort the pipeline.",
     )
     audit_parser.add_argument(
-        "--llm-only-ablation",
-        action="store_true",
-        help="Run the Round-2 LLM-only ablation: skip deterministic source-data/statistical/visual stages and run only agent review layers.",
-    )
-    audit_parser.add_argument(
         "--progress",
         choices=["auto", "plain", "jsonl", "off"],
         default="auto",
         help="Progress output mode. Progress is written to stderr; final summary JSON stays on stdout.",
     )
+    audit_parser.add_argument(
+        "--tier",
+        choices=["bare", "structured", "artifact", "provenance", "dual-layer"],
+        default=None,
+        help="Benchmark tier — controls which pipeline stages run. "
+        "Omit for full pipeline (backward compatible).",
+    )
+
+    # -- benchmark-batch ---------------------------------------------------
+    from cli import benchmark_batch as benchmark_batch_cmd
+
+    benchmark_batch_cmd.add_subparsers(subparsers)
+
+    # -- reproduce (Veritas-Auditor benchmark & mock) ----------------------
+    reproduce_cmd.add_subparsers(subparsers)
 
     return parser
 
@@ -151,10 +167,17 @@ def main(argv: list[str] | None = None) -> int:
             args.opencode_bin,
             args.agent_timeout_seconds,
             args.agent_max_retries,
-            args.skip_unavailable_tools,
-            args.llm_only_ablation,
-            args.progress,
+            skip_unavailable_tools=args.skip_unavailable_tools,
+            progress_mode=args.progress,
+            paper_pdf=args.paper_pdf,
+            benchmark_tier=getattr(args, "tier", None),
         )
+    if args.command == "benchmark-batch":
+        from cli import benchmark_batch as benchmark_batch_cmd
+
+        return benchmark_batch_cmd.dispatch(args)
+    if args.command == "reproduce":
+        return reproduce_cmd.dispatch(args)
     raise ValueError(f"Unsupported command: {args.command}")
 
 

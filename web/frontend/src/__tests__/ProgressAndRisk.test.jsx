@@ -13,17 +13,22 @@ describe('ProgressTracker', () => {
             title: 'Source Data 发现',
             phase: '数据分析',
             phase_order: 4,
-            status: 'completed',
-            duration_seconds: 1,
+            status: 'running',
             started_at: '2026-06-21T00:00:00Z',
           },
         ]}
+        progress={{
+          elapsed_seconds: 12,
+          current_step: { title: 'Source Data 发现', phase: '数据分析' },
+          is_stale: false,
+        }}
         runStatus="running"
         caseId="case-1"
       />
     );
 
-    expect(screen.getByText(/步骤 1\/1/)).toBeInTheDocument();
+    expect(screen.getByText(/阶段 1\/1: 数据分析/)).toBeInTheDocument();
+    expect(screen.queryByText(/%/)).not.toBeInTheDocument();
   });
 });
 

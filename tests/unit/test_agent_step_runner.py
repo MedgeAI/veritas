@@ -8,7 +8,6 @@ from __future__ import annotations
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 import json
-import subprocess
 
 from engine.investigation.agent_step_runner import AgentStepRunner
 
@@ -40,7 +39,7 @@ def _identity_validator(data: dict) -> dict:
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_success_returns_validated_output(mock_run: MagicMock, tmp_path: Path) -> None:
     valid_json = '{"schema_version": "1.0", "claim": "test"}'
     mock_run.return_value = _make_completed(stdout=valid_json)
@@ -63,9 +62,11 @@ def test_success_returns_validated_output(mock_run: MagicMock, tmp_path: Path) -
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_timeout_error_category(mock_run: MagicMock, tmp_path: Path) -> None:
-    mock_run.side_effect = subprocess.TimeoutExpired(cmd="opencode", timeout=10)
+    mock_run.return_value = _make_completed(
+        returncode=124, stderr="command timed out after 10s"
+    )
 
     runner = AgentStepRunner(project_root=tmp_path)
     result = runner.run(
@@ -86,7 +87,7 @@ def test_timeout_error_category(mock_run: MagicMock, tmp_path: Path) -> None:
 
 
 @patch("engine.investigation.agent_step_runner.extract_json")
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_schema_validation_error_category(
     mock_run: MagicMock,
     mock_extract: MagicMock,
@@ -107,12 +108,37 @@ def test_schema_validation_error_category(
     assert result.error_category == "schema_validation"
 
 
+@patch("engine.investigation.agent_step_runner.extract_json")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
+def test_schema_failure_writes_raw_output_and_repair_history(
+    mock_run: MagicMock,
+    mock_extract: MagicMock,
+    tmp_path: Path,
+) -> None:
+    mock_run.return_value = _make_completed(stdout="not json")
+    mock_extract.side_effect = ValueError("no JSON object found")
+
+    runner = AgentStepRunner(project_root=tmp_path)
+    result = runner.run(
+        role="test_role",
+        prompt="test prompt",
+        output_validator=_identity_validator,
+        max_retries=0,
+        log_dir=tmp_path / "logs",
+    )
+
+    assert result.status == "failed"
+    assert result.metadata["raw_output_path"]
+    assert result.metadata["validation_error_path"]
+    assert result.metadata["repair_history"][0]["failure_type"] == "schema_validation"
+
+
 # -----------------------------------------------------------------------
 # 4. permission_rejected_error_category
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_permission_rejected_error_category(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -138,7 +164,7 @@ def test_permission_rejected_error_category(
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_model_failure_error_category(mock_run: MagicMock, tmp_path: Path) -> None:
     mock_run.return_value = _make_completed(
         returncode=1,
@@ -157,7 +183,7 @@ def test_model_failure_error_category(mock_run: MagicMock, tmp_path: Path) -> No
     assert result.error_category == "model_failure"
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_opencode_error_event_is_model_failure(
     mock_run: MagicMock,
     tmp_path: Path,
@@ -193,7 +219,7 @@ def test_opencode_error_event_is_model_failure(
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_non_zero_exit_error_category(mock_run: MagicMock, tmp_path: Path) -> None:
     mock_run.return_value = _make_completed(
         returncode=2,
@@ -218,7 +244,7 @@ def test_non_zero_exit_error_category(mock_run: MagicMock, tmp_path: Path) -> No
 
 
 @patch("engine.investigation.agent_step_runner.extract_json")
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_retry_on_validation_failure(
     mock_run: MagicMock,
     mock_extract: MagicMock,
@@ -255,7 +281,7 @@ def test_retry_on_validation_failure(
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_log_artifact_written_on_failure(mock_run: MagicMock, tmp_path: Path) -> None:
     mock_run.return_value = _make_completed(
         returncode=1,
@@ -287,7 +313,7 @@ def test_log_artifact_written_on_failure(mock_run: MagicMock, tmp_path: Path) ->
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_log_ref_in_failed_result(mock_run: MagicMock, tmp_path: Path) -> None:
     mock_run.return_value = _make_completed(
         returncode=1,
@@ -315,7 +341,7 @@ def test_log_ref_in_failed_result(mock_run: MagicMock, tmp_path: Path) -> None:
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_metadata_includes_model_and_runtime(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -345,7 +371,7 @@ def test_metadata_includes_model_and_runtime(
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_extract_json_reused(
     mock_run: MagicMock,
     tmp_path: Path,
@@ -365,7 +391,7 @@ def test_extract_json_reused(
     assert result.output == {"key": "value"}
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_log_artifact_includes_prompt_preview_and_trace(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -507,7 +533,7 @@ def test_trace_includes_token_ledger(tmp_path: Path) -> None:
     assert trace["token_ledger"]["billing_inputs"]["full_rate_input_tokens"] == 40
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_runner_loads_project_dotenv_for_subprocess(
     mock_run: MagicMock,
     tmp_path: Path,
@@ -553,11 +579,13 @@ def _identity_validator(data: dict) -> dict:
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_os_error_classified_as_non_zero_exit(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
-    mock_run.side_effect = OSError("opencode binary not found")
+    mock_run.return_value = _make_completed(
+        returncode=127, stderr="opencode binary not found"
+    )
 
     runner = AgentStepRunner(project_root=tmp_path)
     result = runner.run(
@@ -570,7 +598,7 @@ def test_os_error_classified_as_non_zero_exit(
     assert result.error_category == "non_zero_exit"
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_permission_rejected_via_auto_reject(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -588,7 +616,7 @@ def test_permission_rejected_via_auto_reject(
     assert result.error_category == "permission_rejected"
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_generic_error_in_stderr_is_model_failure(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -606,7 +634,7 @@ def test_generic_error_in_stderr_is_model_failure(
     assert result.error_category == "model_failure"
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_non_error_non_zero_exit_is_non_zero_exit(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -630,7 +658,7 @@ def test_non_error_non_zero_exit_is_non_zero_exit(
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_opencode_error_event_extracted(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -658,7 +686,7 @@ def test_opencode_error_event_extracted(
     assert "429" in result.metadata["last_detail"]
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_opencode_error_without_status_code(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -684,7 +712,7 @@ def test_opencode_error_without_status_code(
     assert "UnknownError" in result.metadata["last_detail"]
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_opencode_error_without_error_dict(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -708,7 +736,7 @@ def test_opencode_error_without_error_dict(
 
 
 @patch("engine.investigation.agent_step_runner.extract_json")
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_retry_exhausted_returns_failed(
     mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path
 ) -> None:
@@ -727,7 +755,7 @@ def test_retry_exhausted_returns_failed(
     assert result.metadata["attempts"] == 3
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_retry_prompt_includes_previous_error(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -756,7 +784,7 @@ def test_retry_prompt_includes_previous_error(
 
 
 @patch("engine.investigation.agent_step_runner.extract_json")
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_validator_rejection_triggers_retry(
     mock_run: MagicMock, mock_extract: MagicMock, tmp_path: Path
 ) -> None:
@@ -792,7 +820,7 @@ def test_validator_rejection_triggers_retry(
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_files_added_to_command(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -814,7 +842,7 @@ def test_files_added_to_command(
     assert str(existing_file) in command
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_context_pack_added_to_command(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -835,7 +863,7 @@ def test_context_pack_added_to_command(
     assert str(context_pack) in command
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_nonexistent_file_not_added(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -858,7 +886,7 @@ def test_nonexistent_file_not_added(
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_success_log_artifact_written(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:
@@ -884,7 +912,7 @@ def test_success_log_artifact_written(
 # -----------------------------------------------------------------------
 
 
-@patch("engine.investigation.agent_step_runner.subprocess.run")
+@patch("engine.investigation.agent_step_runner.run_simple_command")
 def test_multiple_opencode_errors_limits_to_three(
     mock_run: MagicMock, tmp_path: Path
 ) -> None:

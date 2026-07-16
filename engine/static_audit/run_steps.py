@@ -12,7 +12,7 @@ Each step in the returned list has the shape::
         "title": "TruFor 伪造检测",
         "phase": "视觉取证",
         "phase_order": 5,
-        "status": "completed" | "running" | "failed" | "skipped",
+        "status": "completed" | "running" | "failed" | "skipped" | "warning",
         "duration_seconds": 46 | None,
         "started_at": "2026-06-26T00:01:00Z" | None,
     }
@@ -24,7 +24,7 @@ step_result is present, in which case ``started_at`` is ``None``.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Iterable
 
 from .step_labels import STEP_LABELS, get_step_label
@@ -34,6 +34,20 @@ from .step_labels import STEP_LABELS, get_step_label
 _RESULT_STATUS_COMPLETED = frozenset({"ran", "reused"})
 _RESULT_STATUS_FAILED = frozenset({"failed"})
 _RESULT_STATUS_SKIPPED = frozenset({"skipped"})
+_RESULT_STATUS_WARNING = frozenset({"warning"})
+_TERMINAL_RUN_STATUSES = frozenset(
+    {
+        "completed",
+        "completed_with_warnings",
+        "failed",
+        "failed_timeout",
+        "failed_dependency",
+        "failed_runtime",
+        "interrupted",
+        "cancelled",
+        "partial_available",
+    }
+)
 
 
 def _parse_timestamp(value: Any) -> datetime | None:
@@ -46,7 +60,10 @@ def _parse_timestamp(value: Any) -> datetime | None:
         return None
     try:
         normalised = value.replace("Z", "+00:00")
-        return datetime.fromisoformat(normalised)
+        parsed = datetime.fromisoformat(normalised)
+        if parsed.tzinfo is None:
+            return parsed.replace(tzinfo=UTC)
+        return parsed
     except ValueError:
         return None
 
@@ -62,6 +79,8 @@ def _duration_seconds(start: datetime | None, end: datetime | None) -> float | N
 def build_steps_list(
     events: Iterable[dict[str, Any]],
     step_labels: dict[str, dict[str, Any]] | None = None,
+    *,
+    run_status: str | None = None,
 ) -> list[dict[str, Any]]:
     """Build an ordered step list from a sequence of pipeline events.
 
@@ -76,6 +95,10 @@ def build_steps_list(
         Optional override for the label mapping.  When ``None`` (the
         default), :func:`engine.static_audit.step_labels.get_step_label`
         is used.
+    run_status:
+        Optional persisted run status.  When the run has already reached a
+        terminal status, orphan ``step_start`` events are shown as warnings
+        instead of forever-running steps.
 
     Returns
     -------
@@ -91,8 +114,9 @@ def build_steps_list(
     steps_order: list[str] = []
     seen_keys: set[str] = set()
 
-    # key -> {start_ts, end_ts, result_status, title}
+    # key -> {start_ts, end_ts, result_status, title, detail}
     step_data: dict[str, dict[str, Any]] = {}
+    run_is_terminal = (run_status or "") in _TERMINAL_RUN_STATUSES
 
     for event in events:
         event_type = event.get("event")
@@ -110,6 +134,7 @@ def build_steps_list(
                 "end_ts": None,
                 "result_status": None,
                 "title": None,
+                "detail": None,
             }
 
         bucket = step_data[key]
@@ -120,6 +145,8 @@ def build_steps_list(
                 bucket["start_ts"] = ts
             if isinstance(event.get("title"), str):
                 bucket["title"] = event["title"]
+            if isinstance(event.get("detail"), str):
+                bucket["detail"] = event["detail"]
 
         elif event_type == "step_result":
             bucket["end_ts"] = ts
@@ -128,6 +155,8 @@ def build_steps_list(
                 bucket["result_status"] = raw_status.lower()
             if isinstance(event.get("title"), str):
                 bucket["title"] = event["title"]
+            if isinstance(event.get("detail"), str):
+                bucket["detail"] = event["detail"]
 
     # Second pass: resolve status and build output rows.
     output: list[dict[str, Any]] = []
@@ -152,10 +181,23 @@ def build_steps_list(
             status = "failed"
         elif result_status in _RESULT_STATUS_SKIPPED:
             status = "skipped"
+        elif result_status in _RESULT_STATUS_WARNING:
+            status = "warning"
         elif bucket["start_ts"] is not None and bucket["end_ts"] is None:
-            status = "running"
+            status = "warning" if run_is_terminal else "running"
         else:
             status = "completed" if result_status else "pending"
+        detail = bucket.get("detail")
+        if (
+            status == "warning"
+            and result_status is None
+            and bucket["start_ts"] is not None
+            and bucket["end_ts"] is None
+            and run_is_terminal
+        ):
+            detail = (
+                "Run reached terminal status before this step emitted step_result."
+            )
 
         duration = _duration_seconds(bucket["start_ts"], bucket["end_ts"])
         started_at: str | None
@@ -173,6 +215,7 @@ def build_steps_list(
                 "status": status,
                 "duration_seconds": duration,
                 "started_at": started_at,
+                "detail": detail or "",
             }
         )
 
@@ -190,6 +233,7 @@ def summarise_steps(steps: list[dict[str, Any]]) -> dict[str, Any]:
     running = sum(1 for s in steps if s.get("status") == "running")
     failed = sum(1 for s in steps if s.get("status") == "failed")
     skipped = sum(1 for s in steps if s.get("status") == "skipped")
+    warnings = sum(1 for s in steps if s.get("status") == "warning")
     progress_pct = int(completed / total * 100) if total else 0
     return {
         "total": total,
@@ -197,5 +241,99 @@ def summarise_steps(steps: list[dict[str, Any]]) -> dict[str, Any]:
         "running": running,
         "failed": failed,
         "skipped": skipped,
+        "warnings": warnings,
         "progress_pct": progress_pct,
+    }
+
+
+def _safe_seconds_between(start: datetime | None, end: datetime | None) -> int | None:
+    if start is None or end is None:
+        return None
+    seconds = int((end - start).total_seconds())
+    return seconds if seconds >= 0 else None
+
+
+def _display_step(step: dict[str, Any] | None) -> dict[str, Any] | None:
+    if step is None:
+        return None
+    return {
+        "key": step.get("key"),
+        "title": step.get("title"),
+        "phase": step.get("phase"),
+        "status": step.get("status"),
+        "started_at": step.get("started_at"),
+    }
+
+
+def summarise_run_timing(
+    steps: list[dict[str, Any]],
+    *,
+    run_status: str | None,
+    started_at: str | None,
+    completed_at: str | None,
+    last_event_at: str | None,
+    stale_after_seconds: int,
+    now: datetime | None = None,
+) -> dict[str, Any]:
+    """Return factual run timing/status metadata without estimating ETA.
+
+    Agent-driven audit runs can branch, retry, wait on model/tool output, or
+    skip optional lanes, so this deliberately reports observable facts instead
+    of a synthetic "remaining time".
+    """
+    now_dt = now or datetime.now(UTC)
+    if now_dt.tzinfo is None:
+        now_dt = now_dt.replace(tzinfo=UTC)
+
+    started_dt = _parse_timestamp(started_at)
+    completed_dt = _parse_timestamp(completed_at)
+    last_event_dt = _parse_timestamp(last_event_at)
+
+    terminal_statuses = _TERMINAL_RUN_STATUSES
+    active_statuses = {"queued", "running", "enhancing"}
+    status = run_status or "unknown"
+
+    elapsed_until = completed_dt if status in terminal_statuses else now_dt
+    elapsed_seconds = _safe_seconds_between(started_dt, elapsed_until)
+    seconds_since_last_event = _safe_seconds_between(last_event_dt, now_dt)
+    is_stale = (
+        status in active_statuses
+        and seconds_since_last_event is not None
+        and seconds_since_last_event > stale_after_seconds
+    )
+
+    current_step = next(
+        (step for step in steps if step.get("status") == "running"),
+        None,
+    )
+    latest_step = steps[-1] if steps else None
+
+    if status in {"completed", "completed_with_warnings", "partial_available"}:
+        timing_status = "complete"
+    elif status == "cancelled":
+        timing_status = "cancelled"
+    elif status.startswith("failed") or status == "interrupted":
+        timing_status = "failed"
+    elif is_stale:
+        timing_status = "stale"
+    elif status == "queued":
+        timing_status = "queued"
+    elif current_step is not None:
+        timing_status = "active"
+    elif status in active_statuses:
+        timing_status = "waiting"
+    else:
+        timing_status = "unknown"
+
+    return {
+        "run_status": status,
+        "timing_status": timing_status,
+        "current_step": _display_step(current_step),
+        "latest_step": _display_step(latest_step),
+        "elapsed_seconds": elapsed_seconds,
+        "last_event_at": last_event_at,
+        "seconds_since_last_event": seconds_since_last_event,
+        "stale_after_seconds": stale_after_seconds,
+        "is_stale": is_stale,
+        "eta": None,
     }

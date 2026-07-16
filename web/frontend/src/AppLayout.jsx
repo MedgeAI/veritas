@@ -1,9 +1,11 @@
-import { Suspense, lazy, startTransition, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, startTransition, useCallback, useEffect, useMemo, useState } from 'react';
 import Sidebar from './components/Sidebar.jsx';
 import Topbar from './components/Topbar.jsx';
 import LoadingFallback from './components/LoadingFallback.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
+import { PageViewTransition, SuspenseReveal } from './components/ViewTransitions.jsx';
 import { checkHealth, clearAuthCredentials, getCurrentUser, listCases } from './services/api.js';
+import { markNavigationTransition } from './utils/viewTransitions.js';
 
 const LoginPage = lazy(() => import('./pages/LoginPage.jsx'));
 const CasesPage = lazy(() => import('./pages/CasesPage.jsx'));
@@ -217,6 +219,7 @@ function AppLayout() {
   function selectCase(caseId) {
     const nextCase = cases.find((item) => item.case_id === caseId);
     startTransition(() => {
+      if (activePage === 'cases') markNavigationTransition('nav-forward');
       setSelectedCaseId(caseId);
       setSelectedRunId(nextCase?.latest_run_id || '');
       // 从 cases 页面进入 → 跳转到 mission；否则保持当前页面，只切换 case 数据
@@ -237,6 +240,7 @@ function AppLayout() {
 
   function handleRunStarted(runRecord) {
     startTransition(() => {
+      markNavigationTransition('nav-forward');
       setSelectedRunId(runRecord.job_id);
       setActivePage('mission');
     });
@@ -245,8 +249,10 @@ function AppLayout() {
   }
 
   function navigate(page) {
+    const nextPage = PAGE_META[page] ? page : 'cases';
     startTransition(() => {
-      setActivePage(PAGE_META[page] ? page : 'cases');
+      if (nextPage !== activePage) markNavigationTransition('nav-lateral');
+      setActivePage(nextPage);
     });
   }
 
@@ -304,9 +310,9 @@ function AppLayout() {
   // Public verification page: no auth required, no sidebar/topbar
   if (activePage === 'verify') {
     return (
-      <Suspense fallback={<LoadingFallback />}>
+      <SuspenseReveal fallback={<LoadingFallback />}>
         <VerifyPage />
-      </Suspense>
+      </SuspenseReveal>
     );
   }
 
@@ -321,14 +327,15 @@ function AppLayout() {
 
   if (!authState.user) {
     return (
-      <Suspense fallback={<LoadingFallback />}>
+      <SuspenseReveal fallback={<LoadingFallback />}>
         <LoginPage onLogin={handleLogin} />
-      </Suspense>
+      </SuspenseReveal>
     );
   }
 
   return (
     <div className="audit-shell h-screen overflow-hidden lg:flex">
+      <a href="#main-content" className="skip-link">跳转到主要内容</a>
       <Sidebar
         activePage={activePage}
         onNavigate={navigate}
@@ -401,15 +408,19 @@ function AppLayout() {
           </div>
         ) : null}
 
-        <section className="mb-6">
-          <h2 className="metric-label">{pageTitle}</h2>
-          <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-500">{pageSubtitle}</p>
-        </section>
-
         <ErrorBoundary>
-          <Suspense fallback={<LoadingFallback />}>
-            <div className="animate-rise-in">{renderActivePage()}</div>
-          </Suspense>
+          <SuspenseReveal fallback={<LoadingFallback />}>
+            <PageViewTransition key={activePage}>
+              <div className="animate-rise-in">
+                <section className="mb-6">
+                  <h2 className="metric-label">{pageTitle}</h2>
+                  <p className="mt-2 max-w-3xl text-sm leading-6 text-ink-500">{pageSubtitle}</p>
+                </section>
+
+                {renderActivePage()}
+              </div>
+            </PageViewTransition>
+          </SuspenseReveal>
         </ErrorBoundary>
       </main>
     </div>

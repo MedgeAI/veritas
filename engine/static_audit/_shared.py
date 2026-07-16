@@ -23,13 +23,11 @@ from __future__ import annotations
 import json
 import logging
 import time
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from engine.exceptions import ToolExecutionError
-from runtime.executors.subprocess_executor import execute_subprocess
-from runtime.executors.base import ExecutionRequest
+from engine.tools.executor import ExecutionRequest, execute_subprocess
 
 # ---------------------------------------------------------------------------
 # Re-export from engine.shared for backward compatibility
@@ -44,6 +42,7 @@ from engine.shared import (  # noqa: F401
     InvestigationAction,
     ProgressCallback,
     StepResult,
+    StepStatus,
     _write_long_text_to_log,
     agent_step_status,
     artifact_exists,
@@ -167,6 +166,7 @@ def run_command(
     retry_delay_seconds: float = 0.0,
     progress: ProgressCallback | None = None,
     stream_output: bool = False,
+    timeout_seconds: int = 300,
 ) -> StepResult:
     """Run a command, delegating actual execution to the Runtime layer.
 
@@ -174,15 +174,23 @@ def run_command(
     "reused" (cache hit), "ran" (success), or "failed" (all attempts
     exhausted).  Progress events emitted: step_start, step_attempt,
     command_output, step_result.
+
+    WP6: New fields populated: runtime_seconds, attempts, output_artifacts, failure_type.
     """
+    # WP6: output artifacts as string paths
+    output_artifacts = [str(p) for p in expected_outputs]
+
     # Cache check: reuse existing outputs when not forced.
     if expected_outputs and exists_all(expected_outputs) and not force:
         result = StepResult(
             key=key,
             title=title,
-            status="reused",
+            status=StepStatus.REUSED,
             detail="Expected outputs already exist.",
             command=command,
+            runtime_seconds=0.0,
+            attempts=0,
+            output_artifacts=output_artifacts,
         )
         emit_step_result(progress, result)
         return result
@@ -191,6 +199,8 @@ def run_command(
     emit_step_start(progress, key, title, "Running deterministic command.", command)
 
     last_detail = ""
+    last_failure_type: str | None = None
+    step_start_time = time.monotonic()
 
     for attempt in range(1, attempts + 1):
         # Progress callback: translates executor events into run_command events.
@@ -213,7 +223,10 @@ def run_command(
             _command=command,
         ) -> None:
             _map_executor_event(
-                _progress, _key, _title, _command,
+                _progress,
+                _key,
+                _title,
+                _command,
                 event,
                 attempt=attempt,
                 total_attempts=total_attempts,
@@ -223,7 +236,7 @@ def run_command(
         request = ExecutionRequest(
             command=list(command),
             workdir=cwd,
-            timeout_seconds=300,
+            timeout_seconds=timeout_seconds,
             env=env,
             expected_outputs=list(expected_outputs),
             stream_output=stream_output,
@@ -236,9 +249,8 @@ def run_command(
         try:
             exec_result = execute_subprocess(request)
         except ToolExecutionError as exc:
-            last_detail = (
-                f"attempt={attempt}/{attempts} exit_code={exc.exit_code}"
-            )
+            last_detail = f"attempt={attempt}/{attempts} exit_code={exc.exit_code}"
+            last_failure_type = "timeout" if exc.timed_out else "nonzero_exit"
             if exc.stderr_tail:
                 last_detail += f" stderr_tail={exc.stderr_tail!r}"
             if exc.timed_out:
@@ -252,6 +264,7 @@ def run_command(
                 f"attempt={attempt}/{attempts} command succeeded "
                 f"but outputs missing: {missing}"
             )
+            last_failure_type = "missing_outputs"
             stdout_tail = text_tail(exec_result.stdout)
             if stdout_tail:
                 last_detail += f" stdout_tail={stdout_tail!r}"
@@ -269,15 +282,36 @@ def run_command(
             continue
 
         # Success
+        runtime_seconds = time.monotonic() - step_start_time
         detail = "Command completed successfully."
         if attempt > 1:
             detail = f"Command completed successfully after {attempt} attempts."
-        result = StepResult(key, title, "ran", detail, command)
+        result = StepResult(
+            key=key,
+            title=title,
+            status=StepStatus.RAN,
+            detail=detail,
+            command=command,
+            runtime_seconds=round(runtime_seconds, 3),
+            attempts=attempt,
+            output_artifacts=output_artifacts,
+        )
         emit_step_result(progress, result)
         return result
 
     # All attempts exhausted
-    result = StepResult(key, title, "failed", last_detail, command)
+    runtime_seconds = time.monotonic() - step_start_time
+    result = StepResult(
+        key=key,
+        title=title,
+        status=StepStatus.FAILED,
+        detail=last_detail,
+        command=command,
+        failure_type=last_failure_type or "unknown",
+        runtime_seconds=round(runtime_seconds, 3),
+        attempts=attempts,
+        output_artifacts=output_artifacts,
+    )
     emit_step_result(progress, result)
     return result
 
@@ -651,7 +685,7 @@ def run_cross_sheet_filter(
     workdir: Path,
     cross_sheet_findings: list[dict],
     llm_client: Any,
-) -> list[dict]:
+) -> tuple[list[dict], list[dict]]:
     """Filter cross-sheet findings by LLM column classification.
 
     Only keeps findings where the column is classified as "measurement".
@@ -661,16 +695,11 @@ def run_cross_sheet_filter(
     On LLM failure, returns all findings unchanged (conservative fallback)
     and logs a warning.
 
-    Args:
-        workdir: Working directory (for logging/artifacts).
-        cross_sheet_findings: List of cross-sheet finding dicts.
-        llm_client: VeritasLLMClient instance.
-
     Returns:
-        Filtered list of findings (only measurement columns).
+        Tuple of (filtered findings list, filter_reasons list for each dropped finding).
     """
     if not cross_sheet_findings:
-        return []
+        return [], []
 
     # Extract unique column names and sample values from findings
     column_names: set[str] = set()
@@ -694,7 +723,7 @@ def run_cross_sheet_filter(
 
     if not column_names:
         logger.warning("No column names found in cross-sheet findings")
-        return cross_sheet_findings
+        return cross_sheet_findings, []
 
     # Classify columns with LLM
     column_types = classify_columns_with_llm(
@@ -707,10 +736,11 @@ def run_cross_sheet_filter(
             "LLM column classification failed; keeping all %d cross-sheet findings",
             len(cross_sheet_findings),
         )
-        return cross_sheet_findings
+        return cross_sheet_findings, []
 
     # Filter: only keep findings where column is "measurement"
     filtered = []
+    filter_reasons: list[dict] = []
     for finding in cross_sheet_findings:
         col1 = finding.get("column_1") or finding.get("column")
         col2 = finding.get("column_2")
@@ -725,6 +755,15 @@ def run_cross_sheet_filter(
             finding_copy["column_1_type"] = col1_type
             finding_copy["column_2_type"] = col2_type
             filtered.append(finding_copy)
+        else:
+            filter_reasons.append(
+                {
+                    "finding_id": finding.get("finding_id"),
+                    "reason": f"columns classified as {col1_type}/{col2_type} (not measurement)",
+                    "column_1": col1,
+                    "column_2": col2,
+                }
+            )
 
     logger.info(
         "Cross-sheet filter: %d -> %d findings (filtered %d metadata/index columns)",
@@ -733,4 +772,4 @@ def run_cross_sheet_filter(
         len(cross_sheet_findings) - len(filtered),
     )
 
-    return filtered
+    return filtered, filter_reasons

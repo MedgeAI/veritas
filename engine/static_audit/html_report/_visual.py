@@ -155,7 +155,7 @@ def _visual_figure_cards(
                 img_tag = (
                     f'<img src="{h(panel_crop)}" alt="panel {h(panel_label)}" loading="lazy" />'
                     if panel_crop
-                    else '<div style="height:120px;background:#f4f0e6;border-radius:8px;"></div>'
+                    else '<div style="height:120px;background:#F3F4F6;border-radius:4px;"></div>'
                 )
                 panel_items.append(
                     f'<div class="visual-panel-card">'
@@ -171,7 +171,7 @@ def _visual_figure_cards(
         img_tag = (
             f'<img src="{h(image_path)}" alt="figure {h(label)}" loading="lazy" />'
             if image_path
-            else '<div style="height:180px;background:#f4f0e6;border-radius:12px;"></div>'
+            else '<div style="height:180px;background:#F3F4F6;border-radius:6px;"></div>'
         )
         cards.append(
             f'<div class="visual-figure-card">'
@@ -341,6 +341,8 @@ def _visual_finding_cards(
 
         source_panel_id = str(finding.get("source_panel_id") or "-")
         target_panel_id = str(finding.get("target_panel_id") or "-")
+        source_figure = str(finding.get("source_figure") or "")
+        target_figure = str(finding.get("target_figure") or "")
         score = finding.get("score", 0)
         overlay_path = finding.get("overlay_path")
         metadata = (
@@ -357,6 +359,10 @@ def _visual_finding_cards(
         target_panel = _resolve_panel(target_panel_id, panels_by_id)
         source_crop = str(source_panel.get("crop_path") or "")
         target_crop = str(target_panel.get("crop_path") or "")
+        if category == "visual_provenance_relationship":
+            source_panel_id = source_figure or source_panel_id
+            target_panel_id = target_figure or target_panel_id
+            quality_note = "figure-level provenance graph"
 
         benign = finding.get("benign_explanations") or []
         benign_items = []

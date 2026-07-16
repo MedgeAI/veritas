@@ -522,3 +522,160 @@ class TestEndToEndLayering:
         assert "Finding f1" in html
         assert "Finding f3" in html
         assert "Finding f5" in html
+
+
+# ---------------------------------------------------------------------------
+# New paperconan detector layer routing
+# ---------------------------------------------------------------------------
+
+
+class TestNewPaperconanDetectorLayerRouting:
+    """Verify new paperconan detectors route to correct layers via classify_finding().
+
+    These tests exercise the REAL classify_finding() function with realistic
+    finding dicts produced by the updated paperconan detectors. The token
+    matching mechanism in classify_finding() uses substring matching on
+    category and source_artifact fields to identify paperconan findings.
+    """
+
+    def test_cross_sheet_decimal_tail_reuse_low_goes_to_layer_3(self):
+        """cross_sheet_decimal_tail_reuse with severity=low -> Layer 3.
+
+        The 'decimal' token matches this detector kind, making is_paperconan=True.
+        With low risk_level, classify_finding() routes to layer_3.
+        """
+        finding = {
+            "risk_level": "low",
+            "category": "cross_sheet_decimal_tail_reuse",
+            "source_artifact": "paperconan_scan.json",
+            "decimal_tail": "00",
+            "tail_match_count": 12,
+        }
+        assert classify_finding(finding) == "layer_3"
+
+    def test_cross_sheet_decimal_tail_reuse_high_goes_to_layer_2(self):
+        """cross_sheet_decimal_tail_reuse with severity=high -> Layer 2.
+
+        Paperconan HIGH-risk findings go to Layer 2 (per PRD section 5).
+        The 'decimal' token matches, is_paperconan=True, risk=high -> layer_2.
+        """
+        finding = {
+            "risk_level": "high",
+            "category": "cross_sheet_decimal_tail_reuse",
+            "source_artifact": "paperconan_scan.json",
+            "decimal_tail": "00",
+            "tail_match_count": 50,
+        }
+        assert classify_finding(finding) == "layer_2"
+
+    def test_cross_sheet_column_duplicate_high_goes_to_layer_2(self):
+        """cross_sheet_column_duplicate with severity=high -> Layer 2.
+
+        The 'paperconan' token matches source_artifact 'paperconan_scan.json',
+        making is_paperconan=True. Paperconan HIGH-risk goes to Layer 2 (per PRD section 5).
+        """
+        finding = {
+            "risk_level": "high",
+            "category": "cross_sheet_column_duplicate",
+            "source_artifact": "paperconan_scan.json",
+            "same_position_count": 45,
+            "fraction_of_smaller": 0.95,
+        }
+        assert classify_finding(finding) == "layer_2"
+
+    def test_cross_sheet_column_duplicate_low_goes_to_layer_3(self):
+        """cross_sheet_column_duplicate with severity=low -> Layer 3.
+
+        Low risk always goes to layer_3 regardless of paperconan matching.
+        """
+        finding = {
+            "risk_level": "low",
+            "category": "cross_sheet_column_duplicate",
+            "source_artifact": "paperconan_scan.json",
+            "same_position_count": 10,
+            "fraction_of_smaller": 0.5,
+        }
+        assert classify_finding(finding) == "layer_3"
+
+    def test_recurring_row_vector_high_goes_to_layer_2(self):
+        """recurring_row_vector with severity=high -> Layer 2.
+
+        The 'vector' token matches 'recurring_row_vector', making is_paperconan=True.
+        Paperconan HIGH-risk goes to Layer 2 (per PRD section 5).
+        """
+        finding = {
+            "risk_level": "high",
+            "category": "recurring_row_vector",
+            "source_artifact": "paperconan_scan.json",
+            "vector": [1, 2, 3],
+            "pattern": "arithmetic",
+            "n_occurrences": 7,
+        }
+        assert classify_finding(finding) == "layer_2"
+
+    def test_recurring_row_vector_low_goes_to_layer_3(self):
+        """recurring_row_vector with severity=low -> Layer 3."""
+        finding = {
+            "risk_level": "low",
+            "category": "recurring_row_vector",
+            "source_artifact": "paperconan_scan.json",
+            "vector": [1, 2],
+        }
+        assert classify_finding(finding) == "layer_3"
+
+    def test_within_table_fraction_reuse_high_goes_to_layer_2(self):
+        """within_table_fraction_reuse with severity=high -> Layer 2.
+
+        The 'fraction' token matches, is_paperconan=True, high risk -> layer_2.
+        """
+        finding = {
+            "risk_level": "high",
+            "category": "within_table_fraction_reuse",
+            "source_artifact": "paperconan_scan.json",
+            "fraction_of_smaller": 0.80,
+            "block_a": "A1:A20",
+            "block_b": "C1:C20",
+        }
+        assert classify_finding(finding) == "layer_2"
+
+    def test_integer_diff_shared_fraction_medium_goes_to_layer_2(self):
+        """integer_diff_shared_fraction with severity=medium -> Layer 2.
+
+        The 'fraction' token matches. Medium risk always goes to layer_2.
+        """
+        finding = {
+            "risk_level": "medium",
+            "category": "integer_diff_shared_fraction",
+            "source_artifact": "paperconan_scan.json",
+            "n_shared_fraction": "15/20",
+            "n_high_precision": 10,
+        }
+        assert classify_finding(finding) == "layer_2"
+
+    def test_partial_constant_offset_high_goes_to_layer_2(self):
+        """partial_constant_offset with severity=high -> Layer 2.
+
+        The 'constant' token matches, is_paperconan=True, high risk -> layer_2.
+        """
+        finding = {
+            "risk_level": "high",
+            "category": "partial_constant_offset",
+            "source_artifact": "paperconan_scan.json",
+            "run_length": 8,
+            "offset": 0.5,
+        }
+        assert classify_finding(finding) == "layer_2"
+
+    def test_row_pair_digit_coupling_high_goes_to_layer_2(self):
+        """row_pair_digit_coupling with severity=high -> Layer 2.
+
+        The 'digit' token matches, is_paperconan=True, high risk -> layer_2.
+        """
+        finding = {
+            "risk_level": "high",
+            "category": "row_pair_digit_coupling",
+            "source_artifact": "paperconan_scan.json",
+            "examples": "5 pairs",
+            "same_decimal1": 4,
+        }
+        assert classify_finding(finding) == "layer_2"

@@ -31,7 +31,7 @@ from typing import Any, AsyncIterator, Literal
 from sqlalchemy import text
 
 from .database import create_db_engine, create_session_factory, get_database_url
-from .models import utc_now
+from .models import to_iso_timestamp, utc_now
 from .sse_buffer import SSEEventBuffer, get_event_buffer
 
 logger = logging.getLogger(__name__)
@@ -59,6 +59,39 @@ _LEGACY_LIFECYCLE_TYPES = frozenset(
 )
 
 
+def _normalise_step_payload(data: dict[str, Any]) -> dict[str, Any]:
+    """Return step payload fields expected by browser SSE consumers."""
+    step_key = data.get("step_key") or data.get("key") or data.get("step")
+    normalised = dict(data)
+    if step_key is not None:
+        normalised["step_key"] = step_key
+    return normalised
+
+
+def _canonical_stream_event(
+    event_type: str, data: dict[str, Any]
+) -> tuple[str, dict[str, Any]]:
+    """Map stored internal progress events to public SSE event names."""
+    if event_type == "step_start":
+        return "step.start", _normalise_step_payload(data)
+    if event_type == "step_progress":
+        return "step.progress", _normalise_step_payload(data)
+    if event_type == "step_result":
+        normalised = _normalise_step_payload(data)
+        status = str(normalised.get("status") or "")
+        if status in {"ran", "reused"}:
+            normalised["status"] = "success"
+            return "step.complete", normalised
+        if status in {"failed", "error"}:
+            normalised["error"] = normalised.get("error") or normalised.get("detail")
+            return "step.failed", normalised
+        if status.startswith("skipped"):
+            normalised["reason"] = normalised.get("reason") or normalised.get("detail")
+            return "step.skipped", normalised
+        return "step.complete", normalised
+    return event_type, data
+
+
 # ---------------------------------------------------------------------------
 # Sync: called from Celery worker process
 # ---------------------------------------------------------------------------
@@ -70,6 +103,7 @@ def notify_progress(
     data: dict[str, Any] | None = None,
     *,
     database_url: str | None = None,
+    engine: Any | None = None,
 ) -> None:
     """Persist a progress event and notify listeners via ``pg_notify``.
 
@@ -94,11 +128,14 @@ def notify_progress(
     database_url:
         Override for testing.  Defaults to the standard
         ``VERITAS_DATABASE_URL`` resolution.
+    engine:
+        SQLAlchemy engine to reuse.  If ``None``, a new engine is created
+        and disposed when the function completes.
     """
     data = data or {}
-    db_url = database_url or get_database_url()
-    engine = create_db_engine(db_url)
-    session_factory = create_session_factory(engine)
+    own_engine = engine is None
+    eng = engine if engine is not None else create_db_engine(database_url or get_database_url())
+    session_factory = create_session_factory(eng)
     session = session_factory()
     ts = utc_now()
     notify_payload = json.dumps(
@@ -114,7 +151,7 @@ def notify_progress(
         session.execute(
             text(
                 "INSERT INTO run_events (run_id, event_type, payload, created_at) "
-                "VALUES (:run_id, :event_type, :payload, :ts)"
+                "VALUES (:run_id, :event_type, CAST(:payload AS jsonb), :ts)"
             ),
             {
                 "run_id": run_id,
@@ -158,7 +195,8 @@ def notify_progress(
         raise
     finally:
         session.close()
-        engine.dispose()
+        if own_engine:
+            eng.dispose()
 
 
 # ---------------------------------------------------------------------------
@@ -202,8 +240,9 @@ def _format_sse(
 def _format_buffered_sse(event: dict[str, Any]) -> str:
     """Format a buffered event dict as an SSE frame."""
     event_id = event.get("id")
-    event_type = event.get("type", "progress")
-    data = event.get("data", {})
+    event_type, data = _canonical_stream_event(
+        event.get("type", "progress"), event.get("data", {})
+    )
     # Add timestamp to data if not present.
     if "timestamp" not in data:
         data = {"timestamp": event.get("timestamp"), **data}
@@ -269,10 +308,13 @@ async def sse_event_stream(
         # Fast path: replay buffered events that the client missed.
         buffered_events = event_buffer.get_since(run_id, str(last_id))
         for ev in buffered_events:
-            if _matches_level(ev.get("type", "progress"), level):
+            event_type, _event_payload = _canonical_stream_event(
+                ev.get("type", "progress"), ev.get("data", {})
+            )
+            if _matches_level(event_type, level):
                 last_id = int(ev["id"])
                 yield _format_buffered_sse(ev)
-                if ev.get("type") in _TERMINAL_STATUSES:
+                if event_type in _TERMINAL_STATUSES:
                     return
 
         while True:
@@ -305,7 +347,7 @@ async def sse_event_stream(
                                 "id": row[0],
                                 "event_type": row[1],
                                 "payload": payload,
-                                "timestamp": row[3],
+                                "timestamp": to_iso_timestamp(row[3]),
                             }
                         )
                     # Read current run status to detect terminal state.
@@ -325,13 +367,15 @@ async def sse_event_stream(
             # Yield any new events.
             for ev in events:
                 last_id = ev["id"]
-                event_type = ev["event_type"]
+                event_type, event_payload = _canonical_stream_event(
+                    ev["event_type"], ev["payload"]
+                )
                 # Filter events by level.
                 if not _matches_level(event_type, level):
                     continue
                 frame_data: dict[str, Any] = {
                     "timestamp": ev["timestamp"],
-                    **ev["payload"],
+                    **event_payload,
                 }
                 yield _format_sse(event_type, frame_data, event_id=ev["id"])
                 # Update heartbeat timestamp whenever we send data.

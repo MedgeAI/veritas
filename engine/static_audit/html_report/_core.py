@@ -85,6 +85,9 @@ from engine.static_audit.html_report._source_data import (
     pair_forensics_table,
     paperfraud_rule_section,
 )
+from engine.static_audit.html_report._numeric_forensics import (
+    render_numeric_forensics_sections,
+)
 from engine.static_audit.html_report._visual import visual_evidence_section
 from engine.static_audit.investigation import read_investigation_records
 from engine.static_audit.paths import resolve_artifact_path
@@ -115,6 +118,13 @@ def _load_report_artifacts(workdir: Path) -> dict[str, Any]:
         "verdict_data": _load("source_data_findings_verdict.json"),
         "certainty_data": _load("certainty_data.json"),
         "investigation_records": read_investigation_records(workdir),
+        # PRD WP2/WP3/WP5/WP7/WP8 new artifacts
+        "paperconan_signals": _load("numeric/paperconan_signals.json"),
+        "paperconan_translation_ledger": _load(
+            "numeric/paperconan_translation_ledger.json"
+        ),
+        "numeric_prefilter_ledger": _load("numeric/numeric_prefilter_ledger.json"),
+        "enriched_signals": _load("numeric/enriched_signals.json"),
     }
 
 
@@ -336,6 +346,16 @@ def render_static_audit_html(
     # Load all artifacts
     artifacts = _load_report_artifacts(workdir)
 
+    # Load typed numeric forensics artifact for safe field access
+    from engine.static_audit.typed_adapters import NumericForensicsArtifact
+
+    _numeric_raw = artifacts["numeric"]
+    _numeric_typed = (
+        NumericForensicsArtifact.from_dict(_numeric_raw)
+        if isinstance(_numeric_raw, dict)
+        else None
+    )
+
     # Build verdict index and process findings
     verdict_by_id = _build_verdict_index(artifacts["verdict_data"])
     primary_findings = collect_report_findings(
@@ -440,6 +460,36 @@ def render_static_audit_html(
       </aside>
     </section>
 
+    <aside class="report-filters" id="report-filters">
+      <fieldset>
+        <legend>搜索</legend>
+        <input type="search" id="report-search" placeholder="搜索 ID、类别、内容..." />
+      </fieldset>
+      <fieldset id="sev-filter">
+        <legend>严重性</legend>
+        <label><input type="checkbox" value="critical" checked />Critical</label>
+        <label><input type="checkbox" value="high" checked />High</label>
+        <label><input type="checkbox" value="medium" checked />Medium</label>
+        <label><input type="checkbox" value="low" checked />Low</label>
+        <label><input type="checkbox" value="context" checked />Context</label>
+        <label><input type="checkbox" value="info" checked />Info</label>
+      </fieldset>
+      <fieldset id="layer-filter">
+        <legend>层级</legend>
+        <label><input type="checkbox" value="layer_1" checked />Layer 1</label>
+        <label><input type="checkbox" value="layer_2" checked />Layer 2</label>
+        <label><input type="checkbox" value="layer_3" checked />Layer 3</label>
+      </fieldset>
+      <fieldset id="cat-filter">
+        <legend>类别</legend>
+        <label><input type="checkbox" value="consistency" checked />一致性</label>
+        <label><input type="checkbox" value="matching" checked />匹配性</label>
+        <label><input type="checkbox" value="completeness" checked />完整性</label>
+      </fieldset>
+      <button type="button" id="filter-reset">重置</button>
+      <span class="filter-count" id="filter-count"></span>
+    </aside>
+
     <section class="section" id="top-patterns">
       <div class="section-head"><div><h2>必须立即追问</h2>
         <p class="muted">risk_level ∈ {{critical, high}} 且 issue_category == consistency 的 top 20 记录</p></div>
@@ -477,6 +527,8 @@ def render_static_audit_html(
     </section>
 
     <section class="panel section" id="paperfraud-rules">{paperfraud_rule_section(artifacts["paperfraud_matches"])}</section>
+
+    {render_numeric_forensics_sections(artifacts)}
 
     <section class="panel section" id="coverage">
       <h2>覆盖范围与限制</h2>
@@ -550,10 +602,10 @@ def render_static_audit_html(
               <div>错误数</div><div>{h(report_data["source_summary"].get("errors", "-"))}</div>
             </div></div>
             <div class="lane"><h3>PDF 数字取证</h3><div class="kv">
-              <div>提取数字数</div><div>{h(artifacts["numeric"].get("all_number_count", "-"))}</div>
-              <div>有效数字数</div><div>{h(artifacts["numeric"].get("number_count", "-"))}</div>
-              <div>表格数</div><div>{h(artifacts["numeric"].get("table_count", "-"))}</div>
-              <div>Benford MAD</div><div>{h((artifacts["numeric"].get("benford") or {}).get("mad", (artifacts["numeric"].get("benford") or {}).get("mean_absolute_deviation", "-")))}</div>
+              <div>提取数字数</div><div>{h(_numeric_typed.all_number_count if _numeric_typed else "-")}</div>
+              <div>有效数字数</div><div>{h(_numeric_typed.number_count if _numeric_typed else "-")}</div>
+              <div>表格数</div><div>{h(_numeric_typed.table_count if _numeric_typed else "-")}</div>
+              <div>Benford MAD</div><div>{h(_numeric_typed.benford_mad if _numeric_typed else "-")}</div>
             </div></div>
             <div class="lane"><h3>图像检查</h3><div class="kv">
               <div>图片数</div><div>{h(report_data["exact_images"].get("image_count", "-"))}</div>
@@ -577,6 +629,59 @@ def render_static_audit_html(
     <div class="footer">生成时间：{h(datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ"))}。{f"报告编号：{h(report_id)}。" if report_id else ""}报告只展示技术记录和复核入口，关键结论必须人工确认。</div>
     <div class="gatekeeper-footer gatekeeper-only">本报告由 Veritas 独立签发，不可篡改 · Immutable Record{f" — {h(report_id)}" if report_id else ""} — 所有证据链均来自确定性工具执行产物</div>
   </main>
+  <script>
+  (function() {{
+    const search = document.getElementById("report-search");
+    const filterCount = document.getElementById("filter-count");
+    const filterBar = document.getElementById("report-filters");
+    const resetBtn = document.getElementById("filter-reset");
+    const cardSelector = ".finding-card, .pattern-card, .cluster-card";
+
+    function getChecked(fieldsetId) {{
+      const boxes = document.querySelectorAll("#" + fieldsetId + " input[type=checkbox]");
+      return Array.from(boxes).filter(b => b.checked).map(b => b.value);
+    }}
+
+    function applyFilters() {{
+      const searchVal = (search ? search.value : "").toLowerCase();
+      const sevFilters = getChecked("sev-filter");
+      const layerFilters = getChecked("layer-filter");
+      const catFilters = getChecked("cat-filter");
+      const cards = document.querySelectorAll(cardSelector);
+      let visible = 0;
+
+      cards.forEach(card => {{
+        const risk = card.dataset.risk || "";
+        const layer = card.dataset.layer || "";
+        const cat = card.dataset.category || "";
+        const text = card.textContent.toLowerCase();
+
+        const matchSev = !risk || sevFilters.length === 0 || sevFilters.includes(risk);
+        const matchLayer = !layer || layerFilters.length === 0 || layerFilters.includes(layer);
+        const matchCat = !cat || catFilters.length === 0 || catFilters.includes(cat);
+        const matchSearch = !searchVal || text.includes(searchVal);
+
+        const show = matchSev && matchLayer && matchCat && matchSearch;
+        card.style.display = show ? "" : "none";
+        if (show) visible++;
+      }});
+
+      filterCount.textContent = visible + " / " + cards.length + " 条记录";
+    }}
+
+    if (search) search.addEventListener("input", applyFilters);
+    document.querySelectorAll("#sev-filter input, #layer-filter input, #cat-filter input")
+      .forEach(cb => cb.addEventListener("change", applyFilters));
+    if (resetBtn) resetBtn.addEventListener("click", function() {{
+      document.querySelectorAll(".report-filters input[type=checkbox]").forEach(cb => cb.checked = true);
+      if (search) search.value = "";
+      applyFilters();
+    }});
+
+    // Initial count
+    applyFilters();
+  }})();
+  </script>
 </body>
 </html>
 """

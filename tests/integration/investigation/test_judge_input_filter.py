@@ -261,6 +261,93 @@ class TestFilterJudgeInput:
         assert filtered[1]["_layer"] == "layer_2"
         assert filtered[2]["_layer"] == "layer_2"
 
+    def test_layer3_new_detectors_filtered_from_judge(self):
+        """New paperconan detectors with low severity are filtered from Judge.
+
+        Low-severity paperconan findings (cross_sheet_decimal_tail_reuse,
+        cross_sheet_column_duplicate with same_figure, etc.) route to Layer 3
+        and must be excluded from Judge input.
+        """
+        from engine.static_audit._shared import filter_judge_input
+        findings = [
+            {
+                "category": "cross_sheet_decimal_tail_reuse",
+                "risk_level": "low",
+                "source_artifact": "paperconan_scan.json",
+                "decimal_tail": "00",
+                "tail_match_count": 12,
+            },
+            {
+                "category": "cross_sheet_column_duplicate",
+                "risk_level": "low",
+                "source_artifact": "paperconan_scan.json",
+                "same_position_count": 10,
+            },
+            {
+                "category": "recurring_row_vector",
+                "risk_level": "low",
+                "source_artifact": "paperconan_scan.json",
+                "vector": [1, 2, 3],
+            },
+            {
+                "category": "within_table_fraction_reuse",
+                "risk_level": "low",
+                "source_artifact": "paperconan_scan.json",
+                "fraction_of_smaller": 0.80,
+            },
+        ]
+        filtered = filter_judge_input(findings)
+        assert len(filtered) == 0
+
+    def test_layer2_new_detectors_preserved_for_judge(self):
+        """New paperconan detectors with high severity are preserved for Judge.
+
+        High-severity paperconan findings (decimal_tail_reuse, fraction_reuse,
+        recurring_row_vector, etc.) route to Layer 2 via the 'decimal'/'fraction'/
+        'vector'/'constant' token matching and must be included in Judge input.
+        """
+        from engine.static_audit._shared import filter_judge_input
+        findings = [
+            {
+                "category": "cross_sheet_decimal_tail_reuse",
+                "risk_level": "high",
+                "source_artifact": "paperconan_scan.json",
+                "decimal_tail": "00",
+                "tail_match_count": 50,
+            },
+            {
+                "category": "recurring_row_vector",
+                "risk_level": "high",
+                "source_artifact": "paperconan_scan.json",
+                "vector": [1, 2, 3],
+                "n_occurrences": 7,
+            },
+            {
+                "category": "within_table_fraction_reuse",
+                "risk_level": "high",
+                "source_artifact": "paperconan_scan.json",
+                "fraction_of_smaller": 0.80,
+            },
+            {
+                "category": "partial_constant_offset",
+                "risk_level": "high",
+                "source_artifact": "paperconan_scan.json",
+                "run_length": 8,
+                "offset": 0.5,
+            },
+            {
+                "category": "row_pair_digit_coupling",
+                "risk_level": "high",
+                "source_artifact": "paperconan_scan.json",
+                "same_decimal1": 4,
+            },
+        ]
+        filtered = filter_judge_input(findings)
+        # All 5 should be Layer 2 (paperconan HIGH)
+        assert len(filtered) == 5
+        for f in filtered:
+            assert f["_layer"] == "layer_2"
+
 
 class TestJudgeOutputSchema:
     """Test that Judge output schema is unchanged."""

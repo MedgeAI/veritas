@@ -1,10 +1,12 @@
 # audit-paper Pipeline 说明
 
-更新时间：2026-06-29
+更新时间：2026-07-01
 
 本文描述当前 `audit-paper` 的实际数据流、Agent 参与位置、真实 case 暴露的断点，以及下一版需要收敛的 pipeline contract。
 
 2026-06-29 校准：报告生成已重构为 `report/` 子包（`generator.py`、`claims.py`、`evidence.py`、`findings.py`、`sections.py`）。新增 `report_id.py`（报告 ID 生成，格式 `VRT-YYYYMM-XXXXXX`）和 `verify_store.py`（公开验证数据存储）。前端已演进为三入口架构（client/ops/verify）。`orchestrator.py` 仍是 backward-compat shim。Tool Registry 当前 30 个 ToolDefinition，按 `ExecutionPhase` 四层分类：`MANDATORY_BASELINE` / `CONDITIONAL_BASELINE` / `AGENT_SELECTABLE` / `REPORT_ONLY`。
+
+2026-07-01 校准：新增**审计档案（Audit Profiles）**机制——`fast`/`standard`/`full` 三档，控制工具执行深度。`investigation_dispatch.py` 的依赖层叠从 O(R²×A) 优化至 O(R×A)（预构建 artifact→producer 索引）。新增 `stale_run_watchdog.py` 监控长时间无心跳运行。视觉取证 pipeline 和 figure classification 完成重构。LLM 客户端新增 markdown fence 自动剥离和 async enrichment。
 
 ## 输入
 
@@ -24,6 +26,18 @@ make audit-fresh PAPER_DIR=<paper_dir> CASE_ID=<case_id> AGENT_TIMEOUT_SECONDS=3
 ```
 
 如果想复用已有 MinerU 解析产物，不要加 `--fresh --force`，并使用已有产物所在的同一个 `case_id`。
+
+## 审计档案（Audit Profiles）
+
+`audit-paper` 支持三档审计档案，控制工具执行深度和范围：
+
+| 档案 | 用途 | 工具执行范围 |
+|---|---|---|
+| `fast` | 快速预览，跳过重型工具 | 仅 MANDATORY_BASELINE 中的轻量工具（MinerU、exact_duplicates、panel_extraction），跳过 TruFor、provenance_graph、copy-move |
+| `standard` | 默认审计 | MANDATORY_BASELINE + CONDITIONAL_BASELINE，含 TruFor（有 GPU 时）、provenance_graph |
+| `full` | 完整审计 | 所有工具，含 AGENT_SELECTABLE 中的 investigation rounds |
+
+通过 `--profile <name>` 或 `pipeline.py` 的 `profile` 参数指定。`fast` 适合材料预检和快速反馈，`standard` 适合日常审查，`full` 适合深度调查。
 
 ## 当前实际数据流
 
@@ -556,7 +570,11 @@ completeness  材料缺失、代码/环境/原始数据未提供
 - 代码执行型 runtime 审查尚未并入 `audit-paper` 主链路。
 - `engine/ground_truth/` 提供标注解析（`parser.py`）、claim-finding 映射（`mapper.py`）、PRD gap 分析（`gap_analyzer.py`）和过拟合防护（`anti_overfit.py`），用于验证 pipeline 输出质量，不是审查主链路。
 - `engine/follow_up/` 生成 Follow-up 行动建议，通过 Web `ActionsPage` 展示。
-- `engine/tasks/` 提供 Celery 异步任务路径（`audit_task.py`、`embedding_task.py`、`stale_run_watchdog.py`），生产部署使用。
+- `engine/tasks/` 提供 Celery 异步任务路径（`audit_task.py`、`embedding_task.py`、`stale_run_watchdog.py`），生产部署使用。`stale_run_watchdog.py` 监控长时间无心跳的审计运行，自动恢复或标记失败。
+- `engine/investigation/context_pack.py` 重构为可注入的 `_read` callable，提升 bounded context pack 的可测试性。
+- `engine/llm/client.py` 新增 markdown fence 自动剥离，避免 LLM 返回 JSON 时包裹 ```json``` 导致解析失败。
+- `engine/reporting/text_generator.py` 重构为 dataclass 驱动的并发 LLM 调用（async enrichment）。
+- `engine/static_audit/investigation_dispatch.py` 依赖层叠从 O(R²×A) 优化至 O(R×A)——预构建 artifact→producer 索引，避免对每个 input_artifact 扫描所有角色。
 - `engine/static_audit/report/` 子包负责报告数据聚合和渲染：`generator.py`（主入口 `generate_report`）、`claims.py`（claim 数据）、`evidence.py`（evidence 数据）、`findings.py`（finding 数据）、`sections.py`（报告章节构建）。
 - `engine/static_audit/report_id.py` 生成报告 ID（格式 `VRT-YYYYMM-XXXXXX`）。
 - `engine/static_audit/verify_store.py` 提供公开验证数据加载和 report_id 校验。

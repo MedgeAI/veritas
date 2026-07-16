@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -14,6 +13,7 @@ from engine.investigation.agent_step_runner import AgentStepRunner
 from engine.investigation.context_pack import AgentContextPack
 from engine.investigation.validators import extract_json
 from engine.shared import resolve_artifact_path
+from engine.tools.executor import run_simple_command
 
 
 @dataclass
@@ -24,6 +24,7 @@ class AgentRunResult:
     command: list[str]
     runtime_seconds: float
     retries: int = 0
+    metadata: dict[str, Any] | None = None
 
 
 def write_agent_result(path: Path, result: AgentRunResult, fallback_kind: str) -> None:
@@ -42,7 +43,7 @@ def write_agent_result(path: Path, result: AgentRunResult, fallback_kind: str) -
 
 
 def result_metadata(result: AgentRunResult, output_path: Path) -> dict[str, Any]:
-    return {
+    metadata = {
         "status": result.status,
         "detail": result.detail,
         "runtime_seconds": round(result.runtime_seconds, 3),
@@ -50,6 +51,9 @@ def result_metadata(result: AgentRunResult, output_path: Path) -> dict[str, Any]
         "command": result.command,
         "output": str(output_path),
     }
+    if result.metadata:
+        metadata["metadata"] = result.metadata
+    return metadata
 
 
 def _convert_runner_result(
@@ -90,6 +94,7 @@ def _convert_runner_result(
             command=[],
             runtime_seconds=new_result.runtime_seconds,
             retries=max(new_result.metadata.get("attempts", 1) - 1, 0),
+            metadata=new_result.metadata,
         )
 
     if status == "ok":
@@ -106,6 +111,7 @@ def _convert_runner_result(
         command=[],
         runtime_seconds=new_result.runtime_seconds,
         retries=max(new_result.metadata.get("attempts", 1) - 1, 0),
+        metadata=new_result.metadata,
     )
 
 
@@ -195,22 +201,17 @@ def _run_opencode_json(
             )
             command[2] = attempt_prompt
         start = time.monotonic()
-        try:
-            completed = subprocess.run(
-                command,
-                cwd=project_root,
-                env=env,
-                text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                timeout=timeout_seconds,
-                check=False,
-            )
-        except subprocess.TimeoutExpired:
+        completed = run_simple_command(
+            command,
+            cwd=project_root,
+            env=env,
+            timeout=timeout_seconds,
+        )
+        if completed.returncode == 124:
             last_detail = f"opencode {expected} timed out after {timeout_seconds}s"
             continue
-        except OSError as exc:
-            last_detail = f"opencode launch failed: {exc}"
+        if completed.returncode == 127:
+            last_detail = f"opencode launch failed: {completed.stderr}"
             break
         runtime = time.monotonic() - start
         if completed.returncode != 0:
@@ -352,6 +353,7 @@ def _claims_from_mappings(mappings: list[dict[str, Any]]) -> list[dict[str, Any]
                 "paper_location": mapping.get("source_figure_id"),
                 "evidence_refs": [mapping.get("mapping_id"), mapping.get("sheet")],
                 "status": "needs_review",
+                "claim_source": "candidate_claim",
             }
         )
     return claims
@@ -439,6 +441,13 @@ def _artifact_summary_evidence_section(
     numeric: dict[str, Any],
 ) -> dict[str, Any]:
     """Build evidence ledger and numeric forensics summary sections."""
+    from engine.static_audit.typed_adapters import NumericForensicsArtifact
+
+    typed = (
+        NumericForensicsArtifact.from_dict(numeric)
+        if isinstance(numeric, dict)
+        else None
+    )
     return {
         "evidence_ledger_stats": ledger.get("stats", {}),
         "evidence_ledger_warnings": [
@@ -447,12 +456,22 @@ def _artifact_summary_evidence_section(
             if isinstance(item, dict)
         ],
         "numeric_forensics": {
-            "all_number_count": numeric.get("all_number_count"),
-            "number_count": numeric.get("number_count"),
-            "table_count": numeric.get("table_count"),
-            "effective_scope": numeric.get("effective_scope"),
-            "benford_applicability": (numeric.get("benford") or {}).get("applicability"),
-            "benford_mad": (numeric.get("benford") or {}).get(
+            "all_number_count": typed.all_number_count
+            if typed
+            else numeric.get("all_number_count"),
+            "number_count": typed.number_count
+            if typed
+            else numeric.get("number_count"),
+            "table_count": typed.table_count if typed else numeric.get("table_count"),
+            "effective_scope": typed.effective_scope
+            if typed
+            else numeric.get("effective_scope"),
+            "benford_applicability": typed.benford_applicability
+            if typed
+            else (numeric.get("benford") or {}).get("applicability"),
+            "benford_mad": typed.benford_mad
+            if typed
+            else (numeric.get("benford") or {}).get(
                 "mad", (numeric.get("benford") or {}).get("mean_absolute_deviation")
             ),
         },
@@ -632,9 +651,13 @@ def _artifact_summary(workdir: Path) -> dict[str, Any]:
     # Build sections (investigation_records intentionally excluded:
     # build_investigation_plan_prompt injects previous_records separately,
     # avoiding double injection of the same data into the prompt.)
-    summary.update(_artifact_summary_material_section(material_inventory, material_plan))
+    summary.update(
+        _artifact_summary_material_section(material_inventory, material_plan)
+    )
     summary.update(_artifact_summary_evidence_section(ledger, numeric))
-    summary.update(_artifact_summary_source_data_section(source_findings, pair_forensics))
+    summary.update(
+        _artifact_summary_source_data_section(source_findings, pair_forensics)
+    )
     summary.update(_artifact_summary_briefings_section(workdir))
     summary.update(_artifact_summary_image_section(image_duplicates, image_similarity))
     summary.update(_artifact_summary_visual_section(visual_findings))

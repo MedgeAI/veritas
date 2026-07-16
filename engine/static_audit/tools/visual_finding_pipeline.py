@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
+from pathlib import Path
 from typing import Any
 
 from engine.static_audit.visual_constants import (
@@ -675,6 +676,22 @@ def _build_trufor_finding(
         if check_language_compliance(text):
             return None
 
+    # 仅为 medium/high/critical 级别的 finding 保留 overlay_path
+    overlay_path = (
+        _optional_str(fre.get("localization_map_path"))
+        if _risk_rank(risk_level) >= RISK_RANK["medium"]
+        else None
+    )
+    # N8: Fallback path inference when localization_map_path is null
+    if (
+        overlay_path is None
+        and _risk_rank(risk_level) >= RISK_RANK["medium"]
+        and figure_id
+    ):
+        fallback_path = f"visual/tru_for/{figure_id}_pred_map.png"
+        if Path(fallback_path).exists():
+            overlay_path = fallback_path
+
     return {
         "finding_id": f"VF-{counter:04d}",
         "category": "forged_region_suspicious",
@@ -686,10 +703,7 @@ def _build_trufor_finding(
         "score": _normalized_score(integrity_score),
         "benign_explanations": benign,
         "manual_review_questions": questions,
-        # 仅为 medium/high/critical 级别的 finding 保留 overlay_path
-        "overlay_path": _optional_str(fre.get("localization_map_path"))
-        if _risk_rank(risk_level) >= RISK_RANK["medium"]
-        else None,
+        "overlay_path": overlay_path,
         "metadata": {
             "source": "tru_for",
             "forged_region_evidence_id": str(

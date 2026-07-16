@@ -1,7 +1,7 @@
 /**
  * ResolutionChoice — Decision choice card.
  *
- * Props: { icon, title, subtitle, desc, price, selected, onClick, primary? }
+ * Props: { icon, title, subtitle, desc, price, selected, onClick }
  * Card with icon left, content middle, price right.
  * Selected: accent border + bg.
  * Reference: prototype Choice component
@@ -15,14 +15,13 @@ export default function ResolutionChoice({
   price,
   selected = false,
   onClick,
-  primary = false,
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
       className={`relative flex w-full items-start rounded-sm border-2 p-[22px] text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-500/50 ${
-        selected || primary
+        selected
           ? 'border-accent-500 bg-accent-50/50'
           : 'border-paper-200 bg-white hover:border-paper-300 hover:bg-paper-50/50'
       }`}
@@ -33,7 +32,7 @@ export default function ResolutionChoice({
         <Icon
           size={18}
           strokeWidth={1.4}
-          className={`shrink-0 ${selected || primary ? 'text-accent-700' : 'text-ink-500'}`}
+          className={`shrink-0 ${selected ? 'text-accent-700' : 'text-ink-500'}`}
         />
       )}
       <div className="ml-4 min-w-0 flex-1">

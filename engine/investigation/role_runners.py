@@ -63,7 +63,40 @@ def build_role_prompt(*, role_id: str, case_id: str, workdir: Path) -> str:
     summary = _artifact_summary(workdir)
     role_specific_rules = ""
     if role_id == "claim_extractor":
+        # Build allowed reference menu from grounding_index.json
+        allowed_refs_text = "(grounding_index.json not found)"
+        grounding_path = workdir / "grounding_index.json"
+        if grounding_path.exists():
+            try:
+                _gi_data = json.loads(grounding_path.read_text(encoding="utf-8"))
+                _fig_ids = _gi_data.get("figure_ids", [])
+                _tbl_ids = _gi_data.get("table_ids", [])
+                _menu_parts: list[str] = []
+                if _fig_ids:
+                    _menu_parts.append(f"figure_ids: {json.dumps(_fig_ids, ensure_ascii=False)}")
+                if _tbl_ids:
+                    _menu_parts.append(f"table_ids: {json.dumps(_tbl_ids, ensure_ascii=False)}")
+                allowed_refs_text = "\n".join(_menu_parts) if _menu_parts else "(no figure or table IDs in grounding index)"
+            except (json.JSONDecodeError, UnicodeDecodeError):
+                allowed_refs_text = "(failed to parse grounding_index.json)"
+
         contract = f"""
+Read full.md (provided in bounded_excerpts) and extract every verifiable claim:
+numeric values with units, method descriptions, and figure/table traces.
+
+For each claim, populate exactly three fields:
+  claim_text: the verbatim sentence from the paper
+  claim_type: one of numeric | method | figure_trace | other
+  mentioned_refs: figure/table IDs from the allowed menu below ONLY
+
+Allowed reference menu (mention_refs MUST be chosen exclusively from these lists):
+{allowed_refs_text}
+
+Forbidden:
+- Generating figure/table IDs not present in the allowed menu above
+- Searching for or inventing source data locations
+- Judging whether a claim is correct or supported
+
 Return this exact JSON shape:
 {{
   "schema_version": "1.0",
@@ -71,24 +104,15 @@ Return this exact JSON shape:
   "case_id": "{case_id}",
   "claims": [
     {{
-      "claim_id": "AC-001",
       "claim_text": "...",
-      "claim_type": "numeric|method|figure_trace|code_execution|material_completeness",
-      "paper_location": "...",
-      "evidence_refs": ["..."],
-      "status": "needs_review",
-      "claim_decisiveness": "high|medium|low",
-      "figure_refs": ["Fig1", "Fig3a"],
-      "expected_source_data": ["Sheet:Fig3, cols B-E"]
+      "claim_type": "numeric|method|figure_trace|other",
+      "mentioned_refs": ["Fig1", "Table2"]
     }}
   ],
   "limitations": ["..."]
 }}
-claim_decisiveness (optional, defaults to "medium"): how decisively this claim supports the paper's main conclusion.
-figure_refs (optional, defaults to []): figure/panel IDs referenced by this claim (e.g. ["Fig3a", "Fig3b"]).
-expected_source_data (optional, defaults to []): expected source data locations or structures (e.g. ["Sheet:Fig3, cols B-E"]).
 """.strip()
-        focus = "Extract only technical claims that can be checked against Source Data, figures, code, methods, or material completeness."
+        focus = "Extract every verifiable claim from the paper full text. Use ONLY the provided grounding index for figure/table references."
     elif role_id == "source_data_auditor":
         contract = f"""
 Return this exact JSON shape:
@@ -125,7 +149,7 @@ Return this exact JSON shape:
   "limitations": ["..."]
 }}
 """.strip()
-        focus = "Review deterministic Source Data findings, pressure-test benign explanations, and create manual review tasks. Limit claim mappings, finding reviews, and manual tasks to at most 12 items each; prioritize high-risk deterministic findings."
+        focus = "Review deterministic Source Data findings, pressure-test benign explanations, and create manual review tasks. Limit claim mappings, finding reviews, and manual tasks to at most 12 items each; prioritize high-risk deterministic findings. CRITICAL: Only cite finding_ids that are explicitly present in your context_pack top_n_findings. Never invent or hallucinate finding_ids. Every finding_id in finding_reviews and manual_review_tasks must appear verbatim in the context_pack."
     elif role_id == "judge":
         contract = f"""
 Return this exact JSON shape:
@@ -134,7 +158,7 @@ Return this exact JSON shape:
   "role_id": "judge",
   "case_id": "{case_id}",
   "summary": {{
-    "claim_count": 0,
+    "claim_count": 0,  // Use claim_extractor.mapped_claim_count from context pack, not total claim_count
     "finding_review_count": 0,
     "manual_review_task_count": 0,
     "technical_risk_summary": "..."
@@ -160,6 +184,7 @@ Judge-specific input contract:
 - Return at most 8 risk_suggestions, 8 report_notes, and 10 limitations.
 - Every risk_suggestions item must cite evidence_refs already present in the compact summary or top_n_findings.
 - Input findings are pre-filtered: you only receive Layer 1 (high-confidence data issues) and Layer 2 (needs human judgment) findings. Layer 3 informational findings (duplicate row vectors, low-risk signals, methodology checks) are excluded to reduce noise.
+- N5 claim independence: When reporting claim_count, use `claim_extractor.mapped_claim_count` (not total `claim_count`) as the number of claims with actual source data mapping. Report `unmapped_claim_count` claims as having `source_data_coverage: "none"`. If claim_source is "candidate_claim" for all claims, note that mappings are based on findings' built-in candidates, not independently extracted claims.
 """.strip()
     else:
         raise ValueError(f"unsupported role prompt: {role_id}")
@@ -245,9 +270,17 @@ def validate_role_output(role_id: str, data: dict[str, Any]) -> dict[str, Any]:
         data.setdefault("limitations", [])
         _require(data, "limitations", list)
         valid_decisiveness = {"high", "medium", "low"}
+        valid_claim_types = {"numeric", "method", "figure_trace", "other",
+                             "code_execution", "material_completeness"}
         for claim in data["claims"]:
             if not isinstance(claim, dict):
                 continue
+            # claim_type: validate against simplified set (with legacy compat)
+            if claim.get("claim_type") not in valid_claim_types:
+                claim["claim_type"] = "other"
+            # mentioned_refs: new simplified field
+            claim.setdefault("mentioned_refs", [])
+            # Legacy fields — preserved for backward compatibility
             if "claim_decisiveness" in claim:
                 if claim["claim_decisiveness"] not in valid_decisiveness:
                     claim["claim_decisiveness"] = "medium"
@@ -257,6 +290,8 @@ def validate_role_output(role_id: str, data: dict[str, Any]) -> dict[str, Any]:
                 claim["figure_refs"] = []
             if "expected_source_data" not in claim:
                 claim["expected_source_data"] = []
+            # N5: Tag claim source for independence tracking
+            claim.setdefault("claim_source", "claim_extractor")
     elif role_id == "source_data_auditor":
         for key in [
             "claim_to_source_data",

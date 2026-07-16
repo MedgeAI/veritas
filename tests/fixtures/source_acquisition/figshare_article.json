@@ -1,0 +1,12 @@
+{
+  "id": 9876543,
+  "doi": "10.6084/m9.figshare.9876543",
+  "title": "Test Figshare Dataset",
+  "files": [
+    {
+      "name": "supplementary_table_S1.xlsx",
+      "size": 12345,
+      "download_url": "https://ndownloader.figshare.com/files/11111111"
+    }
+  ]
+}

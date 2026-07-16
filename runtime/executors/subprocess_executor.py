@@ -5,7 +5,7 @@ import subprocess
 import time
 from pathlib import Path
 
-from engine.exceptions import ToolExecutionError
+from common.exceptions import ToolExecutionError
 from runtime.executors.base import ExecutionRequest, ExecutionResult
 
 logger = logging.getLogger(__name__)
@@ -172,3 +172,45 @@ def _verify_outputs(request: ExecutionRequest) -> list[Path]:
 
 def _tail(text: str, limit: int = 1000) -> str:
     return text[-limit:] if len(text) > limit else text
+
+
+def run_simple_command(
+    command: list[str],
+    *,
+    cwd: Path | str | None = None,
+    env: dict[str, str] | None = None,
+    timeout: int = 30,
+) -> subprocess.CompletedProcess:
+    """Execute a single subprocess command without retry or raise.
+
+    Unlike ``execute_subprocess``, this never raises on non-zero exit or
+    timeout.  Callers that need their own retry / error-classification logic
+    (agent runners, diagnostics) use this as the single Runtime subprocess
+    entry point.
+
+    Returns ``subprocess.CompletedProcess`` for convenience.
+    """
+    try:
+        return subprocess.run(
+            command,
+            cwd=cwd,
+            env=env,
+            text=True,
+            capture_output=True,
+            timeout=timeout,
+            check=False,
+        )
+    except subprocess.TimeoutExpired as exc:
+        return subprocess.CompletedProcess(
+            command,
+            124,
+            exc.stdout or "",
+            exc.stderr or f"command timed out after {timeout}s",
+        )
+    except OSError as exc:
+        return subprocess.CompletedProcess(
+            command,
+            127,
+            "",
+            str(exc),
+        )

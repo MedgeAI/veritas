@@ -1,5 +1,12 @@
 import PropTypes from 'prop-types';
-import { FiCheck, FiLoader, FiCircle, FiX } from 'react-icons/fi';
+import {
+  FiAlertTriangle,
+  FiCheck,
+  FiCircle,
+  FiLoader,
+  FiMinusCircle,
+  FiX,
+} from 'react-icons/fi';
 
 /**
  * Format duration in seconds to human-readable string.
@@ -24,7 +31,8 @@ const STATUS_ICON = {
   completed: { Icon: FiCheck, className: 'text-signal-500' },
   running:   { Icon: FiLoader, className: 'text-signal-500 animate-spin' },
   failed:    { Icon: FiX,     className: 'text-risk-500' },
-  skipped:   { Icon: FiCheck, className: 'text-ink-400' },
+  skipped:   { Icon: FiMinusCircle, className: 'text-ink-400' },
+  warning:   { Icon: FiAlertTriangle, className: 'text-[#8a5a00]' },
   pending:   { Icon: FiCircle, className: 'text-ink-300' },
 };
 
@@ -33,6 +41,7 @@ const LABEL_CLASS = {
   running:   'text-ink-900 font-medium',
   failed:    'text-risk-600',
   skipped:   'text-ink-500',
+  warning:   'text-[#8a5a00]',
   pending:   'text-ink-500',
 };
 
@@ -71,6 +80,8 @@ function PhaseHeroCard({ phase, stepDurations = {} }) {
             rightContent = <span className="text-risk-500">失败</span>;
           } else if (status === 'skipped') {
             rightContent = <span className="text-ink-400">已跳过</span>;
+          } else if (status === 'warning') {
+            rightContent = <span className="text-[#8a5a00]">需复核</span>;
           } else {
             rightContent = <span className="text-ink-400">—</span>;
           }

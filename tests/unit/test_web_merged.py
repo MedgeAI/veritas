@@ -156,6 +156,24 @@ def test_upload_input_accepts_multipart_form_data(tmp_path: Path) -> None:
     assert stored == b"%PDF-1.4\nmultipart\n"
 
 
+def test_list_cases_honors_limit_and_offset(tmp_path: Path) -> None:
+    app = create_app(data_root=tmp_path / "web_data", output_root=tmp_path / "outputs")
+    client = TestClient(app, raise_server_exceptions=False)
+
+    for idx in range(5):
+        resp = client.post(
+            "/api/cases",
+            json={"case_id": f"page-case-{idx}", "paper_title": f"Case {idx}"},
+        )
+        assert resp.status_code == 201
+
+    resp = client.get("/api/cases?limit=2&offset=1")
+
+    assert resp.status_code == 200
+    cases = resp.json()["cases"]
+    assert len(cases) == 2
+
+
 def test_upload_input_sanitizes_multipart_relative_path_traversal(
     tmp_path: Path,
 ) -> None:

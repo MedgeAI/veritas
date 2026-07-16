@@ -1,6 +1,6 @@
 # Veritas Roadmap
 
-Updated: 2026-06-15
+Updated: 2026-07-01
 
 Veritas 当前定位是投稿前的实验室内部论文风控工具，先聚焦干实验论文，帮助 PI 在投稿前发现 Source Data、图像、claim/evidence 对账和材料完整性上的高风险信号。它不是最终科研诚信裁决系统，也不是论文价值评价工具。
 
@@ -28,8 +28,12 @@ Veritas 当前定位是投稿前的实验室内部论文风控工具，先聚焦
 
 4. **提供内测 operator 可用的 Web P1 工作台雏形。**
    - Web 后端可以创建 case、上传输入、启动与 CLI 等价的审查、读取进度、打开 artifacts 和最终 HTML 报告。
-   - 前端已有 case-first 工作台和 Visual Forensics Gallery。
-   - Visual Gallery 可以展示 figures、panels、relationships、visual findings，并支持按 risk/category 筛选。
+   - 前端已演进为**三入口架构**：`client`（客户服务门户，veritas.science）、`ops`（运营后台，ops.veritas.science）、`verify`（公开验证，verify.veritas.science），通过 `utils/entrypoint.js` 按 hostname/pathname 分流。
+   - Client Report BFF 聚合接口（`/api/cases/{case_id}/client-report`）和公开验证接口（`/api/verify/{report_id}`）已上线。
+   - 前端实现 React 视图过渡、SSE 重连内存泄漏修复、空状态统一、内联样式提取与懒加载优化。
+   - 审计档案（Audit Profiles）机制落地：fast/standard/full 三档控制工具执行深度。
+   - Stale run watchdog 监控长时间无心跳运行，自动恢复或标记失败。
+   - Visual Forensics Gallery 可以展示 figures、panels、relationships、visual findings，并支持按 risk/category 筛选。
 
 5. **给内部 demo 一个可讲清楚的价值闭环。**
    - 对 PI 的话术：这是一份投稿前技术风控报告，帮助你知道“该向学生追问什么”。
@@ -88,6 +92,9 @@ Now
 - 将 Source Data 检查结果和 visual findings 都稳定纳入 Top priority findings 和人工复核清单。
 - 强化 opencode JSON schema retry 与 failed trace 呈现，避免成功 artifact 被失败重跑覆盖。
 - 对 `audit-paper` 运行产物做 artifact inventory，明确哪些是 canonical、哪些是 debug/log。
+- **已完成**：审计档案（fast/standard/full）机制落地，控制工具执行深度。
+- **已完成**：Stale run watchdog 监控长时间无心跳运行。
+- **已完成**：Investigation dependency layering 从 O(R²×A) 优化至 O(R×A)。
 
 ### Exit Criteria
 
@@ -128,6 +135,9 @@ Now
 - 增强 overlay/mask 资产的报告展示和 Web 预览。
 - 在 Web Gallery 增加 tool status、review status、figure、risk、source type 过滤。
 - 将 visual finding 的良性解释和人工复核问题整理成 PI 可执行话术。
+- **已完成**：视觉取证 pipeline 和 figure classification 完成大规模重构。
+- **已完成**：HTML 报告 hero header + certainty layers 视觉样式增强。
+- **已完成**：Copy-move 检测和 provenance runner 测试覆盖增强。
 
 ### Exit Criteria
 
@@ -151,6 +161,9 @@ Now
 ### Work Items
 
 - 完成 case status 映射：Draft、Uploaded、Planning、Running、Review Needed、Report Ready、Archived。
+- **已完成**：三入口架构落地（client/ops/verify），通过 hostname/pathname 分流。
+- **已完成**：Client Report BFF 聚合接口和公开验证接口上线。
+- **已完成**：扩展运行状态枚举和 decision type 模型。
 - 增加 material inventory 页面，展示缺材料和 optional lane 选择结果。
 - 增加 report center，支持报告版本、重新生成和交付视图。
 - 增加 review queue 雏形，把 findings 和 manual review tasks 变成可处理事项。

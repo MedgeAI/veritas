@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import shutil
-import subprocess
 from typing import Any
 
 from fastapi import APIRouter, Depends
@@ -12,6 +11,7 @@ from ..auth import AuthContext
 from ..dependencies import AppDependencies, get_app_dependencies, get_auth_context
 from ..diagnostics import run_full_diagnostics
 from ..tool_catalog import get_investigation_catalog, seed_tool_registry
+from runtime.executors.subprocess_executor import run_simple_command
 
 router = APIRouter(tags=["tools"])
 
@@ -62,18 +62,7 @@ def _command_health(args: list[str], *, timeout_seconds: float = 2.0) -> dict[st
     executable = shutil.which(args[0])
     if executable is None:
         return {"ok": False, "detail": f"{args[0]} not found on PATH"}
-    try:
-        result = subprocess.run(
-            args,
-            capture_output=True,
-            text=True,
-            timeout=timeout_seconds,
-            check=False,
-        )
-    except subprocess.TimeoutExpired:
-        return {"ok": False, "detail": f"{args[0]} timed out after {timeout_seconds}s"}
-    except OSError as exc:
-        return {"ok": False, "detail": str(exc)}
+    result = run_simple_command(args, timeout=int(timeout_seconds))
     detail = (result.stdout or result.stderr).strip()
     return {
         "ok": result.returncode == 0,

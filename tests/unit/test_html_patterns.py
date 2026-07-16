@@ -28,7 +28,7 @@ class TestPatternSortKey:
 
     def test_other_last(self) -> None:
         key = pattern_sort_key(("other", [1]))
-        assert key[0] == 9
+        assert key[0] == 10
 
     def test_unknown_key_default(self) -> None:
         key = pattern_sort_key(("unknown_key", [1]))

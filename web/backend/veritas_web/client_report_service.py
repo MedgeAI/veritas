@@ -2,16 +2,30 @@
 
 Reads from case store, run artifacts, risk summaries, certainty enrichment,
 review queue, and verification store to build a single ClientReportView dict.
+
+Pure finding-detail extraction lives in :mod:`engine.reporting.finding_details`.
+This module handles HTTP/BFF orchestration (case store, run status, artifact
+loading).
 """
 
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
+from engine.reporting.finding_details import (
+    extract_location,
+    source_data_detail,
+    visual_copy_move_detail,
+    visual_relationship_detail,
+)
+
 from .artifacts import artifact_file_path
 from .risk import summarize_findings
+
+logger = logging.getLogger(__name__)
 
 
 def build_client_report(deps: Any, case_id: str) -> dict[str, Any]:
@@ -109,6 +123,7 @@ def build_client_report(deps: Any, case_id: str) -> dict[str, Any]:
         fid = item.get("finding_id")
         if fid:
             review_by_finding_id[fid] = item
+    detail_index = _build_finding_detail_index(workdir)
 
     # 11. Enrich findings with certainty layers, review data, and location
     enriched_findings = []
@@ -134,8 +149,9 @@ def build_client_report(deps: Any, case_id: str) -> dict[str, Any]:
             finding["source_ref"] = ""
             finding["review_decision_allowed"] = False
 
-        # Location from metadata (PRD §7.3)
-        finding["location"] = _extract_location(finding.get("metadata", {}))
+        # Location from metadata (PRD S7.3)
+        finding["location"] = extract_location(finding.get("metadata", {}))
+        finding["detail"] = detail_index.get(fid)
 
         enriched_findings.append(finding)
 
@@ -150,7 +166,7 @@ def build_client_report(deps: Any, case_id: str) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
-# Internal helpers
+# Internal helpers (BFF orchestration — not pure domain logic)
 # ---------------------------------------------------------------------------
 
 
@@ -196,9 +212,11 @@ def _find_report_id_for_case(case_id: str) -> str | None:
         elif isinstance(entries, dict):
             return entries.get("report_id")
         return None
-    except Exception:
-        pass
-    return None
+    except (FileNotFoundError, KeyError):
+        return None
+    except Exception as e:
+        logger.warning("Failed to search verify_store for report_id: %s", e)
+        return None
 
 
 def _load_certainty_map(workdir: Path) -> dict[str, dict]:
@@ -219,6 +237,60 @@ def _load_certainty_map(workdir: Path) -> dict[str, dict]:
     return result
 
 
+def _load_json_artifact(workdir: Path, artifact_name: str) -> dict[str, Any]:
+    path = artifact_file_path(workdir, artifact_name)
+    if path is None or not path.exists():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _build_finding_detail_index(workdir: Path) -> dict[str, dict[str, Any]]:
+    """Build per-finding detail by joining multiple artifacts.
+
+    Delegates pure-data extraction to engine functions.
+    """
+    details: dict[str, dict[str, Any]] = {}
+    for artifact_name in (
+        "source_data_findings.json",
+        "source_data_pair_forensics.json",
+    ):
+        try:
+            data = _load_json_artifact(workdir, artifact_name)
+            for finding in data.get("findings") or []:
+                if not isinstance(finding, dict) or not finding.get("finding_id"):
+                    continue
+                try:
+                    details[str(finding["finding_id"])] = source_data_detail(finding)
+                except (KeyError, TypeError, ValueError):
+                    continue
+        except Exception:
+            continue
+
+    try:
+        visual = _load_json_artifact(workdir, "visual_findings.json")
+        for finding in visual.get("findings") or []:
+            if not isinstance(finding, dict) or not finding.get("finding_id"):
+                continue
+            try:
+                if finding.get("category") == "visual_provenance_relationship":
+                    details[str(finding["finding_id"])] = visual_relationship_detail(
+                        finding
+                    )
+                else:
+                    details[str(finding["finding_id"])] = visual_copy_move_detail(
+                        finding
+                    )
+            except (KeyError, TypeError, ValueError):
+                continue
+    except Exception:
+        pass
+    return details
+
+
 def _load_review_items(
     deps: Any, case_id: str, workdir: Path
 ) -> list[dict[str, Any]]:
@@ -236,25 +308,3 @@ def _load_review_items(
             session.close()
     except Exception:
         return []
-
-
-def _extract_location(metadata: dict | None) -> str:
-    """Extract human-readable location from finding metadata (PRD §7.3).
-
-    Priority: sheet_name + cell_ref > file_name > pattern description.
-    """
-    if not metadata or not isinstance(metadata, dict):
-        return ""
-    sheet = metadata.get("sheet_name", "")
-    cell = metadata.get("cell_ref", "")
-    if sheet and cell:
-        return f"{sheet}!{cell}"
-    if sheet:
-        return sheet
-    file_name = metadata.get("file_name", "")
-    if file_name:
-        return file_name
-    pattern = metadata.get("pattern", "")
-    if pattern:
-        return pattern
-    return ""
