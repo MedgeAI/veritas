@@ -57,19 +57,68 @@
       "value": 1.0,
       "source_artifact": "artifacts/Power_data.csv",
       "source_artifact_hash": "f4cd2d0ccf7a61d9f73f8141fd9dae86c6d85f414f99889b67a3851400bd5579",
-      "source_span": "Power_data.csv, row Name='Geometric mean (lx)', sample_size=3, column power = 1 (n=3 时功效已达100%)"
+      "source_span": "Power_data.csv, row Name='Geometric mean (lx)', sample_size=3, column power = 1 (n=3 时功效已达100%)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/Power_data.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "power",
+            "row_col": "sample_size",
+            "row_key": "3"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/Power_summary_reproduced.csv#n_metrics_reaching_80": {
       "value": 11,
       "source_artifact": "artifacts/Power_summary_reproduced.csv",
       "source_artifact_hash": "66c77bdbc0a35f1d22796d38e896ff75118b9985450681584bce2bfddf68dd18",
-      "source_span": "Power_summary_reproduced.csv 共 11 行数据(12 个指标中有 11 个在 n<=50 内达到 80% 功效)"
+      "source_span": "Power_summary_reproduced.csv 共 11 行数据(12 个指标中有 11 个在 n<=50 内达到 80% 功效)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "artifacts/Power_summary_reproduced.csv"
+        ],
+        "method": {
+          "reference_fn": "count_rows",
+          "args": {}
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/Power_data.csv#L5midpoint_max_power": {
       "value": 0.6,
       "source_artifact": "artifacts/Power_data.csv",
       "source_artifact_hash": "f4cd2d0ccf7a61d9f73f8141fd9dae86c6d85f414f99889b67a3851400bd5579",
-      "source_span": "Power_data.csv, Name='Midpoint of darkest 5 hours (L5, hh:mm)' 各 sample_size 的 power 最大值 = 0.6 (全程 < 0.8, 故未列入 required-sample-size 汇总表)"
+      "source_span": "Power_data.csv, Name='Midpoint of darkest 5 hours (L5, hh:mm)' 各 sample_size 的 power 最大值 = 0.6 (全程 < 0.8, 故未列入 required-sample-size 汇总表)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/Power_data.csv"
+        ],
+        "method": {
+          "reference_fn": "max",
+          "args": {
+            "filter_col": "Name",
+            "filter_val": "Midpoint of darkest 5 hours (L5, hh:mm)",
+            "value_col": "power"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/Power_summary_reproduced.csv#timing250_min_ss": {
       "value": 21,
@@ -99,7 +148,22 @@
       "value": "Midpoint of darkest 5 hours (L5, hh:mm)",
       "source_artifact": "artifacts/missing_metrics.txt",
       "source_artifact_hash": "e09602503175dfddc58ccf1aaf308314094ba5b8a14cac997ca4d80b8f503aef",
-      "source_span": "missing_metrics.txt 唯一一行 = 'Midpoint of darkest 5 hours (L5, hh:mm)' (在测试样本范围内始终未达 80% 功效的指标)"
+      "source_span": "missing_metrics.txt 唯一一行 = 'Midpoint of darkest 5 hours (L5, hh:mm)' (在测试样本范围内始终未达 80% 功效的指标)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/missing_metrics.txt"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "txt_whole_line": 0
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     }
   },
   "claims": [

@@ -184,7 +184,25 @@
       "value": 0.7999,
       "source_artifact": "artifacts/RR_isolation_manual_tracing_met_limit.csv",
       "source_artifact_hash": "59f6649595677bc391477bd91278787456e6c5434e1068720a7e1829c3ada3b4",
-      "source_span": "RR_isolation_manual_tracing_met_limit.csv, fraction rr_reduced<=1 (个案受控概率)"
+      "source_span": "RR_isolation_manual_tracing_met_limit.csv, fraction rr_reduced<=1 (个案受控概率)",
+      "recompute": {
+        "metric_type": "fraction",
+        "inputs": [
+          "artifacts/RR_isolation_manual_tracing_met_limit.csv"
+        ],
+        "method": {
+          "reference_fn": "fraction_where",
+          "args": {
+            "column": "rr_reduced",
+            "op": "<=",
+            "thresh": 1.0
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/RR_pop_testing.csv#mean_rr_reduced": {
       "value": 2.5883,
@@ -212,7 +230,23 @@
       "value": 2.6446,
       "source_artifact": "artifacts/RR_pop_testing.csv",
       "source_artifact_hash": "f86f74e2672b287c73ae15c58ed0f27ae3461bb4c7717b329befcf6503f9a0b0",
-      "source_span": "RR_pop_testing.csv, mean of column rr (大规模检测场景基础繁殖数)"
+      "source_span": "RR_pop_testing.csv, mean of column rr (大规模检测场景基础繁殖数)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/RR_pop_testing.csv"
+        ],
+        "method": {
+          "reference_fn": "mean",
+          "args": {
+            "column": "rr"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     }
   },
   "claims": [

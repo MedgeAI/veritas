@@ -29,43 +29,166 @@
       "value": 0.775,
       "source_artifact": "artifacts/repro_cor_matrix_5sec.csv",
       "source_artifact_hash": "2026bedc358a639ff77954e2c473712e63ea8093053a5706d5d21723d289a6ab",
-      "source_span": "repro_cor_matrix_5sec.csv, row 'MADmean', column 'Light' = 0.775 (可穿戴加速度计运动量 MADmean 与观测到的轻度活动 Light 的 Pearson 相关, 正相关)"
+      "source_span": "repro_cor_matrix_5sec.csv, row 'MADmean', column 'Light' = 0.775 (可穿戴加速度计运动量 MADmean 与观测到的轻度活动 Light 的 Pearson 相关, 正相关)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_cor_matrix_5sec.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "",
+            "row_key": "MADmean",
+            "value_col": "Light"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/repro_cor_matrix_5sec.csv#MADmean_vs_Inactive": {
       "value": -0.5902,
       "source_artifact": "artifacts/repro_cor_matrix_5sec.csv",
       "source_artifact_hash": "2026bedc358a639ff77954e2c473712e63ea8093053a5706d5d21723d289a6ab",
-      "source_span": "repro_cor_matrix_5sec.csv, row 'MADmean', column 'Inactive' = -0.5902 (可穿戴 MADmean 与 Samsung 24hrs 分类 Inactive 的相关, 负相关)"
+      "source_span": "repro_cor_matrix_5sec.csv, row 'MADmean', column 'Inactive' = -0.5902 (可穿戴 MADmean 与 Samsung 24hrs 分类 Inactive 的相关, 负相关)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_cor_matrix_5sec.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "",
+            "row_key": "MADmean",
+            "value_col": "Inactive"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/repro_cor_matrix_5sec.csv#MADsd_vs_MADqant": {
       "value": 0.9945,
       "source_artifact": "artifacts/repro_cor_matrix_5sec.csv",
       "source_artifact_hash": "2026bedc358a639ff77954e2c473712e63ea8093053a5706d5d21723d289a6ab",
-      "source_span": "repro_cor_matrix_5sec.csv, row 'MADsd', column 'MADqant' = 0.9945 (两个 MAD 衍生量间的相关, 近乎共线)"
+      "source_span": "repro_cor_matrix_5sec.csv, row 'MADsd', column 'MADqant' = 0.9945 (两个 MAD 衍生量间的相关, 近乎共线)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_cor_matrix_5sec.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "",
+            "row_key": "MADsd",
+            "value_col": "MADqant"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/repro_cor_matrix_5sec.csv#MADmean_vs_MADsd": {
       "value": 0.9443,
       "source_artifact": "artifacts/repro_cor_matrix_5sec.csv",
       "source_artifact_hash": "2026bedc358a639ff77954e2c473712e63ea8093053a5706d5d21723d289a6ab",
-      "source_span": "repro_cor_matrix_5sec.csv, row 'MADmean', column 'MADsd' = 0.9443 (MADmean 与 MADsd 相关, 高度共线)"
+      "source_span": "repro_cor_matrix_5sec.csv, row 'MADmean', column 'MADsd' = 0.9443 (MADmean 与 MADsd 相关, 高度共线)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_cor_matrix_5sec.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "",
+            "row_key": "MADmean",
+            "value_col": "MADsd"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/repro_cor_matrix_5sec.csv#Inactive_vs_Light": {
       "value": -0.8884,
       "source_artifact": "artifacts/repro_cor_matrix_5sec.csv",
       "source_artifact_hash": "2026bedc358a639ff77954e2c473712e63ea8093053a5706d5d21723d289a6ab",
-      "source_span": "repro_cor_matrix_5sec.csv, row 'Inactive', column 'Light' = -0.8884 (Samsung 24hrs 分类 Inactive 与 Light 的相关, 强负相关=内部一致)"
+      "source_span": "repro_cor_matrix_5sec.csv, row 'Inactive', column 'Light' = -0.8884 (Samsung 24hrs 分类 Inactive 与 Light 的相关, 强负相关=内部一致)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_cor_matrix_5sec.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "",
+            "row_key": "Inactive",
+            "value_col": "Light"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/repro_cor_matrix_5sec.csv#Inactive_vs_MLO2": {
       "value": 0.8215,
       "source_artifact": "artifacts/repro_cor_matrix_5sec.csv",
       "source_artifact_hash": "2026bedc358a639ff77954e2c473712e63ea8093053a5706d5d21723d289a6ab",
-      "source_span": "repro_cor_matrix_5sec.csv, row 'Inactive', column 'MLO2' = 0.8215 (Samsung Inactive 与 MEDLO 被动观测类别 MLO2 的相关, 正相关)"
+      "source_span": "repro_cor_matrix_5sec.csv, row 'Inactive', column 'MLO2' = 0.8215 (Samsung Inactive 与 MEDLO 被动观测类别 MLO2 的相关, 正相关)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_cor_matrix_5sec.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "",
+            "row_key": "Inactive",
+            "value_col": "MLO2"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/linkedData.rds#n_residents": {
       "value": 12,
       "source_artifact": "artifacts/linkedData.rds",
       "source_artifact_hash": "d43199f91b8e1ae090af217a245efe4db6337fb5c867126344159d8626b5906d",
-      "source_span": "linkedData.rds: data.frame 12 obs. of 14 variables (nrow=12) = 相关矩阵基于 12 名同时具备可穿戴+行为观测完整配对的住民"
+      "source_span": "linkedData.rds: data.frame 12 obs. of 14 variables (nrow=12) = 相关矩阵基于 12 名同时具备可穿戴+行为观测完整配对的住民",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "artifacts/linkedData.rds"
+        ],
+        "method": {
+          "code_entry": "reproduce.py::main"
+        },
+        "tolerance": {
+          "kind": "exact"
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": true,
+        "_note": "nrow(linkedData.rds)=12; rds需R/pyreadr读, 值确定=12(相关矩阵基于12名residents)。可收编: 若ship csv版则count_rows"
+      }
     }
   },
   "claims": [

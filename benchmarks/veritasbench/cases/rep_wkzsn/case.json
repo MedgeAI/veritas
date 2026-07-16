@@ -217,7 +217,29 @@
       "value": 1.883,
       "source_artifact": "artifacts/mape_summary.csv",
       "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
-      "source_span": "mape_summary.csv, row device=heartmath feature=mean_hr condition=sitting, column BA_bias=1.883 (bpm; Bland-Altman 偏差, HeartMath 相对 VU-AMS ECG 平均高估约 1.9 bpm; n=10)"
+      "source_span": "mape_summary.csv, row device=heartmath feature=mean_hr condition=sitting, column BA_bias=1.883 (bpm; Bland-Altman 偏差, HeartMath 相对 VU-AMS ECG 平均高估约 1.9 bpm; n=10)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/mape_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "BA_bias",
+            "match": {
+              "device": "heartmath",
+              "feature": "mean_hr",
+              "condition": "sitting",
+              "n": "10"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     }
   },
   "claims": [

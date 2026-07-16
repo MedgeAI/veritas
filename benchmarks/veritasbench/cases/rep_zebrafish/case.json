@@ -31,31 +31,122 @@
       "value": 223.23443603515625,
       "source_artifact": "artifacts/VC_excitatory_opsin_master.csv",
       "source_artifact_hash": "0b5931f1b167bf754dbdc58f84e5dd0288fff50e8821332701e7f00ae732e268",
-      "source_span": "VC_excitatory_opsin_master.csv, trace_number=18n270027_1 (Chrimson), 第1行 (第1次LED刺激) Max_photocurrent_pA. README 4 记录此正确性检查值=223.234 pA"
+      "source_span": "VC_excitatory_opsin_master.csv, trace_number=18n270027_1 (Chrimson), 第1行 (第1次LED刺激) Max_photocurrent_pA. README 4 记录此正确性检查值=223.234 pA",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/VC_excitatory_opsin_master.csv"
+        ],
+        "method": {
+          "reference_fn": "first_row_where",
+          "args": {
+            "filter_col": "trace_number",
+            "filter_prefix": "18n270027_1",
+            "value_col": "Max_photocurrent_pA"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/VC_excitatory_opsin_master.csv#chrimson_overall_max_pA": {
       "value": 248.2588348388672,
       "source_artifact": "artifacts/VC_excitatory_opsin_master.csv",
       "source_artifact_hash": "0b5931f1b167bf754dbdc58f84e5dd0288fff50e8821332701e7f00ae732e268",
-      "source_span": "VC_excitatory_opsin_master.csv, trace_number=18n270027_1 (Chrimson), 该cell所有LED step中 Max_photocurrent_pA 的最大值 (28行取max)"
+      "source_span": "VC_excitatory_opsin_master.csv, trace_number=18n270027_1 (Chrimson), 该cell所有LED step中 Max_photocurrent_pA 的最大值 (28行取max)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/VC_excitatory_opsin_master.csv"
+        ],
+        "method": {
+          "reference_fn": "max",
+          "args": {
+            "filter_col": "trace_number",
+            "filter_prefix": "18n270027_1",
+            "value_col": "Max_photocurrent_pA"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/VC_excitatory_opsin_master.csv#cochr_overall_max_pA": {
       "value": 555.5231323242189,
       "source_artifact": "artifacts/VC_excitatory_opsin_master.csv",
       "source_artifact_hash": "0b5931f1b167bf754dbdc58f84e5dd0288fff50e8821332701e7f00ae732e268",
-      "source_span": "VC_excitatory_opsin_master.csv, trace_number=2019_03_19_0038 (CoChR), 该cell所有LED step中 Max_photocurrent_pA 的最大值 (4行取max)"
+      "source_span": "VC_excitatory_opsin_master.csv, trace_number=2019_03_19_0038 (CoChR), 该cell所有LED step中 Max_photocurrent_pA 的最大值 (4行取max)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/VC_excitatory_opsin_master.csv"
+        ],
+        "method": {
+          "reference_fn": "max",
+          "args": {
+            "filter_col": "trace_number",
+            "filter_prefix": "2019_03_19_0038",
+            "value_col": "Max_photocurrent_pA"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/VC_inhibitory_opsin_master.csv#nphr_peak_max_pA": {
       "value": 132.63346862792972,
       "source_artifact": "artifacts/VC_inhibitory_opsin_master.csv",
       "source_artifact_hash": "4d18267c40146bb402e7823ad158edb91d37cad6992e442adfe7fff27e15f337",
-      "source_span": "VC_inhibitory_opsin_master.csv, trace_number=183060053_1 (NpHR3.0), Max_photocurrent_pA 峰值 (18行取max)"
+      "source_span": "VC_inhibitory_opsin_master.csv, trace_number=183060053_1 (NpHR3.0), Max_photocurrent_pA 峰值 (18行取max)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/VC_inhibitory_opsin_master.csv"
+        ],
+        "method": {
+          "reference_fn": "max",
+          "args": {
+            "filter_col": "trace_number",
+            "filter_prefix": "183060053_1",
+            "value_col": "Max_photocurrent_pA"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/VC_inhibitory_opsin_master.csv#nphr_steady_at_peak_pA": {
       "value": 125.3550262451172,
       "source_artifact": "artifacts/VC_inhibitory_opsin_master.csv",
       "source_artifact_hash": "4d18267c40146bb402e7823ad158edb91d37cad6992e442adfe7fff27e15f337",
-      "source_span": "VC_inhibitory_opsin_master.csv, trace_number=183060053_1 (NpHR3.0), 峰值Max_photocurrent所在行的 Steady_photocurrent_pA (稳态光电流)"
+      "source_span": "VC_inhibitory_opsin_master.csv, trace_number=183060053_1 (NpHR3.0), 峰值Max_photocurrent所在行的 Steady_photocurrent_pA (稳态光电流)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/VC_inhibitory_opsin_master.csv"
+        ],
+        "method": {
+          "reference_fn": "value_at_argmax",
+          "args": {
+            "filter_col": "trace_number",
+            "filter_prefix": "183060053_1",
+            "argmax_col": "Max_photocurrent_pA",
+            "value_col": "Steady_photocurrent_pA"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     }
   },
   "claims": [

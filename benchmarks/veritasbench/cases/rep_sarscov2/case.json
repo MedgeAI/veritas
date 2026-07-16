@@ -55,37 +55,140 @@
       "value": 16579,
       "source_artifact": "artifacts/repro_output.json",
       "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
-      "source_span": "repro_output.json, region_counts.Europe (Fig1A: Europe区域基因组数, 全区域最大)"
+      "source_span": "repro_output.json, region_counts.Europe (Fig1A: Europe区域基因组数, 全区域最大)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path": "region_counts.Europe"
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/repro_output.json#region_americas_count": {
       "value": 8291,
       "source_artifact": "artifacts/repro_output.json",
       "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
-      "source_span": "repro_output.json, region_counts.Americas (Fig1A: 第二大区域, 用于确认Europe为最大)"
+      "source_span": "repro_output.json, region_counts.Americas (Fig1A: 第二大区域, 用于确认Europe为最大)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path": "region_counts.Americas"
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/repro_output.json#n_genomes_netherlands": {
       "value": 1338,
       "source_artifact": "artifacts/repro_output.json",
       "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
-      "source_span": "repro_output.json, n_genomes_netherlands (country==Netherlands样本数)"
+      "source_span": "repro_output.json, n_genomes_netherlands (country==Netherlands样本数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path": "n_genomes_netherlands"
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/repro_output.json#nl_D614G_count": {
       "value": 1009,
       "source_artifact": "artifacts/repro_output.json",
       "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
-      "source_span": "repro_output.json, netherlands_top15_variants['S:D614G'].count (荷兰含S:D614G样本数, Fig5)"
+      "source_span": "repro_output.json, netherlands_top15_variants['S:D614G'].count (荷兰含S:D614G样本数, Fig5)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path_list": [
+              "netherlands_top15_variants",
+              "S:D614G",
+              "count"
+            ]
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/repro_output.json#nl_D614G_freq": {
       "value": 0.816343,
       "source_artifact": "artifacts/repro_output.json",
       "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
-      "source_span": "repro_output.json, netherlands_top15_variants['S:D614G'].freq (荷兰S:D614G频率≈81.6%)"
+      "source_span": "repro_output.json, netherlands_top15_variants['S:D614G'].freq (荷兰S:D614G频率≈81.6%)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path_list": [
+              "netherlands_top15_variants",
+              "S:D614G",
+              "freq"
+            ]
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_output.json#nl_F106F_count": {
       "value": 1012,
       "source_artifact": "artifacts/repro_output.json",
       "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
-      "source_span": "repro_output.json, netherlands_top15_variants['NSP3:F106F'].count (与D614G共现的G分支同义突变C3037T, 荷兰计数最高)"
+      "source_span": "repro_output.json, netherlands_top15_variants['NSP3:F106F'].count (与D614G共现的G分支同义突变C3037T, 荷兰计数最高)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path_list": [
+              "netherlands_top15_variants",
+              "NSP3:F106F",
+              "count"
+            ]
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     }
   },
   "claims": [

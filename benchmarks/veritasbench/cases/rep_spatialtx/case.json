@@ -30,31 +30,121 @@
       "value": 0.987107256206626,
       "source_artifact": "artifacts/Correlation_matrix_1.csv",
       "source_artifact_hash": "1ef3dd5c33a8b6b99562ff93d89a36f8cca8ee4be89106ea8b4be85cac16cb72",
-      "source_span": "Correlation_matrix_1.csv (RNA assay), row Myocytes x column Skeletal muscle = Pearson r between mean expression profiles (最相似的一对细胞类型)"
+      "source_span": "Correlation_matrix_1.csv (RNA assay), row Myocytes x column Skeletal muscle = Pearson r between mean expression profiles (最相似的一对细胞类型)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/Correlation_matrix_1.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "",
+            "row_key": "Myocytes",
+            "value_col": "Skeletal muscle"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/Correlation_matrix_1.csv#cd4_cd8": {
       "value": 0.982582218491286,
       "source_artifact": "artifacts/Correlation_matrix_1.csv",
       "source_artifact_hash": "1ef3dd5c33a8b6b99562ff93d89a36f8cca8ee4be89106ea8b4be85cac16cb72",
-      "source_span": "Correlation_matrix_1.csv (RNA assay), row CD4+ T-cells x column CD8+ T-cells (RNA assay中第二高的非对角相关, 用于确认Myo-Skm为最大值)"
+      "source_span": "Correlation_matrix_1.csv (RNA assay), row CD4+ T-cells x column CD8+ T-cells (RNA assay中第二高的非对角相关, 用于确认Myo-Skm为最大值)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/Correlation_matrix_1.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "",
+            "row_key": "CD4+ T-cells",
+            "value_col": "CD8+ T-cells"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/Correlation_matrix_1.csv#neu_skm": {
       "value": 0.455043591794102,
       "source_artifact": "artifacts/Correlation_matrix_1.csv",
       "source_artifact_hash": "1ef3dd5c33a8b6b99562ff93d89a36f8cca8ee4be89106ea8b4be85cac16cb72",
-      "source_span": "Correlation_matrix_1.csv (RNA assay), row Neutrophils x column Skeletal muscle = 全矩阵最低非对角相关 (Neutrophils最独特)"
+      "source_span": "Correlation_matrix_1.csv (RNA assay), row Neutrophils x column Skeletal muscle = 全矩阵最低非对角相关 (Neutrophils最独特)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/Correlation_matrix_1.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "",
+            "row_key": "Neutrophils",
+            "value_col": "Skeletal muscle"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/Correlation_matrix_2.csv#myo_skm": {
       "value": 0.987020938854137,
       "source_artifact": "artifacts/Correlation_matrix_2.csv",
       "source_artifact_hash": "c0799956773ab51255be0cb655be9a27e277b2a61eef7681afe0e4c0bb98aff8",
-      "source_span": "Correlation_matrix_2.csv (integrated assay), row Myocytes x column Skeletal muscle (integrated assay下最高非对角相关)"
+      "source_span": "Correlation_matrix_2.csv (integrated assay), row Myocytes x column Skeletal muscle (integrated assay下最高非对角相关)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/Correlation_matrix_2.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "",
+            "row_key": "Myocytes",
+            "value_col": "Skeletal muscle"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/Correlation_matrix_2.csv#adip_fibro": {
       "value": 0.970761485918894,
       "source_artifact": "artifacts/Correlation_matrix_2.csv",
       "source_artifact_hash": "c0799956773ab51255be0cb655be9a27e277b2a61eef7681afe0e4c0bb98aff8",
-      "source_span": "Correlation_matrix_2.csv (integrated assay), row Adipocytes x column Fibroblasts (integrated assay中第二高的非对角相关, 确认Myo-Skm仍为最大值)"
+      "source_span": "Correlation_matrix_2.csv (integrated assay), row Adipocytes x column Fibroblasts (integrated assay中第二高的非对角相关, 确认Myo-Skm仍为最大值)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/Correlation_matrix_2.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "",
+            "row_key": "Adipocytes",
+            "value_col": "Fibroblasts"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     }
   },
   "claims": [

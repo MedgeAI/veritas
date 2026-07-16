@@ -82,25 +82,91 @@
       "value": 46.274,
       "source_artifact": "artifacts/repro_output.txt",
       "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
-      "source_span": "repro_output.txt, line 'age_mean: 46.274' (主研究平均年龄; psych::describe(DE02_01))"
+      "source_span": "repro_output.txt, line 'age_mean: 46.274' (主研究平均年龄; psych::describe(DE02_01))",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.txt"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "txt_line_key": "age_mean",
+            "sep": ":"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/repro_output.txt#age_sd": {
       "value": 14.8654,
       "source_artifact": "artifacts/repro_output.txt",
       "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
-      "source_span": "repro_output.txt, line 'age_sd: 14.8654' (主研究年龄标准差)"
+      "source_span": "repro_output.txt, line 'age_sd: 14.8654' (主研究年龄标准差)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.txt"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "txt_line_key": "age_sd",
+            "sep": ":"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/repro_output.txt#gender_female": {
       "value": 49,
       "source_artifact": "artifacts/repro_output.txt",
       "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
-      "source_span": "repro_output.txt, gender_table 列 '2' 计数 49 (DE01=2 女性; 1=male,2=female,3=diverse)"
+      "source_span": "repro_output.txt, gender_table 列 '2' 计数 49 (DE01=2 女性; 1=male,2=female,3=diverse)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.txt"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "txt_table": "gender_table",
+            "col_label": "2"
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/repro_output.txt#gender_male": {
       "value": 23,
       "source_artifact": "artifacts/repro_output.txt",
       "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
-      "source_span": "repro_output.txt, gender_table 列 '1' 计数 23 (DE01=1 男性)"
+      "source_span": "repro_output.txt, gender_table 列 '1' 计数 23 (DE01=1 男性)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.txt"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "txt_table": "gender_table",
+            "col_label": "1"
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     },
     "artifacts/repro_output.txt#cronbach_raw_alpha": {
       "value": 0.3837,

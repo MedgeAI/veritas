@@ -94,79 +94,339 @@
       "value": 15,
       "source_artifact": "artifacts/discipline_counts.csv",
       "source_artifact_hash": "0fab8d8be3a4ba6567665fc5cd8bf605774d895b20bf5fd17cbab5c6db6bcd6f",
-      "source_span": "discipline_counts.csv, row frasc_top_level='Natural sciences', column n_assignments = 15"
+      "source_span": "discipline_counts.csv, row frasc_top_level='Natural sciences', column n_assignments = 15",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/discipline_counts.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "n_assignments",
+            "match": {
+              "frasc_top_level": "Natural sciences",
+              "n_assignments": "15"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/discipline_counts.csv#multidisciplinary": {
       "value": 7,
       "source_artifact": "artifacts/discipline_counts.csv",
       "source_artifact_hash": "0fab8d8be3a4ba6567665fc5cd8bf605774d895b20bf5fd17cbab5c6db6bcd6f",
-      "source_span": "discipline_counts.csv, row frasc_top_level='Multidisciplinary', column n_assignments = 7 (四类之和 70+27+15+7 = 119 > 104, 因多学科研究被 unnest 成多行, 非重复计数错误)"
+      "source_span": "discipline_counts.csv, row frasc_top_level='Multidisciplinary', column n_assignments = 7 (四类之和 70+27+15+7 = 119 > 104, 因多学科研究被 unnest 成多行, 非重复计数错误)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/discipline_counts.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "n_assignments",
+            "row_col": "frasc_top_level",
+            "row_key": "Multidisciplinary"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/scope_summary.csv#n_studies": {
       "value": 104,
       "source_artifact": "artifacts/scope_summary.csv",
       "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
-      "source_span": "scope_summary.csv, row variable='n_included_studies' level='total', n = 104 (scoping review 纳入的研究总数; 与 discipline_figures.qmd 中 stopifnot(nrow==104L) 一致)"
+      "source_span": "scope_summary.csv, row variable='n_included_studies' level='total', n = 104 (scoping review 纳入的研究总数; 与 discipline_figures.qmd 中 stopifnot(nrow==104L) 一致)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/scope_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "n",
+            "match": {
+              "variable": "n_included_studies",
+              "level": "total"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/scope_summary.csv#intervention_policies": {
       "value": 73,
       "source_artifact": "artifacts/scope_summary.csv",
       "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
-      "source_span": "scope_summary.csv, row variable='intervention_class' level='open science policies and guidelines', n = 73 (最常见的干预类别)"
+      "source_span": "scope_summary.csv, row variable='intervention_class' level='open science policies and guidelines', n = 73 (最常见的干预类别)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/scope_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "n",
+            "match": {
+              "variable": "intervention_class",
+              "level": "open science policies and guidelines"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/scope_summary.csv#intervention_methodology": {
       "value": 10,
       "source_artifact": "artifacts/scope_summary.csv",
       "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
-      "source_span": "scope_summary.csv, row variable='intervention_class' level='open methodology', n = 10 (第二常见的干预类别)"
+      "source_span": "scope_summary.csv, row variable='intervention_class' level='open methodology', n = 10 (第二常见的干预类别)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/scope_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "n",
+            "match": {
+              "variable": "intervention_class",
+              "level": "open methodology"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/scope_summary.csv#intervention_n_levels": {
       "value": 7,
       "source_artifact": "artifacts/scope_summary.csv",
       "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
-      "source_span": "scope_summary.csv, row variable='intervention_class' level='_n_levels', n = 7 (intervention_class 共 7 个类别)"
+      "source_span": "scope_summary.csv, row variable='intervention_class' level='_n_levels', n = 7 (intervention_class 共 7 个类别)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/scope_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "n",
+            "match": {
+              "variable": "intervention_class",
+              "level": "_n_levels"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/scope_summary.csv#outcomes_methods_transparency": {
       "value": 35,
       "source_artifact": "artifacts/scope_summary.csv",
       "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
-      "source_span": "scope_summary.csv, row variable='outcomes_class' level='methods transparency', n = 35 (最常见的结局类别)"
+      "source_span": "scope_summary.csv, row variable='outcomes_class' level='methods transparency', n = 35 (最常见的结局类别)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/scope_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "n",
+            "match": {
+              "variable": "outcomes_class",
+              "level": "methods transparency"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/scope_summary.csv#outcomes_material_sharing": {
       "value": 34,
       "source_artifact": "artifacts/scope_summary.csv",
       "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
-      "source_span": "scope_summary.csv, row variable='outcomes_class' level='research material sharing', n = 34 (第二常见的结局类别, 与 methods transparency 仅差 1)"
+      "source_span": "scope_summary.csv, row variable='outcomes_class' level='research material sharing', n = 34 (第二常见的结局类别, 与 methods transparency 仅差 1)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/scope_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "n",
+            "match": {
+              "variable": "outcomes_class",
+              "level": "research material sharing"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/scope_summary.csv#outcomes_n_levels": {
       "value": 8,
       "source_artifact": "artifacts/scope_summary.csv",
       "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
-      "source_span": "scope_summary.csv, row variable='outcomes_class' level='_n_levels', n = 8 (outcomes_class 共 8 个类别)"
+      "source_span": "scope_summary.csv, row variable='outcomes_class' level='_n_levels', n = 8 (outcomes_class 共 8 个类别)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/scope_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "n",
+            "match": {
+              "variable": "outcomes_class",
+              "level": "_n_levels"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/scope_summary.csv#effect_positive": {
       "value": 60,
       "source_artifact": "artifacts/scope_summary.csv",
       "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
-      "source_span": "scope_summary.csv, row variable='author_stated_effect' level='generally positive', n = 60"
+      "source_span": "scope_summary.csv, row variable='author_stated_effect' level='generally positive', n = 60",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/scope_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "n",
+            "match": {
+              "variable": "author_stated_effect",
+              "level": "generally positive",
+              "n": "60"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/scope_summary.csv#effect_null": {
       "value": 43,
       "source_artifact": "artifacts/scope_summary.csv",
       "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
-      "source_span": "scope_summary.csv, row variable='author_stated_effect' level='null/neutral', n = 43"
+      "source_span": "scope_summary.csv, row variable='author_stated_effect' level='null/neutral', n = 43",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/scope_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "n",
+            "match": {
+              "variable": "author_stated_effect",
+              "level": "null/neutral",
+              "n": "43"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/scope_summary.csv#effect_negative": {
       "value": 1,
       "source_artifact": "artifacts/scope_summary.csv",
       "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
-      "source_span": "scope_summary.csv, row variable='author_stated_effect' level='generally negative', n = 1 (60+43+1 = 104 = 纳入研究总数, 每项研究恰一个 author-stated effect)"
+      "source_span": "scope_summary.csv, row variable='author_stated_effect' level='generally negative', n = 1 (60+43+1 = 104 = 纳入研究总数, 每项研究恰一个 author-stated effect)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/scope_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "n",
+            "match": {
+              "variable": "author_stated_effect",
+              "level": "generally negative"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/scope_summary.csv#direct_count": {
       "value": 15,
       "source_artifact": "artifacts/scope_summary.csv",
       "source_artifact_hash": "39583c10723fc01a145f9681168003efb44ce13f9cff78cf1dd9d450be1c756f",
-      "source_span": "scope_summary.csv, row variable='direct' level='direct outcomes', n = 15 (direct==1 的研究数; 其余 89 为 proxy outcomes)"
+      "source_span": "scope_summary.csv, row variable='direct' level='direct outcomes', n = 15 (direct==1 的研究数; 其余 89 为 proxy outcomes)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/scope_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "value_col": "n",
+            "match": {
+              "variable": "direct",
+              "level": "direct outcomes"
+            }
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     }
   },
   "claims": [

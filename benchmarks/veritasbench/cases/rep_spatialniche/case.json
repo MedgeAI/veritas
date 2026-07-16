@@ -85,7 +85,23 @@
       "value": 1.319,
       "source_artifact": "artifacts/neighborhood_enrichment_correct.csv",
       "source_artifact_hash": "378c0d0759b50010e311f775e26d034f3a1c636734d17523e381c136b0ccc19c",
-      "source_span": "neighborhood_enrichment_correct.csv, row center_cell_type='Activated Fibrotic FBs', neighbor_cell_type='Alveolar FBs', column enrichment_score (背景归一化后 Alveolar FBs 富集仅 1.32x = 非特异; 它主导 raw 邻居计数纯因全局丰度高)"
+      "source_span": "neighborhood_enrichment_correct.csv, row center_cell_type='Activated Fibrotic FBs', neighbor_cell_type='Alveolar FBs', column enrichment_score (背景归一化后 Alveolar FBs 富集仅 1.32x = 非特异; 它主导 raw 邻居计数纯因全局丰度高)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve_correct.py::main"
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.01
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "pipeline输出, 需原始数据; 与同案其它code_entry一致"
+      }
     },
     "artifacts/fibrotic_niche_naive.csv#actfib_alvfb_raw_neighbors": {
       "value": 36188,

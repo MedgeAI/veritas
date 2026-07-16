@@ -36,7 +36,23 @@
       "value": 0.413,
       "source_artifact": "artifacts/correct_combination_targets.csv",
       "source_artifact_hash": "8e19e57e138de641da2e8a3c57ac10e8d8108455594e677521c039f7bec9f365",
-      "source_span": "correct_combination_targets.csv, row drug_id=Drug_A & model=Model_A, column score (严谨复现: 控细胞周期后 Drug_A 在 Model_A 的 EGFR logFC=0.413, actionable=yes, target_gene=EGFR; 代偿性 RTK 上调真信号)"
+      "source_span": "correct_combination_targets.csv, row drug_id=Drug_A & model=Model_A, column score (严谨复现: 控细胞周期后 Drug_A 在 Model_A 的 EGFR logFC=0.413, actionable=yes, target_gene=EGFR; 代偿性 RTK 上调真信号)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve_correct.py::main"
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.01
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "pipeline输出, 需原始数据; 与同案其它code_entry一致"
+      }
     },
     "artifacts/correct_combination_targets.csv#n_actionable_hits": {
       "value": 6,

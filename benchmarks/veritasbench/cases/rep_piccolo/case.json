@@ -29,25 +29,105 @@
       "value": 0.6765311,
       "source_artifact": "artifacts/breast-cancer_Metrics.tsv",
       "source_artifact_hash": "f9cd0b704f319f93316a155815e107ed4cc1195e0f33bcad4a0c2129f03d9694",
-      "source_span": "breast-cancer Metrics.tsv, Metric==AUROC rows (10 algorithms x 5 iterations). 复现Analyze_Results.Rmd逻辑: 先按(Algorithm)取median(Value), 再对10个算法中位数取median => 数据集中位AUROC=0.6765311 (Fig2底层, biomedical乳腺癌数据集最低)"
+      "source_span": "breast-cancer Metrics.tsv, Metric==AUROC rows (10 algorithms x 5 iterations). 复现Analyze_Results.Rmd逻辑: 先按(Algorithm)取median(Value), 再对10个算法中位数取median => 数据集中位AUROC=0.6765311 (Fig2底层, biomedical乳腺癌数据集最低)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/breast-cancer_Metrics.tsv"
+        ],
+        "method": {
+          "reference_fn": "median_of_group_median",
+          "args": {
+            "filter": {
+              "Metric": "AUROC"
+            },
+            "group_col": "Algorithm",
+            "value_col": "Value"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/breast-cancer_Metrics.tsv#bc_best_algo_auroc": {
       "value": 0.7104992,
       "source_artifact": "artifacts/breast-cancer_Metrics.tsv",
       "source_artifact_hash": "f9cd0b704f319f93316a155815e107ed4cc1195e0f33bcad4a0c2129f03d9694",
-      "source_span": "breast-cancer Metrics.tsv, Metric==AUROC. 各算法median(Value)后取最大者 => keras/dnn=0.7104992 (breast-cancer上表现最好的算法)"
+      "source_span": "breast-cancer Metrics.tsv, Metric==AUROC. 各算法median(Value)后取最大者 => keras/dnn=0.7104992 (breast-cancer上表现最好的算法)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/breast-cancer_Metrics.tsv"
+        ],
+        "method": {
+          "reference_fn": "max_of_group_median",
+          "args": {
+            "filter": {
+              "Metric": "AUROC"
+            },
+            "group_col": "Algorithm",
+            "value_col": "Value"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/diabetes_Metrics.tsv#dia_median_auroc": {
       "value": 0.8193054,
       "source_artifact": "artifacts/diabetes_Metrics.tsv",
       "source_artifact_hash": "2aedd298256872b83b87f7784f8ac28e6254d0e029776d0833c280586ec4a17e",
-      "source_span": "diabetes Metrics.tsv, Metric==AUROC rows. median-of-algorithm-median AUROC=0.8193054 (Fig2底层, 糖尿病数据集)"
+      "source_span": "diabetes Metrics.tsv, Metric==AUROC rows. median-of-algorithm-median AUROC=0.8193054 (Fig2底层, 糖尿病数据集)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/diabetes_Metrics.tsv"
+        ],
+        "method": {
+          "reference_fn": "median_of_group_median",
+          "args": {
+            "filter": {
+              "Metric": "AUROC"
+            },
+            "group_col": "Algorithm",
+            "value_col": "Value"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/diabetes_Metrics.tsv#dia_best_algo_auroc": {
       "value": 0.8386789,
       "source_artifact": "artifacts/diabetes_Metrics.tsv",
       "source_artifact_hash": "2aedd298256872b83b87f7784f8ac28e6254d0e029776d0833c280586ec4a17e",
-      "source_span": "diabetes Metrics.tsv, Metric==AUROC. 各算法median(Value)取最大 => weka/SimpleLogistic=0.8386789 (糖尿病上表现最好的算法, 一个简单线性模型)"
+      "source_span": "diabetes Metrics.tsv, Metric==AUROC. 各算法median(Value)取最大 => weka/SimpleLogistic=0.8386789 (糖尿病上表现最好的算法, 一个简单线性模型)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/diabetes_Metrics.tsv"
+        ],
+        "method": {
+          "reference_fn": "max_of_group_median",
+          "args": {
+            "filter": {
+              "Metric": "AUROC"
+            },
+            "group_col": "Algorithm",
+            "value_col": "Value"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     }
   },
   "claims": [
