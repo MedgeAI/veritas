@@ -466,7 +466,7 @@
       "mixed_boundary"
     ],
     "source_url": "https://doi.org/10.1038/s41556-021-00709-7",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_note": "ED6d: ND2 gene time-course qPCR (4 timepoints x 6 replicate cols = 24 values, siControl+siALKBH7) is byte-identical to ATP8 gene block; two different mitochondrial genes cannot share 24 identical measured values"
   }
 }

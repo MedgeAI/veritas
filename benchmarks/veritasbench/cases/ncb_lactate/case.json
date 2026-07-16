@@ -133,6 +133,6 @@
     "_timeline": "2026-01(NCB发表); 2026-05-29 PubPeer首评(Fig1h/1i 6位小数同值); 2026-06-06一作承认Fig1h→1i复制粘贴+更正数据; 2026-06-16评论Fig2h MES28 Day5 4/6重排复用; 2026-06-20评论ED3b/3c Day1跨条件同值; Fig2h/ED3暂无作者回应。",
     "_independent_status": "下载窗口机构cookie取Source Data Figs1-6(MOESM8)+正文PDF。本地核验: Fig1h shMCT4-1(F13/F15/F17=61.780736/58.863296/75.589952)=Fig1i shMCT1-1(T15/T17/T19)逐位同; shCONT对照列B13≠P15(112.35 vs 102.62)证局部; Fig2 MES28 Day5 S32=W32=2.901216。",
     "_pubpeer": "48957C70097BF35B535BA9558B1118",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }

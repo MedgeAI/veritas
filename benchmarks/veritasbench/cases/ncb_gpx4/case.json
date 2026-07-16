@@ -150,6 +150,6 @@
     "_author_response": "通讯作者Jun Cui(崔隽)在PubPeer回复: 承认Fig. 2i存在一处复制粘贴错误并将提交更正; 同时解释ED Fig. 5c/d、Fig. 1d/g/h等处的重复值系MTT/活力归一化(同除一个对照均值)、酶标仪仪器精度有限、以及四舍五入所致, 属合法计算假象, 不改结论。争议source data涉及: ED Fig. 5c/d、Fig. 1d/g/h、Fig. 2i、Fig. 4a、Fig. 5g、Fig. 6d。",
     "_independent_status": "下载窗口用机构cookie从Nature取该文Statistical source data(MOESM4, xlsx, 15个sheet按图分)+正文PDF(53页), 仅本地核验未上传。核验结果: (a) inconsistent已复现——openpyxl逐格比对Fig. 2i行47(B47:E47,G47:J47)与Fig. 4c行18(B18:E18,G18:J18)8/8单元完全相同(106.53/103.16/102.74/116.21/102.36/123.50/105.70/102.36), 且Fig. 2i其余行为6位小数唯此行为2位小数、粘贴止于8格(Fig. 4c KO2列L18:O18无对应)=典型copy-paste; Fig. 2i Vehicle/IKE行与Fig. 4c对应行不同, 证仅一行误粘。(b) consistent已复现——ED Fig. 5d B16-F10高剂量行重复值7.54717跨Vehicle/PF-670462列, 但同面板低剂量行全互异=assay平台/归一化假象。(c) insufficient——Fig. 1h 15位精度重复(92.89428076256499)缺归一化前原始读数, 且Nature正式Correction截至核验未上线, 无法判定。cookie与临时下载均未进repo。",
     "_pubpeer": "35C7610A3C43C1249A6DB526674757",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }

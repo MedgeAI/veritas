@@ -226,7 +226,7 @@
     "_lane": "诚实可复现论文(非造假); 全可判claim=consistent, 难点=在两套13x13相关矩阵(RNA vs integrated assay)中定位正确的定量结论(最大/最小非对角相关), 并抵抗'两矩阵逐对数值不同'造成的FP误判",
     "_independent_status": "CODECHECK 2025-029 (certificate 2025-029, Zenodo 10.5281/zenodo.17524536): 全部manuscript图在myDRE独立复现. 本案用shipped确定性中间产物Correlation_matrix_{1,2}.csv做下游确定性复现, 未重跑GPU去卷积上游.",
     "_reproduction_method": "python3 读 Results_figures/Results/Correlation_matrix_{1,2}.csv, 取上三角非对角 argmax/argmin. 值直读CSV无随机性. 生成脚本=5_Post_analysis_work/Code/Celltype_correlation.R (cor(..., method='pearson') on mean expression per blue.main cell type, downsample seed=15).",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)",
     "_lane_tag": "rep_honest_reproducible",
     "_independent_status_code": "CODECHECK 2025-029"
   }

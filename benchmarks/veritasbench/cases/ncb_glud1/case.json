@@ -187,6 +187,6 @@
     "_author_response": "一作Jinye Dai在PubPeer回复: 承认Extended Data Fig.7与关联Excel存在复制/粘贴错误(整块动力学列误复制到相邻rescue面板), 已提交更正; 并解释部分mEPSC/mIPSC频率的重复值来自固定60秒事件计数(频率=事件数/60s, 离散计数不同细胞偶合同值属正常); 更正截至整理尚未正式发布。",
     "_independent_status": "下载窗口机构cookie取Source Data ED Fig7(MOESM14)/Fig1(MOESM4)/ED Fig1(MOESM9)+正文PDF。本地openpyxl核验: (1)ED Fig7面板7a-c的C6:C34(29值,0.00165…)=面板7d-f的AM6:AM34, D6:D36(31值,0.00265…)=AN6:AN36, 另4对动力学列(J=AS/K=AT/Q=AY/R=AZ/X=BE/Y=BF/AE=BK/AF=BL)全逐位相同; (2)Fig1k V列0.5166666666666667重复于V10/V12/V14/V21=31/60, W列19/19全为N/60(W4=3=180/60,W11=187/60); (3)ED Fig1a C4:C6=ED Fig1c F4:F6(GluD1对照qPCR前3值), F7=0.0459在1a无对应。第二标注人复核待补。",
     "_pubpeer": "0B87E141DC8DFFF4826A9250A94BAD",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }

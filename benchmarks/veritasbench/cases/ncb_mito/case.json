@@ -214,7 +214,7 @@
       "mixed_boundary"
     ],
     "source_url": "https://doi.org/10.1038/s41556-021-00724-8",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)",
     "_note": "Two distinct OXPHOS genes (R05D3.6 vs ZC262.5) in Fig.2b heatmap share byte-identical values across all 12 columns incl. 6 individual replicate raw counts (WT1-3, TGQ1-3) and identical p/padjust - impossible for independent genes; copy/paste duplication."
   }
 }

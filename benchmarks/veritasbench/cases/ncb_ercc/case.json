@@ -3223,6 +3223,6 @@
     "source_url": "https://doi.org/10.1038/s41556-025-01760-4",
     "_pubpeer": "E019667762E02E630C55413A617170: ED8m/8v 259值同; ED2c 13值原序; ED2e 25值重复+34对Ctrl-KO=1",
     "_independent_status": "PubPeer 3评论 + 下载窗口dup_scan复现: colAK==colBM 259/259",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }

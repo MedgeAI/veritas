@@ -193,6 +193,6 @@
     "_lane": "诚实可复现(非造假): 全claim=consistent. 考AI面对'naive用RNA velocity重算得到方向完全倒置(把干性progenitor State_C判成terminal, corr(pt,stem)=+0.435)、看着像论文轨迹搞反/不可复现'时, 不误报论文的progenitor=State_C结论. 底材=medgebench task medge-ext019-1真实数据(GSE241403, 8913个抗原特异CD8 T细胞, spliced/unspliced + CARLIN谱系条码).",
     "_independent_status": "下载窗口本地重跑 solve_reference.py (marker+lineage, DATA_DIR=environment/data) 得 State_C stem_score=1.302/role=progenitor (correct); naive velocity path 由build-time scVelo grounding权威值复现 State_C pt=0.941(terminal)/root=State_E(0.038)/corr(pt,stem)=+0.435 (naive红鲱鱼). 注: 本地无scvelo, naive velocity数字取自medge-ext019-1构建时的scVelo grounding闸门(gt_artifacts.json), 该闸门PASS.",
     "_source_task": "medge-ext019-1 (paper_doi 10.1101/2024.03.21.586160, trap=rna_velocity_reversed_vs_lineage_barcode_truth). 原始 expression.h5ad (~100MB, 8913 cells x spliced/unspliced) 未随case装载, 底材留在 medge-ext019-1/environment/data.",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)"
   }
 }

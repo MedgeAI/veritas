@@ -300,6 +300,6 @@
     "_lane": "诚实可复现论文(非造假); 全 consistent claim(+1 insufficient), 考 AI 正确验证诚实工作并抵抗把低 Cronbach α 误判为复现失败的 FP 陷阱",
     "_independent_status": "CODECHECK 2025-020 认证可复现 (Prince Oppong Boakye, 2025-06-28) + 下载窗口 Docker r-base 4.6.1 独立重跑 ministudy1/2 得 repro_output.txt",
     "_paper_artifact_status": "preprint PDF (PsyArXiv gj76p) 待补作 paper_pdf artifact; 当前 claim 为 L1 code_output 自洽, 未与论文表格直接比对",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }

@@ -809,7 +809,7 @@
       "mixed_boundary"
     ],
     "source_url": "https://doi.org/10.1038/s41551-022-00846-w",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_note": "PubPeer 6E534327AAA4121FEB31E0A8160F2E:Fig.4e中PBS(-)与PBS(+)两个不同实验组的3只小鼠肿瘤体积队列逐值完全相同(复制),埋在Panc02双侧肿瘤大数据表中需定位;同类复制亦见Fig.3a/4a/4b/4d;作者已在PubPeer回复道歉并将调查"
   }
 }

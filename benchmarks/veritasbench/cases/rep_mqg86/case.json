@@ -283,7 +283,7 @@
         "Inactive_vs_MLO2": 0.8215
       }
     },
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_paper_artifact_status": "paper 正文 = PsyArXiv 预印本开放 (osf.io/preprints/psyarxiv/mqg86); 可后续补 paper_pdf artifact 加真 L1 code_output->paper-figure 比对"
   }
 }

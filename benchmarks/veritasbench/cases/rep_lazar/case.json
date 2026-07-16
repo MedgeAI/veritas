@@ -349,7 +349,7 @@
     "_lane": "诚实可复现论文(非造假); 全实质claim=consistent, 难点=在多个人口学/subdataset描述量(Table 1 + 三实验相计数, 及n=83/n=63双data-loss阈值)中定位对的值; 另含1条insufficient考FP抗性",
     "_independent_status": "CODECHECK 2024-001 认证可复现 (codecheckers/LazarEtAl_RSocOpenSci_2024); 下载窗口在Docker r-base里从repo shipped的cleaned_survey.rda + rawdata_ID_all.rda(adjusted 0.75阈值)独立重跑30_datamerge/40_demographics/50_subdatasets逻辑得repro_values.csv",
     "_reproduction_env": "Docker r-base:latest (R 4.6.1), base R only, 确定性无MCMC; merge/demographics/subdataset逻辑",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_paper_artifact_status": "paper正文=R Soc Open Sci开放获取, 待补PDF作paper_pdf artifact(可加真·L1 code_output->paper-Table1); codecheck.yml manifest列8图表产物(dem_tab.pdf=Table1, agepyr_plot.pdf=Fig2等)"
   }
 }

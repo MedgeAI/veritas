@@ -210,6 +210,6 @@
     "_lane": "诚实可复现(非造假): 全 claim=consistent。考 AI 面对'naive raw 邻居计数重算得到一份被高丰度细胞主导、且漏掉论文真实伙伴 KRT5-/KRT17+ 的红鲱鱼 niche、看着像共定位不可复现'的情形, 不误报论文的纤维化空间 niche 结论。底材=medgebench task medge-ext017-1 真实数据(GSE250346=Vannan et al., Nat Genet 2025, 肺纤维化 Xenium 空间转录组, 272690 cells/8 样本/343 基因)。",
     "_independent_status": "下载窗口本地重跑 solve_correct.py (背景归一化) 得 KRT5-/KRT17+ <-> Activated Fibrotic FBs <-> SPP1+ Macrophages 互富 1.81/2.07/2.26x、Alveolar FBs 仅 1.32x (correct); 与 naive_solve.py (raw 邻居计数) 得 Alveolar FBs=36188 为 #1 邻居、KRT5-/KRT17+=1907 被漏 (naive) 两份 code_output。数字与 medge-ext017-1 build-time GT (tests/gt_artifacts.json) 一致。",
     "_source_task": "medge-ext017-1 (paper_doi 10.1038/s41588-025-02080-x, trap=spatial_raw_neighbor_decoy_plus_coabundance_vs_colocalization); 原始 1GB Seurat rds 空间矩阵 (272690 cells x 343 genes) 未随 case 打包, 底材留在 medge-ext017-1/environment/data (matrix.mtx.gz/cell_metadata.tsv)。",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }

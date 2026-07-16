@@ -898,7 +898,7 @@
       "mixed_boundary"
     ],
     "source_url": "https://doi.org/10.1038/s41467-022-29653-2",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_note": "An LPS-treated KI/+ microglia Sholl trace (Fig3c) is byte-identical across all 61 radii to an untreated KI/+ trace (Fig9c) — different treatment conditions cannot yield identical single-cell morphometry; part of wholesale block duplication between the two sholl sheets plus within-Fig9c duplicated replicate columns."
   }
 }

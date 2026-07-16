@@ -241,6 +241,6 @@
     "_lane": "诚实可复现(非造假): 全claim=consistent. 考AI面对'naive重算得退化r=0、看着像不可复现'的EPICv2探针ID失配, 不误报论文的r~0.96. 底材=medgebench task medge-ext022-1真实数据(GSE246337 500血样EPICv2甲基化).",
     "_independent_status": "下载窗口本地重跑 clock_apply_correct.py (strip+collapse) 得 r=0.963/MAE=4.02y (correct) 与 naive直接匹配 r=0.00/0探针 (naive) 两份code_output",
     "_source_task": "medge-ext022-1 (paper_doi 10.1101/2024.10.29.620782, trap=epicv2_probe_mismatch_silent_clock_failure)",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }

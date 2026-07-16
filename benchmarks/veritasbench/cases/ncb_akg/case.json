@@ -155,7 +155,7 @@
       "mixed_boundary"
     ],
     "source_url": "https://doi.org/10.1038/s41589-025-02013-z",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_note": "Fig1e: Huh7 shGDH1-2 and H1299 shGDH1-1 (different cell line AND different shRNA hairpin) report byte-identical triplicate cell-death values 82.5/91/81.75"
   }
 }

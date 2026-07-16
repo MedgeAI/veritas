@@ -174,7 +174,7 @@
     "_pubpeer": "灵镜披露疑数据异常: Fig1c/1d/2b/2d/5e/5f/7d, ED Fig5e; Fig5f 单图 18 处异常(0/0.1 等小数不计).",
     "_correction": "作者(李大力团队)已于 2026-06-17 对部分数据异常发布更正 → 部分真错的独立状态实锤(inconsistent 素材来源).",
     "_verdict_breakdown": "consistent=2 (claim_001, claim_002); inconsistent=1 (claim_003); insufficient=1 (claim_004)",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_grounding_note": "所有 value 逐 cell 从 source_data xlsx (openpyxl data_only) 读出无编造. consistent 两条经 dup_scan_candidates.json EXACT len=8 命中并人工核对为共享参照臂. inconsistent 的 Rep.1==Rep.2 由 dup_scan (Fig.1c colT==colU) 命中并核对 Rep.3 不同以排除全组恒定. 主文 PDF (paper_main.pdf) 附为图注/编辑器命名核对用."
   }
 }

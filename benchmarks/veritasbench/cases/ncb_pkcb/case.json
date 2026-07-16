@@ -399,7 +399,7 @@
       "mixed_boundary"
     ],
     "source_url": "https://doi.org/10.1038/s41556-021-00818-3",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_note": "Fig 5a left panel (231-WT vs PKCbetaII KO) and right panel (ACSL4-WT vs ACSL4-T328A) are byte-identical across all 18 values despite being different cell-line/mutant experiments"
   }
 }

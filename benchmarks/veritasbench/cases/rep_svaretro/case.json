@@ -256,6 +256,6 @@
     "_lane": "诚实可复现论文(非造假); 主体 claim 全 consistent, 考 AI 正确验证诚实结构变异注释工作 + 抵抗把确定计数误判为不一致",
     "_independent_status": "CODECHECK 2022-018",
     "_paper_artifact_status": "CODECHECK shipped figure-4.csv/figure-6.csv (frictionless data package 离线兜底); 下载窗口用 r-base 离线重跑得 repro_summary.csv, 未访问 cngb.org 远程数据",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }

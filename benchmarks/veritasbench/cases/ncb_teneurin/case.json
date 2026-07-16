@@ -121,6 +121,6 @@
     "_independent_status": "下载窗口(带机构 cookie)取 Nat Commun 主文 Source Data(MOESM3, 已更正版)+ Author Correction 的 Supplementary: 'Updated Source Data'(MOESM1, sha e7b62dc6..., 与主文 MOESM3 同 hash=更正后)与 'Incorrect Source Data'(MOESM2, sha 215c4d54...=更正前)。本地 openpyxl 核验坐实: 原始版 'Main Fig. 8' AC34:AC41==M34:M41(8.5,80.6,105,140,211.2,261.8,289.3,353.4)逐位同; AB4:AB11(19.5,69.6,95.2,106.2,148.9,163,183.7,192.3)==AD34:AD41; 更正版 AB 列被删、AC34:AC41 改为 7.6,87.3,108.8,149.5,209,270.6,288.2,362.2、M 列未动。两版另在 Fig.2/3/5 等 sheet 有 Correction 未提及的重排/取整差异。",
     "_pubpeer": "EC9A138F8BFAAE1F2FB803106703AB",
     "_correction_status": "Nat Commun 已发布正式 Author Correction(article 2957, 10.1038/s41467-023-38713-0, 2023-05-25)。此案用更正前(Incorrect Source Data)+更正后(Updated Source Data)双版本。",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }

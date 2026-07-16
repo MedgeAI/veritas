@@ -142,7 +142,7 @@
     ],
     "source_url": "https://doi.org/10.1038/s41556-020-0522-z",
     "_lane": "混合边界案(周岩/康铁邦 中山大学肿瘤防治中心 2020 Nat Cell Biol, 染色体易位来源异常 Rab22a-NeoF1 驱动骨肉瘤肺转移). 三类 verdict 并存: (1) consistent+clean (FP陷阱): ED Fig. 6f Vector 组 fold-change 恒=1.0, 是参照归一化的数学必然非造假; (2) inconsistent: ED Fig. 6h Vector 列 E 与 SmgGDS-sg2 rescue 列 M 逐值完全相同(7/7)=重复列, 另 F/G 列 6/7 相同带四舍五入签名; (3) insufficient: Fig. 3f/3i 代表性小鼠照片疑似图像重复, 但该两面板无数值 Source Data → 无法从公开数值确证. 考 AI 能否区分'看着可疑但合法归一化'/'真重复列(数值异常)'/'图像层重复证据不足'.",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_pubpeer": "灵镜/天眼系统披露: 图片重复 Fig3f(143B) vs Fig3i(NC/ZOS-M), FigE3I(U2OS/MTX300) vs FigE5G(NC); 天眼 ED Fig 6h & 6j 恒定差/四舍五入同数据(Vector列 vs rescue列).",
     "_correction": "s41556-024-01370-6",
     "_verdict_breakdown": "consistent=1 (claim_001, clean/FP normalization); inconsistent=1 (claim_002, duplicated_columns ED6h); insufficient=1 (claim_003, Fig3f/3i image-level)",

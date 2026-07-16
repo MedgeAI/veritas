@@ -2609,7 +2609,7 @@
       "mixed_boundary"
     ],
     "source_url": "https://doi.org/10.1038/s43018-023-00535-w",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_note": "PubPeer CA8BBED9: ED Fig 5B 中 shUSP15-2+pPARP1 条件的 MMS 面板 204 个单细胞测量值恒为 DMSO 面板的 0.952381 倍(=20/21),藏在 18x230 的宽表约 230 列里需自行定位;任意比例非x10/x100,标准扫描器会漏"
   }
 }

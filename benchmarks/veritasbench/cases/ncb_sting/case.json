@@ -136,7 +136,7 @@
       "mixed_boundary"
     ],
     "source_url": "https://doi.org/10.1038/s41556-021-00659-0",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_note": "Extended Data Fig. 2d FRAP quantification: the N-terminal-GFP-STING construct shares byte-identical 5-replicate intensity tuples with the C-terminal-mNeonGreen-STING construct at 16 of 17 shared timepoints, though the paper presents them as independent fusion-tag controls proving condensation is tag-independent."
   }
 }

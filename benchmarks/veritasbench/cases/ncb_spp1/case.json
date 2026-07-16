@@ -133,6 +133,6 @@
     "_timeline": "2023-02 NCB 发表; 2023-11 起 PubPeer 多帖指出伪重复+source data 与图不符(ED Fig 1a 15/16 点 vs 图上各 8 点、p=0.0499)+归一化/交互检验问题; 2023-11 作者联系编辑; #31 作者承认误传 source 文件; #34(2024)提供 per-mouse 再分析; 2026 发布更正 s41593-025-02197-6(#39), 但伪重复与部分 p>0.9999 异常未解释。",
     "_independent_status": "下载窗口用 Nature 机构 cookie 取 Source Data ED Fig 1(MOESM10, 当前=更正版, 含新增 Per-mouse 列)+正文 PDF(19页)。本地核验(openpyxl): ED Fig 1a(SLM/海马)NLF=15 tile 来自 9 鼠、WT=16 tile 来自 10 鼠; NLF186 三 tile D28/D29/D30=21.696/6.414/28.463→per-mouse G30=18.8577; per-tile NLF 14.06>WT 10.85, per-mouse NLF 13.62>WT 10.82(方向存但 n 由 15/16 塌成 9/10)。ED Fig 1b(CB/小脑)NLF/WT 各 9 tile, per-mouse NLF≈WT(G14=6.4735<G16=7.67)无升高。第二标注人尚未独立复核。",
     "_pubpeer": "98FCB4581543F4A4D1BE2F386D6BDA",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)"
   }
 }

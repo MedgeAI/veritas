@@ -270,7 +270,7 @@
     "_lane": "诚实可复现(非造假): 全 claim=consistent. 考 AI 面对'naive 不控实测 mtDNA 拷贝数中介、按 DEG 大小把 KO_13/KO_05 顶为最强 gene-specific'的红鲱鱼, 不误报论文的中介控制结论(只 KO_11=gene_specific). 底材=medgebench task medge-082-1 真实数据(MitoPerturb-Seq 单细胞 CRISPR, GSE297418 multiome; KO 基因名已 de-leak relabel 为 KO_01..KO_13).",
     "_independent_status": "本地重跑 medge-082-1 solve.py(中介控制: DE 大小 vs mtDNA 耗竭)得 KO_11 gene_specific / KO_13,KO_05 shared, 及 naive_solve.py(纯按 DEG 排序)得 KO_13,KO_05,KO_11 全 gene_specific 两份 code_output; 与 tests/gt_artifacts.json 完全一致(control_median_mtDNA=372167, depleter_threshold=279125, gene_specific_correct=[KO_11], decoy_depleters=[KO_05,KO_13])",
     "_source_task": "medge-082-1 (paper_doi 10.1038/s41594-026-01779-7, trap=measured_mediator_confound; 原始表达矩阵 25MB 不入 case, 仅存 <5MB code_output/code)",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_mechanism": [
       "confounding"
     ]

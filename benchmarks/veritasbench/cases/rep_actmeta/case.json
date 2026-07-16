@@ -339,7 +339,7 @@
     "source_url": "https://doi.org/10.1186/s12991-023-00462-1",
     "_lane": "诚实可复现论文(验证报告, 非造假); 全部实质 claim=consistent + 1 insufficient(证据缺失非冲突). 考 AI 从森林图/多个合并模型中定位对的合并效应量, 并抵抗 FP 误判(11 vs 10 项, 4 个不同 SMD 估计)",
     "_independent_status": "CODECHECK 2025-005 (Daniel Nust 认证可执行, 证书 doi:10.5281/zenodo.15323262) + 下载窗口独立在 r-base Docker 内重跑 metafor rma(DL) 得 pooled_effects.csv",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_reproduction_env": "r-base:latest (R 4.x) + metafor + readxl; 源数据 data_zhao_forest_plot_1_extracted.xlsx sheets original/reextracted; escalc(measure=SMD)+rma(method=DL)"
   }
 }

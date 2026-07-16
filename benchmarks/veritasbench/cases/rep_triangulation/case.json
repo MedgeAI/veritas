@@ -204,6 +204,6 @@
     "_lane": "诚实可复现(非造假): 全claim=consistent. 考AI面对'naive单次直接join三张关联表得 398 候选、少 65 个酒精三联体、看着像论文三联体数虚高/不可复现'的 food-label 失配, 不误报论文的三角化结果. 底材=medgebench task medge-104-1 真实数据(Nat Commun 2025 s41467-025-66046-7 supplementary Data 7/11/12, 三张 diet-microbe-metabolite 两两关联表).",
     "_independent_status": "下载窗口本地重跑 solve_correct.py (food-label harmonization + 固定 support criterion) 得 463 候选/434 direction-coherent/65 酒精三联体 (correct) 与 solve_naive.py (直接精确join无 harmonization) 得 398 候选/0 酒精三联体 (naive) 两份 code_output; supported 边 426/109/2636 与内部参考一致",
     "_source_task": "medge-104-1 (paper_doi 10.1038/s41467-025-66046-7, trap=secondary-analysis-data-reasoning; food-label harmonization 隐性陷阱)",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }

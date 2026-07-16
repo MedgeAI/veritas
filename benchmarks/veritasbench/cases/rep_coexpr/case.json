@@ -273,7 +273,7 @@
     "_lane": "诚实可复现(非造假): 全 claim=consistent. 论文(Nat Commun 2025 dGCNA, Martinez-Lopez et al)用严谨 donor-aware 差异共表达报正确的 beta 细胞 T2D 失调程序(UPR/线粒体/细胞骨架/增殖). 考 AI 面对 naive 审计者的两重红鲱鱼: (1) per-cell DE 反射把 ~25% 转录组膨胀到显著, (2) pooled 跨细胞共表达被细胞质热激/解离应激程序(HSPA1A/B, HSP90, DNAJB)霸榜(10/20), 不误报论文'无法复现/挑错程序'. 底材=medgebench task medge-ext008-1 真实数据(GSE153855, 11 donor 人胰岛单细胞, beta 细胞~550).",
     "_independent_status": "下载窗口本地重跑 solution/solve.py(严谨: per-donor pseudobulk + donor-centered 差异共表达 + 剔应激) 与 solution/naive_solve.py(per-cell DE + pooled 共表达, 不控 donor 不剔应激), 得两份 de_analysis 与两份 dysregulated_program code_output. 关键量化: 严谨侧 donor DE 0 显著、机制基因 FDR 0/8、donor-centered 程序 top20 热激 0/20; naive 侧 per-cell 25% 转录组 p<1e-4、6932 padj<0.05、pooled 程序 top20 热激 10/20.",
     "_source_task": "medge-ext008-1 (paper_doi 10.1038/s41467-025-65060-z, trap=de_reflex_plus_simpson_coexpression_artifact). 原始 counts 矩阵(GSE153855, ~29MB gz)不随 case 打包, 仅 ship 复现产出的 code_output 与 solve.py.",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_mechanism": [
       "pseudoreplication",
       "simpson_paradox"

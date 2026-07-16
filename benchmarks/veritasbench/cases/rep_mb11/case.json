@@ -323,7 +323,7 @@
     "source_url": "https://doi.org/10.24072/pcjournal.414",
     "_lane": "诚实可复现论文(非造假); claim 全 consistent(+1 insufficient), 考 AI 正确将论文正文数字 ground 到复现代码输出, 并抵抗'两个 accuracy 数字不等'的 FP 误判",
     "_independent_status": "CODECHECK 2025-001 认证全文可复现; 本案在 Docker r-base 里独立重跑 setup-qmd.R 的 UHPLC/demography 逻辑得 repro_summary.csv, 数值与 version_of_record.pdf 完全一致(41/27; 14/25=56.0%; 59.3%; old 100.0% n=2)",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_reproduction_env": "docker r-base:latest (R 4.6.1) + dplyr/tidyr/readr/stringr via 代理; 读 data/*.rda(uhplc_data_comb/metadata/demography)重建 uhplc_calculus_long; 确定性无随机"
   }
 }

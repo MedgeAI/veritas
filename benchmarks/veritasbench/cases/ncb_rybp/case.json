@@ -222,7 +222,7 @@
       "mixed_boundary"
     ],
     "source_url": "https://doi.org/10.1038/s41556-020-0484-1",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)",
     "_note": "Supp Fig 9d (ED9) Lhx2 qRT-PCR: WT repeat3 (D32:D37) byte-identical to WT repeat2 (C32:C37) across all six timepoints; other genes (Oct4/Tuj1/Hens5) have distinct rep2/rep3 and cells are hard values (no formula) -> an independent third replicate was fabricated by copying repeat2."
   }
 }

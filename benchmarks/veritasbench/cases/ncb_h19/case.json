@@ -317,6 +317,6 @@
     "_paper_artifact_status": "paper artifact 已补入(kind=paper_pdf, 43843KB); 支持后续L3(文字claim)/L4(图编码)标注",
     "_lingjing_disclosure": "灵镜: Fig1c/3h/ExFig3h(差一位小数)/ExFig9c-9d(恒定差值)",
     "_independent_status": "第三方PubPeer取证; 下载窗口已从开放Source Data独立复现ExFig9c/9d +10000关系",
-    "_signed_by": "wuguandu @ 2026-07-14T00:00:00Z (下载窗口 provisional→已核定); 第二标注人待补(指南§5双人)"
+    "_signed_by": "wuguandu @ 2026-07-14T00:00:00Z (下载窗口 provisional→已核定); 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }

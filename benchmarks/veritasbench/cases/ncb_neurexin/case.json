@@ -109,6 +109,6 @@
     "_independent_status": "下载窗口取eLife开放CDN两版本: fig5-data1-v3(更正前)+v4(更正后)。本地核验: v3 Cbln12dcko cell18(O43:S43)==Cbln12f/f cell17(O19:S19)逐位同; v3→v4仅O43:S43五单元变(2.41868→2.62051等); dcko cell17(O42)真不同。坐实eLife Correction所述copy-paste。",
     "_pubpeer": "(eLife Correction 94305; source data重复值经PubPeer提出后作者更正)",
     "_correction_status": "eLife已发布正式Correction(article 94305, 2023/2024)。此案用更正前v3+更正后v4双版本。",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }

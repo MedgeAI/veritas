@@ -298,7 +298,7 @@
       },
       "determinism": "纯计数/groupby, 无随机种子, 逐次重跑逐位可复现"
     },
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_paper_artifact_status": "论文正文=Scientific Reports开放获取, 待补PDF作paper_pdf artifact(可加真·L1 code_output->paper-figure)"
   }
 }

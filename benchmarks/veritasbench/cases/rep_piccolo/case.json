@@ -205,6 +205,6 @@
     "source_url": "https://doi.org/10.1093/gigascience/giaa026",
     "_lane": "诚实可复现论文(非造假); 全claim=consistent(含1 insufficient), 考AI正确验证诚实ML基准工作+抵抗因算法间数值差异/低AUROC误报造假",
     "_independent_status": "CODECHECK 2020-001 (certificate) 认证可复现; 下游viz-only, 用shipped Results_Basic/*/Metrics.tsv确定性复现median AUROC (无ML训练随机)",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)"
   }
 }

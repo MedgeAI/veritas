@@ -126,6 +126,6 @@
     "_author_response": "作者在PubPeer(D1769F3E32035DFA98B422B27F8C86)确认: Dryad中的body-size/SL数据与Fish ID错位(mislabelled/misaligned), 重跑模型后主要结论(近克隆molly鱼的行为个体性)基本不变, 并已更新Dryad数据(新增v2, 文件名含'SL_CORRECTED', 带Bad.SL与Correct.SL双列及corrected的Rmd/PDF分析代码)以及论文相应部分。",
     "_independent_status": "下载窗口经Dryad API zip_assembly端点绕过Anubis直下两版本(dataset DOI 10.5061/dryad.td3sj, id 16328): v1=version 16385(2020-06-24, 'Bierbach et al clonal molly behav development_data for deposit.xlsx', 373数据行, 列Fish.ID/Trt/Obs/SL/Total.distance); v2=version 423653(2026-02-05, '..._SL_corrected.csv', 373行, 列ID/Mom.ID/Trt/Obs/Bad.SL/Total.distance/Correct.SL)。本地核验: v1同鱼内SL变化(Fish.ID5 D2:D5=21.21/20.22/22.66/21.96)且78/94尾如此; v2 Correct.SL 94/94尾恒定、Bad.SL 78/94尾同鱼内变化; Total.distance多重集两版完全一致(E2=143.994匹配v2第254行); SL值多重集两版一致(各84个distinct)证更正=重分配非新测量。",
     "_pubpeer": "D1769F3E32035DFA98B422B27F8C86",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)"
   }
 }

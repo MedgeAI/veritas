@@ -372,6 +372,6 @@
     "_paper_artifact_status": "paper artifact 已补入(kind=paper_pdf, 10349KB); 支持后续L3(文字claim)/L4(图编码)标注",
     "_lingjing_disclosure": "灵镜: Fig 4i 不同组同数据队列",
     "_independent_status": "下载窗口从开放Source Data独立复现: WV+I347A组 EtoD7=EtoD4",
-    "_signed_by": "wuguandu @ 2026-07-14T00:00:00Z (下载窗口 provisional→已核定); 第二标注人待补(指南§5双人)"
+    "_signed_by": "wuguandu @ 2026-07-14T00:00:00Z (下载窗口 provisional→已核定); 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }

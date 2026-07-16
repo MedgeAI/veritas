@@ -281,7 +281,7 @@
     "source_url": "https://doi.org/10.5281/zenodo.1003214",
     "_lane": "诚实可复现论文(非造假); claim 全 consistent + 1 insufficient, 考 AI 在多行为/多字段中对齐正确 spiking behavior 与正确指标列(grounding), 并抵抗定性复现被误读为定量吻合(FP陷阱)",
     "_independent_status": "CODECHECK 2020-006 认证可复现(codechecker Iain Davies, report https://doi.org/10.5281/zenodo.3948353) + 下载窗口独立重跑 neuron_model.mnn_model 得 reproduce_output.json (python3.12 / numpy 2.4.6, 确定性无随机)",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)",
     "_reproduction_env": "server python3.12.3 / numpy 2.4.6; dt=0.1 Forward-Euler; 合成 Iext, 无外部数据依赖"
   }
 }

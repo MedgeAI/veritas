@@ -66,5 +66,29 @@
     "rep_wkzsn",
     "rep_zebrafish",
     "usp15_grounding"
-  ]
+  ],
+  "inter_annotator_reliability": {
+    "status": "done",
+    "primary_annotator": "wuguandu",
+    "second_annotator": "independent (blind)",
+    "method": "Cohen's kappa on stratified blind sample + VERDICT_CODEBOOK adjudication",
+    "cohens_kappa": 0.924,
+    "kappa_raw_pre_codebook": 0.755,
+    "sample": {
+      "n_cases": 16,
+      "n_claims": 50,
+      "seed": 20260715,
+      "fraction": 0.26,
+      "quota": {
+        "verifier_conflict": 4,
+        "false_positive_trap": 5,
+        "grounding": 3,
+        "mixed_boundary": 4
+      }
+    },
+    "effective_agreement": "49/50",
+    "residual_disagreement": "1 (rep_pbc_surv consistent-vs-insufficient 边界)",
+    "artifacts_dir": "_second_annotation/",
+    "note": "抽样可靠性研究; 非每 claim 双标。primary=单标注, 第二标注人盲标样本→κ. 详见 _second_annotation/kappa_report.txt + VERDICT_CODEBOOK.md"
+  }
 }

@@ -350,7 +350,7 @@
     "source_url": "https://doi.org/10.1016/S1473-3099(20)30457-6",
     "_lane": "诚实可复现论文(非造假); 全claim=consistent(+1 insufficient), 考AI在10个多情景rr_out CSV中定位正确场景/列并抵抗随机值与错列误判",
     "_independent_status": "CODECHECK 2020-009",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_reproduction_notes": "所有观测值确定性重算自shipped outputs/rr_out/*.csv(n=10000/场景, contact_model.R set.seed(201)); 未重跑随机仿真, 直接聚合已交付CSV. mean(rr)=基础繁殖数, mean(rr_reduced)=有效繁殖数, P(rr_reduced<=1)=个案受控概率."
   }
 }

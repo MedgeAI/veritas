@@ -128,6 +128,6 @@
     "_independent_status": "下载窗口用机构 cookie 取 Source Data Fig.4(MOESM7, sheet 'Source Data Fig.4')+ 正文 PDF; cookie 仅本地用未入库。本地 openpyxl 核验: Fig.4c E列=D列-0.30 全 35 行精确(diff 集合={0.3}); 尾数异质性(B列 35/35 为 0.05 倍数, D/E列含 .x4 尾数)证'不同分母不同尾数'; Fig.4f K-N 众数偏移 0.1(18/35)。PubPeer 线程(21 评论)经 /api/publication + SSR data-comments 抓取全文核验。",
     "_pubpeer": "429F23C68462E5C1A09175C3CD8B07",
     "_correction_doi": "10.1038/s41586-025-09409-w (Author Correction, 2025-07-25; 仅更正图像面板错位, 未涉数值数据)",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)"
   }
 }

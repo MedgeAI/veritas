@@ -262,7 +262,7 @@
         "timing_above_250lx_min_sample_size": 21
       }
     },
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_paper_artifact_status": "paper 正文 = PLoS ONE 开放获取 (含 correction doi 10.1371/journal.pone.0325944); 可后续补 paper_pdf artifact 加真·L1 code_output->paper-table 比对"
   }
 }

@@ -128,7 +128,7 @@
     ],
     "source_url": "https://doi.org/10.1038/s41586-020-2127-x",
     "_lane": "混合边界诚实案(莫玮/韩家淮 厦门大学 2020 Nature, 肠干细胞坏死性凋亡→肠炎). 三类verdict并存, 全部依据作者2026-07-06对PubPeer三个问题的逐条回复: (1)consistent+clean(FP陷阱): ED Fig.7f 两WT归一化列逐行和=2, 是均值归一化的数学必然非造假; (2)inconsistent: ED Fig.8e WT列D与G逐值重复(4/6 ISG), 作者承认为重复粘贴误操作; (3)insufficient: ED Fig.2e '3 vs 6 WT' 因该面板数值未沉积无法独立确证, 需作者澄清. 考 AI 能否区分'看着可疑但合法归一化'/'作者承认的真重复列'/'证据不足需澄清'.",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_pubpeer": "E3E89A0BA6CDF18913237B3B768464",
     "_author_response": "作者(莫玮团队)2026-07-06 逐条回复三问: 问题2(ED7f 两WT归一列和恒=2)=归一化数学必然非造假[→consistent/clean/FP]; 问题3(ED8e 部分WT数值重复)=承认标黄两列系重复粘贴误操作, 去除一组后余6组独立重复仍支持结论[→inconsistent/duplicated_columns]; 问题1(ED2e 图上3 WT但源数据6 WT)=承认红框WT-1/2/3为整理时误粘入的无关测试数据, 真分析用绿框W1/W2/W3[→insufficient, 因ED2e源数据未沉积无法独立确证].",
     "_verdict_breakdown": "consistent=1 (claim_001, clean/FP); inconsistent=1 (claim_002, duplicated_columns); insufficient=1 (claim_003)",

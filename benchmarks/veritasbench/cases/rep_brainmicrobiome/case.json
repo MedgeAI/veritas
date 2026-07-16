@@ -236,7 +236,7 @@
     "_lane": "诚实可复现(非造假): 全 claim=consistent。考 AI 面对'naive tumor-vs-normal 差异丰度给 22 个看着像肿瘤 microbiome 的显著属'这一红鲱鱼时，是否识破 (1) 完全批次混杂(正常脑全 Batch 9 零重叠) + (2) 试剂污染 两层伪象，从而不误报已发表脑瘤微生物 signature 论文为造假/不可复现。底材=medgebench task medge-101-1 真实数据 (gmorad.braintumors phyloseq，749 属 x 157 样本，含批次/对照列)。",
     "_independent_status": "下载窗口本地重跑 solve.py (批次+污染双校正) 得 batch_overlap=[] / 12 污染 / 0 establishable 属 (correct)，与 naive_solve.py 直接差异丰度得 22 高置信肿瘤上调属 (naive) 两份 code_output; 参考 100 / decontam-only 68 / naive 诱饵 35 / 空 0 四档校准",
     "_source_task": "medge-101-1 (paper_doi 10.1038/s41591-025-03957-4, trap=double_artifact_decision_point: contamination + complete batch confound)",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)",
     "_mechanism": [
       "confounding"
     ]

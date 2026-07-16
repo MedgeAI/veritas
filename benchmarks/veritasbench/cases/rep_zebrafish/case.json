@@ -237,7 +237,7 @@
     "source_url": "https://doi.org/10.7554/eLife.54937",
     "_lane": "诚实可复现论文(非造假); 3个consistent clean claim + 1个insufficient; 考AI从随代码发布的VC光电流中间产物正确grounding关键量并抵抗'first-stim vs overall-max'的FP误判",
     "_independent_status": "CODECHECK 2025-023 (2026-01-15, Linus Dexter Hackel认证, Figs 4/5/8/9可部分复现); 下载窗口独立重跑 repro_zebrafish.py 得 repro_output.json, 与README 4 记录的223.234 pA一致",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)",
     "_paper_artifact_status": "paper正文=eLife开放获取, 可后续补 paper_pdf artifact 建真·L1 code->paper-text (如 abstract 'substantial variation in efficacy')"
   }
 }

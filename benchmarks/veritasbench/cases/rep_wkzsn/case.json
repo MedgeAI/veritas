@@ -342,7 +342,7 @@
     "_independent_status": "CODECHECK 2024-019 认证可复现(certificate https://doi.org/10.5281/zenodo.14279041); 下载窗口独立用 wearablehrv/group.py 的 mape_analysis/blandaltman_analysis 公式在 shipped group.pickle 上重跑 reproduce.py 得 mape_summary.csv",
     "_reproduction": "python3 reproduce.py 于 group.pickle 复现: mean_hr MAPE(sitting)=1.57-2.69%, (biking)=9.82-34.76%; rmssd MAPE(sitting)=18.6-141.5%, (biking)>1000%; HeartMath BA bias(mean_hr,sitting)=+1.88bpm. 值真跑非编.",
     "_paper_note": "wkzsn 为 OSF preprint; 仓库内含 JOSS software paper(paper.md)+CODECHECK 报告. Table 1 用了额外 signal_quality 阈值过滤(本 case 用 shipped 聚合 group.pickle, 故绝对样本量/条数与 Table 1 略异, 但 MAPE/BA 分析公式与设备-条件方向结论忠实复现).",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",
     "_lane_tag": "rep"
   }
 }

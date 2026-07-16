@@ -255,7 +255,7 @@
       "mixed_boundary"
     ],
     "source_url": "https://doi.org/10.1038/s41556-020-0511-2",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)",
     "_note": "Two different immunostain quantifications (Fig.6n SA-beta-Gal vs Fig.6p IL6 IHC) share the same Veh control values offset by a constant -2.0 across all 7 mice"
   }
 }

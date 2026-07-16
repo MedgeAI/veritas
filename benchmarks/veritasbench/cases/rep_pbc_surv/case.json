@@ -229,6 +229,6 @@
     "_lane": "诚实可复现论文(非造假); 全claim=consistent, 考AI正确验证诚实工作+抵抗随机值误判",
     "_independent_status": "CODECHECK 2025-028 认证可复现 + 下载窗口独立重跑 pbc_surv_tcav.py 得summary_metrics.csv",
     "_paper_artifact_status": "paper正文=Lifecycle Journal开放, 待补PDF作paper_pdf artifact(可加真·L1 code→paper-table)",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)"
   }
 }

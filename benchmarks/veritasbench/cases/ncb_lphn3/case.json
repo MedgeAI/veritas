@@ -180,6 +180,6 @@
     "_author_response": "Thomas Südhof(PubPeer): Fig.5 中出现的相同 P 值源于互斥剪接设计——E31 与 E32 为互斥外显子, PSI 互补, 对同一对互斥变体做统计比较必然得到相同 P 值, 属合法设计非重复/造假。Shuai Wang(PubPeer): 另承认 Fig.5b 存在标签错误(中间面板 'E1' 应为 'E31')。",
     "_independent_status": "下载窗口用机构 cookie 取正文 PDF(25 页)与 Fig.5 主图 PNG(2160x2146)。本地核验(直接读图): Fig.5a E31 与 E32 面板 0h-6h 均 P=0.0036、0h-2h 均 P=0.015; Fig.5b 中间面板标题印为 'E1'(PSI 50-100%, 与 E31 量对应)、E32 面板 P 与之同为 0.037; Fig.5c E31/E32 均 P=4.9e-5; E31 基线 PSI ~84% 与 E32 ~16% 互补相加 ≈100% 且方向相反(证互斥剪接)。Supplementary Table 1/2(Tukey)在 Supplementary Information docx 中以 EMF 图片嵌入, 本地无 EMF 渲染工具未能核验其数值。无 xlsx 源数据文件(该文仅 MOESM1 docx / MOESM2 Reporting Summary / MOESM3 Peer Review), 故以主图图片 + PDF 为锚。",
     "_pubpeer": "A04E94FAF81B5D7EC9E6B1668085EA",
-    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }
 }
