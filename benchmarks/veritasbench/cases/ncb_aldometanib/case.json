@@ -1,0 +1,131 @@
+{
+  "case_id": "ncb_aldometanib",
+  "paper_title": "Glucose starvation mimetic aldometanib removes immune barriers permitting mice with hepatocellular carcinoma to live to normal ages",
+  "paper_authors": [
+    "Chen-Song Zhang(张宸崧), Jingfeng Liu, Sheng-Cai Lin(林圣彩) 等 (厦门大学; Cell Research, 2025)"
+  ],
+  "artifacts": {
+    "source_fig4": {
+      "path": "artifacts/SourceData_Fig4.xlsx",
+      "sha256": "9219a6090a4d2d7161e4fe9c0d83385373989685af80802a5e35c5e24e93bc8b",
+      "kind": "source_data"
+    },
+    "source_figS10": {
+      "path": "artifacts/SourceData_FigS10.xlsx",
+      "sha256": "19b19b863068599ef22f12a08152931f8b5a36d68b6430d78e086d6be38c6a7c",
+      "kind": "source_data"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "b8d945d821bcdb2f43c5813b12756c7bd1140b4c8873dab7af295f77400bf4d9",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/SourceData_FigS10.xlsx#Fig. S10a!B4": {
+      "value": 2.85,
+      "source_artifact": "artifacts/SourceData_FigS10.xlsx",
+      "source_artifact_hash": "19b19b863068599ef22f12a08152931f8b5a36d68b6430d78e086d6be38c6a7c",
+      "source_span": "sheet 'Fig. S10a', B4 (anti-CD8 Hepa1-6 liver weight, Veh组第1只; B4:B11=8只)"
+    },
+    "artifacts/SourceData_Fig4.xlsx#Fig. 4m!B4": {
+      "value": 1.75,
+      "source_artifact": "artifacts/SourceData_Fig4.xlsx",
+      "source_artifact_hash": "9219a6090a4d2d7161e4fe9c0d83385373989685af80802a5e35c5e24e93bc8b",
+      "source_span": "sheet 'Fig. 4m', B4 (同实验 tumor weight, Veh组第1只; B4:B11=8只; S10a-4m逐只=1.10)"
+    },
+    "artifacts/SourceData_Fig4.xlsx#Fig. 4m!C4": {
+      "value": 0.032,
+      "source_artifact": "artifacts/SourceData_Fig4.xlsx",
+      "source_artifact_hash": "9219a6090a4d2d7161e4fe9c0d83385373989685af80802a5e35c5e24e93bc8b",
+      "source_span": "sheet 'Fig. 4m', C4 (Aldo组tumor weight第1只; C4:C12=9只)"
+    },
+    "artifacts/SourceData_FigS10.xlsx#Fig. S10a!C4": {
+      "value": 0.94,
+      "source_artifact": "artifacts/SourceData_FigS10.xlsx",
+      "source_artifact_hash": "19b19b863068599ef22f12a08152931f8b5a36d68b6430d78e086d6be38c6a7c",
+      "source_span": "sheet 'Fig. S10a', C4 (Aldo组liver weight第1只; C4:C12; liver-tumor逐只=0.908)"
+    },
+    "artifacts/SourceData_FigS10.xlsx#Fig. S10a!D4": {
+      "value": 2.104,
+      "source_artifact": "artifacts/SourceData_FigS10.xlsx",
+      "source_artifact_hash": "19b19b863068599ef22f12a08152931f8b5a36d68b6430d78e086d6be38c6a7c",
+      "source_span": "sheet 'Fig. S10a', D4 (Aldo+Anti-CD8组liver第1只; D4:D11=8只)"
+    },
+    "artifacts/SourceData_Fig4.xlsx#Fig. 4m!D4": {
+      "value": 1.174,
+      "source_artifact": "artifacts/SourceData_Fig4.xlsx",
+      "source_artifact_hash": "9219a6090a4d2d7161e4fe9c0d83385373989685af80802a5e35c5e24e93bc8b",
+      "source_span": "sheet 'Fig. 4m', D4 (Aldo+Anti-CD8组tumor第1只; D4:D11; liver-tumor逐只=0.930)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_aldometanib_ann_001",
+      "claim_id": "ncb_aldometanib_claim_001",
+      "claim_atom": "In the anti-CD8 Hepa1-6 experiment, the Veh-group liver weight (Fig. S10a, B4:B11) minus the paired tumour weight (Fig. 4m, B4:B11) equals exactly 1.10 for every one of the 8 mice. This fixed within-group difference is a deterministic artifact of how tumour weight was computed: reported tumour weight = whole-liver weight of the tumour-bearing mouse - the average liver weight of the corresponding no-tumour treatment group, so liver - tumour = that group's average no-tumour liver weight (a constant). The corresponding author explained this on PubPeer; it is a legitimate calculation rule, not fabricated digit patterning.",
+      "source_artifact": "artifacts/SourceData_FigS10.xlsx#Fig. S10a!B4",
+      "target_artifact": "artifacts/SourceData_Fig4.xlsx#Fig. 4m!B4",
+      "source_a1_range": "B4:B11",
+      "target_a1_range": "B4:B11",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-16T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "合法(consistent, 已算术验证): Veh组8只liver-tumor全=1.10; Aldo组9只全=0.908; Aldo+CD8组8只全=0.930。作者解释 tumor weight=带瘤肝重-对应处理组无瘤平均肝重(肝需保完整瘤-旁瘤边界做H&E/IHC不能剥离称重), 组内减同一平均→固定差值=组无瘤平均肝重常数。合法计算规则(合作方常规做法)非造假。AI不应仅凭组内固定差值判异常。"
+    },
+    {
+      "annotation_id": "ncb_aldometanib_ann_002",
+      "claim_id": "ncb_aldometanib_claim_002",
+      "claim_atom": "The same exact fixed difference recurs in every treatment group (Aldo: liver-tumour = 0.908 for all 9 mice, column C; Aldo+anti-CD8: 0.930), showing the reported tumour weights are DERIVED by subtracting a single per-group constant rather than being independent per-animal tumour measurements. This derivation was not stated in the paper's Methods or figure legends; the corresponding author acknowledged the paper did not describe the procedure transparently. The implicit presentation of these as directly measured tumour weights is therefore inconsistent with their calculated provenance (author-acknowledged documentation/derivation gap).",
+      "source_artifact": "artifacts/SourceData_Fig4.xlsx#Fig. 4m!C4",
+      "target_artifact": "artifacts/SourceData_FigS10.xlsx#Fig. S10a!C4",
+      "source_a1_range": "C4:C12",
+      "target_a1_range": "C4:C12",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "undocumented_derivation",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-16T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "作者已承认的文档/派生gap(inconsistent非high): 三组各自恒定差值证tumor weight是'肝重-组常数'派生非独立测量; 论文正文/图例未说明(作者致歉承认没更透明说明)。'这些是直接测量tumor weight'的隐含呈现与派生来源不一致。非造假但provenance未闭合。"
+    },
+    {
+      "annotation_id": "ncb_aldometanib_ann_003",
+      "claim_id": "ncb_aldometanib_claim_003",
+      "claim_atom": "Whether the underlying whole-liver weights (Fig. S10a) and the no-tumour group-average subtrahends are themselves accurate cannot be verified from the deposited Source Data: the reviewer requested the original per-animal weighing records, and neither the raw per-animal liver weights of the no-tumour control cohorts nor their averaging can be independently checked from the published spreadsheets. The Aldo+anti-CD8 group shows the fixed 0.930 difference (column D) but the raw records behind it are not provided.",
+      "source_artifact": "artifacts/SourceData_FigS10.xlsx#Fig. S10a!D4",
+      "target_artifact": "artifacts/SourceData_Fig4.xlsx#Fig. 4m!D4",
+      "source_a1_range": "D4:D11",
+      "target_a1_range": "D4:D11",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-16T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "待定(insufficient): 派生算法算术可从公开值复现(liver-tumor=组常数), 但底层带瘤整肝重与无瘤对照组平均肝重的真实性无法仅凭已公开Source Data核验; 评论者索要的原始逐只称重记录未提供。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_aldometanib",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.1038/s41422-025-01195-4",
+    "_lane": "作者已回应型mixed(常规做法可解释, consistent主导+文档gap+insufficient): 组内liver-tumor固定差值(Veh1.10/Aldo0.908/CD8 0.930逐只恒定)被质疑造假, 但=tumor weight派生算法(肝重-组无瘤平均)的确定性artifact(consistent);派生未文档作者已承认(inconsistent);底层肝重/平均真实性需原始逐只记录未提供(insufficient)。★新archetype=固定差值来自计算规则。",
+    "_author_response": "通讯作者Chen-Song Zhang 2026-07-15 PubPeer回复: 致歉未更透明说明流程; 肝组织需H&E/IHC保完整瘤-旁瘤边界不能剥离称重, 故设无瘤对照小鼠(同处理同时间点)称肝重取组平均, tumor weight=带瘤整肝重-对应处理组无瘤平均肝重; 同组用同一平均→组内固定差值; 称系合作方常规流程举其他研究为例; 承认正文/图例未说明。",
+    "_timeline": "2025发表(在线2025-11-25); 2026-07-14评论者指Fig4m/S10a·S11a/b·S11g/h三组xenograft liver-tumor组内固定差值(索要原始逐只称重); 2026-07-15 Chen-Song Zhang回复解释计算方式。",
+    "_independent_status": "下载窗口机构cookie取Source Data(MOESM20 zip)+PDF。本地核验anti-CD8 Hepa1-6: S10a liver-Fig4m tumor逐只 Veh 8/8=1.10, Aldo 9/9=0.908, Aldo+CD8 8/8=0.930 恒定=坐实派生算法。",
+    "_pubpeer": "5C3F9C1B35FAF74854000A2714B6D0",
+    "_signed_by": "wuguandu @ 2026-07-16; 第二标注人待补(§5)"
+  }
+}
