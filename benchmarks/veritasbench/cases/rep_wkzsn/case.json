@@ -28,43 +28,190 @@
       "value": 2.6929,
       "source_artifact": "artifacts/mape_summary.csv",
       "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
-      "source_span": "mape_summary.csv, row device=empatica feature=mean_hr condition=sitting, column MAPE=2.6929 (%; 静息坐姿下 Empatica 平均心率 MAPE, 四设备中最高但仍<3%; n=4)"
+      "source_span": "mape_summary.csv, row device=empatica feature=mean_hr condition=sitting, column MAPE=2.6929 (%; 静息坐姿下 Empatica 平均心率 MAPE, 四设备中最高但仍<3%; n=4)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/mape_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "match": {
+              "device": "empatica",
+              "feature": "mean_hr",
+              "condition": "sitting"
+            },
+            "value_col": "MAPE"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/mape_summary.csv#meanhr_sitting_rhythm_mape": {
       "value": 1.5747,
       "source_artifact": "artifacts/mape_summary.csv",
       "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
-      "source_span": "mape_summary.csv, row device=rhythm feature=mean_hr condition=sitting, column MAPE=1.5747 (%; 静息坐姿下 Scosche Rhythm+ 平均心率 MAPE, 四设备中最低; n=10)"
+      "source_span": "mape_summary.csv, row device=rhythm feature=mean_hr condition=sitting, column MAPE=1.5747 (%; 静息坐姿下 Scosche Rhythm+ 平均心率 MAPE, 四设备中最低; n=10)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/mape_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "match": {
+              "device": "rhythm",
+              "feature": "mean_hr",
+              "condition": "sitting"
+            },
+            "value_col": "MAPE"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/mape_summary.csv#meanhr_sitting_heartmath_mape": {
       "value": 2.4384,
       "source_artifact": "artifacts/mape_summary.csv",
       "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
-      "source_span": "mape_summary.csv, row device=heartmath feature=mean_hr condition=sitting, column MAPE=2.4384 (%; 静息坐姿下 HeartMath 平均心率 MAPE; n=10)"
+      "source_span": "mape_summary.csv, row device=heartmath feature=mean_hr condition=sitting, column MAPE=2.4384 (%; 静息坐姿下 HeartMath 平均心率 MAPE; n=10)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/mape_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "match": {
+              "device": "heartmath",
+              "feature": "mean_hr",
+              "condition": "sitting"
+            },
+            "value_col": "MAPE"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/mape_summary.csv#meanhr_biking_empatica_mape": {
       "value": 34.7591,
       "source_artifact": "artifacts/mape_summary.csv",
       "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
-      "source_span": "mape_summary.csv, row device=empatica feature=mean_hr condition=biking, column MAPE=34.7591 (%; 骑行运动下 Empatica 平均心率 MAPE; n=4)"
+      "source_span": "mape_summary.csv, row device=empatica feature=mean_hr condition=biking, column MAPE=34.7591 (%; 骑行运动下 Empatica 平均心率 MAPE; n=4)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/mape_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "match": {
+              "device": "empatica",
+              "feature": "mean_hr",
+              "condition": "biking"
+            },
+            "value_col": "MAPE"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/mape_summary.csv#meanhr_biking_rhythm_mape": {
       "value": 16.0433,
       "source_artifact": "artifacts/mape_summary.csv",
       "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
-      "source_span": "mape_summary.csv, row device=rhythm feature=mean_hr condition=biking, column MAPE=16.0433 (%; 骑行运动下 Rhythm+ 平均心率 MAPE; n=10)"
+      "source_span": "mape_summary.csv, row device=rhythm feature=mean_hr condition=biking, column MAPE=16.0433 (%; 骑行运动下 Rhythm+ 平均心率 MAPE; n=10)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/mape_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "match": {
+              "device": "rhythm",
+              "feature": "mean_hr",
+              "condition": "biking"
+            },
+            "value_col": "MAPE"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/mape_summary.csv#rmssd_sitting_heartmath_mape": {
       "value": 20.3618,
       "source_artifact": "artifacts/mape_summary.csv",
       "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
-      "source_span": "mape_summary.csv, row device=heartmath feature=rmssd condition=sitting, column MAPE=20.3618 (%; 静息坐姿下 HeartMath 的 HRV(RMSSD) MAPE; n=10)"
+      "source_span": "mape_summary.csv, row device=heartmath feature=rmssd condition=sitting, column MAPE=20.3618 (%; 静息坐姿下 HeartMath 的 HRV(RMSSD) MAPE; n=10)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/mape_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "match": {
+              "device": "heartmath",
+              "feature": "rmssd",
+              "condition": "sitting"
+            },
+            "value_col": "MAPE"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/mape_summary.csv#rmssd_biking_heartmath_mape": {
       "value": 1144.4996,
       "source_artifact": "artifacts/mape_summary.csv",
       "source_artifact_hash": "b5b9da7611458919c4e89c2e13ebcc8076690ecafcf9aa53accd15b8b0dc05e9",
-      "source_span": "mape_summary.csv, row device=heartmath feature=rmssd condition=biking, column MAPE=1144.4996 (%; 骑行运动下 HeartMath 的 HRV(RMSSD) MAPE 爆炸式升高; n=10)"
+      "source_span": "mape_summary.csv, row device=heartmath feature=rmssd condition=biking, column MAPE=1144.4996 (%; 骑行运动下 HeartMath 的 HRV(RMSSD) MAPE 爆炸式升高; n=10)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/mape_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "match": {
+              "device": "heartmath",
+              "feature": "rmssd",
+              "condition": "biking"
+            },
+            "value_col": "MAPE"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/mape_summary.csv#ba_bias_meanhr_sitting_heartmath": {
       "value": 1.883,

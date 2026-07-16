@@ -30,25 +30,105 @@
       "value": 0.036,
       "source_artifact": "artifacts/table1_discrimination.csv",
       "source_artifact_hash": "8d4d19d30116cf73bdd4b08e3a07a8b78185db8df040ac6889def63a72fb1040",
-      "source_span": "table1_discrimination.csv, row validation=apparent.discr, column mbcm (值为 'n500,n750,n1000'=0.036,0.028,0.024), 取 n500=0.036 (model-based c-statistic 估计量相对样本estimand的Monte-Carlo RMSE, n=500)"
+      "source_span": "table1_discrimination.csv, row validation=apparent.discr, column mbcm (值为 'n500,n750,n1000'=0.036,0.028,0.024), 取 n500=0.036 (model-based c-statistic 估计量相对样本estimand的Monte-Carlo RMSE, n=500)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/table1_discrimination.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "validation",
+            "row_key": "apparent.discr",
+            "value_col": "mbcm",
+            "list_sep": ",",
+            "list_index": 0
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/table1_discrimination.csv#apparent_mbcm_n1000": {
       "value": 0.024,
       "source_artifact": "artifacts/table1_discrimination.csv",
       "source_artifact_hash": "8d4d19d30116cf73bdd4b08e3a07a8b78185db8df040ac6889def63a72fb1040",
-      "source_span": "table1_discrimination.csv, row validation=apparent.discr, column mbcm ('0.036,0.028,0.024'), 取 n1000=0.024 (mbcm RMSE, n=1000)"
+      "source_span": "table1_discrimination.csv, row validation=apparent.discr, column mbcm ('0.036,0.028,0.024'), 取 n1000=0.024 (mbcm RMSE, n=1000)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/table1_discrimination.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "validation",
+            "row_key": "apparent.discr",
+            "value_col": "mbcm",
+            "list_sep": ",",
+            "list_index": 2
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/table1_discrimination.csv#ext2app_mbcm_n500": {
       "value": 0.085,
       "source_artifact": "artifacts/table1_discrimination.csv",
       "source_artifact_hash": "8d4d19d30116cf73bdd4b08e3a07a8b78185db8df040ac6889def63a72fb1040",
-      "source_span": "table1_discrimination.csv, row validation=ext2.app.discr, column mbcm ('0.085,0.08,0.078'), 取 n500=0.085 (外部验证于错误设定的 DGM2 时 mbcm 的 RMSE, n=500)"
+      "source_span": "table1_discrimination.csv, row validation=ext2.app.discr, column mbcm ('0.085,0.08,0.078'), 取 n500=0.085 (外部验证于错误设定的 DGM2 时 mbcm 的 RMSE, n=500)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/table1_discrimination.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "validation",
+            "row_key": "ext2.app.discr",
+            "value_col": "mbcm",
+            "list_sep": ",",
+            "list_index": 0
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/table1_discrimination.csv#ext2app_mbcm_n1000": {
       "value": 0.078,
       "source_artifact": "artifacts/table1_discrimination.csv",
       "source_artifact_hash": "8d4d19d30116cf73bdd4b08e3a07a8b78185db8df040ac6889def63a72fb1040",
-      "source_span": "table1_discrimination.csv, row validation=ext2.app.discr, column mbcm ('0.085,0.08,0.078'), 取 n1000=0.078 (DGM2 外部验证 mbcm RMSE, n=1000; 与 n500 几乎不变)"
+      "source_span": "table1_discrimination.csv, row validation=ext2.app.discr, column mbcm ('0.085,0.08,0.078'), 取 n1000=0.078 (DGM2 外部验证 mbcm RMSE, n=1000; 与 n500 几乎不变)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/table1_discrimination.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "validation",
+            "row_key": "ext2.app.discr",
+            "value_col": "mbcm",
+            "list_sep": ",",
+            "list_index": 2
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
     "artifacts/table2_calibration.csv#apparent_beta1_n500": {
       "value": 0.2829,
@@ -126,7 +206,26 @@
       "value": null,
       "source_artifact": "artifacts/table2_calibration.csv",
       "source_artifact_hash": "43bc56280684b762c81d3b778988d6f2ae61c941b593da1bb6d974de92884936",
-      "source_span": "table2_calibration.csv, row validation=boot0.632.cal, column beta0_n500=NA (0.632+ bootstrap 的校准截距列为空; 复现表与已发表 Table 2 一致地留白)"
+      "source_span": "table2_calibration.csv, row validation=boot0.632.cal, column beta0_n500=NA (0.632+ bootstrap 的校准截距列为空; 复现表与已发表 Table 2 一致地留白)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/table2_calibration.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "validation",
+            "row_key": "boot0.632.cal",
+            "value_col": "beta0_n500"
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        },
+        "expect_na": true,
+        "_note": "cell=NA(boot0.632不产校准截距), obs=null正确"
+      }
     }
   },
   "claims": [

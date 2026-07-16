@@ -39,67 +39,265 @@
       "value": 1.87,
       "source_artifact": "artifacts/figures-cohens_d.html",
       "source_artifact_hash": "f00a30b57292dfed3c5ff1d95b6364dd858a75475eb1c3d1f2f553ee82a6dfd5",
-      "source_span": "figures-cohens_d.html, Table 2, row Feedback DLPFC, column N = total: 1.87 (1.69, 2.04), N = 271 (Cohen's d full-sample)"
+      "source_span": "figures-cohens_d.html, Table 2, row Feedback DLPFC, column N = total: 1.87 (1.69, 2.04), N = 271 (Cohen's d full-sample)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/figures-cohens_d.html"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "html_row_label": "Feedback DLPFC",
+            "n_column": "total",
+            "value_kind": "total"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.002
+        }
+      }
     },
     "artifacts/figures-cohens_d.html#gambling_d_total": {
       "value": 0.73,
       "source_artifact": "artifacts/figures-cohens_d.html",
       "source_artifact_hash": "f00a30b57292dfed3c5ff1d95b6364dd858a75475eb1c3d1f2f553ee82a6dfd5",
-      "source_span": "figures-cohens_d.html, Table 2, row Gambling NAcc, column N = total: 0.73 (0.58, 0.88), N = 221"
+      "source_span": "figures-cohens_d.html, Table 2, row Gambling NAcc, column N = total: 0.73 (0.58, 0.88), N = 221",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/figures-cohens_d.html"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "html_row_label": "Gambling NAcc",
+            "n_column": "total",
+            "value_kind": "total"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.002
+        }
+      }
     },
     "artifacts/figures-cohens_d.html#selfeval_d_total": {
       "value": 0.46,
       "source_artifact": "artifacts/figures-cohens_d.html",
       "source_artifact_hash": "f00a30b57292dfed3c5ff1d95b6364dd858a75475eb1c3d1f2f553ee82a6dfd5",
-      "source_span": "figures-cohens_d.html, Table 2, row Self-evaluations mPFC, column N = total: 0.46 (0.29, 0.62), N = 149"
+      "source_span": "figures-cohens_d.html, Table 2, row Self-evaluations mPFC, column N = total: 0.46 (0.29, 0.62), N = 149",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/figures-cohens_d.html"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "html_row_label": "Self-evaluations mPFC",
+            "n_column": "total",
+            "value_kind": "total"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.002
+        }
+      }
     },
     "artifacts/figures-cohens_d.html#gaining_d_total": {
       "value": 0.57,
       "source_artifact": "artifacts/figures-cohens_d.html",
       "source_artifact_hash": "f00a30b57292dfed3c5ff1d95b6364dd858a75475eb1c3d1f2f553ee82a6dfd5",
-      "source_span": "figures-cohens_d.html, Table 2, row Gaining self NAcc, column N = total: 0.57 (0.39, 0.75), N = 156"
+      "source_span": "figures-cohens_d.html, Table 2, row Gaining self NAcc, column N = total: 0.57 (0.39, 0.75), N = 156",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/figures-cohens_d.html"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "html_row_label": "Gaining self NAcc",
+            "n_column": "total",
+            "value_kind": "total"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.002
+        }
+      }
     },
     "artifacts/figures-correlations.html#feedback_corr_total": {
       "value": 0.38,
       "source_artifact": "artifacts/figures-correlations.html",
       "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
-      "source_span": "figures-correlations.html, Table 3, row Feedback DLPFC, column N = total: 0.38 (0.27, 0.47), N = 271 (Pearson r of task effect with age)"
+      "source_span": "figures-correlations.html, Table 3, row Feedback DLPFC, column N = total: 0.38 (0.27, 0.47), N = 271 (Pearson r of task effect with age)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/figures-correlations.html"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "html_row_label": "Feedback DLPFC",
+            "n_column": "total",
+            "value_kind": "total"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.002
+        }
+      }
     },
     "artifacts/figures-correlations.html#feedback_corr_lo": {
       "value": 0.27,
       "source_artifact": "artifacts/figures-correlations.html",
       "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
-      "source_span": "figures-correlations.html, Table 3, row Feedback DLPFC, N = total lower credible bound: 0.27"
+      "source_span": "figures-correlations.html, Table 3, row Feedback DLPFC, N = total lower credible bound: 0.27",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/figures-correlations.html"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "html_row_label": "Feedback DLPFC",
+            "n_column": "total",
+            "value_kind": "lo"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.002
+        }
+      }
     },
     "artifacts/figures-correlations.html#gambling_corr_total": {
       "value": -0.04,
       "source_artifact": "artifacts/figures-correlations.html",
       "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
-      "source_span": "figures-correlations.html, Table 3, row Gambling NAcc, column N = total: -0.04 (-0.17, 0.09), N = 221"
+      "source_span": "figures-correlations.html, Table 3, row Gambling NAcc, column N = total: -0.04 (-0.17, 0.09), N = 221",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/figures-correlations.html"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "html_row_label": "Gambling NAcc",
+            "n_column": "total",
+            "value_kind": "total"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.002
+        }
+      }
     },
     "artifacts/figures-correlations.html#gambling_corr_lo": {
       "value": -0.17,
       "source_artifact": "artifacts/figures-correlations.html",
       "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
-      "source_span": "figures-correlations.html, Table 3, row Gambling NAcc, N = total lower credible bound: -0.17"
+      "source_span": "figures-correlations.html, Table 3, row Gambling NAcc, N = total lower credible bound: -0.17",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/figures-correlations.html"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "html_row_label": "Gambling NAcc",
+            "n_column": "total",
+            "value_kind": "lo"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.002
+        }
+      }
     },
     "artifacts/figures-correlations.html#gambling_corr_hi": {
       "value": 0.09,
       "source_artifact": "artifacts/figures-correlations.html",
       "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
-      "source_span": "figures-correlations.html, Table 3, row Gambling NAcc, N = total upper credible bound: 0.09"
+      "source_span": "figures-correlations.html, Table 3, row Gambling NAcc, N = total upper credible bound: 0.09",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/figures-correlations.html"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "html_row_label": "Gambling NAcc",
+            "n_column": "total",
+            "value_kind": "hi"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.002
+        }
+      }
     },
     "artifacts/figures-correlations.html#gaining_corr_total": {
       "value": -0.17,
       "source_artifact": "artifacts/figures-correlations.html",
       "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
-      "source_span": "figures-correlations.html, Table 3, row Gaining self NAcc, column N = total: -0.17 (-0.31, -0.01), N = 156"
+      "source_span": "figures-correlations.html, Table 3, row Gaining self NAcc, column N = total: -0.17 (-0.31, -0.01), N = 156",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/figures-correlations.html"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "html_row_label": "Gaining self NAcc",
+            "n_column": "total",
+            "value_kind": "total"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.002
+        }
+      }
     },
     "artifacts/figures-correlations.html#gaining_corr_hi": {
       "value": -0.01,
       "source_artifact": "artifacts/figures-correlations.html",
       "source_artifact_hash": "86bb0f4c2881317943c8ada3a9cff05f7a181a87d3433596bea294252918bc01",
-      "source_span": "figures-correlations.html, Table 3, row Gaining self NAcc, N = total upper credible bound: -0.01 (interval excludes 0)"
+      "source_span": "figures-correlations.html, Table 3, row Gaining self NAcc, N = total upper credible bound: -0.01 (interval excludes 0)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/figures-correlations.html"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "html_row_label": "Gaining self NAcc",
+            "n_column": "total",
+            "value_kind": "hi"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.002
+        }
+      }
     }
   },
   "claims": [
@@ -216,8 +414,34 @@
     "_lane": "Honest reproducible paper (not fabricated); all clean claims=consistent + 1 insufficient. Tests whether AI locates the correct table/column/row (grounding) and resists flagging stochastic point estimates or zero-spanning intervals as discrepancies (false_positive_trap).",
     "_independent_status": "CODECHECK 2024-005 (certificate, Lukas Roseler, 2024-10-15, report doi:10.5281/zenodo.13945051) certified reproducible; this case independently reran sample_diff/sample_corr full-sample in Docker r-base:latest + neuroUp 0.3.1 (CRAN), all 8 N=total key values match Table 2/3.",
     "_reproduced_values": {
-      "cohens_d_total_theta": {"feedback": 1.858328, "gambling": 0.721563, "selfeval": 0.451632, "gaining": 0.564836},
-      "corr_total": {"feedback": [0.376211, 0.269120, 0.474113], "gambling": [-0.040509, -0.171563, 0.091954], "selfeval": [0.057995, -0.103773, 0.216773], "gaining": [-0.165476, -0.314440, -0.008558]},
+      "cohens_d_total_theta": {
+        "feedback": 1.858328,
+        "gambling": 0.721563,
+        "selfeval": 0.451632,
+        "gaining": 0.564836
+      },
+      "corr_total": {
+        "feedback": [
+          0.376211,
+          0.26912,
+          0.474113
+        ],
+        "gambling": [
+          -0.040509,
+          -0.171563,
+          0.091954
+        ],
+        "selfeval": [
+          0.057995,
+          -0.103773,
+          0.216773
+        ],
+        "gaining": [
+          -0.165476,
+          -0.31444,
+          -0.008558
+        ]
+      },
       "_note": "corr_total = [r, CI_lo, CI_hi]; all match figures-*.html Table 2/3 N=total column after rounding. Cohen's d reported value is mean of 1000 permutations x 100 bootstrap; analytic theta differs by <=0.01, ordering unchanged."
     },
     "_signed_by": "wuguandu @ 2026-07-15; second annotator pending",

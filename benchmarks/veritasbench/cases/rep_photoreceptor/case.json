@@ -28,7 +28,7 @@
     }
   },
   "observations": {
-    "obs_emel_mean_repro": {
+    "artifacts/repro_output.json#obs_emel_mean_repro": {
       "value": "9.669001490312965",
       "source_artifact": "artifacts/repro_output.json",
       "source_artifact_hash": "b785164d3f0fd110b1f16cbbc71b60dcf7f15e82a0609b5fe7866f5248a44fd0",
@@ -50,13 +50,31 @@
         }
       }
     },
-    "obs_emel_mean_shipped": {
+    "artifacts/jeti_statistics_overall.csv#obs_emel_mean_shipped": {
       "value": "9.669001490312965",
       "source_artifact": "artifacts/jeti_statistics_overall.csv",
       "source_artifact_hash": "b42c5a72d63463364e1998cd30c6f30a436d887939e718507b03d004b600d0f0",
-      "source_span": "jeti_statistics_overall.csv row 'Emel [W/sqm]', column overall_mean"
+      "source_span": "jeti_statistics_overall.csv row 'Emel [W/sqm]', column overall_mean",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/jeti_statistics_overall.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "index",
+            "row_key": "Emel [W/sqm]",
+            "value_col": "overall_mean"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
-    "obs_medi_mean_repro": {
+    "artifacts/repro_output.json#obs_medi_mean_repro": {
       "value": "7288.514456035768",
       "source_artifact": "artifacts/repro_output.json",
       "source_artifact_hash": "b785164d3f0fd110b1f16cbbc71b60dcf7f15e82a0609b5fe7866f5248a44fd0",
@@ -78,13 +96,31 @@
         }
       }
     },
-    "obs_medi_mean_shipped": {
+    "artifacts/jeti_statistics_overall.csv#obs_medi_mean_shipped": {
       "value": "7288.514456035768",
       "source_artifact": "artifacts/jeti_statistics_overall.csv",
       "source_artifact_hash": "b42c5a72d63463364e1998cd30c6f30a436d887939e718507b03d004b600d0f0",
-      "source_span": "jeti_statistics_overall.csv row 'X v,mel,D65 (MEDI) [lx]', column overall_mean"
+      "source_span": "jeti_statistics_overall.csv row 'X v,mel,D65 (MEDI) [lx]', column overall_mean",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/jeti_statistics_overall.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "index",
+            "row_key": "X v,mel,D65 (MEDI) [lx]",
+            "value_col": "overall_mean"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
-    "obs_melrad_mean_repro": {
+    "artifacts/repro_output.json#obs_melrad_mean_repro": {
       "value": "1.604800596125186",
       "source_artifact": "artifacts/repro_output.json",
       "source_artifact_hash": "b785164d3f0fd110b1f16cbbc71b60dcf7f15e82a0609b5fe7866f5248a44fd0",
@@ -106,17 +142,55 @@
         }
       }
     },
-    "obs_melrad_mean_shipped": {
+    "artifacts/wp_statistics_overall.csv#obs_melrad_mean_shipped": {
       "value": "1.604800596125186",
       "source_artifact": "artifacts/wp_statistics_overall.csv",
       "source_artifact_hash": "3b84b021ee1a70c8d77b31a5e79c6a3ce0f817b44d758a7ec50943bf9bfd4c21",
-      "source_span": "wp_statistics_overall.csv row index 'average_radiances_Melanopsin', column overall_mean"
+      "source_span": "wp_statistics_overall.csv row index 'average_radiances_Melanopsin', column overall_mean",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/wp_statistics_overall.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "index",
+            "row_key": "average_radiances_Melanopsin",
+            "value_col": "overall_mean"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
-    "obs_pixelcorr_shipped": {
+    "artifacts/average_pixels_correlation_df.csv#obs_pixelcorr_shipped": {
       "value": "0.9813378671160505",
       "source_artifact": "artifacts/average_pixels_correlation_df.csv",
       "source_artifact_hash": "aeb4b75a75661bbe3de15c78fda793358a1d49105e03b434091cf6e56e99d126",
-      "source_span": "average_pixels_correlation_df.csv Row='Rods', Column='Melanopsin', view='Outdoor view' (pixel-by-pixel alpha-opic correlation)"
+      "source_span": "average_pixels_correlation_df.csv Row='Rods', Column='Melanopsin', view='Outdoor view' (pixel-by-pixel alpha-opic correlation)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/average_pixels_correlation_df.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "match": {
+              "Row": "Rods",
+              "Column": "Melanopsin"
+            },
+            "value_col": "Value"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     }
   },
   "claims": [
@@ -125,8 +199,8 @@
       "claim_id": "C1_emel_mean",
       "relation_type": "L1",
       "verdict": "consistent",
-      "source_artifact": "obs_emel_mean_repro",
-      "target_artifact": "obs_emel_mean_shipped",
+      "source_artifact": "artifacts/repro_output.json#obs_emel_mean_repro",
+      "target_artifact": "artifacts/jeti_statistics_overall.csv#obs_emel_mean_shipped",
       "is_clean_claim": true,
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-15T00:00:00Z",
@@ -138,8 +212,8 @@
       "claim_id": "C2_medi_mean",
       "relation_type": "L1",
       "verdict": "consistent",
-      "source_artifact": "obs_medi_mean_repro",
-      "target_artifact": "obs_medi_mean_shipped",
+      "source_artifact": "artifacts/repro_output.json#obs_medi_mean_repro",
+      "target_artifact": "artifacts/jeti_statistics_overall.csv#obs_medi_mean_shipped",
       "is_clean_claim": true,
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-15T00:00:00Z",
@@ -151,8 +225,8 @@
       "claim_id": "C3_melrad_mean",
       "relation_type": "L1",
       "verdict": "consistent",
-      "source_artifact": "obs_melrad_mean_repro",
-      "target_artifact": "obs_melrad_mean_shipped",
+      "source_artifact": "artifacts/repro_output.json#obs_melrad_mean_repro",
+      "target_artifact": "artifacts/wp_statistics_overall.csv#obs_melrad_mean_shipped",
       "is_clean_claim": true,
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-15T00:00:00Z",
@@ -164,8 +238,8 @@
       "claim_id": "C4_pixel_melanopic_corr",
       "relation_type": "L1",
       "verdict": "insufficient",
-      "source_artifact": "obs_pixelcorr_shipped",
-      "target_artifact": "obs_pixelcorr_shipped",
+      "source_artifact": "artifacts/average_pixels_correlation_df.csv#obs_pixelcorr_shipped",
+      "target_artifact": "artifacts/average_pixels_correlation_df.csv#obs_pixelcorr_shipped",
       "is_clean_claim": false,
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-15T00:00:00Z",

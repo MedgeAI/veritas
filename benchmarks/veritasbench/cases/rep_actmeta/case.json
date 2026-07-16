@@ -23,13 +23,31 @@
     }
   },
   "observations": {
-    "pooled_effects.csv#fig4_est": {
+    "artifacts/pooled_effects.csv#fig4_est": {
       "value": -1.052,
       "source_artifact": "artifacts/pooled_effects.csv",
       "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
-      "source_span": "pooled_effects.csv, row model=zhao_fig4_excl_atjak (10 studies, A-Tjak 2018 excluded = Zhao Figure 4 sensitivity model), column smd_est (metafor rma DL 合并 SMD)"
+      "source_span": "pooled_effects.csv, row model=zhao_fig4_excl_atjak (10 studies, A-Tjak 2018 excluded = Zhao Figure 4 sensitivity model), column smd_est (metafor rma DL 合并 SMD)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/pooled_effects.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "model",
+            "row_key": "zhao_fig4_excl_atjak",
+            "value_col": "smd_est"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
-    "pooled_effects.csv#fig4_ci_lb": {
+    "artifacts/pooled_effects.csv#fig4_ci_lb": {
       "value": -1.4447,
       "source_artifact": "artifacts/pooled_effects.csv",
       "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
@@ -53,13 +71,31 @@
         }
       }
     },
-    "pooled_effects.csv#fig4_ci_ub": {
+    "artifacts/pooled_effects.csv#fig4_ci_ub": {
       "value": -0.6593,
       "source_artifact": "artifacts/pooled_effects.csv",
       "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
-      "source_span": "pooled_effects.csv, row model=zhao_fig4_excl_atjak, column ci_ub (95%CI 上界)"
+      "source_span": "pooled_effects.csv, row model=zhao_fig4_excl_atjak, column ci_ub (95%CI 上界)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/pooled_effects.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "model",
+            "row_key": "zhao_fig4_excl_atjak",
+            "value_col": "ci_ub"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
-    "pooled_effects.csv#fig4_i2": {
+    "artifacts/pooled_effects.csv#fig4_i2": {
       "value": 84.0,
       "source_artifact": "artifacts/pooled_effects.csv",
       "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
@@ -83,13 +119,31 @@
         }
       }
     },
-    "pooled_effects.csv#all11_est": {
+    "artifacts/pooled_effects.csv#all11_est": {
       "value": -0.7548,
       "source_artifact": "artifacts/pooled_effects.csv",
       "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
-      "source_span": "pooled_effects.csv, row model=zhao_all11 (全部 11 项研究, Zhao 正文 'eleven studies / 887 patients'), column smd_est"
+      "source_span": "pooled_effects.csv, row model=zhao_all11 (全部 11 项研究, Zhao 正文 'eleven studies / 887 patients'), column smd_est",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/pooled_effects.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "model",
+            "row_key": "zhao_all11",
+            "value_col": "smd_est"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
-    "pooled_effects.csv#all11_i2": {
+    "artifacts/pooled_effects.csv#all11_i2": {
       "value": 93.1,
       "source_artifact": "artifacts/pooled_effects.csv",
       "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
@@ -113,29 +167,101 @@
         }
       }
     },
-    "pooled_effects.csv#reextr10_est": {
+    "artifacts/pooled_effects.csv#reextr10_est": {
       "value": -0.7831,
       "source_artifact": "artifacts/pooled_effects.csv",
       "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
-      "source_span": "pooled_effects.csv, row model=reextracted_10 (重新提取效应量, 剔除重复研究 Ren Zhihong 2012, 10 项), column smd_est"
+      "source_span": "pooled_effects.csv, row model=reextracted_10 (重新提取效应量, 剔除重复研究 Ren Zhihong 2012, 10 项), column smd_est",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/pooled_effects.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "model",
+            "row_key": "reextracted_10",
+            "value_col": "smd_est"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
-    "pooled_effects.csv#final_est": {
+    "artifacts/pooled_effects.csv#final_est": {
       "value": -0.6065,
       "source_artifact": "artifacts/pooled_effects.csv",
       "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
-      "source_span": "pooled_effects.csv, row model=reextracted_final_excl_zemestani (修正提取错误后最终模型, 再剔除离群 Zemestani 2020, 9 项), column smd_est"
+      "source_span": "pooled_effects.csv, row model=reextracted_final_excl_zemestani (修正提取错误后最终模型, 再剔除离群 Zemestani 2020, 9 项), column smd_est",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/pooled_effects.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "model",
+            "row_key": "reextracted_final_excl_zemestani",
+            "value_col": "smd_est"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
-    "pooled_effects.csv#final_ci_lb": {
+    "artifacts/pooled_effects.csv#final_ci_lb": {
       "value": -1.0431,
       "source_artifact": "artifacts/pooled_effects.csv",
       "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
-      "source_span": "pooled_effects.csv, row model=reextracted_final_excl_zemestani, column ci_lb"
+      "source_span": "pooled_effects.csv, row model=reextracted_final_excl_zemestani, column ci_lb",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/pooled_effects.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "model",
+            "row_key": "reextracted_final_excl_zemestani",
+            "value_col": "ci_lb"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     },
-    "pooled_effects.csv#final_ci_ub": {
+    "artifacts/pooled_effects.csv#final_ci_ub": {
       "value": -0.17,
       "source_artifact": "artifacts/pooled_effects.csv",
       "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
-      "source_span": "pooled_effects.csv, row model=reextracted_final_excl_zemestani, column ci_ub"
+      "source_span": "pooled_effects.csv, row model=reextracted_final_excl_zemestani, column ci_ub",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/pooled_effects.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "model",
+            "row_key": "reextracted_final_excl_zemestani",
+            "value_col": "ci_ub"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.0001
+        }
+      }
     }
   },
   "claims": [
@@ -143,8 +269,8 @@
       "annotation_id": "rep_actmeta_ann_001",
       "claim_id": "rep_actmeta_claim_001",
       "claim_atom": "Re-running the meta-analysis from the summary statistics extracted from Zhao et al. (2023) Figure 4 (random-effects DerSimonian-Laird, A-Tjak 2018 excluded, 10 studies) reproduces a pooled standardized mean difference of Hedges g = -1.05, and this point estimate lies within its own reported 95% CI [-1.44, -0.66].",
-      "source_artifact": "pooled_effects.csv#fig4_est",
-      "target_artifact": "pooled_effects.csv#fig4_ci_lb",
+      "source_artifact": "artifacts/pooled_effects.csv#fig4_est",
+      "target_artifact": "artifacts/pooled_effects.csv#fig4_ci_lb",
       "relation_type": "L1",
       "verdict": "consistent",
       "discrepancy_type": null,
@@ -159,8 +285,8 @@
       "annotation_id": "rep_actmeta_ann_002",
       "claim_id": "rep_actmeta_claim_002",
       "claim_atom": "After correcting the three data-extraction errors identified in the re-extraction and re-running Zhao et al.'s analytic workflow (re-extracted effect sizes, duplicate Ren Zhihong 2012 removed, outlier Zemestani 2020 excluded; 9 studies), the corrected pooled effect (g = -0.61) is substantially smaller in magnitude than the Figure-4 reproduction (g = -1.05).",
-      "source_artifact": "pooled_effects.csv#final_est",
-      "target_artifact": "pooled_effects.csv#fig4_est",
+      "source_artifact": "artifacts/pooled_effects.csv#final_est",
+      "target_artifact": "artifacts/pooled_effects.csv#fig4_est",
       "relation_type": "L1",
       "verdict": "consistent",
       "discrepancy_type": null,
@@ -175,8 +301,8 @@
       "annotation_id": "rep_actmeta_ann_003",
       "claim_id": "rep_actmeta_claim_003",
       "claim_atom": "Heterogeneity in the full 11-study model is very high (I^2 = 93.1%, consistent with Zhao's reported I^2 = 93%) and is higher than in the Figure-4 sensitivity model after excluding the influential study A-Tjak 2018 (I^2 = 84.0%).",
-      "source_artifact": "pooled_effects.csv#all11_i2",
-      "target_artifact": "pooled_effects.csv#fig4_i2",
+      "source_artifact": "artifacts/pooled_effects.csv#all11_i2",
+      "target_artifact": "artifacts/pooled_effects.csv#fig4_i2",
       "relation_type": "L1",
       "verdict": "consistent",
       "discrepancy_type": null,
@@ -191,8 +317,8 @@
       "annotation_id": "rep_actmeta_ann_004",
       "claim_id": "rep_actmeta_claim_004",
       "claim_atom": "Whether the three 'indeterminable' studies' summary statistics are accurate cannot be established from the deposited artifacts, because the original source articles were inaccessible (Chinese-language pay-walled or no locatable DOI); the re-extracted pooled estimate assumes them correct.",
-      "source_artifact": "pooled_effects.csv#reextr10_est",
-      "target_artifact": "pooled_effects.csv#final_est",
+      "source_artifact": "artifacts/pooled_effects.csv#reextr10_est",
+      "target_artifact": "artifacts/pooled_effects.csv#final_est",
       "relation_type": "L1",
       "verdict": "insufficient",
       "discrepancy_type": null,
