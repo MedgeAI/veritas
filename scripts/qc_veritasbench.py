@@ -114,6 +114,8 @@ def _extract_obs(cdir: Path, okey: str, o: dict, wb_cache: dict, csv_cache: dict
         if v.startswith("skip:"):
             return f"gap:{v[5:]}"              # missing reference_fn / method — w1 registry TODO
         return v
+    if "#" not in okey:                        # a computed obs with no locus and no recompute block
+        return "nonaddr:obs key has no '#<locus>' and no recompute block"
     relpath, loc = okey.split("#", 1)
     val = o["value"]
     art = cdir / relpath

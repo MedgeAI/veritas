@@ -72,21 +72,29 @@ CI 型（pbc_surv）：
 
 | reference_fn | args | 返回 | 用于 |
 |---|---|---|---|
-| `count_where` | `{column, op, thresh}` | 满足条件的行数 | count |
-| `fraction_where`（别名 `frac_where`） | `{column, op, thresh}` | 比例 | fraction |
+| `count_where` | `{column, op, value\|thresh, row_filter?}` | 满足条件的行数 | count |
+| `count_rows` | `{row_filter?}` | 行数（可选筛选） | count |
+| `fraction_where`（别名 `frac_where`） | `{column, op, value\|thresh, row_filter?}` | 比例 | fraction |
 | `mean` | `{column}` | 列均值 | continuous_stat |
-| `pearson` | `{x_column, y_column, y_in_second?}` | r | continuous_stat |
-| `count_in_top_n` | `{rank_col, top_n, gene_col, gene_strip, gene_in:[...]}` | top-N 命中集合数（`gene_strip` 按分隔符**截断取前段**） | count |
-| `rule_classify` | `{rule, key_col, key, ...rule 参数}` | 分类标签 | categorical_call |
-| `top_n_per_group` | `{group_col, score_col, n, target:{...}, pos, neg}` | pos/neg 标签 | categorical_call |
+| `pearson` | `{x_column, y_column}`（同文件） | r | continuous_stat |
+| `pearson_corr` | `{pred_file, pred_col, true_file, true_col, id_col, drop_nonnumeric_true?, degenerate_returns?}` | r（跨文件按 id join） | continuous_stat |
+| `count_in_top_n` | `{rank_col, top_n, gene_col, gene_strip, gene_in:[...]}` | top-N 命中集合数（`gene_strip` **截断取前段**） | count |
+| `rank_of` | `{sort_col, order, key_col, key}` | 目标行在排序中的 1-indexed 名次 | continuous_stat |
+| `ratio` | `{numerator_col, denominator_col, key_col, key}` | num/den | continuous_stat |
+| `rule_classify` | `{rule, ...rule 参数}` | 分类标签 | categorical_call |
+| `top_n_per_group` | `{group_col, score_col, n, target\|key:{...}, pos\|positive, neg\|negative}` | 标签 | categorical_call |
 | `cell_lookup` | `{line, column}` 或 `{row:{...}, column}` | 单元值 | cell_lookup |
 
-**已注册的 `rule_classify` 具名规则**（新规则须 w1 先加进 `RULE_IMPLS` 再用；未注册 → QC 标 `REGISTRY-GAP`）：
-- `mediator_call_correct` : `{key_col, key, n_deg_col, mtdna_col, depl_thr, n_deg_thr}`
-- `mediator_call_naive` : `{key_col, key, n_deg_col, n_deg_thr}`
+- **`op`** ∈ `< <= > >= == != contains`。**`row_filter`** = `{column, op, value}` 或 `{column, in:[...]}`（成员筛选）。
+- **`rule_classify` 具名规则**（新规则须 w1 先加进 `RULE_IMPLS`；未注册 → QC 标 `REGISTRY-GAP`）：`mediator_call_correct` / `mediator_call_naive` / `top_n_per_group`。
+- 要用表里没有的函数/规则 → **先找 w1 加**，别自造（否则 QC 报 `REGISTRY-GAP`，obs 视为未验证）。
 
-`op` ∈ `< <= > >= == !=`。要用表里没有的函数/规则 → **先找 w1 加**，别自造（否则 QC 报 `REGISTRY-GAP`，obs 视为未验证）。
+## raw_shipped 裁定（w1 2026-07-16）
 
-## 之后（w1 做，不用你管）
+`method.code_entry` 的 discriminator 分两种：
+- **`raw_shipped:true`**（中间表已进 case，如 winnerscurse/rtkfeedback）→ **优先用 reference_fn 在 ship 的表上算**（如 `rank_of`/`ratio`），能表达就转 (A)、不用沙箱。
+- **`raw_shipped:false`**（solve 读未 ship 的原始 DATA_DIR，如 triangulation/spatialniche/velolineage/brainmicro-naive）→ **选 3：长期 pending**。不 ship GB 原始数据（bloat）、不挂载 server（破坏可复现性）。这些是 naive-side 红鲱鱼；correct-side 已 (A) 验，按 **claim 级 eligibility 半案仍可评**（FP-trap 主判定已覆盖）。引用这些 pending obs 的 claim 不进 B1-B5，诚实标注覆盖缺口。
 
-w1 建 `REFERENCE_REGISTRY`（3–5 个族函数：count_where / c_index / pearson …）+ 通用验证器 + 单测，接进 `scripts/qc_veritasbench.py`，rep_ 家族即可进 B1–B5。
+## w1 已建（本轮）
+
+`REFERENCE_REGISTRY`（上表全部）+ `recompute_verify` 通用执行器 + `RULE_IMPLS`，已接进 `scripts/qc_veritasbench.py`：带 `recompute` 块的 obs → 校验；`code_entry` → `PENDING-sandbox`（未验证≠pass），缺函数/规则 → `REGISTRY-GAP`。全 63 案盘：gap=0、pending=14、带块 10 案全验通。**剩 8 案（actmeta/catcolors/detorakis/iteval/photoreceptor/samplesize/sarscov2/wkzsn）计算型 obs 还没填 recompute 块 → 数据窗口按上表补即可进 B1-B5。**

@@ -40,3 +40,14 @@ def test_clonalfish_line_contract_all_extractable():
     # the L<file_line>:<column> CSV obs must all re-read correctly after the Round-2 fix
     r = check_case("ncb_clonalfish", BASE, mirror=None)
     assert r["ok"] == r["total"] and not r["nonaddr"]
+
+
+@pytest.mark.skipif(not BASE.exists(), reason="signed corpus not present")
+@pytest.mark.parametrize("cid", ["rep_coexpr", "rep_mediator", "rep_winnerscurse", "rep_methclock",
+                                 "rep_brainmicrobiome", "rep_triangulation", "rep_rtkfeedback", "rep_pbc_surv"])
+def test_recompute_cases_no_registry_gap_no_fail(cid):
+    # every reference_fn / rule these cases use must resolve (no gap) and verify (no fail);
+    # code_entry discriminators are 'pending', which is neither gap nor fail.
+    r = check_case(cid, BASE, mirror=None)
+    assert not r["gap"], f"{cid} registry gap: {r['gap']}"
+    assert not r["fails"], f"{cid} recompute fail: {r['fails']}"
