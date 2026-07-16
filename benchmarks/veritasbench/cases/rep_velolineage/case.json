@@ -26,31 +26,109 @@
       "value": 1.302,
       "source_artifact": "artifacts/state_analysis_correct.csv",
       "source_artifact_hash": "a84ca18ddd9fb5e7bd175649f8c127f25ce355739269ac7ed54ee781278ec9da",
-      "source_span": "state_analysis_correct.csv, row cell_state=State_C, column stem_score (Tcf7/Sell/Ccr7/Il7r/Lef1/Bcl2 干性marker平均分, 6态中最高; 次高State_B仅0.387)"
+      "source_span": "state_analysis_correct.csv, row cell_state=State_C, column stem_score (Tcf7/Sell/Ccr7/Il7r/Lef1/Bcl2 干性marker平均分, 6态中最高; 次高State_B仅0.387)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve_reference.py::main"
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.01
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "code_entry recompute needs raw DATA_DIR (未ship进case, 留medge server); 沙箱须挂载原始数据"
+      }
     },
     "artifacts/state_analysis_correct.csv#StateC_role": {
       "value": "progenitor",
       "source_artifact": "artifacts/state_analysis_correct.csv",
       "source_artifact_hash": "a84ca18ddd9fb5e7bd175649f8c127f25ce355739269ac7ed54ee781278ec9da",
-      "source_span": "state_analysis_correct.csv, row cell_state=State_C, column role (=progenitor; 由marker表型+CARLIN克隆判定为分化起点)"
+      "source_span": "state_analysis_correct.csv, row cell_state=State_C, column role (=progenitor; 由marker表型+CARLIN克隆判定为分化起点)",
+      "recompute": {
+        "metric_type": "categorical_call",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve_reference.py::main"
+        },
+        "tolerance": {
+          "kind": "exact"
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "code_entry recompute needs raw DATA_DIR (未ship进case, 留medge server); 沙箱须挂载原始数据"
+      }
     },
     "artifacts/trajectory_naive_velocity.csv#StateC_velocity_pseudotime": {
       "value": 0.941,
       "source_artifact": "artifacts/trajectory_naive_velocity.csv",
       "source_artifact_hash": "582fe3008b42d6b3c82848d54e3b4d3c6dbfa990367b03aaa14aef8e0dad9228",
-      "source_span": "trajectory_naive_velocity.csv, row cell_state=State_C, column velocity_pseudotime (=0.941, 6态中最高→scVelo判其为TERMINAL终末态)"
+      "source_span": "trajectory_naive_velocity.csv, row cell_state=State_C, column velocity_pseudotime (=0.941, 6态中最高→scVelo判其为TERMINAL终末态)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve_reference.py::main"
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.01
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "code_entry recompute needs raw DATA_DIR (未ship进case, 留medge server); 沙箱须挂载原始数据"
+      }
     },
     "artifacts/trajectory_naive_velocity.csv#velocity_root_state": {
       "value": "State_E",
       "source_artifact": "artifacts/trajectory_naive_velocity.csv",
       "source_artifact_hash": "582fe3008b42d6b3c82848d54e3b4d3c6dbfa990367b03aaa14aef8e0dad9228",
-      "source_span": "trajectory_naive_velocity.csv, row role=progenitor, column cell_state (=State_E, velocity_pseudotime=0.038最低→scVelo判其为root/progenitor)"
+      "source_span": "trajectory_naive_velocity.csv, row role=progenitor, column cell_state (=State_E, velocity_pseudotime=0.038最低→scVelo判其为root/progenitor)",
+      "recompute": {
+        "metric_type": "categorical_call",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve_reference.py::main"
+        },
+        "tolerance": {
+          "kind": "exact"
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "code_entry recompute needs raw DATA_DIR (未ship进case, 留medge server); 沙箱须挂载原始数据"
+      }
     },
     "artifacts/trajectory_naive_velocity.csv#corr_pseudotime_stem": {
       "value": 0.435,
       "source_artifact": "artifacts/trajectory_naive_velocity.csv",
       "source_artifact_hash": "582fe3008b42d6b3c82848d54e3b4d3c6dbfa990367b03aaa14aef8e0dad9228",
-      "source_span": "trajectory_naive_velocity.csv, row cell_state=corr_pseudotime_stem_percell, column velocity_pseudotime (=+0.435, 逐细胞 velocity pseudotime 与干性score正相关: 越干→pseudotime越高=方向倒置signature)"
+      "source_span": "trajectory_naive_velocity.csv, row cell_state=corr_pseudotime_stem_percell, column velocity_pseudotime (=+0.435, 逐细胞 velocity pseudotime 与干性score正相关: 越干→pseudotime越高=方向倒置signature)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve_reference.py::main"
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.01
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "code_entry recompute needs raw DATA_DIR (未ship进case, 留medge server); 沙箱须挂载原始数据"
+      }
     }
   },
   "claims": [

@@ -93,7 +93,22 @@
       "value": "no",
       "source_artifact": "artifacts/correct_combination_targets.csv",
       "source_artifact_hash": "8e19e57e138de641da2e8a3c57ac10e8d8108455594e677521c039f7bec9f365",
-      "source_span": "correct_combination_targets.csv, row drug_id=Drug_D & model=Model_A, column actionable=no (最大响应药 Drug_D 的 EGFR logFC=-0.06, 无代偿反馈, 严谨解正确判定 non-actionable)"
+      "source_span": "correct_combination_targets.csv, row drug_id=Drug_D & model=Model_A, column actionable=no (最大响应药 Drug_D 的 EGFR logFC=-0.06, 无代偿反馈, 严谨解正确判定 non-actionable)",
+      "recompute": {
+        "metric_type": "categorical_call",
+        "inputs": [
+          "<shipped intermediate table>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve_correct.py::main"
+        },
+        "tolerance": {
+          "kind": "exact"
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": true,
+        "_note": "raw中间表已ship(screen_per_tumor/guide_representation/drug_response), 沙箱可从case内跑"
+      }
     },
     "artifacts/correct_drug_response.csv#nDEG_DrugD_ModelA": {
       "value": 478,

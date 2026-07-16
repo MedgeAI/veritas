@@ -92,13 +92,44 @@
       "value": "False",
       "source_artifact": "artifacts/driver_calls_correct.csv",
       "source_artifact_hash": "65f52da42e9de995aeb6e8c7d8f349d5aa7c018f84b6fd27dee4e520ff7a1595",
-      "source_span": "driver_calls_correct.csv, row guide_target=Trp63, column is_driver=False, artifact=low_baseline_winnerscurse (fc_mean=0.038 实为耗竭, 论文正确未列为driver)"
+      "source_span": "driver_calls_correct.csv, row guide_target=Trp63, column is_driver=False, artifact=low_baseline_winnerscurse (fc_mean=0.038 实为耗竭, 论文正确未列为driver)",
+      "recompute": {
+        "metric_type": "categorical_call",
+        "inputs": [
+          "<shipped intermediate table>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve.py::main"
+        },
+        "tolerance": {
+          "kind": "exact"
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": true,
+        "_note": "raw中间表已ship(screen_per_tumor/guide_representation/drug_response), 沙箱可从case内跑"
+      }
     },
     "artifacts/driver_calls_naive.csv#Trp63_enrichment": {
       "value": 491.214,
       "source_artifact": "artifacts/driver_calls_naive.csv",
       "source_artifact_hash": "3725afa3d484f35886dd504a00b0f6788f0a8792a3afe8d969c62d8ac7d02c95",
-      "source_span": "driver_calls_naive.csv, row guide_target=Trp63, column enrichment=491.214 (naive 按原始 tumor/baseline 比值排序时的 #1)"
+      "source_span": "driver_calls_naive.csv, row guide_target=Trp63, column enrichment=491.214 (naive 按原始 tumor/baseline 比值排序时的 #1)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "<shipped intermediate table>"
+        ],
+        "method": {
+          "code_entry": "artifacts/naive_solve.py::main"
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.01
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": true,
+        "_note": "raw中间表已ship(screen_per_tumor/guide_representation/drug_response), 沙箱可从case内跑"
+      }
     },
     "artifacts/driver_calls_naive.csv#Trp63_baseline": {
       "value": 0.001,
@@ -116,7 +147,25 @@
       "value": 10,
       "source_artifact": "artifacts/naive_stdout.txt",
       "source_artifact_hash": "8656c23faa05ff16faef5423d0745960e0b1a407d0658edd94051ae24558578e",
-      "source_span": "naive_stdout.txt, 'Notch1 naive-rank #10' (真driver Notch1 在 naive 比值排序里落到第10, 排在 Trp63/Zmat3/Prkdc 等 winner's-curse 红鲱鱼之后)"
+      "source_span": "naive_stdout.txt, 'Notch1 naive-rank #10' (真driver Notch1 在 naive 比值排序里落到第10, 排在 Trp63/Zmat3/Prkdc 等 winner's-curse 红鲱鱼之后)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "artifacts/driver_calls_naive.csv"
+        ],
+        "method": {
+          "reference_fn": "rank_of",
+          "args": {
+            "sort_col": "enrichment",
+            "order": "desc",
+            "key_col": "guide_target",
+            "key": "Notch1"
+          }
+        },
+        "tolerance": {
+          "kind": "exact"
+        }
+      }
     }
   },
   "claims": [

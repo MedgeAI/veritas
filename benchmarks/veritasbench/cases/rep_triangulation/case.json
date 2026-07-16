@@ -101,13 +101,43 @@
       "value": 398,
       "source_artifact": "artifacts/triangulation_summary_naive.csv",
       "source_artifact_hash": "0bfa2d5db211bd6f5894a30e81fa94899b09d86b427b8146bbef98dcf5efe390",
-      "source_span": "triangulation_summary_naive.csv, row metric=n_candidate_triplets, column value (naive 直接精确join, 不做 food-label harmonization: 'Alcohol' 永不匹配 'Alcoholic Beverages' → 静默丢 65 个)"
+      "source_span": "triangulation_summary_naive.csv, row metric=n_candidate_triplets, column value (naive 直接精确join, 不做 food-label harmonization: 'Alcohol' 永不匹配 'Alcoholic Beverages' → 静默丢 65 个)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve_naive.py::main"
+        },
+        "tolerance": {
+          "kind": "exact"
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "code_entry recompute needs raw DATA_DIR (未ship进case, 留medge server); 沙箱须挂载原始数据"
+      }
     },
     "artifacts/triangulation_summary_naive.csv#n_alcohol_triplets": {
       "value": 0,
       "source_artifact": "artifacts/triangulation_summary_naive.csv",
       "source_artifact_hash": "0bfa2d5db211bd6f5894a30e81fa94899b09d86b427b8146bbef98dcf5efe390",
-      "source_span": "triangulation_summary_naive.csv, row metric=n_alcohol_triplets, column value (naive join 下, 酒精相关三联体=0: 'Alcohol'/'Alcoholic Beverages' 标签失配静默 drop)"
+      "source_span": "triangulation_summary_naive.csv, row metric=n_alcohol_triplets, column value (naive join 下, 酒精相关三联体=0: 'Alcohol'/'Alcoholic Beverages' 标签失配静默 drop)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve_naive.py::main"
+        },
+        "tolerance": {
+          "kind": "exact"
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "code_entry recompute needs raw DATA_DIR (未ship进case, 留medge server); 沙箱须挂载原始数据"
+      }
     }
   },
   "claims": [

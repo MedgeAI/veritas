@@ -41,13 +41,45 @@
       "value": 1.81,
       "source_artifact": "artifacts/neighborhood_enrichment_correct.csv",
       "source_artifact_hash": "378c0d0759b50010e311f775e26d034f3a1c636734d17523e381c136b0ccc19c",
-      "source_span": "neighborhood_enrichment_correct.csv, row center_cell_type='Activated Fibrotic FBs', neighbor_cell_type='KRT5-/KRT17+', column enrichment_score (背景归一化后 30um 邻域富集: 活化纤维化成纤维细胞邻域中 KRT5-/KRT17+ 异常基底样上皮富集 1.81x, 互富方向 KRT5-/KRT17+->Activated Fibrotic FBs=2.07x)"
+      "source_span": "neighborhood_enrichment_correct.csv, row center_cell_type='Activated Fibrotic FBs', neighbor_cell_type='KRT5-/KRT17+', column enrichment_score (背景归一化后 30um 邻域富集: 活化纤维化成纤维细胞邻域中 KRT5-/KRT17+ 异常基底样上皮富集 1.81x, 互富方向 KRT5-/KRT17+->Activated Fibrotic FBs=2.07x)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve_correct.py::main"
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.01
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "code_entry recompute needs raw DATA_DIR (未ship进case, 留medge server); 沙箱须挂载原始数据"
+      }
     },
     "artifacts/neighborhood_enrichment_correct.csv#krt5_spp1_enrichment": {
       "value": 2.261,
       "source_artifact": "artifacts/neighborhood_enrichment_correct.csv",
       "source_artifact_hash": "378c0d0759b50010e311f775e26d034f3a1c636734d17523e381c136b0ccc19c",
-      "source_span": "neighborhood_enrichment_correct.csv, row center_cell_type='KRT5-/KRT17+', neighbor_cell_type='SPP1+ Macrophages', column enrichment_score (背景归一化后 KRT5-/KRT17+ 邻域中 SPP1+ 巨噬细胞富集 2.26x, 三联 niche 的第三条边)"
+      "source_span": "neighborhood_enrichment_correct.csv, row center_cell_type='KRT5-/KRT17+', neighbor_cell_type='SPP1+ Macrophages', column enrichment_score (背景归一化后 KRT5-/KRT17+ 邻域中 SPP1+ 巨噬细胞富集 2.26x, 三联 niche 的第三条边)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve_correct.py::main"
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.01
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "code_entry recompute needs raw DATA_DIR (未ship进case, 留medge server); 沙箱须挂载原始数据"
+      }
     },
     "artifacts/neighborhood_enrichment_correct.csv#actfib_alvfb_enrichment": {
       "value": 1.319,
@@ -59,13 +91,43 @@
       "value": 36188,
       "source_artifact": "artifacts/fibrotic_niche_naive.csv",
       "source_artifact_hash": "d4781f224d525db9fc19bd87edfd312980a113daa19e47ff3da9ff51faaa467d",
-      "source_span": "fibrotic_niche_naive.csv, row cell_type='Alveolar FBs', column score=36188 (未归一化的 raw 30um 邻居计数: Alveolar FBs 是 Activated Fibrotic FBs 的 #1 高频邻居, in_fibrotic_niche=yes → naive 红鲱鱼)"
+      "source_span": "fibrotic_niche_naive.csv, row cell_type='Alveolar FBs', column score=36188 (未归一化的 raw 30um 邻居计数: Alveolar FBs 是 Activated Fibrotic FBs 的 #1 高频邻居, in_fibrotic_niche=yes → naive 红鲱鱼)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/naive_solve.py::main"
+        },
+        "tolerance": {
+          "kind": "exact"
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "code_entry recompute needs raw DATA_DIR (未ship进case, 留medge server); 沙箱须挂载原始数据"
+      }
     },
     "artifacts/fibrotic_niche_naive.csv#actfib_krt5_raw_neighbors": {
       "value": 1907,
       "source_artifact": "artifacts/fibrotic_niche_naive.csv",
       "source_artifact_hash": "d4781f224d525db9fc19bd87edfd312980a113daa19e47ff3da9ff51faaa467d",
-      "source_span": "fibrotic_niche_naive.csv, row cell_type='KRT5-/KRT17+', column score=1907, in_fibrotic_niche='no' (raw 邻居计数下真实伙伴 KRT5-/KRT17+ 计数低 → naive 判 infrequent 漏掉, 与背景归一化后 1.81x 富集矛盾)"
+      "source_span": "fibrotic_niche_naive.csv, row cell_type='KRT5-/KRT17+', column score=1907, in_fibrotic_niche='no' (raw 邻居计数下真实伙伴 KRT5-/KRT17+ 计数低 → naive 判 infrequent 漏掉, 与背景归一化后 1.81x 富集矛盾)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/naive_solve.py::main"
+        },
+        "tolerance": {
+          "kind": "exact"
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "code_entry recompute needs raw DATA_DIR (未ship进case, 留medge server); 沙箱须挂载原始数据"
+      }
     }
   },
   "claims": [

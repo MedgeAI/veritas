@@ -120,7 +120,22 @@
       "value": 22,
       "source_artifact": "artifacts/analysis_naive.csv",
       "source_artifact_hash": "4410457615000f54dafc7c9525f33dbaa0fa6e0dc08ea6f4929d2daac4237c9b",
-      "source_span": "analysis_naive.csv, row metric=n_tumor_associated_reported, column value (naive 审计者不校批次/不查污染，直接把 22 个 FDR<0.05 肿瘤上调属以 high confidence 报为脑瘤 microbiome)"
+      "source_span": "analysis_naive.csv, row metric=n_tumor_associated_reported, column value (naive 审计者不校批次/不查污染，直接把 22 个 FDR<0.05 肿瘤上调属以 high confidence 报为脑瘤 microbiome)",
+      "recompute": {
+        "metric_type": "count",
+        "inputs": [
+          "<raw DATA_DIR>"
+        ],
+        "method": {
+          "code_entry": "artifacts/solve.py::main_naive"
+        },
+        "tolerance": {
+          "kind": "exact"
+        },
+        "status": "pending_sandbox",
+        "raw_shipped": false,
+        "_note": "code_entry recompute needs raw DATA_DIR (未ship进case, 留medge server); 沙箱须挂载原始数据"
+      }
     }
   },
   "claims": [
