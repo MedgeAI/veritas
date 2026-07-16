@@ -299,14 +299,19 @@ def aggregate_signals(signals: list["VerifierSignal | None"]) -> AuditDecision |
 
 
 def run_graph_agent(
-    case: BenchmarkCase, agent_fn: AgentFn, verifiers: list[TypedVerifier]
+    case: BenchmarkCase, agent_fn: AgentFn, verifiers: list[TypedVerifier],
+    *, render: "ArtifactRenderer | None" = None,
 ) -> list[ClaimPrediction]:
-    """B4: aggregate all verifier signals per claim (independence + convergence); agent fills gaps."""
+    """B4: aggregate all verifier signals per claim (independence + convergence); agent fills gaps.
+
+    `render` (optional) is used ONLY for the agent fallback on claims no verifier covers, so a geared
+    run over a mixed corpus still shows the agent the neutral per-claim evidence there."""
     preds: list[ClaimPrediction] = []
-    artifacts_text = render_artifacts(case)
+    inventory = render_artifacts(case)
     for claim in case.claims:
         agg = aggregate_signals([v(claim, case) for v in verifiers])
         if agg is None:
+            artifacts_text = render(claim, case) if render else inventory
             agg = parse_decision(agent_fn(build_prompt(claim, case, artifacts_text=artifacts_text)))
         preds.append(decision_to_prediction(claim, agg))
     return preds
@@ -342,17 +347,19 @@ def run_risk_controlled_agent(
 # ============================================================================================
 
 def run_artifact_gear(
-    case: BenchmarkCase, agent_fn: AgentFn, artifact_verifiers: list[TypedVerifier]
+    case: BenchmarkCase, agent_fn: AgentFn, artifact_verifiers: list[TypedVerifier],
+    *, render: "ArtifactRenderer | None" = None,
 ) -> list[ClaimPrediction]:
     """B3 — agent + Artifact-Integrity verifiers (source-data / image / numeric forensics)."""
-    return run_graph_agent(case, agent_fn, artifact_verifiers)
+    return run_graph_agent(case, agent_fn, artifact_verifiers, render=render)
 
 
 def run_provenance_gear(
-    case: BenchmarkCase, agent_fn: AgentFn, provenance_verifiers: list[TypedVerifier]
+    case: BenchmarkCase, agent_fn: AgentFn, provenance_verifiers: list[TypedVerifier],
+    *, render: "ArtifactRenderer | None" = None,
 ) -> list[ClaimPrediction]:
     """B4 — agent + Provenance-Consistency verifiers (L1-L4 edges: code↔table, table↔figure, →text)."""
-    return run_graph_agent(case, agent_fn, provenance_verifiers)
+    return run_graph_agent(case, agent_fn, provenance_verifiers, render=render)
 
 
 def run_dual_layer_gear(
@@ -360,9 +367,10 @@ def run_dual_layer_gear(
     agent_fn: AgentFn,
     artifact_verifiers: list[TypedVerifier],
     provenance_verifiers: list[TypedVerifier],
+    *, render: "ArtifactRenderer | None" = None,
 ) -> list[ClaimPrediction]:
     """B5 — agent + BOTH layers; evidence aggregation fuses node + edge signals (product-level)."""
-    return run_graph_agent(case, agent_fn, [*artifact_verifiers, *provenance_verifiers])
+    return run_graph_agent(case, agent_fn, [*artifact_verifiers, *provenance_verifiers], render=render)
 
 
 def apply_far_control(preds: list[ClaimPrediction], decision: Decision) -> list[ClaimPrediction]:
