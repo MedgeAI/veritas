@@ -172,6 +172,69 @@ def top_n_per_group(inputs: list[Path], args: dict, base: Path | None = None) ->
     return pos if target in peers[: int(args["n"])] else neg
 
 
+def _median(xs: list[float]) -> float:
+    xs = sorted(xs)
+    n = len(xs)
+    return xs[n // 2] if n % 2 else (xs[n // 2 - 1] + xs[n // 2]) / 2
+
+
+def _filter_rows(rows: list[dict], args: dict) -> list[dict]:
+    """Filter by args['filter'] (dict, exact) or filter_col + (filter_val exact | filter_prefix)."""
+    if args.get("filter"):
+        return [r for r in rows if all(str(r.get(k, "")).strip() == str(v) for k, v in args["filter"].items())]
+    fc = args.get("filter_col")
+    if fc and "filter_prefix" in args:
+        return [r for r in rows if str(r.get(fc, "")).startswith(args["filter_prefix"])]
+    if fc:
+        return [r for r in rows if str(r.get(fc, "")).strip() == str(args["filter_val"])]
+    return rows
+
+
+def _col_vals(inputs: list[Path], args: dict) -> list[float]:
+    return [v for v in (_tofloat(r.get(args["value_col"])) for r in _filter_rows(_rows(inputs[0]), args))
+            if v is not None]
+
+
+def col_max(inputs: list[Path], args: dict, base: Path | None = None) -> float:
+    return max(_col_vals(inputs, args))
+
+
+def col_min(inputs: list[Path], args: dict, base: Path | None = None) -> float:
+    return min(_col_vals(inputs, args))
+
+
+def _group_medians(inputs: list[Path], args: dict) -> list[float]:
+    groups: dict = {}
+    for r in _filter_rows(_rows(inputs[0]), args):
+        v = _tofloat(r.get(args["value_col"]))
+        if v is not None:
+            groups.setdefault(r.get(args["group_col"]), []).append(v)
+    return [_median(vs) for vs in groups.values() if vs]
+
+
+def first_row_where(inputs: list[Path], args: dict, base: Path | None = None) -> Any:
+    rows = _filter_rows(_rows(inputs[0]), args)
+    if not rows:
+        raise KeyError(f"no row {args.get('filter_prefix') or args.get('filter_val')}")
+    return rows[0][args["value_col"]]
+
+
+def value_at_argmax(inputs: list[Path], args: dict, base: Path | None = None) -> Any:
+    rows = _filter_rows(_rows(inputs[0]), args)
+    if not rows:
+        raise KeyError(f"no row {args.get('filter_prefix') or args.get('filter_val')}")
+    best = max(rows, key=lambda r: _tofloat(r.get(args["argmax_col"])) if _tofloat(r.get(args["argmax_col"])) is not None else -1e18)
+    return best[args["value_col"]]
+
+
+def median_of_group_median(inputs: list[Path], args: dict, base: Path | None = None) -> float:
+    return _median(_group_medians(inputs, args))
+
+
+def max_of_group_median(inputs: list[Path], args: dict, base: Path | None = None) -> float:
+    return max(_group_medians(inputs, args))
+
+
 def ratio(inputs: list[Path], args: dict, base: Path | None = None) -> float:
     """numerator_col / denominator_col for the row where key_col==key."""
     row = _find_row(_rows(inputs[0]), {args["key_col"]: args["key"]})
@@ -223,6 +286,18 @@ def cell_lookup(inputs: list[Path], args: dict, base: Path | None = None) -> Any
       * {column, row: {col: val, ...}}              — multi-key CSV row filter."""
     if "html_row_label" in args:
         return _html_lookup(inputs[0], args)
+    if "json_path_list" in args:  # nested keys/indices as a list
+        cur = json.loads(inputs[0].read_text(encoding="utf-8"))
+        for k in args["json_path_list"]:
+            cur = cur[int(k)] if isinstance(cur, list) else cur[k]
+        return cur
+    if "txt_whole_line" in args:  # the whole line at a 0-based index
+        return inputs[0].read_text(encoding="utf-8").splitlines()[int(args["txt_whole_line"])].strip()
+    if "txt_table" in args:  # 'name:' header row + value row, lookup by column label
+        lines = inputs[0].read_text(encoding="utf-8").splitlines()
+        i = next(j for j, ln in enumerate(lines) if ln.strip().startswith(args["txt_table"] + ":"))
+        rest = [ln for ln in lines[i + 1:] if ln.strip()]
+        return rest[1].split()[rest[0].split().index(str(args["col_label"]))]
     if "json_path" in args:  # JSON key/index path
         cur = json.loads(inputs[0].read_text(encoding="utf-8"))
         for part in str(args["json_path"]).split("."):
@@ -293,8 +368,10 @@ REFERENCE_REGISTRY: dict[str, Callable[[list[Path], dict, Path | None], Any]] = 
     "count_where": count_where, "count_rows": count_rows,
     "fraction_where": fraction_where, "frac_where": fraction_where,
     "mean": mean, "pearson": pearson, "pearson_corr": pearson_corr,
-    "count_in_top_n": count_in_top_n, "rank_of": rank_of, "ratio": ratio, "rule_classify": rule_classify,
-    "top_n_per_group": top_n_per_group, "cell_lookup": cell_lookup,
+    "count_in_top_n": count_in_top_n, "rank_of": rank_of, "ratio": ratio,
+    "max": col_max, "min": col_min, "first_row_where": first_row_where, "value_at_argmax": value_at_argmax,
+    "median_of_group_median": median_of_group_median, "max_of_group_median": max_of_group_median,
+    "rule_classify": rule_classify, "top_n_per_group": top_n_per_group, "cell_lookup": cell_lookup,
 }
 
 

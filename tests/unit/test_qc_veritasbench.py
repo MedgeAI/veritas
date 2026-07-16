@@ -44,7 +44,9 @@ def test_clonalfish_line_contract_all_extractable():
 
 @pytest.mark.skipif(not BASE.exists(), reason="signed corpus not present")
 @pytest.mark.parametrize("cid", ["rep_coexpr", "rep_mediator", "rep_winnerscurse", "rep_methclock",
-                                 "rep_brainmicrobiome", "rep_triangulation", "rep_rtkfeedback", "rep_pbc_surv"])
+                                 "rep_brainmicrobiome", "rep_triangulation", "rep_rtkfeedback", "rep_pbc_surv",
+                                 "rep_piccolo", "rep_zebrafish", "rep_pone", "rep_catcolors", "rep_sarscov2",
+                                 "rep_iteval", "rep_samplesize", "rep_wkzsn", "rep_a8rmu", "rep_mqg86"])
 def test_recompute_cases_no_registry_gap_no_fail(cid):
     # every reference_fn / rule these cases use must resolve (no gap) and verify (no fail);
     # code_entry discriminators are 'pending', which is neither gap nor fail.
