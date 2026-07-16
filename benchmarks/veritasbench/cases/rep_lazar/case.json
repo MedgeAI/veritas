@@ -33,55 +33,217 @@
       "value": 113,
       "source_artifact": "artifacts/repro_values.csv",
       "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
-      "source_span": "repro_values.csv, row metric=n_invited_total, column value (受邀参与者总数, SP001-SP113)"
+      "source_span": "repro_values.csv, row metric=n_invited_total, column value (受邀参与者总数, SP001-SP113)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_values.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "n_invited_total",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_values.csv#n_included_primary": {
       "value": 83,
       "source_artifact": "artifacts/repro_values.csv",
       "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
-      "source_span": "repro_values.csv, row metric=n_included_primary, column value (主分析纳入人数, adjusted 0.75 data-loss阈值)"
+      "source_span": "repro_values.csv, row metric=n_included_primary, column value (主分析纳入人数, adjusted 0.75 data-loss阈值)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_values.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "n_included_primary",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_values.csv#included_age_min": {
       "value": 18,
       "source_artifact": "artifacts/repro_values.csv",
       "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
-      "source_span": "repro_values.csv, row metric=included_age_min, column value (纳入样本最小年龄, Table 1)"
+      "source_span": "repro_values.csv, row metric=included_age_min, column value (纳入样本最小年龄, Table 1)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_values.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "included_age_min",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_values.csv#included_age_max": {
       "value": 87,
       "source_artifact": "artifacts/repro_values.csv",
       "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
-      "source_span": "repro_values.csv, row metric=included_age_max, column value (纳入样本最大年龄, Table 1)"
+      "source_span": "repro_values.csv, row metric=included_age_max, column value (纳入样本最大年龄, Table 1)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_values.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "included_age_max",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_values.csv#obs_field": {
       "value": 10082,
       "source_artifact": "artifacts/repro_values.csv",
       "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
-      "source_span": "repro_values.csv, row metric=obs_field, column value (Field真实世界条件有效瞳孔观测数)"
+      "source_span": "repro_values.csv, row metric=obs_field, column value (Field真实世界条件有效瞳孔观测数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_values.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "obs_field",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_values.csv#obs_lab": {
       "value": 3698,
       "source_artifact": "artifacts/repro_values.csv",
       "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
-      "source_span": "repro_values.csv, row metric=obs_lab, column value (Lab实验室条件有效瞳孔观测数)"
+      "source_span": "repro_values.csv, row metric=obs_lab, column value (Lab实验室条件有效瞳孔观测数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_values.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "obs_lab",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_values.csv#obs_dark": {
       "value": 2871,
       "source_artifact": "artifacts/repro_values.csv",
       "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
-      "source_span": "repro_values.csv, row metric=obs_dark, column value (Dark暗适应阳性对照条件观测数)"
+      "source_span": "repro_values.csv, row metric=obs_dark, column value (Dark暗适应阳性对照条件观测数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_values.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "obs_dark",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_values.csv#included_sex_female": {
       "value": 43,
       "source_artifact": "artifacts/repro_values.csv",
       "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
-      "source_span": "repro_values.csv, row metric=included_sex_female, column value (纳入样本女性人数, Table 1 Sex)"
+      "source_span": "repro_values.csv, row metric=included_sex_female, column value (纳入样本女性人数, Table 1 Sex)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_values.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "included_sex_female",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_values.csv#included_sex_male": {
       "value": 40,
       "source_artifact": "artifacts/repro_values.csv",
       "source_artifact_hash": "b2fedb581b2f0c250ab6f661c426e1dec77218b2fb65e7f095bce438df2cc5e7",
-      "source_span": "repro_values.csv, row metric=included_sex_male, column value (纳入样本男性人数, Table 1 Sex)"
+      "source_span": "repro_values.csv, row metric=included_sex_male, column value (纳入样本男性人数, Table 1 Sex)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_values.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "included_sex_male",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     }
   },
   "claims": [

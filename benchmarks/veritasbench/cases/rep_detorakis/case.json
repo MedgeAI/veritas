@@ -31,49 +31,177 @@
       "value": 9,
       "source_artifact": "artifacts/reproduce_output.json",
       "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
-      "source_span": "reproduce_output.json, key tonic_spiking_n_spikes (Fig1-A 强直放电 spike 数, Iext=1.5, 2000步)"
+      "source_span": "reproduce_output.json, key tonic_spiking_n_spikes (Fig1-A 强直放电 spike 数, Iext=1.5, 2000步)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/reproduce_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path": "tonic_spiking_n_spikes"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/reproduce_output.json#tonic_spiking_last_spike_step": {
       "value": 1979,
       "source_artifact": "artifacts/reproduce_output.json",
       "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
-      "source_span": "reproduce_output.json, key tonic_spiking_last_spike_step (Fig1-A 最后一次 spike 的步号, 共2000步)"
+      "source_span": "reproduce_output.json, key tonic_spiking_last_spike_step (Fig1-A 最后一次 spike 的步号, 共2000步)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/reproduce_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path": "tonic_spiking_last_spike_step"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/reproduce_output.json#phasic_spiking_n_spikes": {
       "value": 5,
       "source_artifact": "artifacts/reproduce_output.json",
       "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
-      "source_span": "reproduce_output.json, key phasic_spiking_n_spikes (Fig1-D 相位放电 spike 数, a=0.005, Iext=1.5, 5000步)"
+      "source_span": "reproduce_output.json, key phasic_spiking_n_spikes (Fig1-D 相位放电 spike 数, a=0.005, Iext=1.5, 5000步)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/reproduce_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path": "phasic_spiking_n_spikes"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/reproduce_output.json#phasic_spiking_last_spike_step": {
       "value": 1760,
       "source_artifact": "artifacts/reproduce_output.json",
       "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
-      "source_span": "reproduce_output.json, key phasic_spiking_last_spike_step (Fig1-D 最后一次 spike 的步号, 共5000步)"
+      "source_span": "reproduce_output.json, key phasic_spiking_last_spike_step (Fig1-D 最后一次 spike 的步号, 共5000步)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/reproduce_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path": "phasic_spiking_last_spike_step"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/reproduce_output.json#sfa_first_isi_steps": {
       "value": 155,
       "source_artifact": "artifacts/reproduce_output.json",
       "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
-      "source_span": "reproduce_output.json, key sfa_first_isi_steps (Fig1-C 频率适应, 首个 inter-spike interval 步数)"
+      "source_span": "reproduce_output.json, key sfa_first_isi_steps (Fig1-C 频率适应, 首个 inter-spike interval 步数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/reproduce_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path": "sfa_first_isi_steps"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/reproduce_output.json#sfa_last_isi_steps": {
       "value": 212,
       "source_artifact": "artifacts/reproduce_output.json",
       "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
-      "source_span": "reproduce_output.json, key sfa_last_isi_steps (Fig1-C 频率适应, 末个 inter-spike interval 步数)"
+      "source_span": "reproduce_output.json, key sfa_last_isi_steps (Fig1-C 频率适应, 末个 inter-spike interval 步数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/reproduce_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path": "sfa_last_isi_steps"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/reproduce_output.json#tonic_bursting_n_spikes": {
       "value": 24,
       "source_artifact": "artifacts/reproduce_output.json",
       "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
-      "source_span": "reproduce_output.json, key tonic_bursting_n_spikes (Fig1-M 强直爆发, a=0.005/A1=10/A2=-0.6, Iext=2, 5000步)"
+      "source_span": "reproduce_output.json, key tonic_bursting_n_spikes (Fig1-M 强直爆发, a=0.005/A1=10/A2=-0.6, Iext=2, 5000步)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/reproduce_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path": "tonic_bursting_n_spikes"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/reproduce_output.json#phasic_bursting_n_spikes": {
       "value": 7,
       "source_artifact": "artifacts/reproduce_output.json",
       "source_artifact_hash": "dbdf4107a077450f0f74de02797791838d8c9ea8edb415db466607bf623c2a53",
-      "source_span": "reproduce_output.json, key phasic_bursting_n_spikes (Fig1-N 相位爆发, a=0.005/A1=10/A2=-0.6, Iext=1.5, 5000步)"
+      "source_span": "reproduce_output.json, key phasic_bursting_n_spikes (Fig1-N 相位爆发, a=0.005/A1=10/A2=-0.6, Iext=1.5, 5000步)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/reproduce_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path": "phasic_bursting_n_spikes"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     }
   },
   "claims": [

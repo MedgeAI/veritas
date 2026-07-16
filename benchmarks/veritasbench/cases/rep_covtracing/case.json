@@ -50,37 +50,135 @@
       "value": 2.5577,
       "source_artifact": "artifacts/RR_no_measures.csv",
       "source_artifact_hash": "b14cf617df9ccad58f5d8dc9eb7c50cc5942529d1b07ab0692afa47b79ef79b4",
-      "source_span": "RR_no_measures.csv, mean of column rr over 10000 iterations (无措施基线繁殖数 R)"
+      "source_span": "RR_no_measures.csv, mean of column rr over 10000 iterations (无措施基线繁殖数 R)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/RR_no_measures.csv"
+        ],
+        "method": {
+          "reference_fn": "mean",
+          "args": {
+            "column": "rr"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/RR_no_measures.csv#p_controlled": {
       "value": 0.4953,
       "source_artifact": "artifacts/RR_no_measures.csv",
       "source_artifact_hash": "b14cf617df9ccad58f5d8dc9eb7c50cc5942529d1b07ab0692afa47b79ef79b4",
-      "source_span": "RR_no_measures.csv, fraction of rows with rr_reduced<=1 (个案受控概率, 无措施)"
+      "source_span": "RR_no_measures.csv, fraction of rows with rr_reduced<=1 (个案受控概率, 无措施)",
+      "recompute": {
+        "metric_type": "fraction",
+        "inputs": [
+          "artifacts/RR_no_measures.csv"
+        ],
+        "method": {
+          "reference_fn": "fraction_where",
+          "args": {
+            "column": "rr_reduced",
+            "op": "<=",
+            "thresh": 1.0
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/RR_isolation_only.csv#mean_rr_reduced": {
       "value": 1.7559,
       "source_artifact": "artifacts/RR_isolation_only.csv",
       "source_artifact_hash": "cb732bf8d9bd738400f4156ea754e5d0d0e8f9c18ca93da6d5707b232ac1a22c",
-      "source_span": "RR_isolation_only.csv, mean of column rr_reduced (仅自我隔离下有效繁殖数)"
+      "source_span": "RR_isolation_only.csv, mean of column rr_reduced (仅自我隔离下有效繁殖数)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/RR_isolation_only.csv"
+        ],
+        "method": {
+          "reference_fn": "mean",
+          "args": {
+            "column": "rr_reduced"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/RR_isolation_manual_tracing.csv#mean_rr_reduced": {
       "value": 1.0129,
       "source_artifact": "artifacts/RR_isolation_manual_tracing.csv",
       "source_artifact_hash": "5fac8ab39f2b9f7b99787bf5e3a8b9d673d5690fa754094b4b74900f505a8263",
-      "source_span": "RR_isolation_manual_tracing.csv, mean of column rr_reduced (隔离+人工追踪有效繁殖数)"
+      "source_span": "RR_isolation_manual_tracing.csv, mean of column rr_reduced (隔离+人工追踪有效繁殖数)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/RR_isolation_manual_tracing.csv"
+        ],
+        "method": {
+          "reference_fn": "mean",
+          "args": {
+            "column": "rr_reduced"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/RR_isolation_manual_tracing.csv#mean_rr": {
       "value": 2.6459,
       "source_artifact": "artifacts/RR_isolation_manual_tracing.csv",
       "source_artifact_hash": "5fac8ab39f2b9f7b99787bf5e3a8b9d673d5690fa754094b4b74900f505a8263",
-      "source_span": "RR_isolation_manual_tracing.csv, mean of column rr (同场景未干预基础繁殖数, FP陷阱列)"
+      "source_span": "RR_isolation_manual_tracing.csv, mean of column rr (同场景未干预基础繁殖数, FP陷阱列)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/RR_isolation_manual_tracing.csv"
+        ],
+        "method": {
+          "reference_fn": "mean",
+          "args": {
+            "column": "rr"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/RR_isolation_manual_tracing_met_limit.csv#mean_rr_reduced": {
       "value": 0.9227,
       "source_artifact": "artifacts/RR_isolation_manual_tracing_met_limit.csv",
       "source_artifact_hash": "59f6649595677bc391477bd91278787456e6c5434e1068720a7e1829c3ada3b4",
-      "source_span": "RR_isolation_manual_tracing_met_limit.csv, mean of column rr_reduced (隔离+追踪+限制非家庭接触)"
+      "source_span": "RR_isolation_manual_tracing_met_limit.csv, mean of column rr_reduced (隔离+追踪+限制非家庭接触)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/RR_isolation_manual_tracing_met_limit.csv"
+        ],
+        "method": {
+          "reference_fn": "mean",
+          "args": {
+            "column": "rr_reduced"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/RR_isolation_manual_tracing_met_limit.csv#p_controlled": {
       "value": 0.7999,
@@ -92,7 +190,23 @@
       "value": 2.5883,
       "source_artifact": "artifacts/RR_pop_testing.csv",
       "source_artifact_hash": "f86f74e2672b287c73ae15c58ed0f27ae3461bb4c7717b329befcf6503f9a0b0",
-      "source_span": "RR_pop_testing.csv, mean of column rr_reduced (仅大规模检测有效繁殖数)"
+      "source_span": "RR_pop_testing.csv, mean of column rr_reduced (仅大规模检测有效繁殖数)",
+      "recompute": {
+        "metric_type": "continuous_stat",
+        "inputs": [
+          "artifacts/RR_pop_testing.csv"
+        ],
+        "method": {
+          "reference_fn": "mean",
+          "args": {
+            "column": "rr_reduced"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 0.001
+        }
+      }
     },
     "artifacts/RR_pop_testing.csv#mean_rr": {
       "value": 2.6446,

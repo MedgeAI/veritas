@@ -33,7 +33,23 @@
       "value": 29503,
       "source_artifact": "artifacts/repro_output.json",
       "source_artifact_hash": "3d094674d082755fe75f4825859bb86c1de1c935b8b31bc091b422b350e566eb",
-      "source_span": "repro_output.json, key n_genomes_total (metadata行数=数据集基因组总数)"
+      "source_span": "repro_output.json, key n_genomes_total (metadata行数=数据集基因组总数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.json"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "json_path": "n_genomes_total"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_output.json#region_europe_count": {
       "value": 16579,
@@ -161,9 +177,20 @@
       "command": "python3 repro_sarscov2.py .  (cwd=artifacts/)",
       "key_values": {
         "n_genomes_total": 29503,
-        "region_counts": {"Europe": 16579, "Americas": 8291, "Asia": 2826, "Oceania": 1582, "Africa": 225},
+        "region_counts": {
+          "Europe": 16579,
+          "Americas": 8291,
+          "Asia": 2826,
+          "Oceania": 1582,
+          "Africa": 225
+        },
         "n_genomes_netherlands": 1338,
-        "netherlands_top4": {"NSP3:F106F": 1012, "NSP12b:P314L": 1010, "5'UTR:241": 1009, "S:D614G": 1009},
+        "netherlands_top4": {
+          "NSP3:F106F": 1012,
+          "NSP12b:P314L": 1010,
+          "5'UTR:241": 1009,
+          "S:D614G": 1009
+        },
         "netherlands_D614G_freq": 0.816343
       },
       "determinism": "纯计数/groupby, 无随机种子, 逐次重跑逐位可复现"

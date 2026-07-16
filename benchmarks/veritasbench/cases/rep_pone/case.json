@@ -33,7 +33,25 @@
       "value": 3,
       "source_artifact": "artifacts/Power_summary_reproduced.csv",
       "source_artifact_hash": "66c77bdbc0a35f1d22796d38e896ff75118b9985450681584bce2bfddf68dd18",
-      "source_span": "Power_summary_reproduced.csv, row Name='Geometric mean (lx)', column sample_size = 3 (达到80%功效所需最小样本量;为所有指标中最小档 n=3)"
+      "source_span": "Power_summary_reproduced.csv, row Name='Geometric mean (lx)', column sample_size = 3 (达到80%功效所需最小样本量;为所有指标中最小档 n=3)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/Power_summary_reproduced.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "Name",
+            "row_key": "Geometric mean (lx)",
+            "value_col": "sample_size"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/Power_data.csv#geomean_power_ss3": {
       "value": 1.0,
@@ -57,7 +75,25 @@
       "value": 21,
       "source_artifact": "artifacts/Power_summary_reproduced.csv",
       "source_artifact_hash": "66c77bdbc0a35f1d22796d38e896ff75118b9985450681584bce2bfddf68dd18",
-      "source_span": "Power_summary_reproduced.csv, row Name='Mean timing of light above 250 lx (hh:mm)', column sample_size = 21 (达 80% 功效所需样本量,为达标指标中最大)"
+      "source_span": "Power_summary_reproduced.csv, row Name='Mean timing of light above 250 lx (hh:mm)', column sample_size = 21 (达 80% 功效所需样本量,为达标指标中最大)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/Power_summary_reproduced.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "Name",
+            "row_key": "Mean timing of light above 250 lx (hh:mm)",
+            "value_col": "sample_size"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/missing_metrics.txt#missing_metric_name": {
       "value": "Midpoint of darkest 5 hours (L5, hh:mm)",

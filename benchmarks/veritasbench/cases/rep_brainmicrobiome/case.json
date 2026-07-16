@@ -66,7 +66,25 @@
       "value": 0,
       "source_artifact": "artifacts/analysis_correct.csv",
       "source_artifact_hash": "74e66e37d0b82aeca0e1fd9bec024039ccc4e0506176e05ea3568925061383dc",
-      "source_span": "analysis_correct.csv, row metric=batch_overlap_count, column value (正常脑样本全在 Batch 9，肿瘤样本在 Batch 3/4/5，两组测序批次零重叠)"
+      "source_span": "analysis_correct.csv, row metric=batch_overlap_count, column value (正常脑样本全在 Batch 9，肿瘤样本在 Batch 3/4/5，两组测序批次零重叠)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/analysis_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "batch_overlap_count",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/analysis_correct.csv#n_tumor_associated_reported": {
       "value": 0,
@@ -91,7 +109,25 @@
       "value": 12,
       "source_artifact": "artifacts/analysis_correct.csv",
       "source_artifact_hash": "74e66e37d0b82aeca0e1fd9bec024039ccc4e0506176e05ea3568925061383dc",
-      "source_span": "analysis_correct.csv, row metric=n_contaminants_in_significant, column value (26 个 naive-显著属中 12 个在阴性/空白/水对照 prevalence>=0.5=试剂/实验室污染)"
+      "source_span": "analysis_correct.csv, row metric=n_contaminants_in_significant, column value (26 个 naive-显著属中 12 个在阴性/空白/水对照 prevalence>=0.5=试剂/实验室污染)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/analysis_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "n_contaminants_in_significant",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/analysis_correct.csv#n_naive_significant": {
       "value": 26,

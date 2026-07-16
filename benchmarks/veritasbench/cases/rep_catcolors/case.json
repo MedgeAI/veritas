@@ -36,13 +36,47 @@
       "value": 25,
       "source_artifact": "artifacts/repro_output.txt",
       "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
-      "source_span": "repro_output.txt, line 'study1_nrow_participants: 25' (Pilot 参与者数; ministudy1_analyses_final.R 的 nrow(ds))"
+      "source_span": "repro_output.txt, line 'study1_nrow_participants: 25' (Pilot 参与者数; ministudy1_analyses_final.R 的 nrow(ds))",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.txt"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "txt_line_key": "study1_nrow_participants",
+            "sep": ":"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_output.txt#study2_n_analyzed": {
       "value": 73,
       "source_artifact": "artifacts/repro_output.txt",
       "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
-      "source_span": "repro_output.txt, line 'study2_n_analyzed: 73' (主研究去 NA 后进入分析的参与者数; ministudy2 的 co <- co[!is.na(co[,1]),])"
+      "source_span": "repro_output.txt, line 'study2_n_analyzed: 73' (主研究去 NA 后进入分析的参与者数; ministudy2 的 co <- co[!is.na(co[,1]),])",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.txt"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "txt_line_key": "study2_n_analyzed",
+            "sep": ":"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_output.txt#age_mean": {
       "value": 46.274,
@@ -72,13 +106,47 @@
       "value": 0.3837,
       "source_artifact": "artifacts/repro_output.txt",
       "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
-      "source_span": "repro_output.txt, line 'cronbach_raw_alpha: 0.3837' (20 个颜色评分项的 psych::alpha 原始 Cronbach α)"
+      "source_span": "repro_output.txt, line 'cronbach_raw_alpha: 0.3837' (20 个颜色评分项的 psych::alpha 原始 Cronbach α)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.txt"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "txt_line_key": "cronbach_raw_alpha",
+            "sep": ":"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_output.txt#cronbach_std_alpha": {
       "value": 0.3687,
       "source_artifact": "artifacts/repro_output.txt",
       "source_artifact_hash": "30c08293118a23fbb5dffd818b57e11d835639b653b2418d49e946e4f396070a",
-      "source_span": "repro_output.txt, line 'cronbach_std_alpha: 0.3687' (标准化 Cronbach α)"
+      "source_span": "repro_output.txt, line 'cronbach_std_alpha: 0.3687' (标准化 Cronbach α)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_output.txt"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "txt_line_key": "cronbach_std_alpha",
+            "sep": ":"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     }
   },
   "claims": [

@@ -40,7 +40,25 @@
       "value": 470,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
-      "source_span": "repro_summary.csv, metric=fig4_svaRetro_GRIDSS_detected (Figure 4: svaRetro+GRIDSS 检出的逆转座转录本 RT 断点数)"
+      "source_span": "repro_summary.csv, metric=fig4_svaRetro_GRIDSS_detected (Figure 4: svaRetro+GRIDSS 检出的逆转座转录本 RT 断点数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "fig4_svaRetro_GRIDSS_detected",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_summary.csv#fig4_svaRetro_GRIDSS_total": {
       "value": 500,
@@ -52,7 +70,25 @@
       "value": 295,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
-      "source_span": "repro_summary.csv, metric=fig4_GRIPper_detected (Figure 4: 既有工具 GRIPper 检出的 RT 断点数)"
+      "source_span": "repro_summary.csv, metric=fig4_GRIPper_detected (Figure 4: 既有工具 GRIPper 检出的 RT 断点数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "fig4_GRIPper_detected",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_summary.csv#fig4_GRIPper_total": {
       "value": 500,
@@ -64,25 +100,97 @@
       "value": 213,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
-      "source_span": "repro_summary.csv, metric=fig6_SINE (Figure 6: SINE 重复类的断点计数)"
+      "source_span": "repro_summary.csv, metric=fig6_SINE (Figure 6: SINE 重复类的断点计数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "fig6_SINE",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_summary.csv#fig6_LINE": {
       "value": 50,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
-      "source_span": "repro_summary.csv, metric=fig6_LINE (Figure 6: LINE 重复类的断点计数)"
+      "source_span": "repro_summary.csv, metric=fig6_LINE (Figure 6: LINE 重复类的断点计数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "fig6_LINE",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_summary.csv#fig6_nonrepeats": {
       "value": 246,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
-      "source_span": "repro_summary.csv, metric=fig6_nonrepeats (Figure 6: non-repeats 非重复区断点计数)"
+      "source_span": "repro_summary.csv, metric=fig6_nonrepeats (Figure 6: non-repeats 非重复区断点计数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "fig6_nonrepeats",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_summary.csv#fig6_total": {
       "value": 598,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "bd97d72413948d35de61314f98bc3a52af73728553ce1ae196c388faeb535c7a",
-      "source_span": "repro_summary.csv, metric=fig6_total (Figure 6: 所有 repClass 计数总和)"
+      "source_span": "repro_summary.csv, metric=fig6_total (Figure 6: 所有 repClass 计数总和)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "fig6_total",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     }
   },
   "claims": [

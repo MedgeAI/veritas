@@ -79,13 +79,49 @@
       "value": 4.02,
       "source_artifact": "artifacts/clock_evaluation_correct.csv",
       "source_artifact_hash": "4b333a25df069b41ed64734526b3773472345d08040d1dc9deb69e342a183ebf",
-      "source_span": "clock_evaluation_correct.csv, row metric=MAE_years, column value (平均绝对误差, 年)"
+      "source_span": "clock_evaluation_correct.csv, row metric=MAE_years, column value (平均绝对误差, 年)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/clock_evaluation_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "MAE_years",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/clock_evaluation_correct.csv#n_probes": {
       "value": 2000,
       "source_artifact": "artifacts/clock_evaluation_correct.csv",
       "source_artifact_hash": "4b333a25df069b41ed64734526b3773472345d08040d1dc9deb69e342a183ebf",
-      "source_span": "clock_evaluation_correct.csv, row metric=n_clock_probes_matched, column value (strip+collapse后匹配上的时钟探针数)"
+      "source_span": "clock_evaluation_correct.csv, row metric=n_clock_probes_matched, column value (strip+collapse后匹配上的时钟探针数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/clock_evaluation_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "n_clock_probes_matched",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/clock_evaluation_naive.csv#pearson_r": {
       "value": 0.0,
@@ -120,7 +156,25 @@
       "value": 0,
       "source_artifact": "artifacts/clock_evaluation_naive.csv",
       "source_artifact_hash": "33cff7c2e30f5184a326bb71764ecb2b38006e4264cba28c4d96d3caaa29b154",
-      "source_span": "clock_evaluation_naive.csv, row metric=n_clock_probes_matched, column value (naive直接匹配: 时钟裸cgXXXX vs 矩阵EPICv2 cgXXXX_TC21 → 0探针重叠)"
+      "source_span": "clock_evaluation_naive.csv, row metric=n_clock_probes_matched, column value (naive直接匹配: 时钟裸cgXXXX vs 矩阵EPICv2 cgXXXX_TC21 → 0探针重叠)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/clock_evaluation_naive.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "n_clock_probes_matched",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     }
   },
   "claims": [

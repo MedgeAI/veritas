@@ -1,0 +1,185 @@
+{
+  "case_id": "ncb_lphn3",
+  "paper_title": "Structural and mechanistic basis of latrophilin-3 (LPHN3/ADGRL3) alternative splicing controlling synapse formation",
+  "paper_authors": [
+    "Shuai Wang(王帅)、Thomas C. Südhof 等 (Stanford; Nature, 2023)"
+  ],
+  "artifacts": {
+    "fig5_figure": {
+      "path": "artifacts/fig5.png",
+      "sha256": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "kind": "figure"
+    },
+    "paper_main": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "6ee56fb6c46691fe9c22f7df5eb2527bac4882c47ecaf6a181a17e66fd87bdaa",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/fig5.png#Fig5a!E31_P_0h_6h": {
+      "value": 0.0036,
+      "source_artifact": "artifacts/fig5.png",
+      "source_artifact_hash": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "source_span": "Fig.5a 第2面板(E31 的 PSI, KCl 皮层培养), 顶端显著性括号 KCl 0h vs 6h, 图注标注 two-sided t-test; 标签 P = 0.0036"
+    },
+    "artifacts/fig5.png#Fig5a!E32_P_0h_6h": {
+      "value": 0.0036,
+      "source_artifact": "artifacts/fig5.png",
+      "source_artifact_hash": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "source_span": "Fig.5a 第3面板(E32 的 PSI, KCl 皮层培养), 顶端显著性括号 KCl 0h vs 6h; 标签 P = 0.0036, 与同一图 E31 面板 0h vs 6h 的 P 逐字相同"
+    },
+    "artifacts/fig5.png#Fig5a!E31_P_0h_2h": {
+      "value": 0.015,
+      "source_artifact": "artifacts/fig5.png",
+      "source_artifact_hash": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "source_span": "Fig.5a E31 面板, KCl 0h vs 2h 括号; P = 0.015"
+    },
+    "artifacts/fig5.png#Fig5a!E32_P_0h_2h": {
+      "value": 0.015,
+      "source_artifact": "artifacts/fig5.png",
+      "source_artifact_hash": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "source_span": "Fig.5a E32 面板, KCl 0h vs 2h 括号; P = 0.015, 与 E31 同比较逐字相同"
+    },
+    "artifacts/fig5.png#Fig5a!E31_PSI_0h_baseline": {
+      "value": 84,
+      "source_artifact": "artifacts/fig5.png",
+      "source_artifact_hash": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "source_span": "Fig.5a E31 面板 KCl 0h 基线(虚线)PSI ≈ 84% (自箱线图基线读取, 近似); E31 随 KCl 时间上升至 ~92%"
+    },
+    "artifacts/fig5.png#Fig5a!E32_PSI_0h_baseline": {
+      "value": 16,
+      "source_artifact": "artifacts/fig5.png",
+      "source_artifact_hash": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "source_span": "Fig.5a E32 面板 KCl 0h 基线(虚线)PSI ≈ 16% (自箱线图基线读取, 近似); 与 E31 的 ~84% 互补相加 ≈ 100%, 且随 KCl 时间下降至 ~8%(方向与 E31 相反)"
+    },
+    "artifacts/fig5.png#Fig5b!panel2_title_E1": {
+      "value": "E1",
+      "source_artifact": "artifacts/fig5.png",
+      "source_artifact_hash": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "source_span": "Fig.5b(PTX 海马培养)第2面板标题, 图上印为 'E1'; 该面板 PSI 轴 50-100%, Control ~76% / PTX ~85%, P = 0.037 —— 数值区间与 E31 的 PSI 一致, 应为 'E31' 的错标"
+    },
+    "artifacts/fig5.png#Fig5a!panel2_title_E31": {
+      "value": "E31",
+      "source_artifact": "artifacts/fig5.png",
+      "source_artifact_hash": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "source_span": "Fig.5a 第2面板标题, 印为 'E31'(同一 E31 PSI 量在 5a 图中标注正确); 5c 第2面板亦印为 'E31'"
+    },
+    "artifacts/fig5.png#Fig5b!panel3_title_E32": {
+      "value": "E32",
+      "source_artifact": "artifacts/fig5.png",
+      "source_artifact_hash": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "source_span": "Fig.5b 第3面板标题, 印为 'E32'(相邻面板标签正确); PSI 轴 ~10-30%, Control ~24% / PTX ~15%, P = 0.037"
+    },
+    "artifacts/fig5.png#Fig5b!E1_P": {
+      "value": 0.037,
+      "source_artifact": "artifacts/fig5.png",
+      "source_artifact_hash": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "source_span": "Fig.5b 'E1'(应为 E31)面板, Control vs PTX; P = 0.037"
+    },
+    "artifacts/fig5.png#Fig5b!E32_P": {
+      "value": 0.037,
+      "source_artifact": "artifacts/fig5.png",
+      "source_artifact_hash": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "source_span": "Fig.5b E32 面板, Control vs PTX; P = 0.037, 与同图 E31('E1')面板逐字相同"
+    },
+    "artifacts/fig5.png#Fig5c!E31_P_top": {
+      "value": 0.000049,
+      "source_artifact": "artifacts/fig5.png",
+      "source_artifact_hash": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "source_span": "Fig.5c(KA 海马组织)E31 面板顶端括号 KA 0h vs 10h; P = 4.9 x 10^-5"
+    },
+    "artifacts/fig5.png#Fig5c!E32_P_top": {
+      "value": 0.000049,
+      "source_artifact": "artifacts/fig5.png",
+      "source_artifact_hash": "b8cd3900433f4a11b20354d7bbc449a94550912052dd8642f17c4706dedcc877",
+      "source_span": "Fig.5c E32 面板顶端括号 KA 0h vs 10h; P = 4.9 x 10^-5, 与同图 E31 逐字相同"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_lphn3_ann_001",
+      "claim_id": "ncb_lphn3_claim_001",
+      "claim_atom": "In Fig. 5b the middle boxplot panel is titled 'E1', but its PSI axis (50-100%), baseline (~76%) and Control-vs-PTX direction (rises to ~85% under PTX, P = 0.037) match the E31 percent-spliced-in quantity, which is labelled 'E31' in the corresponding panels of Fig. 5a and Fig. 5c. 'E1' is therefore a typographic label error for 'E31' in the published Fig. 5b. Co-author Shuai Wang acknowledged the Fig. 5b label error on PubPeer.",
+      "source_artifact": "artifacts/fig5.png#Fig5b!panel2_title_E1",
+      "target_artifact": "artifacts/fig5.png#Fig5a!panel2_title_E31",
+      "source_a1_range": "Fig5b middle-panel title",
+      "target_a1_range": "Fig5a middle-panel title",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "mislabeled_panel",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:figure->figure",
+      "_adjudication": "标签错误-作者已承认(inconsistent): Fig.5b 中间面板标题印为 'E1', 但其 PSI 轴 50-100%、基线 ~76%、PTX 下升至 ~85%(P=0.037)与 E31 的 PSI 量完全对应; 同一 E31 PSI 量在 Fig.5a/5c 均正确标为 'E31'。故 'E1' 是 'E31' 的排印错标。共同作者 Shuai Wang 在 PubPeer 承认 Fig.5b 标签错误。这是发表图版层面的真实标注不一致(非造假), verdict=inconsistent。AI 应识别为局部标签错误并指出应为 E31。"
+    },
+    {
+      "annotation_id": "ncb_lphn3_ann_002",
+      "claim_id": "ncb_lphn3_claim_002",
+      "claim_atom": "In Fig. 5a the E31 PSI panel and the E32 PSI panel report byte-identical P values for the same pairwise comparisons (KCl 0h vs 6h: P = 0.0036 in both; KCl 0h vs 2h: P = 0.015 in both; the same identity recurs in Fig. 5b at P = 0.037 and Fig. 5c at P = 4.9x10^-5). This is NOT duplicated/fabricated statistics: Lphn3 E31 and E32 are MUTUALLY-EXCLUSIVE exons, so a transcript carries either E31 or E32 and their percent-spliced-in values are complementary (E31 baseline ~84% + E32 baseline ~16% = ~100%; E31 rises while E32 falls across the same conditions). A two-sided t-test on PSI(E32) = 100 - PSI(E31) is invariant under x -> c - x, so it necessarily returns the identical P value to the test on PSI(E31). The repeated P values are a mathematical consequence of the mutually-exclusive splicing design, as explained by Thomas Sudhof on PubPeer.",
+      "source_artifact": "artifacts/fig5.png#Fig5a!E31_P_0h_6h",
+      "target_artifact": "artifacts/fig5.png#Fig5a!E32_P_0h_6h",
+      "source_a1_range": "Fig5a E31 panel top bracket",
+      "target_a1_range": "Fig5a E32 panel top bracket",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:figure->figure",
+      "_clean_pairs": [
+        [
+          "artifacts/fig5.png#Fig5a!E31_P_0h_6h",
+          "artifacts/fig5.png#Fig5a!E32_P_0h_6h"
+        ],
+        [
+          "artifacts/fig5.png#Fig5a!E31_P_0h_2h",
+          "artifacts/fig5.png#Fig5a!E32_P_0h_2h"
+        ],
+        [
+          "artifacts/fig5.png#Fig5b!E1_P",
+          "artifacts/fig5.png#Fig5b!E32_P"
+        ],
+        [
+          "artifacts/fig5.png#Fig5c!E31_P_top",
+          "artifacts/fig5.png#Fig5c!E32_P_top"
+        ]
+      ],
+      "_adjudication": "★FP陷阱(consistent): Fig.5 中 E31 与 E32 的 PSI 面板对同一组两两比较给出逐字相同的 P 值(5a: 0h-6h 均 P=0.0036, 0h-2h 均 P=0.015; 5b 均 P=0.037; 5c 均 P=4.9e-5), 单看像重复/编造统计。实为合法且必然: Lphn3 E31/E32 是互斥外显子(mutually-exclusive), 一条转录本只含 E31 或 E32, 二者 PSI 互补(基线 E31 ~84% + E32 ~16% ≈ 100%, 且随处理 E31 升、E32 降方向相反)。two-sided t-test 作用于 PSI(E32)=100-PSI(E31), 在 x->c-x 变换下不变, 故对 E31 与 E32 的检验必给相同 P。重复 P 值是互斥剪接设计的数学必然, 非复制。Thomas Südhof 在 PubPeer 作此解释。is_clean_claim=true, AI 不应因 'P 值可疑重复' 判造假, 须识别互斥剪接下 P 值必然相等。"
+    },
+    {
+      "annotation_id": "ncb_lphn3_ann_003",
+      "claim_id": "ncb_lphn3_claim_003",
+      "claim_atom": "The published Fig. 5b 'E1'->'E31' mislabel and the mirror-image E31/E32 boxplot presentation (a visual consequence of the complementary PSI values) were flagged on PubPeer. Whether these were formally corrected in the published record via an author correction/erratum, and whether the full Supplementary Table 1 Tukey pairwise P-value source (provided only as an embedded image, with gene-expression Figs. 5a/5c/5d explicitly excluded from that Tukey analysis per its caption) fully reconciles with every on-figure P value, cannot be determined from the currently available artifacts (main-figure image + PDF).",
+      "source_artifact": "artifacts/fig5.png#Fig5b!panel2_title_E1",
+      "target_artifact": "artifacts/fig5.png#Fig5b!panel3_title_E32",
+      "source_a1_range": "Fig5b middle-panel title",
+      "target_a1_range": "Fig5b right-panel title",
+      "relation_type": "L1",
+      "verdict": "insufficient",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-15T00:00:00Z",
+      "is_clean_claim": false,
+      "_adjudication": "待定(insufficient): 除已认的 Fig.5b 'E1'->'E31' 错标与互补 PSI 造成的镜像式箱线图外, 是否已通过正式 author correction/erratum 更正发表记录, 以及 Supplementary Table 1(Tukey 两两比较, 仅以嵌入图片提供, 且其图注明确将不服从正态的基因表达 Figs.5a/5c/5d 排除在该 Tukey 分析外)是否与所有图上 P 值完全对齐, 均无法从当前可得材料(主图图片 + 正文 PDF)判定。补充统计表以 EMF 图片嵌入 docx, 本地未能渲染核验其数值。verdict=insufficient。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_lphn3",
+    "primary_failure_mode": "mixed_boundary",
+    "secondary_failure_modes": [
+      "false_positive_trap"
+    ],
+    "source_url": "https://doi.org/10.1038/s41586-023-06913-9",
+    "_lane": "混合边界(mixed_boundary, 三 verdict): ①inconsistent=Fig.5b 中间面板错标 'E1'(应为 'E31'), 共同作者 Shuai Wang 承认标签错误; ②consistent=Fig.5 中 E31/E32 面板逐字相同的 P 值(5a 0.0036/0.015, 5b 0.037, 5c 4.9e-5)是互斥剪接(mutually-exclusive)设计的数学必然——PSI(E32)=100-PSI(E31), 两侧 t 检验在 x->c-x 下不变, Südhof 解释为合法非复制(false-positive 陷阱); ③insufficient=镜像式数值图/Supplementary Table 1 Tukey 完整来源(仅嵌入图片, 基因表达图被排除)/是否有正式更正, 待定。考 AI 区分 '作者已认的图版标签错', '看似可疑实为设计使然的合法重复 P 值', 与 '来源/更正状态未定的待定项'。",
+    "_author_response": "Thomas Südhof(PubPeer): Fig.5 中出现的相同 P 值源于互斥剪接设计——E31 与 E32 为互斥外显子, PSI 互补, 对同一对互斥变体做统计比较必然得到相同 P 值, 属合法设计非重复/造假。Shuai Wang(PubPeer): 另承认 Fig.5b 存在标签错误(中间面板 'E1' 应为 'E31')。",
+    "_independent_status": "下载窗口用机构 cookie 取正文 PDF(25 页)与 Fig.5 主图 PNG(2160x2146)。本地核验(直接读图): Fig.5a E31 与 E32 面板 0h-6h 均 P=0.0036、0h-2h 均 P=0.015; Fig.5b 中间面板标题印为 'E1'(PSI 50-100%, 与 E31 量对应)、E32 面板 P 与之同为 0.037; Fig.5c E31/E32 均 P=4.9e-5; E31 基线 PSI ~84% 与 E32 ~16% 互补相加 ≈100% 且方向相反(证互斥剪接)。Supplementary Table 1/2(Tukey)在 Supplementary Information docx 中以 EMF 图片嵌入, 本地无 EMF 渲染工具未能核验其数值。无 xlsx 源数据文件(该文仅 MOESM1 docx / MOESM2 Reporting Summary / MOESM3 Peer Review), 故以主图图片 + PDF 为锚。",
+    "_pubpeer": "A04E94FAF81B5D7EC9E6B1668085EA",
+    "_signed_by": "wuguandu @ 2026-07-15; 第二标注人待补(§5)"
+  }
+}

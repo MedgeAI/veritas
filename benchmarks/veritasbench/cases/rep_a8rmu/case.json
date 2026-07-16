@@ -46,13 +46,49 @@
       "value": 70,
       "source_artifact": "artifacts/discipline_counts.csv",
       "source_artifact_hash": "0fab8d8be3a4ba6567665fc5cd8bf605774d895b20bf5fd17cbab5c6db6bcd6f",
-      "source_span": "discipline_counts.csv, row frasc_top_level='Medical and health sciences', column n_assignments = 70 (Frascati top-level 学科归类的赋值次数;分母是学科-研究配对而非研究数, 因多学科研究会被赋多个 top-level 类别)"
+      "source_span": "discipline_counts.csv, row frasc_top_level='Medical and health sciences', column n_assignments = 70 (Frascati top-level 学科归类的赋值次数;分母是学科-研究配对而非研究数, 因多学科研究会被赋多个 top-level 类别)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/discipline_counts.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "frasc_top_level",
+            "row_key": "Medical and health sciences",
+            "value_col": "n_assignments"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/discipline_counts.csv#social": {
       "value": 27,
       "source_artifact": "artifacts/discipline_counts.csv",
       "source_artifact_hash": "0fab8d8be3a4ba6567665fc5cd8bf605774d895b20bf5fd17cbab5c6db6bcd6f",
-      "source_span": "discipline_counts.csv, row frasc_top_level='Social sciences', column n_assignments = 27"
+      "source_span": "discipline_counts.csv, row frasc_top_level='Social sciences', column n_assignments = 27",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/discipline_counts.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "frasc_top_level",
+            "row_key": "Social sciences",
+            "value_col": "n_assignments"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/discipline_counts.csv#natural": {
       "value": 15,

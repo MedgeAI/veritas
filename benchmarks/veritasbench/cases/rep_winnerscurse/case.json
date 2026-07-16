@@ -74,13 +74,49 @@
       "value": 22.162,
       "source_artifact": "artifacts/driver_calls_correct.csv",
       "source_artifact_hash": "65f52da42e9de995aeb6e8c7d8f349d5aa7c018f84b6fd27dee4e520ff7a1595",
-      "source_span": "driver_calls_correct.csv, row guide_target=Notch1, column fc_mean=22.162 (n_elevated=8/8, baseline=0.737 充足, is_driver=True)"
+      "source_span": "driver_calls_correct.csv, row guide_target=Notch1, column fc_mean=22.162 (n_elevated=8/8, baseline=0.737 充足, is_driver=True)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/driver_calls_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "guide_target",
+            "row_key": "Notch1",
+            "value_col": "fc_mean"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/driver_calls_correct.csv#Fat1_fc_mean": {
       "value": 14.801,
       "source_artifact": "artifacts/driver_calls_correct.csv",
       "source_artifact_hash": "65f52da42e9de995aeb6e8c7d8f349d5aa7c018f84b6fd27dee4e520ff7a1595",
-      "source_span": "driver_calls_correct.csv, row guide_target=Fat1, column fc_mean=14.801 (n_elevated=8/8, baseline=0.665 充足, is_driver=True)"
+      "source_span": "driver_calls_correct.csv, row guide_target=Fat1, column fc_mean=14.801 (n_elevated=8/8, baseline=0.665 充足, is_driver=True)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/driver_calls_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "guide_target",
+            "row_key": "Fat1",
+            "value_col": "fc_mean"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/driver_calls_correct.csv#Trp53_fc_mean": {
       "value": 3.59,

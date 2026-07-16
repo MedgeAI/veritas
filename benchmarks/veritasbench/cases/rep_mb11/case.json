@@ -32,13 +32,49 @@
       "value": 41,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
-      "source_span": "repro_summary.csv, row metric=n_individuals (nrow(demography); 样本总人数)"
+      "source_span": "repro_summary.csv, row metric=n_individuals (nrow(demography); 样本总人数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "n_individuals",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_summary.csv#n_males": {
       "value": 27,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
-      "source_span": "repro_summary.csv, row metric=n_males (sex=='m' 计数; 确定男性)"
+      "source_span": "repro_summary.csv, row metric=n_males (sex=='m' 计数; 确定男性)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "n_males",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_summary.csv#n_prob_males": {
       "value": 11,
@@ -50,37 +86,145 @@
       "value": 25,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
-      "source_span": "repro_summary.csv, row metric=n_pipe_notch_indiv (batch2 男/可能男中带 pipe notch 的个体数)"
+      "source_span": "repro_summary.csv, row metric=n_pipe_notch_indiv (batch2 男/可能男中带 pipe notch 的个体数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "n_pipe_notch_indiv",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_summary.csv#n_pipe_notch_tobacco_detected": {
       "value": 14,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
-      "source_span": "repro_summary.csv, row metric=n_pipe_notch_tobacco_detected (带 pipe notch 且检出烟草生物碱的个体数)"
+      "source_span": "repro_summary.csv, row metric=n_pipe_notch_tobacco_detected (带 pipe notch 且检出烟草生物碱的个体数)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "n_pipe_notch_tobacco_detected",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_summary.csv#pct_pipe_notch_detected": {
       "value": 56.0,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
-      "source_span": "repro_summary.csv, row metric=pct_pipe_notch_detected (14/25 = 56.0%; pipe-notch 个体的烟草检出率)"
+      "source_span": "repro_summary.csv, row metric=pct_pipe_notch_detected (14/25 = 56.0%; pipe-notch 个体的烟草检出率)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "pct_pipe_notch_detected",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_summary.csv#overall_accuracy_pct": {
       "value": 59.25925925925926,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
-      "source_span": "repro_summary.csv, row metric=overall_accuracy_pct (mean(correct)=16/27; 计入'无 notch 且未检出'为正确后的整体准确率, 论文报 59.3%)"
+      "source_span": "repro_summary.csv, row metric=overall_accuracy_pct (mean(correct)=16/27; 计入'无 notch 且未检出'为正确后的整体准确率, 论文报 59.3%)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "overall_accuracy_pct",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_summary.csv#old_accuracy_pct": {
       "value": 100.0,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
-      "source_span": "repro_summary.csv, row metric=old_accuracy_pct (老年组准确率 100.0%)"
+      "source_span": "repro_summary.csv, row metric=old_accuracy_pct (老年组准确率 100.0%)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "old_accuracy_pct",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/repro_summary.csv#n_old_adult": {
       "value": 2,
       "source_artifact": "artifacts/repro_summary.csv",
       "source_artifact_hash": "e68645aba0fb826c84ed0fb53243f09aeb7fa93554a6f3be468640c454aeeeea",
-      "source_span": "repro_summary.csv, row metric=n_old_adult (老年组个体数=2)"
+      "source_span": "repro_summary.csv, row metric=n_old_adult (老年组个体数=2)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/repro_summary.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "metric",
+            "row_key": "n_old_adult",
+            "value_col": "value"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     }
   },
   "claims": [

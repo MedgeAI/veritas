@@ -52,7 +52,25 @@
       "value": 0.8250315072016461,
       "source_artifact": "artifacts/summary_metrics.csv",
       "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
-      "source_span": "summary_metrics.csv, row model=xgb, column C_boot_lo (xgb C 95%CI下)"
+      "source_span": "summary_metrics.csv, row model=xgb, column C_boot_lo (xgb C 95%CI下)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/summary_metrics.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "model",
+            "row_key": "xgb",
+            "value_col": "C_boot_lo"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/summary_metrics.csv#xgb_C_boot_hi": {
       "value": 0.869307671015191,
@@ -103,13 +121,49 @@
       "value": 0.3519679327438954,
       "source_artifact": "artifacts/summary_metrics.csv",
       "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
-      "source_span": "summary_metrics.csv, row model=xgb, column IBS_mean (xgb IBS(越低越好))"
+      "source_span": "summary_metrics.csv, row model=xgb, column IBS_mean (xgb IBS(越低越好))",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/summary_metrics.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "model",
+            "row_key": "xgb",
+            "value_col": "IBS_mean"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/summary_metrics.csv#cox_IBS_mean": {
       "value": 0.1502094385593659,
       "source_artifact": "artifacts/summary_metrics.csv",
       "source_artifact_hash": "b9f2bb34ff6878034d68520ff50bb310a716aa44a88ca2e91df25f9b0a30c6ea",
-      "source_span": "summary_metrics.csv, row model=cox, column IBS_mean (cox IBS)"
+      "source_span": "summary_metrics.csv, row model=cox, column IBS_mean (cox IBS)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/summary_metrics.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "model",
+            "row_key": "cox",
+            "value_col": "IBS_mean"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     }
   },
   "claims": [

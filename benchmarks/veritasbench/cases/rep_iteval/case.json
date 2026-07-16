@@ -54,19 +54,73 @@
       "value": 0.2829,
       "source_artifact": "artifacts/table2_calibration.csv",
       "source_artifact_hash": "43bc56280684b762c81d3b778988d6f2ae61c941b593da1bb6d974de92884936",
-      "source_span": "table2_calibration.csv, row validation=apparent.cal, column beta1_n500=0.2829 (校准斜率 beta1 的 RMSE, apparent 验证, n=500)"
+      "source_span": "table2_calibration.csv, row validation=apparent.cal, column beta1_n500=0.2829 (校准斜率 beta1 的 RMSE, apparent 验证, n=500)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/table2_calibration.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "validation",
+            "row_key": "apparent.cal",
+            "value_col": "beta1_n500"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/table2_calibration.csv#apparent_beta1_n1000": {
       "value": 0.2132,
       "source_artifact": "artifacts/table2_calibration.csv",
       "source_artifact_hash": "43bc56280684b762c81d3b778988d6f2ae61c941b593da1bb6d974de92884936",
-      "source_span": "table2_calibration.csv, row validation=apparent.cal, column beta1_n1000=0.2132 (校准斜率 beta1 RMSE, n=1000)"
+      "source_span": "table2_calibration.csv, row validation=apparent.cal, column beta1_n1000=0.2132 (校准斜率 beta1 RMSE, n=1000)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/table2_calibration.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "validation",
+            "row_key": "apparent.cal",
+            "value_col": "beta1_n1000"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/table2_calibration.csv#apparent_beta0_n500": {
       "value": 0.2326,
       "source_artifact": "artifacts/table2_calibration.csv",
       "source_artifact_hash": "43bc56280684b762c81d3b778988d6f2ae61c941b593da1bb6d974de92884936",
-      "source_span": "table2_calibration.csv, row validation=apparent.cal, column beta0_n500=0.2326 (校准截距 beta0 RMSE, apparent, n=500)"
+      "source_span": "table2_calibration.csv, row validation=apparent.cal, column beta0_n500=0.2326 (校准截距 beta0 RMSE, apparent, n=500)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/table2_calibration.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "validation",
+            "row_key": "apparent.cal",
+            "value_col": "beta0_n500"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/table2_calibration.csv#boot0632_beta0_n500": {
       "value": null,

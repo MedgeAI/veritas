@@ -36,13 +36,49 @@
       "value": 212,
       "source_artifact": "artifacts/perturbation_summary_correct.csv",
       "source_artifact_hash": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
-      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_11, column n_deg (中介混杂控制后复现: KO_11=masked Atg5 的 DE 基因数, Welch t |t|>3)"
+      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_11, column n_deg (中介混杂控制后复现: KO_11=masked Atg5 的 DE 基因数, Welch t |t|>3)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/perturbation_summary_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "perturbation",
+            "row_key": "KO_11",
+            "value_col": "n_deg"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/perturbation_summary_correct.csv#KO_11_mtDNA": {
       "value": 478431,
       "source_artifact": "artifacts/perturbation_summary_correct.csv",
       "source_artifact_hash": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
-      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_11, column mean_mtDNA_copy_number (KO_11 平均 mtDNA 拷贝数, 与 control 中位数 372167 相当, 无耗竭)"
+      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_11, column mean_mtDNA_copy_number (KO_11 平均 mtDNA 拷贝数, 与 control 中位数 372167 相当, 无耗竭)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/perturbation_summary_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "perturbation",
+            "row_key": "KO_11",
+            "value_col": "mean_mtDNA_copy_number"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/perturbation_summary_correct.csv#KO_11_call": {
       "value": "gene_specific",
@@ -75,13 +111,49 @@
       "value": 685,
       "source_artifact": "artifacts/perturbation_summary_correct.csv",
       "source_artifact_hash": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
-      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_13, column n_deg (KO_13=masked Tfam, 全 panel 最大 DE 签名)"
+      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_13, column n_deg (KO_13=masked Tfam, 全 panel 最大 DE 签名)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/perturbation_summary_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "perturbation",
+            "row_key": "KO_13",
+            "value_col": "n_deg"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/perturbation_summary_correct.csv#KO_13_mtDNA": {
       "value": 89051,
       "source_artifact": "artifacts/perturbation_summary_correct.csv",
       "source_artifact_hash": "8a81cb075aefb89471620932e7f099e331dd95cd813b654b5502cf866dc2c29b",
-      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_13, column mean_mtDNA_copy_number (KO_13 平均 mtDNA 拷贝数 89051, 远低于 control 中位数 372167 且低于 0.75x 耗竭阈值 279125 = 最强 mtDNA depleter)"
+      "source_span": "perturbation_summary_correct.csv, row perturbation=KO_13, column mean_mtDNA_copy_number (KO_13 平均 mtDNA 拷贝数 89051, 远低于 control 中位数 372167 且低于 0.75x 耗竭阈值 279125 = 最强 mtDNA depleter)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/perturbation_summary_correct.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "perturbation",
+            "row_key": "KO_13",
+            "value_col": "mean_mtDNA_copy_number"
+          }
+        },
+        "tolerance": {
+          "kind": "exact",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "artifacts/perturbation_summary_correct.csv#KO_13_call": {
       "value": "shared",

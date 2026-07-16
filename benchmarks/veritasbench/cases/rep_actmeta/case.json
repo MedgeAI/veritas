@@ -33,7 +33,25 @@
       "value": -1.4447,
       "source_artifact": "artifacts/pooled_effects.csv",
       "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
-      "source_span": "pooled_effects.csv, row model=zhao_fig4_excl_atjak, column ci_lb (95%CI 下界)"
+      "source_span": "pooled_effects.csv, row model=zhao_fig4_excl_atjak, column ci_lb (95%CI 下界)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/pooled_effects.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "model",
+            "row_key": "zhao_fig4_excl_atjak",
+            "value_col": "ci_lb"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "pooled_effects.csv#fig4_ci_ub": {
       "value": -0.6593,
@@ -45,7 +63,25 @@
       "value": 84.0,
       "source_artifact": "artifacts/pooled_effects.csv",
       "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
-      "source_span": "pooled_effects.csv, row model=zhao_fig4_excl_atjak, column I2 (异质性 I^2 %)"
+      "source_span": "pooled_effects.csv, row model=zhao_fig4_excl_atjak, column I2 (异质性 I^2 %)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/pooled_effects.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "model",
+            "row_key": "zhao_fig4_excl_atjak",
+            "value_col": "I2"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "pooled_effects.csv#all11_est": {
       "value": -0.7548,
@@ -57,7 +93,25 @@
       "value": 93.1,
       "source_artifact": "artifacts/pooled_effects.csv",
       "source_artifact_hash": "9d12d61660d661c5c4ab44205bf2d4bc7fa5ca02501b43aef333d99a031d8723",
-      "source_span": "pooled_effects.csv, row model=zhao_all11, column I2 (Zhao 正文报告 I^2=93%)"
+      "source_span": "pooled_effects.csv, row model=zhao_all11, column I2 (Zhao 正文报告 I^2=93%)",
+      "recompute": {
+        "metric_type": "cell_lookup",
+        "inputs": [
+          "artifacts/pooled_effects.csv"
+        ],
+        "method": {
+          "reference_fn": "cell_lookup",
+          "args": {
+            "row_col": "model",
+            "row_key": "zhao_all11",
+            "value_col": "I2"
+          }
+        },
+        "tolerance": {
+          "kind": "rel_tol",
+          "rel_tol": 1e-06
+        }
+      }
     },
     "pooled_effects.csv#reextr10_est": {
       "value": -0.7831,
