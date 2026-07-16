@@ -210,9 +210,12 @@ def check_case(cid: str, base: Path, mirror: str | None) -> dict:
         if str(cl.get("relation_type")) != "L1":
             continue
         cida = cl.get("claim_id", "?")
-        is_csv = any(".csv" in cl.get(role, "") or ".tsv" in cl.get(role, "")
-                     for role in ("source_artifact", "target_artifact"))
-        if not is_csv:
+        # a1_range is an xlsx concept (ncb_ duplication). Exempt code_output claims — csv/tsv/json/txt
+        # or any obs carrying a recompute block (reproduction / honest-FP family).
+        refs = [cl.get(role, "") for role in ("source_artifact", "target_artifact")]
+        is_code_output = any(ref.split("#")[0].lower().endswith((".csv", ".tsv", ".json", ".txt"))
+                             or (obs.get(ref, {}).get("recompute")) for ref in refs)
+        if not is_code_output:
             for f in ("source_a1_range", "target_a1_range"):
                 if not cl.get(f):
                     r["a1_missing"].append(f"{cida}:{f}")

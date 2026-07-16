@@ -47,13 +47,25 @@ from engine.benchmark.veritasbench_eval_adapter import (
     load_veritasbench_case,
     veritasbench_renderer,
 )
+from engine.benchmark.veritasbench_rep_adapter import (
+    load_rep_case,
+    rep_recompute_verifier,
+    rep_renderer,
+)
 from engine.benchmark.veritasbench_verifiers import l1_relationship_verifier
 from scripts.live_backbones import AUDITOR_SYSTEM, make_backbone
 
 CASES_ROOT = Path("benchmarks/veritasbench/cases")
-# Round-2 contract met: every L1 claim now carries explicit source/target_a1_range, so the coded
-# (h19) and rc-dialect (sirt1) cases are back in — the clean pool grows 2 -> 7, making FAR real.
-PILOT_CASES = ["ncb_eet", "ncb_wnt", "ncb_h3v3", "ncb_h19", "ncb_sirt1"]
+# Two families share one loop: ncb_ = duplication (recall axis, l1_relationship verifier); rep_ =
+# reproduction / honest-FP (FAR + abstention axis, recompute verifier). FAMILY env selects.
+FAMILIES = {
+    "ncb": {"cases": ["ncb_eet", "ncb_wnt", "ncb_h3v3", "ncb_h19", "ncb_sirt1"],
+            "load": load_veritasbench_case, "render": veritasbench_renderer,
+            "verifier": l1_relationship_verifier},
+    "rep": {"cases": ["rep_pbc_surv", "rep_coexpr", "rep_mediator", "rep_winnerscurse", "rep_triangulation"],
+            "load": load_rep_case, "render": rep_renderer, "verifier": rep_recompute_verifier},
+}
+FAMILY = os.environ.get("EVAL_FAMILY", "ncb")
 BACKBONE = os.environ.get("AUDIT_BACKBONE", "qwen3.7-plus")
 RUN_TAG = os.environ.get("EVAL_RUN_TAG", "v1")
 MAX_TOKENS = int(os.environ.get("AUDIT_MAX_TOKENS", "4000"))
@@ -204,14 +216,15 @@ def _token_totals(sink: list[dict]) -> dict:
 
 
 def main() -> int:
-    render = veritasbench_renderer()
-    verifier = l1_relationship_verifier()
+    fam = FAMILIES[FAMILY]
+    render = fam["render"]()
+    verifier = fam["verifier"]()
     usage_sink: list[dict] = []
     tracer = TracingModelCall(make_backbone(BACKBONE, max_tokens=MAX_TOKENS, usage_sink=usage_sink))
     agent = make_json_agent(tracer, system=AUDITOR_SYSTEM)
 
     job = Path(f"outputs/experiments/veritasbench/eval_jobs/"
-               f"{BACKBONE.replace('/', '_').replace('.', '-')}__{RUN_TAG}")
+               f"{FAMILY}__{BACKBONE.replace('/', '_').replace('.', '-')}__{RUN_TAG}")
     job.mkdir(parents=True, exist_ok=True)
     logs: list[str] = []
 
@@ -220,8 +233,8 @@ def main() -> int:
         print(msg)
 
     cases, load_report = [], {}
-    for cid in PILOT_CASES:
-        case, rep = load_veritasbench_case(CASES_ROOT / cid)
+    for cid in fam["cases"]:
+        case, rep = fam["load"](CASES_ROOT / cid)
         if case.claims:
             cases.append(case)
         load_report[cid] = rep
@@ -292,11 +305,13 @@ def main() -> int:
                                     "(same tag overwrites); malformed reply -> {} -> insufficient (never crashes)"}
 
     # ---- write the job dir (config / result / trace / log) ----
-    config = {"job_name": job.name, "backbone": BACKBONE, "run_tag": RUN_TAG,
-              "pilot": "veritasbench-eval-loop", "scope": "L1 explicit-range (oracle-conditioned)",
+    scope = {"ncb": "L1 duplication (recall axis, recompute-free)",
+             "rep": "L1 reproduction / honest-FP (FAR + abstention axis, recompute B3)"}[FAMILY]
+    config = {"job_name": job.name, "backbone": BACKBONE, "run_tag": RUN_TAG, "family": FAMILY,
+              "pilot": "veritasbench-eval-loop", "scope": scope,
               "tiers": list(tiers_out.keys()), "temperature": 0.0, "max_tokens": MAX_TOKENS,
               "repeats": REPEATS, "cases": [c.case_id for c in cases], "n_claims": n_claims,
-              "renderer": "neutral (two raw series, no leading hints)",
+              "renderer": "neutral (values only, no leading hints)",
               "gold_fields_withheld": ["verdict", "discrepancy_type", "is_clean_claim", "gold_evidence_span"],
               "script": "scripts/run_veritasbench_eval.py", "git_sha": _git_sha(), "created_at": started}
     result = {"started_at": started, "finished_at": _now(), "elapsed_s": round(elapsed, 2),
@@ -313,7 +328,7 @@ def main() -> int:
 
     # legacy flat summary (kept for existing readers)
     Path("outputs/experiments/veritasbench").mkdir(parents=True, exist_ok=True)
-    Path(f"outputs/experiments/veritasbench/eval_pilot_{job.name.split('__')[0]}.json").write_text(
+    Path(f"outputs/experiments/veritasbench/eval_pilot_{FAMILY}_{BACKBONE.replace('.', '-')}.json").write_text(
         json.dumps({"backbone": BACKBONE, "n_claims": n_claims, "cases": config["cases"],
                     "tiers": tiers_out, "repeatability_B1": repeatability,
                     "estimate_750run": estimate}, ensure_ascii=False, indent=2))

@@ -23,6 +23,7 @@ from __future__ import annotations
 import csv
 import gzip
 import io
+import json
 import math
 from pathlib import Path
 from typing import Any, Callable
@@ -193,7 +194,28 @@ def rank_of(inputs: list[Path], args: dict, base: Path | None = None) -> int:
 
 
 def cell_lookup(inputs: list[Path], args: dict, base: Path | None = None) -> Any:
-    """Read one deposited cell from inputs[0]. args: {line, column} OR {row: {col: val, ...}, column}."""
+    """Read one deposited value from inputs[0]. Addressing dialects:
+      * {json_path: "a.b.0"}              — key/index path into a JSON file
+      * {txt_line_key: "k", sep: ":"}     — a 'k: value' line in a txt file
+      * {value_col, row_col, row_key}     — single-key CSV row lookup (data window's form)
+      * {column, line}                    — physical file line (1-indexed)
+      * {column, row: {col: val, ...}}    — multi-key CSV row filter."""
+    if "json_path" in args:  # JSON key/index path
+        cur = json.loads(inputs[0].read_text(encoding="utf-8"))
+        for part in str(args["json_path"]).split("."):
+            cur = cur[int(part)] if isinstance(cur, list) else cur[part]
+        return cur
+    if "txt_line_key" in args:  # 'key<sep>value' line in a txt file
+        sep = args.get("sep", ":")
+        for line in inputs[0].read_text(encoding="utf-8").splitlines():
+            if sep in line and line.split(sep, 1)[0].strip() == args["txt_line_key"]:
+                return line.split(sep, 1)[1].strip()
+        raise KeyError(f"no txt line {args['txt_line_key']!r}")
+    if "value_col" in args:  # {row_col, row_key, value_col}
+        hit = _find_row(_rows(inputs[0]), {args["row_col"]: args["row_key"]})
+        if hit is None:
+            raise KeyError(f"no row {args['row_col']}={args['row_key']}")
+        return hit[args["value_col"]]
     col = args["column"]
     if "line" in args:
         lines = _lines(inputs[0])
