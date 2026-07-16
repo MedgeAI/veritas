@@ -97,7 +97,7 @@
       "recompute": {
         "metric_type": "categorical_call",
         "inputs": [
-          "<shipped intermediate table>"
+          "<raw expression matrix DATA_DIR>"
         ],
         "method": {
           "code_entry": "artifacts/solve_correct.py::main"
@@ -106,8 +106,8 @@
           "kind": "exact"
         },
         "status": "pending_sandbox",
-        "raw_shipped": true,
-        "_note": "raw中间表已ship(screen_per_tumor/guide_representation/drug_response), 沙箱可从case内跑"
+        "raw_shipped": false,
+        "_note": "correct actionable=EGFR代偿上调(egfr lfc>阈), 需原始表达矩阵算EGFR lfc; drug_response表只有response_magnitude/dominant_response无per-gene lfc→raw未ship, 沙箱须挂原始数据"
       }
     },
     "artifacts/correct_drug_response.csv#nDEG_DrugD_ModelA": {

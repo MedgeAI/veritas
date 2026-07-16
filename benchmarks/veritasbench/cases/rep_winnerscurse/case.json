@@ -96,7 +96,8 @@
       "recompute": {
         "metric_type": "categorical_call",
         "inputs": [
-          "<shipped intermediate table>"
+          "artifacts/guide_representation.csv",
+          "artifacts/screen_per_tumor.csv"
         ],
         "method": {
           "code_entry": "artifacts/solve.py::main"
@@ -106,7 +107,7 @@
         },
         "status": "pending_sandbox",
         "raw_shipped": true,
-        "_note": "raw中间表已ship(screen_per_tumor/guide_representation/drug_response), 沙箱可从case内跑"
+        "_note": "可收编: is_driver规则全在solve.py(reproducible=n_elevated>=5&fc_median>agg_null; enriched_real=enrichment>1&baseline>=base_floor[10th pct]; is_driver=两者&), 输入guide_representation+screen_per_tumor均已ship→w1可建bespoke reference_fn winnerscurse_is_driver免沙箱; Trp63因baseline0.001<floor→enriched_real=False→is_driver=False"
       }
     },
     "artifacts/driver_calls_naive.csv#Trp63_enrichment": {
@@ -117,18 +118,21 @@
       "recompute": {
         "metric_type": "continuous_stat",
         "inputs": [
-          "<shipped intermediate table>"
+          "artifacts/guide_representation.csv"
         ],
         "method": {
-          "code_entry": "artifacts/naive_solve.py::main"
+          "reference_fn": "ratio",
+          "args": {
+            "numerator_col": "tumor_representation",
+            "denominator_col": "baseline_representation",
+            "key_col": "guide_target",
+            "key": "Trp63"
+          }
         },
         "tolerance": {
           "kind": "rel_tol",
-          "rel_tol": 0.01
-        },
-        "status": "pending_sandbox",
-        "raw_shipped": true,
-        "_note": "raw中间表已ship(screen_per_tumor/guide_representation/drug_response), 沙箱可从case内跑"
+          "rel_tol": 0.001
+        }
       }
     },
     "artifacts/driver_calls_naive.csv#Trp63_baseline": {
