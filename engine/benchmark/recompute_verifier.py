@@ -193,13 +193,36 @@ def rank_of(inputs: list[Path], args: dict, base: Path | None = None) -> int:
     raise KeyError(f"no row {args['key_col']}={args['key']}")
 
 
+def _html_lookup(path: Path, args: dict):
+    """Extract a value from a rendered HTML table: rows labelled by their first two cells
+    (task + region), value cells of the form '<strong>total</strong> (ci_lo, ci_hi)'."""
+    import re
+    table = re.search(r"<table.*?</table>", path.read_text(encoding="utf-8"), re.S)
+    rows = [re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", r, re.S)
+            for r in re.findall(r"<tr[^>]*>(.*?)</tr>", table.group(0), re.S)]
+    strip = lambda s: re.sub(r"<[^>]+>", "", s).strip()  # noqa: E731
+    cols = [strip(h).split("=")[-1].strip() for h in rows[0]]
+    n_idx = cols.index(args["n_column"])
+    for cells in rows[1:]:
+        if " ".join(strip(c) for c in cells[:2]) == args["html_row_label"]:
+            cell = cells[n_idx]
+            if args["value_kind"] == "total":
+                return re.search(r"<strong>(.*?)</strong>", cell).group(1).strip()
+            ci = re.search(r"\((-?[\d.]+),\s*(-?[\d.]+)\)", strip(cell))
+            return ci.group(1 if args["value_kind"] in ("ci_lo", "lo") else 2)
+    raise KeyError(f"no html row {args['html_row_label']!r}")
+
+
 def cell_lookup(inputs: list[Path], args: dict, base: Path | None = None) -> Any:
     """Read one deposited value from inputs[0]. Addressing dialects:
-      * {json_path: "a.b.0"}              — key/index path into a JSON file
-      * {txt_line_key: "k", sep: ":"}     — a 'k: value' line in a txt file
-      * {value_col, row_col, row_key}     — single-key CSV row lookup (data window's form)
-      * {column, line}                    — physical file line (1-indexed)
-      * {column, row: {col: val, ...}}    — multi-key CSV row filter."""
+      * {json_path: "a.b.0"}                        — key/index path into a JSON file
+      * {txt_line_key: "k", sep: ":"}               — a 'k: value' line in a txt file
+      * {html_row_label, n_column, value_kind}      — a cell in a rendered HTML table
+      * {value_col, row_col/row_key | match:{...}}  — CSV row lookup [+ list_sep/list_index]
+      * {column, line}                              — physical file line (1-indexed)
+      * {column, row: {col: val, ...}}              — multi-key CSV row filter."""
+    if "html_row_label" in args:
+        return _html_lookup(inputs[0], args)
     if "json_path" in args:  # JSON key/index path
         cur = json.loads(inputs[0].read_text(encoding="utf-8"))
         for part in str(args["json_path"]).split("."):
@@ -211,11 +234,15 @@ def cell_lookup(inputs: list[Path], args: dict, base: Path | None = None) -> Any
             if sep in line and line.split(sep, 1)[0].strip() == args["txt_line_key"]:
                 return line.split(sep, 1)[1].strip()
         raise KeyError(f"no txt line {args['txt_line_key']!r}")
-    if "value_col" in args:  # {row_col, row_key, value_col}
-        hit = _find_row(_rows(inputs[0]), {args["row_col"]: args["row_key"]})
+    if "value_col" in args:  # {row_col,row_key | match:{...}} + value_col [+ list_sep/list_index]
+        row_filter = args["match"] if "match" in args else {args["row_col"]: args["row_key"]}
+        hit = _find_row(_rows(inputs[0]), row_filter)
         if hit is None:
-            raise KeyError(f"no row {args['row_col']}={args['row_key']}")
-        return hit[args["value_col"]]
+            raise KeyError(f"no row {row_filter}")
+        val = hit[args["value_col"]]
+        if "list_index" in args:  # the cell holds a delimited list; take one element
+            val = val.split(args.get("list_sep", ","))[int(args["list_index"])].strip()
+        return val
     col = args["column"]
     if "line" in args:
         lines = _lines(inputs[0])
@@ -315,6 +342,10 @@ def recompute_verify(obs: dict, case_dir: Path, obs_index: dict) -> str:
     else:
         return "skip:no method"
 
+    # null-equivalence: a null obs matches an NA / empty / null recomputed cell
+    if val is None:
+        return "ok" if str(got).strip().upper() in ("NA", "", "NULL", "NONE", "NAN") \
+            else f"fail:recomputed={got!r} != obs=None"
     if kind == "exact":
         return "ok" if str(got).strip() == str(val).strip() or _num_eq(got, val, rel_tol=0.0) \
             else f"fail:recomputed={got!r} != obs={val!r}"
