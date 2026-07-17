@@ -42,6 +42,29 @@ def _obs_val(observations: dict, ref: str):
     return (o.get("value") if o else None)
 
 
+# Neutral claim_text overrides. Two authored claim_atoms carry failure-mode vocabulary that would
+# leak the audit task into the agent prompt: methclock says "...or fabricated; reproduces cleanly"
+# (a hint word + a verdict-leaning editorial), actmeta says "duplicate <study> removed" (a legit
+# meta-analysis cleaning step, but the token trips the guard). We override ONLY the agent-facing
+# claim_text here — gold verdict / discrepancy_type / obs values are untouched, so scoring is
+# unaffected — instead of editing the data window's case.json. Both rewrites are verified
+# hint-word-free by scripts.run_veritasbench_eval._leak_scan (hard gate 1). Director-approved.
+_NEUTRAL_CLAIM_TEXT = {
+    "rep_methclock_claim_002": (
+        "A naive match of the clock's bare cg IDs directly against the EPICv2-suffixed matrix index "
+        "yields 0 overlapping probes and a constant prediction (Pearson r=0.00). After stripping the "
+        "EPICv2 probe-ID suffixes (cgXXXX vs cgXXXX_TC21/_BC11, replicate probes per CpG) to reconcile "
+        "the IDs, the clock's predictions correlate with the reference at Pearson r~0.96."
+    ),
+    "rep_actmeta_claim_002": (
+        "After correcting the three data-extraction errors identified in the re-extraction and "
+        "re-running Zhao et al.'s analytic workflow (re-extracted effect sizes, the repeated Ren "
+        "Zhihong 2012 entry removed, outlier Zemestani 2020 excluded; 9 studies), the corrected "
+        "pooled effect (g = -0.61) is smaller in magnitude than the Figure-4 reproduction (g = -1.05)."
+    ),
+}
+
+
 def _rep_claim(row: dict, *, case_id: str, idx: int, observations: dict) -> ClaimInstance | None:
     src_ref, tgt_ref = row.get("source_artifact", ""), row.get("target_artifact", "")
     if src_ref not in observations or tgt_ref not in observations:
@@ -49,14 +72,16 @@ def _rep_claim(row: dict, *, case_id: str, idx: int, observations: dict) -> Clai
     verdict = row.get("verdict")
     verdict = str(verdict) if verdict else None
     src_key, tgt_key = src_ref.split("#")[-1], tgt_ref.split("#")[-1]
+    claim_id = str(row.get("claim_id") or f"{case_id}::c{idx:03d}")
     return ClaimInstance(
-        claim_id=str(row.get("claim_id") or f"{case_id}::c{idx:03d}"),
+        claim_id=claim_id,
         claim_type="reproduction.claim_support",
         level="L1",
         label=label_from_verdict(verdict, is_clean=bool(row.get("is_clean_claim", False))),
         relation=LEVEL_RELATION["L1"],
-        # the paper's assertion is the oracle-safe candidate (states the claim, not the answer)
-        claim_text=str(row.get("claim_atom", "")),
+        # the paper's assertion is the oracle-safe candidate (states the claim, not the answer);
+        # a neutral override strips any leaked failure-mode vocabulary (see _NEUTRAL_CLAIM_TEXT)
+        claim_text=_NEUTRAL_CLAIM_TEXT.get(claim_id, str(row.get("claim_atom", ""))),
         evidence=Evidence(evidence_type="code_output", target=tgt_key),
         verdict=verdict,                                     # SCORING ONLY
         evidence_span=f"L1:{src_key}->{tgt_key}",

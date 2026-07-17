@@ -1,0 +1,120 @@
+# HANDOFF — VeritasBench §5 Experiments → Paper Window
+
+> From: w1 (experiment/framework window) · To: 论文写作窗口
+> Target: `/Users/chaco/Downloads/manuscript/latex/sections/{experiments,veritasbench}.tex`
+> Last updated when the full 3-backbone run lands — this doc + `scripts/maintable_to_latex.py` are the sync bridge.
+
+## ✅ STATUS: NUMBERS FINAL (2026-07-17) — all 3 backbones done on the 37-case L1 test split
+
+Full B1–B5 × {qwen3.7-plus, deepseek-v4-pro, glm-5.2} complete. Regenerate the LaTeX rows with the
+one command in §4; paste-ready rows for Tables 1–2, the CI, and Fig 1 points are all emitted.
+Everything in §3 (protocol/split/metrics prose) is also final. **Before filling the tables, read the
+three degeneracy caveats in §0 — they change how Table 2 (B4/B5) and Fig 1 should be presented.**
+
+## 0. FINAL RESULTS + honest caveats (read before filling tables)
+
+**Clean, publishable main story (holds across all 3 backbones):**
+FAR **~20% (B1) → ~1.5% (B3) → 1.0% (B5)**; Evidence-Precision **~0.3 → 0.92**; Claim-F1
+**~0.68 → 0.733**; Recall@FAR≤5% reaches **0.611 at B3+**. Backbones agree tightly → "tool-layer
+dominated, backbone-agnostic". B3 (node forensics) is the dominant single step; B2 (prompt protocol)
+is flat/negative. Source: `outputs/experiments/veritasbench/b1b5_maintable.json`.
+
+**Three degeneracies to frame honestly (NOT bugs — properties of this corpus/operating point):**
+1. **B4 = B5 identical.** B4 already reaches FAR=1.0% ≤ α=5%, so the FAR-budget decision layer
+   abstains nothing (flag_threshold=1.0, coverage=1.0) → B5≡B4. Table 2's B4/B5 rows are identical;
+   the "+decision" step contributes 0 here. Frame the decision layer as a *safety net that stays
+   inactive when verifiers already hold FAR under budget*, or drop the separate B5 column.
+2. **Risk-coverage curve (Fig 1) is degenerate — 2 points only** (thr=1.0→cov 10%/FAR 1%;
+   thr=0→cov 100%/FAR 100%). Confidence is coarse (verifier=1.0, agent=coarse), so no smooth curve.
+   Consider cutting Fig 1 or replacing it with the operating-point table, unless we add graded
+   confidence (a real code change — flag to w1 if wanted).
+3. **B1/B2 Recall@FAR≤5% is noisy** (qwen .53 / deepseek .00 / glm .36 at B1; ~0 at B2) — coarse
+   agent confidence rarely hits a valid FAR≤5% operating point pre-forensics. B3+ is clean (0.611).
+   Present B1/B2 recall@far with a caveat, or only report FAR for B1/B2 and recall from B3.
+
+## 1. Corrections to the current draft (director-decided facts — apply now)
+
+| Draft says | Correct to | Why |
+|---|---|---|
+| Backbones "Qwen-72B, Opus, DeepSeek-V3" (§5 Backbones, Tables) | **qwen3.7-plus, deepseek-v4-pro, glm-5.2** (DashScope-routed) | Director dropped Opus; these are the team's actual eval matrix. Display names: Qwen3.7-Plus / DeepSeek-V4-Pro / GLM-5.2 |
+| `\tbd{n\_1}` L1 cases | **57 L1 cases** (20 dev + 37 test) | Fixed split, see §3.2 |
+| "L1 subset ... auto-evaluable" | keep, but report metrics on the **37-case test split**; the 20 dev cases are used ONLY to calibrate B5's FAR threshold | Reproducibility — no test leakage into the operating point |
+| B3→B4 "provenance verifiers … cross-artifact" | keep — B4 is now **cumulative** (node **and** edge verifiers), so B3 ⊆ B4 and the ablation is monotone | Design fixed 2026-07-16 |
+
+## 2. Artifact → manuscript mapping (where every `\tbd` comes from)
+
+All numbers live in **`outputs/experiments/veritasbench/b1b5_maintable.json`** (regenerated each run):
+`backbones.<bb>.tiers.<B1..B5>.{claim_f1, far, evidence_precision, recall_at_far<=0.05, coverage}`
+plus `backbones.<bb>.risk_coverage_B5` and `backbones.<bb>.decision`.
+
+| Manuscript element | Source |
+|---|---|
+| Table 1 `tab:main-results` (Claim-F1 B1/B5, FAR B1/B5) | `tiers.B1/B5.claim_f1`, `tiers.B1/B5.far` |
+| Table 2 `tab:ablation-results` (FAR% + Recall@FAR≤5% for B1–B5) | `tiers.B1..B5.far`, `tiers.B1..B5.recall_at_far<=0.05` |
+| Fig 1 `fig:risk-coverage` (B5 curve) | `risk_coverage_B5[]` = list of `{threshold, coverage, far, recall}` |
+| Table 3 `tab:per-level` (N per L1–L4) | L1 N = 37 (test); L2–L4 counts from the benchmark release manifest (annotated-only, no auto metrics yet) |
+| Evidence-Precision (if added to a table) | `tiers.<B>.evidence_precision` |
+| **95% CI** on F1/FAR (Table 1/2 error bars or ± text) | `backbones.<bb>.ci95.{B1,B3,B5}.{claim_f1,far}` = `[lo, hi]` (paper-level bootstrap, resample cases, n=1000, seeded) |
+| Per-claim predictions (re-score under any future rubric, no re-run) | `outputs/experiments/veritasbench/b1b5_predictions/<bb>.json` |
+| No-leak proof (Setup/Ethics footnote) | `outputs/experiments/veritasbench/b1b5_leak_guard.json` |
+
+## 3. Paste-ready stable text (frozen — safe to write now)
+
+### 3.1 Protocol (Setup)
+Every claim is evaluated **oracle-conditioned**: the auditor sees the candidate claim + the relevant
+data artifacts, but **never** the gold verdict, the discrepancy type, the clean/dirty label, or any
+failure-mode vocabulary. The task is framed neutrally ("decide whether the CLAIM is supported by the
+ARTIFACTS"); the auditor must infer inconsistency from the data alone — it is **not told the task is
+fraud/duplication detection**. A machine hard-gate scans every prompt for gold tokens and
+failure-mode hint words before any model call; on the full corpus **186/186 prompts passed
+(gold-leak-free and task-hint-free)**, recorded in `b1b5_leak_guard.json`. Clean and dirty claims
+receive structurally identical prompts, so the FAR is not inflated by framing.
+
+### 3.2 Dev/test split (Setup — reproducibility)
+The 57 L1 cases are split by a **fixed, committed** stratified rule (`benchmarks/veritasbench/splits/
+l1_dev_test.json`): stratified by family, every 3rd sorted case → dev. **Dev = 20 cases (10 ncb + 10
+rep); Test = 37 cases (19 ncb + 18 rep).** B5's FAR≤5% flag threshold is calibrated on **dev only**
+and applied to test; B1–B4 use no calibration. The split is frozen for reproducibility.
+
+### 3.3 Two families → where recall and FAR come from (Setup)
+The L1 corpus has two families that give a clean node/edge split:
+- **ncb_ (duplication):** claims asserting two value series are independent when the data is
+  copied/offset/linearly-transformed. All carry a real inconsistency → this is where **recall** is measured.
+- **rep_ (reproduction):** claims asserting a computed value reproduces. These are **all-clean
+  honest-FP traps** (a legitimate pattern that superficially resembles a problem) → this is where
+  **FAR** is measured. "Matched negative cases" in the FAR definition = the rep_ clean claims.
+
+### 3.4 B1–B5 (cumulative — Ablation)
+Each gear adds one layer on the previous (monotone): **B1** bare LLM · **B2** + structured protocol
+· **B3** + node-integrity forensics (`l1_relationship_verifier`, fires on ncb_ duplication) · **B4**
++ provenance/edge verifiers on top of node (`rep_recompute_verifier`, fires on rep_ reproduction;
+node+edge dual-layer) · **B5** + decision layer (flag/abstain/pass under FAR≤5% calibrated on dev).
+
+### 3.5 Metrics — already correct in the draft
+Claim-F1, Evidence-Precision, FAR, Recall@FAR≤5% match the implementation 1:1 (no change needed).
+
+## 4. How to pull FINAL numbers (one command, no transcription)
+
+When I signal "numbers final", regenerate the LaTeX rows from the JSON — do not hand-copy:
+```bash
+cd veritas && PYTHONPATH=. uv run python scripts/maintable_to_latex.py \
+  outputs/experiments/veritasbench/b1b5_maintable.json
+```
+It prints paste-ready rows for Table 1, Table 2, and the Fig 1 risk-coverage points. Backbones not
+yet run render as `\tbd{?}`, so a partial table is visibly partial, never silently wrong.
+
+## 5. Provisional signal (PILOT-10, qwen only — PRELIMINARY, for narrative sanity ONLY, do NOT publish)
+
+The 10-case pilot already shows the paper's core arc on the tool layer:
+`B1→B2→B3 FAR = 0.267 → 0.214 → 0.067` and `Evidence-Precision = 0.143 → 0.333 → 0.667`.
+That is "the tool layer, not the prompt, controls false accusation" (§5 finding 2 / ablation).
+Caveat: on the pilot, B4/B5 were degenerate (2-case dev → FAR uncalibratable → flag-nothing). The
+full run (dev=20 with clean claims) fixes this; do not quote pilot B4/B5.
+
+## 6. Open items for the director / paper window
+- **Final numbers ETA:** after full qwen (~running) + deepseek + glm complete. I will post them here.
+- **Table 3 (per-level):** we only auto-evaluate L1. L2–L4 rows are annotated-only (N counts from the
+  benchmark release); no F1/FAR for them — the draft already frames this correctly.
+- **Second annotator / κ:** data-window's deliverable (not blocking §5's L1 numbers).
+- **Sync channel:** this doc + `maintable_to_latex.py` are committed to the repo. Mirror the summary
+  to 飞书 (`paper/feishu_update_v2.md` style) if the paper window works outside the repo.
