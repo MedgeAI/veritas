@@ -1,0 +1,141 @@
+{
+  "case_id": "natcomm_petruk_tlr",
+  "paper_title": "Targeting Toll-like receptor-driven systemic inflammation by engineering an innate structural fold into drugs",
+  "paper_authors": [
+    "Ganna Petruk, Manoj Puthia, Firdaus Samsudin, Jitka Petrlova, Peter J. Bond, Artur Schmidtchen et al. (Nature Communications 14:6436, 2023)"
+  ],
+  "artifacts": {
+    "source_data_1": {
+      "path": "artifacts/Source_Data_1.xlsx",
+      "sha256": "31d8e82e7181bcf2b85c26a5c933a335b72eff903bd5def1af7b1b8f5937163d",
+      "kind": "source_data",
+      "original_filename": "Source Data 1.xlsx",
+      "download_url": "https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-023-41702-y/MediaObjects/41467_2023_41702_MOESM7_ESM.zip",
+      "note": "Extracted from MOESM7_ESM.zip; contains sheets Fig 1c, Fig 1d, Fig 2a, Fig 2b, Fig 3a, Fig 3b, Fig 4a, Fig 4b, Fig 4d, Fig 6b-h"
+    }
+  },
+  "observations": {
+    "artifacts/Source_Data_1.xlsx#Fig 4b!B26": {
+      "value": 21,
+      "source_artifact": "artifacts/Source_Data_1.xlsx",
+      "source_artifact_hash": "31d8e82e7181bcf2b85c26a5c933a335b72eff903bd5def1af7b1b8f5937163d",
+      "source_span": "sheet 'Fig 4b', B26: explicit n declaration row for LPS group at 8h; row 26 header in col A is 'n'. Applies to all 5 cytokines in the 8h TNF-a block (TNF-a/IL-6/IFN-g/MCP-1/IL-10 all share this n since data columns share the same layout)."
+    },
+    "artifacts/Source_Data_1.xlsx#Fig 4b!J26": {
+      "value": 22,
+      "source_artifact": "artifacts/Source_Data_1.xlsx",
+      "source_artifact_hash": "31d8e82e7181bcf2b85c26a5c933a335b72eff903bd5def1af7b1b8f5937163d",
+      "source_span": "sheet 'Fig 4b', J26: explicit n declaration for LPS group at 20h (same n row 26 structure, 20h block starts at col I). All 5 cytokines at 20h share n=22 for LPS group."
+    },
+    "artifacts/Source_Data_1.xlsx#Fig 4b!B3": {
+      "value": 622.71,
+      "source_artifact": "artifacts/Source_Data_1.xlsx",
+      "source_artifact_hash": "31d8e82e7181bcf2b85c26a5c933a335b72eff903bd5def1af7b1b8f5937163d",
+      "source_span": "sheet 'Fig 4b', B3: first individual animal TNF-a measurement (pg/mL) for LPS 8h group. Data rows B3:B23 contain all 21 non-null LPS 8h TNF-a measurements."
+    },
+    "artifacts/Source_Data_1.xlsx#Fig 4b!G26": {
+      "value": 9,
+      "source_artifact": "artifacts/Source_Data_1.xlsx",
+      "source_artifact_hash": "31d8e82e7181bcf2b85c26a5c933a335b72eff903bd5def1af7b1b8f5937163d",
+      "source_span": "sheet 'Fig 4b', G26: explicit n declaration for CTRL group at 8h. Data rows G3:G11 contain exactly 9 non-null TNF-a measurements, consistent with G26=9."
+    },
+    "artifacts/Source_Data_1.xlsx#Fig 4b!J3": {
+      "value": 82.46,
+      "source_artifact": "artifacts/Source_Data_1.xlsx",
+      "source_artifact_hash": "31d8e82e7181bcf2b85c26a5c933a335b72eff903bd5def1af7b1b8f5937163d",
+      "source_span": "sheet 'Fig 4b', J3: first individual animal TNF-a measurement (pg/mL) for LPS 20h group. Data rows J3:J24 contain all 22 non-null LPS 20h TNF-a measurements."
+    },
+    "artifacts/Source_Data_1.xlsx#Fig 4b!B3:B23": {
+      "value": 21,
+      "source_artifact": "artifacts/Source_Data_1.xlsx",
+      "source_artifact_hash": "31d8e82e7181bcf2b85c26a5c933a335b72eff903bd5def1af7b1b8f5937163d",
+      "source_span": "sheet 'Fig 4b', B3:B23 (TNF-α LPS 8h individual animal ELISA values; 21 non-empty rows = n=21 animals measured in Source Data)"
+    },
+    "artifacts/Source_Data_1.xlsx#Fig 4b!G3:G11": {
+      "value": 9,
+      "source_artifact": "artifacts/Source_Data_1.xlsx",
+      "source_artifact_hash": "31d8e82e7181bcf2b85c26a5c933a335b72eff903bd5def1af7b1b8f5937163d",
+      "source_span": "sheet 'Fig 4b', G3:G11 (TNF-α CTRL 8h individual animal values; 9 rows = n=9 animals in Source Data)"
+    },
+    "artifacts/Source_Data_1.xlsx#Fig 4b!J3:J24": {
+      "value": 22,
+      "source_artifact": "artifacts/Source_Data_1.xlsx",
+      "source_artifact_hash": "31d8e82e7181bcf2b85c26a5c933a335b72eff903bd5def1af7b1b8f5937163d",
+      "source_span": "sheet 'Fig 4b', J3:J24 (TNF-α LPS 20h individual animal values; 22 rows = n=22 animals in Source Data)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "natcomm_petruk_tlr_ann_001",
+      "claim_id": "natcomm_petruk_tlr_claim_001",
+      "claim_atom": "The Source Data file (Source_Data_1.xlsx, sheet 'Fig 4b') contains n=21 individual animal TNF-a measurements for the LPS group at 8 hours (rows B3:B23, confirmed by the explicit n-declaration at B26=21) and n=22 measurements for the LPS group at 20 hours (rows J3:J24, confirmed at J26=22). The same layout applies to all five cytokines in the sheet (TNF-a, IL-6, IFN-g, MCP-1, IL-10), all sharing the same n counts per group. The published Figure 4b, however, depicted fewer individual data points per group than these Source Data row counts — an omission confirmed by Nature Communications publisher correction DOI 10.1038/s41467-023-42294-3, which explicitly states: 'In Figure 4, panel b incorrectly omitted a complete description of p-values, and data points were missing to reflect the raw data provided in the Source Data file.' This is a figure_vs_sourcedata_count_mismatch: the figure's scatter-plot point counts are lower than the Source Data row counts. This error is undetectable by automated detectors that operate on the Source Data file alone: (1) duplicate-col detector scans for columns that are byte-identical or differ by a constant offset — but the Source Data is internally self-consistent (all 21/22 rows are present and distinct); (2) fixed-offset detector checks for column-to-column constant differences in expression matrices — irrelevant here since the discrepancy is an absence of rows in the FIGURE, not a numerical pattern within the file; (3) paired-ratio detector looks for proportional relationships between data columns — again the file is internally clean. Detection requires comparing the figure's visible data-point count to the Source Data row count, an operation that spans a visual/graphical artifact (the figure) and a tabular file — it cannot be reduced to numerical analysis of the file alone.",
+      "source_artifact": "artifacts/Source_Data_1.xlsx#Fig 4b!B26",
+      "target_artifact": "artifacts/Source_Data_1.xlsx#Fig 4b!B3:B23",
+      "source_a1_range": "B26:B26",
+      "target_a1_range": "B3:B23",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "figure_vs_sourcedata_count_mismatch",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->figure",
+      "_adjudication": "不一致(inconsistent): Source Data 'Fig 4b' シートにはLPS 8h群のTNF-a個体値が21行(B3:B23)、LPS 20h群が22行(J3:J24)存在し、B26=21、J26=22の明示的n宣言とも一致する。全5サイトカイン(TNF-a/IL-6/IFN-g/MCP-1/IL-10)がこのn数を共有する。しかし発表図Fig 4bではこれより少ない数の個体データ点しか描画されておらず、Nature Communications publisher correction (DOI:10.1038/s41467-023-42294-3)が『data points were missing to reflect the raw data provided in the Source Data file』と明示的に認定。B3検出器(duplicate-col/fixed-offset/paired-ratio)はSource Dataファイル内の数値パターンを探すが、このエラーはファイル内には存在しない(ファイル自体は正しい)。不在型エラーは図の点数とファイルの行数を比較して初めて発見される。"
+    },
+    {
+      "annotation_id": "natcomm_petruk_tlr_ann_002",
+      "claim_id": "natcomm_petruk_tlr_claim_002",
+      "claim_atom": "The CTRL group at 8 hours has exactly 9 individual animal TNF-a measurements in the Source Data (cells G3:G11 = [2.26, 2.80, 1.99, 1.09, 1.71, 0.67, 2.04, 1.93, 0.00]), which is internally consistent with the explicit n-declaration at G26=9. These 9 values represent the vehicle-control animals in the LPS sepsis model at the 8-hour time point. Cell G11=0.00 (the minimum, representing an animal with undetectable TNF-a at 8h) is followed by no further non-null values in column G before the n-row at row 26, confirming that G3:G11 exhausts the CTRL 8h dataset. The Source Data is internally self-consistent for this group: stated n matches actual row count.",
+      "source_artifact": "artifacts/Source_Data_1.xlsx#Fig 4b!G26",
+      "target_artifact": "artifacts/Source_Data_1.xlsx#Fig 4b!G3:G11",
+      "source_a1_range": "G26:G26",
+      "target_a1_range": "G3:G11",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data_internal",
+      "_adjudication": "合法子断言(consistent): CTRL 8h群のn宣言(G26=9)は実際のデータ行数(G3:G11の9値)と完全に一致する。このグループは更正通知でも言及されておらず、Source Data内部も整合。最小値G11=0(LPS未投与コントロールで検出限界以下)は生物学的に妥当。Source Dataファイルの内部整合性を確認する clean claim として機能する。"
+    },
+    {
+      "annotation_id": "natcomm_petruk_tlr_ann_003",
+      "claim_id": "natcomm_petruk_tlr_claim_003",
+      "claim_atom": "The LPS 20h group in the Source Data contains exactly 22 individual animal TNF-a measurements (J3:J24), which matches the n-declaration at J26=22. The final value in this 20-hour LPS series is J24=407.39 pg/mL (the 22nd animal), after which cell J25 is empty and J26 holds the n-count. This n=22 is the largest animal group in the entire Fig 4b Source Data, notably larger than the corresponding 8h LPS group (B26=21), consistent with the experimental design of a multi-cohort in vivo study where animals accumulate across independent experiments. The LPS 20h group also exceeds the LPS+100ug/mL sHVF18 20h group (L26=22), which shares the same n at 20h but had only n=11 at 8h (D26=11), reflecting incomplete enrollment at the earlier time point. All these within-file n-value relationships are internally consistent in the Source Data.",
+      "source_artifact": "artifacts/Source_Data_1.xlsx#Fig 4b!J26",
+      "target_artifact": "artifacts/Source_Data_1.xlsx#Fig 4b!J3:J24",
+      "source_a1_range": "J26:J26",
+      "target_a1_range": "J3:J24",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data_internal",
+      "_adjudication": "合法子断言(consistent): LPS 20h群のn宣言(J26=22)は実際のデータ行数(J3:J24の22値)と完全に一致する。最終値J24=407.39 pg/mLの後にJ25が空白でJ26がn宣言という構造も確認。8h LPS(n=21)より20h LPS(n=22)が多い点はmulti-cohort多段階エンロールメントとして生物学的に妥当。Source Data内部整合性確認のclean claim。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "natcomm_petruk_tlr",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41467-023-41702-y",
+    "_correction_doi": "https://doi.org/10.1038/s41467-023-42294-3",
+    "_correction_text": "In Figure 4, panel b incorrectly omitted a complete description of p-values, and data points were missing to reflect the raw data provided in the Source Data file.",
+    "_lane": "作者+期刊が認定・更正済みfigure_vs_sourcedata_count_mismatch: Fig 4bのLPS群scatter plotが個体レベルの全データ点を描画せず(Source Data n=21-22に対し図では少数点のみ表示)。Source Dataファイル自体は正しいためfile-internal検出器は機能しない。discrepancy=figure描画点数 vs Source Dataのn数という異種比較が必要。",
+    "_grounding_summary": "Source_Data_1.xlsx の'Fig 4b'シートを直接パース核実。TNF-a/IL-6/IFN-g/MCP-1/IL-10 の5サイトカイン×2タイムポイント(8h/20h)×6処理群のデータを確認。LPS 8h群: B3:B23に21個の非NULL TNF-a値(B26=21と合致); LPS 20h群: J3:J24に22個の非NULL TNF-a値(J26=22と合致)。他群も同様にn宣言と行数が一致。更正DOI 10.1038/s41467-023-42294-3で図の不足点を著者/出版社が認定。",
+    "_detector_note": "figure_vs_sourcedata_count_mismatch はB3検出器(duplicate-col/fixed-offset/paired-ratio)の適用対象外: これらの検出器はすべてSource Dataファイル内の数値列間パターンを探索するが、本エラーはファイル内には存在しない(Source Dataは完全かつ正しい)。不在型エラー(図に描かれるべき点が欠如)はファイル内数値列をスキャンしても発見できない。発見には図の点数と対応するSource Data行数の比較が必要。",
+    "_source_data_structure": "Source Data 1.xlsx / 'Fig 4b'シート: 各サイトカインブロックが横方向に展開。8h(cols A-G)と20h(cols I-O)が並列。各ブロックのデータ行の後にn宣言行を配置(TNF-a: row26/53; IFN-g: row53/80; MCP-1: row80/107; IL-10: row107/135; IL-6: row135)。n値: 8h=[LPS:21,+50ug:10,+100ug:11,50ug-only:5,100ug-only:5,CTRL:9]; 20h=[LPS:22,+50ug:10,+100ug:22,50ug-only:5,100ug-only:5,CTRL:10]",
+    "_source_url_refs": [
+      "https://doi.org/10.1038/s41467-023-41702-y",
+      "https://doi.org/10.1038/s41467-023-42294-3",
+      "https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-023-41702-y/MediaObjects/41467_2023_41702_MOESM7_ESM.zip"
+    ],
+    "_signed_by": "wuguandu @ 2026-07-18; Nature Communications開放获取Source Data直接ダウンロード核実+openpyxlパース確認"
+  }
+}
