@@ -1,0 +1,59 @@
+{
+  "run": "w1 verification of holdout_detector_disjoint_v1",
+  "date": "2026-07-18",
+  "task_source": "benchmarks/veritasbench/HANDOFF-holdout-disjoint.md",
+  "detector": "l1_relationship_verifier (B3 node forensics: duplicate / constant_offset / linear_transform)",
+
+  "task1_validator": {
+    "method": "per-case _validate_case() reuse (validator's check 1 compares against the 63-case delivery manifest, which is not the semantics for a subset — so the 6/7 cases are validated individually, not via --suite against manifest)",
+    "result": "7/7 PASS",
+    "per_case": {
+      "ncb_cav2": "PASS (art=3 obs=8 claims=4 clean=2)",
+      "ncb_clonalfish": "PASS (art=2 obs=7 claims=3 clean=1)",
+      "ncb_lphn3": "PASS (art=2 obs=13 claims=3 clean=1)",
+      "ncb_radioligand": "PASS (art=2 obs=7 claims=3 clean=1)",
+      "ncb_nickelate": "PASS (art=2 obs=4 claims=3 clean=1)",
+      "ncb_spp1": "PASS (art=2 obs=8 claims=3 clean=1)",
+      "ncb_aldometanib": "PASS (art=3 obs=6 claims=3 clean=1)"
+    }
+  },
+
+  "task2_detector_FAR": {
+    "as_implemented_claim_locus": {
+      "note": "detector run on the claim's src/tgt series exactly as the B1-B5 pipeline feeds them (adapter, explicit_range_only=True). FAR = spurious fires on holdout cases.",
+      "fires": "0/7",
+      "aldometanib_triggered": false
+    },
+    "honest_mechanism_breakdown": {
+      "genuinely_disjoint_6": {
+        "ncb_cav2": "single-cell scalar loci (D5:D5 etc.); anomaly=label_swap. len<2 guard -> independent. Real disjoint: a 1-value pair is not a copied series.",
+        "ncb_radioligand": "single-cell loci (B6:B6, D5813:D5813); anomaly=provenance_mismatch (fitted curve replaces raw SPR). No value duplication/offset. Real disjoint.",
+        "ncb_nickelate": "single-cell loci (A46:A46, A31:A31); anomaly=assignment_inconsistency (needs crystallographic prior). Real disjoint.",
+        "ncb_clonalfish": "loci are prose ranges (\"line 254, column 'Total.distance'\") -> not verifier-extractable A1 -> dropped at load; anomaly=misaligned_records (row alignment). Disjoint by construction.",
+        "ncb_lphn3": "loci are figure-panel titles (\"Fig5b middle-panel title\") -> not numeric -> dropped; anomaly=mislabeled_panel (caption string). Detector doesn't parse images. Disjoint.",
+        "ncb_spp1": "loci mixed/length-mismatched A1 -> dropped; anomaly=pseudoreplication (statistical-unit design). Disjoint."
+      }
+    },
+    "aldometanib_grayzone_RESOLVED": {
+      "verdict": "EXCLUDE from holdout -> belongs to detector family",
+      "why": "anomaly=undocumented_derivation is mechanically a CONSTANT OFFSET. On the real multi-cell series the fixed-offset detector fires on BOTH loci:",
+      "claim_002_dirty": "Fig4m!C4:C12 vs FigS10a!C4:C12 -> constant_offset +0.908 (FIRE, true positive)",
+      "claim_001_clean": "FigS10a!B4:B11 vs Fig4m!B4:B11 -> constant_offset -1.1 (FIRE, FALSE POSITIVE on a clean claim)",
+      "adapter_collapse_caveat": "the as-implemented claim-locus run showed len=1 series for aldometanib (adapter collapses a B4:B11 range to a single observation value) -> it appeared no_flag, but that is a range-collapse artifact, NOT disjointness. The raw column series fire clearly."
+    }
+  },
+
+  "feedback_format": {
+    "validator": "ok=7/7",
+    "detector_FAR_claim_locus": "0/7 (as-implemented)",
+    "aldometanib": "triggered=YES on real multi-cell series (constant_offset +0.908 dirty / -1.1 clean) -> in-family, excluded",
+    "holdout_final_case_count": 6
+  },
+
+  "separate_finding_for_data_window": {
+    "issue": "adapter range-collapse: a multi-cell A1 range (e.g. B4:B11) is loaded as a single observation value (len=1), so B3's l1_relationship_verifier only ever sees a scalar for such loci and cannot fire constant_offset/duplicate even when the underlying columns exhibit it.",
+    "impact": "CONFIRMED: ncb_aldometanib is in the l1_dev_test TEST split. Its inconsistent claim_002 (undocumented_derivation = constant_offset +0.908) SHOULD fire B3's forensics but does not, because the adapter collapses the C4:C12 range to a single value. So in the published main B1-B5 table this is a B3 false-negative -> B3 recall is slightly UNDERSTATED by (at least) this one case. FAR is unaffected (this is a miss, not a false accusation). Other holdout cases in the test split (cav2, radioligand, nickelate) are genuinely single-cell so are not affected.",
+    "action": "NOT fixed here (fix would touch the adapter's observation/series extraction and would CHANGE the published main numbers -> needs director + data-window sign-off). Flagged for triage.",
+    "director_decision_2026_07_18": "OPTION (b) — do NOT change the adapter / do NOT re-run. Footnote the paper that B3 recall is a CONSERVATIVE LOWER BOUND because multi-cell A1 loci collapse to scalars, so at least one dirty case (ncb_aldometanib, constant_offset +0.908) that B3 forensics should catch is scored as a miss. FAR/precision unaffected. Footnote text handed to the paper window in paper/HANDOFF-experiments-to-paper.md."
+  }
+}

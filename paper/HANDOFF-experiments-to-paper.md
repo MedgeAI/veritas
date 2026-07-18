@@ -11,6 +11,29 @@ one command in §4; paste-ready rows for Tables 1–2, the CI, and Fig 1 points 
 Everything in §3 (protocol/split/metrics prose) is also final. **Before filling the tables, read the
 three degeneracy caveats in §0 — they change how Table 2 (B4/B5) and Fig 1 should be presented.**
 
+## 0b. Detector-disjoint holdout + B3-recall footnote (w1 verified 2026-07-18)
+
+**Rebuttal asset for the "construction-evaluation leakage" reviewer worry.** A 6-case holdout
+(`benchmarks/veritasbench/suites/holdout_detector_disjoint_v1.json`, results in the sibling
+`_results.json`) contains dirty cases whose anomaly types are OUTSIDE the detector family
+(label_swap, misaligned_records, mislabeled_panel, provenance_mismatch, assignment_inconsistency,
+pseudoreplication). B3's value-relationship forensics produces **0 spurious fires on all 6** — it
+does not generalise beyond its family, so B3's main-corpus gains are a bounded, family-specific
+capability, not a leak artifact. (Originally 7 cases; **ncb_aldometanib was removed** — its
+"undocumented_derivation" is mechanically a constant offset (liver−tumour = +0.908), which the
+fixed-offset detector correctly fires on, so it belongs to the detector family, not the holdout.)
+
+**Director-decided footnote (OPTION b) — B3 recall is a conservative lower bound.** Paste near the
+B3 row / recall metric in §5:
+> \footnote{B3's node-forensics recall is reported as a conservative lower bound: the current
+> source-data adapter collapses a multi-cell spreadsheet range (e.g.\ \texttt{B4:B11}) to a single
+> representative value, so loci whose inconsistency only manifests across the full column (e.g.\ the
+> constant-offset case \texttt{ncb\_aldometanib}, liver$-$tumour $=+0.908$ for all mice) are scored
+> as misses even though the forensic rule would fire on the full series. False-accusation rate and
+> evidence precision are unaffected (this is a miss, not a false positive).}
+
+Do **not** re-run for this — the director chose to footnote rather than change the adapter.
+
 ## 0. FINAL RESULTS + honest caveats (read before filling tables)
 
 **Clean, publishable main story (holds across all 3 backbones):**
