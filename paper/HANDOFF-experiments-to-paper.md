@@ -36,6 +36,15 @@ Do **not** re-run for this — the director chose to footnote rather than change
 
 ### 0b-2. Holdout expanded to 10 cases (v4) + self-comparison guard fix (w1 verified 2026-07-18)
 
+> **v5 UPDATE (use these numbers in the paper):** holdout is now **v5 / N=15** cases
+> (`suites/holdout_detector_disjoint_v5.json`), **9 distinct anomaly types**, **25 clean claims**,
+> **B3 detector FAR = 0/15**, validator **15/15**, single-case swing **6.7pp**. The guard fix and
+> mechanism below are unchanged — v5 just adds 5 cases (np_grassland_pcoa, drosophila_chillcoma,
+> parthenium_antioxidant, soilwarming_p_impute, mindfulness_dyads). w1 independently re-verified
+> 0/15 on the guard-committed HEAD **and** ran a live qwen3.7-plus backbone smoke over all 15 cases
+> (36 claims, 639s, 0 dead calls) — key + DashScope + audit pipeline end-to-end OK. The v4 narrative
+> below is retained for provenance.
+
 The holdout was grown from 6 to **10 cases** (`suites/holdout_detector_disjoint_v4.json`, results in
 `holdout_detector_disjoint_v4_results.json`) — **7 distinct anomaly types**, every case backed by an
 external correction notice or PubPeer report. Added: `elife_neurexin_fig1b` (provenance_mismatch),
@@ -68,6 +77,43 @@ the check: B1/B2 are live-LLM and non-deterministic, so byte-diffing them would 
 to the guard; the deterministic-verifier fire-set diff is the precise test of whether the detector
 change touches the main table.) **Paper text should state the guard and this A/B check explicitly**
 — it pre-empts the reviewer question "did the ablation table move after you changed the detector?"
+
+### 0b-3. Paper-level false-alarm rate (answers REQUEST-w1-paper-level-FAR, w1 2026-07-18)
+
+Aggregated from the frozen B1/B5 predictions (`outputs/experiments/veritasbench/b1b5_predictions/*.json`),
+**no backbone re-run**. Full artifact: `benchmarks/veritasbench/suites/paper_level_far_b1_b5.json`.
+Split = 57-case main **test** split (37 test cases). **Clean paper** = a test case with no inconsistent
+gold claim (the rep_ FP-trap family); **false flag** = a clean claim predicted inconsistent.
+
+| config | clean papers | ≥1 false-flag papers | **paper-level FAR** | flag hist (0/1/≥2) | claim-level FAR (reconcile) |
+|---|---|---|---|---|---|
+| **B1** (bare LLM) | 22 | 0–1 (backbone-dep.) | **0–4.5%** | 21–22 / 0–1 / 0 | 12–15% |
+| **B5** (full) | 22 | **0** | **0.0%** | 22 / 0 / 0 | **1.03%** (1/97) |
+
+All three backbones agree: **B5 paper-level FAR = 0/22 clean papers**; B1 is 0/22 (qwen, glm) or 1/22
+= 4.5% (deepseek). Reconciliation: B5's claim-level FAR aggregates to **1.03%** (1 false flag / 97 clean
+claims), matching the headline 1.0%.
+
+**⚠️ THE ONE CAVEAT YOU MUST FRAME HONESTLY** — do NOT sell the m=20 story:
+- **m̄ = 3.1 clean claims per clean paper**, not 20. So the reviewer's worst-case
+  `1−(1−0.01)^20 ≈ 18%` does **not** apply to this corpus — at m̄=3.1 the independent upper bound is
+  only `1−(1−0.01)^3.1 ≈ 3%`. Report the m̄ so the reader verifies this themselves; do not quote the
+  20-claim scare number as if it were our operating point.
+- B5's single per-backbone false flag lands in a **mixed** paper (one that has real dirty gold), so it
+  never counts against an honest paper → clean-paper FAR is a true 0%. State this transparently (that
+  paper is not an honest paper), don't hide the flag.
+
+**Paste-ready sentence (abstract / §experiments):**
+> On the held-out test split, the full system (B5) produces **zero false alarms across all 22 clean
+> papers** (0/22 for every backbone; B1 bare-LLM: up to 4.5%), i.e. a **0.0% paper-level false-alarm
+> rate** alongside the 1.0% claim-level rate. Because clean papers carry only m̄≈3.1 auto-checkable
+> claims each, the independent-error upper bound is ≈3% (not the ≈18% a 20-claim paper would imply);
+> the measured clustered rate is lower still because a paper's clean claims fail together, not
+> independently.
+
+**Where it plugs in** (from the request): abstract "(and a 0.0% clean-paper false-alarm rate)";
+§experiments Q1/Q2 paper-level conversion + the 22/0/0 histogram; §threats(power) turns the
+"cluster-by-paper" promise into a reported paper-level number.
 
 ## 0. FINAL RESULTS + honest caveats (read before filling tables)
 

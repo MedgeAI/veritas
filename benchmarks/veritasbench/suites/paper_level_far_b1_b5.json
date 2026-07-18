@@ -1,0 +1,118 @@
+{
+  "split": "57-case main test split (37 test cases)",
+  "definition": {
+    "clean_paper": "a test CASE with NO inconsistent gold claim (= all-clean paper; in this corpus these are the rep_ FP-trap family). Matches task-card denominator '\u4e0d\u542b\u4efb\u4f55 inconsistent \u91d1\u6807\u7684\u8bba\u6587'.",
+    "false_flag": "a gt_label=clean claim with predicted_flag=True",
+    "paper_far": "papers_with_>=1_false_flag / clean_papers_total"
+  },
+  "IMPORTANT_caveats": [
+    "m\u0304 \u2248 3.1 clean claims per clean paper, NOT the m=20 the reviewer's worst-case assumes \u2014 the independent upper bound 1-(1-FPR)^m\u0304 is only ~3% at FPR=1%, m=3.1, so paper-level \u2248 claim-level here.",
+    "B5's single per-backbone false flag lands in a MIXED paper (has dirty gold), so it does NOT count against any clean paper -> clean-paper paper_far = 0%. This is real (that paper is not an honest paper), but report it transparently.",
+    "claim_far_all reconciles to ~1.0% for B5 (1/97), matching the headline claim-level FAR."
+  ],
+  "alpha": 0.05,
+  "backbones": {
+    "qwen3.7-plus": {
+      "B1": {
+        "clean_papers_total": 22,
+        "papers_with_>=1_false_flag": 0,
+        "paper_far": 0.0,
+        "flag_count_hist": {
+          "0": 22,
+          "1": 0,
+          ">=2": 0
+        },
+        "mean_claims_per_clean_paper": 3.091,
+        "_reconcile_claim_level": {
+          "clean_claims_total_all_papers": 97,
+          "false_flags_all_papers": 15,
+          "claim_far_all": 0.1546
+        }
+      },
+      "B5": {
+        "clean_papers_total": 22,
+        "papers_with_>=1_false_flag": 0,
+        "paper_far": 0.0,
+        "flag_count_hist": {
+          "0": 22,
+          "1": 0,
+          ">=2": 0
+        },
+        "mean_claims_per_clean_paper": 3.091,
+        "_reconcile_claim_level": {
+          "clean_claims_total_all_papers": 97,
+          "false_flags_all_papers": 1,
+          "claim_far_all": 0.0103
+        }
+      }
+    },
+    "deepseek-v4-pro": {
+      "B1": {
+        "clean_papers_total": 22,
+        "papers_with_>=1_false_flag": 1,
+        "paper_far": 0.0455,
+        "flag_count_hist": {
+          "0": 21,
+          "1": 1,
+          ">=2": 0
+        },
+        "mean_claims_per_clean_paper": 3.091,
+        "_reconcile_claim_level": {
+          "clean_claims_total_all_papers": 97,
+          "false_flags_all_papers": 12,
+          "claim_far_all": 0.1237
+        }
+      },
+      "B5": {
+        "clean_papers_total": 22,
+        "papers_with_>=1_false_flag": 0,
+        "paper_far": 0.0,
+        "flag_count_hist": {
+          "0": 22,
+          "1": 0,
+          ">=2": 0
+        },
+        "mean_claims_per_clean_paper": 3.091,
+        "_reconcile_claim_level": {
+          "clean_claims_total_all_papers": 97,
+          "false_flags_all_papers": 1,
+          "claim_far_all": 0.0103
+        }
+      }
+    },
+    "glm-5.2": {
+      "B1": {
+        "clean_papers_total": 22,
+        "papers_with_>=1_false_flag": 0,
+        "paper_far": 0.0,
+        "flag_count_hist": {
+          "0": 22,
+          "1": 0,
+          ">=2": 0
+        },
+        "mean_claims_per_clean_paper": 3.091,
+        "_reconcile_claim_level": {
+          "clean_claims_total_all_papers": 97,
+          "false_flags_all_papers": 13,
+          "claim_far_all": 0.134
+        }
+      },
+      "B5": {
+        "clean_papers_total": 22,
+        "papers_with_>=1_false_flag": 0,
+        "paper_far": 0.0,
+        "flag_count_hist": {
+          "0": 22,
+          "1": 0,
+          ">=2": 0
+        },
+        "mean_claims_per_clean_paper": 3.091,
+        "_reconcile_claim_level": {
+          "clean_claims_total_all_papers": 97,
+          "false_flags_all_papers": 1,
+          "claim_far_all": 0.0103
+        }
+      }
+    }
+  }
+}
