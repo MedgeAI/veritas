@@ -240,9 +240,17 @@ def veritasbench_renderer():
 
         def stat(xs):
             n = len(xs)
-            mean = sum(xs) / n if n else 0.0
-            sd = (sum((x - mean) ** 2 for x in xs) / n) ** 0.5 if n else 0.0
-            return f"n={n}, mean={mean:.4g}, sd={sd:.4g}"
+            # A series may hold non-numeric cell values (e.g. a label_swap locus like
+            # ['Osanetant'] / ['Vehicle']): mean/sd are undefined there, so degrade gracefully
+            # instead of crashing sum() on int+str. Numeric series render exactly as before.
+            nums = [x for x in xs if isinstance(x, (int, float)) and not isinstance(x, bool)]
+            if not nums:
+                return f"n={n}, non-numeric"
+            m = len(nums)
+            mean = sum(nums) / m
+            sd = (sum((x - mean) ** 2 for x in nums) / m) ** 0.5
+            suffix = "" if m == n else f", {n - m} non-numeric"
+            return f"n={n}, mean={mean:.4g}, sd={sd:.4g}{suffix}"
 
         return (
             f"SERIES A (source, {md.get('src_label')}): {a}\n  [{stat(a)}]\n"
