@@ -1,0 +1,129 @@
+{
+  "case_id": "natcomm_florido_tac2",
+  "paper_title": "Sex differences in fear memory consolidation via Tac2 signaling in mice",
+  "paper_authors": [
+    "A. Florido, E. R. Velasco, C. M. Soto-Faguás, L. Perez-Caballero, P. Molina, R. Nadal, A. Gomez-Gomez, O. J. Pozo, C. A. Saura, R. Andero (Nat Commun 12:2531, 2021)"
+  ],
+  "artifacts": {
+    "sourcedata_corrected": {
+      "path": "artifacts/41467_2021_22911_MOESM6_ESM.xlsx",
+      "sha256": "e6df56ee7a0396e0981f8aaaab94bba06f67f09bc3a0794b1679c93d9896ac83",
+      "kind": "source_data",
+      "_note": "Downloaded 2026-07-18 from original article MOESM6 URL. Springer replaced original (incorrectly-labeled) file at this URL with the corrected version following the 2024-07-18 correction. The same corrected file is also served from the correction article MOESM2 URL. Original incorrect version (with Vehicle/Osanetant labels switched in tab 'Proestr intra-CeA,Osanetant(4b)') is no longer accessible. Currently-served file represents post-correction state: D3:D7 = 'Osanetant', D8:D11 = 'Vehicle' in that tab."
+    }
+  },
+  "observations": {
+    "artifacts/41467_2021_22911_MOESM6_ESM.xlsx#Proestr intra-CeA,Osanetant(4b)!D3": {
+      "value": "Osanetant",
+      "source_artifact": "artifacts/41467_2021_22911_MOESM6_ESM.xlsx",
+      "source_artifact_hash": "e6df56ee7a0396e0981f8aaaab94bba06f67f09bc3a0794b1679c93d9896ac83",
+      "source_span": "sheet 'Proestr intra-CeA,Osanetant(4b)', D3: treatment label for animal ID=1. CORRECTED: 'Osanetant'. Per correction notice, original had 'Vehicle' in this cell."
+    },
+    "artifacts/41467_2021_22911_MOESM6_ESM.xlsx#Proestr intra-CeA,Osanetant(4b)!D8": {
+      "value": "Vehicle",
+      "source_artifact": "artifacts/41467_2021_22911_MOESM6_ESM.xlsx",
+      "source_artifact_hash": "e6df56ee7a0396e0981f8aaaab94bba06f67f09bc3a0794b1679c93d9896ac83",
+      "source_span": "sheet 'Proestr intra-CeA,Osanetant(4b)', D8: treatment label for animal ID=6. CORRECTED: 'Vehicle'. Per correction notice, original had 'Osanetant' in this cell."
+    },
+    "artifacts/41467_2021_22911_MOESM6_ESM.xlsx#Proestr intra-CeA,Osanetant(4b)!Z3": {
+      "value": 22.941,
+      "source_artifact": "artifacts/41467_2021_22911_MOESM6_ESM.xlsx",
+      "source_artifact_hash": "e6df56ee7a0396e0981f8aaaab94bba06f67f09bc3a0794b1679c93d9896ac83",
+      "source_span": "sheet 'Proestr intra-CeA,Osanetant(4b)', Z3: CS15 (final fear expression tone, seconds freezing) for animal ID=1, labeled 'Osanetant' in corrected version. High fear expression (19.84 s group mean). Numerical value unchanged by correction -- only the D-column label was corrected."
+    },
+    "artifacts/41467_2021_22911_MOESM6_ESM.xlsx#Proestr intra-CeA,Osanetant(4b)!Z8": {
+      "value": 4.599,
+      "source_artifact": "artifacts/41467_2021_22911_MOESM6_ESM.xlsx",
+      "source_artifact_hash": "e6df56ee7a0396e0981f8aaaab94bba06f67f09bc3a0794b1679c93d9896ac83",
+      "source_span": "sheet 'Proestr intra-CeA,Osanetant(4b)', Z8: CS15 for animal ID=6, labeled 'Vehicle' in corrected version. Low fear expression (6.32 s group mean). Numerical value unchanged by correction."
+    },
+    "artifacts/41467_2021_22911_MOESM6_ESM.xlsx#Males, Osanetant (1c)!X3": {
+      "value": 14.22,
+      "source_artifact": "artifacts/41467_2021_22911_MOESM6_ESM.xlsx",
+      "source_artifact_hash": "e6df56ee7a0396e0981f8aaaab94bba06f67f09bc3a0794b1679c93d9896ac83",
+      "source_span": "sheet 'Males, Osanetant (1c)', X3: CS15 fear expression for male animal ID=1, treatment='Vehicle'. This tab was not mentioned in the correction notice and is unaffected by the label swap."
+    },
+    "artifacts/41467_2021_22911_MOESM6_ESM.xlsx#Nk3+ neurons in CeA (2d)!F2": {
+      "value": 212.7,
+      "source_artifact": "artifacts/41467_2021_22911_MOESM6_ESM.xlsx",
+      "source_artifact_hash": "e6df56ee7a0396e0981f8aaaab94bba06f67f09bc3a0794b1679c93d9896ac83",
+      "source_span": "sheet 'Nk3+ neurons in CeA (2d)', F2: Nk3R+/mm2 for animal ID=1 (8 weeks, Males). Correction notice states the correct value is 212.7 (corresponding to 32 Nk3R+ neurons). Corrected file shows F2=212.7."
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "natcomm_florido_tac2_ann_001",
+      "claim_id": "natcomm_florido_tac2_claim_001",
+      "claim_atom": "In the original Source Data file (MOESM6 of the original article, replaced on Springer servers after the 2024-07-18 correction), the tab labelled [Proestr intra-CeA,Osanetant(4b)] had the treatment labels in column D inadvertently switched: rows 3-7 (animal IDs 1-5, high fear expression data, mean CS15 approx 19.84 s) were labeled [Vehicle], while rows 8-11 (animal IDs 6,7,8,10, low fear expression data, mean CS15 approx 6.32 s) were labeled [Osanetant]. Reading the original source data by label therefore gives [Osanetant] mean approx 6.32 s vs [Vehicle] mean approx 19.84 s -- indicating Osanetant REDUCES fear in proestrus females. This is directly opposite to Figure 4b, which shows that intra-CeA Osanetant injection significantly enhances fear memory consolidation in proestrus females (the central female-specific Tac2 signaling claim in the paper). The Nat Commun Author Correction (DOI: 10.1038/s41467-024-50516-5, published 2024-07-18) explicitly confirms: [In the Source Data tab labelled 'Proestr intra-CeA,Osanetant(4b)', the Vehicle and Osanetant groups were inadvertently switched. This has been corrected.] The corrected file now has D3:D7=[Osanetant] (high-fear, mean CS15 approx 19.84 s) and D8:D11=[Vehicle] (low-fear, mean CS15 approx 6.32 s), restoring consistency with Figure 4b. This label_swap error is undetectable by standard numerical anomaly detectors (duplicate-col, fixed-offset, paired-ratio): the swap affects only the string values in column D, leaving all numerical CS-freezing data in columns E-Z completely unchanged; there is no repeated column, no constant additive offset between the two groups time-series, and no multiplicative ratio relationship between the numerical values that a detector could flag. The discrepancy is only detectable by cross-referencing the column D label strings against Figure 4b's effect direction or reading the correction notice.",
+      "source_artifact": "artifacts/41467_2021_22911_MOESM6_ESM.xlsx#Proestr intra-CeA,Osanetant(4b)!D3",
+      "target_artifact": "artifacts/41467_2021_22911_MOESM6_ESM.xlsx#Proestr intra-CeA,Osanetant(4b)!D8",
+      "source_a1_range": "D3:D7",
+      "target_a1_range": "D8:D11",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "label_swap",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data_label->figure",
+      "_adjudication": "标签对调(inconsistent): 原始Source Data的[Proestr intra-CeA,Osanetant(4b)] tab中D列Vehicle/Osanetant标签对调，导致按标签读取的效应方向（Osanetant减少恐惧）与Fig 4b完全相反（图中显示Osanetant增强proestrus雌鼠的恐惧记忆）。更正通知10.1038/s41467-024-50516-5明确确认'inadvertently switched'。数值本身（CS15等恐惧冻结秒数）未被更正通知改变，只有D列字符串标签被修正。标准数值检测器（duplicate-col/fixed-offset/paired-ratio）无法发现此类字符串标签对调。原始文件已被Springer服务器替换为更正版本，不可再获取。"
+    },
+    {
+      "annotation_id": "natcomm_florido_tac2_ann_002",
+      "claim_id": "natcomm_florido_tac2_claim_002",
+      "claim_atom": "In the Source Data tab [Males, Osanetant (1c)], vehicle-treated male animal ID=1 has a CS15 (final fear expression tone, column X) value of 14.22 seconds. This tab documents fear conditioning and expression results for male mice (Figure 1c). Neither the tab content nor this value was mentioned in the Nat Commun Author Correction. The fear expression trajectory for this animal (CS1=8.721 s to CS15=14.22 s) shows a plausible pattern. Treatment labels in the males tab use column B and are unaffected by the label swap described in the correction.",
+      "source_artifact": "artifacts/41467_2021_22911_MOESM6_ESM.xlsx#Males, Osanetant (1c)!X3",
+      "target_artifact": "artifacts/41467_2021_22911_MOESM6_ESM.xlsx#Males, Osanetant (1c)!X3",
+      "source_a1_range": "X3:X3",
+      "target_a1_range": "X3:X3",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->figure",
+      "_adjudication": "合法子断言(consistent): [Males, Osanetant (1c)] tab中Vehicle雄鼠(animal 1)的CS15=14.22s，未受标签对调错误影响，属干净数据点。"
+    },
+    {
+      "annotation_id": "natcomm_florido_tac2_ann_003",
+      "claim_id": "natcomm_florido_tac2_claim_003",
+      "claim_atom": "In the Source Data tab [Nk3+ neurons in CeA (2d)], animal ID=1 (8 weeks old, Male) has an Nk3R+/mm2 density (column F, row 2) of 212.7 and a raw Nk3R+ count (column E) of 32. The Nat Commun Author Correction explicitly confirms: [The Source Data tab labelled 'Nk3R+ neurons in CeA (2d)' had an error for animal #1 (row 2 column F). The correct value, corresponding to 32 neurons in Nk3R+, is 212.7.] The corrected file now shows F2=212.7, internally consistent with E2=32 neurons. This value is in a different tab from the label swap and serves as an independent anchor for the corrected source data.",
+      "source_artifact": "artifacts/41467_2021_22911_MOESM6_ESM.xlsx#Nk3+ neurons in CeA (2d)!F2",
+      "target_artifact": "artifacts/41467_2021_22911_MOESM6_ESM.xlsx#Nk3+ neurons in CeA (2d)!F2",
+      "source_a1_range": "F2:F2",
+      "target_a1_range": "F2:F2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->figure",
+      "_adjudication": "合法子断言(consistent): [Nk3+ neurons in CeA (2d)] tab animal 1的Nk3R+/mm2=212.7是更正通知中明确指出的正确值，当前更正版文件已显示此值。与标签对调无关，属独立可验证干净数据点。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "natcomm_florido_tac2",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41467-021-22911-9",
+    "_correction_doi": "https://doi.org/10.1038/s41467-024-50516-5",
+    "_lane": "作者+期刊已认并已更正型label_swap(verifier_conflict): Source Data的[Proestr intra-CeA,Osanetant(4b)] tab中Vehicle/Osanetant组标签对调，导致按标签计算的效应方向（Osanetant减少恐惧）与Fig 4b完全相反（图中显示Osanetant增强恐惧）。更正通知确认'inadvertently switched'，已于2024-07-18更正。原始错误文件已不可获取（Springer已替换）。探测器不可发现：标签对调不改变任何数值序列，duplicate-col/fixed-offset/paired-ratio探测器完全无法检测字符串标签的对调。",
+    "_pubpeer_note": "外部分析者（PubPeer）发现：用原始Source Data的Fig 4b tab复现该图时，得到的Osanetant vs Vehicle效应方向与图相反，推断raw data可能来自completely different animals或存在标签对调。更正通知证实了标签对调假设。",
+    "_correction_scope": "更正通知(10.1038/s41467-024-50516-5)涵盖四处错误: (1) Fig 4b tab: Vehicle/Osanetant标签对调[本案核心]; (2) Fig 4b tab: 被排除的mouse ID 9的数据点被错误包含; (3) [P28 mice, Osanetant (2a-b)] tab: 若干值错误; (4) [Nk3R+ neurons in CeA (2d)] tab: animal 1的F列值错误(正确=212.7)。作者声明: None of these errors change the results or their interpretation and the conclusions remain the same.",
+    "_detector_note": "label_swap探测盲区: 错误存在于D列字符串标签(Vehicle/Osanetant)，与E-Z列数值时间序列完全独立。D列字符串不参与任何数值计算，故duplicate-col、fixed-offset、paired-ratio探测器对字符串标签对调完全无效。唯一检测路径是cross-reference D列标签与Fig 4b效应方向，或阅读更正通知。",
+    "_version_status": "Springer原始文章URL(MOESM6)已被更新为更正版本，原错误文件不可获取。两个URL(原始文章MOESM6 + 更正通知MOESM2)均指向同一文件(SHA256: e6df56ee7a0396e0981f8aaaab94bba06f67f09bc3a0794b1679c93d9896ac83)。",
+    "_source_url_refs": [
+      "https://www.nature.com/articles/s41467-021-22911-9",
+      "https://www.nature.com/articles/s41467-024-50516-5",
+      "https://pmc.ncbi.nlm.nih.gov/articles/PMC11258223/",
+      "https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-021-22911-9/MediaObjects/41467_2021_22911_MOESM6_ESM.xlsx",
+      "https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-024-50516-5/MediaObjects/41467_2024_50516_MOESM2_ESM.xlsx"
+    ],
+    "_signed_by": "wuguandu @ 2026-07-18; Springer MOESM6直接下载+本地xlsx解析核验+PMC更正通知文本核验"
+  }
+}
