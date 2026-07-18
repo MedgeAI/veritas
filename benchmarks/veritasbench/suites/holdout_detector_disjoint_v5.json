@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "name": "holdout_detector_disjoint_v5",
+  "description": "Detector-disjoint holdout subset v5 — 15 cases. Extends v4 (10 cases) with 5 new cases whose anomaly types are OUTSIDE the B3 detector family (duplicate-column / fixed-offset / paired-ratio / cross-sheet-reuse). All 5 new cases are backed by an external correction notice, retraction, or documented PubPeer thread, and all pass the official validator + a live B3 (l1_relationship_verifier, explicit_range_only=True) run confirming no_flag. Purpose: raise N from 10 to 15 so the Q3 non-leakage argument moves from a directional probe (single-case swing ~10pp) to weakly confirmatory (single-case swing ~6.7pp).\n\nNew cases (v4 -> v5):\n  np_grassland_pcoa       (misaligned_records / #4): PCoA ordination columns pasted out of register with SampleID; different-species-richness rows share identical coordinates. Dryad v4 vs corrected v6, author-confirmed.\n  soilwarming_p_impute    (undisclosed_imputation / #8): CO2-leak outliers silently replaced by within-group means -> scattered 15-sig-fig-identical TOP values. Dryad v7 vs corrected v12 (imputed cells -> NA), author-confirmed.\n  drosophila_chillcoma    (sample_count_mismatch / #7): recorded per-group n (14-223) contradicts stated design n=100/group; 20C male n=14. PubPeer-documented.\n  parthenium_antioxidant  (value_substitution + sample_count_mismatch / #4;#7): per-larva SOD/CAT/LPO values copy-pasted between larvae within a column (some with a single altered digit); unique SOD/CAT/LPO = 311/301/291 of 350. PubPeer-documented.\n  mindfulness_dyads       (provenance_mismatch / silent data replacement; #1;#3): child EEG FPN/CON/DMN triples duplicated across dyads; data file silently replaced ~1 month after PubPeer flag, no changelog. Anchored on the cross-version silent replacement (0.001894673 -> 0.000447...), out-of-family as anchored.\n\nAnomaly type breakdown (9 distinct types across 15 cases):\n  label_swap x2:                        ncb_cav2, natcomm_florido_tac2\n  misaligned_records x2:                ncb_clonalfish, np_grassland_pcoa\n  mislabeled_panel:                     ncb_lphn3\n  assignment_inconsistency x2:          ncb_radioligand, ncb_nickelate\n  pseudoreplication:                    ncb_spp1\n  provenance_mismatch x3:               elife_neurexin_fig1b, natcomm_nguyen_mirna, mindfulness_dyads\n  figure_vs_sourcedata_count_mismatch:  natcomm_petruk_tlr\n  undisclosed_imputation:               soilwarming_p_impute\n  sample_count_mismatch:                drosophila_chillcoma\n  value_substitution:                   parthenium_antioxidant\n\nValidator: 15/15 pass. B3 detector FAR: 0/15 (case-level, after self-comparison guard).",
+  "case_ids": [
+    "ncb_cav2",
+    "ncb_clonalfish",
+    "ncb_lphn3",
+    "ncb_radioligand",
+    "ncb_nickelate",
+    "ncb_spp1",
+    "elife_neurexin_fig1b",
+    "natcomm_petruk_tlr",
+    "natcomm_florido_tac2",
+    "natcomm_nguyen_mirna",
+    "np_grassland_pcoa",
+    "soilwarming_p_impute",
+    "drosophila_chillcoma",
+    "parthenium_antioxidant",
+    "mindfulness_dyads"
+  ]
+}

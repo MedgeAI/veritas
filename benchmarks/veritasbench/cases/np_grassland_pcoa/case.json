@@ -1,0 +1,132 @@
+{
+  "case_id": "np_grassland_pcoa",
+  "paper_title": "Dual effects of nitrogen and phosphorus enrichment on grassland ecosystem functioning (misaligned PCoA ordination scores relative to SampleID)",
+  "paper_authors": [
+    "Journal of Ecology 113:2447-2459 (2025); DOI 10.1111/1365-2745.70105. Author-confirmed misaligned-records correction (Dryad doi:10.5061/dryad.n8pk0p37d, original v4 vs corrected v6 NP_Data_New.xlsx)."
+  ],
+  "artifacts": {
+    "orig_v4": {
+      "path": "artifacts/NP_Data_original.xlsx",
+      "sha256": "86c7800e1879b0bbf027888a7219fe111535c6e223b1550f0ac1d6546194061d",
+      "kind": "source_data",
+      "original_filename": "NP_Data.xlsx",
+      "download_url": "https://datadryad.org/stash/dataset/doi:10.5061/dryad.n8pk0p37d",
+      "note": "Original Dryad deposit v4 (2025-07-02). Sheet1: 60 sample rows (KO17*) x 113 columns. PCoA ordination columns (AB_PCo1 at col AI, AB_PCo2 at col AJ, etc.) were pasted misaligned relative to SampleID (col A) when merging source sheets."
+    },
+    "corrected_v6": {
+      "path": "artifacts/NP_Data_corrected.xlsx",
+      "sha256": "de66ec71397e21017c89ba7d62d9d2ede23b314f2edbafa745680b958ba6a52f",
+      "kind": "source_data",
+      "original_filename": "NP_Data_New.xlsx",
+      "download_url": "https://datadryad.org/stash/dataset/doi:10.5061/dryad.n8pk0p37d",
+      "note": "Author-supplied corrected deposit v6 (2026-05-08). Same 60x113 layout; PCoA columns re-aligned to their correct SampleID. SampleID (col A) and richness columns (Plant_Rich col P, AB_Rich col Q) unchanged between versions."
+    }
+  },
+  "observations": {
+    "artifacts/NP_Data_original.xlsx#Sheet1!AI7": {
+      "value": 0.144522648551141,
+      "source_artifact": "artifacts/NP_Data_original.xlsx",
+      "source_artifact_hash": "86c7800e1879b0bbf027888a7219fe111535c6e223b1550f0ac1d6546194061d",
+      "source_span": "sheet 'Sheet1', AI7 (AB_PCo1, PCoA ordination axis-1 for the arbuscular-mycorrhizal-associated community). Row 7 is SampleID KO17A3 (col A7), whose AB_Rich=1.791759 (col Q7, = ln(6) species). In the original deposit AI7=0.144522648551141 — identical to AI2, AI5, AI10 which are AB_Rich=1.609438 (=ln(5)) samples. Different species-richness rows cannot legitimately share an identical PCoA coordinate."
+    },
+    "artifacts/NP_Data_corrected.xlsx#Sheet1!AI7": {
+      "value": -0.761154394232619,
+      "source_artifact": "artifacts/NP_Data_corrected.xlsx",
+      "source_artifact_hash": "de66ec71397e21017c89ba7d62d9d2ede23b314f2edbafa745680b958ba6a52f",
+      "source_span": "sheet 'Sheet1', AI7 (AB_PCo1) for the same SampleID KO17A3. In the author-corrected deposit AI7=-0.761154394232619 — the value the ordination actually assigns to this AB_Rich=ln(6) sample once the PCoA columns are re-aligned to SampleID."
+    },
+    "artifacts/NP_Data_original.xlsx#Sheet1!A2": {
+      "value": "KO17A1",
+      "source_artifact": "artifacts/NP_Data_original.xlsx",
+      "source_artifact_hash": "86c7800e1879b0bbf027888a7219fe111535c6e223b1550f0ac1d6546194061d",
+      "source_span": "sheet 'Sheet1', A2 (SampleID). The sample-identifier column was NOT affected by the PCoA misalignment; it is byte-identical across the original and corrected deposits (60/60 rows)."
+    },
+    "artifacts/NP_Data_corrected.xlsx#Sheet1!A2": {
+      "value": "KO17A1",
+      "source_artifact": "artifacts/NP_Data_corrected.xlsx",
+      "source_artifact_hash": "de66ec71397e21017c89ba7d62d9d2ede23b314f2edbafa745680b958ba6a52f",
+      "source_span": "sheet 'Sheet1', A2 (SampleID) in the corrected deposit; unchanged (KO17A1)."
+    },
+    "artifacts/NP_Data_original.xlsx#Sheet1!P2": {
+      "value": 2.70805020110221,
+      "source_artifact": "artifacts/NP_Data_original.xlsx",
+      "source_artifact_hash": "86c7800e1879b0bbf027888a7219fe111535c6e223b1550f0ac1d6546194061d",
+      "source_span": "sheet 'Sheet1', P2 (Plant_Rich, ln plant species richness) for SampleID KO17A1. The richness columns were not part of the misaligned PCoA block; Plant_Rich is identical across versions (60/60 rows)."
+    },
+    "artifacts/NP_Data_corrected.xlsx#Sheet1!P2": {
+      "value": 2.70805020110221,
+      "source_artifact": "artifacts/NP_Data_corrected.xlsx",
+      "source_artifact_hash": "de66ec71397e21017c89ba7d62d9d2ede23b314f2edbafa745680b958ba6a52f",
+      "source_span": "sheet 'Sheet1', P2 (Plant_Rich) in the corrected deposit; unchanged (2.70805020110221)."
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "np_grassland_pcoa_ann_001",
+      "claim_id": "np_grassland_pcoa_claim_001",
+      "claim_atom": "In the original Dryad deposit (NP_Data.xlsx, Sheet1) the AB_PCo1 ordination score for SampleID KO17A3 (row 7, AB_Rich=1.791759=ln(6) species) is AI7=0.144522648551141. This exact value is also carried by rows 2, 5 and 10 (SampleIDs KO17A1/KO17A22/KO17A20), all of which are AB_Rich=1.609438=ln(5) samples. A PCoA ordinates each sample by its full community composition, so two samples with different species richness cannot legitimately land on an identical axis-1 coordinate to 15 significant figures. The author-supplied correction (Dryad v6, NP_Data_New.xlsx) re-aligns the PCoA columns to SampleID and this same cell becomes AI7=-0.761154394232619, confirming that the original value did not belong to KO17A3 — the ordination columns had been pasted out of register with SampleID when source sheets were merged. The author explicitly states this misalignment does not change the published results. This is a misaligned_records / provenance_mismatch: the number physically present at a locus is genuine ordination output but is attached to the wrong sample. It is invisible to file-internal numeric detectors: (1) duplicate-column detector compares whole columns for byte-identity or constant offset — the AB_PCo1 column as a whole is not a duplicate of any other column; (2) fixed-offset / paired-ratio detectors look for column-to-column arithmetic relations — none exists here, the corruption is a within-column row permutation; (3) the original AB_PCo1 series and the corrected AB_PCo1 series are neither equal, offset, nor linearly related (the rows are permuted), so a src-vs-tgt relationship verifier returns 'independent'. Detection requires knowing that PCoA scores must be a deterministic function of the per-sample community composition — external ecological/statistical reasoning plus the correction notice, not a numeric pattern in the file.",
+      "source_artifact": "artifacts/NP_Data_original.xlsx#Sheet1!AI7",
+      "target_artifact": "artifacts/NP_Data_corrected.xlsx#Sheet1!AI7",
+      "source_a1_range": "AI7:AI7",
+      "target_a1_range": "AI7:AI7",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "misaligned_records",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "inconsistent: 原始 deposit の AB_PCo1 列は SampleID に対して行ずれ(misaligned)して貼り付けられており、KO17A3(AB_Rich=ln6)の AI7=0.144523 は AB_Rich=ln5 の複数サンプル(row2/5/10)と 15 桁完全一致する。PCoA スコアは各サンプルの群集組成の決定論的関数なので、異なる種数の行が同一座標を持つことは統計的に不可能。著者修正版(Dryad v6)では同セルが -0.761154 に変わり、元の値がこのサンプルに属さないこと(列のずれ)を裏付ける。B3 検出器は列間の数値関係(重複/定数オフセット/線形)を探すが、これは列内の行順列であり src-vs-tgt は independent と判定される→ no_flag。発見には PCoA が組成の関数であるという外部知識+修正通知が必要。"
+    },
+    {
+      "annotation_id": "np_grassland_pcoa_ann_002",
+      "claim_id": "np_grassland_pcoa_claim_002",
+      "claim_atom": "The SampleID column was not part of the misaligned PCoA block. Cell A2='KO17A1' in the original deposit and A2='KO17A1' in the corrected deposit are identical; the SampleID column is byte-identical across all 60 sample rows between the two versions. The sample identifiers are the stable spine against which the correction re-aligned the ordination columns, so their agreement across versions is exactly what one expects of an unaffected identity column.",
+      "source_artifact": "artifacts/NP_Data_original.xlsx#Sheet1!A2",
+      "target_artifact": "artifacts/NP_Data_corrected.xlsx#Sheet1!A2",
+      "source_a1_range": "A2:A2",
+      "target_a1_range": "A2:A2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "consistent(clean): SampleID 列は PCoA のずれの影響を受けず、原始・修正両版で 60/60 行完全一致。KO17A1 は両版で同一。修正が列を再整列させる際の基準(spine)であり、一致は当然。clean claim としてファイル間の安定同一列を確認。"
+    },
+    {
+      "annotation_id": "np_grassland_pcoa_ann_003",
+      "claim_id": "np_grassland_pcoa_claim_003",
+      "claim_atom": "The plant species-richness column (Plant_Rich, col P) was likewise not part of the misaligned PCoA block. Plant_Rich for SampleID KO17A1 is P2=2.70805020110221 (=ln(15) plant species) in both the original and corrected deposits, and the Plant_Rich column is identical across all 60 rows between versions. Only the ordination-score columns (Plant_PCo*, AB_PCo*, OC_PCo*, ...) were pasted out of register; the raw richness measures that feed the ordination were untouched, so this value's agreement across versions is consistent.",
+      "source_artifact": "artifacts/NP_Data_original.xlsx#Sheet1!P2",
+      "target_artifact": "artifacts/NP_Data_corrected.xlsx#Sheet1!P2",
+      "source_a1_range": "P2:P2",
+      "target_a1_range": "P2:P2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "consistent(clean): Plant_Rich 列も PCoA ずれの影響外で、原始・修正両版で 60/60 一致。KO17A1 の ln(15)=2.708 は両版同一。序列化(ordination)に入力される生の豊富度測度は改変されていない。clean claim。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "np_grassland_pcoa",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1111/1365-2745.70105",
+    "_correction_doi": "Dryad doi:10.5061/dryad.n8pk0p37d (original v4 2025-07-02 vs corrected v6 2026-05-08, NP_Data_New.xlsx)",
+    "_pubpeer_url": "https://pubpeer.com/publications/3DDD944835455D7BB78834B4B3A7C4",
+    "_correction_text": "Author confirmed on PubPeer: when merging multiple source sheets, the PCoA-related columns (Plant_PCo1/2, AB_PCo1/2, OC_PCo1/2, ...) were pasted misaligned relative to SampleID; a corrected NP_Data_New.xlsx was provided. The author states the error does not affect the published results and conclusions (J. Ecology 113:2447-2459).",
+    "_lane": "Detector-disjoint holdout case (misaligned_records / #4). Anomaly = within-column row permutation of PCoA ordination scores relative to SampleID; the physically-present values are genuine ordination output attached to the wrong samples. Out-of-family: not a duplicate column, not a constant offset, not a paired ratio, not a cross-sheet value copy. External correction notice + the statistical fact that PCoA scores are a deterministic function of per-sample composition are required to detect it.",
+    "_grounding_summary": "openpyxl-parsed both Dryad deposits locally. Original AB_PCo1 (col AI) has AI2=AI5=AI7=AI10=0.144522648551141 despite rows 2/5/10 being AB_Rich=ln(5) and row 7 being AB_Rich=ln(6) — different species richness sharing an identical 15-sig-fig PCoA coordinate. Corrected v6 re-differentiates them (AI7 -> -0.761154394232619). SampleID (col A) 60/60 identical across versions; Plant_Rich (col P) 60/60 identical; AB_Rich (col Q) 59/60 identical. Confirms only the ordination-score block was permuted relative to the identity/richness spine.",
+    "_detector_note": "misaligned_records is outside the B3 detector family (duplicate-column / fixed-offset / paired-ratio / cross-sheet-reuse). The corruption is a row permutation WITHIN the AB_PCo1 column, not a relation BETWEEN two columns. Feeding the original AB_PCo1 series vs the corrected AB_PCo1 series to l1_relationship_verifier yields 'independent' (permuted rows are neither equal, offset, nor linearly related). The single-cell claim loci (AI7:AI7 etc.) also fall under the len<2 guard. Expected B3: no_flag on all claims.",
+    "_signed_by": "wuguandu @ 2026-07-18; Dryad v4/v6 deposits downloaded to server pubpeer-archive, parsed locally with openpyxl, cell values verified against PubPeer thread 3DDD944835455D7BB78834B4B3A7C4."
+  }
+}

@@ -1,0 +1,84 @@
+{
+  "run": "holdout_detector_disjoint_v5 verification (data-side window)",
+  "date": "2026-07-18",
+  "task_source": "director request: expand detector-disjoint holdout from 10 (v4) to 15-20 cases so Q3 moves from 'directional probe' to weakly confirmatory. Target 15 minimum.",
+  "detector": "l1_relationship_verifier (B3 node forensics: duplicate / constant_offset / linear_transform), explicit_range_only=True, same protocol as v4.",
+  "method": "For each new case: (1) download real source data from server pubpeer-archive to cases/<id>/artifacts/, compute sha256; (2) parse with openpyxl and verify the reported anomaly loci against the PubPeer/correction ground truth (NO synthetic data); (3) author case.json with 1 inconsistent + 2 clean claims anchored on real cell values; (4) run _validate_case (9-check official validator); (5) run B3 detector via the adapter exactly as the B1-B5 pipeline feeds it.",
+
+  "headline_numbers": {
+    "N": 15,
+    "validator_pass": "15/15",
+    "b3_detector_FAR_case_level": "0/15",
+    "total_claims": 46,
+    "total_inconsistent_claims": 15,
+    "total_clean_claims": 25,
+    "distinct_anomaly_types": 9
+  },
+
+  "new_cases_v4_to_v5": {
+    "np_grassland_pcoa": {
+      "anomaly": "misaligned_records (#4)",
+      "external_status": "author-confirmed on PubPeer thread 3DDD944835455D7BB78834B4B3A7C4; corrected Dryad deposit v6 provided (doi:10.5061/dryad.n8pk0p37d)",
+      "b3": "no_flag",
+      "disjoint_reason": "PCoA ordination columns were pasted out of register with SampleID; the corruption is a row permutation WITHIN a column, not a column-to-column relation. Original vs corrected AB_PCo1 series is 'independent' (permuted). Single-cell claim loci fall under len<2 guard.",
+      "grounding": "openpyxl-verified: original AI2=AI5=AI7=AI10=0.144522648551141 despite rows 2/5/10 being AB_Rich=ln(5) and row7 AB_Rich=ln(6); corrected v6 re-differentiates (AI7 -> -0.761154394232619). SampleID/Plant_Rich 60/60 identical across versions."
+    },
+    "soilwarming_p_impute": {
+      "anomaly": "undisclosed_imputation (#8)",
+      "external_status": "author-confirmed on PubPeer thread A4EA392A36C5B717722B04A91E2773; corrected Dryad deposit v12 (imputed cells -> NA), doi:10.5061/dryad.9p8cz8wk8",
+      "b3": "no_flag",
+      "disjoint_reason": "CO2-leak outliers silently replaced by within-treatment-group means, manifesting as scattered 15-sig-fig-identical values WITHIN the TOP column across different treatment groups (not a column-to-column relation). Original vs corrected TOP series is 'independent' (corrected has NA at imputed loci). Single-cell loci under len<2 guard.",
+      "grounding": "openpyxl-verified: original TOP O9=O11, O19=O23, O27=O35, O51=O57=O59, O63=O71=O73 (each 15-sig-fig identical); corrected v12 all 13 -> NA. Unique real value O2=618.279... and pH column 72/72 byte-identical across versions. (TP vs TIP+TOP apparent mismatch is a g/kg vs mg/kg unit difference, NOT used as anomaly.)"
+    },
+    "drosophila_chillcoma": {
+      "anomaly": "sample_count_mismatch (#7)",
+      "external_status": "PubPeer thread E0C3ACCE04DFB62D5FEF4EFE7DEB8B (Dryad doi:10.5061/dryad.c866t1ghd)",
+      "b3": "no_flag",
+      "disjoint_reason": "Recorded per-group row count contradicts the stated design n (100/group), most severely 20C male n=14. This is a count-of-rows vs stated-n discrepancy, not any numeric relationship inside the file; single-cell loci under len<2 guard.",
+      "grounding": "openpyxl-verified per-column non-empty counts: 74/223/14/51/99/138 for 15C-male/15C-female/20C-male/20C-female/25C-male/25C-female. C2=102.55, E2=122.36. 20C male n=14 vs stated 100; 25C male n=99 ~ 100 (clean)."
+    },
+    "parthenium_antioxidant": {
+      "anomaly": "value_substitution + sample_count_mismatch (#4;#7)",
+      "external_status": "PubPeer thread FF61AC6C0D8B0DA3452B6FAEF244B5 (Dryad doi:10.5061/dryad.4mw6m90mp)",
+      "b3": "no_flag",
+      "disjoint_reason": "Per-larva SOD/CAT/LPO values copy-pasted between different larvae WITHIN a column (some with a single altered digit), so stated per-larva sample count exceeds true independent observations. Repeats are within-column at scattered rows (not a column-to-column relation); single-cell claim loci under len<2 guard. NOTE: a naive pairwise row scan would find the exact repeats, but B3 operates on adapter-fed src/tgt series per claim where single cells never fire.",
+      "grounding": "openpyxl-verified: D61==D55=0.21938013442867818; E52=E54=E56=E57=E59=140.49263461576285, E61=130.492634615763 (single altered digit); F61==F56=0.23014401517764746. Unique counts SOD 311/CAT 301/LPO 291 of 350. Clean anchors D2, E3 unique across all 350 rows."
+    },
+    "mindfulness_dyads": {
+      "anomaly": "provenance_mismatch / silent data replacement (#1;#3)",
+      "external_status": "PubPeer thread A3A0B6DC3D0240024423B217F3171E (2025-11-09, no author response); data file silently replaced 2025-12-12 (~1 month later), Dryad doi:10.5061/dryad.9ghx3ffss, no changelog",
+      "b3": "no_flag",
+      "disjoint_reason": "Anchored on the CROSS-VERSION silent replacement of a published value (original PJ2 FPN_pre=0.001894673 -> silent 0.0004470315547129098), not on the within-file triple duplication. As anchored it is a single-cell cross-version comparison with no in-file column relationship; len<2 guard. HONEST CAVEAT: the within-file duplicate triples (PJ2==PJ24 pre, etc.) WOULD be duplicate-detector targets if fed as two distinct multi-cell loci; the case is deliberately anchored on the silent replacement to exercise the provenance axis the detector family does not cover.",
+      "grounding": "openpyxl-verified both Dryad versions: original 'Neural' PJ2(row10)==PJ24(row13) pre-triple (0.001894673,-0.000504572,0.001540035); PJ3==PJ9; post-triples PJ1==PJ95, PJ19==PJ22, PJ24==PJ8. Silent 'Neural_Corrected': PJ2 FPN_pre=0.000447..., PJ24 dropped, Original_Dyad_ID column added. sha256 first-8 (993c8190/e2005d34) match the corpus source_note record."
+    }
+  },
+
+  "all_15_case_status": {
+    "ncb_cav2": "validator PASS, b3 no_flag (label_swap)",
+    "ncb_clonalfish": "validator PASS, b3 no_flag (misaligned_records)",
+    "ncb_lphn3": "validator PASS, b3 no_flag (mislabeled_panel)",
+    "ncb_radioligand": "validator PASS, b3 no_flag (assignment_inconsistency)",
+    "ncb_nickelate": "validator PASS, b3 no_flag (assignment_inconsistency)",
+    "ncb_spp1": "validator PASS, b3 no_flag (pseudoreplication)",
+    "elife_neurexin_fig1b": "validator PASS, b3 no_flag (provenance_mismatch)",
+    "natcomm_petruk_tlr": "validator PASS, b3 no_flag (figure_vs_sourcedata_count_mismatch)",
+    "natcomm_florido_tac2": "validator PASS, b3 no_flag (label_swap)",
+    "natcomm_nguyen_mirna": "validator PASS, b3 no_flag (provenance_mismatch, self-comparison guard applies)",
+    "np_grassland_pcoa": "validator PASS, b3 no_flag (misaligned_records) [NEW]",
+    "soilwarming_p_impute": "validator PASS, b3 no_flag (undisclosed_imputation) [NEW]",
+    "drosophila_chillcoma": "validator PASS, b3 no_flag (sample_count_mismatch) [NEW]",
+    "parthenium_antioxidant": "validator PASS, b3 no_flag (value_substitution) [NEW]",
+    "mindfulness_dyads": "validator PASS, b3 no_flag (provenance_mismatch / silent replacement) [NEW]"
+  },
+
+  "summary": {
+    "N": 15,
+    "single_case_swing_pp": 6.7,
+    "narrative_upgrade": "v4 N=10 (swing 10pp, directional probe) -> v5 N=15 (swing 6.7pp, weakly confirmatory)",
+    "validator": "15/15 PASS",
+    "b3_FAR": "0/15 case-level (all no_flag)",
+    "clean_claims_total": 25,
+    "distinct_anomaly_types": 9,
+    "for_experiments_tex_Q3": "replace the three placeholder numbers: N=10 -> 15, clean claims=15 -> 25, B3 fires=0/10 -> 0/15"
+  }
+}

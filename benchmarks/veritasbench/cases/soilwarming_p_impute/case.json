@@ -1,0 +1,132 @@
+{
+  "case_id": "soilwarming_p_impute",
+  "paper_title": "Long-term soil warming decreases microbial phosphorus utilization (undisclosed within-group mean imputation of CO2-leak outliers)",
+  "paper_authors": [
+    "Nature Communications 14 (2023); DOI 10.1038/s41467-023-36527-8. Author-confirmed undisclosed imputation (Dryad doi:10.5061/dryad.9p8cz8wk8, original v7 2023-02-03 vs corrected v12 2026-04-30)."
+  ],
+  "artifacts": {
+    "orig_v7": {
+      "path": "artifacts/Source_Data_original.xlsx",
+      "sha256": "df140f54aa78d803f327e968a912c378ab660dc98d095fc262389679a2bd41f9",
+      "kind": "source_data",
+      "original_filename": "Source_Data_original_v7_2023-02-03.xlsx",
+      "download_url": "https://datadryad.org/stash/dataset/doi:10.5061/dryad.9p8cz8wk8",
+      "note": "Original Dryad deposit v7 (2023-02-03). Sheet 'Mastersheet': 72 soil samples x 44 measured properties. TOP (total organic phosphorus, col O/15) contains several groups of samples sharing an identical 15-significant-figure value; the authors later confirmed these were CO2-leak outliers silently replaced by the within-treatment-group mean of the remaining replicates."
+    },
+    "corrected_v12": {
+      "path": "artifacts/Source_Data_updated.xlsx",
+      "sha256": "02f1d639e06eba5a2aca29fc9895b517c22038679590fd6a1b1e56d6ecacc2b8",
+      "kind": "source_data",
+      "original_filename": "Source_Data_updated_v12_2026-04-30.xlsx",
+      "download_url": "https://datadryad.org/stash/dataset/doi:10.5061/dryad.9p8cz8wk8",
+      "note": "Author-supplied corrected deposit v12 (2026-04-30). Same Mastersheet layout; the 13 imputed TOP cells are replaced with NA (mean imputation removed). Untouched real observations (unique TOP values, pH, etc.) are byte-identical between versions."
+    }
+  },
+  "observations": {
+    "artifacts/Source_Data_original.xlsx#Mastersheet!O51": {
+      "value": 341.9238147669521,
+      "source_artifact": "artifacts/Source_Data_original.xlsx",
+      "source_artifact_hash": "df140f54aa78d803f327e968a912c378ab660dc98d095fc262389679a2bd41f9",
+      "source_span": "sheet 'Mastersheet', O51 (TOP = total organic phosphorus, mg/kg) for sample P1H20-III (Depth=20, Season=Oct). TOP=341.9238147669521 to 15 significant figures. Cells O57 (P4H20-III) and O59 (P5H20-III) — different phosphorus-addition treatment groups at the same depth/season — carry the byte-identical value. Three independent field replicates from different treatments cannot share a soil-chemistry measurement to 15 sig figs."
+    },
+    "artifacts/Source_Data_updated.xlsx#Mastersheet!O51": {
+      "value": "NA",
+      "source_artifact": "artifacts/Source_Data_updated.xlsx",
+      "source_artifact_hash": "02f1d639e06eba5a2aca29fc9895b517c22038679590fd6a1b1e56d6ecacc2b8",
+      "source_span": "sheet 'Mastersheet', O51 in the corrected deposit: the value is now NA. The author replaced the previously-imputed CO2-leak samples (O9/O11, O19/O23, O27/O35, O51/O57/O59, O63/O71/O73) with NA, confirming the identical original values were within-group mean imputations, not measured data."
+    },
+    "artifacts/Source_Data_original.xlsx#Mastersheet!O2": {
+      "value": 618.2791242655322,
+      "source_artifact": "artifacts/Source_Data_original.xlsx",
+      "source_artifact_hash": "df140f54aa78d803f327e968a912c378ab660dc98d095fc262389679a2bd41f9",
+      "source_span": "sheet 'Mastersheet', O2 (TOP) for sample P1H10-I (Depth=10). TOP=618.2791242655322 — a value unique across all 72 rows and therefore a genuine independent measurement, not an imputed group mean."
+    },
+    "artifacts/Source_Data_updated.xlsx#Mastersheet!O2": {
+      "value": 618.2791242655322,
+      "source_artifact": "artifacts/Source_Data_updated.xlsx",
+      "source_artifact_hash": "02f1d639e06eba5a2aca29fc9895b517c22038679590fd6a1b1e56d6ecacc2b8",
+      "source_span": "sheet 'Mastersheet', O2 (TOP) in the corrected deposit: unchanged at 618.2791242655322. Real observations were not touched by the imputation fix."
+    },
+    "artifacts/Source_Data_original.xlsx#Mastersheet!H2": {
+      "value": 6.605,
+      "source_artifact": "artifacts/Source_Data_original.xlsx",
+      "source_artifact_hash": "df140f54aa78d803f327e968a912c378ab660dc98d095fc262389679a2bd41f9",
+      "source_span": "sheet 'Mastersheet', H2 (pH) for sample P1H10-I. pH=6.605. The pH column was not part of the imputed CO2-leak set and is byte-identical across the original and corrected deposits (72/72 rows)."
+    },
+    "artifacts/Source_Data_updated.xlsx#Mastersheet!H2": {
+      "value": 6.605,
+      "source_artifact": "artifacts/Source_Data_updated.xlsx",
+      "source_artifact_hash": "02f1d639e06eba5a2aca29fc9895b517c22038679590fd6a1b1e56d6ecacc2b8",
+      "source_span": "sheet 'Mastersheet', H2 (pH) in the corrected deposit: unchanged at 6.605."
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "soilwarming_p_impute_ann_001",
+      "claim_id": "soilwarming_p_impute_claim_001",
+      "claim_atom": "In the original Dryad deposit (Source_Data_original_v7, Mastersheet) the total-organic-phosphorus reading for sample P1H20-III is O51=341.9238147669521 mg/kg. Cells O57 (sample P4H20-III) and O59 (sample P5H20-III) hold the byte-identical value to all 15 significant figures. These three samples belong to DIFFERENT phosphorus-addition treatment groups (P1/P4/P5) at the same soil depth (20 cm) and season (Oct), so they are independent field replicates that cannot share a wet-chemistry measurement to machine precision. The author-supplied correction (Dryad v12) replaces this exact cell with NA and confirms the mechanism: 13 samples affected by CO2 leakage during sulphuric-acid extraction (from calcareous soils) produced anomalous values that were silently replaced, at analysis time, by the mean of the remaining within-treatment-group replicates — an undisclosed imputation that manufactured the repeated values. This is invisible to file-internal numeric detectors that compare COLUMNS: (1) the duplicate-column detector looks for two whole columns that are byte-identical or offset — but here the repetition is WITHIN a single column (TOP), across scattered rows; (2) fixed-offset / paired-ratio detectors seek column-to-column arithmetic relations — none exists; (3) feeding the original TOP series vs the corrected TOP series to the relationship verifier returns 'independent' (the corrected series has NA at the imputed loci, so it is neither equal, offset, nor linearly related). Detecting it requires the domain fact that independent field replicates should not coincide to 15 sig figs, plus the correction notice — not a numeric column relationship.",
+      "source_artifact": "artifacts/Source_Data_original.xlsx#Mastersheet!O51",
+      "target_artifact": "artifacts/Source_Data_updated.xlsx#Mastersheet!O51",
+      "source_a1_range": "O51:O51",
+      "target_a1_range": "O51:O51",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "undisclosed_imputation",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "inconsistent: 原始 deposit の TOP 列で O51(P1H20-III)=O57(P4H20-III)=O59(P5H20-III)=341.9238147669521 が 15 桁完全一致。異なるリン添加処理群の独立フィールド反復が湿式化学測定で 15 桁一致することは不可能。著者修正版(Dryad v12)は当該セルを NA に置換し、CO2 漏れ異常値を群内平均で未開示に補完(imputation)していたことを確認。B3 検出器は列間関係(重複列/定数オフセット/比率)を探すが、これは単一列(TOP)内の散在行の反復であり、original vs corrected 系列は independent 判定→no_flag。発見には『独立反復は 15 桁一致しない』という領域知識+修正通知が必要。"
+    },
+    {
+      "annotation_id": "soilwarming_p_impute_ann_002",
+      "claim_id": "soilwarming_p_impute_claim_002",
+      "claim_atom": "The total-organic-phosphorus reading O2=618.2791242655322 mg/kg for sample P1H10-I is unique across all 72 rows of the Mastersheet — it is not shared with any other sample — and is therefore a genuine independent measurement rather than an imputed within-group mean. It is byte-identical between the original deposit and the author-corrected deposit, exactly as expected for a real observation that the imputation fix left untouched (only the 13 CO2-leak samples were converted to NA). This value's stability across versions is consistent.",
+      "source_artifact": "artifacts/Source_Data_original.xlsx#Mastersheet!O2",
+      "target_artifact": "artifacts/Source_Data_updated.xlsx#Mastersheet!O2",
+      "source_a1_range": "O2:O2",
+      "target_a1_range": "O2:O2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "consistent(clean): O2=618.2791242655322 は 72 行中で一意=真の独立観測であり群内平均補完ではない。原始・修正両版で完全一致し、補完修正が真の観測値に触れていないこと(NA 化されたのは CO2 漏れ 13 サンプルのみ)と整合。clean claim。"
+    },
+    {
+      "annotation_id": "soilwarming_p_impute_ann_003",
+      "claim_id": "soilwarming_p_impute_claim_003",
+      "claim_atom": "The pH column was not part of the CO2-leak imputation. pH for sample P1H10-I is H2=6.605 in both the original and corrected deposits, and the entire pH column is byte-identical across all 72 rows between versions. Only the phosphorus-fractionation measurements affected by acid-extraction CO2 leakage were imputed; independent soil properties such as pH were measured directly and left unchanged, so this value's agreement across versions is consistent.",
+      "source_artifact": "artifacts/Source_Data_original.xlsx#Mastersheet!H2",
+      "target_artifact": "artifacts/Source_Data_updated.xlsx#Mastersheet!H2",
+      "source_a1_range": "H2:H2",
+      "target_a1_range": "H2:H2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "consistent(clean): pH 列は CO2 漏れ補完の対象外。H2=6.605 は両版一致、pH 列全体が 72/72 行一致。酸抽出 CO2 漏れの影響を受けたリン分画測定のみ補完され、pH のような独立測定は直接測定され不変。clean claim。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "soilwarming_p_impute",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41467-023-36527-8",
+    "_correction_doi": "Dryad doi:10.5061/dryad.9p8cz8wk8 (original v7 2023-02-03 vs corrected v12 2026-04-30)",
+    "_pubpeer_url": "https://pubpeer.com/publications/A4EA392A36C5B717722B04A91E2773",
+    "_correction_text": "Author response on PubPeer: 13 samples were affected by CO2 leakage during sulphuric-acid extraction (calcareous soils), producing anomalous values that were replaced at analysis time with the mean of the remaining within-treatment-group replicates (an undisclosed imputation), creating repeated identical values. Re-analysing with NA in place of the imputed means leaves at least 59/72 valid observations and the results remain robust.",
+    "_lane": "Detector-disjoint holdout case (undisclosed_imputation / #8). Anomaly = CO2-leak outliers silently replaced by within-group means, manifesting as scattered 15-sig-fig-identical values WITHIN the TOP column across different treatment groups. Out-of-family: not a duplicate column, constant offset, paired ratio, or cross-sheet copy. Requires the domain fact that independent replicates cannot coincide to machine precision + the author correction to detect.",
+    "_grounding_summary": "openpyxl-parsed both Dryad deposits locally. Original TOP (col O): O9=O11, O19=O23, O27=O35, O51=O57=O59, O63=O71=O73 (each group 15-sig-fig identical). Corrected v12: all 13 of these cells -> NA. Unique real TOP values (e.g. O2=618.279...) and the entire pH column (72/72) are byte-identical across versions. Confirms only the imputed CO2-leak cells changed.",
+    "_detector_note": "undisclosed_imputation is outside the B3 detector family (duplicate-column / fixed-offset / paired-ratio / cross-sheet-reuse). The repetition is WITHIN a single column across scattered rows, not a relation between two columns; and the single-cell claim loci (O51:O51 etc.) fall under the len<2 guard. The original TOP series vs corrected TOP series is 'independent' (corrected has NA at imputed loci). Expected B3: no_flag on all claims.",
+    "_signed_by": "wuguandu @ 2026-07-18; Dryad v7/v12 deposits on server pubpeer-archive, parsed locally with openpyxl, imputation loci and NA-replacement verified against PubPeer thread A4EA392A36C5B717722B04A91E2773. NOTE: TP vs TIP+TOP apparent mismatch is a unit difference (TP in g/kg, TIP/TOP in mg/kg) and is NOT used as an anomaly."
+  }
+}

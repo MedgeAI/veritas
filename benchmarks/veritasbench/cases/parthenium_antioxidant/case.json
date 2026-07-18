@@ -1,0 +1,111 @@
+{
+  "case_id": "parthenium_antioxidant",
+  "paper_title": "Thermal stress and antioxidant enzyme activity in Parthenium beetles (biologically impossible repeated per-larva enzyme values)",
+  "paper_authors": [
+    "Physiological Entomology (2025); DOI 10.1111/phen.12475. PubPeer-reported value-substitution / sample-count inconsistency (Dryad doi:10.5061/dryad.4mw6m90mp)."
+  ],
+  "artifacts": {
+    "experimental_data": {
+      "path": "artifacts/Experimental_Data.xlsx",
+      "sha256": "1f0cc999f97772087a713cecec93039dc5d95204c4c22fbd9e816ecd133d6fa3",
+      "kind": "source_data",
+      "original_filename": "Experimental_Data.xlsx",
+      "download_url": "https://datadryad.org/stash/dataset/doi:10.5061/dryad.4mw6m90mp",
+      "note": "Dryad deposit. Sheet 'DATA': 350 rows, each nominally one independent larva, columns Duration/Setup/Stage/SOD(D)/CAT(E)/LPO(F). PubPeer reports biologically impossible repeated values: e.g. SOD is identical to 15 sig figs between different larvae in the same treatment group, and CAT values repeat with a single altered digit."
+    }
+  },
+  "observations": {
+    "artifacts/Experimental_Data.xlsx#DATA!D61": {
+      "value": 0.21938013442867818,
+      "source_artifact": "artifacts/Experimental_Data.xlsx",
+      "source_artifact_hash": "1f0cc999f97772087a713cecec93039dc5d95204c4c22fbd9e816ecd133d6fa3",
+      "source_span": "sheet 'DATA', D61 (SOD superoxide-dismutase activity) for the larva in row 61 (Setup=Cold, Stage=Second). SOD=0.21938013442867818 to 15 significant figures — byte-identical to D55 (a different larva, also Cold/Second). Each row is supposed to be an independent larva."
+    },
+    "artifacts/Experimental_Data.xlsx#DATA!D55": {
+      "value": 0.21938013442867818,
+      "source_artifact": "artifacts/Experimental_Data.xlsx",
+      "source_artifact_hash": "1f0cc999f97772087a713cecec93039dc5d95204c4c22fbd9e816ecd133d6fa3",
+      "source_span": "sheet 'DATA', D55 (SOD) for the larva in row 55 (Setup=Cold, Stage=Second). SOD=0.21938013442867818 — identical to D61. Two independent larvae cannot yield an assay value equal to 15 significant figures; PubPeer flags this as a copy-pasted / substituted value."
+    },
+    "artifacts/Experimental_Data.xlsx#DATA!D2": {
+      "value": 0.2286045627376426,
+      "source_artifact": "artifacts/Experimental_Data.xlsx",
+      "source_artifact_hash": "1f0cc999f97772087a713cecec93039dc5d95204c4c22fbd9e816ecd133d6fa3",
+      "source_span": "sheet 'DATA', D2 (SOD) for the larva in row 2 (Setup=Control, Stage=Second). SOD=0.2286045627376426 — a value unique across all 350 rows, i.e. a genuine independent measurement not shared with any other larva."
+    },
+    "artifacts/Experimental_Data.xlsx#DATA!E3": {
+      "value": 121.97297719571615,
+      "source_artifact": "artifacts/Experimental_Data.xlsx",
+      "source_artifact_hash": "1f0cc999f97772087a713cecec93039dc5d95204c4c22fbd9e816ecd133d6fa3",
+      "source_span": "sheet 'DATA', E3 (CAT catalase activity) for the larva in row 3 (Setup=Control, Stage=Second). CAT=121.97297719571615 — a value unique across all 350 rows, a genuine independent measurement."
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "parthenium_antioxidant_ann_001",
+      "claim_id": "parthenium_antioxidant_claim_001",
+      "claim_atom": "In the raw data (Experimental_Data.xlsx, sheet 'DATA'), each of the 350 rows is presented as one independent larva, and the paper's ANOVA uses df that imply ~350 independent samples. Yet the SOD activity for the larva in row 61 (Cold/Second) is D61=0.21938013442867818, byte-identical to 15 significant figures to the larva in row 55 (also Cold/Second, D55=0.21938013442867818). An enzyme assay on two independently prepared larval homogenates cannot return a value equal to machine precision. This is not an isolated coincidence: across the 350 rows only 311 of the SOD values, 301 of the CAT values, and 291 of the LPO values are unique, and the repeats do not co-occur row-wise (a given row matches different rows in SOD, CAT and LPO), which rules out honest whole-row duplication and points to per-cell value substitution. PubPeer additionally documents CAT values repeated with a single altered digit (e.g. 140.49263461576285 at rows 52/54/56/57/59 vs 130.492634615763 at row 61). This anomaly is out of scope for the file-internal COLUMN detectors: (1) the duplicate-column detector compares whole columns for byte-identity or offset — no whole column is a duplicate here; the repeats are scattered WITHIN each column at different rows; (2) fixed-offset / paired-ratio detectors look for column-to-column arithmetic relations — none exists; (3) the claim loci are single cells (D61, D55), which the relationship verifier treats as too-short-to-relate and returns 'independent'. Detecting it requires the biological fact that independent per-larva assays cannot coincide to 15 sig figs, plus a within-column uniqueness/sample-count audit against the stated df — not a column relationship.",
+      "source_artifact": "artifacts/Experimental_Data.xlsx#DATA!D61",
+      "target_artifact": "artifacts/Experimental_Data.xlsx#DATA!D55",
+      "source_a1_range": "D61:D61",
+      "target_a1_range": "D55:D55",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "value_substitution",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "inconsistent: 各行が独立した幼虫 1 個体を表すはずだが、row61(Cold/Second)の SOD D61=0.21938013442867818 が row55(同 Cold/Second)の D55 と 15 桁完全一致。独立に調製した幼虫ホモジネートの酵素アッセイが機械精度で一致することは生物学的に不可能。350 行中 SOD ユニーク値は 311、CAT 301、LPO 291 のみで、重複は行単位で揃わない(行ごとに SOD/CAT/LPO が別々の行と一致)→ 正直な行複製ではなくセル単位の値置換。CAT は 1 桁改変の反復も存在(140.4926→130.4926)。B3 検出器は列間関係を探すが、これは列内の散在行の反復であり、単一セル(D61/D55)は短すぎて independent 判定→no_flag。発見には『独立個体アッセイは 15 桁一致しない』生物学的事実+列内ユニーク性/サンプル数監査が必要。"
+    },
+    {
+      "annotation_id": "parthenium_antioxidant_ann_002",
+      "claim_id": "parthenium_antioxidant_claim_002",
+      "claim_atom": "The SOD activity for the larva in row 2 (Control/Second) is D2=0.2286045627376426, a value that is unique across all 350 rows of the DATA sheet — it is not shared with any other larva. This is exactly what a genuine independent per-larva measurement should look like: high-precision floating-point assay output with no exact partner elsewhere in the column. Its uniqueness is consistent with an honest measurement.",
+      "source_artifact": "artifacts/Experimental_Data.xlsx#DATA!D2",
+      "target_artifact": "artifacts/Experimental_Data.xlsx#DATA!D2",
+      "source_a1_range": "D2:D2",
+      "target_a1_range": "D2:D2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "consistent(clean): row2(Control/Second)の SOD D2=0.2286045627376426 は 350 行中で一意=他のどの幼虫とも共有しない。真の独立個体測定が持つべき性質(高精度浮動小数点で列内に完全一致相手なし)と整合。clean claim。"
+    },
+    {
+      "annotation_id": "parthenium_antioxidant_ann_003",
+      "claim_id": "parthenium_antioxidant_claim_003",
+      "claim_atom": "The CAT (catalase) activity for the larva in row 3 (Control/Second) is E3=121.97297719571615, a value unique across all 350 rows. Unlike the CAT values at rows 52/54/56/57/59 (all exactly 140.49263461576285) and the single-digit-altered 130.492634615763 at row 61 that PubPeer flags, this measurement has no exact or near-exact partner in the column and is consistent with a genuine independent catalase assay.",
+      "source_artifact": "artifacts/Experimental_Data.xlsx#DATA!E3",
+      "target_artifact": "artifacts/Experimental_Data.xlsx#DATA!E3",
+      "source_a1_range": "E3:E3",
+      "target_a1_range": "E3:E3",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "consistent(clean): row3(Control/Second)の CAT E3=121.97297719571615 は 350 行中で一意。PubPeer が指摘する rows52/54/56/57/59(全て 140.4926)や 1 桁改変の row61(130.4926)と異なり、列内に完全/近似一致相手がなく真の独立カタラーゼアッセイと整合。clean claim。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "parthenium_antioxidant",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1111/phen.12475",
+    "_pubpeer_url": "https://pubpeer.com/publications/FF61AC6C0D8B0DA3452B6FAEF244B5",
+    "_pubpeer_gt": "row61 SOD=row55 SOD (0.21938013442867818, 15 sig figs); CAT rows52/54/56/57/59=140.49263461576285 vs row61=130.492634615763 (single altered digit); row61 LPO=row56 LPO (0.23014401517764746). ~1/8 of values non-unique. ANOVA df=349 (implies 350 independent samples) but unique SOD/CAT/LPO = 311/301/291.",
+    "_lane": "Detector-disjoint holdout case (value_substitution + sample_count_mismatch / #4;#7). Anomaly = per-cell values copy-pasted between different larvae WITHIN a column (some with a single altered digit), so the stated per-larva sample count exceeds the true number of independent observations. Out-of-family: not a duplicate column, constant offset, paired ratio, or cross-sheet copy; single-cell claim loci fall under the len<2 verifier guard. Requires the biological fact that independent assays cannot coincide to 15 sig figs + a within-column uniqueness audit.",
+    "_grounding_summary": "openpyxl-parsed the DATA sheet locally (350 rows). Verified PubPeer claims: D61==D55=0.21938013442867818; E52=E54=E56=E57=E59=140.49263461576285, E61=130.492634615763; F61==F56=0.23014401517764746. Unique-value counts: SOD 311/350, CAT 301/350, LPO 291/350 — repeats scattered within columns, not aligned row-wise. Clean anchors D2 and E3 are unique across all 350 rows.",
+    "_detector_note": "value_substitution / sample_count_mismatch is outside the B3 detector family (duplicate-column / fixed-offset / paired-ratio / cross-sheet-reuse). The repeats are WITHIN a column at scattered rows (not a column-to-column relation), and all claim loci are single cells that the relationship verifier scores as 'independent' (length < 2). Expected B3: no_flag on all claims. NOTE: a naive pairwise row scan WOULD find the exact SOD/LPO repeats, but the B3 node-forensics detector operates on the adapter-fed src/tgt series per claim, where single cells never fire — this is precisely why the anomaly is disjoint from the deployed detector.",
+    "_signed_by": "wuguandu @ 2026-07-18; Dryad deposit on server pubpeer-archive, parsed locally with openpyxl, all repeated/unique loci verified against PubPeer thread FF61AC6C0D8B0DA3452B6FAEF244B5."
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "case_id": "drosophila_chillcoma",
+  "paper_title": "Natural selection on body coloration in Drosophila suzukii (chill-coma recovery sample counts contradict the stated per-group n)",
+  "paper_authors": [
+    "Biological Journal of the Linnean Society (2025); DOI 10.1093/biolinnean/blaf057. PubPeer-reported sample-count inconsistency (Dryad doi:10.5061/dryad.c866t1ghd)."
+  ],
+  "artifacts": {
+    "data": {
+      "path": "artifacts/data.xlsx",
+      "sha256": "526dbacc5c88c674b348f62ff2458a8649f68ada4466434fec12635e37da9800",
+      "kind": "source_data",
+      "original_filename": "data.xlsx",
+      "download_url": "https://datadryad.org/stash/dataset/doi:10.5061/dryad.c866t1ghd",
+      "note": "Dryad deposit. Sheet 'chill coma recovery duration(s)' has 6 columns (15/20/25 C x male/female). The paper's Methods state 100 males and 100 females per temperature were used for the chill-coma assay, but the recorded per-column counts are 74/223/14/51/99/138 — far from 100, most severely 20 C male n=14."
+    }
+  },
+  "observations": {
+    "artifacts/data.xlsx#chill coma recovery duration(s)!C2": {
+      "value": 102.55,
+      "source_artifact": "artifacts/data.xlsx",
+      "source_artifact_hash": "526dbacc5c88c674b348f62ff2458a8649f68ada4466434fec12635e37da9800",
+      "source_span": "sheet 'chill coma recovery duration(s)', C2 — first recorded chill-coma recovery duration (seconds) for the 20 C male group. Column C (C2:C15) holds exactly 14 non-empty individual measurements; C16 onward is empty. The stated per-group n in the paper's Methods is 100 males per temperature."
+    },
+    "artifacts/data.xlsx#chill coma recovery duration(s)!C2:C15": {
+      "value": 14,
+      "source_artifact": "artifacts/data.xlsx",
+      "source_artifact_hash": "526dbacc5c88c674b348f62ff2458a8649f68ada4466434fec12635e37da9800",
+      "source_span": "sheet 'chill coma recovery duration(s)', C2:C15 — the full block of individual 20 C male chill-coma measurements; 14 non-empty rows = actual n=14 for this group (vs the stated 100). This group is also cited in the Methods as supplying the 30 individuals needed for a mate-choice experiment, which n=14 cannot satisfy."
+    },
+    "artifacts/data.xlsx#chill coma recovery duration(s)!E2": {
+      "value": 122.36,
+      "source_artifact": "artifacts/data.xlsx",
+      "source_artifact_hash": "526dbacc5c88c674b348f62ff2458a8649f68ada4466434fec12635e37da9800",
+      "source_span": "sheet 'chill coma recovery duration(s)', E2 — first recorded chill-coma recovery duration for the 25 C male group. Column E (E2:E100) holds 99 non-empty measurements, essentially matching the stated n=100 for this group."
+    },
+    "artifacts/data.xlsx#chill coma recovery duration(s)!E2:E100": {
+      "value": 99,
+      "source_artifact": "artifacts/data.xlsx",
+      "source_artifact_hash": "526dbacc5c88c674b348f62ff2458a8649f68ada4466434fec12635e37da9800",
+      "source_span": "sheet 'chill coma recovery duration(s)', E2:E100 — the full block of 25 C male measurements; 99 non-empty rows = n=99, consistent (within one individual) with the stated 100 per group."
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "drosophila_chillcoma_ann_001",
+      "claim_id": "drosophila_chillcoma_claim_001",
+      "claim_atom": "The paper's Methods state that 100 males and 100 females of D. suzukii per temperature were assayed for chill-coma recovery. In the raw data (data.xlsx, sheet 'chill coma recovery duration(s)'), the 20 C male group (column C, C2:C15) contains only 14 individual measurements — the first is C2=102.55 s and the column is empty from C16. n=14 is nowhere near the stated 100. The discrepancy is compounded because the Methods also cite the 20 C male group as the source of the 30 individuals required for a mate-choice experiment, which a pool of 14 cannot supply. Across all six groups the recorded counts are 74/223/14/51/99/138, none of which is 100. This is a sample_count_mismatch, invisible to the file-internal numeric detectors: (1) the duplicate-column detector compares columns for byte-identity or offset — irrelevant, no values are duplicated; (2) fixed-offset / paired-ratio detectors look for arithmetic relations between columns — none is at issue; (3) the anomaly is a COUNT of rows versus a number stated only in the paper's prose, not any numeric relationship inside the file, so a src-vs-tgt value comparison on the claim locus (single cell C2) returns 'independent'. Detecting it requires reading the stated per-group n from the Methods and counting the non-empty rows in the corresponding column.",
+      "source_artifact": "artifacts/data.xlsx#chill coma recovery duration(s)!C2",
+      "target_artifact": "artifacts/data.xlsx#chill coma recovery duration(s)!C2:C15",
+      "source_a1_range": "C2:C2",
+      "target_a1_range": "C2:C2",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "sample_count_mismatch",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->methods",
+      "_adjudication": "inconsistent: 論文 Methods は各温度で雄 100・雌 100 を chill-coma アッセイに用いたと記載。生データの 20 C 雄群(列 C, C2:C15)は 14 個体のみ(C2=102.55、C16 以降空)で、記載 100 と大きく矛盾。さらに 20 C 雄群は 30 個体を要する mate-choice 実験の供給源とも記載され、14 では不可能。全 6 群の実測数は 74/223/14/51/99/138 で 100 の群は皆無。B3 検出器はファイル内数値列関係を探すが、これは行数 vs 論文本文記載 n という異種比較であり、単一セル C2 は independent 判定→no_flag。発見には Methods の記載 n を読み、対応列の非空行を数える必要がある。"
+    },
+    {
+      "annotation_id": "drosophila_chillcoma_ann_002",
+      "claim_id": "drosophila_chillcoma_claim_002",
+      "claim_atom": "The 25 C male group (column E, E2:E100) contains 99 individual chill-coma measurements, the first being E2=122.36 s. This is within one individual of the stated per-group n=100 and is therefore consistent with the Methods — a minor, biologically ordinary shortfall (one individual lost or excluded) rather than a structural discrepancy. Unlike the 20 C male group (n=14), this group's recorded count matches the stated design.",
+      "source_artifact": "artifacts/data.xlsx#chill coma recovery duration(s)!E2",
+      "target_artifact": "artifacts/data.xlsx#chill coma recovery duration(s)!E2:E100",
+      "source_a1_range": "E2:E2",
+      "target_a1_range": "E2:E2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->methods",
+      "_adjudication": "consistent(clean): 25 C 雄群(列 E, E2:E100)は 99 個体(E2=122.36)で、記載 n=100 と 1 個体差=生物学的に通常の欠損範囲であり Methods と整合。20 C 雄群(n=14)と異なり構造的矛盾なし。clean claim。"
+    },
+    {
+      "annotation_id": "drosophila_chillcoma_ann_003",
+      "claim_id": "drosophila_chillcoma_claim_003",
+      "claim_atom": "The first recorded 20 C male chill-coma value C2=102.55 s is itself an ordinary, in-range measurement: chill-coma recovery durations for males across the dataset span roughly 100-160 s, and 102.55 s sits at the low end, entirely plausible for an individual fly. The value at this locus is not itself anomalous — the problem with the 20 C male group is the number of such values (14, not 100), not any individual reading. Treated as a single measurement, C2 is consistent with the data distribution.",
+      "source_artifact": "artifacts/data.xlsx#chill coma recovery duration(s)!C2",
+      "target_artifact": "artifacts/data.xlsx#chill coma recovery duration(s)!E2",
+      "source_a1_range": "C2:C2",
+      "target_a1_range": "E2:E2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "consistent(clean): 20 C 雄群の最初の値 C2=102.55 s 自体は正常な範囲内の測定(雄の chill-coma は概ね 100-160 s、102.55 は低め端で妥当)。20 C 雄群の問題は値の個数(14 であって 100 でない)であり個々の測定値ではない。単一測定として C2 はデータ分布と整合。clean claim。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "drosophila_chillcoma",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1093/biolinnean/blaf057",
+    "_pubpeer_url": "https://pubpeer.com/publications/E0C3ACCE04DFB62D5FEF4EFE7DEB8B",
+    "_pubpeer_gt": "Methods state 100 males + 100 females per temperature for chill-coma recovery, but Sheet2 'chill coma recovery duration(s)' records per-group n of 14-223 (74/223/14/51/99/138). 20 C male n=14 but is cited as supplying 30 individuals for a mate-choice experiment.",
+    "_lane": "Detector-disjoint holdout case (sample_count_mismatch / #7). Anomaly = the number of recorded individuals per group contradicts the stated design n (100/group), most severely 20 C male n=14. Out-of-family: this is a count-of-rows vs stated-n discrepancy, not any numeric relationship inside the file; single-cell claim loci fall under the len<2 verifier guard.",
+    "_grounding_summary": "openpyxl-parsed the chill-coma sheet locally. Per-column non-empty counts: 15 C male 74, 15 C female 223, 20 C male 14, 20 C female 51, 25 C male 99, 25 C female 138. C2=102.55 (20 C male first), E2=122.36 (25 C male first). Confirms 20 C male n=14 vs stated 100, and 25 C male n=99 ~ 100.",
+    "_detector_note": "sample_count_mismatch is outside the B3 detector family (duplicate-column / fixed-offset / paired-ratio / cross-sheet-reuse). The discrepancy is between a row count and a number stated only in the paper prose; there is no in-file column relationship to fire on, and all claim loci are single cells scored as 'independent' (length < 2). Expected B3: no_flag on all claims.",
+    "_signed_by": "wuguandu @ 2026-07-18; Dryad deposit on server pubpeer-archive, parsed locally with openpyxl, per-group counts verified against PubPeer thread E0C3ACCE04DFB62D5FEF4EFE7DEB8B."
+  }
+}

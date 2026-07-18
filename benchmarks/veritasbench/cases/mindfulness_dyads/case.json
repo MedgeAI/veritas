@@ -1,0 +1,120 @@
+{
+  "case_id": "mindfulness_dyads",
+  "paper_title": "Breath-Focused Mindfulness and Compassion Training in Parent-Child Dyads (silently replaced neural dataset after duplicate child EEG triples were flagged)",
+  "paper_authors": [
+    "JMIR Formative Research (2025); DOI 10.2196/69607. PubPeer-reported silent data replacement (Dryad doi:10.5061/dryad.9ghx3ffss; original v8/v11 2025-05 vs silently updated v12 2025-12-12, no changelog)."
+  ],
+  "artifacts": {
+    "orig_v8": {
+      "path": "artifacts/CoCo_pre.xlsx",
+      "sha256": "993c8190f303902e59fd8e2e907d232669a2882fcb9c76e36ddbb1e85b18a697",
+      "kind": "source_data",
+      "original_filename": "CoCo_ms_Dataset_Revised_Dryad_Submission.xlsx",
+      "download_url": "https://datadryad.org/stash/dataset/doi:10.5061/dryad.9ghx3ffss",
+      "note": "Original Dryad deposit v8 (2025-05-12, unchanged through v11). Sheet 'Neural' lists per-dyad EEG network activity (FPN/CON/DMN, pre and post). Among the Child dyads several FPN/CON/DMN pre- and post-intervention triples are byte-identical between different children (e.g. PJ2==PJ24 pre-triple, PJ3==PJ9 pre-triple)."
+    },
+    "silent_v12": {
+      "path": "artifacts/CoCo_post.xlsx",
+      "sha256": "e2005d34f8393c6fe905f65c85dff1ae9cb2b76522a35eae0f257baac90fc994",
+      "kind": "source_data",
+      "original_filename": "Updated_CoCo_ms_Dataset_Dryad_12122025.xlsx",
+      "download_url": "https://datadryad.org/stash/dataset/doi:10.5061/dryad.9ghx3ffss",
+      "note": "Silently updated deposit v12 (2025-12-12, ~1 month after the PubPeer comment), renamed with the date encoded in the filename and with a new checksum, but NO changelog on Dryad. Sheet is renamed 'Neural_Corrected', an unexplained 'Original_Dyad_ID' column is added, one child dyad is dropped (19->18), and the duplicate triples are gone."
+    }
+  },
+  "observations": {
+    "artifacts/CoCo_pre.xlsx#Neural!C10": {
+      "value": 0.001894673,
+      "source_artifact": "artifacts/CoCo_pre.xlsx",
+      "source_artifact_hash": "993c8190f303902e59fd8e2e907d232669a2882fcb9c76e36ddbb1e85b18a697",
+      "source_span": "sheet 'Neural', C10 (FPN_pre) for Child dyad PJ2. In the original deposit FPN_pre=0.001894673. The full pre-intervention triple (FPN/CON/DMN = 0.001894673, -0.000504572, 0.001540035) at C10:E10 is byte-identical to that of a different child, PJ24 (C13:E13)."
+    },
+    "artifacts/CoCo_post.xlsx#Neural_Corrected!D10": {
+      "value": 0.0004470315547129098,
+      "source_artifact": "artifacts/CoCo_post.xlsx",
+      "source_artifact_hash": "e2005d34f8393c6fe905f65c85dff1ae9cb2b76522a35eae0f257baac90fc994",
+      "source_span": "sheet 'Neural_Corrected', D10 (FPN_pre) for the same Child dyad PJ2 (Original_Dyad_ID=PJ2). In the silently-updated deposit FPN_pre=0.0004470315547129098 — a completely different value from the original 0.001894673, with no changelog explaining the change. The duplicate-partner dyad PJ24 has been dropped (its FPN_pre is now empty)."
+    },
+    "artifacts/CoCo_pre.xlsx#Neural!C4": {
+      "value": 0.00078149,
+      "source_artifact": "artifacts/CoCo_pre.xlsx",
+      "source_artifact_hash": "993c8190f303902e59fd8e2e907d232669a2882fcb9c76e36ddbb1e85b18a697",
+      "source_span": "sheet 'Neural', C4 (FPN_pre) for Child dyad PJ12. FPN_pre=0.00078149 — a value not involved in any duplicate triple in the original deposit."
+    },
+    "artifacts/CoCo_post.xlsx#Neural_Corrected!D4": {
+      "value": 0.0006276536704781411,
+      "source_artifact": "artifacts/CoCo_post.xlsx",
+      "source_artifact_hash": "e2005d34f8393c6fe905f65c85dff1ae9cb2b76522a35eae0f257baac90fc994",
+      "source_span": "sheet 'Neural_Corrected', D4 (FPN_pre) for Child dyad PJ12 (Original_Dyad_ID=PJ12). FPN_pre=0.0006276536704781411 in the updated deposit."
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "mindfulness_dyads_ann_001",
+      "claim_id": "mindfulness_dyads_claim_001",
+      "claim_atom": "In the original Dryad deposit (CoCo_pre.xlsx, sheet 'Neural'), the FPN_pre EEG value for Child dyad PJ2 is C10=0.001894673, and the full pre-intervention triple (FPN/CON/DMN pre) for PJ2 is byte-identical to that of a different child, PJ24 — one of several such identical child triples (PJ2==PJ24 and PJ3==PJ9 pre; PJ1==PJ95, PJ19==PJ22, PJ24==PJ8 post) affecting 5-6 of 19 child dyads. The paper's headline finding — a significant pre-to-post drop in DMN activity 'driven primarily by the children' — rests exactly on these child data. After a PubPeer comment flagged the duplicates (2025-11-09), the authors silently replaced the Dryad file (2025-12-12): the same cell now reads FPN_pre=0.0004470315547129098 in the 'Neural_Corrected' sheet, the duplicate-partner dyad PJ24 is dropped (19->18), an unexplained 'Original_Dyad_ID' column is added, and NO changelog or PubPeer response documents what changed. The provenance of the published value is thus contradicted: the number backing the analysis was silently swapped for a different one. This is out of scope for the file-internal COLUMN detectors when applied per-claim: (1) the duplicate-column detector compares whole columns for byte-identity or offset — the anomaly here is a cross-version replacement of a single cell, not a within-file column duplication; (2) fixed-offset / paired-ratio detectors seek arithmetic column relations — none links 0.001894673 to 0.000447...; (3) the claim locus is a single cell compared across two file versions, which the relationship verifier treats as too-short-to-relate and returns 'independent'. Detecting it requires diffing the two Dryad versions and knowing the silent replacement followed an integrity flag — external provenance reasoning, not a numeric pattern within one file. (Note: the raw within-file PJ2==PJ24 triple duplication WOULD be a duplicate-detector target if fed as two distinct multi-cell loci; this case is anchored on the cross-version silent replacement precisely so it exercises the provenance axis the detector family does not cover.)",
+      "source_artifact": "artifacts/CoCo_pre.xlsx#Neural!C10",
+      "target_artifact": "artifacts/CoCo_post.xlsx#Neural_Corrected!D10",
+      "source_a1_range": "C10:C10",
+      "target_a1_range": "D10:D10",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "provenance_mismatch",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "inconsistent: 原始 deposit の Child dyad PJ2 の FPN_pre C10=0.001894673、その pre 三元組は別の児童 PJ24 と完全一致(19 児童中 5-6 が重複に関与)。論文の目玉知見『DMN 活動の有意な pre→post 低下、主に児童が駆動』はまさにこの児童データに依存。PubPeer 指摘(2025-11-09)後、著者は ~1 ヶ月で Dryad ファイルを静默置換(2025-12-12): 同セルは 'Neural_Corrected' で 0.000447... に変わり、重複相手 PJ24 は削除(19→18)、未説明の Original_Dyad_ID 列追加、changelog も PubPeer 回答もなし。公表値の provenance が矛盾。単一セルの版間比較は len<2 で independent 判定→no_flag。発見には 2 版の diff+整合性フラグ後の静默置換という外部 provenance 推論が必要。"
+    },
+    {
+      "annotation_id": "mindfulness_dyads_ann_002",
+      "claim_id": "mindfulness_dyads_claim_002",
+      "claim_atom": "Child dyad PJ12's FPN_pre value was not part of any duplicate triple in the original deposit (C4=0.00078149) and, like most dyads, its value was adjusted in the silent update to D4=0.0006276536704781411 in the 'Neural_Corrected' sheet. Considered on its own as a single measurement, PJ12's original FPN_pre=0.00078149 is an ordinary in-range EEG network value (child FPN_pre values span roughly -1e-4 to 5e-3) with no exact partner in the original file — it is not itself one of the flagged duplicates. Treated as a plausible individual measurement, this value is consistent with the data distribution.",
+      "source_artifact": "artifacts/CoCo_pre.xlsx#Neural!C4",
+      "target_artifact": "artifacts/CoCo_pre.xlsx#Neural!C4",
+      "source_a1_range": "C4:C4",
+      "target_a1_range": "C4:C4",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "consistent(clean): Child dyad PJ12 の FPN_pre C4=0.00078149 は原始 deposit のどの重複三元組にも関与せず、児童 FPN_pre の通常範囲内(概ね -1e-4〜5e-3)で列内に完全一致相手なし。単一の妥当な個体測定として扱えばデータ分布と整合。clean claim(フラグされた重複ではない)。"
+    },
+    {
+      "annotation_id": "mindfulness_dyads_ann_003",
+      "claim_id": "mindfulness_dyads_claim_003",
+      "claim_atom": "In the silently-updated deposit, Child dyad PJ12's FPN_pre value D4=0.0006276536704781411 is a distinct, non-duplicated high-precision value that is internally consistent within the 'Neural_Corrected' sheet: it has no exact partner among the 18 retained child dyads, matching the expectation that the corrected file removed the duplicate triples. As a single retained measurement in the corrected dataset, this value is consistent with an honest per-child EEG reading.",
+      "source_artifact": "artifacts/CoCo_post.xlsx#Neural_Corrected!D4",
+      "target_artifact": "artifacts/CoCo_post.xlsx#Neural_Corrected!D4",
+      "source_a1_range": "D4:D4",
+      "target_a1_range": "D4:D4",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data->source_data",
+      "_adjudication": "consistent(clean): 修正版で Child dyad PJ12 の FPN_pre D4=0.0006276536704781411 は 18 児童中に完全一致相手のない高精度値で、修正ファイルが重複三元組を除去したという期待と整合。修正データセット内で保持された単一測定として妥当。clean claim。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "mindfulness_dyads",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.2196/69607",
+    "_pubpeer_url": "https://pubpeer.com/publications/A3A0B6DC3D0240024423B217F3171E",
+    "_pubpeer_gt": "19 Child dyads: FPN/CON/DMN pre-triples PJ2==PJ24 and PJ3==PJ9 byte-identical; post-triples PJ1==PJ95, PJ19==PJ22, PJ24==PJ8. DMN pre->post drop 'driven primarily by children' rests on these data. Data file silently replaced ~1 month after the 2025-11-09 comment (v12 2025-12-12): sheet renamed Neural_Corrected, Original_Dyad_ID column added, one dyad dropped, duplicates gone, no changelog or author response.",
+    "_lane": "Detector-disjoint holdout case (silent data replacement / provenance_mismatch; corpus tag #1;#3). Anchored on the CROSS-VERSION silent replacement of a published value (original 0.001894673 -> silent 0.000447...), not on the within-file triple duplication (which WOULD be a duplicate-detector target). Out-of-family as anchored: single-cell cross-version comparison, len<2 verifier guard, no in-file column relationship. Requires diffing two Dryad versions + knowing the replacement followed an integrity flag.",
+    "_grounding_summary": "openpyxl-parsed both Dryad versions locally. Original 'Neural' sheet: PJ2 (row10) pre-triple (0.001894673, -0.000504572, 0.001540035) == PJ24 (row13); PJ3 (row14) == PJ9 (row17). Post-triples PJ1==PJ95, PJ19==PJ22, PJ24==PJ8. Silent 'Neural_Corrected' sheet: PJ2 FPN_pre now 0.0004470315547129098, PJ24 dropped, Original_Dyad_ID column added, duplicates gone. Confirms the values backing the child-driven DMN finding were silently swapped.",
+    "_detector_note": "As anchored (single-cell cross-version), provenance_mismatch is outside the B3 detector family and all claim loci are single cells scored 'independent' (len<2). Expected B3: no_flag on all claims. Note the honest caveat in _lane: the within-file duplicate triples themselves are in-family if fed as multi-cell loci; the case is deliberately anchored on the silent replacement to exercise the provenance axis.",
+    "_ethics_note": "Neural sheet contains only de-identified child IDs (PJ+number) + derived network-activity metrics (FPN/CON/DMN), no raw EEG or identifiable personal information. Pediatric parent-child intervention study; no identifiable privacy data, but minors are the subjects — handled per standard de-identification norms.",
+    "_signed_by": "wuguandu @ 2026-07-18; both Dryad versions on server pubpeer-archive, parsed locally with openpyxl, duplicate triples and silent cross-version replacement verified against PubPeer thread A3A0B6DC3D0240024423B217F3171E. SHA256 placeholders to be filled from local artifacts."
+  }
+}
