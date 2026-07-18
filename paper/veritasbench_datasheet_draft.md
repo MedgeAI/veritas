@@ -8,10 +8,10 @@
 
 ## 2. Composition
 - **实例是什么**：一个 case = 一篇真实论文;每 case 含 artifacts(源数据/代码/表/图/PDF)+ observations(cell级抽取的事实)+ claims(typed relation L1–L4 + verdict)。
-- **规模**：68 case(manifest v1.0);217 claim;verdict 分布：140 consistent / 40 inconsistent / 37 insufficient。relation type：216 L1 / 1 L3。四桶：verifier_conflict 19 / false_positive_trap 19 / mixed_boundary 18 / grounding 12。
+- **规模**：73 case(manifest v1.1;含 detector-disjoint holdout v5 新增 5 案);232 claim;verdict 分布：150 consistent / 45 inconsistent / 37 insufficient。relation type：231 L1 / 1 L3。四桶：verifier_conflict 24 / false_positive_trap 19 / mixed_boundary 18 / grounding 12。
 - **发表年份**：2019–2026（众数 2020–2025；median 2022）。
-- **期刊/来源分布**：Nature Cell Biology 16 / Nature Communications 9 / Nature 7 / eLife 3 / Nature Cancer 3 / OSF/bioRxiv/Zenodo 11 / 其他 19（共 25+ 来源，见逐 case DOI 附录）。
-- **领域分布**（基于论文标题启发式分类）：Reproducibility/methods 15 / Neuroscience 12 / Oncology 9 / Cell biology/molecular biology 7 / Immunology 6 / RNA biology 5 / Microbiology/immunology 3 / 其余7类共11 case。
+- **期刊/来源分布**：Nature Cell Biology 16 / Nature Communications 11 / Nature 7 / OSF 5 / eLife 3 / Nature Cancer 3 / bioRxiv/medRxiv(10.1101) 3 / Zenodo 1 / J Ecology 1 / Biol J Linnean Soc 1 / Physiol Entomol 1 / JMIR 1 / 其余 Nature 子刊+期刊 20（共 30+ 来源，见逐 case DOI 附录）。detector-disjoint holdout v5 新增 5 案引入生态/昆虫生理/儿童心理神经等新来源。
+- **领域分布**（基于论文标题启发式分类）：Reproducibility/methods 15 / Neuroscience 12 / Oncology 9 / Cell biology/molecular biology 7 / Immunology 6 / RNA biology 5 / Ecology/environmental 3 / Microbiology/immunology 3 / Entomology/physiology 2 / Developmental psychology(儿童正念) 1 / 其余共10 case。（holdout v5 新增：昆虫生理 2 + 生态 1 + 土壤微生物 1 + 儿童心理神经 1）
 - **是否覆盖全体**:否;真实公开诚信案例的便利样本(见 §Limitations 采样偏差)。
 - **label**:claim 的 verdict(consistent/inconsistent/insufficient)+ evidence_span;GT 双验证(结构 validator + 逐值 cross-check,0 mismatch)。
 - **inter-annotator**:抽样双标 16案/50claim,**Cohen's κ = 0.924**（pre-codebook κ=0.755；codebook 发布后 κ=0.924；有效一致 49/50）。
@@ -21,13 +21,15 @@
 - **来源**：两类来源混合：
   1. **诚信问题案（inconsistent/verifier_conflict bucket）**：PubPeer 评论 → 作者更正通知（Author/Publisher Correction）→ 撤稿通知（Retraction Notice）。触发条件：有可锚定的 source data xlsx/csv + DOI 公开 + 已公开诚信状态。
   2. **诚实可复现案（consistent/grounding bucket）**：CODECHECK 审核通过论文 + 其他有开放代码/数据且结果可独立复现的论文。
-- **逐 case DOI 清单**（68 案，按 case_id 字母序，`*` 标 inconsistent 主案）：
+- **逐 case DOI 清单**（73 案，按 case_id 字母序，`*` 标 inconsistent 主案）：
 
 | case_id | DOI | 主要异常/类型 |
 |---|---|---|
+| drosophila_chillcoma* | 10.1093/biolinnean/blaf057 | sample_count_mismatch |
 | elife_neurexin_fig1b* | 10.7554/eLife.78649 | provenance_mismatch |
 | fp_raoyi | 10.1038/s42003-024-07449-y | false_positive_trap |
 | lin_grounding | 10.1038/s41551-022-00846-w | grounding |
+| mindfulness_dyads* | 10.2196/69607 | provenance_mismatch |
 | natcomm_florido_tac2* | 10.1038/s41467-021-22911-9 | label_swap |
 | natcomm_nguyen_mirna* | 10.1038/s41467-020-15674-2 | provenance_mismatch |
 | natcomm_petruk_tlr* | 10.1038/s41467-023-41702-y | figure_vs_sourcedata_count |
@@ -54,8 +56,10 @@
 | ncb_nelfa | 10.1038/s41556-019-0453-8 | — |
 | ncb_neurexin* | 10.7554/eLife.78649 | duplicated_row |
 | ncb_nickelate* | 10.1038/s41586-024-07996-8 | assignment_inconsistency |
+| np_grassland_pcoa* | 10.1111/1365-2745.70105 | misaligned_records |
 | ncb_pkcb | 10.1038/s41556-021-00818-3 | — |
 | ncb_psen2 | 10.1038/s41467-022-29653-2 | — |
+| parthenium_antioxidant* | 10.1111/phen.12475 | value_substitution |
 | ncb_rab22a | 10.1038/s41556-020-0522-z | — |
 | ncb_radioligand* | 10.1038/s41586-024-07461-6 | assignment_inconsistency |
 | ncb_rybp | 10.1038/s41556-020-0484-1 | — |
@@ -84,6 +88,7 @@
 | rep_rtkfeedback | 10.1038/s41589-024-01761-8 | — |
 | rep_samplesize | 10.31234/osf.io/cz32t | — |
 | rep_sarscov2 | 10.1038/s41598-021-85363-7 | — |
+| soilwarming_p_impute* | 10.1038/s41467-023-36527-8 | undisclosed_imputation |
 | rep_spatialniche | 10.1038/s41588-025-02080-x | — |
 | rep_spatialtx | 10.1101/2025.08.12.669903 | — |
 | rep_svaretro | 10.46471/gigabyte.70 | — |
@@ -117,7 +122,8 @@
   - *Source data artifacts*（xlsx/csv 文件）：逐 case 分类如下——
     - **Nature/Springer Open Access 文章的 Source Data**（ncb_*/natcomm_* 大多数）：原文标注 CC BY 4.0；可随 benchmark 再分发，须标注原文 DOI + 期刊版权声明。
     - **eLife Source Data**（elife_neurexin_fig1b, ncb_neurexin, rep_zebrafish）：CC BY 4.0；同上。
-    - **OSF/Zenodo 存档**（rep_a8rmu 等）：需逐案核 deposit license；多数为 CC BY 4.0 或 CC0，但须确认。`[吴关渡逐案确认]`
+    - **OSF/Zenodo 存档**（rep_a8rmu/rep_catcolors/rep_mqg86/rep_samplesize/rep_wkzsn/rep_detorakis）：已逐案核实（2026-07-18），全部为 **CC BY 4.0**，无 NC/ND/SA 限制，可随 benchmark 再分发，须标注原始 deposit 作者 + DOI。
+    - **Dryad 存档**（detector-disjoint holdout v5 新增 5 案：np_grassland_pcoa doi:10.5061/dryad.n8pk0p37d / soilwarming_p_impute doi:10.5061/dryad.9p8cz8wk8 / drosophila_chillcoma doi:10.5061/dryad.c866t1ghd / parthenium_antioxidant doi:10.5061/dryad.4mw6m90mp / mindfulness_dyads doi:10.5061/dryad.9ghx3ffss）：Dryad 平台**默认 CC0 1.0**（公共领域奉献，无署名义务，可自由再分发）；可随 benchmark 再分发。`[吴关渡确认]` Dryad CC0 为平台默认，建议 camera-ready 前逐案在 deposit 页面复核有无个别 override。mindfulness_dyads 为儿童亲子研究，artifact 仅含去标识化 child ID(PJ+数字)+衍生 EEG 网络指标，无原始信号或可识别信息（见 §4 敏感性）。
     - **论文 figure 截图 / PDF 内容**：**高风险**——Nature/Cell 的出版商版权，**不可再分发**；benchmark 中不含 PDF 正文截图，仅含 Source Data 文件，风险可控。
   - **风险标记**：若某 case 的 artifact 只能通过截图获取（无公开 Source Data），该 case 不放入公开 repo，仅保留 claim metadata。`[吴关渡填]` 目前有无此类 case？
   - **建议 benchmark 整体 license**：**CC BY 4.0**（metadata 层）+ 逐 artifact 声明（artifact 层）。
@@ -135,13 +141,12 @@
 
 已由我从 case.json + git log 填入：§2 规模/年份/期刊/领域分布、§3 DOI 清单+收集时间窗、§4 去标识说明（合成辅助线+真实层）、§6 license 框架建议、§7 版本策略建议。
 
-**你仍需决定的 5 项**：
+**你仍需决定的 4 项**（§6 OSF/Zenodo 逐案 license 已由 AI 代查，全部 CC BY 4.0，已更新入正文）：
 
 1. **§1 作者/资助**：camera-ready 填真实姓名+单位+基金号（投稿期保持匿名）。
 2. **§4 真实层去标识确认**：是否有任何 case artifact 含患者/动物可识别信息？如有请标注。
-3. **§6 逐 case license 拍板**：
-   - OSF/Zenodo 存档案（rep_a8rmu/rep_catcolors/rep_mqg86/rep_samplesize/rep_wkzsn/rep_detorakis）：逐案到 deposit 页面核实 license（CC0 还是 CC BY？）。
-   - 确认整体 benchmark license = **CC BY 4.0**（或你有其他选择）。
+3. **§6 整体 benchmark license 拍板**：
+   - 建议方案已更新为 CC BY 4.0（metadata 层）+ 逐 artifact CC BY 4.0（artifact 层均已核实）。
    - 若有任何 artifact 只能截图获取（无公开 Source Data），告知我—该 case 移出公开 repo。
 4. **§7 维护人姓名/联系邮箱**：camera-ready 填。
 5. **§2 Composition `[吴关渡确认]`**：domain 分类是启发式的，如有明显分类错误请告知修正。
