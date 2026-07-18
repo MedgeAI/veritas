@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "name": "holdout_detector_disjoint_v2",
+  "description": "Detector-disjoint holdout subset v2 — 7 cases. Extends v1 (6 cases) with E-1 (elife_neurexin_fig1b). All cases: anomaly types NOT covered by the duplicate-column / fixed-offset / paired-ratio / cross-sheet-reuse detector family. Discovered via PubPeer / correction notices / retraction. Use to test whether B3 FAR generalises beyond detector training distribution.\n\nAnomaly type breakdown:\n  label_swap:              ncb_cav2\n  misaligned_records:      ncb_clonalfish\n  mislabeled_panel:        ncb_lphn3\n  assignment_inconsistency: ncb_radioligand\n  assignment_inconsistency: ncb_nickelate\n  pseudoreplication:       ncb_spp1\n  provenance_mismatch:     elife_neurexin_fig1b (E-1; eLife 78649 Fig1B cells 3/10 @100mA from prior analysis run)\n\nNote: G-1 slot (figure-vs-source-data count mismatch) pending verification. Suite will extend to v3 if confirmed.",
+  "case_ids": [
+    "ncb_cav2",
+    "ncb_clonalfish",
+    "ncb_lphn3",
+    "ncb_radioligand",
+    "ncb_nickelate",
+    "ncb_spp1",
+    "elife_neurexin_fig1b"
+  ]
+}

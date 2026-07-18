@@ -1,0 +1,138 @@
+{
+  "case_id": "elife_neurexin_fig1b",
+  "paper_title": "Distinct neurexin-cerebellin complexes control AMPA- and NMDA-receptor responses in a circuit-dependent manner",
+  "paper_authors": [
+    "Jinye Dai, Kif Liakath-Ali, Samantha Rose Golf, Thomas C. Südhof, Yukiko Goda (eLife, 2022)"
+  ],
+  "artifacts": {
+    "orig_v3": {
+      "path": "artifacts/elife-78649-fig1-data1-v3.xlsx",
+      "sha256": "f3ce9772559d249b748e3bf19eac3d324b19aec7e2050f9ead8a34eebd2e63df",
+      "kind": "source_data"
+    },
+    "corrected_v4": {
+      "path": "artifacts/elife-78649-fig1-data1-v4.xlsx",
+      "sha256": "07638ffefba701fee878f339d0b30254a871134bed4bd7a0b9308b6dd672c87b",
+      "kind": "source_data"
+    }
+  },
+  "observations": {
+    "artifacts/elife-78649-fig1-data1-v3.xlsx#Sheet1!J5": {
+      "value": 103.867,
+      "source_artifact": "artifacts/elife-78649-fig1-data1-v3.xlsx",
+      "source_artifact_hash": "f3ce9772559d249b748e3bf19eac3d324b19aec7e2050f9ead8a34eebd2e63df",
+      "source_span": "sheet 'Sheet1', J5 (Figure1B AMPAR EPSCs, Cbln2+/+ condition, cell3, stimulation intensity 100mA; C5='cell3', row header at D2='10'..J2='100')"
+    },
+    "artifacts/elife-78649-fig1-data1-v3.xlsx#Sheet1!J12": {
+      "value": 85.2624,
+      "source_artifact": "artifacts/elife-78649-fig1-data1-v3.xlsx",
+      "source_artifact_hash": "f3ce9772559d249b748e3bf19eac3d324b19aec7e2050f9ead8a34eebd2e63df",
+      "source_span": "sheet 'Sheet1', J12 (Figure1B AMPAR EPSCs, Cbln2+/+ condition, cell10, stimulation intensity 100mA; C12='cell10')"
+    },
+    "artifacts/elife-78649-fig1-data1-v3.xlsx#Sheet1!I12": {
+      "value": 72.2533,
+      "source_artifact": "artifacts/elife-78649-fig1-data1-v3.xlsx",
+      "source_artifact_hash": "f3ce9772559d249b748e3bf19eac3d324b19aec7e2050f9ead8a34eebd2e63df",
+      "source_span": "sheet 'Sheet1', I12 (Figure1B AMPAR EPSCs, Cbln2+/+ condition, cell10, stimulation intensity 75mA; adjacent to the corrected J12)"
+    },
+    "artifacts/elife-78649-fig1-data1-v3.xlsx#Sheet1!J3": {
+      "value": 685.629,
+      "source_artifact": "artifacts/elife-78649-fig1-data1-v3.xlsx",
+      "source_artifact_hash": "f3ce9772559d249b748e3bf19eac3d324b19aec7e2050f9ead8a34eebd2e63df",
+      "source_span": "sheet 'Sheet1', J3 (Figure1B AMPAR EPSCs, Cbln2+/+ condition, cell1, stimulation intensity 100mA; C3='cell1')"
+    },
+    "artifacts/elife-78649-fig1-data1-v4.xlsx#Sheet1!J5": {
+      "value": 85.3322,
+      "source_artifact": "artifacts/elife-78649-fig1-data1-v4.xlsx",
+      "source_artifact_hash": "07638ffefba701fee878f339d0b30254a871134bed4bd7a0b9308b6dd672c87b",
+      "source_span": "sheet 'Sheet1', J5 (更正版: Figure1B Cbln2+/+ cell3 at 100mA 已改为85.3322, 更正前值103.867来自prior analysis)"
+    },
+    "artifacts/elife-78649-fig1-data1-v4.xlsx#Sheet1!J12": {
+      "value": 69.2359,
+      "source_artifact": "artifacts/elife-78649-fig1-data1-v4.xlsx",
+      "source_artifact_hash": "07638ffefba701fee878f339d0b30254a871134bed4bd7a0b9308b6dd672c87b",
+      "source_span": "sheet 'Sheet1', J12 (更正版: Figure1B Cbln2+/+ cell10 at 100mA 已改为69.2359, 更正前值85.2624来自prior analysis)"
+    },
+    "artifacts/elife-78649-fig1-data1-v4.xlsx#Sheet1!J3": {
+      "value": 685.629,
+      "source_artifact": "artifacts/elife-78649-fig1-data1-v4.xlsx",
+      "source_artifact_hash": "07638ffefba701fee878f339d0b30254a871134bed4bd7a0b9308b6dd672c87b",
+      "source_span": "sheet 'Sheet1', J3 (更正版: Figure1B Cbln2+/+ cell1 at 100mA — 与v3完全相同685.629, 此格不受更正影响)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "elife_neurexin_fig1b_ann_001",
+      "claim_id": "elife_neurexin_fig1b_claim_001",
+      "claim_atom": "In the original Figure 1B Source Data (v3), the Cbln2+/+ AMPAR-EPSC values for cell 3 (J5 = 103.867 pA) and cell 10 (J12 = 85.2624 pA) at 100 mA stimulation intensity were presented as measurements from the current manuscript's analysis pipeline. Per eLife Correction 94305, these two values (along with several cells in Fig 1G) were 'mistakenly copy-pasted from a previously analysed dataset that used different EPSC trace filtering criteria and methodology.' The implied provenance — that J5 and J12 reflect the same trace selection protocol used for all other cells in Figure 1B — is inconsistent with their actual origin from a distinct prior analysis run. Importantly, no within-file duplicate-row or fixed-offset pattern exists: the erroneous values are not copies of any other row in the Source Data, so standard automated detectors (duplicate-col, fixed-offset, paired-ratio) cannot flag this discrepancy. The v3→v4 diff confirms only J5 and J12 changed (103.867→85.3322 and 85.2624→69.2359); all other cells in the Cbln2+/+ block are identical across versions.",
+      "source_artifact": "artifacts/elife-78649-fig1-data1-v3.xlsx#Sheet1!J5",
+      "target_artifact": "artifacts/elife-78649-fig1-data1-v4.xlsx#Sheet1!J5",
+      "source_a1_range": "J5:J5",
+      "target_a1_range": "J5:J5",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "provenance_mismatch",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:source_data(v3)->source_data(v4)",
+      "_adjudication": "Provenance不一致(inconsistent): 原始v3的Fig1B Cbln2+/+ cell3(J5=103.867)和cell10(J12=85.2624)在100mA处来自不同EPSC trace过滤方法的旧数据集, 并非当前文稿分析流程产出。此类错误无法通过文件内部重复检测发现(无row duplicate, 无fixed offset), 必须对比v3/v4 diff+阅读更正通知才能识别。eLife Correction 94305明确认定。v3→v4仅这两值改变。"
+    },
+    {
+      "annotation_id": "elife_neurexin_fig1b_ann_002",
+      "claim_id": "elife_neurexin_fig1b_claim_002",
+      "claim_atom": "The sub-maximal stimulus intensities for Cbln2+/+ cell 10 in Figure 1B — specifically 10 mA (D12 = 3.09988 pA), 20 mA (E12 = 33.6185 pA), and 75 mA (I12 = 72.2533 pA) — are unchanged between the original v3 and the corrected v4 Source Data. Only the single 100 mA value (J12) was replaced. This pattern is consistent with an isolated copy-paste error limited to the maximum-stimulus-intensity column during spreadsheet assembly, rather than wholesale substitution of an entire cell's measurement series. The monotonically increasing input/output relationship at sub-maximal intensities (3.1 → 33.6 → 72.3 pA at 10/20/75 mA) is internally plausible for a Cbln2+/+ CA1→subiculum synapse.",
+      "source_artifact": "artifacts/elife-78649-fig1-data1-v3.xlsx#Sheet1!I12",
+      "target_artifact": "artifacts/elife-78649-fig1-data1-v4.xlsx#Sheet1!J12",
+      "source_a1_range": "D12:I12",
+      "target_a1_range": "J12:J12",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data(v3)->source_data(v4)",
+      "_adjudication": "合法子断言(consistent): cell10在10/20/75mA的测量值在v3和v4间完全一致, 仅100mA单点被更正。错误范围局限于maximum-stimulus点的单次赋值, 支持'单点误粘'而非整条替换的解释。低强度输入-输出曲线的单调性也符合神经生理预期。"
+    },
+    {
+      "annotation_id": "elife_neurexin_fig1b_ann_003",
+      "claim_id": "elife_neurexin_fig1b_claim_003",
+      "claim_atom": "The Cbln2+/+ cell 1 value at 100 mA in Figure 1B (J3 = 685.629 pA) is identical between the original v3 and the corrected v4 Source Data, as are all other Cbln2+/+ cells except cells 3 and 10. The bulk of the Figure 1B dataset — covering 19 of 21 Cbln2+/+ cells and all Cbln2-/- cells — was not affected by the correction, consistent with the authors' statement that 'none of the corrections change the conclusions of the paper.' The high-amplitude cell 1 value (685.6 pA vs. median ~177 pA across n=21 cells) is an authentic outlier in the input/output distribution, not a fabricated point.",
+      "source_artifact": "artifacts/elife-78649-fig1-data1-v3.xlsx#Sheet1!J3",
+      "target_artifact": "artifacts/elife-78649-fig1-data1-v4.xlsx#Sheet1!J3",
+      "source_a1_range": "J3:J3",
+      "target_a1_range": "J3:J3",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data(v3)->source_data(v4)",
+      "_adjudication": "合法子断言(consistent): Fig1B多数Cbln2+/+数据在v3和v4间完全一致(19/21 cells不变), 包括cell1的685.629 pA高幅值点。更正范围仅限于cell3和cell10在100mA处的单点值。作者'更正不影响结论'的说法与此diff吻合。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "elife_neurexin_fig1b",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.7554/eLife.78649",
+    "_correction_doi": "https://doi.org/10.7554/eLife.94305",
+    "_lane": "作者+期刊已认并已更正型provenance_mismatch(单verdict主导): Fig1B Cbln2+/+ cell3/10在100mA处的AMPAR-EPSC值来自使用不同trace过滤标准的旧分析数据集, 非当前文稿分析流程产出。此错误无文件内部可检测特征(无row duplicate/fixed offset), 仅可通过v3vs v4 diff识别。关联案例ncb_neurexin(Fig5C cell18=不同基因型间copy-paste, duplicated_row类型)是同一更正通知下的不同缺陷模式。",
+    "_sister_case": "ncb_neurexin (同一更正通知, 但涉及Fig5C的duplicated_row类型: Cbln12dcko cell18逐位复制自Cbln12f/f cell17; 此案=Fig1B的provenance_mismatch类型, 两案互补)",
+    "_author_response": "作者在eLife Correction 94305中说明: Fig1B cells 3和10@100μA(Cbln2+/+)的AMPAR-EPSC值'mistakenly copy-pasted from a previously analysed dataset that used different EPSC trace filtering criteria and methodology'; Fig1G cells 1/2/3/7/8/13@100μA同类问题; Fig5C cell18(Cbln12dcko)复制自cell17(Cbln12f/f, genotype不同); Fig1-figsupp1 CV计算错误。作者声明'None of the corrections change the conclusions of the paper'。",
+    "_independent_status": "从eLife CDN直接下载两版本: fig1-data1-v3(更正前, v1/v2不存,v3存)和fig1-data1-v4(更正后)。本地核验: v3 J5=103.867/J12=85.2624; v4 J5=85.3322/J12=69.2359; 仅这两单元变化; D12-I12(cell10@10-75mA)及J3(cell1@100mA)在两版本完全一致。坐实eLife更正所述的isolated 100mA单点provenance错误。",
+    "_detector_note": "provenance_mismatch不可被标准异常检测器发现: 错误值在文件内不重复(无duplicate-col特征), 与同细胞其他强度值无恒定偏移(无fixed-offset特征), 与其他细胞无倍比关系(无paired-ratio特征)。检测须依赖外部信息(更正通知)或v3/v4 diff。",
+    "_source_url_refs": [
+      "https://elifesciences.org/articles/78649",
+      "https://elifesciences.org/articles/94305",
+      "https://cdn.elifesciences.org/articles/78649/elife-78649-fig1-data1-v3.xlsx",
+      "https://cdn.elifesciences.org/articles/78649/elife-78649-fig1-data1-v4.xlsx"
+    ],
+    "_signed_by": "wuguandu @ 2026-07-18; eLife开放获取源数据双版本本地核验"
+  }
+}
