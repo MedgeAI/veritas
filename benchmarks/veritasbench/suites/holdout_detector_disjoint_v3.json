@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "name": "holdout_detector_disjoint_v3",
+  "description": "Detector-disjoint holdout subset v3 — 9 cases. Extends v2 (7 cases) with two new cases: natcomm_petruk_tlr (G-1: figure-vs-sourcedata count mismatch) and natcomm_florido_tac2 (label_swap: Vehicle/Osanetant labels inadvertently switched). All cases: anomaly types NOT covered by the duplicate-column / fixed-offset / paired-ratio / cross-sheet-reuse detector family. All discovered via correction notices or PubPeer. Use to test whether B3 FAR generalises beyond detector training distribution.\n\nAnomaly type breakdown (7 distinct types across 9 cases):\n  label_swap x2:                     ncb_cav2, natcomm_florido_tac2\n  misaligned_records:                 ncb_clonalfish\n  mislabeled_panel:                   ncb_lphn3\n  assignment_inconsistency x2:        ncb_radioligand, ncb_nickelate\n  pseudoreplication:                  ncb_spp1\n  provenance_mismatch:               elife_neurexin_fig1b\n  figure_vs_sourcedata_count_mismatch: natcomm_petruk_tlr\n\nNote: Candidate C (natcomm_nguyen_mirna, provenance_mismatch Fig7f) pending verification. Suite will extend to v4 if confirmed.",
+  "case_ids": [
+    "ncb_cav2",
+    "ncb_clonalfish",
+    "ncb_lphn3",
+    "ncb_radioligand",
+    "ncb_nickelate",
+    "ncb_spp1",
+    "elife_neurexin_fig1b",
+    "natcomm_petruk_tlr",
+    "natcomm_florido_tac2"
+  ]
+}
