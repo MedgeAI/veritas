@@ -1,0 +1,14 @@
+{
+  "schema_version": 1,
+  "name": "holdout_detector_disjoint_v1",
+  "description": "Detector-disjoint holdout subset — 7 cases whose inconsistent claims were discovered by external sources (PubPeer/correction notices) and whose anomaly types (label_swap / misaligned_records / mislabeled_panel / provenance_mismatch / assignment_inconsistency / pseudoreplication / undocumented_derivation) are NOT covered by the duplicate-column / fixed-offset / paired-ratio / cross-sheet-reuse detector family. Use to test whether B3 FAR generalises beyond the detector's training distribution.",
+  "case_ids": [
+    "ncb_cav2",
+    "ncb_clonalfish",
+    "ncb_lphn3",
+    "ncb_radioligand",
+    "ncb_nickelate",
+    "ncb_spp1",
+    "ncb_aldometanib"
+  ]
+}
