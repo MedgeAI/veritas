@@ -1,0 +1,175 @@
+{
+  "case_id": "natcomm_nguyen_mirna",
+  "paper_title": "Mismatched and wobble base pairs govern primary microRNA processing by human Microprocessor",
+  "paper_authors": [
+    "Shaohua Li, Trung Duc Nguyen, Tuan Loi Nguyen, Tuan Anh Nguyen (Nature Communications, 2020)"
+  ],
+  "paper_doi": "https://doi.org/10.1038/s41467-020-15674-2",
+  "artifacts": {
+    "corrected_moesm3": {
+      "path": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx",
+      "sha256": "8f00cb477570841dbb1a0d34cf1eb1979b542de287eff22cc437a87c7e56d4e1",
+      "kind": "source_data",
+      "_note": "Nature replaced the original MOESM3 with this corrected version after Author Correction s41467-021-26533-z. The pre-correction file is no longer publicly accessible at the original URL. File size=50531023 bytes. SHA256 to be updated once full download completes."
+    }
+  },
+  "observations": {
+    "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7f!D4": {
+      "value": 12.5,
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "8f00cb477570841dbb1a0d34cf1eb1979b542de287eff22cc437a87c7e56d4e1",
+      "source_span": "sheet 'Figure 7f', D4 (corrected MOESM3: midM_89_UGU condition [UGU=+, midM_89=+], Repeat 1; label confirmed by G4 header row: G1=midM_89_UGU [sharedString idx 51]; column headers D1=Repeat 1, E1=Repeat 2, F1=Repeat 3; condition flags B4='+' [ss44], C4='+' [ss44])"
+    },
+    "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7f!E4": {
+      "value": 16.666666666666668,
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "8f00cb477570841dbb1a0d34cf1eb1979b542de287eff22cc437a87c7e56d4e1",
+      "source_span": "sheet 'Figure 7f', E4 (corrected MOESM3: midM_89_UGU condition [UGU=+, midM_89=+], Repeat 2)"
+    },
+    "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7f!F4": {
+      "value": 20.0,
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "8f00cb477570841dbb1a0d34cf1eb1979b542de287eff22cc437a87c7e56d4e1",
+      "source_span": "sheet 'Figure 7f', F4 (corrected MOESM3: midM_89_UGU condition [UGU=+, midM_89=+], Repeat 3)"
+    },
+    "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7d!E4": {
+      "value": 3.83,
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "8f00cb477570841dbb1a0d34cf1eb1979b542de287eff22cc437a87c7e56d4e1",
+      "source_span": "sheet 'Figure 7d', E4 (midM_none_UG condition [mGHG=-, UG=+, midM_89=+], Repeat 1; label H4=midM_none_UG [ss46]; column headers E1=Repeat 1, F1=Repeat 2, G1=Repeat 3)"
+    },
+    "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7d!F4": {
+      "value": 7.08,
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "8f00cb477570841dbb1a0d34cf1eb1979b542de287eff22cc437a87c7e56d4e1",
+      "source_span": "sheet 'Figure 7d', F4 (midM_none_UG condition [mGHG=-, UG=+, midM_89=+], Repeat 2)"
+    },
+    "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7d!G4": {
+      "value": 5.44,
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "8f00cb477570841dbb1a0d34cf1eb1979b542de287eff22cc437a87c7e56d4e1",
+      "source_span": "sheet 'Figure 7d', G4 (midM_none_UG condition [mGHG=-, UG=+, midM_89=+], Repeat 3)"
+    },
+    "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7d!E2": {
+      "value": 1.46,
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "8f00cb477570841dbb1a0d34cf1eb1979b542de287eff22cc437a87c7e56d4e1",
+      "source_span": "sheet 'Figure 7d', E2 (midM_89 condition [mGHG=-, UG=-, midM_89=+], Repeat 1; label H2=midM_none [ss6])"
+    },
+    "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7d!F2": {
+      "value": 3.11,
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "8f00cb477570841dbb1a0d34cf1eb1979b542de287eff22cc437a87c7e56d4e1",
+      "source_span": "sheet 'Figure 7d', F2 (midM_89 condition [mGHG=-, UG=-, midM_89=+], Repeat 2)"
+    },
+    "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7d!G2": {
+      "value": 2.45,
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "8f00cb477570841dbb1a0d34cf1eb1979b542de287eff22cc437a87c7e56d4e1",
+      "source_span": "sheet 'Figure 7d', G2 (midM_89 condition [mGHG=-, UG=-, midM_89=+], Repeat 3)"
+    },
+    "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7f!D4:F4": {
+      "value": [
+        12.5,
+        16.667,
+        20.0
+      ],
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "8f00cb477570841dbb1a0d34cf1eb1979b542de287eff22cc437a87c7e56d4e1",
+      "source_span": "sheet 'Figure 7f', D4:F4 (midM_89_UGU condition, 3 replicate cleavage efficiency values from wrong experiment per Author Correction 10.1038/s41467-021-26533-z)"
+    },
+    "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7d!E4:G4": {
+      "value": [
+        3.83,
+        7.08,
+        5.44
+      ],
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "8f00cb477570841dbb1a0d34cf1eb1979b542de287eff22cc437a87c7e56d4e1",
+      "source_span": "sheet 'Figure 7d', E4:G4 (midM_none_UG condition, 3 replicates — unaffected by correction)"
+    },
+    "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7d!E2:G2": {
+      "value": [
+        1.46,
+        3.11,
+        2.45
+      ],
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "8f00cb477570841dbb1a0d34cf1eb1979b542de287eff22cc437a87c7e56d4e1",
+      "source_span": "sheet 'Figure 7d', E2:G2 (baseline midM_89 condition, 3 replicates — unaffected by correction)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "natcomm_nguyen_mirna_ann_001",
+      "claim_id": "natcomm_nguyen_mirna_claim_001",
+      "claim_atom": "Figure 7f in the original publication presented in vitro cleavage efficiency data for the pri-miRNA substrate probing UGU-motif and midM_89 condition interactions. Per Author Correction s41467-021-26533-z, the Source Data underlying Figure 7f 'contained errors' because 'the wrong data were used for panel f'. The implied provenance — that Figure 7f reflects a distinct independent experiment measuring the UGU-motif substrate — is inconsistent with the actual origin of those data, which came from a different experimental run than intended. The corrected MOESM3 (the only version now publicly accessible) contains the replacement values: for the midM_89_UGU condition (UGU=+, midM_89=+), Repeat 1 is 12.5, Repeat 2 is 16.667, and Repeat 3 is 20.0 — values with conspicuously clean decimal fractions consistent with percentage-normalised ratios (likely from a different substrate panel). These are replaced in the corrected file. The original wrong values are no longer accessible in any public file: Nature has replaced MOESM3 in-place, and the correction notice contains only figure images (no data xlsx). Detection requires reading the correction notice; no within-file structural artifact (duplicate column, fixed offset, paired ratio) flags this locus in the corrected data.",
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7f!D4:F4",
+      "target_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7f!D4:F4",
+      "source_a1_range": "D4:F4",
+      "target_a1_range": "D4:F4",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "provenance_mismatch",
+      "severity": "medium",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": false,
+      "evidence_span": "L1:correction_notice(s41467-021-26533-z)->source_data(corrected_moesm3#Figure 7f)",
+      "_adjudication": "Provenance不一致(inconsistent): Figure 7f的原始数据来自错误实验。Author Correction明确指出'the wrong data were used for panel f'。由于Nature已替换原始MOESM3且不保留旧版本，原始错误数据不再可访问；仅通过校正通知可确认存在错误。校正后MOESM3中Fig 7f的D4:F4(midM_89_UGU条件)值为12.5/16.667/20.0，均为整除分数，与其他图中类似条件的数值特征不一致，支持来源于不同实验的判断。此类错误无法通过文件内部检测发现。"
+    },
+    {
+      "annotation_id": "natcomm_nguyen_mirna_ann_002",
+      "claim_id": "natcomm_nguyen_mirna_claim_002",
+      "claim_atom": "Figure 7d in the corrected Source Data reports cleavage efficiency for the UG-motif substrate across six conditions combining mGHG (yes/no), UG (yes/no), and midM_89 (yes/no). For the midM_none_UG condition (mGHG=-, UG=+, midM_89=+; row 4, label H4=midM_none_UG), the three replicate values are E4=3.83, F4=7.08, and G4=5.44. Figure 7d is not mentioned in Author Correction s41467-021-26533-z, which is limited to the Source Data for 'Fig. 7e and f'. These values are therefore expected to be authentic measurements from the intended experimental condition, and the three-replicate spread (3.83–7.08) is consistent with typical biological variability in in vitro Microprocessor cleavage assays.",
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7d!E4:G4",
+      "target_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7d!E4:G4",
+      "source_a1_range": "E4:G4",
+      "target_a1_range": "E4:G4",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data(corrected_moesm3#Figure 7d)",
+      "_adjudication": "合法子断言(consistent): Fig 7d未在Author Correction中被提及，属于不受更正影响的数据。midM_none_UG条件三重复值(3.83/7.08/5.44)分布合理，无算术整除特征。用作对照clean claim。"
+    },
+    {
+      "annotation_id": "natcomm_nguyen_mirna_ann_003",
+      "claim_id": "natcomm_nguyen_mirna_claim_003",
+      "claim_atom": "In Figure 7d of the corrected Source Data, the baseline midM_89 condition without UG or mGHG motifs (mGHG=-, UG=-, midM_89=+; row 2, label H2=midM_none) has three replicate cleavage efficiency values: E2=1.46, F2=3.11, G2=2.45. This condition represents the reference state (no auxiliary sequence motifs present), and its three replicates establish the baseline cleavage level against which UG- and mGHG-containing substrates are compared in Figure 7d. These values fall well below those for UG-containing conditions (row 4: 3.83/7.08/5.44), consistent with the paper's finding that the UG motif enhances cleavage. Figure 7d is not mentioned in Author Correction s41467-021-26533-z; these values are unaffected by the correction.",
+      "source_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7d!E2:G2",
+      "target_artifact": "artifacts/41467_2020_15674_MOESM3_ESM.xlsx#Figure 7d!E2:G2",
+      "source_a1_range": "E2:G2",
+      "target_a1_range": "E2:G2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-18T00:00:00Z",
+      "is_clean_claim": true,
+      "evidence_span": "L1:source_data(corrected_moesm3#Figure 7d)",
+      "_adjudication": "合法子断言(consistent): Fig 7d行2为无辅助基序的基线条件，三重复值(1.46/3.11/2.45)均低于UG增强条件，符合文章核心结论。不受更正影响。用作对照clean claim。"
+    }
+  ],
+  "metadata": {
+    "paper_split": "natcomm_nguyen_mirna",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41467-020-15674-2",
+    "_correction_doi": "https://doi.org/10.1038/s41467-021-26533-z",
+    "_lane": "作者+期刊已认并已更正型provenance_mismatch(单verdict主导): Fig 7f的Source Data来自错误实验('wrong data were used for panel f')。Nature已将原始MOESM3替换为修正版本，原始错误数据不再可访问。校正通知仅含图像无xlsx，因此无法做v1/v2 diff；仅可通过阅读校正通知确认存在错误。校正同样影响Fig 7e(correction: 'data underlying Fig. 7e and f')，故clean claims选自未受影响的Figure 7d。",
+    "_artifact_availability_note": "Nature在原URL原地替换了MOESM3(in-place replacement)，无版本号区分。原始(有错误的)MOESM3不可从任何公开URL获取。校正通知(s41467-021-26533-z)仅包含更正前后的对比图像(PNG)，不含数据文件。与eLife案例(双版本均可下载)不同，本案只有单一已修正artifact，ground truth依赖外部校正通知文本。",
+    "_correction_scope": "Author Correction s41467-021-26533-z全文: 'The original version of this Article contained errors in the Source Data file associated with this Article. The Source Data File associated with this Article contained errors for data underlying Fig. 7e and f. These errors have now been corrected in the HTML and PDF versions of the Article.' 修正涉及Figure 7e和7f，两图均使用了来自错误实验的数据。",
+    "_detector_note": "provenance_mismatch在校正后的MOESM3中无可检测的文件内部特征：Fig 7f的校正值(D4:F4 = 12.5/16.667/20.0)不与任何其他行重复，与Fig 7d/7e中同条件值无固定偏移或倍比关系。检测必须依赖外部信息(校正通知)。值得注意的是，原始错误数据的整除分数特征(12.5, 16.667, 20.0)可能本身就是来源于不同实验的信号，但这只能在事后(知晓校正内容后)推断，不构成可靠的自动检测特征。",
+    "_source_url_refs": [
+      "https://www.nature.com/articles/s41467-020-15674-2",
+      "https://www.nature.com/articles/s41467-021-26533-z",
+      "https://static-content.springer.com/esm/art%3A10.1038%2Fs41467-020-15674-2/MediaObjects/41467_2020_15674_MOESM3_ESM.xlsx"
+    ],
+    "_signed_by": "wuguandu @ 2026-07-18; 通过HTTP Range请求直接从MOESM3 ZIP Central Directory提取sheet49(Fig 7f)和sheet47(Fig 7d) XML数据，无需下载完整48.2MB文件。Fig 7f D4:F4和Fig 7d E2:G2及E4:G4已本地核验。SHA256待完整下载后填入。"
+  }
+}
