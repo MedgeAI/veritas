@@ -34,6 +34,41 @@ B3 row / recall metric in §5:
 
 Do **not** re-run for this — the director chose to footnote rather than change the adapter.
 
+### 0b-2. Holdout expanded to 10 cases (v4) + self-comparison guard fix (w1 verified 2026-07-18)
+
+The holdout was grown from 6 to **10 cases** (`suites/holdout_detector_disjoint_v4.json`, results in
+`holdout_detector_disjoint_v4_results.json`) — **7 distinct anomaly types**, every case backed by an
+external correction notice or PubPeer report. Added: `elife_neurexin_fig1b` (provenance_mismatch),
+`natcomm_petruk_tlr` (figure_vs_sourcedata_count_mismatch), `natcomm_florido_tac2` (label_swap),
+`natcomm_nguyen_mirna` (provenance_mismatch). Validator: **10/10 pass**.
+
+**Detector FAR on the 10-case holdout = 0/10** (after the guard fix below) — strengthens the §0b
+rebuttal: B3's forensics still produces zero spurious fires across a broader, larger disjoint set.
+
+**One detector fix landed (director OPTION (a) — fix, not footnote).** In the first v4 pass,
+`natcomm_nguyen_mirna` produced 1 fire. Investigation showed it was a **self-comparison degeneracy,
+not a real detection**: provenance_mismatch has no in-file cross-locus comparison target (the
+inconsistency is "correction notice vs. source data"), so the annotator files
+`source_a1_range == target_a1_range` (e.g. `Figure 7f!D4:F4` vs itself). A multi-cell series compared
+to itself trivially classifies as `duplicate` — a tautology carrying zero forensic signal. We added a
+**locus-keyed self-comparison guard** to `l1_relationship_verifier`: when src and tgt name the same
+locus, do not fire. The guard is keyed on **locus identity, never value equality** — an
+elementwise-identical series across two *distinct* loci is a genuine copy-paste and still fires, so
+B3's core duplicate-detection is untouched (locked by a two-directional golden test).
+
+*This is the opposite call from `ncb_aldometanib` (§0b above): aldometanib fired on two **distinct**
+loci with a real constant offset → genuinely in-family → correctly excluded; nguyen fired on **one**
+locus vs. itself → degenerate artifact → the case is genuinely disjoint and is **kept**, the fix
+removes the artifact.*
+
+**Main-table safety — verified, not asserted.** The guard is proven FAR-only by an A/B diff on the
+full 57-case main split (78 L1 claims): the B3 fire-set is **21 with the guard and 21 without it, 0
+differences**. No published B1–B5 number changes. (A full live re-run was deliberately *not* used as
+the check: B1/B2 are live-LLM and non-deterministic, so byte-diffing them would show noise unrelated
+to the guard; the deterministic-verifier fire-set diff is the precise test of whether the detector
+change touches the main table.) **Paper text should state the guard and this A/B check explicitly**
+— it pre-empts the reviewer question "did the ablation table move after you changed the detector?"
+
 ## 0. FINAL RESULTS + honest caveats (read before filling tables)
 
 **Clean, publishable main story (holds across all 3 backbones):**

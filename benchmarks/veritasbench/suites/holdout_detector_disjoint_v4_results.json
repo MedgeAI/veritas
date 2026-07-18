@@ -1,0 +1,78 @@
+{
+  "run": "w1 verification of holdout_detector_disjoint_v4",
+  "date": "2026-07-18",
+  "task_source": "director request: 基于新的 10 案 holdout v4 做进一步验证",
+  "detector": "l1_relationship_verifier (B3 node forensics: duplicate / constant_offset / linear_transform)",
+  "method": "same protocol as v1: (task1) per-case _validate_case() reuse (validator check-1 compares against the 63/67-case delivery manifest, wrong semantics for a subset); (task2) adapter load explicit_range_only=True, B3 verifier on claim src/tgt series exactly as the B1-B5 pipeline feeds them.",
+
+  "task1_validator": {
+    "result": "10/10 PASS",
+    "per_case": {
+      "ncb_cav2":             "PASS (art=3 obs=8 claims=4 clean=2)",
+      "ncb_clonalfish":       "PASS (art=2 obs=7 claims=3 clean=1)",
+      "ncb_lphn3":            "PASS (art=2 obs=13 claims=3 clean=1)",
+      "ncb_radioligand":      "PASS (art=2 obs=7 claims=3 clean=1)",
+      "ncb_nickelate":        "PASS (art=2 obs=4 claims=3 clean=1)",
+      "ncb_spp1":             "PASS (art=2 obs=8 claims=3 clean=1)",
+      "elife_neurexin_fig1b": "PASS (art=2 obs=7 claims=3 clean=2)",
+      "natcomm_petruk_tlr":   "PASS (art=1 obs=8 claims=3 clean=2)",
+      "natcomm_florido_tac2": "PASS (art=1 obs=6 claims=3 clean=2)",
+      "natcomm_nguyen_mirna": "PASS (art=1 obs=12 claims=3 clean=2)"
+    }
+  },
+
+  "task2_detector_FAR": {
+    "final_after_guard_fix": {
+      "note": "AFTER the self-comparison guard was added to l1_relationship_verifier (director-approved option (a), 2026-07-18). Detector run on claim src/tgt series as the B1-B5 pipeline feeds them (adapter, explicit_range_only=True).",
+      "case_level_fires": "0/10",
+      "fired_cases": [],
+      "no_flag_cases": ["ncb_cav2","ncb_clonalfish","ncb_lphn3","ncb_radioligand","ncb_nickelate","ncb_spp1","elife_neurexin_fig1b","natcomm_petruk_tlr","natcomm_florido_tac2","natcomm_nguyen_mirna"]
+    },
+    "before_guard_fix_as_implemented_claim_locus": {
+      "note": "BEFORE the guard: nguyen_mirna's src==tgt self-comparison trivially returned duplicate. Recorded for the paper's transparency (what the raw detector did and why it was a degeneracy, not a real fire).",
+      "case_level_fires": "1/10",
+      "fired_cases": ["natcomm_nguyen_mirna"],
+      "no_flag_cases": ["ncb_cav2","ncb_clonalfish","ncb_lphn3","ncb_radioligand","ncb_nickelate","ncb_spp1","elife_neurexin_fig1b","natcomm_petruk_tlr","natcomm_florido_tac2"]
+    },
+
+    "genuinely_disjoint_9_no_flag": {
+      "ncb_cav2":             "single-cell scalar loci; anomaly=label_swap. len<2 guard -> independent. Disjoint.",
+      "ncb_clonalfish":       "prose ranges not verifier-extractable -> dropped at load; anomaly=misaligned_records. Disjoint.",
+      "ncb_lphn3":            "figure-panel-title loci not numeric -> dropped; anomaly=mislabeled_panel. Disjoint.",
+      "ncb_radioligand":      "single-cell loci; anomaly=assignment_inconsistency (crystallographic prior). Disjoint.",
+      "ncb_nickelate":        "single-cell loci; anomaly=assignment_inconsistency. Disjoint.",
+      "ncb_spp1":             "length-mismatched A1 -> dropped; anomaly=pseudoreplication. Disjoint.",
+      "elife_neurexin_fig1b": "loaded 3 L1 claims, src!=tgt distinct loci (J5:J5 / D12:I12 vs J12:J12 / J3:J3); anomaly=provenance_mismatch. no relationship structure -> no_flag. Disjoint.",
+      "natcomm_petruk_tlr":   "loaded 2 L1 claims, src!=tgt distinct loci (B26:B26 vs B3:B23 etc.); anomaly=figure_vs_sourcedata_count_mismatch (count/N mismatch, not value copy). no_flag. Disjoint.",
+      "natcomm_florido_tac2": "loaded 3 L1 claims; dirty claim_001 D3:D7 vs D8:D11 distinct blocks (label_swap, no value equality) no_flag; clean claim_002/003 are src==tgt single-cell (X3:X3, F2:F2) blocked by len<2 guard. Disjoint."
+    },
+
+    "nguyen_mirna_grayzone_RESOLVED": {
+      "verdict": "KEEP in holdout -> the fire is a SELF-COMPARISON pipeline artifact, NOT a detector-family membership",
+      "why": "anomaly=provenance_mismatch (Author Correction s41467-021-26533-z: 'wrong data were used for panel f'). Detection requires reading the correction notice; there is NO cross-locus comparison target inside the file. The annotator therefore filled source_a1_range == target_a1_range (D4:F4 == D4:F4, E4:G4==E4:G4, E2:G2==E2:G2) — src and tgt point to the SAME multi-cell range.",
+      "mechanism": "classify_relationship(a, a) on a len>=2 series trivially returns 'duplicate' — a series always equals itself. This is a degenerate self-comparison, not a forensic finding of two copied-but-nominally-independent series. The len<2 guard blocks single-cell self-compares (cf. florido X3:X3) but a 3-cell range (D4:F4) passes the guard and self-fires.",
+      "annotator_confirms_disjoint": "claim_001 text: 'no within-file structural artifact (duplicate column, fixed offset, paired ratio) flags this locus in the corrected data.'",
+      "contrast_with_v1_aldometanib": "OPPOSITE nature. aldometanib fired on TWO DISTINCT loci with a real fixed offset (+0.908) -> genuinely in detector family -> correctly EXCLUDED. nguyen fires on ONE locus compared to ITSELF -> degenerate artifact, case is genuinely disjoint -> KEEP.",
+      "root_cause": "classify_relationship lacks a self-comparison guard (identical series / same src==tgt locus). Recommended FAR-only fix below."
+    },
+
+    "applied_fix": {
+      "director_decision_2026_07_18": "OPTION (a) — fix the detector. Root cause is in code (self-comparison carries zero forensic signal), so a code fix is correct and generalises to all future provenance-type cases, better than a per-case footnote.",
+      "change": "added a self-comparison guard to l1_relationship_verifier (engine/benchmark/veritasbench_verifiers.py). Guard is keyed on LOCUS IDENTITY (src_label == tgt_label), NOT on value equality: same locus (same sheet+range) -> no fire; elementwise-identical series across TWO DISTINCT loci is a real cross-position copy-paste and STILL fires. Placed in the verifier (which has locus context), not in classify_relationship (which is pure math: a series does equal itself).",
+      "predicate_note": "value-keyed would be WRONG — it would suppress genuine copy-paste fraud across distinct loci and kill B3's core ability. Locus-keyed only removes the tautology.",
+      "far_only_safety_PROVEN": "A/B diff on the full 57-case main split (78 L1 claims): B3 fire-set WITH guard = 21, WITHOUT guard = 21, DIFFERENCES = 0. The guard is a strict no-op on the main-table deterministic B3 layer -> no published B1-B5 number changes. (The 3 src==tgt claims in the main split — rep_samplesize, rep_photoreceptor, rep_sarscov2 — are non-range-sourced, dropped by explicit_range_only=True, so B3 never loaded them anyway.)",
+      "golden_test": "tests/unit/test_veritasbench_verifier_self_compare_guard.py locks BOTH directions: (i) same-locus identical series -> no fire; (ii) distinct-loci identical series + distinct-loci constant offset -> STILL fire. 5/5 pass (incl. existing trace/leak tests).",
+      "contract_order": "producer (verifier) -> golden fixture, per AGENTS.md 契约更新顺序."
+    }
+  },
+
+  "summary": {
+    "validator": "ok=10/10",
+    "detector_FAR_after_guard_fix": "0/10 case-level",
+    "detector_FAR_before_guard_fix": "1/10 (natcomm_nguyen_mirna self-comparison artifact only)",
+    "nguyen_fire_was": "self-comparison degeneracy (src==tgt range, len>=2) — NOT detector-family membership; case IS genuinely disjoint (annotator-confirmed)",
+    "fix": "locus-keyed self-comparison guard in l1_relationship_verifier; proven FAR-only (main-split B3 fire-set unchanged 21==21); golden test locks both directions",
+    "holdout_final_case_count": 10,
+    "aldometanib_v1_still_excluded": true
+  }
+}

@@ -57,8 +57,20 @@ def l1_relationship_verifier() -> TypedVerifier:
         if md.get("axis") != "L1":
             return None  # not in scope
         a, b = md.get("src_series") or [], md.get("tgt_series") or []
+        src_label, tgt_label = md.get("src_label"), md.get("tgt_label")
+        span = f"L1:{src_label}->{tgt_label}"
+        # Self-comparison guard (FAR-only): keyed on LOCUS IDENTITY, never on value equality.
+        # When src and tgt name the SAME locus (same sheet+range), the series is compared to itself
+        # and classify_relationship trivially returns "duplicate" — a series always equals itself.
+        # That carries zero forensic signal (tautology), so it must NOT fire. This extends the
+        # len<2 guard in classify_relationship (which only blocks single-cell self-compares) to
+        # multi-cell same-locus ranges. Provenance-mismatch cases (e.g. natcomm_nguyen_mirna) have
+        # no in-file cross-locus target, so the annotator files src==tgt; that is disjoint, not a copy.
+        # CRITICAL: an elementwise-identical series across TWO DISTINCT loci is a real copy-paste and
+        # MUST still fire — the guard is locus-keyed, not value-keyed, so it never masks that.
+        if src_label is not None and src_label == tgt_label:
+            return VerifierSignal(relation="L1", fired=False, evidence_span=span, confidence=1.0)
         kind, _detail = classify_relationship(a, b)
-        span = f"L1:{md.get('src_label')}->{md.get('tgt_label')}"
         fired = kind in ("duplicate", "constant_offset", "linear_transform")
         return VerifierSignal(relation="L1", fired=fired, evidence_span=span, confidence=1.0)
 
