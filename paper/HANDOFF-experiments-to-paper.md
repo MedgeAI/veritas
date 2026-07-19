@@ -115,6 +115,43 @@ claims), matching the headline 1.0%.
 §experiments Q1/Q2 paper-level conversion + the 22/0/0 histogram; §threats(power) turns the
 "cluster-by-paper" promise into a reported paper-level number.
 
+### 0b-4. Bootstrap CI for the main + ablation tables (answers REQUEST-w1-CI task①, w1 2026-07-19)
+
+**Closes the "setup promised paper-clustered bootstrap CI, tables show none" gap.** Pure aggregation
+from the FROZEN predictions (`b1b5_predictions/*.json`) — **no backbone re-run**. Method is identical
+to the CI the main-table builder already computes (resample **cases**, B=1000, seed=0, recompute via
+`main_table_row`); this run extends it to **all B1–B5** and adds the third metric **Recall@FAR≤5%**.
+Full artifact: `benchmarks/veritasbench/suites/b1b5_bootstrap_ci.json` (rows keyed by
+`{backbone, config, metric, point, ci_lo, ci_hi, B, seed, resample_unit:"paper"}`).
+
+**Sanity check passed:** the new CIs reproduce the maintable's embedded `ci95` to the digit (e.g.
+qwen B1 FAR `[0.099, 0.333]`, F1 `[0.604, 0.739]`) — same method, same numbers, now complete.
+
+**Paste-ready (regenerate any time):**
+```bash
+cd veritas && PYTHONPATH=. uv run python scripts/aggregate_bootstrap_ci.py      # writes the json
+cd veritas && PYTHONPATH=. uv run python scripts/maintable_to_latex.py          # prints LaTeX rows w/ CI
+```
+`maintable_to_latex.py` now auto-detects the CI json and emits paste-ready cells as
+`point~{\scriptsize[lo,hi]}` for Table 1 (F1+FAR) and Table 2 (FAR% + Recall%), all B1–B5.
+
+Headline CIs (37-case test split, % where noted):
+
+| metric | B1 (bare) | B3 (+forensics) | B5 (full) |
+|---|---|---|---|
+| **FAR %** (qwen) | 20.0 [9.9, 33.3] | 2.4 [0.0, 5.5] | **1.0 [0.0, 3.3]** |
+| **Claim-F1** (qwen) | 0.667 [0.604, 0.739] | 0.710 [0.500, 0.857] | **0.733 [0.522, 0.882]** |
+| **Recall@FAR≤5%** (qwen) | 0.529 [0.0, 0.85]† | 0.611 [0.353, 0.823] | 0.611 [0.368, 0.823] |
+
+(deepseek/glm FAR & F1 CIs are within ±1–2pp of qwen — in the json; B5 FAR CI is identical
+`[0.0, 3.3]` across all three backbones.)
+
+**† The one honest caveat (matches §0 caveat 3):** B1/B2 **Recall@FAR≤5%** CI is near-degenerate
+(`[0, 0.85]` qwen, `[0, 1.0]` deepseek) — coarse pre-forensics confidence rarely hits a valid
+FAR≤5% operating point, so resamples often collapse recall to 0. **Report the Recall CI from B3
+onward** (tight, ~`[0.35, 0.82]`), or annotate B1/B2 recall as unstable. FAR and F1 CIs are stable
+at every gear. Do NOT present the B1 recall CI as if it were a reliable interval.
+
 ## 0. FINAL RESULTS + honest caveats (read before filling tables)
 
 **Clean, publishable main story (holds across all 3 backbones):**
