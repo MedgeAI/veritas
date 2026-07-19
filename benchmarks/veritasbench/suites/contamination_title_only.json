@@ -1,0 +1,57 @@
+{
+  "_doc": "Title-only contamination ablation. Contrast is on B1 bare (memorization is an LLM property; B3+ verifier operates on series that title-only removes). Same agent, one process; only artifact context differs.",
+  "backbone": "qwen3.7-plus",
+  "alpha": 0.05,
+  "n_test_cases": 37,
+  "n_claims": 115,
+  "elapsed_s": 5028.0,
+  "fake": false,
+  "conditions": {
+    "full": {
+      "tier": "B1_bare",
+      "artifact": "real source-data series",
+      "claim_f1": 0.5909,
+      "far": 0.2192,
+      "recall_at_far<=0.05": 0.0,
+      "claim_recall": 0.8667,
+      "coverage": 0.7652,
+      "n_claims": 115,
+      "ci95": {
+        "far": [
+          0.1163,
+          0.3582
+        ],
+        "claim_f1": [
+          0.4889,
+          0.6818
+        ]
+      }
+    },
+    "title_only": {
+      "tier": "B1_bare",
+      "artifact": "paper title only, source data withheld",
+      "claim_f1": 0.0,
+      "far": 0.0,
+      "recall_at_far<=0.05": 0.0,
+      "claim_recall": 0.0,
+      "coverage": 0.0,
+      "n_claims": 115,
+      "ci95": {
+        "far": [
+          0.0,
+          0.0
+        ],
+        "claim_f1": [
+          0.0,
+          0.0
+        ]
+      }
+    }
+  },
+  "delta_full_minus_title": {
+    "far": 0.2192,
+    "claim_f1": 0.5909,
+    "recall_at_far<=0.05": 0.0
+  },
+  "readout": "title_only far below full -> results rely on artifacts, not memorization"
+}

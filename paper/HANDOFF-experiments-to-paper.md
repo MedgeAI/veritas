@@ -152,6 +152,47 @@ FAR≤5% operating point, so resamples often collapse recall to 0. **Report the 
 onward** (tight, ~`[0.35, 0.82]`), or annotate B1/B2 recall as unstable. FAR and F1 CIs are stable
 at every gear. Do NOT present the B1 recall CI as if it were a reliable interval.
 
+### 0b-5. Title-only contamination ablation (answers REQUEST-w1-CI task②, w1 2026-07-19)
+
+**Closes the "threats §contamination promises a title-only comparison, reports no numbers" gap.**
+LIVE run, Qwen3.7-Plus, both arms in ONE process with ONE agent instance so the **only** variable is
+the artifact context (no run-to-run confound). Contrast is on **B1 bare** — memorization is an LLM
+property; B3+'s verifier does exact math on the series that title-only removes, so a verifier tier
+would be meaningless here. Gold-leak guard passed on both arms. 115 claims × 2 arms, 5028 s.
+Artifact: `benchmarks/veritasbench/suites/contamination_title_only.json`.
+
+| condition | artifact given | coverage | FAR | Claim-F1 | claim-recall |
+|---|---|---|---|---|---|
+| **full** | real source-data series | 0.765 | 0.219 [0.116, 0.358] | 0.591 [0.489, 0.682] | 0.867 |
+| **title-only** | paper title only, data withheld | **0.000** | 0.0 | 0.0 | 0.0 |
+
+**READ-OUT — the result is the STRONGEST possible anti-contamination signal, but you MUST frame the
+mechanism or a reviewer misreads it as a crash:** with the source data removed, the model
+**abstains on 100% of claims (coverage = 0)** — it answers `insufficient` every time, never guessing
+from the title. It is NOT that title-only produces bad predictions; it produces **no predictions at
+all**. So the title-only FAR/F1 of 0.0 are "nothing answered", not "answered well/badly". Because the
+model cannot decide a single claim from the title + prior knowledge, its verdicts on the full corpus
+must come from the artifacts, not from having memorized these (many retracted, high-profile) papers.
+Contamination does not explain our results.
+
+**⚠️ Do NOT write "title-only FAR = 0 so it's also safe".** FAR=0 here is an artifact of coverage=0
+(FAR's denominator is *answered* clean claims). The honest one-liner is about **coverage collapse**,
+not a low error rate.
+
+**Paste-ready (§threats contamination):**
+> As a first-line check against training-set memorization, we re-ran the bare-LLM auditor
+> (Qwen3.7-Plus) in a \emph{title-only} condition: the source-data artifacts are withheld and the
+> model sees only the paper title alongside the neutral claim, with the rest of the pipeline
+> unchanged. Under this condition the model \emph{abstains on 100\% of claims} (coverage $0.0$ vs.
+> $0.77$ with full artifacts), declining to adjudicate a single locus from the title alone. Since the
+> auditor cannot reproduce any of its full-material verdicts from the title plus prior knowledge, its
+> decisions are driven by the provided data rather than by memorization of these (frequently
+> retracted, widely-reported) papers.
+
+*Retracted-vs-non-retracted stratification was scoped as optional and skipped — the coverage-collapse
+result already settles the memorization question at the whole-corpus level, and the case metadata does
+not carry a clean retracted flag to stratify on.*
+
 ## 0. FINAL RESULTS + honest caveats (read before filling tables)
 
 **Clean, publishable main story (holds across all 3 backbones):**
