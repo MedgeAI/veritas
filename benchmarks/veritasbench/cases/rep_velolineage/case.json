@@ -186,6 +186,9 @@
     }
   ],
   "metadata": {
+    "discovery_method": "reproducibility-literature",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
     "paper_split": "rep_velolineage",
     "primary_failure_mode": "false_positive_trap",
     "secondary_failure_modes": [],

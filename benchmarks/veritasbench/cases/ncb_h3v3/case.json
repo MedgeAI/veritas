@@ -351,6 +351,9 @@
     }
   ],
   "metadata": {
+    "discovery_method": "integrity-report",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
     "paper_split": "ncb_h3v3",
     "primary_failure_mode": "verifier_conflict",
     "secondary_failure_modes": [
@@ -358,8 +361,8 @@
     ],
     "source_url": "https://doi.org/10.1038/s41556-021-00795-7",
     "_paper_artifact_status": "paper artifact 已补入(kind=paper_pdf, 23587KB); 支持后续L3(文字claim)/L4(图编码)标注",
-    "_lingjing_disclosure": "灵镜: ED Fig 6j vs 6k 不同表示同队列",
-    "_independent_status": "下载窗口 dup_scan 我方复现; 6j(%)与6k(#细胞数)不可能相同却逐行相同=造假铁证(灵镜披露背书)",
+    "_integrity_report_disclosure": "外部诚信报告: ED Fig 6j vs 6k 不同表示同队列",
+    "_independent_status": "下载窗口 dup_scan 我方复现; 6j(%)与6k(#细胞数)不可能相同却逐行相同=造假铁证(外部诚信报告披露背书)",
     "_signed_by": "wuguandu @ 2026-07-14T00:00:00Z (下载窗口 provisional→已核定); 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)"
   }
 }

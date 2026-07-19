@@ -363,6 +363,9 @@
     }
   ],
   "metadata": {
+    "discovery_method": "integrity-report",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
     "paper_split": "ncb_sirt1",
     "primary_failure_mode": "verifier_conflict",
     "secondary_failure_modes": [
@@ -370,7 +373,7 @@
     ],
     "source_url": "https://doi.org/10.1038/s41556-020-00579-5",
     "_paper_artifact_status": "paper artifact 已补入(kind=paper_pdf, 10349KB); 支持后续L3(文字claim)/L4(图编码)标注",
-    "_lingjing_disclosure": "灵镜: Fig 4i 不同组同数据队列",
+    "_integrity_report_disclosure": "外部诚信报告: Fig 4i 不同组同数据队列",
     "_independent_status": "下载窗口从开放Source Data独立复现: WV+I347A组 EtoD7=EtoD4",
     "_signed_by": "wuguandu @ 2026-07-14T00:00:00Z (下载窗口 provisional→已核定); 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }

@@ -184,13 +184,16 @@
     }
   ],
   "metadata": {
+    "discovery_method": "integrity-report",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
     "paper_split": "ncb_nelfa",
     "primary_failure_mode": "verifier_conflict",
     "secondary_failure_modes": [
       "mixed_boundary"
     ],
     "source_url": "https://doi.org/10.1038/s41556-019-0453-8",
-    "_lingjing_disclosure": "灵镜: ED Fig 5f 不同组同数据队列",
+    "_integrity_report_disclosure": "外部诚信报告: ED Fig 5f 不同组同数据队列",
     "_independent_status": "下载窗口 dup_scan 我方复现: ED5f %Prolif Day2==Day3",
     "_signed_by": "wuguandu @ 2026-07-14T00:00:00Z; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)"
   }

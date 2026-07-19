@@ -803,6 +803,9 @@
     }
   ],
   "metadata": {
+    "discovery_method": "post-publication-review",
+    "discovery_method_confidence": "provisional",
+    "detector_surfaced_by_b3": false,
     "paper_split": "lin_grounding",
     "primary_failure_mode": "grounding",
     "secondary_failure_modes": [

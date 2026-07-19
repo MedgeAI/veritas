@@ -11,6 +11,9 @@
       "kind": "source_data"
     },
     "metadata": {
+      "discovery_method": "reproducibility-literature",
+      "discovery_method_confidence": "family-level",
+      "detector_surfaced_by_b3": false,
       "path": "artifacts/sample_metadata.csv",
       "sha256": "6dfe9cd4241c75532b2f948de2fc28561876edecc3cff19d8eb71064e6fe51c0",
       "kind": "source_data"
@@ -239,6 +242,9 @@
     "_signed_by": "wuguandu @ 2026-07-15; 第二标注人已双标(§5抽样 seed=20260715); κ=0.924(见_second_annotation/kappa_report.txt)",
     "_mechanism": [
       "confounding"
-    ]
+    ],
+    "discovery_method": "reproducibility-literature",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false
   }
 }

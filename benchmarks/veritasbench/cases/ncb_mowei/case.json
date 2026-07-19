@@ -120,6 +120,9 @@
     }
   ],
   "metadata": {
+    "discovery_method": "integrity-report",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
     "paper_split": "ncb_mowei",
     "primary_failure_mode": "mixed_boundary",
     "secondary_failure_modes": [

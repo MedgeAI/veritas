@@ -460,6 +460,9 @@
     }
   ],
   "metadata": {
+    "discovery_method": "integrity-report",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
     "paper_split": "ncb_alkbh7",
     "primary_failure_mode": "verifier_conflict",
     "secondary_failure_modes": [

@@ -142,7 +142,7 @@
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-15T00:00:00Z",
       "is_clean_claim": false,
-      "_adjudication": "Inconsistent(真异常/展示层错误): Fig.1c 中 BRCA2-OB2-BE4max @ Tim3-sg1 的 Rep.1(T9:T14) 与 Rep.2(U9:U14) 六个位点全部逐值相同(9.2/9.3/7.9/7.3/6.2/5.6), 而 Rep.3(V) 明显不同. 独立生物/技术重复不应精确到一位小数完全相同→重复列(copy-paste/replicate duplication). Fig.1c 属灵镜披露的异常图之一, 作者已于 2026-06-17 对部分数据异常发布更正. 这是有据可查的真实错误(非 gotcha), 与 claim_001/002 的合法参照复用有本质区别: 那里是同一编辑器在两个图共用, 这里是同一图内两个应独立的重复列相同. 判 inconsistent."
+      "_adjudication": "Inconsistent(真异常/展示层错误): Fig.1c 中 BRCA2-OB2-BE4max @ Tim3-sg1 的 Rep.1(T9:T14) 与 Rep.2(U9:U14) 六个位点全部逐值相同(9.2/9.3/7.9/7.3/6.2/5.6), 而 Rep.3(V) 明显不同. 独立生物/技术重复不应精确到一位小数完全相同→重复列(copy-paste/replicate duplication). Fig.1c 属外部诚信报告披露的异常图之一, 作者已于 2026-06-17 对部分数据异常发布更正. 这是有据可查的真实错误(非 gotcha), 与 claim_001/002 的合法参照复用有本质区别: 那里是同一编辑器在两个图共用, 这里是同一图内两个应独立的重复列相同. 判 inconsistent."
     },
     {
       "annotation_id": "ncb_baseeditor_ann_004",
@@ -157,12 +157,15 @@
       "annotator_id": "wuguandu",
       "annotation_timestamp": "2026-07-15T00:00:00Z",
       "is_clean_claim": false,
-      "_adjudication": "Insufficient(证据不足以定性): Fig.5f 是单细胞 comet assay 尾矩(n=50/编辑器), 灵镜披露该单图约 18 处异常. hyBE4max 列出现极低值(C11=0.376, C12=0.088)夹在正常量级(C10=34.1, C13=101.5)之间, 表面像离群/异常. 但 comet 尾矩本身跨度极大(单个近乎无损伤细胞可给出接近 0 的尾矩), 且源数据仅是最终数值表, 不含原始 comet 图像/像素级测量. 无法仅凭公开 source data 确定性判定这些近零值是造假、软件测量下限伪影、还是真实近零细胞. 属方法学/精度限制→insufficient(不给 evidence_span). source/target 指向两个近零观测仅作 claim 锚点, 非造假的确证证据.",
+      "_adjudication": "Insufficient(证据不足以定性): Fig.5f 是单细胞 comet assay 尾矩(n=50/编辑器), 外部诚信报告披露该单图约 18 处异常. hyBE4max 列出现极低值(C11=0.376, C12=0.088)夹在正常量级(C10=34.1, C13=101.5)之间, 表面像离群/异常. 但 comet 尾矩本身跨度极大(单个近乎无损伤细胞可给出接近 0 的尾矩), 且源数据仅是最终数值表, 不含原始 comet 图像/像素级测量. 无法仅凭公开 source data 确定性判定这些近零值是造假、软件测量下限伪影、还是真实近零细胞. 属方法学/精度限制→insufficient(不给 evidence_span). source/target 指向两个近零观测仅作 claim 锚点, 非造假的确证证据.",
       "source_a1_range": "sheet 'Fig.5f' C11:C11",
       "target_a1_range": "sheet 'Fig.5f' C12:C12"
     }
   ],
   "metadata": {
+    "discovery_method": "integrity-report",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
     "paper_split": "ncb_baseeditor",
     "primary_failure_mode": "mixed_boundary",
     "secondary_failure_modes": [
@@ -171,7 +174,7 @@
     ],
     "source_url": "https://doi.org/10.1038/s41556-020-0518-8",
     "_lane": "混合型诚实案(碱基编辑器, 李大力/华东师大 2020 NCB): 并存三类 verdict — consistent/FP(Fig.4a↔ED Fig.3 的 hyeA3A-BE4max 与 Fig.2a↔ED Fig.3 的 A3A-BE4max 均为跨图共享参照编辑器臂=合法复用) + inconsistent(Fig.1c BRCA2-OB2-BE4max@Tim3-sg1 的 Rep.1==Rep.2 逐值相同=真重复列, 作者已部分更正) + insufficient(Fig.5f comet 尾矩近零值, 无原始图像无法确证造假). 考 AI 能否区分'看着可疑但是合法参照复用'/'确有重复列错误'/'证据不足'.",
-    "_pubpeer": "灵镜披露疑数据异常: Fig1c/1d/2b/2d/5e/5f/7d, ED Fig5e; Fig5f 单图 18 处异常(0/0.1 等小数不计).",
+    "_pubpeer": "外部诚信报告披露疑数据异常: Fig1c/1d/2b/2d/5e/5f/7d, ED Fig5e; Fig5f 单图 18 处异常(0/0.1 等小数不计).",
     "_correction": "作者(李大力团队)已于 2026-06-17 对部分数据异常发布更正 → 部分真错的独立状态实锤(inconsistent 素材来源).",
     "_verdict_breakdown": "consistent=2 (claim_001, claim_002); inconsistent=1 (claim_003); insufficient=1 (claim_004)",
     "_signed_by": "wuguandu @ 2026-07-15; 第二标注可靠性=benchmark级抽样 κ=0.924(§5,见_second_annotation/;本案未入样本)",

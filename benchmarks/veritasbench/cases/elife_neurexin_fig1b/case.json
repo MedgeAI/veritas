@@ -117,6 +117,9 @@
     }
   ],
   "metadata": {
+    "discovery_method": "correction-notice",
+    "discovery_method_confidence": "verified",
+    "detector_surfaced_by_b3": false,
     "paper_split": "elife_neurexin_fig1b",
     "primary_failure_mode": "verifier_conflict",
     "secondary_failure_modes": [],

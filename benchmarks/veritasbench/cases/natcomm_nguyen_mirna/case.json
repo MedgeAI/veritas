@@ -156,6 +156,9 @@
     }
   ],
   "metadata": {
+    "discovery_method": "correction-notice",
+    "discovery_method_confidence": "verified",
+    "detector_surfaced_by_b3": false,
     "paper_split": "natcomm_nguyen_mirna",
     "primary_failure_mode": "verifier_conflict",
     "secondary_failure_modes": [],

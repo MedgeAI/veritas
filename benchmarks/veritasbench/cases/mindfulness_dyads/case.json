@@ -105,6 +105,9 @@
     }
   ],
   "metadata": {
+    "discovery_method": "post-publication-review",
+    "discovery_method_confidence": "verified",
+    "detector_surfaced_by_b3": false,
     "paper_split": "mindfulness_dyads",
     "primary_failure_mode": "verifier_conflict",
     "secondary_failure_modes": [],
