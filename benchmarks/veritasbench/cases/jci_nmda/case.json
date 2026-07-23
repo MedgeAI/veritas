@@ -1,0 +1,272 @@
+{
+  "case_id": "jci_nmda",
+  "paper_title": "Disrupted callosal connectivity underlies long-lasting sensory-motor deficits in an NMDA receptor antibody encephalitis mouse model",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "jci173493_sdval": {
+      "path": "artifacts/JCI173493_sdval.xlsx",
+      "sha256": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "kind": "source_data"
+    }
+  },
+  "observations": {
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!B57": {
+      "value": 8,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', B57 (Figure 7F axonal branch points, Hum IgG, replicate 1)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!F57": {
+      "value": 10,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', F57 (Figure 7F branch terminal points, Hum IgG, replicate 1)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!C57": {
+      "value": 50,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', C57 (Figure 7F axonal branch points, mAb3[GluN1], replicate 1)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!B58": {
+      "value": 9,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', B58 (Figure 7F axonal branch points, Hum IgG, replicate 2)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!F58": {
+      "value": 11,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', F58 (Figure 7F branch terminal points, Hum IgG, replicate 2)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!C58": {
+      "value": 25,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', C58 (Figure 7F axonal branch points, mAb3[GluN1], replicate 2)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!B59": {
+      "value": 5,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', B59 (Figure 7F axonal branch points, Hum IgG, replicate 3)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!F59": {
+      "value": 7,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', F59 (Figure 7F branch terminal points, Hum IgG, replicate 3)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!C59": {
+      "value": 45,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', C59 (Figure 7F axonal branch points, mAb3[GluN1], replicate 3)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!B60": {
+      "value": 15,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', B60 (Figure 7F axonal branch points, Hum IgG, replicate 4)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!F60": {
+      "value": 17,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', F60 (Figure 7F branch terminal points, Hum IgG, replicate 4)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!C60": {
+      "value": 26,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', C60 (Figure 7F axonal branch points, mAb3[GluN1], replicate 4)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!B61": {
+      "value": 13,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', B61 (Figure 7F axonal branch points, Hum IgG, replicate 5)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!F61": {
+      "value": 15,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', F61 (Figure 7F branch terminal points, Hum IgG, replicate 5)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!C61": {
+      "value": 32,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', C61 (Figure 7F axonal branch points, mAb3[GluN1], replicate 5)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!B62": {
+      "value": 8,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', B62 (Figure 7F axonal branch points, Hum IgG, replicate 6)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!F62": {
+      "value": 10,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', F62 (Figure 7F branch terminal points, Hum IgG, replicate 6)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!C62": {
+      "value": 27,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', C62 (Figure 7F axonal branch points, mAb3[GluN1], replicate 6)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!B63": {
+      "value": 16,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', B63 (Figure 7F axonal branch points, Hum IgG, replicate 7)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!F63": {
+      "value": 18,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', F63 (Figure 7F branch terminal points, Hum IgG, replicate 7)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!C63": {
+      "value": null,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', C63 (Figure 7F axonal branch points, mAb3[GluN1], replicate 7)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!B64": {
+      "value": 5,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', B64 (Figure 7F axonal branch points, Hum IgG, replicate 8)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!F64": {
+      "value": 7,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', F64 (Figure 7F branch terminal points, Hum IgG, replicate 8)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!C64": {
+      "value": null,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', C64 (Figure 7F axonal branch points, mAb3[GluN1], replicate 8)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!B65": {
+      "value": 16,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', B65 (Figure 7F axonal branch points, Hum IgG, replicate 9)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!F65": {
+      "value": 18,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', F65 (Figure 7F branch terminal points, Hum IgG, replicate 9)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!C65": {
+      "value": null,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', C65 (Figure 7F axonal branch points, mAb3[GluN1], replicate 9)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!B66": {
+      "value": 32,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', B66 (Figure 7F axonal branch points, Hum IgG, replicate 10)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!F66": {
+      "value": 34,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', F66 (Figure 7F branch terminal points, Hum IgG, replicate 10)"
+    },
+    "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!C66": {
+      "value": null,
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx",
+      "source_artifact_hash": "2098bba19da7fa75b1494dd9ca207a09d10b532b1ca04e0f35ec78aa6e6bbca8",
+      "source_span": "sheet 'Figure 7-Rest raw data', C66 (Figure 7F axonal branch points, mAb3[GluN1], replicate 10)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "jci_nmda_ann_001",
+      "claim_id": "jci_nmda_claim_fixedoffset",
+      "claim_atom": "Figure 7F (axonal branch points, Hum IgG group) and Figure 7F (branch terminal points, Hum IgG group) are independent measurements of neuronal morphology.",
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!B57",
+      "target_artifact": "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!F57",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "fixed_offset",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "B57=8 vs F57=10 (F-B=2)",
+        "B58=9 vs F58=11 (F-B=2)",
+        "B59=5 vs F59=7 (F-B=2)",
+        "B60=15 vs F60=17 (F-B=2)",
+        "B61=13 vs F61=15 (F-B=2)",
+        "B62=8 vs F62=10 (F-B=2)",
+        "B63=16 vs F63=18 (F-B=2)",
+        "B64=5 vs F64=7 (F-B=2)",
+        "B65=16 vs F65=18 (F-B=2)",
+        "B66=32 vs F66=34 (F-B=2)",
+        "10/10 F-B=2 EXACT fixed_offset (灵镜\"部分数据差2\": r57-66 连续段全差2, r49/51/53/56 偏离)"
+      ],
+      "_adjudication": "inconsistent: 外部诚信报告(integrity-report)指出 Figure 7F 部分数据呈现恒定差值; openpyxl 核对 B57:B66 (Axon branch points Hum IgG) vs F57:F66 (branch terminal Hum IgG), F-B=2 全 10 行 (r57-r66) EXACT fixed_offset. 两个独立形态学指标差恒定常数2, 不可能 (不同指标应独立变化), 实为 fixed_offset copy/paste+常数.",
+      "source_a1_range": "B57:B66",
+      "target_a1_range": "F57:F66"
+    },
+    {
+      "annotation_id": "jci_nmda_ann_clean",
+      "claim_id": "jci_nmda_claim_clean",
+      "claim_atom": "A separate comparison within Figure 7F, axonal branch points measured under Hum IgG versus mAb3[GluN1] conditions, yields distinct values.",
+      "source_artifact": "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!B57",
+      "target_artifact": "artifacts/JCI173493_sdval.xlsx#Figure 7-Rest raw data!C57",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "B57(Hum)=8 vs C57(mAb3)=50",
+        "B58(Hum)=9 vs C58(mAb3)=25",
+        "B59(Hum)=5 vs C59(mAb3)=45",
+        "B60(Hum)=15 vs C60(mAb3)=26",
+        "B61(Hum)=13 vs C61(mAb3)=32",
+        "B62(Hum)=8 vs C62(mAb3)=27",
+        "B63(Hum)=16 vs C63(mAb3)=None",
+        "B64(Hum)=5 vs C64(mAb3)=None",
+        "B65(Hum)=16 vs C65(mAb3)=None",
+        "B66(Hum)=32 vs C66(mAb3)=None"
+      ],
+      "_adjudication": "consistent(clean): B57:B66 (Hum IgG) vs C57:C66 (mAb3 Axon branch points) 值明显不同, 为真独立 group 测量.",
+      "source_a1_range": "B57:B66",
+      "target_a1_range": "C57:C66"
+    }
+  ],
+  "metadata": {
+    "paper_split": "jci_nmda",
+    "split": "jci_integrity",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1172/JCI173493",
+    "discovery_method": "integrity-report",
+    "discovery_method_confidence": "verified",
+    "detector_surfaced_by_b3": false,
+    "_integrity_report_disclosure": "外部诚信报告系统筛库发现 Fig7F 部分数据呈现恒定差值 (2024-12-31 JCI online)",
+    "_lane": "JCI integrity suite case (fixed_offset / in-family B3 detector type). 外部诚信报告背书 + openpyxl 核对 B57:B66 vs F57:F66 F-B=2 (10/10 r57-66) EXACT. 多格 range, B3 fixed_offset 检测器在此类 fire 是主集正常行为.",
+    "_signed_by": "wuguandu @ 2026-07-23; JCI source data xlsx (JCI173493.sdval.xlsx, 手动下因 JCI reCAPTCHA) 核对 B vs F fixed_offset verified against external integrity report."
+  }
+}

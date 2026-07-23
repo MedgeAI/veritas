@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "name": "jci_integrity",
+  "description": "JCI 灵镜 dirty suite — external integrity-report backed, L1 source_data numerical anomalies. Independent from E1 fresh pilot (split: jci_integrity, NOT in l1_dev_test.json main split, preserves N=115 + 73-case headline). Covers B3 in-family anomaly types: fixed_offset / duplicated_values / paired_ratio / sum_constant. Each case backed by external integrity report (灵镜, abstracted as integrity-report) + openpyxl byte-identical or fixed-offset verification. All pass validator 9 checks + discovery_metrics selftest (dirty matched + linking_accuracy_locus=1.0). JCI source data manually downloaded (JCI /sd/N reCAPTCHA blocks curl). Candidates: see paper/jci_dirty_candidates.md (12 cases, 7 DOI converted).",
+  "case_ids": [
+    "jci_nmda"
+  ]
+}
