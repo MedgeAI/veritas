@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "name": "e1_fresh_pilot",
+  "description": "E1 discovery-conditioned end-to-end pilot — fresh papers (NOT in the 73-case main set). 5 cases, 13 claims (3 dirty duplicated_values + 10 clean). Purpose: validate the discovery+linking pipeline on unseen papers — system self-discovers claims + links to source-data locus, scored against gold via engine/benchmark/discovery_metrics.py. Dirty claims (ncb_il17a x2, ncb_sphingo x1) backed by external integrity report + openpyxl byte-identical verification (Mouse1==Mouse12 34值全等 / Fig1d Mouse2==Mouse3 前12值全等 / Fig2j day29==day36 前15值全等). Clean claims (cell_gutmicrobiota x3 / nat_gutmetabolite x3 / ng_radioresist x2 / ncb_il17a x1 / ncb_sphingo x1) from honest reproducible source data (no external endorsement; group-vs-group ranges with different values). Meets REQUEST §3 thresholds: dirty 3/3 ✓, clean 10/10 ✓, ratio ~23% dirty (close to target 84/16). All cases pass the official validator (9 checks) + discovery_metrics --selftest (dirty matched + linking_accuracy_locus=1.0). NOTE: this suite ships E1-complete; JCI dirty cases (12, duplicated/fixed_offset/paired_ratio/sum_constant) are queued separately as jci_integrity suite (see paper/jci_dirty_candidates.md).",
+  "case_ids": [
+    "cell_gutmicrobiota",
+    "nat_gutmetabolite",
+    "ncb_il17a",
+    "ncb_sphingo",
+    "ng_radioresist"
+  ]
+}

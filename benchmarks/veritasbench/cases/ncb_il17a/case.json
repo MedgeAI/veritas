@@ -1,0 +1,483 @@
+{
+  "case_id": "ncb_il17a",
+  "paper_title": "IL-17A-secreting gamma delta T cells promote resistance to CDK4/CDK6 inhibitors in HR+HER2- breast cancer via CX3CR1+ macrophages",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "43018_2025_1007_moesm3_esm": {
+      "path": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "sha256": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "kind": "source_data"
+    }
+  },
+  "observations": {
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!B20": {
+      "value": 1.0,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', B20 (Mouse 1 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!C20": {
+      "value": 0.96,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', C20 (Mouse 1 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!D20": {
+      "value": 0.96,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', D20 (Mouse 1 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!E20": {
+      "value": 0.96,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', E20 (Mouse 1 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!F20": {
+      "value": 0.96,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', F20 (Mouse 1 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!G20": {
+      "value": 0.96,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', G20 (Mouse 1 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!H20": {
+      "value": 0.99,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', H20 (Mouse 1 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!I20": {
+      "value": 1.01,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', I20 (Mouse 1 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!J20": {
+      "value": 1.04,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', J20 (Mouse 1 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!B31": {
+      "value": 1.0,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', B31 (Mouse 12 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!C31": {
+      "value": 0.96,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', C31 (Mouse 12 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!D31": {
+      "value": 0.96,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', D31 (Mouse 12 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!E31": {
+      "value": 0.96,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', E31 (Mouse 12 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!F31": {
+      "value": 0.96,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', F31 (Mouse 12 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!G31": {
+      "value": 0.96,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', G31 (Mouse 12 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!H31": {
+      "value": 0.99,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', H31 (Mouse 12 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!I31": {
+      "value": 1.01,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', I31 (Mouse 12 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!J31": {
+      "value": 1.04,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', J31 (Mouse 12 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!B21": {
+      "value": 1.0,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', B21 (Mouse 2 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!C21": {
+      "value": 0.23,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', C21 (Mouse 2 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!D21": {
+      "value": 0.31,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', D21 (Mouse 2 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!E21": {
+      "value": 0.38,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', E21 (Mouse 2 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!F21": {
+      "value": 0.46,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', F21 (Mouse 2 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!G21": {
+      "value": 0.54,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', G21 (Mouse 2 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!H21": {
+      "value": 0.69,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', H21 (Mouse 2 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!I21": {
+      "value": 0.85,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', I21 (Mouse 2 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!J21": {
+      "value": 1.0,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', J21 (Mouse 2 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!B22": {
+      "value": 1.0,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', B22 (Mouse 3 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!C22": {
+      "value": 1.25,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', C22 (Mouse 3 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!D22": {
+      "value": 1.5,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', D22 (Mouse 3 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!E22": {
+      "value": 1.94,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', E22 (Mouse 3 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!F22": {
+      "value": 2.38,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', F22 (Mouse 3 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!G22": {
+      "value": 2.82,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', G22 (Mouse 3 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!H22": {
+      "value": 3.14,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', H22 (Mouse 3 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!I22": {
+      "value": 3.46,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', I22 (Mouse 3 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!J22": {
+      "value": 3.78,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', J22 (Mouse 3 (RT group, Fig 1a, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!B173": {
+      "value": 1.0,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', B173 (Mouse 2 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!C173": {
+      "value": 1.12,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', C173 (Mouse 2 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!D173": {
+      "value": 1.23,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', D173 (Mouse 2 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!E173": {
+      "value": 1.35,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', E173 (Mouse 2 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!F173": {
+      "value": 1.46,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', F173 (Mouse 2 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!G173": {
+      "value": 1.53,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', G173 (Mouse 2 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!H173": {
+      "value": 1.6,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', H173 (Mouse 2 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!I173": {
+      "value": 1.66,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', I173 (Mouse 2 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!J173": {
+      "value": 1.93,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', J173 (Mouse 2 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!K173": {
+      "value": 2.2,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', K173 (Mouse 2 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!L173": {
+      "value": 2.47,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', L173 (Mouse 2 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!M173": {
+      "value": 2.74,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', M173 (Mouse 2 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!B174": {
+      "value": 1.0,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', B174 (Mouse 3 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!C174": {
+      "value": 1.12,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', C174 (Mouse 3 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!D174": {
+      "value": 1.23,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', D174 (Mouse 3 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!E174": {
+      "value": 1.35,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', E174 (Mouse 3 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!F174": {
+      "value": 1.46,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', F174 (Mouse 3 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!G174": {
+      "value": 1.53,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', G174 (Mouse 3 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!H174": {
+      "value": 1.6,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', H174 (Mouse 3 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!I174": {
+      "value": 1.66,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', I174 (Mouse 3 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!J174": {
+      "value": 1.93,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', J174 (Mouse 3 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!K174": {
+      "value": 2.2,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', K174 (Mouse 3 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!L174": {
+      "value": 2.47,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', L174 (Mouse 3 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    },
+    "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!M174": {
+      "value": 2.74,
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx",
+      "source_artifact_hash": "fbd69c1ff0f791bc05427a5374ea0cda0cd7582f0d14d6cce662a554b2333913",
+      "source_span": "sheet 'Figure 1', M174 (Mouse 3 (RT->P+T+anti-CD4 group, Fig 1d, relative tumor area A/A0))"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_il17a_ann_001",
+      "claim_id": "ncb_il17a_claim_001",
+      "claim_atom": "Figure 1a (Mouse 1, RT group) and Figure 1a (Mouse 12, RT group) are independent measurements of relative tumor area (A/A0) over time.",
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!B20",
+      "target_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!B31",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_values",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "B20(Mouse1)=1.0 ~ B31(Mouse12)=1.0",
+        "C20(Mouse1)=0.96 ~ C31(Mouse12)=0.96",
+        "D20(Mouse1)=0.96 ~ D31(Mouse12)=0.96",
+        "E20(Mouse1)=0.96 ~ E31(Mouse12)=0.96",
+        "F20(Mouse1)=0.96 ~ F31(Mouse12)=0.96",
+        "G20(Mouse1)=0.96 ~ G31(Mouse12)=0.96",
+        "H20(Mouse1)=0.99 ~ H31(Mouse12)=0.99",
+        "I20(Mouse1)=1.01 ~ I31(Mouse12)=1.01",
+        "J20(Mouse1)=1.04 ~ J31(Mouse12)=1.04",
+        "9/9 EXACT (实际 B20:AH20 vs B31:AH31 共34值全等, claim锚前9值d0-d9)"
+      ],
+      "_adjudication": "inconsistent: 外部诚信报告(integrity-report)指出 Figure 1a RT组 Mouse1 与 Mouse12 数据相同; openpyxl 核对 r20 vs r31 共34个时间点值 byte-identical, claim锚前9值(d0-d9) 9/9 EXACT. 论文将两只独立小鼠呈现为独立测量, 实为 copy/paste.",
+      "source_a1_range": "B20:J20",
+      "target_a1_range": "B31:J31"
+    },
+    {
+      "annotation_id": "ncb_il17a_ann_002",
+      "claim_id": "ncb_il17a_claim_002",
+      "claim_atom": "Figure 1d (Mouse 2, RT->P+T+anti-CD4 group) and Figure 1d (Mouse 3, RT->P+T+anti-CD4 group) are independent measurements of relative tumor area over time.",
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!B173",
+      "target_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!B174",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_values",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "B173(Mouse2)=1.0 ~ B174(Mouse3)=1.0",
+        "C173(Mouse2)=1.12 ~ C174(Mouse3)=1.12",
+        "D173(Mouse2)=1.23 ~ D174(Mouse3)=1.23",
+        "E173(Mouse2)=1.35 ~ E174(Mouse3)=1.35",
+        "F173(Mouse2)=1.46 ~ F174(Mouse3)=1.46",
+        "G173(Mouse2)=1.53 ~ G174(Mouse3)=1.53",
+        "H173(Mouse2)=1.6 ~ H174(Mouse3)=1.6",
+        "I173(Mouse2)=1.66 ~ I174(Mouse3)=1.66",
+        "J173(Mouse2)=1.93 ~ J174(Mouse3)=1.93",
+        "K173(Mouse2)=2.2 ~ K174(Mouse3)=2.2",
+        "L173(Mouse2)=2.47 ~ L174(Mouse3)=2.47",
+        "M173(Mouse2)=2.74 ~ M174(Mouse3)=2.74",
+        "12/12 EXACT (前12值d0-d11全等, d12起分叉: 2.06 vs 2.94)"
+      ],
+      "_adjudication": "inconsistent: 外部诚信报告(integrity-report)指出 Figure 1d Mouse2 与 Mouse3 部分数据相同; openpyxl 核对 r173 vs r174 前12个时间点(d0-d11) byte-identical, d12起分叉. 前12值完全相同到小数点, 实为 copy/paste.",
+      "source_a1_range": "B173:M173",
+      "target_a1_range": "B174:M174"
+    },
+    {
+      "annotation_id": "ncb_il17a_ann_clean",
+      "claim_id": "ncb_il17a_claim_clean",
+      "claim_atom": "A distinct mouse pair (Mouse 2 and Mouse 3, RT group, Fig 1a) yields non-overlapping tumor-area values across the measured timepoints.",
+      "source_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!B21",
+      "target_artifact": "artifacts/43018_2025_1007_MOESM3_ESM.xlsx#Figure 1!B22",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "B21(Mouse2)=1.0 vs B22(Mouse3)=1.0",
+        "C21(Mouse2)=0.23 vs C22(Mouse3)=1.25",
+        "D21(Mouse2)=0.31 vs D22(Mouse3)=1.5",
+        "E21(Mouse2)=0.38 vs E22(Mouse3)=1.94",
+        "F21(Mouse2)=0.46 vs F22(Mouse3)=2.38",
+        "G21(Mouse2)=0.54 vs G22(Mouse3)=2.82",
+        "H21(Mouse2)=0.69 vs H22(Mouse3)=3.14",
+        "I21(Mouse2)=0.85 vs I22(Mouse3)=3.46",
+        "J21(Mouse2)=1.0 vs J22(Mouse3)=3.78"
+      ],
+      "_adjudication": "consistent(clean): Mouse2(B21:J21) 与 Mouse3(B22:J22) 值明显不同, 为真独立测量.",
+      "source_a1_range": "B21:J21",
+      "target_a1_range": "B22:J22"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_il17a",
+    "split": "e1_pilot",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s43018-025-01007-z",
+    "discovery_method": "integrity-report",
+    "discovery_method_confidence": "verified",
+    "detector_surfaced_by_b3": false,
+    "_integrity_report_disclosure": "外部诚信报告系统筛库发现 Fig1a RT组 Mouse1==Mouse12 数据相同 + Fig1d Mouse2==Mouse3 部分数据相同 (2025-07-07 Nature Cancer online)",
+    "_lane": "E1 fresh pilot case (duplicated_values / in-family). 外部诚信报告背书 + openpyxl 核对 Fig1a 34值全等 + Fig1d 前12值全等. 多格 range, B3 在这类 fire 是主集正常行为, 与 E1 discovery+linking 评测无关.",
+    "_signed_by": "wuguandu @ 2026-07-23; Nature Cancer source data xlsx (MOESM3) via static-content.springer.com, openpyxl 核对 Mouse1==Mouse12(34值) + Fig1d Mouse2==Mouse3(前12值) verified against external integrity report."
+  }
+}

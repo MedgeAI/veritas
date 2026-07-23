@@ -1,0 +1,462 @@
+{
+  "case_id": "ncb_sphingo",
+  "paper_title": "A sphingolipid-derived paclitaxel nanovesicle enhances efficacy of combination therapies in triple-negative breast cancer and pancreatic cancer",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "observations": {
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!D13": {
+      "value": 23.6,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', D13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!E13": {
+      "value": 24.1,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', E13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!F13": {
+      "value": 19.9,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', F13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!G13": {
+      "value": 24.5,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', G13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!H13": {
+      "value": 21.7,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', H13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!I13": {
+      "value": 22.9,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', I13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!J13": {
+      "value": 24.3,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', J13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!K13": {
+      "value": 22.3,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', K13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!L13": {
+      "value": 21.7,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', L13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!M13": {
+      "value": 22.4,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', M13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!N13": {
+      "value": 22.5,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', N13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!O13": {
+      "value": 21,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', O13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!P13": {
+      "value": 22.5,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', P13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!Q13": {
+      "value": 21.7,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', Q13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!R13": {
+      "value": 22.4,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', R13 (day 29 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!D14": {
+      "value": 23.6,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', D14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!E14": {
+      "value": 24.1,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', E14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!F14": {
+      "value": 19.9,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', F14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!G14": {
+      "value": 24.5,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', G14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!H14": {
+      "value": 21.7,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', H14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!I14": {
+      "value": 22.9,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', I14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!J14": {
+      "value": 24.3,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', J14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!K14": {
+      "value": 22.3,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', K14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!L14": {
+      "value": 21.7,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', L14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!M14": {
+      "value": 22.4,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', M14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!N14": {
+      "value": 22.5,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', N14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!O14": {
+      "value": 21,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', O14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!P14": {
+      "value": 22.5,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', P14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!Q14": {
+      "value": 21.7,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', Q14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!R14": {
+      "value": 22.4,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', R14 (day 36 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!D9": {
+      "value": 20.8,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', D9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!E9": {
+      "value": 21,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', E9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!F9": {
+      "value": 18.9,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', F9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!G9": {
+      "value": 22,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', G9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!H9": {
+      "value": 20.6,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', H9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!I9": {
+      "value": 20.4,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', I9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!J9": {
+      "value": 22.3,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', J9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!K9": {
+      "value": 20.6,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', K9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!L9": {
+      "value": 19.1,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', L9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!M9": {
+      "value": 19.9,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', M9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!N9": {
+      "value": 20.3,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', N9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!O9": {
+      "value": 18.6,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', O9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!P9": {
+      "value": 19.4,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', P9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!Q9": {
+      "value": 20.1,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', Q9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!R9": {
+      "value": 19.3,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', R9 (day 9 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!D10": {
+      "value": 22.1,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', D10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!E10": {
+      "value": 22.4,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', E10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!F10": {
+      "value": 19.1,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', F10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!G10": {
+      "value": 22.7,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', G10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!H10": {
+      "value": 20.9,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', H10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!I10": {
+      "value": 21.5,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', I10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!J10": {
+      "value": 23.8,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', J10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!K10": {
+      "value": 20.1,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', K10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!L10": {
+      "value": 18.9,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', L10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!M10": {
+      "value": 22.8,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', M10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!N10": {
+      "value": 21.4,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', N10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!O10": {
+      "value": 22,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', O10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!P10": {
+      "value": 21.2,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', P10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!Q10": {
+      "value": 21.8,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', Q10 (day 14 tumor volume across treatment groups)"
+    },
+    "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!R10": {
+      "value": 20.8,
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "source_artifact_hash": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "source_span": "sheet 'Fig. 2j', R10 (day 14 tumor volume across treatment groups)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_sphingo_ann_001",
+      "claim_id": "ncb_sphingo_claim_001",
+      "claim_atom": "Figure 2j (day 29) and Figure 2j (day 36) are independent measurements of tumor volume across treatment groups.",
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!D13",
+      "target_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!D14",
+      "relation_type": "L1",
+      "verdict": "inconsistent",
+      "discrepancy_type": "duplicated_values",
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "high",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": false,
+      "_reproduction": [
+        "D13(day29)=23.6 ~ D14(day36)=23.6",
+        "E13(day29)=24.1 ~ E14(day36)=24.1",
+        "F13(day29)=19.9 ~ F14(day36)=19.9",
+        "G13(day29)=24.5 ~ G14(day36)=24.5",
+        "H13(day29)=21.7 ~ H14(day36)=21.7",
+        "I13(day29)=22.9 ~ I14(day36)=22.9",
+        "J13(day29)=24.3 ~ J14(day36)=24.3",
+        "K13(day29)=22.3 ~ K14(day36)=22.3",
+        "L13(day29)=21.7 ~ L14(day36)=21.7",
+        "M13(day29)=22.4 ~ M14(day36)=22.4",
+        "N13(day29)=22.5 ~ N14(day36)=22.5",
+        "O13(day29)=21 ~ O14(day36)=21",
+        "P13(day29)=22.5 ~ P14(day36)=22.5",
+        "Q13(day29)=21.7 ~ Q14(day36)=21.7",
+        "R13(day29)=22.4 ~ R14(day36)=22.4",
+        "15/15 EXACT (前15值全等, 后6值微差)"
+      ],
+      "_adjudication": "inconsistent: 外部诚信报告(integrity-report)指出 Figure 2j 29天与36天数据队列相同; openpyxl 核对 r13(D13:X13) vs r14(D14:X14) 前15个值 byte-identical (D13:R13 vs D14:R14, 15/15 EXACT), 后6值微差. 不同时间点的肿瘤体积不可能完全相同到小数点, 实为 copy/paste.",
+      "source_a1_range": "D13:R13",
+      "target_a1_range": "D14:R14"
+    },
+    {
+      "annotation_id": "ncb_sphingo_ann_clean",
+      "claim_id": "ncb_sphingo_claim_clean",
+      "claim_atom": "A distinct pair of timepoints (day 9 and day 14) yields non-overlapping tumor-volume values across the treatment groups.",
+      "source_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!D9",
+      "target_artifact": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx#Fig. 2j!D10",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "D9(day9)=20.8 vs D10(day14)=22.1",
+        "E9(day9)=21 vs E10(day14)=22.4",
+        "F9(day9)=18.9 vs F10(day14)=19.1",
+        "G9(day9)=22 vs G10(day14)=22.7",
+        "H9(day9)=20.6 vs H10(day14)=20.9",
+        "I9(day9)=20.4 vs I10(day14)=21.5",
+        "J9(day9)=22.3 vs J10(day14)=23.8",
+        "K9(day9)=20.6 vs K10(day14)=20.1",
+        "L9(day9)=19.1 vs L10(day14)=18.9",
+        "M9(day9)=19.9 vs M10(day14)=22.8",
+        "N9(day9)=20.3 vs N10(day14)=21.4",
+        "O9(day9)=18.6 vs O10(day14)=22",
+        "P9(day9)=19.4 vs P10(day14)=21.2",
+        "Q9(day9)=20.1 vs Q10(day14)=21.8",
+        "R9(day9)=19.3 vs R10(day14)=20.8"
+      ],
+      "_adjudication": "consistent(clean): day9(D9:R9) 与 day14(D10:R10) 值明显不同, 为真独立测量.",
+      "source_a1_range": "D9:R9",
+      "target_a1_range": "D10:R10"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_sphingo",
+    "split": "e1_pilot",
+    "primary_failure_mode": "verifier_conflict",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s43018-025-01029-7",
+    "discovery_method": "integrity-report",
+    "discovery_method_confidence": "verified",
+    "detector_surfaced_by_b3": false,
+    "_integrity_report_disclosure": "外部诚信报告系统筛库发现 Fig2j 29天与36天时间点数据队列相同 (2025-08-21 Nature Cancer online)",
+    "_lane": "E1 fresh pilot case (duplicated_values / in-family). 外部诚信报告背书 + openpyxl 核对 前15值 byte-identical. 多格 range (D13:R13 vs D14:R14).",
+    "_signed_by": "wuguandu @ 2026-07-23; Nature Cancer source data xlsx (MOESM4) via static-content.springer.com, openpyxl 核对 day29==day36 前15值全等 verified against external integrity report."
+  },
+  "artifacts": {
+    "43018_2025_1029_moesm4_esm": {
+      "path": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
+      "sha256": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
+      "kind": "source_data"
+    }
+  }
+}

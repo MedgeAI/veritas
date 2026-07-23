@@ -1,0 +1,187 @@
+{
+  "case_id": "ng_radioresist",
+  "paper_title": "Single-cell and spatial transcriptomics reveal mechanisms of radioresistance and immune evasion",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "41588_2025_2253_moesm7_esm": {
+      "path": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "sha256": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "kind": "source_data"
+    }
+  },
+  "observations": {
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!A2": {
+      "value": 0.37,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4q', A2 (MK2206 group, replicate 1)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!B2": {
+      "value": 1.29,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4q', B2 (vector group, replicate 1)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!A3": {
+      "value": 0.24,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4q', A3 (MK2206 group, replicate 2)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!B3": {
+      "value": 1.28,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4q', B3 (vector group, replicate 2)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!A4": {
+      "value": 0.421,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4q', A4 (MK2206 group, replicate 3)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!B4": {
+      "value": 1.05,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4q', B4 (vector group, replicate 3)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!A5": {
+      "value": 0.34,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4q', A5 (MK2206 group, replicate 4)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!B5": {
+      "value": 0.67,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4q', B5 (vector group, replicate 4)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!A6": {
+      "value": 0.33,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4q', A6 (MK2206 group, replicate 5)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!B6": {
+      "value": 0.38,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4q', B6 (vector group, replicate 5)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!A7": {
+      "value": 0.36,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4q', A7 (MK2206 group, replicate 6)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!B7": {
+      "value": 0.45,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4q', B7 (vector group, replicate 6)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4o!A2": {
+      "value": 0.19,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4o', A2 (NC group, replicate 1)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4o!B2": {
+      "value": 0.69,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4o', B2 (sh1 group, replicate 1)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4o!A3": {
+      "value": 0.21,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4o', A3 (NC group, replicate 2)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4o!B3": {
+      "value": 0.58,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4o', B3 (sh1 group, replicate 2)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4o!A4": {
+      "value": 0.15,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4o', A4 (NC group, replicate 3)"
+    },
+    "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4o!B4": {
+      "value": 0.6,
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
+      "source_artifact_hash": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
+      "source_span": "sheet 'Fig.4o', B4 (sh1 group, replicate 3)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ng_radioresist_ann_001",
+      "claim_id": "ng_radioresist_claim_4q",
+      "claim_atom": "Figure 4q: MK2206 and vector groups are independent measurements of the plotted metric.",
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!A2",
+      "target_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4q!B2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "MK2206 A2=0.37 vs vector B2=1.29",
+        "MK2206 A3=0.24 vs vector B3=1.28",
+        "MK2206 A4=0.421 vs vector B4=1.05",
+        "MK2206 A5=0.34 vs vector B5=0.67",
+        "MK2206 A6=0.33 vs vector B6=0.38",
+        "MK2206 A7=0.36 vs vector B7=0.45"
+      ],
+      "_adjudication": "consistent(clean): Fig.4q MK2206 (A2:A7) vs vector (B2:B7) 值不同, 为真独立 group 测量.",
+      "source_a1_range": "A2:A7",
+      "target_a1_range": "B2:B7"
+    },
+    {
+      "annotation_id": "ng_radioresist_ann_002",
+      "claim_id": "ng_radioresist_claim_4o",
+      "claim_atom": "A separate panel, Figure 4o, presents NC and sh1 as independent measurements of a distinct metric.",
+      "source_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4o!A2",
+      "target_artifact": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx#Fig.4o!B2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "NC A2=0.19 vs sh1 B2=0.69",
+        "NC A3=0.21 vs sh1 B3=0.58",
+        "NC A4=0.15 vs sh1 B4=0.6"
+      ],
+      "_adjudication": "consistent(clean): Fig.4o NC (A2:A4) vs sh1 (B2:B4) 值不同, 为真独立 group 测量.",
+      "source_a1_range": "A2:A4",
+      "target_a1_range": "B2:B4"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ng_radioresist",
+    "split": "e1_pilot",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41588-025-02253-8",
+    "discovery_method": "reproducibility-literature",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
+    "_lane": "E1 fresh pilot clean case (no external integrity report; honest reproducible source data). Nature Genetics 2025 spatial transcriptomics radioresistance. 2 clean claims (Fig.4q MK2206 vs vector 6rep; Fig.4o NC vs sh1 3rep).",
+    "_signed_by": "wuguandu @ 2026-07-23; Nature Genetics source data xlsx (MOESM7) via server real-papers dir, openpyxl 核对 group ranges 值不同."
+  }
+}

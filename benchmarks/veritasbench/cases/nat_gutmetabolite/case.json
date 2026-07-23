@@ -1,0 +1,246 @@
+{
+  "case_id": "nat_gutmetabolite",
+  "paper_title": "A gut-derived metabolite alters brain activity and anxiety behaviour in mice",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "41586_2022_4396_moesm13_esm": {
+      "path": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "sha256": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "kind": "source_data"
+    }
+  },
+  "observations": {
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7h!A2": {
+      "value": 0.417376,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7h', A2 (4EP- control group, replicate 1)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7h!B2": {
+      "value": 0.335946,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7h', B2 (4EP+ treatment group, replicate 1)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7h!A3": {
+      "value": 0.386776,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7h', A3 (4EP- control group, replicate 2)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7h!B3": {
+      "value": 0.351417,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7h', B3 (4EP+ treatment group, replicate 2)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7h!A4": {
+      "value": 0.372004,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7h', A4 (4EP- control group, replicate 3)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7h!B4": {
+      "value": 0.396479,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7h', B4 (4EP+ treatment group, replicate 3)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7h!A5": {
+      "value": 0.411306,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7h', A5 (4EP- control group, replicate 4)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7h!B5": {
+      "value": 0.351698,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7h', B5 (4EP+ treatment group, replicate 4)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7i!A2": {
+      "value": 0.494181,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7i', A2 (4EP- control group, replicate 1)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7i!B2": {
+      "value": 0.402836,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7i', B2 (4EP+ treatment group, replicate 1)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7i!A3": {
+      "value": 0.473004,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7i', A3 (4EP- control group, replicate 2)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7i!B3": {
+      "value": 0.399328,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7i', B3 (4EP+ treatment group, replicate 2)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7i!A4": {
+      "value": 0.471723,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7i', A4 (4EP- control group, replicate 3)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7i!B4": {
+      "value": 0.465382,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7i', B4 (4EP+ treatment group, replicate 3)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7i!A5": {
+      "value": 0.487298,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7i', A5 (4EP- control group, replicate 4)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7i!B5": {
+      "value": 0.413543,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7i', B5 (4EP+ treatment group, replicate 4)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7c!A2": {
+      "value": 0.64669048,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7c', A2 (4EP- control group, replicate 1)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7c!B2": {
+      "value": 0.67460172,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7c', B2 (4EP+ treatment group, replicate 1)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7c!A3": {
+      "value": 0.61692542,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7c', A3 (4EP- control group, replicate 2)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7c!B3": {
+      "value": 0.6646368,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7c', B3 (4EP+ treatment group, replicate 2)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7c!A4": {
+      "value": 0.62797121,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7c', A4 (4EP- control group, replicate 3)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7c!B4": {
+      "value": 0.66797146,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7c', B4 (4EP+ treatment group, replicate 3)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7c!A5": {
+      "value": 0.56695981,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7c', A5 (4EP- control group, replicate 4)"
+    },
+    "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7c!B5": {
+      "value": 0.67230622,
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx",
+      "source_artifact_hash": "9c813ffb450813dae30ded259c29fb782fa9afd694103a0b41eb180cba48e718",
+      "source_span": "sheet 'ED Fig 7c', B5 (4EP+ treatment group, replicate 4)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "nat_gutmetabolite_ann_001",
+      "claim_id": "nat_gutmetabolite_claim_7h",
+      "claim_atom": "Extended Data Figure 7h: 4EP- and 4EP+ groups are independent measurements of the plotted metric.",
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7h!A2",
+      "target_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7h!B2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "4EP- A2=0.417376 vs 4EP+ B2=0.335946",
+        "4EP- A3=0.386776 vs 4EP+ B3=0.351417",
+        "4EP- A4=0.372004 vs 4EP+ B4=0.396479",
+        "4EP- A5=0.411306 vs 4EP+ B5=0.351698"
+      ],
+      "_adjudication": "consistent(clean): ED Fig 7h 4EP- (A2:A5) vs 4EP+ (B2:B5) 值不同, 为真独立 group 测量 (plotted metric).",
+      "source_a1_range": "A2:A5",
+      "target_a1_range": "B2:B5"
+    },
+    {
+      "annotation_id": "nat_gutmetabolite_ann_002",
+      "claim_id": "nat_gutmetabolite_claim_7i",
+      "claim_atom": "A separate panel, Extended Data Figure 7i, presents 4EP- and 4EP+ as independent measurements of a distinct metric.",
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7i!A2",
+      "target_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7i!B2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "4EP- A2=0.494181 vs 4EP+ B2=0.402836",
+        "4EP- A3=0.473004 vs 4EP+ B3=0.399328",
+        "4EP- A4=0.471723 vs 4EP+ B4=0.465382",
+        "4EP- A5=0.487298 vs 4EP+ B5=0.413543"
+      ],
+      "_adjudication": "consistent(clean): ED Fig 7i 4EP- (A2:A5) vs 4EP+ (B2:B5) 值不同, 为真独立 group 测量 (distinct metric).",
+      "source_a1_range": "A2:A5",
+      "target_a1_range": "B2:B5"
+    },
+    {
+      "annotation_id": "nat_gutmetabolite_ann_003",
+      "claim_id": "nat_gutmetabolite_claim_7c",
+      "claim_atom": "Extended Data Figure 7c provides another independent comparison of 4EP- versus 4EP+ groups.",
+      "source_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7c!A2",
+      "target_artifact": "artifacts/41586_2022_4396_MOESM13_ESM.xlsx#ED Fig 7c!B2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "4EP- A2=0.64669048 vs 4EP+ B2=0.67460172",
+        "4EP- A3=0.61692542 vs 4EP+ B3=0.6646368",
+        "4EP- A4=0.62797121 vs 4EP+ B4=0.66797146",
+        "4EP- A5=0.56695981 vs 4EP+ B5=0.67230622"
+      ],
+      "_adjudication": "consistent(clean): ED Fig 7c 4EP- (A2:A5) vs 4EP+ (B2:B5) 值不同, 为真独立 group 测量 (another comparison).",
+      "source_a1_range": "A2:A5",
+      "target_a1_range": "B2:B5"
+    }
+  ],
+  "metadata": {
+    "paper_split": "nat_gutmetabolite",
+    "split": "e1_pilot",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41586-022-04396-8",
+    "discovery_method": "reproducibility-literature",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
+    "_lane": "E1 fresh pilot clean case (no external integrity report; honest reproducible source data). Nature 2022 gut-derived metabolite anxiety. 3 clean claims (ED Fig 7h/7i/7c, 4EP- control vs 4EP+ treatment, 4 replicate each).",
+    "_signed_by": "wuguandu @ 2026-07-23; Nature source data xlsx (MOESM13) via server real-papers dir, openpyxl 核对 4EP- vs 4EP+ group ranges 值不同."
+  }
+}

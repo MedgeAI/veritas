@@ -1,0 +1,246 @@
+{
+  "case_id": "cell_gutmicrobiota",
+  "paper_title": "Gut Microbiota Regulate Motor Deficits and Neuroinflammation in a Model of Parkinson's Disease",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "humanized_motor_function": {
+      "path": "artifacts/HumanizedMotorFunction.xlsx",
+      "sha256": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "kind": "source_data"
+    }
+  },
+  "observations": {
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!C5": {
+      "value": 3.17,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', C5 (HC1-donor WT subject, beam-crossing time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!C6": {
+      "value": 4.07,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', C6 (HC1-donor WT subject, beam-crossing time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!C7": {
+      "value": 2.18,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', C7 (HC1-donor WT subject, beam-crossing time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!C8": {
+      "value": 2.35,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', C8 (HC1-donor WT subject, beam-crossing time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!C10": {
+      "value": 4.76,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', C10 (HC1-donor ASO subject, beam-crossing time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!C11": {
+      "value": 6.97,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', C11 (HC1-donor ASO subject, beam-crossing time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!C12": {
+      "value": 6.2700000000000005,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', C12 (HC1-donor ASO subject, beam-crossing time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!C13": {
+      "value": 5.89,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', C13 (HC1-donor ASO subject, beam-crossing time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!D5": {
+      "value": 6.31,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', D5 (HC1-donor WT subject, pole descent time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!D6": {
+      "value": 5.79,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', D6 (HC1-donor WT subject, pole descent time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!D7": {
+      "value": 5.819999999999999,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', D7 (HC1-donor WT subject, pole descent time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!D8": {
+      "value": 4.36,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', D8 (HC1-donor WT subject, pole descent time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!D10": {
+      "value": 6.210000000000001,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', D10 (HC1-donor ASO subject, pole descent time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!D11": {
+      "value": 5.43,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', D11 (HC1-donor ASO subject, pole descent time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!D12": {
+      "value": 7.21,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', D12 (HC1-donor ASO subject, pole descent time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!D13": {
+      "value": 5.82,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', D13 (HC1-donor ASO subject, pole descent time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!E5": {
+      "value": 2.62,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', E5 (HC1-donor WT subject, adhesive removal time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!E6": {
+      "value": 0.6699999999999999,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', E6 (HC1-donor WT subject, adhesive removal time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!E7": {
+      "value": 1.6099999999999999,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', E7 (HC1-donor WT subject, adhesive removal time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!E8": {
+      "value": 2.03,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', E8 (HC1-donor WT subject, adhesive removal time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!E10": {
+      "value": 2.79,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', E10 (HC1-donor ASO subject, adhesive removal time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!E11": {
+      "value": 2.28,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', E11 (HC1-donor ASO subject, adhesive removal time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!E12": {
+      "value": 2.34,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', E12 (HC1-donor ASO subject, adhesive removal time)"
+    },
+    "artifacts/HumanizedMotorFunction.xlsx#Sheet1!E13": {
+      "value": 1.41,
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx",
+      "source_artifact_hash": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
+      "source_span": "sheet 'Sheet1', E13 (HC1-donor ASO subject, adhesive removal time)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "cell_gutmicrobiota_ann_001",
+      "claim_id": "cell_gutmicrobiota_claim_beam",
+      "claim_atom": "HC1-donor wild-type and HC1-donor ASO subjects are independent measurements of beam-crossing time.",
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx#Sheet1!C5",
+      "target_artifact": "artifacts/HumanizedMotorFunction.xlsx#Sheet1!C10",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "WT C5=3.17 vs ASO C10=4.76",
+        "WT C6=4.07 vs ASO C11=6.97",
+        "WT C7=2.18 vs ASO C12=6.2700000000000005",
+        "WT C8=2.35 vs ASO C13=5.89"
+      ],
+      "_adjudication": "consistent(clean): HC1 WT C5:C8 vs HC1 ASO C10:C13 (beam-crossing time) 值明显不同, 为真独立 group 测量.",
+      "source_a1_range": "C5:C8",
+      "target_a1_range": "C10:C13"
+    },
+    {
+      "annotation_id": "cell_gutmicrobiota_ann_002",
+      "claim_id": "cell_gutmicrobiota_claim_pole",
+      "claim_atom": "A separate motor metric, pole descent, yields distinct values for HC1 WT versus ASO subjects.",
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx#Sheet1!D5",
+      "target_artifact": "artifacts/HumanizedMotorFunction.xlsx#Sheet1!D10",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "WT D5=6.31 vs ASO D10=6.210000000000001",
+        "WT D6=5.79 vs ASO D11=5.43",
+        "WT D7=5.819999999999999 vs ASO D12=7.21",
+        "WT D8=4.36 vs ASO D13=5.82"
+      ],
+      "_adjudication": "consistent(clean): HC1 WT D5:D8 vs HC1 ASO D10:D13 (pole descent time) 值明显不同, 为真独立 group 测量.",
+      "source_a1_range": "D5:D8",
+      "target_a1_range": "D10:D13"
+    },
+    {
+      "annotation_id": "cell_gutmicrobiota_ann_003",
+      "claim_id": "cell_gutmicrobiota_claim_adhesive",
+      "claim_atom": "Adhesive removal time, another distinct metric, differs between HC1 WT and ASO subjects.",
+      "source_artifact": "artifacts/HumanizedMotorFunction.xlsx#Sheet1!E5",
+      "target_artifact": "artifacts/HumanizedMotorFunction.xlsx#Sheet1!E10",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-23T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "WT E5=2.62 vs ASO E10=2.79",
+        "WT E6=0.6699999999999999 vs ASO E11=2.28",
+        "WT E7=1.6099999999999999 vs ASO E12=2.34",
+        "WT E8=2.03 vs ASO E13=1.41"
+      ],
+      "_adjudication": "consistent(clean): HC1 WT E5:E8 vs HC1 ASO E10:E13 (adhesive removal time) 值明显不同, 为真独立 group 测量.",
+      "source_a1_range": "E5:E8",
+      "target_a1_range": "E10:E13"
+    }
+  ],
+  "metadata": {
+    "paper_split": "cell_gutmicrobiota",
+    "split": "e1_pilot",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1016/j.cell.2016.11.018",
+    "discovery_method": "reproducibility-literature",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
+    "_lane": "E1 fresh pilot clean case (no external integrity report; honest reproducible source data). Cell 2016 Parkinson gut-microbiota, HumanizedMotorFunction source data. 3 clean claims (Beam/Pole/Adhesive, HC1 WT vs ASO group range).",
+    "_signed_by": "wuguandu @ 2026-07-23; Cell source data xlsx (HumanizedMotorFunction) via server real-papers dir, openpyxl 核对 WT vs ASO group metric ranges 值不同."
+  }
+}
