@@ -457,6 +457,11 @@
       "path": "artifacts/43018_2025_1029_MOESM4_ESM.xlsx",
       "sha256": "8d6afc76e1eaa26f466e4638c8b15ce4ca643d24e451a143ae58fc0657638a8c",
       "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "dedd465f274ca8077deaaabbf381f89f855e098522c01c7196d66abe94daeacd",
+      "kind": "paper_pdf"
     }
   }
 }

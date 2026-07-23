@@ -9,6 +9,11 @@
       "path": "artifacts/41588_2025_2253_MOESM7_ESM.xlsx",
       "sha256": "7ba1fa0d1dcdedf9b131357d202b9621e915eda6e1c96e6e93c6aea2df0d8424",
       "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "172a1a801f883d5b361dcc1faa289626c1e6b0abf4f45bbb605dbb8e33b05e9a",
+      "kind": "paper_pdf"
     }
   },
   "observations": {

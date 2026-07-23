@@ -9,6 +9,11 @@
       "path": "artifacts/HumanizedMotorFunction.xlsx",
       "sha256": "0c13eb5b38534ab4836b6628782c8cd3bc4a13842038f4dd061c8df771fb3798",
       "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "2de647072f2bba0ce4087830af45b5b81d3e865553002af33dd4523be6407cd2",
+      "kind": "paper_pdf"
     }
   },
   "observations": {
