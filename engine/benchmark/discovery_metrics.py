@@ -94,6 +94,15 @@ def _load_json(p: str | Path) -> dict:
     return json.load(open(p, encoding="utf-8"))
 
 
+def _load_bundle(case_dir: Path) -> dict:
+    """The raw static_audit_bundle.json (for findings[] + evidence_items[] used by
+    the finding-based linking metric). {} if no audit has run yet."""
+    bundle = (
+        case_dir / "research-integrity-audit" / "reports" / "static_audit_bundle.json"
+    )
+    return _load_json(bundle) if bundle.exists() else {}
+
+
 def load_system(case_dir: Path) -> list[SysClaim]:
     """Read static_audit_bundle.json if present, else raw role files."""
     bundle = (
@@ -273,6 +282,48 @@ def _sys_locus_cells(ref: str) -> set[str]:
     return {c.lower() for c in _cells_in(sheet, tail)}
 
 
+def _col_letter(cell: str) -> str:
+    """'Figure 1!B20' or 'B20' -> 'B' (the column letters); '' otherwise."""
+    c = cell.split("!")[-1]
+    m = re.match(r"[A-Z]+", c)
+    return m.group(0) if m else ""
+
+
+def _gold_locus(g: GoldClaim) -> tuple[str, set[str]]:
+    """(sheet, set of column letters) spanned by the gold source+target ranges.
+    Findings' locators are column-granular (sheet + columns, no rows), so the
+    finding-based metric compares sheet+columns, not cells."""
+    sheet = _sheet_of(g.target_artifact) or _sheet_of(g.source_artifact)
+    cols: set[str] = set()
+    for rng in (g.source_a1, g.target_a1):
+        for cell in _cells_in(sheet, rng):
+            cl = _col_letter(cell)
+            if cl:
+                cols.add(cl.upper())
+    return sheet, cols
+
+
+def _finding_loci(findings: list[dict], ei_map: dict) -> list[tuple[str, set[str]]]:
+    """Resolve each finding's evidence_refs -> (sheet, column-set) loci via the
+    evidence_items map. Findings (duplicate_row_vector / cross_sheet /
+    fixed_offset) locate anomalies; their evidence_items carry sheet + columns."""
+    loci: list[tuple[str, set[str]]] = []
+    for f in findings or []:
+        for ref in f.get("evidence_refs") or []:
+            e = ei_map.get(ref)
+            if not isinstance(e, dict):
+                continue
+            loc = e.get("locator") or {}
+            sheet = loc.get("sheet")
+            cols_str = loc.get("columns") or ""
+            if not sheet or not cols_str:
+                continue
+            cols = {c.strip().upper() for c in cols_str.split(",") if c.strip()}
+            if cols:
+                loci.append((sheet, cols))
+    return loci
+
+
 def _claim_score(sys_c: SysClaim, gold: GoldClaim) -> float:
     """Alignment score in [0,1]; >= threshold counts as a match.
 
@@ -382,6 +433,42 @@ def linking_accuracy(matches, system, gold):
     }
 
 
+def linking_accuracy_finding(
+    gold: list[GoldClaim], findings: list[dict], ei_map: dict
+) -> dict:
+    """Finding-located recall: of gold DIRTY claims, the fraction where a finding
+    (duplicate_row_vector / cross_sheet / fixed_offset / ...) locates the anomaly at
+    the gold's source/target locus (sheet + column overlap).
+
+    The audit-paper source_data_auditor emits sparse claim_mappings[] (claim->locus),
+    so claim_mappings-based linking reads 0/0 even though the deterministic forensics
+    DID find the anomalies — as findings[] whose evidence_items carry sheet+columns.
+    This metric recovers that signal: the system located the anomaly at the right
+    locus, just represented as a finding rather than a claim mapping.
+
+    Granularity caveat: findings' locators are column-level (sheet + columns, no
+    rows), so a hit means same-sheet + overlapping-columns, NOT same-row. For a
+    sheet holding multiple sub-panels this is coarse (a finding in one sub-panel can
+    match a gold claim in another). Documented limitation, not a bug."""
+    dirty = [g for g in gold if not g.is_clean]
+    if not dirty:
+        return {"finding_locus_recall": 0.0, "n_dirty": 0, "n_located": 0}
+    loci = _finding_loci(findings, ei_map)
+    located = 0
+    for g in dirty:
+        gsheet, gcols = _gold_locus(g)
+        gsheet_l = gsheet.strip().lower()
+        if any(
+            fs.strip().lower() == gsheet_l and (fcols & gcols) for fs, fcols in loci
+        ):
+            located += 1
+    return {
+        "finding_locus_recall": round(located / len(dirty), 4),
+        "n_dirty": len(dirty),
+        "n_located": located,
+    }
+
+
 def e2e_scaffold(matches, gold):
     """Scaffold: e2e recall/FAR requires claim verdicts on discovered claims.
     audit-paper does not emit consistent/inconsistent/insufficient on discovered
@@ -406,6 +493,9 @@ def score_case(case_dir: Path, gold_json: Path) -> dict:
     m["discovery_false_positives"] = len(unsys)  # spurious system proposals
     m["discovery_false_negatives"] = len(ungold)  # missed gold claims
     m.update(linking_accuracy(matches, sys_claims, gold))
+    bundle = _load_bundle(case_dir)
+    ei_map = {e.get("evidence_id"): e for e in bundle.get("evidence_items", [])}
+    m.update(linking_accuracy_finding(gold, bundle.get("findings", []), ei_map))
     m.update(e2e_scaffold(matches, gold))
     m["case_id"] = gold_json.parent.name
     return m
@@ -490,6 +580,9 @@ def main(argv: Iterable[str] | None = None) -> int:
         "n_linkable",
         "n_correct_link_locus",
         "n_correct_link_artifact",
+        "finding_locus_recall",
+        "n_dirty",
+        "n_located",
         "e2e_recall_dirty_denom",
         "e2e_far_clean_denom",
         "e2e_recall",
@@ -506,7 +599,7 @@ def main(argv: Iterable[str] | None = None) -> int:
     if a.print:
         print(json.dumps(m, ensure_ascii=False, indent=2))
     print(
-        f"✓ {a.out} += {m['case_id']}: disc P={m['discovery_precision']} R={m['discovery_recall']} F1={m['discovery_f1']} | link_locus={m['linking_accuracy_locus']} link_art={m['linking_accuracy_artifact']}"
+        f"✓ {a.out} += {m['case_id']}: disc P={m['discovery_precision']} R={m['discovery_recall']} F1={m['discovery_f1']} | link_locus={m['linking_accuracy_locus']} link_art={m['linking_accuracy_artifact']} | find_locus_R={m['finding_locus_recall']}({m.get('n_located')}/{m.get('n_dirty')})"
     )
     return 0
 
