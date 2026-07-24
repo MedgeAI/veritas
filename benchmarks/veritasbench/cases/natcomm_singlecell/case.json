@@ -1,0 +1,107 @@
+{
+  "case_id": "natcomm_singlecell",
+  "paper_title": "Single-cell multiomics analysis reveals CTCF as a key regulator of lung morphogenesis",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "41467_2025_65757_moesm16": {
+      "path": "artifacts/41467_2025_65757_MOESM16_ESM.xlsx",
+      "sha256": "ae126c6e71d6e589fcd9c145371178bca75ee571a1acf78e27efd48061fb5714",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "fdbb43860623ef7a8151d8deb9ea0682d53fef5c851b71d4e9714a65710045c5",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41467_2025_65757_MOESM16_ESM.xlsx#Supplementary Fig. 6!C4": {
+      "value": 0.24502280642629,
+      "source_artifact": "artifacts/41467_2025_65757_MOESM16_ESM.xlsx",
+      "source_artifact_hash": "ae126c6e71d6e589fcd9c145371178bca75ee571a1acf78e27efd48061fb5714",
+      "source_span": "sheet 'Supplementary Fig. 6', C4 (Control group, gene 1)"
+    },
+    "artifacts/41467_2025_65757_MOESM16_ESM.xlsx#Supplementary Fig. 6!F4": {
+      "value": 1.24342654058601,
+      "source_artifact": "artifacts/41467_2025_65757_MOESM16_ESM.xlsx",
+      "source_artifact_hash": "ae126c6e71d6e589fcd9c145371178bca75ee571a1acf78e27efd48061fb5714",
+      "source_span": "sheet 'Supplementary Fig. 6', F4 (SR11302 group, gene 1)"
+    },
+    "artifacts/41467_2025_65757_MOESM16_ESM.xlsx#Supplementary Fig. 6!C5": {
+      "value": 0.976887645747635,
+      "source_artifact": "artifacts/41467_2025_65757_MOESM16_ESM.xlsx",
+      "source_artifact_hash": "ae126c6e71d6e589fcd9c145371178bca75ee571a1acf78e27efd48061fb5714",
+      "source_span": "sheet 'Supplementary Fig. 6', C5 (Control group, gene 2)"
+    },
+    "artifacts/41467_2025_65757_MOESM16_ESM.xlsx#Supplementary Fig. 6!F5": {
+      "value": 0.926329832983597,
+      "source_artifact": "artifacts/41467_2025_65757_MOESM16_ESM.xlsx",
+      "source_artifact_hash": "ae126c6e71d6e589fcd9c145371178bca75ee571a1acf78e27efd48061fb5714",
+      "source_span": "sheet 'Supplementary Fig. 6', F5 (SR11302 group, gene 2)"
+    },
+    "artifacts/41467_2025_65757_MOESM16_ESM.xlsx#Supplementary Fig. 6!C6": {
+      "value": 1.02080026773887,
+      "source_artifact": "artifacts/41467_2025_65757_MOESM16_ESM.xlsx",
+      "source_artifact_hash": "ae126c6e71d6e589fcd9c145371178bca75ee571a1acf78e27efd48061fb5714",
+      "source_span": "sheet 'Supplementary Fig. 6', C6 (Control group, gene 3)"
+    },
+    "artifacts/41467_2025_65757_MOESM16_ESM.xlsx#Supplementary Fig. 6!F6": {
+      "value": 0.470750308676214,
+      "source_artifact": "artifacts/41467_2025_65757_MOESM16_ESM.xlsx",
+      "source_artifact_hash": "ae126c6e71d6e589fcd9c145371178bca75ee571a1acf78e27efd48061fb5714",
+      "source_span": "sheet 'Supplementary Fig. 6', F6 (SR11302 group, gene 3)"
+    },
+    "artifacts/41467_2025_65757_MOESM16_ESM.xlsx#Supplementary Fig. 6!C7": {
+      "value": 1.01365270306298,
+      "source_artifact": "artifacts/41467_2025_65757_MOESM16_ESM.xlsx",
+      "source_artifact_hash": "ae126c6e71d6e589fcd9c145371178bca75ee571a1acf78e27efd48061fb5714",
+      "source_span": "sheet 'Supplementary Fig. 6', C7 (Control group, gene 4)"
+    },
+    "artifacts/41467_2025_65757_MOESM16_ESM.xlsx#Supplementary Fig. 6!F7": {
+      "value": 0.563659874788685,
+      "source_artifact": "artifacts/41467_2025_65757_MOESM16_ESM.xlsx",
+      "source_artifact_hash": "ae126c6e71d6e589fcd9c145371178bca75ee571a1acf78e27efd48061fb5714",
+      "source_span": "sheet 'Supplementary Fig. 6', F7 (SR11302 group, gene 4)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "natcomm_singlecell_ann_clean",
+      "claim_id": "natcomm_singlecell_claim_clean",
+      "claim_atom": "Supplementary Figure 6: Control and SR11302 treatment groups are independent measurements of gene expression.",
+      "source_artifact": "artifacts/41467_2025_65757_MOESM16_ESM.xlsx#Supplementary Fig. 6!C4",
+      "target_artifact": "artifacts/41467_2025_65757_MOESM16_ESM.xlsx#Supplementary Fig. 6!F4",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-24T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "C4(Ctrl)=0.24502280642629 vs F4(SR11302)=1.24342654058601",
+        "C5(Ctrl)=0.976887645747635 vs F5(SR11302)=0.926329832983597",
+        "C6(Ctrl)=1.02080026773887 vs F6(SR11302)=0.470750308676214",
+        "C7(Ctrl)=1.01365270306298 vs F7(SR11302)=0.563659874788685"
+      ],
+      "_adjudication": "consistent(clean): Supplementary Fig. 6 Control (C4:C7) vs SR11302 (F4:F7) 4 gene 值不同, 为真独立 group.",
+      "source_a1_range": "C4:C7",
+      "target_a1_range": "F4:F7"
+    }
+  ],
+  "metadata": {
+    "paper_split": "natcomm_singlecell",
+    "split": "e1_pilot",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41467-025-65757-1",
+    "discovery_method": "reproducibility-literature",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
+    "_lane": "E1 fresh pilot clean case. Nature Comm 2025 single-cell. Supplementary Fig 6 Control vs SR11302 4 gene 值不同. CNS-* medgebench task source.",
+    "_signed_by": "wuguandu @ 2026-07-24; Nature Comm MOESM16 11KB + paper_pdf, openpyxl 核对 Control vs SR11302 值不同."
+  }
+}
