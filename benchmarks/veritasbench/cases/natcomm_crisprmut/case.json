@@ -1,0 +1,146 @@
+{
+  "case_id": "natcomm_crisprmut",
+  "paper_title": "Deep CRISPR mutagenesis reveals genotype-phenotype relationships",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "c084": {
+      "path": "artifacts/c084.xlsx",
+      "sha256": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "ba79a8caf124973afeb2222137b0cc84bdd0f5846e5a9fdf55376ec5cccd5124",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/c084.xlsx#Fig7g!B4": {
+      "value": 0.89813237,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', B4 (WT, replicate 1)"
+    },
+    "artifacts/c084.xlsx#Fig7g!C4": {
+      "value": 1.42569627,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', C4 (R175H, replicate 1)"
+    },
+    "artifacts/c084.xlsx#Fig7g!B5": {
+      "value": 1.11342162,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', B5 (WT, replicate 2)"
+    },
+    "artifacts/c084.xlsx#Fig7g!C5": {
+      "value": 0.85559503,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', C5 (R175H, replicate 2)"
+    },
+    "artifacts/c084.xlsx#Fig7g!B6": {
+      "value": 0.90229223,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', B6 (WT, replicate 3)"
+    },
+    "artifacts/c084.xlsx#Fig7g!C6": {
+      "value": 1.32408891,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', C6 (R175H, replicate 3)"
+    },
+    "artifacts/c084.xlsx#Fig7g!B7": {
+      "value": 1.10828839,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', B7 (WT, replicate 4)"
+    },
+    "artifacts/c084.xlsx#Fig7g!C7": {
+      "value": 0.84576768,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', C7 (R175H, replicate 4)"
+    },
+    "artifacts/c084.xlsx#Fig7g!B8": {
+      "value": 0.89502507,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', B8 (WT, replicate 5)"
+    },
+    "artifacts/c084.xlsx#Fig7g!C8": {
+      "value": 1.33792755,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', C8 (R175H, replicate 5)"
+    },
+    "artifacts/c084.xlsx#Fig7g!B9": {
+      "value": 1.11728714,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', B9 (WT, replicate 6)"
+    },
+    "artifacts/c084.xlsx#Fig7g!C9": {
+      "value": 0.80106988,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', C9 (R175H, replicate 6)"
+    },
+    "artifacts/c084.xlsx#Fig7g!B10": {
+      "value": null,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', B10 (WT, replicate 7)"
+    },
+    "artifacts/c084.xlsx#Fig7g!C10": {
+      "value": null,
+      "source_artifact": "artifacts/c084.xlsx",
+      "source_artifact_hash": "3ed87b6d10a4d83f7460700ac27e53a8e1e09e47c0643ea25de5b8051b223c4a",
+      "source_span": "sheet 'Fig7g', C10 (R175H, replicate 7)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "natcomm_crisprmut_ann_clean",
+      "claim_id": "natcomm_crisprmut_claim_clean",
+      "claim_atom": "Fig7g: WT and R175H groups are independent measurements.",
+      "source_artifact": "artifacts/c084.xlsx#Fig7g!B4",
+      "target_artifact": "artifacts/c084.xlsx#Fig7g!C4",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-24T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "B4(WT)=0.89813237 vs C4(R175H)=1.42569627",
+        "B5(WT)=1.11342162 vs C5(R175H)=0.85559503",
+        "B6(WT)=0.90229223 vs C6(R175H)=1.32408891",
+        "B7(WT)=1.10828839 vs C7(R175H)=0.84576768",
+        "B8(WT)=0.89502507 vs C8(R175H)=1.33792755",
+        "B9(WT)=1.11728714 vs C9(R175H)=0.80106988",
+        "B10(WT)=None vs C10(R175H)=None"
+      ],
+      "_adjudication": "consistent(clean): Fig7g WT (B4:B10) vs R175H (C4:C10) 7 rep 值不同.",
+      "source_a1_range": "B4:B10",
+      "target_a1_range": "C4:C10"
+    }
+  ],
+  "metadata": {
+    "paper_split": "natcomm_crisprmut",
+    "split": "e1_pilot",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41588-024-02039-4",
+    "discovery_method": "reproducibility-literature",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
+    "_lane": "E1 fresh pilot clean case. CNS-* medgebench task source.",
+    "_signed_by": "wuguandu @ 2026-07-24; CNS-* medgebench source."
+  }
+}

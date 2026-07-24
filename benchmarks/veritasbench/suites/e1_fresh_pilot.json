@@ -5,7 +5,9 @@
   "case_ids": [
     "cell_gutmicrobiota",
     "nat_gutmetabolite",
+    "natcomm_crisprmut",
     "natcomm_gliomaox",
+    "natcomm_preeclam",
     "natcomm_singlecell",
     "ncb_il17a",
     "ncb_sphingo",

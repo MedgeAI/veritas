@@ -1,0 +1,159 @@
+{
+  "case_id": "natcomm_preeclam",
+  "paper_title": "Preeclampsia nucleosome profiling across tissues",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "c028": {
+      "path": "artifacts/c028.xlsx",
+      "sha256": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "cf8bd031400962f98c64339127067c8cebb8983f0f676b58aba3be598fb3c81e",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!B2": {
+      "value": 0.886235999999999,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', B2 (Non-Pregnant, replicate 1)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!C2": {
+      "value": 0.89598430962343,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', C2 (Trisomy 1, replicate 1)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!B3": {
+      "value": 0.982806,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', B3 (Non-Pregnant, replicate 2)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!C3": {
+      "value": 0.977884435146443,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', C3 (Trisomy 1, replicate 2)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!B4": {
+      "value": 0.9989855,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', B4 (Non-Pregnant, replicate 3)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!C4": {
+      "value": 1.00845744769874,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', C4 (Trisomy 1, replicate 3)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!B5": {
+      "value": 1.0127685,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', B5 (Non-Pregnant, replicate 4)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!C5": {
+      "value": 1.02317510460251,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', C5 (Trisomy 1, replicate 4)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!B6": {
+      "value": 1.013959,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', B6 (Non-Pregnant, replicate 5)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!C6": {
+      "value": 0.952228870292886,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', C6 (Trisomy 1, replicate 5)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!B7": {
+      "value": 1.0161755,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', B7 (Non-Pregnant, replicate 6)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!C7": {
+      "value": 1.02809092050209,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', C7 (Trisomy 1, replicate 6)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!B8": {
+      "value": 1.0230275,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', B8 (Non-Pregnant, replicate 7)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!C8": {
+      "value": 1.03505514644351,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', C8 (Trisomy 1, replicate 7)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!B9": {
+      "value": 1.0390455,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', B9 (Non-Pregnant, replicate 8)"
+    },
+    "artifacts/c028.xlsx#Figure_2B_Nucleosome!C9": {
+      "value": 1.04582577405857,
+      "source_artifact": "artifacts/c028.xlsx",
+      "source_artifact_hash": "d4391e794dbc2bc25581a1ab6cb543eed667865537bdad5236b6c9dffaf827d1",
+      "source_span": "sheet 'Figure_2B_Nucleosome', C9 (Trisomy 1, replicate 8)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "natcomm_preeclam_ann_clean",
+      "claim_id": "natcomm_preeclam_claim_clean",
+      "claim_atom": "Figure_2B_Nucleosome: Non-Pregnant and Trisomy 1 groups are independent measurements.",
+      "source_artifact": "artifacts/c028.xlsx#Figure_2B_Nucleosome!B2",
+      "target_artifact": "artifacts/c028.xlsx#Figure_2B_Nucleosome!C2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-24T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "B2(Non-Pregnant)=0.886235999999999 vs C2(Trisomy 1)=0.89598430962343",
+        "B3(Non-Pregnant)=0.982806 vs C3(Trisomy 1)=0.977884435146443",
+        "B4(Non-Pregnant)=0.9989855 vs C4(Trisomy 1)=1.00845744769874",
+        "B5(Non-Pregnant)=1.0127685 vs C5(Trisomy 1)=1.02317510460251",
+        "B6(Non-Pregnant)=1.013959 vs C6(Trisomy 1)=0.952228870292886",
+        "B7(Non-Pregnant)=1.0161755 vs C7(Trisomy 1)=1.02809092050209",
+        "B8(Non-Pregnant)=1.0230275 vs C8(Trisomy 1)=1.03505514644351",
+        "B9(Non-Pregnant)=1.0390455 vs C9(Trisomy 1)=1.04582577405857"
+      ],
+      "_adjudication": "consistent(clean): Figure_2B_Nucleosome Non-Pregnant (B2:B9) vs Trisomy 1 (C2:C9) 8 rep 值不同.",
+      "source_a1_range": "B2:B9",
+      "target_a1_range": "C2:C9"
+    }
+  ],
+  "metadata": {
+    "paper_split": "natcomm_preeclam",
+    "split": "e1_pilot",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41591-025-03509-w",
+    "discovery_method": "reproducibility-literature",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
+    "_lane": "E1 fresh pilot clean case. CNS-* medgebench task source.",
+    "_signed_by": "wuguandu @ 2026-07-24; CNS-* medgebench source."
+  }
+}
