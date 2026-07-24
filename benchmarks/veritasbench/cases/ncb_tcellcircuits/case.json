@@ -1,0 +1,289 @@
+{
+  "case_id": "ncb_tcellcircuits",
+  "paper_title": "Central control of dynamic gene circuits governs T cell rest and activation",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "41586_2024_8314_moesm10": {
+      "path": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "sha256": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "2faea46a6579e9e8083aeb37c9bcf6cc9d59be2153c4cb1d4bcbcc71478f164c",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B2": {
+      "value": -0.620099178251266,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B2 (L2FC of CD25, gene 1)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C2": {
+      "value": -1.5074,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C2 (L2FC of high ontology, gene 1)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B3": {
+      "value": "0.5458033525615972",
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B3 (L2FC of CD25, gene 2)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C3": {
+      "value": 0.52973,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C3 (L2FC of high ontology, gene 2)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B4": {
+      "value": "0.1153895654521945",
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B4 (L2FC of CD25, gene 3)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C4": {
+      "value": 1.1859,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C4 (L2FC of high ontology, gene 3)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B5": {
+      "value": "0.12504925224297653",
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B5 (L2FC of CD25, gene 4)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C5": {
+      "value": -0.5276,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C5 (L2FC of high ontology, gene 4)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B6": {
+      "value": -0.822840535511186,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B6 (L2FC of CD25, gene 5)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C6": {
+      "value": -1.6704,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C6 (L2FC of high ontology, gene 5)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B7": {
+      "value": -0.7836429446381,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B7 (L2FC of CD25, gene 6)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C7": {
+      "value": -2.0046,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C7 (L2FC of high ontology, gene 6)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B8": {
+      "value": -0.174459362811839,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B8 (L2FC of CD25, gene 7)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C8": {
+      "value": -0.023642,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C8 (L2FC of high ontology, gene 7)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B9": {
+      "value": -0.137462830003626,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B9 (L2FC of CD25, gene 8)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C9": {
+      "value": -1.1984,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C9 (L2FC of high ontology, gene 8)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B10": {
+      "value": -0.1272040185152,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B10 (L2FC of CD25, gene 9)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C10": {
+      "value": -0.89675,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C10 (L2FC of high ontology, gene 9)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B11": {
+      "value": -0.757540156966579,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B11 (L2FC of CD25, gene 10)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C11": {
+      "value": -1.0841,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C11 (L2FC of high ontology, gene 10)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B12": {
+      "value": -0.222745148561088,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B12 (L2FC of CD25, gene 11)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C12": {
+      "value": -0.40999,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C12 (L2FC of high ontology, gene 11)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B13": {
+      "value": -0.13469022158896,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B13 (L2FC of CD25, gene 12)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C13": {
+      "value": -0.7211,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C13 (L2FC of high ontology, gene 12)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B14": {
+      "value": 0.0342614957218031,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B14 (L2FC of CD25, gene 13)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C14": {
+      "value": 0.58085,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C14 (L2FC of high ontology, gene 13)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B15": {
+      "value": "0.6651651112082029",
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B15 (L2FC of CD25, gene 14)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C15": {
+      "value": 1.4349,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C15 (L2FC of high ontology, gene 14)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B16": {
+      "value": -0.700083686773761,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B16 (L2FC of CD25, gene 15)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C16": {
+      "value": -2.348,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C16 (L2FC of high ontology, gene 15)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B17": {
+      "value": -0.628756503688388,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B17 (L2FC of CD25, gene 16)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C17": {
+      "value": -1.2879,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C17 (L2FC of high ontology, gene 16)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B18": {
+      "value": -0.295296814498556,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B18 (L2FC of CD25, gene 17)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C18": {
+      "value": -1.1789,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C18 (L2FC of high ontology, gene 17)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B19": {
+      "value": "0.6289932028048294",
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', B19 (L2FC of CD25, gene 18)"
+    },
+    "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C19": {
+      "value": 2.5665,
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx",
+      "source_artifact_hash": "c490a68ff7021d56f0c428ef33211f51e8f749f453c96316a90cb42d7f578ad6",
+      "source_span": "sheet 'Extended_data_fig_2b_Treg_val', C19 (L2FC of high ontology, gene 18)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "ncb_tcellcircuits_ann_clean",
+      "claim_id": "ncb_tcellcircuits_claim_clean",
+      "claim_atom": "Extended Data Figure 2b: L2FC of CD25 and L2FC of high ontology are independent measurements of gene perturbation effects in Tregs.",
+      "source_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!B2",
+      "target_artifact": "artifacts/41586_2024_8314_MOESM10_ESM.xlsx#Extended_data_fig_2b_Treg_val!C2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-24T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "B2(CD25)=-0.620099178251266 vs C2(high)=-1.5074",
+        "B3(CD25)=0.5458033525615972 vs C3(high)=0.52973",
+        "B4(CD25)=0.1153895654521945 vs C4(high)=1.1859",
+        "B5(CD25)=0.12504925224297653 vs C5(high)=-0.5276",
+        "B6(CD25)=-0.822840535511186 vs C6(high)=-1.6704",
+        "B7(CD25)=-0.7836429446381 vs C7(high)=-2.0046",
+        "B8(CD25)=-0.174459362811839 vs C8(high)=-0.023642",
+        "B9(CD25)=-0.137462830003626 vs C9(high)=-1.1984",
+        "B10(CD25)=-0.1272040185152 vs C10(high)=-0.89675",
+        "B11(CD25)=-0.757540156966579 vs C11(high)=-1.0841",
+        "B12(CD25)=-0.222745148561088 vs C12(high)=-0.40999",
+        "B13(CD25)=-0.13469022158896 vs C13(high)=-0.7211",
+        "B14(CD25)=0.0342614957218031 vs C14(high)=0.58085",
+        "B15(CD25)=0.6651651112082029 vs C15(high)=1.4349",
+        "B16(CD25)=-0.700083686773761 vs C16(high)=-2.348",
+        "B17(CD25)=-0.628756503688388 vs C17(high)=-1.2879",
+        "B18(CD25)=-0.295296814498556 vs C18(high)=-1.1789",
+        "B19(CD25)=0.6289932028048294 vs C19(high)=2.5665"
+      ],
+      "_adjudication": "consistent(clean): Extended Data Fig 2b L2FC_CD25 (B2:B19) vs L2FC_high (C2:C19) 18 gene 值明显不同, 为真独立 metric 测量.",
+      "source_a1_range": "B2:B19",
+      "target_a1_range": "C2:C19"
+    }
+  ],
+  "metadata": {
+    "paper_split": "ncb_tcellcircuits",
+    "split": "e1_pilot",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41586-024-08314-y",
+    "discovery_method": "reproducibility-literature",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
+    "_lane": "E1 fresh pilot clean case (expanded). Nature 2024 T cell gene circuits CRISPR screen. Extended Data Fig 2b L2FC_CD25 vs L2FC_high 两 metric range 值不同. CNS-* medgebench task source (small xlsx 49KB + paper_pdf).",
+    "_signed_by": "wuguandu @ 2026-07-24; Nature source data xlsx (MOESM10) + paper_pdf via CNS-034 tcell_gene_circuits dir, openpyxl 核对 L2FC_CD25 vs L2FC_high 值不同."
+  }
+}
