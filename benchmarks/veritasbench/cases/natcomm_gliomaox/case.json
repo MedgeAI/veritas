@@ -1,0 +1,94 @@
+{
+  "case_id": "natcomm_gliomaox",
+  "paper_title": "Multi-omics and pharmacological characterization of patient-derived glioma cell lines",
+  "paper_authors": [
+    "(see source_url)"
+  ],
+  "artifacts": {
+    "41467_2024_51214_moesm5": {
+      "path": "artifacts/41467_2024_51214_MOESM5_ESM.xlsx",
+      "sha256": "496ab9207e24e5d454d9a124a1ddaad54e05893b9a8bca2117dfc100f731e6ed",
+      "kind": "source_data"
+    },
+    "paper_main_pdf": {
+      "path": "artifacts/paper_main.pdf",
+      "sha256": "a59ac3a3acddd124c0d0a87072ed356e1a4f1f18fd0a17bf5815a98a9eddce16",
+      "kind": "paper_pdf"
+    }
+  },
+  "observations": {
+    "artifacts/41467_2024_51214_MOESM5_ESM.xlsx#Fig. 5E!A2": {
+      "value": 0.950168,
+      "source_artifact": "artifacts/41467_2024_51214_MOESM5_ESM.xlsx",
+      "source_artifact_hash": "496ab9207e24e5d454d9a124a1ddaad54e05893b9a8bca2117dfc100f731e6ed",
+      "source_span": "sheet 'Fig. 5E', A2 (DMSO vehicle control, replicate 1)"
+    },
+    "artifacts/41467_2024_51214_MOESM5_ESM.xlsx#Fig. 5E!B2": {
+      "value": 1.336684,
+      "source_artifact": "artifacts/41467_2024_51214_MOESM5_ESM.xlsx",
+      "source_artifact_hash": "496ab9207e24e5d454d9a124a1ddaad54e05893b9a8bca2117dfc100f731e6ed",
+      "source_span": "sheet 'Fig. 5E', B2 (Rotenone 1μM treatment, replicate 1)"
+    },
+    "artifacts/41467_2024_51214_MOESM5_ESM.xlsx#Fig. 5E!A3": {
+      "value": 1.02439,
+      "source_artifact": "artifacts/41467_2024_51214_MOESM5_ESM.xlsx",
+      "source_artifact_hash": "496ab9207e24e5d454d9a124a1ddaad54e05893b9a8bca2117dfc100f731e6ed",
+      "source_span": "sheet 'Fig. 5E', A3 (DMSO vehicle control, replicate 2)"
+    },
+    "artifacts/41467_2024_51214_MOESM5_ESM.xlsx#Fig. 5E!B3": {
+      "value": 1.374883,
+      "source_artifact": "artifacts/41467_2024_51214_MOESM5_ESM.xlsx",
+      "source_artifact_hash": "496ab9207e24e5d454d9a124a1ddaad54e05893b9a8bca2117dfc100f731e6ed",
+      "source_span": "sheet 'Fig. 5E', B3 (Rotenone 1μM treatment, replicate 2)"
+    },
+    "artifacts/41467_2024_51214_MOESM5_ESM.xlsx#Fig. 5E!A4": {
+      "value": 1.025442,
+      "source_artifact": "artifacts/41467_2024_51214_MOESM5_ESM.xlsx",
+      "source_artifact_hash": "496ab9207e24e5d454d9a124a1ddaad54e05893b9a8bca2117dfc100f731e6ed",
+      "source_span": "sheet 'Fig. 5E', A4 (DMSO vehicle control, replicate 3)"
+    },
+    "artifacts/41467_2024_51214_MOESM5_ESM.xlsx#Fig. 5E!B4": {
+      "value": 1.383952,
+      "source_artifact": "artifacts/41467_2024_51214_MOESM5_ESM.xlsx",
+      "source_artifact_hash": "496ab9207e24e5d454d9a124a1ddaad54e05893b9a8bca2117dfc100f731e6ed",
+      "source_span": "sheet 'Fig. 5E', B4 (Rotenone 1μM treatment, replicate 3)"
+    }
+  },
+  "claims": [
+    {
+      "annotation_id": "natcomm_gliomaox_ann_clean",
+      "claim_id": "natcomm_gliomaox_claim_clean",
+      "claim_atom": "Figure 5E: DMSO vehicle control and Rotenone (1μM) treatment are independent measurements of mitochondrial activity in patient-derived glioma cell lines.",
+      "source_artifact": "artifacts/41467_2024_51214_MOESM5_ESM.xlsx#Fig. 5E!A2",
+      "target_artifact": "artifacts/41467_2024_51214_MOESM5_ESM.xlsx#Fig. 5E!B2",
+      "relation_type": "L1",
+      "verdict": "consistent",
+      "discrepancy_type": null,
+      "evidence_span": "L1:source_data->source_data",
+      "severity": "low",
+      "annotator_id": "wuguandu",
+      "annotation_timestamp": "2026-07-24T00:00:00Z",
+      "is_clean_claim": true,
+      "_reproduction": [
+        "A2(DMSO)=0.950168 vs B2(Rotenone)=1.336684",
+        "A3(DMSO)=1.02439 vs B3(Rotenone)=1.374883",
+        "A4(DMSO)=1.025442 vs B4(Rotenone)=1.383952"
+      ],
+      "_adjudication": "consistent(clean): Fig 5E DMSO (A2:A4) vs Rotenone (B2:B4) 3 rep 值明显不同, 为真独立 treatment 测量.",
+      "source_a1_range": "A2:A4",
+      "target_a1_range": "B2:B4"
+    }
+  ],
+  "metadata": {
+    "paper_split": "natcomm_gliomaox",
+    "split": "e1_pilot",
+    "primary_failure_mode": "grounding",
+    "secondary_failure_modes": [],
+    "source_url": "https://doi.org/10.1038/s41467-024-51214-y",
+    "discovery_method": "reproducibility-literature",
+    "discovery_method_confidence": "family-level",
+    "detector_surfaced_by_b3": false,
+    "_lane": "E1 fresh pilot clean case (expanded). Nature Communications 2024 multi-omics glioma. Fig 5E DMSO vs Rotenone 3 rep 值不同 (clean). CNS-* medgebench task source.",
+    "_signed_by": "wuguandu @ 2026-07-24; Nature Comm source data xlsx (MOESM5) + paper_pdf via CNS-090, openpyxl 核对 DMSO vs Rotenone 值不同."
+  }
+}
